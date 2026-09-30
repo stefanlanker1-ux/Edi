@@ -130,15 +130,21 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
     if (!ctx) return;
     let raf = 0, frame = 0, dpr = 1;
     const minis = new Map<string, HTMLCanvasElement>();
-    // gezeichnete Lage je Teilchen (folgt der gerechneten Lage weich nach)
-    const shown = new Map<number, [number, number]>();
-    const at = (p: { id: number; x: number; y: number }): [number, number] => shown.get(p.id) ?? [p.x, p.y];
-    const glide = (a: number) => {
+    // gezeichnete Lage je Teilchen: folgt der gerechneten Lage wie an einer gedämpften Feder (kritisch gedämpft) –
+    // glättet das Zittern der Stöße, ohne nachzuschwingen; in der Lupe (8-fach vergrößert) wichtig
+    const shown = new Map<number, [number, number, number, number]>();
+    const at = (p: { id: number; x: number; y: number }): [number, number] => { const s = shown.get(p.id); return s ? [s[0], s[1]] : [p.x, p.y]; };
+    const glide = (dt: number) => {
+      // je 1/60 s ein Federschritt (auf langsamen Geräten mehrere pro Bild) – gleich weich bei 30, 60 und 120 Hz
+      const n = Math.max(1, Math.round(dt / STEP)), om = .55 * Math.min(1, dt / STEP), k1 = om * om, k2 = 2 * om;
       for (const p of worldRef.current.ps) {
         const s = shown.get(p.id);
         // große Sprünge (neue Anfangslage) sofort übernehmen
-        if (!s || Math.abs(p.x - s[0]) + Math.abs(p.y - s[1]) > 8 * worldRef.current.rc) shown.set(p.id, [p.x, p.y]);
-        else { s[0] += (p.x - s[0]) * a; s[1] += (p.y - s[1]) * a; }
+        if (!s || Math.abs(p.x - s[0]) + Math.abs(p.y - s[1]) > 8 * worldRef.current.rc) { shown.set(p.id, [p.x, p.y, 0, 0]); continue; }
+        for (let i = 0; i < n; i++) {
+          s[2] += (p.x - s[0]) * k1 - s[2] * k2; s[3] += (p.y - s[1]) * k1 - s[3] * k2;
+          s[0] += s[2]; s[1] += s[3];
+        }
       }
     };
 
@@ -323,7 +329,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       while (acc >= STEP && n < 4) { stepFlow(worldRef.current); onFrameRef.current?.(); acc -= STEP; n++; }
       if (n === 4) acc = 0;
       if (frame % 30 === 0) readColors();
-      glide(1 - Math.pow(.45, dt / STEP));
+      glide(dt);
       const lk = 1 - Math.pow(.7, dt / STEP), [lx, ly] = lens.current, [tx, ty] = lensTo.current;
       lens.current = [lx + (tx - lx) * lk, ly + (ty - ly) * lk];
       draw();

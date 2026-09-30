@@ -413,11 +413,11 @@ export function stepFlow(w: World) {
     // Wärmebewegung (mit der Temperatur) plus Schütteln/Umrühren; Geschwindigkeit ändert sich nur allmählich (fließend).
     // Große Moleküle (Zucker) bewegen sich langsamer.
     const kick = (.29 * hf + (w.shake > 0 ? 1 : 1.35) * w.agit) / Math.sqrt(sizeOf(p.f));
-    p.vx = p.vx * .93 + (r() - .5) * kick;
+    p.vx = p.vx * .96 + (r() - .5) * kick * 0.76;
     // Auftrieb nur für Teilchen auf der falschen Seite der Grenze: Öl darunter steigt, Wasser darüber sinkt
     // (in der eigenen Schicht wirkt nichts – so wird nichts zusammengedrückt)
     const buoy = !w.floats.length || w.agit > .3 ? 0 : w.floats.includes(p.f) ? (p.y > line - rc ? -.09 : 0) : (p.y < line + rc ? .09 : 0);
-    p.vy = p.vy * .93 + (r() - .5) * kick + buoy;
+    p.vy = p.vy * .96 + (r() - .5) * kick * 0.76 + buoy;
     if (w.agit > .01 && p.y < floor) {
       // Umrühren (und Schütteln): Strömung, die überall gleich dicht bleibt und nie gegen die Wand drückt (Stromfunktion
       // ψ = sin(πx) · sin(πy) bzw. zwei Walzen sin(2πx) · sin(πy)); beide wechseln fließend ab – so wird durchmischt, nicht nur gedreht
