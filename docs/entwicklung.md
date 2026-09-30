@@ -116,10 +116,11 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Keine Sprünge (Messwerte je Beispiel, siehe Tests): Trennung überlappender Teilchen höchstens ein Drittel Radius je Runde, Geschwindigkeit in der Flüssigkeit begrenzt,
   eben gelöste Teilchen (Kristall, CO₂) gleiten hinaus bzw. hinein (`leave`), jede Flüssigkeit wird vor dem ersten Bild entwirrt (`settle`).
   **Öl** (`LONG`): Dodecan stößt als Stab mit runden Enden (Kapsel, `shape`/`closest`/`push`), dreht sich bei Stößen und an der Wand – Ketten kreuzen sich nie.
+  Öl zieht Öl leicht an (Abstand bis 1,5 Stoßradien, beim Schütteln schwächer) – geschüttelt entstehen Tröpfchen, die sich wieder zur Schicht sammeln.
   **Gase**: „Wand weg“ zieht die Trennwand in knapp 1 s hoch (`wallEnd`), die Gase strömen unten durch. **Schmelze** im warm hinterlegten Tiegel.
   Reduzierte Bewegung: Knopf rechnet bis zum Endzustand (gelöst bzw. gleichmäßig gemischt).
   **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C): Teilchengeschwindigkeit im Modell verstärkt (`heat`: 0 °C × 0,5, 20 °C × 1, 100 °C × 3; echt wären nur + 17 %),
-  Kristall und CO₂ lösen sich warm schneller. Tests: Teilchenzahl bleibt, keine Sprünge, gleichmäßig gemischt, Kristall geordnet und von außen gelöst, Öl wieder oben,
+  Kristall und CO₂ lösen sich warm schneller. Tests: Teilchenzahl bleibt, keine Sprünge, gleichmäßig gemischt, Kristall geordnet und von außen gelöst, Öl bildet geschüttelt Tröpfchen und ist danach wieder oben,
   Gase mischen sich nur ohne Trennwand, Messing wieder im Gitter. Ohne Bewegung (reduzierte Bewegung): Knopf zeigt gleich das Ergebnis.
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Farben („nur im Modell“) | Einteilung (Stoffe → Reinstoffe/Gemische mit allen
   Beispielen) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.

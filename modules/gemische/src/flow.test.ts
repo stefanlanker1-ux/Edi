@@ -140,6 +140,22 @@ test("Öl und Wasser: nach dem Schütteln gemischt, danach wieder getrennt (Öl 
   }
 }, 60_000);
 
+test("Öl und Wasser: geschüttelt entstehen Tröpfchen (Öl hat mehr Öl als Nachbarn, als es der Zufall ergäbe)", () => {
+  for (let seed = 1; seed <= 3; seed++) {
+    const w = makeWorld(ex("oel"), seed);
+    shakeWorld(w);
+    for (let k = 0; k < 200; k++) stepFlow(w);
+    const oil = w.ps.filter(p => p.f === "C12H26"), share = oil.length / w.ps.length;
+    let same = 0, all = 0;
+    for (const p of oil) for (const q of w.ps) {
+      if (q === p || Math.hypot(q.x - p.x, q.y - p.y) > 4 * w.rc) continue;
+      all++; if (q.f === "C12H26") same++;
+    }
+    assert.ok(oilOnTop(w) < .9, "noch nicht wieder getrennt");
+    assert.ok(same / all > share * 2.8, `keine Tröpfchen (${(same / all).toFixed(2)} bei Anteil ${share.toFixed(2)})`);
+  }
+});
+
 test("Gase: Trennwände halten die Teilchen zurück; ohne Wände mischen sie sich", () => {
   for (const id of ["schutzgas", "erdgas", "modell"]) {
     const e = ex(id), w = makeWorld(e, 3, "vorher");

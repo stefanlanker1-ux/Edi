@@ -451,7 +451,7 @@ export function stepFlow(w: World) {
     // Öl: Ölmoleküle ziehen sich schwach an, Wasser und Öl stoßen sich etwas stärker ab (wasserabweisend) –
     // so bilden sich beim Schütteln Tröpfchen (Emulsion), die sich danach zusammenschließen und aufsteigen
     const oily = w.floats.length > 0, isOil = (p: FP) => w.floats.includes(p.f);
-    const pull = .05 * (1 - .7 * w.agit);
+    const pull = .09 * (1 - .6 * w.agit);
     const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI) * (oily ? 1.5 : 1));
     for (const p of liquid) near(p, q => {
       if (q.id < p.id) return;
