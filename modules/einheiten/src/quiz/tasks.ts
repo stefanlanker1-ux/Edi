@@ -276,7 +276,7 @@ export const LEVELS: Level[] = [
   { id: "n2", name: "Beliebige Zahlen", desc: "1,5 g = 0,0015 kg · 3,45 m = 345 cm", types: ["k_len", "k_mass", "k_lit", "k_pre", "k_rule", "k_compare"] },
   { id: "n3", name: "Flächen", desc: "m² → dm²: · 10 · 10 = · 100", types: ["f_p10", "f_num", "f_factor", "f_ha", "f_compare", "f_est"] },
   { id: "n4", name: "Volumen", desc: "m³ → dm³: · 10 · 10 · 10 · 1 l = 1 dm³", types: ["v_p10", "v_num", "v_factor", "v_liter", "v_compare", "v_est"] },
-  { id: "n5", name: "Zusammengesetzte Einheiten", desc: "h → s · km/h → m/s · g/cm³ → kg/m³ · bar", types: ["c_time", "c_num", "c_den", "c_both", "c_named", "c_factor"] },
+  { id: "n5", name: "Zusammengesetzt", desc: "h → s · km/h → m/s · g/cm³ → kg/m³ · bar", types: ["c_time", "c_num", "c_den", "c_both", "c_named", "c_factor"] },
 ];
 
 /** Das Quiz hat keine Stufen – ein Schlüssel für Spielstand und Fortschritt */

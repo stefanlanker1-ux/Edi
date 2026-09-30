@@ -1,5 +1,5 @@
 // Periodensystem (Werkbank): das ganze PSE ist immer sichtbar, darüber die Suche.
-// Werkzeuge: Element (Steckbrief des gewählten Elements) und Farben (Kategorien bzw. Trends in der Oberstufe).
+// Werkzeuge: Element (Steckbrief des gewählten Elements) und Farben (Kategorien; Oberstufe auch Blöcke s/p/d/f und Trends).
 
 import { useEffect, useState } from "react";
 import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, useReducedMotion } from "@lern/ui";
@@ -9,7 +9,7 @@ import {
   ELEMENTS, TRENDS, trendScale, type Category, type TrendKey,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
-import { PeriodicTable, Legend } from "@lern/chem-ui";
+import { PeriodicTable, Legend, BlockLegend } from "@lern/chem-ui";
 import { SearchBox } from "../components/ElementPicker.tsx";
 import { Bohr, Nuclide, EnergyDiagram } from "@lern/chem-ui";
 
@@ -19,8 +19,9 @@ export function ExploreView() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<Category | null>(null);
   const [tool, setTool] = useState<string | null>(null);
-  const [color, setColor] = useState<"cat" | TrendKey>("cat");
-  const trend = stufe === "os" && color !== "cat" ? { key: color, scale: trendScale(color, ELEMENTS.map(e => e.Z)) } : undefined;
+  const [color, setColor] = useState<"cat" | "blk" | TrendKey>("cat");
+  const blocks = stufe === "os" && color === "blk";
+  const trend = stufe === "os" && color !== "cat" && color !== "blk" ? { key: color, scale: trendScale(color, ELEMENTS.map(e => e.Z)) } : undefined;
   const hits = new Set(searchElements(q, maxZFor(stufe)).map(e => e.Z));
   const Z = selectedZ > maxZFor(stufe) ? 6 : selectedZ;
 
@@ -30,15 +31,15 @@ export function ExploreView() {
   const colors = (
     <>
       {stufe === "os" && (
-        <Segmented<"cat" | TrendKey> label="Färben nach" value={color} onChange={setColor}
-          options={[{ value: "cat", label: "Kategorien", short: "Art" }, ...(Object.keys(TRENDS) as TrendKey[]).map(k => ({ value: k, label: TRENDS[k].label, short: TRENDS[k].short }))]} />
+        <Segmented<"cat" | "blk" | TrendKey> label="Färben nach" value={color} onChange={setColor}
+          options={[{ value: "cat", label: "Kategorien", short: "Art" }, { value: "blk", label: "Blöcke", short: "Block" }, ...(Object.keys(TRENDS) as TrendKey[]).map(k => ({ value: k, label: TRENDS[k].label, short: TRENDS[k].short }))]} />
       )}
       {trend
         ? <div className="trend-legend">
             <div className="tl-scale"><span>niedrig</span><i /><span>hoch</span></div>
             <p><b>{TRENDS[trend.key].label}{TRENDS[trend.key].unit && ` (${TRENDS[trend.key].unit})`}</b></p>
           </div>
-        : <Legend stufe={stufe} active={cat} onToggle={c => setCat(cat === c ? null : c)} />}
+        : blocks ? <BlockLegend /> : <Legend stufe={stufe} active={cat} onToggle={c => setCat(cat === c ? null : c)} />}
     </>
   );
 
@@ -47,15 +48,15 @@ export function ExploreView() {
       head={<SearchBox value={q} onChange={setQ} placeholder="Element suchen …" onEnter={() => { const h = searchElements(q, maxZFor(stufe))[0]; if (h) pick(h.Z); }} />}
       stage={
         <div className="pse-fit">
-          <PeriodicTable fit stufe={stufe} onPick={pick} trend={trend} cellState={z => {
+          <PeriodicTable fit stufe={stufe} onPick={pick} trend={trend} blocks={blocks} cellState={z => {
             const e = BY_Z[z];
             if (hits.size) return hits.has(z) ? "hit" : "dim";
-            if (cat && !trend && e.category !== cat) return "dim";
+            if (cat && !trend && !blocks && e.category !== cat) return "dim";
             return z === Z ? "sel" : undefined;
           }} />
         </div>
       }
-      status={trend ? <Tag>{TRENDS[trend.key].label}</Tag> : cat ? <Tag>{CATEGORIES[cat].label}</Tag> : undefined}
+      status={trend ? <Tag>{TRENDS[trend.key].label}</Tag> : blocks ? <Tag>s · p · d · f</Tag> : cat ? <Tag>{CATEGORIES[cat].label}</Tag> : undefined}
       tools={[
         { id: "element", label: BY_Z[Z].name, icon: "atom", title: "Steckbrief", content: <ElementDetail Z={Z} onAction={() => setTool(null)} /> },
         { id: "farben", label: "Farben", icon: "grid", content: colors },

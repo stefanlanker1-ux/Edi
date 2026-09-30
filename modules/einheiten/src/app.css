@@ -293,3 +293,5 @@
 .tb-u b { font-size: clamp(1.9rem, 9cqw, 2.6rem); font-weight: 800; white-space: nowrap; }
 .tb-u span { font-size: .8rem; color: var(--muted); max-width: 11em; }
 .tb-arrow { font-size: 1.6rem; color: var(--faint); }
+/* nach dem Antworten braucht die Rückmeldung den Platz */
+.task-card.answered .q-visual:has(.tb) { display: none; }

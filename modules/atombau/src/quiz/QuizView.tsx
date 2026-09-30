@@ -11,6 +11,9 @@ import { AnswerArea, solutionText } from "./answers.tsx";
 import { ExplainCard, explainLevelId } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
 
+/** Aufgaben zu Elektronen in s-, p-, d-, f-Orbitalen: PSE nach Blöcken gefärbt (nicht bei „In welchem Block?“ – dort wäre es die Lösung) */
+const BLOCK_TYPES = ["config", "short", "boxes", "unpaired", "ionConfig", "isoelectronic", "fromConfig", "periodGroup"];
+
 /** Hilfsmittel: Periodensystem (Angaben wie auf einem gedruckten PSE), Elemente aus der Aufgabe markiert (nicht bei „Finde im PSE“) */
 function toolsFor(t: Task, stufe: Stufe): QuizTool[] {
   if (t.kind === "pse") return [];
@@ -18,7 +21,7 @@ function toolsFor(t: Task, stufe: Stufe): QuizTool[] {
   if (t.kind === "build") mark.push(t.target.Z);
   // sichtbares Atomsymbol (nicht bei Lückentext und nicht beim Bohrmodell „Welches Element ist das?“)
   if (t.visual?.kind === "nuclide" && !t.visual.blank) mark.push(t.visual.Z);
-  return [pseTool({ stufe, mark })];
+  return [pseTool({ stufe, mark, blocks: stufe === "os" && BLOCK_TYPES.includes(t.type ?? "") })];
 }
 
 export function QuizView() {

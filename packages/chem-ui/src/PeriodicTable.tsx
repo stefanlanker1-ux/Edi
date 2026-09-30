@@ -1,7 +1,8 @@
 // Periodensystem (gemeinsam für alle Chemie-Apps). Unterstufe: Hauptgruppen I–VIII bis Calcium. Oberstufe: Langperiodensystem bis Radon.
 // `sub` zeigt statt des Namens eine Zusatzangabe je Element (z. B. Ionenladung oder Außenelektronen).
+// `blocks` färbt nach s-, p-, d- und f-Block (Elektronenkonfiguration) statt nach Kategorien.
 
-import { ELEMENTS, CATEGORIES, TRENDS, mainGroupNumber, ROMAN, type Category, type TrendKey } from "@lern/chem";
+import { ELEMENTS, CATEGORIES, TRENDS, blockOf, mainGroupNumber, ROMAN, type Category, type TrendKey } from "@lern/chem";
 import type { ReactNode } from "react";
 
 type Stufe = "us" | "os";
@@ -11,8 +12,9 @@ export type CellState = "sel" | "dim" | "hit" | "right" | "wrong" | undefined;
 /** Trend-Ansicht: Zellen nach einem Wert einfärben (0 = niedrig, 1 = hoch, null = kein Wert) */
 export interface TrendView { key: TrendKey; scale: (Z: number) => number | null }
 
-export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled = false, trend, sub, fit = false }: {
+export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled = false, trend, sub, fit = false, blocks = false }: {
   stufe: Stufe; onPick?: (Z: number) => void; cellState?: (Z: number) => CellState; names?: boolean; disabled?: boolean; trend?: TrendView;
+  blocks?: boolean;
   sub?: (Z: number) => ReactNode;
   /** in den verfügbaren Platz einpassen (Eltern-Element mit `container-type: size`, z. B. `.pse-fit`) – nie seitlich scrollen */
   fit?: boolean;
@@ -36,7 +38,7 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
         const val = trend ? TRENDS[trend.key].value(e.Z) : null;
         const bg = t === undefined ? undefined : t === null ? "var(--surface-2)" : `color-mix(in srgb, var(--trend-hi) ${Math.round(t * 100)}%, var(--trend-lo))`;
         return (
-          <button key={e.Z} type="button" className={`pse-cell ${trend ? "trend" : `cat-${e.category}`}${t !== undefined && t !== null && t > 0.55 ? " on-dark" : ""}${st ? ` ${st}` : ""}`}
+          <button key={e.Z} type="button" className={`pse-cell ${trend ? "trend" : blocks ? `blk-${blockOf(e.Z)}` : `cat-${e.category}`}${t !== undefined && t !== null && t > 0.55 ? " on-dark" : ""}${st ? ` ${st}` : ""}`}
             style={{ gridColumn: col, gridRow: row, background: bg }} disabled={disabled} aria-pressed={st === "sel" || undefined}
             aria-label={`${e.name}, Ordnungszahl ${e.Z}${trend ? `, ${TRENDS[trend.key].label} ${val ?? "unbekannt"}` : ""}`} onClick={() => onPick?.(e.Z)}>
             <span className="pc-z">{e.Z}</span>
@@ -49,7 +51,7 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
       })}
       {!us && (
         <>
-          <div className={`pse-cell pse-ph ${trend ? "trend" : "cat-lanthanoid"}`} style={{ gridColumn: 4, gridRow: 7 }} aria-hidden="true"><span className="pc-sym">57–71</span></div>
+          <div className={`pse-cell pse-ph ${trend ? "trend" : blocks ? "blk-f" : "cat-lanthanoid"}`} style={{ gridColumn: 4, gridRow: 7 }} aria-hidden="true"><span className="pc-sym">57–71</span></div>
           <div className="pse-gap" style={{ gridRow: 8 }} />
           <div className="pse-head pse-per" style={{ gridColumn: "2 / span 2", gridRow: 9 }}>La–Lu</div>
         </>
@@ -67,6 +69,15 @@ export function Legend({ stufe, active, onToggle }: { stufe: Stufe; active: Cate
           <i className={`cat-${k}`} />{CATEGORIES[k].label}
         </button>
       ))}
+    </div>
+  );
+}
+
+/** Farben der Blöcke (s, p, d, f) */
+export function BlockLegend() {
+  return (
+    <div className="legend blk-legend" role="list" aria-label="Blöcke">
+      {(["s", "p", "d", "f"] as const).map(b => <span key={b} className="lg-item" role="listitem"><i className={`blk-${b}`} />{b}-Block</span>)}
     </div>
   );
 }

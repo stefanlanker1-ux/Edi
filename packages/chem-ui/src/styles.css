@@ -9,6 +9,7 @@
   --halo: transparent;
   --o-s: var(--hue-red-deep); --o-p: var(--hue-blue-deep); --o-d: var(--hue-teal-deep); --o-f: var(--hue-orange-deep);
   --c-alkali: var(--hue-violet-soft); --c-earth: var(--hue-teal-soft); --c-transition: var(--hue-blue-soft); --c-lanthanoid: var(--hue-mauve-soft);
+  --b-s: var(--hue-red-soft); --b-p: var(--hue-blue-soft); --b-d: var(--hue-teal-soft); --b-f: var(--hue-orange-soft);
   --c-metal: var(--hue-grey-soft); --c-metalloid: var(--hue-orange-soft); --c-nonmetal: var(--hue-yellow-soft); --c-halogen: var(--hue-green-soft); --c-noble: var(--hue-red-soft);
 }
 :root, :root[data-theme="light"] { --ring: #cfcfcf; --trend-lo: #f4f4f4; --trend-hi: #111111; }
@@ -18,6 +19,9 @@
 .cat-transition { background: var(--c-transition); } .cat-lanthanoid { background: var(--c-lanthanoid); }
 .cat-metal { background: var(--c-metal); } .cat-metalloid { background: var(--c-metalloid); }
 .cat-nonmetal { background: var(--c-nonmetal); } .cat-halogen { background: var(--c-halogen); } .cat-noble { background: var(--c-noble); }
+.blk-s { background: var(--b-s); } .blk-p { background: var(--b-p); } .blk-d { background: var(--b-d); } .blk-f { background: var(--b-f); }
+.legend.blk-legend { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; gap: 4px; }
+.blk-legend .lg-item { min-height: 30px; padding: 3px 8px; box-shadow: none; font-size: .75rem; }
 .t-s { color: var(--o-s); } .t-p { color: var(--o-p); } .t-d { color: var(--o-d); } .t-f { color: var(--o-f); }
 .tone-proton { --tone: var(--proton); } .tone-neutron { --tone: var(--neutron); } .tone-electron { --tone: var(--electron); }
 
