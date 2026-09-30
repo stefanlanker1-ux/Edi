@@ -88,10 +88,11 @@ function layout(cw: number, ch: number, W: number, H: number): Layout {
   return best;
 }
 
-export function FlowView({ world, motion, busy, version, label, onPick, onFrame, focus }: {
+/** Dauer eines Rechenschritts in ms (60 pro Sekunde) */
+const STEP = 1000 / 60;
+
+export function FlowView({ world, motion, version, label, onPick, onFrame, focus }: {
   world: World; motion: boolean; version: number; label: string;
-  /** Vorgang läuft: volle Bildrate; sonst (Teilchen bewegen sich nur ruhig) halbe Bildrate – spart Rechenzeit und Akku */
-  busy?: boolean;
   onPick?: (f: string) => void;
   /** nach jedem Zeitschritt (für Anzeige des Zustands) */
   onFrame?: () => void;
@@ -108,13 +109,9 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
   const drawRef = useRef<() => void>(() => {});
   const onFrameRef = useRef(onFrame);
   onFrameRef.current = onFrame;
-  const busyRef = useRef(!!busy);
-  busyRef.current = !!busy;
 
-  // neue Welt (anderes Beispiel): Lupe an den Anfang
-  useEffect(() => {
-    if (worldRef.current !== world) { worldRef.current = world; lens.current = lensStart(world, focus); }
-  }, [world, focus]);
+  // neue Welt (Mischen beginnt von vorn): Lupe bleibt, wo sie ist (anderes Beispiel = neue Ansicht mit eigener Lupe)
+  useEffect(() => { worldRef.current = world; }, [world]);
 
   useEffect(() => {
     const el = canvas.current, box = wrap.current;
@@ -123,6 +120,17 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
     if (!ctx) return;
     let raf = 0, frame = 0, dpr = 1;
     const minis = new Map<string, HTMLCanvasElement>();
+    // gezeichnete Lage je Teilchen (folgt der gerechneten Lage weich nach)
+    const shown = new Map<number, [number, number]>();
+    const at = (p: { id: number; x: number; y: number }): [number, number] => shown.get(p.id) ?? [p.x, p.y];
+    const glide = (a: number) => {
+      for (const p of worldRef.current.ps) {
+        const s = shown.get(p.id);
+        // große Sprünge (neue Anfangslage) sofort übernehmen
+        if (!s || Math.abs(p.x - s[0]) + Math.abs(p.y - s[1]) > 8 * worldRef.current.rc) shown.set(p.id, [p.x, p.y]);
+        else { s[0] += (p.x - s[0]) * a; s[1] += (p.y - s[1]) * a; }
+      }
+    };
 
     // Farben über ein unsichtbares Element auflösen (Tokens können var() oder color-mix() enthalten)
     const probe = document.createElement("span");
@@ -214,8 +222,7 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, el.width, el.height);
       const k = scales(w);
-      const shakeX = w.shake > 0 ? Math.sin(w.t * .65) * 3 : 0;
-      const ox = L.ox + shakeX, oy = L.oy, mv = L.mv;
+      const ox = L.ox, oy = L.oy, mv = L.mv;
       const X = (x: number) => ox + x * mv, Y = (y: number) => oy + y * mv;
       const rl = lensRadius(w), [lx, ly] = lens.current;
 
@@ -245,7 +252,8 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
         for (const p of w.ps) {
           const turn = ((Math.round(p.a / (Math.PI / 8)) % 16) + 16) % 16;
           const spr = miniSprite(p.f, turn, k[p.f] * mv);
-          ctx.drawImage(spr, X(p.x) - spr.width / 2 / dpr, Y(p.y) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
+          const [px, py] = at(p);
+          ctx.drawImage(spr, X(px) - spr.width / 2 / dpr, Y(py) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
         }
       };
       vessel(X, Y, 1.6);
@@ -274,12 +282,13 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
       ctx.fillStyle = rgb("surface"); ctx.fill();
       ctx.clip();
       vessel(ZX, ZY, 3);
-      const seen = w.ps.filter(p => Math.abs(p.x - lx) < rl * 1.4 && Math.abs(p.y - ly) < rl * 1.4);
+      const seen = w.ps.filter(p => { const [px, py] = at(p); return Math.abs(px - lx) < rl * 1.4 && Math.abs(py - ly) < rl * 1.4; });
       // je Stoff und Drehung (32 Stufen) einmal vorgezeichnet: schattierte Kugeln von hinten nach vorn
       for (const p of seen) {
         const turn = ((Math.round(p.a / (Math.PI / 16)) % 32) + 32) % 32;
         const spr = bigSprite(p.f, turn, k[p.f] * mz);
-        ctx.drawImage(spr, ZX(p.x) - spr.width / 2 / dpr, ZY(p.y) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
+        const [px, py] = at(p);
+        ctx.drawImage(spr, ZX(px) - spr.width / 2 / dpr, ZY(py) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
       }
       phase(ZX, ZY, 3);
       ctx.restore();
@@ -292,13 +301,19 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
     resize();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(resize) : null;
     ro?.observe(box);
-    const loop = () => {
+    // Fester Zeittakt: 60 Rechenschritte pro Sekunde, egal wie oft der Bildschirm neu zeichnet (60 Hz, 120 Hz, langsames Gerät) –
+    // die Geschwindigkeit bleibt immer gleich. Gezeichnet wird eine geglättete Lage, so gleiten die Teilchen statt zu zittern.
+    let last = -1, acc = 0;
+    const loop = (now: number) => {
       frame++;
       raf = requestAnimationFrame(loop);
-      if (!busyRef.current && frame % 2) return;
+      const dt = last < 0 ? STEP : Math.min(100, now - last);
+      last = now; acc += dt;
+      let n = 0;
+      while (acc >= STEP && n < 4) { stepFlow(worldRef.current); onFrameRef.current?.(); acc -= STEP; n++; }
+      if (n === 4) acc = 0;
       if (frame % 30 === 0) readColors();
-      stepFlow(worldRef.current);
-      onFrameRef.current?.();
+      glide(1 - Math.pow(.45, dt / STEP));
       draw();
     };
     if (motion) raf = requestAnimationFrame(loop);

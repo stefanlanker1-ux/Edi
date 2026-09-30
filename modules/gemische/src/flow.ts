@@ -38,6 +38,8 @@ export interface World {
   stir: number; shake: number; melt: number;
   /** Temperatur in °C: je wärmer, desto schneller bewegen sich die Teilchen */
   temp: number;
+  /** Stärke von Schütteln/Umrühren (0 … 1): steigt und fällt sanft, damit sich die Bewegung nie ruckartig ändert */
+  agit: number;
   /** vorher: noch nichts löst sich (Kristall, Gas warten) */
   hold: boolean;
   /** geschlossenes Gefäß */
@@ -94,7 +96,7 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
   const vorher = phase === "vorher" ? ex.before : undefined;
   // Flüssigkeit: Gefäß etwas breiter als die Flüssigkeit hoch ist
   const W = ex.state === "fluessig" ? Math.round(Math.sqrt((n * Math.PI * LIQ_RC * LIQ_RC) / LIQ_PHI / .8)) : 100;
-  const base = { floats, walls: [] as number[], stir: 0, shake: 0, melt: 0, temp: 20, hold: !!vorher, closed: ex.before === "gasraum", sites: [] as [number, number][], gap: 0, t: 0, r };
+  const base = { floats, walls: [] as number[], stir: 0, shake: 0, melt: 0, temp: 20, agit: 0, hold: !!vorher, closed: ex.before === "gasraum", sites: [] as [number, number][], gap: 0, t: 0, r };
 
   if (ex.state === "fluessig") {
     const head = ex.before === "gasraum" ? 26 : floats.length ? 14 : 8;
@@ -193,13 +195,17 @@ export function startMixing(w: World) {
   w.hold = false;
   if (w.state === "fest") { w.walls = []; w.melt = 420; for (const p of w.ps) p.bound = false; return; }
   w.walls = [];
-  if (w.state === "fluessig") w.stir = 240;
+  if (w.state === "fluessig") w.stir = 300;
 }
 /** Schütteln (Flüssigkeit): kräftige Stöße, danach Ruhe */
 export const SHAKE = 180; // Schütteln dauert 3 s und ist gemächlich (gut zu verfolgen)
 export function shakeWorld(w: World) { w.shake = SHAKE; }
-/** Faktor der Teilchengeschwindigkeit bei der eingestellten Temperatur (Geschwindigkeit ∝ √T in Kelvin) */
-export const heat = (w: World) => Math.sqrt((w.temp + 273) / 293);
+/**
+ * Faktor der Teilchengeschwindigkeit bei der eingestellten Temperatur, bezogen auf 20 °C.
+ * Echt wäre √(T in K): von 0 °C bis 100 °C nur + 17 % – das sieht man nicht. Im Modell deutlich verstärkt:
+ * 0 °C halb so schnell, 100 °C dreimal so schnell wie bei 20 °C (Richtung stimmt, Ausmaß ist übertrieben).
+ */
+export const heat = (w: World) => .5 + .025 * Math.max(0, w.temp);
 
 /** Anteil des Öls unter den obersten Teilchen (so viele, wie es Öl-Teilchen gibt): 1 = alles Öl ganz oben */
 export function oilOnTop(w: World): number {
@@ -259,7 +265,7 @@ export function stepFlow(w: World) {
         p.vx = p.vx * .9 + (r() - .5) * .5 + sx; p.vy = p.vy * .9 + (r() - .5) * .5 + sy;
       } else {
         // am Gitterplatz schwingen (bzw. dorthin gleiten)
-        const h = heat(w) * heat(w);
+        const h = heat(w);
         p.vx = p.vx * .8 + ((p.hx ?? p.x) - p.x) * .06 + (r() - .5) * .06 * h;
         p.vy = p.vy * .8 + ((p.hy ?? p.y) - p.y) * .06 + (r() - .5) * .06 * h;
       }
@@ -310,6 +316,9 @@ export function stepFlow(w: World) {
   }
 
   // ── Flüssigkeit ──
+  // Schütteln/Umrühren setzt sanft ein und klingt sanft aus
+  const target = w.shake > 0 || w.stir > 0 ? Math.min(1, Math.max(w.shake, w.stir) / 40) : 0;
+  w.agit += (target - w.agit) * .06;
   const liquid = w.ps.filter(p => !p.gas);
   const cy = (w.top + H) / 2;
   const line = w.floats.length ? rawBoundary(w) : 0;
@@ -330,18 +339,19 @@ export function stepFlow(w: World) {
       continue;
     }
     if (p.bound) continue;
-    const kick = w.shake > 0 ? 1.2 : w.stir > 0 ? 1.6 : .34 * heat(w) * heat(w);
-    p.vx = p.vx * .9 + (r() - .5) * kick;
+    // Wärmebewegung (mit der Temperatur) plus Schütteln/Umrühren; Geschwindigkeit ändert sich nur allmählich (fließend)
+    const kick = .29 * heat(w) + (w.shake > 0 ? 1 : 1.35) * w.agit;
+    p.vx = p.vx * .93 + (r() - .5) * kick;
     // Auftrieb: nur das Öl steigt (das Wasser füllt den Rest gleichmäßig – keine Lücke)
     // Auftrieb nur für Teilchen auf der falschen Seite der Grenze: Öl darunter steigt, Wasser darüber sinkt
     // (in der eigenen Schicht wirkt nichts – so wird nichts zusammengedrückt)
-    const buoy = !w.floats.length || w.shake > 0 ? 0 : w.floats.includes(p.f) ? (p.y > line - rc ? -.09 : 0) : (p.y < line + rc ? .09 : 0);
-    p.vy = p.vy * .9 + (r() - .5) * kick + buoy;
-    if (w.stir > 0 || w.shake > 0) {
-      // Umrühren (und Schütteln): zwei Wirbel, die sich abwechseln (so wird es durchmischt, nicht nur gedreht)
-      const left = Math.floor(w.t / 30) % 2 === 0, k = (w.shake > 0 ? .001 : .0006) * Math.min(1, Math.max(w.stir, w.shake) / 30);
-      const vx0 = left ? W / 3 : 2 * W / 3;
-      p.vx += -(p.y - cy) * k; p.vy += (p.x - vx0) * k;
+    const buoy = !w.floats.length || w.agit > .3 ? 0 : w.floats.includes(p.f) ? (p.y > line - rc ? -.09 : 0) : (p.y < line + rc ? .09 : 0);
+    p.vy = p.vy * .93 + (r() - .5) * kick + buoy;
+    if (w.agit > .01) {
+      // Umrühren (und Schütteln): zwei Wirbel, die fließend abwechselnd stärker werden (so wird es durchmischt, nicht nur gedreht)
+      const s1 = (1 + Math.sin(w.t / 10)) / 2, k = .0015 * w.agit;
+      p.vx += -(p.y - cy) * k;
+      p.vy += ((p.x - W / 3) * s1 + (p.x - 2 * W / 3) * (1 - s1)) * k;
     }
     p.x += p.vx; p.y += p.vy;
     turn(p, .01);
@@ -365,7 +375,7 @@ export function stepFlow(w: World) {
       if (!p.bound) continue;
       let wet = false;
       near(p, q => { if (!q.bound && (q.x - p.x) ** 2 + (q.y - p.y) ** 2 < (2.4 * rc) ** 2) wet = true; });
-      if (wet && r() < (w.stir > 0 ? .02 : .006) * heat(w) ** 4) p.bound = false;
+      if (wet && r() < (w.stir > 0 ? .02 : .006) * heat(w) ** 2) p.bound = false;
     }
   }
   separate(w, liquid, 3);

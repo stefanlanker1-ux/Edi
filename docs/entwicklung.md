@@ -98,8 +98,10 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Öl hat Auftrieb; Gas – geradeaus, Abprall an Wänden, Trennwänden und aneinander; fest – Schwingen um den Gitterplatz.
   **Mischen** zeigt den Vorgang ab vorher (`before`): Zuckerkristall löst sich von außen (umrühren, bis alles gelöst ist), Alkohol-Schicht wird
   umgerührt, CO₂ im Gasraum löst sich an der Oberfläche, Trennwände fallen, Kupfer und Zink schmelzen und erstarren als Gitter.
-  **Schütteln** (Reinstoffe, Öl und Wasser): 3 s gemächliche Stöße, danach steigt das Öl wieder auf.
-  **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C): Teilchengeschwindigkeit ∝ √T (Kelvin), Kristall löst sich warm schneller. Tests: Teilchenzahl bleibt, keine Sprünge,
+  **Schütteln** (Reinstoffe, Öl und Wasser): 3 s gemächliche Stöße, danach steigt das Öl wieder auf. Schütteln/Umrühren setzen sanft ein und klingen sanft aus (`agit`),
+  zwei Wirbel werden fließend abwechselnd stärker; das Gefäß wackelt nicht, die Lupe bleibt beim Mischen, wo sie ist.
+  Darstellung (`FlowView`): fester Takt von 60 Rechenschritten/s unabhängig von der Bildrate (60/120 Hz), gezeichnet wird eine weich nachgeführte Lage (`glide`).
+  **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C): Teilchengeschwindigkeit im Modell verstärkt (`heat`: 0 °C × 0,5, 20 °C × 1, 100 °C × 3; echt wären nur + 17 %), Kristall löst sich warm schneller. Tests: Teilchenzahl bleibt, keine Sprünge,
   gleichmäßig gemischt, Öl wieder oben, Gase mischen sich nur ohne Trennwand, Messing wieder im Gitter. Ohne Bewegung (reduzierte Bewegung) nur vorher/nachher.
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Farben („nur im Modell“) | Einteilung (Stoffe → Reinstoffe/Gemische mit allen
   Beispielen) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
