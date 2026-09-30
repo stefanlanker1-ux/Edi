@@ -1,4 +1,4 @@
-// Pfeilkette (Unterstufe) wie im Heft:  km ⇄ m ⇄ dm ⇄ cm ⇄ mm
+// Pfeilkette wie im Heft:  km ⇄ m ⇄ dm ⇄ cm ⇄ mm
 //   unten Pfeile nach rechts „· 1000 · 10 …“ (große → kleine Einheit), oben nach links „: 1000 : 10 …“.
 // Der Weg der aktuellen Umrechnung leuchtet live mit; unter jeder Einheit steht die Zahl in dieser Einheit.
 
@@ -18,7 +18,7 @@ export function ArrowChain({ from, to, value, os = false, showValues = true, cap
   const width = useWidth(box);
   const ch = chainFor(from, to);
   if (!ch) return null;
-  // Oberstufen-Einheiten (µm, ms …) nur zeigen, wenn gebraucht
+  // Seltene Einheiten (µm, ms …) nur zeigen, wenn gebraucht
   let units = ch.units.filter(u => os || !ATOM[u]?.os || u === ch.from || u === ch.to);
   const i0 = units.indexOf(ch.from), i1 = units.indexOf(ch.to);
   let lo = Math.min(i0, i1), hi = Math.max(i0, i1);

@@ -4,8 +4,8 @@
 import { useLayoutEffect, useRef } from "react";
 import { quantitiesFor, unitName, QUANTITY } from "@lern/units";
 
-export function QuantitySelect({ value, os, onChange }: { value: string; os: boolean; onChange: (id: string) => void }) {
-  const list = quantitiesFor(os);
+export function QuantitySelect({ value, onChange }: { value: string; onChange: (id: string) => void }) {
+  const list = quantitiesFor(true);
   const base = list.filter(x => x.kind !== "compound");
   const comp = list.filter(x => x.kind === "compound");
   const hint = QUANTITY[value]?.kind === "compound" ? QUANTITY[value].hint?.split(" – ")[0] : undefined;

@@ -1,5 +1,5 @@
 // Umrechnen (Werkbank): eine Rechenzeile [Zahl] [von ▾] ⇄ [in ▾], darunter das Ergebnis und die Pfeilkette bzw. Vorsilben-Skala.
-// Werkzeuge: Stellenwerttafel (Unterstufe) | Tafel (Rechenweg in Kreide) | Bild (Lineal, Fläche …).
+// Werkzeuge: Stellenwerttafel | Tafel (Rechenweg in Kreide) | Bild (Lineal, Fläche …).
 
 import { Fit, IconButton, Workbench, buzz, type WorkbenchTool } from "@lern/ui";
 import { QUANTITY, unitsFor, parseQ, solve, unitSi, mul, isTerminating, fmt, ladderFor } from "@lern/units";
@@ -9,6 +9,7 @@ import { ChalkBoard } from "../components/ChalkBoard.tsx";
 import { VisualFor } from "../components/Visuals.tsx";
 import { LiveHelp, hasTable } from "../components/LiveHelp.tsx";
 import { Num, sci, sciNeeded, timeMixed } from "../format.tsx";
+import { rare } from "../help.ts";
 
 /** Beispiel je Größe (beim Wechsel der Größe) */
 export const EXAMPLES: Record<string, [string, string, string]> = {
@@ -17,17 +18,16 @@ export const EXAMPLES: Record<string, [string, string, string]> = {
   energy: ["1", "kWh", "kJ"], power: ["150", "PS", "kW"], voltage: ["230", "V", "kV"], current: ["250", "mA", "A"],
   resistance: ["4,7", "kΩ", "Ω"], charge: ["3000", "mAh", "C"], freq: ["88,5", "MHz", "kHz"], conc: ["150", "mmol/l", "mol/l"], flow: ["12", "l/min", "m³/h"],
 };
-/** Oberstufe: Beispiele mit großen Sprüngen */
-const OS_EXAMPLES: Record<string, [string, string, string]> = { len: ["2,5", "km", "mm"], area: ["3", "km²", "m²"], vol: ["250", "ml", "m³"], mass: ["5", "mg", "kg"], time: ["20", "ms", "s"] };
 
 export function ConvertView() {
-  const { stufe, conv, setConv } = useApp();
-  const os = stufe === "os";
+  const { conv, setConv } = useApp();
+  // seltene Vorsilben (µm, MHz …): Vorsilben-Skala und Zehnerpotenzen, sonst Pfeilkette und Stellenwerttafel
+  const os = rare(conv.from, conv.to);
   const qt = QUANTITY[conv.qty];
-  const units = unitsFor(qt, os);
+  const units = unitsFor(qt, true);
   const v = parseQ(conv.value);
   const s = v ? solve(v, conv.from, conv.to) : null;
-  const pickQty = (id: string) => { buzz(); const [value, from, to] = (os && OS_EXAMPLES[id]) || EXAMPLES[id]; setConv({ qty: id, value, from, to }); };
+  const pickQty = (id: string) => { buzz(); const [value, from, to] = EXAMPLES[id]; setConv({ qty: id, value, from, to }); };
   const mixed = s && qt.kind === "time" ? timeMixed(mul(s.result, unitSi(s.to))) : null;
 
   const same = !s || s.from === s.to;
@@ -39,7 +39,7 @@ export function ConvertView() {
 
   return (
     <Workbench className="cv-wb" label="Rechenweg" tools={tools}
-      head={<QuantitySelect value={conv.qty} os={os} onChange={pickQty} />}
+      head={<QuantitySelect value={conv.qty} onChange={pickQty} />}
       stage={
         <div className="cv-stage">
           <div className="cv-line">
@@ -54,7 +54,7 @@ export function ConvertView() {
               <span className="cv-from"><Num v={s.value} /> {s.from}</span>
               <span className="cv-eq">{isTerminating(s.result) ? "=" : "≈"}</span>
               <span className="cv-to">{isTerminating(s.result) ? <Num v={s.result} /> : fmt(s.result).text} {s.to}</span>
-              {os && sciNeeded(s.result) && <span className="cv-sci">= {sci(s.result)} {s.to}</span>}
+              {sciNeeded(s.result) && <span className="cv-sci">= {sci(s.result)} {s.to}</span>}
               {mixed && <span className="cv-sci">= {mixed}</span>}
             </div>
           )}

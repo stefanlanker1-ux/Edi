@@ -1,4 +1,4 @@
-// Vorsilben-Skala (Oberstufe): n µ m c d – da h k M G mit 10⁻⁹ … 10⁹.
+// Vorsilben-Skala: n µ m c d – da h k M G mit 10⁻⁹ … 10⁹.
 // Ein Bogenpfeil führt live von der Ausgangs- zur Zieleinheit: „· 10⁶“ = 10^(Hochzahl vorher − Hochzahl nachher).
 
 import { useRef, type CSSProperties } from "react";

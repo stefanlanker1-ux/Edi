@@ -19,9 +19,9 @@ const Logo = () => (
 );
 
 export function App() {
-  const { tab, setTab, stufe, setStufe } = useApp();
+  const { tab, setTab } = useApp();
   return (
-    <LernApp name="Einheiten" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["einheiten-v1", "einheiten-quiz"]} stufe={{ value: stufe, onChange: setStufe }}>
+    <LernApp name="Einheiten" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["einheiten-v1", "einheiten-quiz"]}>
       {tab === "convert" && <ConvertView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

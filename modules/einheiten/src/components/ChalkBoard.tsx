@@ -1,6 +1,6 @@
 // Rechenweg als Tafelbild (Kreideschrift). Immer dieselben drei Schritte – zum Abschreiben ins Heft.
 //   ① Umrechnungszahl   ② Einsetzen und ausrechnen (eine Zeile)   + Merksatz
-// Oberstufe mit Vorsilben (nm, km, MW …) direkt als Zehnerpotenz, sonst die Kette über die Nachbareinheiten.
+// Seltene Vorsilben (nm, km, MW …) direkt als Zehnerpotenz, sonst die Kette über die Nachbareinheiten.
 
 import { mul, unitSi, div, eq, ONE, isTerminating, fmt, prefixStep, type Solution } from "@lern/units";
 import { Num, RowChain, RowView, sciNeeded, sci, timeMixed, numText } from "../format.tsx";
@@ -10,8 +10,8 @@ export function ChalkBoard({ s, os, title = "Rechenweg" }: { s: Solution; os: bo
   const approx = !isTerminating(result);
   const inSeconds = to === "s" || ["min", "h", "d", "ms"].includes(to) ? mul(result, unitSi(to)) : null;
   const mixed = inSeconds ? timeMixed(inSeconds) : null;
-  // Oberstufe: Vorsilben als Zehnerpotenzen (km → mm: 10^(3 − (−3)) = 10⁶)
-  // Oberstufe mit Vorsilben: kurz und direkt – 1 nm = 10⁻⁷ cm, 50 nm = 50 · 10⁻⁷ cm (keine Kette über µm, mm …)
+  // Vorsilben als Zehnerpotenzen (km → mm: 10^(3 − (−3)) = 10⁶)
+  // Seltene Vorsilben: kurz und direkt – 1 nm = 10⁻⁷ cm, 50 nm = 50 · 10⁻⁷ cm (keine Kette über µm, mm …)
   const st = os ? prefixStep(from, to) : null;
   const short = !!st && st.diff !== 0;
   const P = ({ k }: { k: number }) => <>10<sup>{k < 0 ? `−${-k}` : k}</sup></>;

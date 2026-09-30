@@ -1,5 +1,5 @@
 // Live-Hilfe zu einer Umrechnung – überall gleich (Umrechnen, Quiz-Rückmeldung, Erklärkarten):
-//   Oberstufe mit Vorsilben: Vorsilben-Skala · sonst Pfeilkette (+ Stellenwerttafel in der Unterstufe) · zusammengesetzt: Einsetz-Kette
+//   seltene Vorsilben (os): Vorsilben-Skala · sonst Pfeilkette (+ Stellenwerttafel) · zusammengesetzt: Einsetz-Kette
 
 import { prefixStep, chainFor, pvColumns, pvIndex, type Solution } from "@lern/units";
 import { SubstFlow } from "./Visuals.tsx";
@@ -27,6 +27,6 @@ export function LiveHelp({ s, os, table, part = "all" }: { s: Solution; os: bool
 }
 
 
-/** Gibt es für diese Umrechnung eine Stellenwerttafel (Unterstufe, beide Einheiten in der Tafel)? */
+/** Gibt es für diese Umrechnung eine Stellenwerttafel (beide Einheiten in der Tafel, keine seltenen Vorsilben)? */
 export const hasTable = (s: Solution, os: boolean, table?: string[]) =>
   !os && !!table && pvIndex(pvColumns(table), s.from) >= 0 && pvIndex(pvColumns(table), s.to) >= 0;
