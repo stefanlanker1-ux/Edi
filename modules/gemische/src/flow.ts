@@ -405,7 +405,7 @@ export function stepFlow(w: World) {
       if (p.x < rc || p.x > W - rc) { p.vx = -p.vx; p.x = Math.min(W - rc, Math.max(rc, p.x)); }
       if (p.y < rc) { p.vy = Math.abs(p.vy); p.y = rc; }
       if (p.y > w.top - rc) {
-        if (r() < .025 * hf + .6 * w.agit) { p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = .8; p.leave = 30; }
+        if (r() < .025 * hf + .6 * w.agit) { p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = .8 + 2 * w.agit; p.leave = 30; } // geschüttelt: wie ein Bläschen tief hineingerissen
         else { p.vy = -Math.abs(p.vy); p.y = w.top - rc; }
       }
       turn(p, .004);
