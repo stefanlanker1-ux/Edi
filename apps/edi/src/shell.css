@@ -1,0 +1,56 @@
+/* Stile der App-Hülle (gelten immer, deshalb eigener Präfix ov-/edi-; Modul-Stile gelten nur unter <html data-modul>) */
+
+/* Übersicht im Swiss Style – ein Bildschirm, nie scrollen: Titel, sechs Kacheln (Handy 2 × 3, breit 3 × 2), Fußzeile */
+.ov {
+  max-width: 1180px; margin: 0 auto; box-sizing: border-box;
+  height: 100vh; height: 100svh;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 14px;
+}
+.ov-head { display: grid; gap: 4px; border-bottom: 4px solid var(--rule); padding-bottom: 12px; }
+.ov-kicker { margin: 0; color: var(--signal); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.ov-head h1 { font-size: clamp(2rem, min(11vw, 7svh), 5.5rem); font-weight: 900; letter-spacing: -.055em; line-height: .9; }
+
+.ov-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); min-height: 0; }
+/* ab 700 px oder im Querformat drei Spalten (auch Laptops mit 125 %/150 % Skalierung: ~830 × 580) */
+@media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) { .ov-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); } }
+.ov-card {
+  position: relative; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 4px; min-height: 0; min-width: 0;
+  text-decoration: none; color: inherit; padding: clamp(6px, 1.4svh, 12px) 12px clamp(6px, 1.4svh, 12px) 0; border-bottom: 1px solid var(--rule);
+}
+.ov-card:nth-child(even) { padding-left: 12px; border-left: 1px solid var(--rule); }
+.ov-card:nth-child(n + 5) { border-bottom: 0; }
+@media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) {
+  .ov-card { padding: clamp(8px, 2.4svh, 20px) 20px; border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+  .ov-card:nth-child(n) { padding-left: 20px; } /* gleiche Einrückung in jeder Spalte (sonst erbt jede zweite Kachel die 12 px der Handy-Ansicht) */
+  .ov-card:nth-child(3n + 1) { border-left: 0; padding-left: 0; }
+  .ov-card:nth-child(n + 4) { border-bottom: 0; }
+  /* Titel einzeilig, sonst fehlt in niedrigen Fenstern das Bild der Kachel */
+  .ov-grid .ov-card h2 { font-size: min(clamp(.95rem, min(4.4vw, 3.6svh), 1.9rem), 2.3vw); }
+}
+.ov-card:hover h2, .ov-card:hover .ov-open { color: var(--signal); }
+.ov-num { color: var(--signal); font-weight: 800; font-size: .9rem; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
+.ov-card h2 { font-size: clamp(.95rem, min(4.4vw, 3.6svh), 1.9rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.1; hyphens: manual; transition: color .15s; }
+.ov-open { position: absolute; right: 8px; bottom: 10px; color: var(--text); transition: color .15s; }
+.ov-art { container-type: size; min-height: 0; display: grid; place-items: center; }
+/* zu wenig Platz (kleines Handy, niedriges Fenster): Bild weglassen statt als Strich-Rest zeigen */
+@container (max-height: 30px) { .ov-art > * { display: none; } }
+
+.ov-foot { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--muted); font-size: .85rem; }
+.ov-foot p { margin: 0; min-width: 0; }
+.ov-dl a { color: var(--text); font-weight: 700; display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; }
+.ov-lic { color: var(--muted); display: inline-flex; align-items: center; min-height: 44px; margin: -12px 0; }
+@media (max-width: 699px) {
+  .ov-dl span { display: none; } /* am Handy nur der Link */
+  .ov-head { padding-bottom: 8px; }
+  .ov-card { gap: 2px; }
+  .ov-num { font-size: .75rem; }
+  .ov-card h2 { line-height: 1.05; }
+}
+
+/* Modul wird geladen / konnte nicht geladen werden */
+.edi-loading, .edi-error { min-height: 100vh; min-height: 100svh; }
+.edi-error { display: grid; align-content: center; justify-items: start; gap: 12px; padding: 24px 16px; max-width: 560px; margin: 0 auto; box-sizing: border-box; }
+.edi-error h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; border-bottom: 4px solid var(--rule); padding-bottom: 8px; }
+.edi-error p { margin: 0; color: var(--muted); }
+.edi-error-actions { display: flex; gap: 8px; flex-wrap: wrap; }

@@ -1,26 +1,29 @@
 # Edi – Lern-Apps für Chemie und Einheiten
 
-Interaktive Lern-Apps für die Sekundarstufe. Alle Apps teilen sich Design und Logik
-und laufen im Browser, als installierbare Web-App (offline) und als Einzeldatei.
+Interaktive Lern-App für die Sekundarstufe: eine App mit mehreren Modulen, die sich Design und Logik teilen.
+Läuft im Browser, als installierbare Web-App (offline) und als Einzeldatei.
 
 Website: **https://stefanlanker1-ux.github.io/Edi/**
 
-| App | Inhalt |
+| Modul | Inhalt |
 | --- | --- |
-| [Atombau](apps/atombau) | Atome bauen, Periodensystem, Elektronenkonfiguration, Quiz |
-| [Ionenbindung](apps/ionenbindung) | Ionenformeln mit Bausteinen aufstellen, vom Atom zum Ion, Quiz |
-| [Elektronenpaarbindung](apps/elektronenpaarbindung) | Moleküle aus Lewis-Atomen bauen, Valenz- und Keilstrichformel, 3D-Modell, Quiz |
-| [Reaktionsgleichungen](apps/reaktionsgleichungen) | Gleichungen ausgleichen mit Teilchenbild, Quiz |
-| [Neutralisation](apps/neutralisation) | Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen, Quiz |
-| [Einheiten](apps/einheiten) | Einheiten umrechnen mit Rechenweg, Stellenwerttafel, Quiz |
+| [Atombau](modules/atombau) | Atome bauen, Periodensystem, Elektronenkonfiguration, Quiz |
+| [Ionenbindung](modules/ionenbindung) | Ionenformeln mit Bausteinen aufstellen, vom Atom zum Ion, Quiz |
+| [Elektronenpaarbindung](modules/elektronenpaarbindung) | Moleküle aus Lewis-Atomen bauen, Valenz- und Keilstrichformel, 3D-Modell, Quiz |
+| [Reaktionsgleichungen](modules/reaktionsgleichungen) | Gleichungen ausgleichen mit Teilchenbild, Quiz |
+| [Neutralisation](modules/neutralisation) | Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen, Quiz |
+| [Einheiten](modules/einheiten) | Einheiten umrechnen mit Rechenweg, Stellenwerttafel, Quiz |
 
 ## Datenschutz
 
-Die Apps speichern Fortschritt und Einstellungen nur lokal im Browser (localStorage) und senden keine Daten.
+Die App speichert Fortschritt und Einstellungen nur lokal im Browser (localStorage) und senden keine Daten.
 Es gibt keine Konten, keine Cookies, kein Tracking und keine eingebundenen Fremdinhalte; Schriften werden mitgeliefert.
 Beim Aufruf der Website verarbeitet der Hosting-Dienst (GitHub Pages) technisch bedingt Zugriffsdaten wie die IP-Adresse.
 
-## Aufbau (Monorepo)
+## Aufbau (modularer Monolith)
+
+Eine App-Hülle lädt die Module bei Bedarf; Module hängen nur von den gemeinsamen Paketen ab, nie voneinander
+(automatisch geprüft, siehe `docs/entwicklung.md`, Abschnitt Architektur).
 
 ```
 packages/
@@ -29,10 +32,11 @@ packages/
   ui/       @lern/ui      – Designsystem und Bausteine (LernApp, Workbench, Sheet, Fit …)
   quiz/     @lern/quiz    – Quiz-Grundgerüst (Fertigkeiten, Wiederholung, Erklärkarten, Auswertung)
   units/    @lern/units   – Einheiten: exakte Brüche, Katalog, Umrechnung mit Rechenweg
+modules/
+  <id>/     @edi/<id>     – je ein Modul (Inhalt, Quiz, Stile), Beschreibung in src/index.tsx
 apps/
-  start/    – Startseite mit Links zu allen Apps
-  <app>/    – je eine App (React + Vite)
-scripts/    – gemeinsame Build-Konfiguration, Lizenzhinweise, Website-Zusammenbau, Browser-Prüfung
+  edi/      – App-Hülle: Übersicht, Adressen #/<id>, Laden bei Bedarf, Service Worker, Capacitor
+scripts/    – Build-Konfiguration, Stil-Geltungsbereich der Module, Architektur-Prüfung, Lizenzhinweise, Website, Browser-Prüfung
 docs/entwicklung.md – Regeln und Konventionen für die Weiterentwicklung
 ```
 
@@ -42,17 +46,17 @@ Technik: **React 19 + TypeScript + Vite**, zustand, `vite-plugin-pwa`, Vitest; C
 
 ```bash
 npm install          # einmalig
-npm run dev          # Atombau im Browser entwickeln (http://localhost:5173)
-npm test             # alle Tests
+npm run dev          # App im Browser entwickeln (http://localhost:5173)
+npm test             # Architektur-Prüfung und alle Tests
 npm run typecheck    # TypeScript prüfen
-npm run build        # alle Apps bauen (je dist/ und dist-single/)
+npm run build        # App bauen (apps/edi/dist und dist-single)
 npm run site         # bauen und die komplette Website in site/ zusammensetzen
 ```
 
 ## Veröffentlichung
 
-Jeder Push auf `main` prüft und baut alle Apps und veröffentlicht die Website auf GitHub Pages
-(`.github/workflows/pages.yml`). Die Einzeldateien liegen dort als `<app>/<app>-offline.html`,
-die Lizenzhinweise der verwendeten Open-Source-Pakete als `lizenzen.txt`.
+Jeder Push auf `main` prüft und baut die App und veröffentlicht die Website auf GitHub Pages
+(`.github/workflows/pages.yml`). Die Einzeldatei liegt dort als `edi-offline.html`, frühere Adressen `…/<modul>/`
+leiten auf `#/<modul>` weiter, die Lizenzhinweise der verwendeten Open-Source-Pakete als `lizenzen.txt`.
 
 Alle Rechte vorbehalten. Enthaltene Open-Source-Bausteine stehen unter ihren eigenen Lizenzen (siehe `lizenzen.txt` der Website).

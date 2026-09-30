@@ -1,25 +1,23 @@
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-pwa/client" />
-// Gemeinsamer Rahmen aller Lern-Apps: Start (boot), Farbschema und Beamer-Modus, Stufen-Umschalter, Link zur Startseite.
-// Eine App gibt nur noch Name, Logo, Tabs und Inhalt an:
-//   boot(<App />)                                  in main.tsx
+// Gemeinsamer Rahmen aller Module: Start der App (boot), Farbschema und Beamer-Modus, Stufen-Umschalter, Link zur Übersicht.
+// Ein Modul gibt nur Name, Logo, Tabs und Inhalt an:
 //   <LernApp name="…" logo={…} tabs={…} tab={tab} onTab={setTab} storage={[…]} stufe={{ value, onChange }}>…</LernApp>
-// Farbschema und Beamer werden bewusst nicht gespeichert: jede App startet hell und ohne Beamer-Modus.
+// Den Link zur Übersicht liefert die App-Hülle über den Kontext HomeLink (modul.ts).
+// Farbschema und Beamer werden bewusst nicht gespeichert: die App startet hell und ohne Beamer-Modus.
 
-import { StrictMode, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { StrictMode, useContext, useEffect, useSyncExternalStore, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell, type ShellTab } from "./AppShell.tsx";
 import { IconButton, Segmented } from "./components.tsx";
 import { applyTheme } from "./hooks.ts";
+import { HomeLink } from "./modul.ts";
 
 /** läuft als Android/iOS-App (Capacitor) */
 export const isNative: boolean = !!(globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
 
-/** Web-Version über http(s) (nicht Einzeldatei, nicht Handy-App): nur dort gibt es Startseite und Service Worker */
+/** Web-Version über http(s) (nicht Einzeldatei, nicht Handy-App): nur dort gibt es den Service Worker und Offline-Dateien */
 export const isWeb: boolean = import.meta.env.MODE !== "single" && !isNative && typeof location !== "undefined" && location.protocol.startsWith("http");
-
-/** Link zur Übersicht aller Apps */
-export const homeHref: string | undefined = isWeb ? "../" : undefined;
 
 /** App anzeigen und im Web den Service Worker (offline) registrieren */
 export function boot(app: ReactNode) {
@@ -69,12 +67,14 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   children: ReactNode;
 }) {
   const { theme, beamer } = useDisplay();
+  const homeHref = useContext(HomeLink);
   useEffect(() => applyTheme(theme), [theme]);
   useEffect(() => { document.documentElement.toggleAttribute("data-beamer", beamer); }, [beamer]);
   const stufeValue = stufe?.value;
   useEffect(() => {
     if (stufeValue) document.body.dataset.stufe = stufeValue;
     else delete document.body.dataset.stufe;
+    return () => { delete document.body.dataset.stufe; };
   }, [stufeValue]);
 
   return (

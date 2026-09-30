@@ -11,3 +11,4 @@ export * from "./readable.ts";
 export * from "./Rescue.tsx";
 export * from "./LernApp.tsx";
 export * from "./hyphenate.ts";
+export * from "./modul.ts";

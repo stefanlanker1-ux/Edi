@@ -1,0 +1,30 @@
+{
+  "name": "@edi/einheiten",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Modul „Einheiten umrechnen“ der App Edi",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@fontsource/cabin-sketch": "^5.3.0",
+    "@fontsource/kalam": "^5.3.0",
+    "@lern/quiz": "*",
+    "@lern/ui": "*",
+    "@lern/units": "*",
+    "react": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}

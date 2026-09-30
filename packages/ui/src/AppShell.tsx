@@ -29,7 +29,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
       <a className="ui-skip" href="#main">Zum Inhalt springen</a>
       <header className="ui-topbar">
         {homeHref
-          ? <a className="ui-brand" href={homeHref} title="Zur Übersicht aller Apps">{logo}<h1 className="ui-brand-name">{name}</h1></a>
+          ? <a className="ui-brand" href={homeHref} title="Zur Übersicht">{logo}<h1 className="ui-brand-name">{name}</h1></a>
           : <div className="ui-brand">{logo}<h1 className="ui-brand-name">{name}</h1></div>}
         <nav className="ui-top-tabs" aria-label="Bereiche">{nav("ui-top-tab")}</nav>
         <div className="ui-top-actions">

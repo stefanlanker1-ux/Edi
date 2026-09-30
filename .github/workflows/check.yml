@@ -1,4 +1,4 @@
-# Prüft jeden Pull-Request: Typen, Tests und Build aller Pakete und Apps.
+# Prüft jeden Pull-Request: Typen, Architektur-Regeln, Tests und Build.
 name: Prüfen
 
 on:

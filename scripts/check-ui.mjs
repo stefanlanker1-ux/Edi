@@ -1,5 +1,5 @@
-// Prüft alle Apps der Site: Überlaufen, Tippziele, Konsolenfehler – in drei Bildschirmgrößen.
-// Aufruf: node scripts/check-ui.mjs [site-Ordner] [,app1,app2]  – Playwright muss erreichbar sein (PLAYWRIGHT=/pfad/node_modules/playwright/index.mjs, Chromium in PLAYWRIGHT_BROWSERS_PATH).
+// Prüft Übersicht und alle Module der Site: Überlaufen, Tippziele, Konsolenfehler – in drei Bildschirmgrößen.
+// Aufruf: node scripts/check-ui.mjs [site-Ordner] [,modul1,modul2]  (leer = Übersicht)  – Playwright muss erreichbar sein (PLAYWRIGHT=/pfad/node_modules/playwright/index.mjs, Chromium in PLAYWRIGHT_BROWSERS_PATH).
 // LESBAR=1 prüft zusätzlich mit eingeschalteter Option „Lesbar“ (größere Abstände) – nichts darf dadurch überlaufen.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 import http from "node:http";
@@ -70,7 +70,7 @@ for (const app of APPS) {
     try {
     page.on("console", m => { if (m.type() === "error") note(app, vp, "konsole", m.text().slice(0, 160)); });
     page.on("pageerror", e => note(app, vp, "konsole", "pageerror " + String(e).slice(0, 160)));
-    const url = `http://localhost:4173/${app ? app + "/" : ""}`;
+    const url = `http://localhost:4173/${app ? "#/" + app : ""}`;
     await page.goto(url, { waitUntil: "networkidle" }).catch(() => {});
     await check(page, app, vp, "start");
     if (!app) { await ctx.close(); continue; }
@@ -81,7 +81,7 @@ for (const app of APPS) {
       const t = tabs[i];
       let label = `#${i}`;
       try { label = (await t.getAttribute("aria-label")) || (await t.textContent()) || label; } catch { continue; }
-      if (/Beamer|Farbschema|Startseite|Lesbar/.test(label)) continue; // Lesbar wird über LESBAR=1 geprüft, nicht mitten im Lauf umgeschaltet
+      if (/Beamer|Farbschema|Startseite|Übersicht|Lesbar/.test(label)) continue; // Lesbar wird über LESBAR=1 geprüft, nicht mitten im Lauf umgeschaltet
       try { await t.click({ timeout: 1500 }); } catch { continue; }
       await check(page, app, vp, `tab:${label.trim().slice(0, 20)}`);
       // Werkzeuge im Blatt / Register durchgehen

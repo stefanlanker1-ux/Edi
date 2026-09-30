@@ -12,7 +12,8 @@ export function wordCount(sentence: string): number {
 export function sentences(text: string): string[] {
   return text
     .replace(/`[^`]*`/g, "Formel") // Gleichungen in Code sind ein Baustein, kein Satz
-    .split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ„0-9*])|\s[–—]\s|:\s|;\s|\n/)
+    .replace(/([.!?])\s+(?=[A-ZÄÖÜ„0-9*])/g, "$1\n") // Satzende markieren (ohne Lookbehind, fehlt in älteren Safari-Versionen)
+    .split(/\s[–—]\s|:\s|;\s|\n/)
     .map(s => s.trim()).filter(Boolean);
 }
 

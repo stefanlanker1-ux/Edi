@@ -1,0 +1,13 @@
+// Beschreibung des Moduls für die App-Hülle. Der Inhalt (entry.tsx) wird erst beim Öffnen geladen.
+
+import type { LernModule } from "@lern/ui";
+import { Card } from "./card.tsx";
+
+export const modul: LernModule = {
+  id: "reaktionsgleichungen",
+  name: "Reaktionsgleichungen",
+  desc: "Gleichungen ausgleichen mit der Atombilanz: Kästchen je Atom links und rechts, Koeffizienten setzen, bis jedes Element ✓ zeigt.",
+  storage: ["reaktionsgleichungen-v2", "reaktionsgleichungen-quiz"],
+  Card,
+  load: () => import("./entry.tsx"),
+};

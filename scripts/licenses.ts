@@ -1,5 +1,5 @@
 // Lizenzhinweise der ausgelieferten Open-Source-Pakete (MIT verlangt Copyright- und Lizenztext in jeder Kopie, die OFL der Schriften ebenso).
-// Ermittelt alle Laufzeit-Abhängigkeiten der App (rekursiv, ohne eigene @lern/*-Pakete) und legt die Lizenztexte bei:
+// Ermittelt alle Laufzeit-Abhängigkeiten der App (rekursiv, ohne eigene Pakete @lern/* und @edi/*) und legt die Lizenztexte bei:
 //   Web-Build   → Datei lizenzen.txt neben index.html
 //   Einzeldatei → als Kommentar am Ende der HTML-Datei
 
@@ -39,7 +39,7 @@ export function collectLicenses(appDir: string, withWorkbox: boolean): Pkg[] {
     const dir = pkgDir(name, from);
     if (!dir) return;
     const pj = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
-    const own = name.startsWith("@lern/");
+    const own = name.startsWith("@lern/") || name.startsWith("@edi/");
     if (!own) seen.set(name, { name, version: pj.version, license: pj.license ?? "", text: licenseText(dir) });
     for (const dep of Object.keys(pj.dependencies ?? {})) visit(dep, dir);
   };

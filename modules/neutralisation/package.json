@@ -1,0 +1,29 @@
+{
+  "name": "@edi/neutralisation",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Modul „Neutralisation“ der App Edi",
+  "exports": {
+    ".": "./src/index.tsx"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@lern/chem": "*",
+    "@lern/chem-ui": "*",
+    "@lern/quiz": "*",
+    "@lern/ui": "*",
+    "react": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}

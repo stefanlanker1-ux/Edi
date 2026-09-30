@@ -243,8 +243,9 @@ export function elementsIn(text: string, maxZ = 86): number[] {
   }
   const low = rest.toLowerCase();
   for (const [sym, stem] of Object.entries(ANION_STEM)) if (low.includes(stem.toLowerCase()) && BY_SYMBOL[sym].Z <= maxZ) found.add(BY_SYMBOL[sym].Z);
-  for (const m of text.matchAll(/(?<![A-Za-zÄÖÜäöü])([A-Z][a-z]?)(?=[⁰¹²³⁴⁵⁶⁷⁸⁹]*[⁺⁻])/g)) {
-    const e = BY_SYMBOL[m[1]];
+  // Symbol vor einer Ladung (Fe³⁺), nicht mitten im Wort; ohne Lookbehind (fehlt in älteren Safari-Versionen)
+  for (const m of text.matchAll(/(^|[^A-Za-zÄÖÜäöü])([A-Z][a-z]?)(?=[⁰¹²³⁴⁵⁶⁷⁸⁹]*[⁺⁻])/g)) {
+    const e = BY_SYMBOL[m[2]];
     if (e && e.Z <= maxZ) found.add(e.Z);
   }
   return [...found];

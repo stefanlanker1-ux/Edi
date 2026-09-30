@@ -5,18 +5,14 @@
   "type": "module",
   "workspaces": [
     "packages/*",
+    "modules/*",
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w apps/atombau",
-    "dev:ionen": "npm run dev -w apps/ionenbindung",
-    "dev:paar": "npm run dev -w apps/elektronenpaarbindung",
-    "dev:einheiten": "npm run dev -w apps/einheiten",
-    "dev:neutral": "npm run dev -w apps/neutralisation",
-    "dev:start": "npm run dev -w apps/start",
+    "dev": "npm run dev -w apps/edi",
     "build": "npm run build --workspaces --if-present",
     "site": "npm run build && node scripts/assemble-site.mjs",
-    "test": "npm run test --workspaces --if-present",
+    "test": "node scripts/check-architecture.mjs && npm run test --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present"
   }
 }
