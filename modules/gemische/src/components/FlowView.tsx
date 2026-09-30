@@ -6,7 +6,7 @@
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
 import { atomRadius } from "@lern/chem";
 import { kalotteBox, shapeOf } from "@lern/chem-ui";
-import { boundaryY, separatedFlow, stepFlow, liquidHeight, type World } from "../flow.ts";
+import { DRAW, boundaryY, liquidLevel, separatedFlow, sizeOf, stepFlow, type World } from "../flow.ts";
 
 type Layout = { mv: number; ox: number; oy: number; zx: number; zy: number; R: number; side: boolean };
 type Mol = { atoms: [string, number, number][]; ext: number };
@@ -27,11 +27,12 @@ const isLong = (f: string) => { const b = kalotteBox(f); return Math.max(b.w, b.
 /** Maßstab (Welt-Einheiten je Å) je Stoff: wie im Teilchenbild – das größte füllt den Platz, kleine etwas größer */
 function scales(w: World): Record<string, number> {
   const fs = [...new Set(w.ps.map(p => p.f))];
-  const n = w.ps.length;
-  const spacing = w.state === "fluessig" ? Math.sqrt(w.W * liquidHeight(n, w.W) / n) : w.state === "fest" ? 2 * w.rc : 2.6 * w.rc;
-  const room = (f: string) => spacing * (isLong(f) ? 1.6 : .95);
+  // Platz je Teilchen: in der Flüssigkeit nach Molekülgröße (Zucker groß), sonst gleich
+  const liquid = w.state === "fluessig";
+  const spacing = (f: string) => liquid ? DRAW * w.rc * sizeOf(f) / .95 : w.state === "fest" ? 2 * w.rc : 2.6 * w.rc;
+  const room = (f: string) => spacing(f) * (isLong(f) ? 1.6 : .95);
   const base = Math.min(...fs.map(f => room(f) / mol(f).ext));
-  return Object.fromEntries(fs.map(f => [f, Math.min(room(f) / mol(f).ext, Math.max(base, spacing * .55 / mol(f).ext))]));
+  return Object.fromEntries(fs.map(f => [f, Math.min(room(f) / mol(f).ext, Math.max(base, spacing(f) * .55 / mol(f).ext))]));
 }
 
 /** Farben: Token lesen (hell/dunkel) und mischen */
@@ -45,7 +46,7 @@ const mix = (a: [number, number, number], b: [number, number, number], t: number
 
 /** Radius der Lupe in Welt-Einheiten: etwa 20 Teilchen sind darin */
 export function lensRadius(w: World): number {
-  const area = w.state === "fluessig" ? w.W * liquidHeight(w.ps.length, w.W) : w.state === "fest" ? w.ps.length * 4 * w.rc * w.rc : w.W * w.H;
+  const area = w.state === "fluessig" ? w.W * liquidLevel(w) : w.state === "fest" ? w.ps.length * 4 * w.rc * w.rc : w.W * w.H;
   return Math.max(8, Math.min(Math.min(w.W, w.H) * .35, Math.sqrt(20 * area / w.ps.length / Math.PI)));
 }
 /** Anfangslage der Lupe: dort, wo es etwas zu sehen gibt */
@@ -53,7 +54,11 @@ export function lensStart(w: World, focus?: "oben" | "unten" | "grenze"): [numbe
   const rl = lensRadius(w);
   if (w.state !== "fluessig") return [w.W / 2, w.H / 2];
   if (focus === "grenze" && w.floats.length) return [w.W / 2, boundaryY(w)];
-  if (focus === "unten") return [w.W / 2, w.H - rl];
+  if (focus === "unten") {
+    // Kristall: Lupe auf seine Oberkante (halb Kristall, halb Wasser – dort lösen sich die Moleküle)
+    const ys = w.ps.filter(p => p.bound).map(p => p.y);
+    return ys.length ? [w.W / 2, Math.min(...ys)] : [w.W / 2, w.H - rl];
+  }
   return [w.W / 2, w.top + rl * .6];
 }
 
@@ -100,9 +105,14 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+  // Lupe: gezeichnete Lage gleitet weich zum Ziel (Antippen, Ziehen, Pfeiltasten) – sie springt nie
   const lens = useRef<[number, number]>(lensStart(world, focus));
+  const lensTo = useRef<[number, number]>(lens.current);
   const lay = useRef<Layout | null>(null);
-  const drag = useRef(false);
+  /** Ziehen: Abstand zwischen Finger und Mitte der Lupe bleibt gleich */
+  const drag = useRef<[number, number] | null>(null);
+  const motionRef = useRef(motion);
+  motionRef.current = motion;
   const worldRef = useRef(world);
   const sprites = useRef(new Map<string, HTMLCanvasElement>());
   const colors = useRef<Record<string, [number, number, number]>>({});
@@ -314,6 +324,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       if (n === 4) acc = 0;
       if (frame % 30 === 0) readColors();
       glide(1 - Math.pow(.45, dt / STEP));
+      const lk = 1 - Math.pow(.7, dt / STEP), [lx, ly] = lens.current, [tx, ty] = lensTo.current;
+      lens.current = [lx + (tx - lx) * lk, ly + (ty - ly) * lk];
       draw();
     };
     if (motion) raf = requestAnimationFrame(loop);
@@ -332,8 +344,9 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   };
   const moveLens = (x: number, y: number) => {
     const w = worldRef.current;
-    lens.current = [Math.max(0, Math.min(w.W, x)), Math.max(0, Math.min(w.H, y))];
-    drawRef.current();
+    lensTo.current = [Math.max(0, Math.min(w.W, x)), Math.max(0, Math.min(w.H, y))];
+    // ohne Bewegung (reduzierte Bewegung): sofort dorthin
+    if (!motionRef.current) { lens.current = lensTo.current; drawRef.current(); }
   };
   const down = (e: PointerEvent) => {
     const p = toWorld(e), L = lay.current;
@@ -350,18 +363,20 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       return;
     }
     if (p.x >= -5 && p.x <= w.W + 5 && p.y >= -5 && p.y <= w.H + 5) {
-      drag.current = true;
+      const [tx, ty] = lensTo.current, rl = lensRadius(w);
+      // an der Lupe angefasst: mit gleichem Abstand ziehen; daneben angetippt: Lupe gleitet dorthin
+      drag.current = Math.hypot(p.x - tx, p.y - ty) <= rl * 1.2 ? [tx - p.x, ty - p.y] : [0, 0];
       (e.target as Element).setPointerCapture?.(e.pointerId);
-      moveLens(p.x, p.y);
+      moveLens(p.x + drag.current[0], p.y + drag.current[1]);
     }
   };
-  const move = (e: PointerEvent) => { if (!drag.current) return; const p = toWorld(e); if (p) moveLens(p.x, p.y); };
-  const up = () => { drag.current = false; };
+  const move = (e: PointerEvent) => { const o = drag.current; if (!o) return; const p = toWorld(e); if (p) moveLens(p.x + o[0], p.y + o[1]); };
+  const up = () => { drag.current = null; };
   const key = (e: KeyboardEvent) => {
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (!d) return;
     e.preventDefault();
-    const [x, y] = lens.current, step = lensRadius(worldRef.current) * .4;
+    const [x, y] = lensTo.current, step = lensRadius(worldRef.current) * .4;
     moveLens(x + d[0] * step, y + d[1] * step);
   };
 

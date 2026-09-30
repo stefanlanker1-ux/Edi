@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { EXAMPLES, analyse } from "./mixtures.ts";
-import { boundaryY, liquidHeight, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "./flow.ts";
+import { STIR, boundaryY, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "./flow.ts";
 
 const ex = (id: string) => EXAMPLES.find(e => e.id === id)!;
 const counts = (w: World) => { const c: Record<string, number> = {}; for (const p of w.ps) c[p.f] = (c[p.f] ?? 0) + 1; return c; };
@@ -34,19 +34,94 @@ test("Bewegung ist fließend: kleine Schritte je Bild, keine Sprünge", () => {
   }
 }, 60_000);
 
+/** Hauptknopf so oft drücken, bis alles gelöst ist (Umrühren bzw. Schütteln) */
+function mixUntilDone(w: World, id: string) {
+  let k = 0;
+  while (!settledFlow(w) && k < 3000) {
+    if (w.stir === 0 && w.shake === 0 && k % 240 === 0) { if (id === "sprudel") shakeWorld(w); else w.stir = STIR; }
+    stepFlow(w); k++;
+  }
+  return k;
+}
+
 test("Mischen: Zucker, Alkohol und CO₂ verteilen sich gleichmäßig; der Vorgang kommt zur Ruhe", () => {
   for (const id of ["zucker", "alkohol", "sprudel"]) for (let seed = 1; seed <= 5; seed++) {
     const e = ex(id), w = makeWorld(e, seed, "vorher");
-    startMixing(w);
-    let k = 0;
-    while (!settledFlow(w) && k < 2400) { stepFlow(w); k++; }
+    mixUntilDone(w, id);
     assert.ok(settledFlow(w), `${id}: nicht fertig (Startwert ${seed})`);
-    for (let j = 0; j < 300; j++) stepFlow(w);
-    const hl = liquidHeight(w.ps.length, w.W);
+    w.stir = STIR;
+    for (let j = 0; j < 400; j++) stepFlow(w);
+    const hl = liquidLevel(w);
     const d = mean(w.ps.filter(p => p.f !== e.solute).map(p => p.y)) - mean(w.ps.filter(p => p.f === e.solute).map(p => p.y));
     assert.ok(Math.abs(d) < hl * .12, `${id}: nicht gemischt (${(d / hl).toFixed(2)})`);
   }
-}, 60_000);
+}, 120_000);
+
+/** Zeitschritte, bis sich der Zuckerkristall ganz gelöst hat */
+function dissolve(temp: number, stir: boolean, seed: number) {
+  const w = makeWorld(ex("zucker"), seed, "vorher");
+  w.temp = temp;
+  let k = 0, loose = 0;
+  while (w.ps.some(p => p.bound) && k < 20000) {
+    if (stir && w.stir === 0) w.stir = STIR;
+    stepFlow(w); k++;
+    // von außen nach innen: Kristallteilchen ohne Nachbarn im Kristall gibt es höchstens vereinzelt
+    const b = w.ps.filter(p => p.bound), at = new Set(b.map(p => `${p.gi},${p.gj}`));
+    loose = Math.max(loose, b.filter(p => ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, c]) => at.has(`${p.gi! + a},${p.gj! + c}`))).length);
+  }
+  return { k, loose };
+}
+
+test("Zucker: geordneter Kristall, löst sich von selbst von außen; warm und gerührt schneller", () => {
+  const w = makeWorld(ex("zucker"), 1, "vorher");
+  const crystal = w.ps.filter(p => p.bound);
+  assert.strictEqual(crystal.length, 30);
+  assert.ok(crystal.every(p => p.a === 0), "alle gleich ausgerichtet");
+  assert.strictEqual(new Set(crystal.map(p => p.gj)).size * new Set(crystal.map(p => p.gi)).size >= 30, true, "Gitter");
+  // ohne Rühren: löst sich von selbst, aber langsam (etwa eine halbe Minute)
+  const slow = [1, 2, 3].map(s => dissolve(20, false, s));
+  for (const r of slow) { assert.ok(r.k < 20000, "löst sich nicht"); assert.ok(r.k > 600, `zu schnell (${r.k})`); assert.ok(r.loose <= 3, `zerfällt nicht von außen (${r.loose})`); }
+  const avg = (rs: { k: number }[]) => rs.reduce((s, r) => s + r.k, 0) / rs.length;
+  const warm = avg([1, 2, 3].map(s => dissolve(80, false, s))), stirred = avg([1, 2, 3].map(s => dissolve(20, true, s)));
+  assert.ok(warm < avg(slow) * .5, `warm nicht schneller (${warm} / ${avg(slow)})`);
+  assert.ok(stirred < avg(slow) * .5, `gerührt nicht schneller (${stirred} / ${avg(slow)})`);
+  const cold = avg([1, 2].map(s => dissolve(0, false, s)));
+  assert.ok(cold > avg(slow) * 1.5, "kalt nicht langsamer");
+}, 240_000);
+
+test("Sprudel: CO₂ löst sich von selbst langsam, geschüttelt schnell", () => {
+  const gas = (w: World) => w.ps.filter(p => p.gas).length;
+  const a = makeWorld(ex("sprudel"), 1, "vorher"), b = makeWorld(ex("sprudel"), 1, "vorher");
+  for (let k = 0; k < 600; k++) stepFlow(a);
+  shakeWorld(b);
+  for (let k = 0; k < 600; k++) stepFlow(b);
+  assert.ok(gas(a) < 40 && gas(a) > 20, `von selbst: ${gas(a)} Gas`);
+  assert.ok(gas(b) < gas(a) / 2, `geschüttelt: ${gas(b)} Gas`);
+});
+
+test("Umrühren: die Flüssigkeit bleibt überall etwa gleich dicht (kein Stau an Wand oder Kristall)", () => {
+  for (const [id, phase] of [["wasser", "nachher"], ["alkohol", "vorher"], ["zucker", "vorher"]] as const) {
+    const w = makeWorld(ex(id), 2, phase);
+    let worst = 0;
+    for (let k = 1; k <= 480; k++) {
+      if (w.stir === 0) w.stir = STIR;
+      stepFlow(w);
+      if (k < 120 || k % 30) continue;
+      // Belegung in 4 × 3 Feldern oberhalb des Kristalls
+      const floor = Math.min(w.H, ...w.ps.filter(p => p.bound).map(p => p.y - (p.rad ?? w.rc)));
+      const cells = Array(12).fill(0);
+      for (const p of w.ps) {
+        if (p.gas || p.bound || p.y > floor) continue;
+        const i = Math.min(3, Math.floor(p.x / w.W * 4)), j = Math.min(2, Math.floor((p.y - w.top) / (floor - w.top) * 3));
+        cells[j * 4 + i] += (p.rad ?? w.rc) ** 2;
+      }
+      const m = mean(cells);
+      worst = Math.max(worst, ...cells.map(c => Math.abs(c / m - 1)));
+    }
+    // je Feld nur etwa 15 Teilchen (Zucker zählt 3-fach): Schwankung bis 70 % ist Zufall, ein Stau wäre mehr als das Doppelte
+    assert.ok(worst < .75, `${id}: ungleich dicht (${worst.toFixed(2)})`);
+  }
+}, 120_000);
 
 test("Öl und Wasser: nach dem Schütteln gemischt, danach wieder getrennt (Öl oben, Grenze gerade)", () => {
   for (let seed = 1; seed <= 5; seed++) {

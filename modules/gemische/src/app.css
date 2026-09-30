@@ -5,10 +5,11 @@
 .gm-title { margin: 0; font-size: 1.1rem; font-weight: 800; }
 .gm-num { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
 .gm-note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: .85rem; }
-.gm-controls { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 10px; }
+.gm-controls { display: grid; justify-items: center; gap: 6px; }
+.gm-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
 /* Temperaturregler: eigene Zeile unter den Knöpfen */
-.gm-temp { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; color: var(--muted); }
-.gm-temp input { width: min(260px, 60%); min-height: 44px; accent-color: var(--accent); }
+.gm-temp { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; color: var(--muted); }
+.gm-temp input { width: clamp(120px, 42vw, 260px); min-height: 44px; accent-color: var(--accent); }
 .gm-temp output { min-width: 4.2em; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 
 /* Gefäß und Lupe (Canvas): füllt die Bühne; Lupe ziehen ohne die Seite zu verschieben */
@@ -120,3 +121,6 @@
 .gm-ex-step { display: flex; align-items: center; gap: 4px; flex: 1 1 0; min-width: 0; max-width: 220px; }
 .gm-ex-step .gm-beaker { width: 100%; height: auto; }
 .gm-ex-arrow { font-weight: 800; color: var(--muted); }
+/* Statuszeile immer einzeilig: sonst verschiebt sich das Bild (und die Lupe), wenn sich die Kennzeichen ändern */
+.gm-status { display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; }
+.gm-status > * { white-space: nowrap; flex: none; }

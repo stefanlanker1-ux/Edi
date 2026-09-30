@@ -1,16 +1,17 @@
 // Probieren: zehn fertige Beispiele (kein Baukasten) – Gefäß mit allen Teilchen und verschiebbarer Lupe (flow.ts, FlowView).
-// Die Teilchen bewegen sich ständig und fließend. „Mischen“ zeigt, wie das Gemisch entsteht: vorher liegen die Reinstoffe getrennt
-// (Zuckerkristall, Alkohol-Schicht, Gas über dem Wasser, Gase hinter Trennwänden, Metallblöcke), danach verteilen sie sich –
-// die Teilchen bleiben dieselben und gleich viele. Öl und Wasser: „Schütteln“, danach entmischen sie sich wieder.
+// Die Teilchen bewegen sich ständig und fließend. Jedes Beispiel beginnt „vorher“: Zuckerkristall im Wasser, Alkohol obenauf,
+// CO₂ über dem Wasser, Gase hinter Trennwänden, Metallblöcke. Flüssigkeiten lösen und mischen sich von selbst (langsam; warm schneller),
+// der Knopf sagt, was er tut: Umrühren, Schütteln, Trennwand weg, Schmelzen. „Von vorn“ stellt den Anfang wieder her.
+// Öl und Wasser: „Schütteln“, danach entmischen sie sich wieder.
 // Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Button, Icon, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@lern/ui";
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, MIX_LABEL, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
 import { seedOf } from "../mixing.ts";
-import { makeWorld, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
+import { STIR, liquidLevel, makeWorld, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
 import { FlowView } from "../components/FlowView.tsx";
 import { useApp } from "../store.ts";
 
@@ -116,66 +117,102 @@ function ExampleList({ current, onPick }: { current: number; onPick: (i: number)
   );
 }
 
-type Phase = "ruhe" | "vorher" | "laeuft";
-const MIN_FRAMES = 240; // so lange läuft ein Vorgang mindestens (etwa 4 s)
+/** Zustand für die Anzeige (alle 15 Schritte aus der Welt gelesen) */
+interface Info { bound: number; gas: number; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
+function readInfo(w: World, ex: Example): Info {
+  let mixed = true;
+  if (ex.before === "schicht" && ex.solute) {
+    // in jedem Drittel der Höhe etwa so viel Alkohol wie im Ganzen
+    const all = w.ps.filter(p => p.f === ex.solute).length / w.ps.length, hl = liquidLevel(w);
+    for (let b = 0; b < 3; b++) {
+      const band = w.ps.filter(p => Math.min(2, Math.floor((p.y - w.top) / hl * 3)) === b);
+      const share = band.filter(p => p.f === ex.solute).length / Math.max(1, band.length);
+      if (Math.abs(share - all) > all * .3) mixed = false;
+    }
+  } else if (ex.before === "getrennt" && w.state !== "fest") {
+    // Gase: jeder Stoff ist im Mittel in der Mitte des Gefäßes
+    const mx = (f: string) => { const xs = w.ps.filter(p => p.f === f).map(p => p.x); return xs.reduce((s, x) => s + x, 0) / xs.length; };
+    mixed = !w.walls.length && ex.items.every(([f]) => Math.abs(mx(f) - w.W / 2) < w.W * .08);
+  }
+  return {
+    bound: w.state === "fluessig" ? w.ps.filter(p => p.bound).length : 0, gas: w.ps.filter(p => p.gas).length, sep: separatedFlow(w),
+    walls: w.walls.length, melt: w.melt > 0, busy: w.stir > 0 || w.shake > 0 || w.melt > 0, mixed, doneAt: w.doneAt, t: w.t,
+  };
+}
+const secs = (steps: number) => `${Math.max(1, Math.round(steps / 60))} s`;
+
+/** Hauptknopf je Beispiel: sagt, was passiert */
+function actionOf(ex: Example): { label: string; icon: "shake" | "fire" | "up" } {
+  if (ex.state === "fest") return { label: "Schmelzen", icon: "fire" };
+  if (ex.state !== "fluessig") return ex.before ? { label: ex.items.length > 2 ? "Wände weg" : "Wand weg", icon: "up" } : { label: "Schütteln", icon: "shake" };
+  return ex.before === "kristall" || ex.before === "schicht" ? { label: "Umrühren", icon: "shake" } : { label: "Schütteln", icon: "shake" };
+}
+
+/** Statuszeile: höchstens zwei kurze Kennzeichen (bleibt einzeilig, damit sich das Bild nie verschiebt) */
+function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
+  const k = ex.solute ? ex.items.find(([f]) => f === ex.solute)![1] : 0;
+  const time = (verb: string) => (done !== undefined ? `${verb} in ${secs(done)}` : verb);
+  if (ex.before === "kristall") return i.bound ? ["löst sich", `${k - i.bound} / ${k} gelöst`] : ["Lösung", time("gelöst")];
+  if (ex.before === "gasraum") return i.gas ? ["löst sich", `${k - i.gas} / ${k} gelöst`] : ["Lösung", time("gelöst")];
+  if (ex.before === "schicht") return i.mixed ? ["Lösung", time("gemischt")] : ["mischt sich"];
+  if (ex.floats?.length) return [i.sep ? "2 Schichten" : "Emulsion", "heterogen"];
+  if (ex.state === "fest") return i.walls ? ["getrennt"] : i.melt ? ["geschmolzen"] : [ex.type ?? "Legierung", "homogen"];
+  if (ex.before) return i.walls ? ["getrennt"] : i.mixed ? [ex.type ?? "Gasgemisch", time("gemischt")] : ["mischt sich"];
+  return MIX_LABEL[mixKind(ex)];
+}
 
 function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: number; setTemp: (t: number) => void }) {
   const setEx = useApp(s => s.setEx);
   const reduced = useReducedMotion();
   const seed = seedOf(ex.id);
-  const [world, setWorld] = useState<World>(() => ({ ...makeWorld(ex, seed), temp }));
+  // jedes Beispiel beginnt vorher: Reinstoffe getrennt (Zuckerwürfel im Wasser, Alkohol obenauf, CO₂ über dem Wasser, Trennwände, Metallblöcke)
+  const fresh = (s: number) => { const w = makeWorld(ex, s, ex.before ? "vorher" : "nachher"); w.temp = temp; return w; };
+  const [world, setWorld] = useState<World>(() => fresh(seed));
   world.temp = temp;
-  const [phase, setPhase] = useState<Phase>("ruhe");
+  const [info, setInfo] = useState<Info>(() => readInfo(world, ex));
   const [version, setVersion] = useState(0);
-  const [sep, setSep] = useState(true);
   const [pick, setPick] = useState<string | null>(null);
   const [tool, setTool] = useState<string | null>(null);
-  const worldRef = useRef(world), phaseRef = useRef(phase);
-  worldRef.current = world; phaseRef.current = phase;
-  const time = useRef(0), runs = useRef(0);
-  const timers = useRef<number[]>([]);
-  useEffect(() => () => timers.current.forEach(clearTimeout), []);
-  const later = (fn: () => void, ms: number) => { timers.current.push(window.setTimeout(fn, ms)); };
+  const worldRef = useRef(world);
+  worldRef.current = world;
+  const runs = useRef(0);
+  // Alkohol und Gase: Zeit vom Beginn (bei Gasen: ab „Wand weg“) bis gleichmäßig gemischt
+  const mixedAt = useRef<number | undefined>(undefined);
+  const startAt = useRef(0);
 
-  /** nach jedem Zeitschritt: Ende des Vorgangs erkennen, Anzeige ab und zu auffrischen */
-  const onFrame = () => {
-    const w = worldRef.current;
-    if (phaseRef.current === "laeuft") {
-      time.current++;
-      if ((settledFlow(w) && time.current >= MIN_FRAMES) || time.current > 2400) setPhase("ruhe");
-    }
-    if (w.t % 15 === 0) setSep(separatedFlow(w));
+  const refresh = (w: World) => {
+    const i = readInfo(w, ex);
+    if ((ex.before === "schicht" || (ex.before === "getrennt" && w.state !== "fest")) && i.mixed && mixedAt.current === undefined) mixedAt.current = w.t - startAt.current;
+    setInfo(i);
   };
+  /** nach jedem Zeitschritt: Anzeige ab und zu auffrischen */
+  const onFrame = () => { const w = worldRef.current; if (w.t % 15 === 0) refresh(w); };
   /** ohne Bewegung: gleich das Ergebnis */
   const finish = (w: World) => {
-    for (let k = 0; k < 3000 && (!settledFlow(w) || k < MIN_FRAMES); k++) stepFlow(w);
-    setSep(separatedFlow(w)); setVersion(v => v + 1);
+    for (let k = 0; k < 4000 && (!settledFlow(w) || k < 60); k++) stepFlow(w);
+    refresh(w); setVersion(v => v + 1);
   };
 
-  const doMix = () => {
+  const act = () => {
     buzz();
-    time.current = 0;
-    if (!ex.before) {
-      // Reinstoff oder Öl und Wasser: schütteln
-      shakeWorld(world);
-      if (reduced) finish(world); else setPhase("laeuft");
-      return;
-    }
-    // vorher: Reinstoffe getrennt – kurz zeigen, dann mischen
-    const w = makeWorld(ex, seed + ++runs.current, "vorher");
-    w.temp = temp;
-    setWorld(w);
-    setPhase("vorher");
-    later(() => {
-      startMixing(w);
-      time.current = 0;
-      if (reduced) { finish(w); setPhase("ruhe"); } else setPhase("laeuft");
-    }, reduced ? 1600 : 1400);
+    const w = worldRef.current;
+    if (w.state === "fluessig") { if (ex.before === "kristall" || ex.before === "schicht") w.stir = STIR; else shakeWorld(w); }
+    else if (w.state === "fest") startMixing(w);
+    else if (ex.before) { startMixing(w); startAt.current = w.t; }
+    else shakeWorld(w);
+    if (reduced) finish(w); else refresh(w);
+  };
+  const again = () => {
+    buzz();
+    mixedAt.current = undefined; startAt.current = 0;
+    const w = fresh(seed + ++runs.current);
+    setWorld(w); setInfo(readInfo(w, ex)); setVersion(v => v + 1);
   };
 
   const a = analyse(ex.items);
-  const kind = mixKind(ex);
-  const type = ex.floats?.length ? (sep ? "2 Schichten" : "Emulsion") : ex.type;
+  const action = actionOf(ex);
+  const done = ex.before === "schicht" || (ex.before === "getrennt" && ex.state !== "fest") ? mixedAt.current : info.doneAt;
+  const canAct = !info.busy && !(ex.state !== "fluessig" && ex.state !== "fest" && ex.before && !info.walls);
   const goTo = (i: number) => { buzz(); setEx(i); setTool(null); };
   const focus = ex.before === "kristall" ? "unten" as const : ex.floats ? "grenze" as const : undefined;
   return (
@@ -190,22 +227,23 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
         }
         stage={<FlowView world={world} motion={!reduced} version={version} focus={focus} onFrame={onFrame} onPick={f => { buzz(); setPick(f); }}
           label={`${ex.title}: ${ex.items.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`} />}
-        status={<>
-          {phase === "vorher" && ex.before ? <Tag>vorher</Tag> : MIX_LABEL[kind].map(l => <Tag key={l}>{l}</Tag>)}
-          {phase !== "vorher" && type && <Tag>{type}</Tag>}
-          <Tag>{a.teilchen} Teilchen</Tag>
-        </>}
+        status={<div className="gm-status">{statusOf(ex, info, done).map(l => <Tag key={l}>{l}</Tag>)}</div>}
         controls={
           <div className="gm-controls">
-            <IconButton icon="back" label="Voriges Beispiel" onClick={() => goTo(index - 1)} />
-            <Button variant="primary" icon="shake" onClick={doMix} disabled={phase !== "ruhe"}>{ex.before ? "Mischen" : "Schütteln"}</Button>
-            <IconButton icon="arrow" label="Nächstes Beispiel" onClick={() => goTo(index + 1)} />
-            <label className="gm-temp">
-              <Icon name="fire" size={18} />
-              <input type="range" min={0} max={100} step={10} value={temp} aria-label="Temperatur"
-                onChange={e => { setTemp(Number(e.target.value)); if (reduced) setVersion(v => v + 1); }} />
-              <output>{temp} °C</output>
-            </label>
+            <div className="gm-row">
+              <IconButton icon="back" label="Voriges Beispiel" onClick={() => goTo(index - 1)} />
+              <Button variant="primary" icon={action.icon} onClick={act} disabled={!canAct}>{action.label}</Button>
+              <IconButton icon="arrow" label="Nächstes Beispiel" onClick={() => goTo(index + 1)} />
+            </div>
+            <div className="gm-row">
+              {ex.before && <IconButton icon="reset" label="Von vorn" onClick={again} />}
+              <label className="gm-temp">
+                <Icon name="fire" size={18} />
+                <input type="range" min={0} max={100} step={10} value={temp} aria-label="Temperatur"
+                  onChange={e => { setTemp(Number(e.target.value)); if (reduced) setVersion(v => v + 1); }} />
+                <output>{temp} °C</output>
+              </label>
+            </div>
           </div>
         }
         tools={[

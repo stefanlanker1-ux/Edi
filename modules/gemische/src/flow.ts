@@ -15,9 +15,14 @@ export interface FP {
   vx: number; vy: number;
   /** Drehwinkel im Bild und seine Änderung */
   a: number; va: number;
-  /** im Kristall bzw. Gitter (Platz hx, hy) */
+  /** im Kristall bzw. Gitter (Platz hx, hy; im Zuckerkristall Spalte gi, Reihe gj von unten) */
   bound?: boolean;
   hx?: number; hy?: number;
+  gi?: number; gj?: number;
+  /** Stoßradius (Flüssigkeit: je nach Molekülgröße, sonst rc) */
+  rad?: number;
+  /** eben vom Kristall gelöst: noch so viele Schritte ohne Stoß mit dem Kristall (gleitet hinaus statt weggestoßen zu werden) */
+  leave?: number;
   /** Gas über der Flüssigkeit */
   gas?: boolean;
 }
@@ -50,6 +55,8 @@ export interface World {
   gap: number;
   /** Grenze Öl/Wasser (geglättet) */
   lineY?: number;
+  /** Zeitschritt, in dem sich alles gelöst hat (Kristall weg, kein Gas mehr über der Flüssigkeit) */
+  doneAt?: number;
   t: number;
   r: () => number;
 }
@@ -58,6 +65,14 @@ type Spec = Pick<Example, "items" | "state" | "floats" | "before" | "solute">;
 
 const LIQ_PHI = .42; // Flächenanteil der Stoßkreise in der Flüssigkeit (gezeichnet werden die Teilchen größer)
 const LIQ_RC = 2.6, GAS_RC = 2.2, GAS_V = .7;
+/** Stoßradius in der Flüssigkeit im Verhältnis zu Wasser: Zucker (Saccharose) ist ein großes Molekül, Ethanol etwas größer als Wasser */
+const SIZE: Record<string, number> = { C12H22O11: 1.8, C2H5OH: 1.3, CO2: 1.15 };
+export const sizeOf = (f: string) => SIZE[f] ?? 1;
+/** gezeichneter Durchmesser in der Flüssigkeit je Stoßradius (Stoßkreise bedecken nur 42 %, gezeichnet dichter) */
+export const DRAW = 2.6;
+/** Gitterabstand im Kristall (waagrecht, senkrecht) je gezeichnetem Durchmesser: Saccharose liegt flach (breiter als hoch),
+ *  so berühren sich die Moleküle in beiden Richtungen */
+const CELL: Record<string, [number, number]> = { C12H22O11: [1, .7] };
 
 const shuffle = <T,>(a: T[], r: () => number) => {
   const b = a.slice();
@@ -66,8 +81,12 @@ const shuffle = <T,>(a: T[], r: () => number) => {
 };
 const count = (items: [string, number][]) => items.reduce((s, [, n]) => s + n, 0);
 
-/** Höhe der Flüssigkeit mit n Teilchen */
+/** Höhe der Flüssigkeit mit n Teilchen (alle so groß wie Wasser) */
 export const liquidHeight = (n: number, W = 100) => (n * Math.PI * LIQ_RC * LIQ_RC) / LIQ_PHI / W;
+/** Fläche, die Teilchen dieser Stoffe in der Flüssigkeit brauchen */
+const liquidArea = (fs: string[]) => fs.reduce((a, f) => a + Math.PI * (LIQ_RC * sizeOf(f)) ** 2, 0) / LIQ_PHI;
+/** Höhe des Flüssigkeitsbereichs der Welt */
+export const liquidLevel = (w: World) => w.H - w.top;
 
 /** Plätze in einer Fläche, von unten nach oben gefüllt (leicht versetzt wie in einer Flüssigkeit) */
 function packed(n: number, W: number, y0: number, y1: number, rc: number, r: () => number): [number, number][] {
@@ -95,42 +114,49 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
   const list = ex.items.flatMap(([f, k]) => Array.from({ length: k }, () => f));
   const vorher = phase === "vorher" ? ex.before : undefined;
   // Flüssigkeit: Gefäß etwas breiter als die Flüssigkeit hoch ist
-  const W = ex.state === "fluessig" ? Math.round(Math.sqrt((n * Math.PI * LIQ_RC * LIQ_RC) / LIQ_PHI / .8)) : 100;
-  const base = { floats, walls: [] as number[], stir: 0, shake: 0, melt: 0, temp: 20, agit: 0, hold: !!vorher, closed: ex.before === "gasraum", sites: [] as [number, number][], gap: 0, t: 0, r };
+  const W = ex.state === "fluessig" ? Math.round(Math.sqrt(liquidArea(list) / .8)) : 100;
+  // Flüssigkeiten lösen und mischen sich auch von selbst (langsam); Gase und Metalle halten Trennwände bzw. das Gitter zusammen
+  const base = { floats, walls: [] as number[], stir: 0, shake: 0, melt: 0, temp: 20, agit: 0, hold: !!vorher && ex.state !== "fluessig", closed: ex.before === "gasraum", sites: [] as [number, number][], gap: 0, t: 0, r };
 
   if (ex.state === "fluessig") {
     const head = ex.before === "gasraum" ? 26 : floats.length ? 14 : 8;
-    const hl = liquidHeight(n, W), H = head + hl, rc = LIQ_RC;
+    const hl = liquidArea(list) / W, H = head + hl, rc = LIQ_RC;
     const w: World = { ...base, state: "fluessig", W, H, top: head, rc, ps: [] };
+    const add = (p: FP) => { p.rad = rc * sizeOf(p.f); w.ps.push(p); };
     if (vorher === "gasraum" && ex.solute) {
       const others = shuffle(list.filter(f => f !== ex.solute), r);
-      const spots = packed(others.length, W, H - liquidHeight(others.length, W), H, rc, r);
-      others.forEach((f, i) => w.ps.push(particle(i, f, spots[i][0], spots[i][1], r)));
+      const spots = packed(others.length, W, H - liquidArea(others) / W, H, rc, r);
+      others.forEach((f, i) => add(particle(i, f, spots[i][0], spots[i][1], r)));
       list.filter(f => f === ex.solute).forEach((f, i) => {
         const ang = r() * Math.PI * 2;
-        w.ps.push(particle(others.length + i, f, rc + r() * (W - 2 * rc), rc + r() * (head - 2 * rc), r, { gas: true, vx: Math.cos(ang) * GAS_V, vy: Math.sin(ang) * GAS_V }));
+        const g = particle(others.length + i, f, rc + r() * (W - 2 * rc), rc + r() * (head - 2 * rc), r, { gas: true, vx: Math.cos(ang) * GAS_V, vy: Math.sin(ang) * GAS_V });
+        w.ps.push(g); g.rad = rc; // als Gas klein wie die anderen Gasteilchen, gelöst so groß wie das Molekül
       });
       return w;
     }
-    const spots = packed(n, W, head, H, rc, r); // von unten nach oben
     if (vorher === "kristall" && ex.solute) {
-      // Kristall: die Plätze unten in der Mitte, dicht gepackt
-      const k = list.filter(f => f === ex.solute).length;
-      const cols = Math.ceil(Math.sqrt(k * 1.4)), rows = Math.ceil(k / cols), s = 2 * rc;
-      const sites: [number, number][] = [];
-      for (let i = 0; i < k; i++) sites.push([W / 2 + (i % cols - (cols - 1) / 2) * s, H - rc - Math.floor(i / cols) * s]);
-      const blockTop = H - rows * s - rc * .5, x0 = W / 2 - cols * s / 2 - rc * .5, x1 = W / 2 + cols * s / 2 + rc * .5;
-      const free = spots.filter(([x, y]) => !(y > blockTop && x > x0 && x < x1));
-      const extra = packed(n + 40, W, head, H, rc, r).filter(([x, y]) => !(y > blockTop && x > x0 && x < x1));
-      const place = [...free, ...extra];
+      // Kristall: geordnet, dicht an dicht, alle Moleküle gleich ausgerichtet – unten in der Mitte, breiter als hoch
+      const k = list.filter(f => f === ex.solute).length, rs = rc * sizeOf(ex.solute);
+      const [cx, cy] = CELL[ex.solute] ?? [.9, .9], sx = DRAW * rs * cx, sy = DRAW * rs * cy;
+      const cols = Math.ceil(Math.sqrt(k * 1.2)), rows = Math.ceil(k / cols);
+      const x0 = W / 2 - (cols - 1) * sx / 2;
+      for (let i = 0; i < k; i++) {
+        const gi = i % cols, gj = Math.floor(i / cols), x = x0 + gi * sx, y = H - sy / 2 - gj * sy;
+        add(particle(i, ex.solute, x, y, r, { bound: true, hx: x, hy: y, gi, gj, a: 0 }));
+      }
+      // Wasser rundherum: Plätze außerhalb des Kristalls
+      const bx0 = x0 - sx / 2 - rc, bx1 = x0 + (cols - .5) * sx + rc, by0 = H - rows * sy - rc;
       const others = shuffle(list.filter(f => f !== ex.solute), r);
-      sites.forEach(([x, y], i) => w.ps.push(particle(i, ex.solute!, x, y, r, { bound: true, hx: x, hy: y })));
-      others.forEach((f, i) => w.ps.push(particle(k + i, f, place[i][0], place[i][1], r)));
+      let spots: [number, number][] = [];
+      for (let extra = 0; spots.length < others.length && extra < 400; extra += 20)
+        spots = packed(others.length + extra, W, head, H, rc, r).filter(([x, y]) => !(y > by0 && x > bx0 && x < bx1));
+      others.forEach((f, i) => add(particle(k + i, f, spots[i][0], spots[i][1], r)));
       return w;
     }
+    const spots = packed(n, W, head, H, rc, r); // von unten nach oben
     const up = (f: string) => (vorher === "schicht" ? f === ex.solute : floats.includes(f));
     const order = [...shuffle(list.filter(f => !up(f)), r), ...shuffle(list.filter(up), r)];
-    order.forEach((f, i) => w.ps.push(particle(i, f, spots[i][0], spots[i][1], r)));
+    order.forEach((f, i) => add(particle(i, f, spots[i][0], spots[i][1], r)));
     return w;
   }
 
@@ -190,12 +216,16 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
   return w;
 }
 
-/** Mischen beginnt: Trennwände weg, Metall schmilzt, Flüssigkeit wird umgerührt */
+/** Schmelzen und wieder Erstarren (Metall): 10 s */
+export const MELT = 600;
+/** Umrühren (Flüssigkeit): 3 s */
+export const STIR = 180;
+/** Hauptvorgang des Beispiels: Trennwände weg (Gase), Metall schmilzt, Flüssigkeit wird umgerührt */
 export function startMixing(w: World) {
   w.hold = false;
-  if (w.state === "fest") { w.walls = []; w.melt = 420; for (const p of w.ps) p.bound = false; return; }
+  if (w.state === "fest") { w.walls = []; w.melt = MELT; for (const p of w.ps) p.bound = false; return; }
   w.walls = [];
-  if (w.state === "fluessig") w.stir = 300;
+  if (w.state === "fluessig") w.stir = STIR;
 }
 /** Schütteln (Flüssigkeit): kräftige Stöße, danach Ruhe */
 export const SHAKE = 180; // Schütteln dauert 3 s und ist gemächlich (gut zu verfolgen)
@@ -260,9 +290,14 @@ export function stepFlow(w: World) {
     const melting = w.melt > 0;
     for (const p of w.ps) {
       if (melting) {
-        // geschmolzen: fließt und wird gerührt
-        const sx = -(p.y - H / 2) * .0025, sy = (p.x - W / 2) * .0025;
-        p.vx = p.vx * .9 + (r() - .5) * .5 + sx; p.vy = p.vy * .9 + (r() - .5) * .5 + sy;
+        // geschmolzen: fließt (gleiche Strömung wie beim Umrühren, bleibt überall gleich dicht) und wird gegen Ende ruhig
+        const calm = Math.min(1, w.melt / 60, (MELT - w.melt) / 30 + .1);
+        const X = Math.PI * p.x / W, Y = Math.PI * p.y / H, s1 = (1 + Math.sin(w.t / 12)) / 2;
+        // zwei Strömungsmuster im Wechsel: eine Walze, dann zwei übereinander (ψ = sin πx · sin πy bzw. sin πx · sin 2πy)
+        const u = 1.5 * (s1 * Math.sin(X) * Math.cos(Y) + (1 - s1) * 2 * Math.sin(X) * Math.cos(2 * Y));
+        const v = -1.5 * H / W * Math.cos(X) * (s1 * Math.sin(Y) + (1 - s1) * Math.sin(2 * Y));
+        p.vx = p.vx * .93 + (r() - .5) * .4 + (u - p.vx) * .1 * calm;
+        p.vy = p.vy * .93 + (r() - .5) * .4 + (v - p.vy) * .1 * calm;
       } else {
         // am Gitterplatz schwingen (bzw. dorthin gleiten)
         const h = heat(w);
@@ -273,6 +308,15 @@ export function stepFlow(w: World) {
       turn(p, melting ? .02 : .002);
     }
     if (melting) {
+      // Druck: gleichmäßig dicht (keine Löcher in der Schmelze)
+      const R = Math.sqrt(W * H / w.ps.length), near = grid(w.ps, R);
+      for (const p of w.ps) near(p, q => {
+        if (q.id < p.id) return;
+        const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
+        if (d >= R || d === 0) return;
+        const f = .3 * (R - d) / R, nx = dx / d * f, ny = dy / d * f;
+        p.vx -= nx; p.vy -= ny; q.vx += nx; q.vy += ny;
+      });
       separate(w, w.ps, 2);
       clamp(w, w.ps, rc, W - rc, rc, H - rc);
       if (--w.melt === 0) {
@@ -319,71 +363,97 @@ export function stepFlow(w: World) {
   // Schütteln/Umrühren setzt sanft ein und klingt sanft aus
   const target = w.shake > 0 || w.stir > 0 ? Math.min(1, Math.max(w.shake, w.stir) / 40) : 0;
   w.agit += (target - w.agit) * .06;
+  const hf = heat(w);
   const liquid = w.ps.filter(p => !p.gas);
-  const cy = (w.top + H) / 2;
+  const rad = (p: FP) => p.rad ?? rc;
+  // Umrühren reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (sonst staut sich das Wasser am Kristall)
+  let floor = H;
+  for (const p of liquid) if (p.bound) floor = Math.min(floor, p.y - rad(p));
+  const hl = floor - w.top;
   const line = w.floats.length ? rawBoundary(w) : 0;
   for (const p of w.ps) {
     if (p.gas) {
-      // Gas über der Flüssigkeit: fliegt; trifft es auf die Oberfläche, löst es sich (vorher prallt es ab)
+      // Gas über der Flüssigkeit fliegt; trifft es auf die Oberfläche, löst es sich manchmal (geschüttelt: fast immer)
       veer(p, r);
-      if (w.hold) toSpeed(p, GAS_V * heat(w));
-      else p.vy += .012; // CO₂ ist schwerer als Luft
+      toSpeed(p, GAS_V * hf);
       p.x += p.vx; p.y += p.vy;
       if (p.x < rc || p.x > W - rc) { p.vx = -p.vx; p.x = Math.min(W - rc, Math.max(rc, p.x)); }
       if (p.y < rc) { p.vy = Math.abs(p.vy); p.y = rc; }
       if (p.y > w.top - rc) {
-        if (!w.hold && r() < .7) { p.gas = false; p.vx *= .3; p.vy = 1.6; }
+        if (r() < .025 * hf + .6 * w.agit) { p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = .8; }
         else { p.vy = -Math.abs(p.vy); p.y = w.top - rc; }
       }
       turn(p, .004);
       continue;
     }
-    if (p.bound) continue;
-    // Wärmebewegung (mit der Temperatur) plus Schütteln/Umrühren; Geschwindigkeit ändert sich nur allmählich (fließend)
-    const kick = .29 * heat(w) + (w.shake > 0 ? 1 : 1.35) * w.agit;
+    if (p.leave) p.leave--;
+    if (p.bound) {
+      // im Kristall: schwingt nur ein wenig um seinen Platz, Ausrichtung bleibt (geordnet)
+      p.vx = p.vx * .8 + ((p.hx ?? p.x) - p.x) * .08 + (r() - .5) * .025 * hf;
+      p.vy = p.vy * .8 + ((p.hy ?? p.y) - p.y) * .08 + (r() - .5) * .025 * hf;
+      p.x += p.vx; p.y += p.vy;
+      continue;
+    }
+    // Wärmebewegung (mit der Temperatur) plus Schütteln/Umrühren; Geschwindigkeit ändert sich nur allmählich (fließend).
+    // Große Moleküle (Zucker) bewegen sich langsamer.
+    const kick = (.29 * hf + (w.shake > 0 ? 1 : 1.35) * w.agit) / Math.sqrt(sizeOf(p.f));
     p.vx = p.vx * .93 + (r() - .5) * kick;
-    // Auftrieb: nur das Öl steigt (das Wasser füllt den Rest gleichmäßig – keine Lücke)
     // Auftrieb nur für Teilchen auf der falschen Seite der Grenze: Öl darunter steigt, Wasser darüber sinkt
     // (in der eigenen Schicht wirkt nichts – so wird nichts zusammengedrückt)
     const buoy = !w.floats.length || w.agit > .3 ? 0 : w.floats.includes(p.f) ? (p.y > line - rc ? -.09 : 0) : (p.y < line + rc ? .09 : 0);
     p.vy = p.vy * .93 + (r() - .5) * kick + buoy;
-    if (w.agit > .01) {
-      // Umrühren (und Schütteln): zwei Wirbel, die fließend abwechselnd stärker werden (so wird es durchmischt, nicht nur gedreht)
-      const s1 = (1 + Math.sin(w.t / 10)) / 2, k = .0015 * w.agit;
-      p.vx += -(p.y - cy) * k;
-      p.vy += ((p.x - W / 3) * s1 + (p.x - 2 * W / 3) * (1 - s1)) * k;
+    if (w.agit > .01 && p.y < floor) {
+      // Umrühren (und Schütteln): Strömung, die überall gleich dicht bleibt und nie gegen die Wand drückt (Stromfunktion
+      // ψ = sin(πx) · sin(πy) bzw. zwei Walzen sin(2πx) · sin(πy)); beide wechseln fließend ab – so wird durchmischt, nicht nur gedreht
+      const X = Math.PI * p.x / W, Y = Math.PI * (p.y - w.top) / hl, s1 = (1 + Math.sin(w.t / 25)) / 2;
+      const amp = 1.1 * (w.shake > 0 ? .8 : 1);
+      const u = amp * (s1 * Math.sin(X) + (1 - s1) * Math.sin(2 * X)) * Math.cos(Y);
+      const v = -amp * hl / W * (s1 * Math.cos(X) + (1 - s1) * 2 * Math.cos(2 * X)) * Math.sin(Y);
+      const k = .12 * w.agit;
+      p.vx += (u - p.vx) * k; p.vy += (v - p.vy) * k;
     }
     p.x += p.vx; p.y += p.vy;
-    turn(p, .01);
+    turn(p, .01 / sizeOf(p.f));
   }
   // Druck: Nachbarn näher als der mittlere Abstand stoßen sich sanft ab – die Flüssigkeit bleibt überall gleich dicht
   {
-    const R = Math.sqrt(Math.PI * rc * rc / LIQ_PHI), near = grid(liquid, R);
+    // mittlerer Abstand zweier Nachbarn: aus der Fläche, die jedes Teilchen in der Flüssigkeit braucht
+    const reach = (p: FP) => rad(p) * Math.sqrt(Math.PI / LIQ_PHI);
+    const maxRad = Math.max(...liquid.map(rad));
+    const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI));
     for (const p of liquid) near(p, q => {
       if (q.id < p.id) return;
+      const Rm = (reach(p) + reach(q)) / 2;
       const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
-      if (d >= R || d === 0) return;
-      const f = .4 * (R - d) / R, nx = dx / d * f, ny = dy / d * f;
+      if (d >= Rm || d === 0) return;
+      const f = .4 * (Rm - d) / Rm, nx = dx / d * f, ny = dy / d * f;
       if (!p.bound) { p.vx -= nx; p.vy -= ny; }
       if (!q.bound) { q.vx += nx; q.vy += ny; }
     });
   }
-  // Kristall löst sich von außen
-  if (!w.hold) {
-    const near = grid(liquid, 2.4 * rc);
-    for (const p of liquid) {
-      if (!p.bound) continue;
-      let wet = false;
-      near(p, q => { if (!q.bound && (q.x - p.x) ** 2 + (q.y - p.y) ** 2 < (2.4 * rc) ** 2) wet = true; });
-      if (wet && r() < (w.stir > 0 ? .02 : .006) * heat(w) ** 2) p.bound = false;
+  // Kristall löst sich von außen: Moleküle mit freien Seiten lösen sich, Ecken (zwei freie Seiten) zuerst.
+  // Schneller bei Wärme und beim Umrühren (frisches Wasser kommt an den Kristall).
+  const crystal = liquid.filter(p => p.bound && p.gi !== undefined);
+  if (crystal.length) {
+    const at = new Set(crystal.map(p => `${p.gi},${p.gj}`));
+    const rate = .0009 * hf ** 1.5 * (1 + 3 * w.agit);
+    for (const p of crystal) {
+      const i = p.gi!, j = p.gj!;
+      const open: [number, number][] = ([[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][])
+        .filter(([di, dj]) => !(j + dj < 0) && !at.has(`${i + di},${j + dj}`));
+      if (!open.length || r() >= rate * open.length * open.length) continue;
+      p.bound = false; p.gi = p.gj = undefined; p.leave = 45;
+      // löst sich nach außen weg
+      const ox = open.reduce((a, [di]) => a + di, 0), oy = -open.reduce((a, [, dj]) => a + dj, 0), l = Math.hypot(ox, oy) || 1;
+      p.vx = ox / l * .35; p.vy = oy / l * .35;
+      at.delete(`${i},${j}`);
     }
   }
   separate(w, liquid, 3);
   clamp(w, liquid, rc, W - rc, w.top + rc, H - rc);
-  // gerührt wird, bis sich alles gelöst hat
-  if (!w.hold && w.stir > 0 && w.stir < 60 && w.ps.some(p => p.bound || p.gas)) w.stir = 60;
   if (w.stir > 0) w.stir--;
   if (w.shake > 0) w.shake--;
+  if (w.doneAt === undefined && !w.ps.some(p => p.bound || p.gas)) w.doneAt = w.t;
   if (w.floats.length) { const y = rawBoundary(w); w.lineY = w.lineY === undefined ? y : w.lineY + (y - w.lineY) * .03; }
 }
 
@@ -403,16 +473,20 @@ function veer(p: FP, r: () => number) {
 
 /** Teilchen, die sich überlappen, auseinanderschieben (Kristallteilchen bleiben stehen) */
 function separate(w: World, ps: FP[], rounds: number) {
-  const d = 2 * w.rc;
+  const rad = (p: FP) => p.rad ?? w.rc;
+  const cell = 2 * Math.max(w.rc, ...ps.map(rad));
   for (let k = 0; k < rounds; k++) {
-    const near = grid(ps, d);
+    const near = grid(ps, cell);
     for (const p of ps) near(p, q => {
       if (q.id < p.id) return;
+      const d = rad(p) + rad(q);
       const dx = q.x - p.x, dy = q.y - p.y, dist = Math.hypot(dx, dy);
       if (dist >= d || dist === 0) return;
       const o = (d - dist) / dist * .5;
       const pb = !!p.bound && w.state === "fluessig", qb = !!q.bound && w.state === "fluessig";
       if (pb && qb) return;
+      // eben gelöst: gleitet aus dem Kristall hinaus
+      if ((pb && q.leave) || (qb && p.leave)) return;
       const fp = pb ? 0 : qb ? 2 : 1, fq = qb ? 0 : pb ? 2 : 1;
       p.x -= dx * o * fp * .5; p.y -= dy * o * fp * .5;
       q.x += dx * o * fq * .5; q.y += dy * o * fq * .5;
@@ -420,13 +494,14 @@ function separate(w: World, ps: FP[], rounds: number) {
   }
 }
 
-function clamp(_w: World, ps: FP[], x0: number, x1: number, y0: number, y1: number) {
+function clamp(w: World, ps: FP[], x0: number, x1: number, y0: number, y1: number) {
   for (const p of ps) {
     if (p.bound) continue;
-    if (p.x < x0) { p.x = x0; p.vx = Math.abs(p.vx) * .3; }
-    if (p.x > x1) { p.x = x1; p.vx = -Math.abs(p.vx) * .3; }
-    if (p.y < y0) { p.y = y0; p.vy = Math.abs(p.vy) * .3; }
-    if (p.y > y1) { p.y = y1; p.vy = -Math.abs(p.vy) * .3; }
+    const e = (p.rad ?? w.rc) - w.rc; // große Moleküle bleiben weiter vom Rand weg
+    if (p.x < x0 + e) { p.x = x0 + e; p.vx = Math.abs(p.vx) * .3; }
+    if (p.x > x1 - e) { p.x = x1 - e; p.vx = -Math.abs(p.vx) * .3; }
+    if (p.y < y0 + e) { p.y = y0 + e; p.vy = Math.abs(p.vy) * .3; }
+    if (p.y > y1 - e) { p.y = y1 - e; p.vy = -Math.abs(p.vy) * .3; }
   }
 }
 
