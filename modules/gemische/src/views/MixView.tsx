@@ -189,7 +189,14 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
   const onFrame = () => { const w = worldRef.current; if (w.t % 15 === 0) refresh(w); };
   /** ohne Bewegung: gleich das Ergebnis */
   const finish = (w: World) => {
-    for (let k = 0; k < 4000 && (!settledFlow(w) || k < 60); k++) stepFlow(w);
+    // bis zum Endzustand rechnen: gelöst bzw. gleichmäßig gemischt (Schütteln/Umrühren wird dabei fortgesetzt)
+    for (let k = 0; k < 5000; k++) {
+      if (k >= 60 && settledFlow(w) && readInfo(w, ex).mixed) break;
+      if (w.state === "fluessig" && w.stir === 0 && w.shake === 0 && w.ps.some(p => p.bound || p.gas)) {
+        if (ex.before === "gasraum") shakeWorld(w); else w.stir = STIR;
+      }
+      stepFlow(w);
+    }
     refresh(w); setVersion(v => v + 1);
   };
 
