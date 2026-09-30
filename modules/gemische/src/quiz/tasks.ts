@@ -62,6 +62,15 @@ function mixOf(kind: PictureKind, lo = 4, hi = 12): Pic {
     }
   }
 }
+/** Farbfamilien der Atome im Modell – ähnliche Farben kommen nie zusammen in eine Aufgabe (sonst kaum zu unterscheiden) */
+const COLOR: Record<string, string> = { H: "weiß", C: "schwarz", N: "blau", O: "rot", S: "gelb", He: "türkis", Ne: "türkis", Ar: "violett", Cu: "braun", Fe: "braun", Zn: "grau", Al: "grau" };
+/** alle Atomsorten einer Aufgabe haben verschiedene Farbfamilien */
+export function distinctColors(t: Task): boolean {
+  const els = new Set([...(t.pic ? [t.pic] : []), ...Object.values(t.pics ?? {})].flatMap(p => p.mix.flatMap(([f]) => analyse([[f, 1]]).atomsorten)));
+  const fams = [...els].map(e => COLOR[e] ?? e);
+  return new Set(fams).size === fams.length;
+}
+
 const someMix = () => mixOf(pick<PictureKind>(["GV", "GV", "GEV", "GEV", "GEV", "GE", "V", "E"]));
 const exOf = (id: string) => EXAMPLES.find(e => e.id === id)!;
 /** Bild eines Beispiels aus „Probieren“ – mit einem Zehntel der Teilchen (zum Ansehen und Zählen) */
@@ -661,10 +670,16 @@ function nachher(): Task {
 
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
-const GENS: Record<string, () => Task> = {
+const RAW: Record<string, () => Task> = {
   teilchen, stoffe, reinGemisch, einordnen, bildArt, bildWahl, verbindungen, elemente, atomsorten,
   homogen, gemischart, alltag, reinAlltag, wohin, erhalten, masse, zwischen, bewegung, farbe, nachher,
 };
+/** neu würfeln, bis keine zwei Atomsorten ähnliche Farben haben */
+const GENS: Record<string, () => Task> = Object.fromEntries(Object.entries(RAW).map(([id, gen]) => [id, () => {
+  let t = gen();
+  for (let k = 0; k < 60 && !distinctColors(t); k++) t = gen();
+  return t;
+}]));
 
 export const TYPE_NAMES: Record<string, string> = {
   teilchen: "Teilchen zählen", stoffe: "Stoffe zählen", reinGemisch: "Reinstoff oder Gemisch",

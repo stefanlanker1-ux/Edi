@@ -97,3 +97,15 @@ test("Messing: vorher zwei Blöcke, geschmolzen gemischt, danach wieder ein Gitt
   const xs = w.ps.filter(p => p.f === "Zn").map(p => p.x);
   assert.ok(Math.min(...xs) < w.W / 3, "nicht gemischt");
 }, 60_000);
+
+test("Temperatur: je wärmer, desto schneller bewegen sich die Teilchen", () => {
+  const dist = (id: string, temp: number) => {
+    const w = makeWorld(ex(id), 7);
+    w.temp = temp;
+    for (let k = 0; k < 120; k++) stepFlow(w);
+    const start = w.ps.map(p => [p.x, p.y]);
+    for (let k = 0; k < 300; k++) stepFlow(w);
+    return w.ps.reduce((s, p, i) => s + Math.hypot(p.x - start[i][0], p.y - start[i][1]), 0) / w.ps.length;
+  };
+  for (const id of ["wasser", "helium"]) assert.ok(dist(id, 100) > dist(id, 0) * 1.1, id);
+}, 60_000);

@@ -5,7 +5,7 @@
 // Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Button, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@lern/ui";
+import { Button, Icon, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@lern/ui";
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, MIX_LABEL, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
@@ -119,11 +119,12 @@ function ExampleList({ current, onPick }: { current: number; onPick: (i: number)
 type Phase = "ruhe" | "vorher" | "laeuft";
 const MIN_FRAMES = 240; // so lange läuft ein Vorgang mindestens (etwa 4 s)
 
-function Mix({ ex, index }: { ex: Example; index: number }) {
+function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: number; setTemp: (t: number) => void }) {
   const setEx = useApp(s => s.setEx);
   const reduced = useReducedMotion();
   const seed = seedOf(ex.id);
-  const [world, setWorld] = useState<World>(() => makeWorld(ex, seed));
+  const [world, setWorld] = useState<World>(() => ({ ...makeWorld(ex, seed), temp }));
+  world.temp = temp;
   const [phase, setPhase] = useState<Phase>("ruhe");
   const [version, setVersion] = useState(0);
   const [sep, setSep] = useState(true);
@@ -162,6 +163,7 @@ function Mix({ ex, index }: { ex: Example; index: number }) {
     }
     // vorher: Reinstoffe getrennt – kurz zeigen, dann mischen
     const w = makeWorld(ex, seed + ++runs.current, "vorher");
+    w.temp = temp;
     setWorld(w);
     setPhase("vorher");
     later(() => {
@@ -198,6 +200,12 @@ function Mix({ ex, index }: { ex: Example; index: number }) {
             <IconButton icon="back" label="Voriges Beispiel" onClick={() => goTo(index - 1)} />
             <Button variant="primary" icon="shake" onClick={doMix} disabled={phase !== "ruhe"}>{ex.before ? "Mischen" : "Schütteln"}</Button>
             <IconButton icon="arrow" label="Nächstes Beispiel" onClick={() => goTo(index + 1)} />
+            <label className="gm-temp">
+              <Icon name="fire" size={18} />
+              <input type="range" min={0} max={100} step={10} value={temp} aria-label="Temperatur"
+                onChange={e => { setTemp(Number(e.target.value)); if (reduced) setVersion(v => v + 1); }} />
+              <output>{temp} °C</output>
+            </label>
           </div>
         }
         tools={[
@@ -215,5 +223,7 @@ function Mix({ ex, index }: { ex: Example; index: number }) {
 export function MixView() {
   const ex = useApp(s => s.ex);
   // key: neues Beispiel → Anfangslage neu
-  return <Mix key={ex} ex={EXAMPLES[ex]} index={ex} />;
+  // Temperatur gilt für alle Beispiele (nicht gespeichert, Start bei 20 °C)
+  const [temp, setTemp] = useState(20);
+  return <Mix key={ex} ex={EXAMPLES[ex]} index={ex} temp={temp} setTemp={setTemp} />;
 }

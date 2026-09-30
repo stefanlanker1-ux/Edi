@@ -166,7 +166,7 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
   --atom-Al: #bcaca7; --atom-Fe: #c9683a; --atom-Cu: #c47f47; --atom-Zn: #8a95b5; --atom-Ag: #c9ccd2; --atom-Hg: #aab0c4;
   --atom-Pb: #71747d; --atom-Mn: #b86b98; --atom-Cr: #8699c2;
   /* Edelgase: helles Cyan (CPK) */
-  --atom-He: #bfe6ea; --atom-Ne: #a9dde6; --atom-Ar: #8ccbd8;
+  --atom-He: #bfe6ea; --atom-Ne: #a9dde6; --atom-Ar: var(--hue-violet);
 }
 /* dunkel: heller Rand und etwas helleres C, damit alles auf dunklem Grund sichtbar bleibt */
 :root[data-theme="dark"] { --atom-edge: #ffffff; --atom-C: #4a4a4a; --atom-H: #ecebe6; --atom-K: #8f76c9; --atom-Ba: #4f998c; }

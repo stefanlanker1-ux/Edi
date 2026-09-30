@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { makeRound, LEVELS, TYPE_NAMES, type Pic, type Task } from "./tasks.ts";
+import { makeRound, LEVELS, TYPE_NAMES, distinctColors, type Pic, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 import { analyse, isElement, pictureKind, PICTURE_LABEL } from "../mixtures.ts";
 import { initial } from "../mixing.ts";
@@ -119,3 +119,7 @@ test("genug verschiedene Aufgaben je Level (keine Wiederholungen)", () => {
     assert.ok(keys.size >= 80, `${LEVELS[lv].name}: nur ${keys.size} verschiedene Aufgaben`);
   }
 });
+
+test("keine zwei Atomsorten mit ähnlicher Farbe in einer Aufgabe (z. B. He und Ne, Cu und Fe)", () => {
+  for (const t of all("mix", 300)) assert.ok(distinctColors(t), `${t.type}: ${JSON.stringify(t.pic ?? t.pics)}`);
+}, 60_000);

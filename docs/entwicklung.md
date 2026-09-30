@@ -98,7 +98,8 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Öl hat Auftrieb; Gas – geradeaus, Abprall an Wänden, Trennwänden und aneinander; fest – Schwingen um den Gitterplatz.
   **Mischen** zeigt den Vorgang ab vorher (`before`): Zuckerkristall löst sich von außen (umrühren, bis alles gelöst ist), Alkohol-Schicht wird
   umgerührt, CO₂ im Gasraum löst sich an der Oberfläche, Trennwände fallen, Kupfer und Zink schmelzen und erstarren als Gitter.
-  **Schütteln** (Reinstoffe, Öl und Wasser): kräftige Stöße, danach steigt das Öl wieder auf. Tests: Teilchenzahl bleibt, keine Sprünge,
+  **Schütteln** (Reinstoffe, Öl und Wasser): 3 s gemächliche Stöße, danach steigt das Öl wieder auf.
+  **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C): Teilchengeschwindigkeit ∝ √T (Kelvin), Kristall löst sich warm schneller. Tests: Teilchenzahl bleibt, keine Sprünge,
   gleichmäßig gemischt, Öl wieder oben, Gase mischen sich nur ohne Trennwand, Messing wieder im Gitter. Ohne Bewegung (reduzierte Bewegung) nur vorher/nachher.
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Farben („nur im Modell“) | Einteilung (Stoffe → Reinstoffe/Gemische mit allen
   Beispielen) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
@@ -108,7 +109,8 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (Schlüssel = Antworttext, `renderOption`, zwei Spalten). Anordnungen für falsche Bilder:
   gemischt, unten, oben, getrennt, abwechselnd. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
   verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag.
-  Hilfsmittel „Farben“: alle Atomfarben des Quiz (verrät nicht, welche vorkommen).
+  Hilfsmittel „Farben“: alle Atomfarben des Quiz (verrät nicht, welche vorkommen). Nie zwei Atomsorten mit ähnlicher Farbe
+  (He/Ne, Cu/Fe, Zn/Al) in einer Aufgabe (`distinctColors`, Test); Argon violett.
 
 ## Atombau (`modules/atombau`)
 - Start immer: helles Farbschema, Unterstufe, Elektronen kreisen nicht, kein Beamer-Modus (diese Werte werden nicht gespeichert).

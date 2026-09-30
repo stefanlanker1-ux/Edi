@@ -214,7 +214,7 @@ export function FlowView({ world, motion, busy, version, label, onPick, onFrame,
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, el.width, el.height);
       const k = scales(w);
-      const shakeX = w.shake > 0 ? Math.sin(w.t * 1.3) * 3 : 0;
+      const shakeX = w.shake > 0 ? Math.sin(w.t * .65) * 3 : 0;
       const ox = L.ox + shakeX, oy = L.oy, mv = L.mv;
       const X = (x: number) => ox + x * mv, Y = (y: number) => oy + y * mv;
       const rl = lensRadius(w), [lx, ly] = lens.current;
