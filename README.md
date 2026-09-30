@@ -11,10 +11,7 @@ Website: **https://stefanlanker1-ux.github.io/Edi/**
 | [Ionenbindung](apps/ionenbindung) | Ionenformeln mit Bausteinen aufstellen, vom Atom zum Ion, Quiz |
 | [Elektronenpaarbindung](apps/elektronenpaarbindung) | Moleküle aus Lewis-Atomen bauen, Valenz- und Keilstrichformel, 3D-Modell, Quiz |
 | [Reaktionsgleichungen](apps/reaktionsgleichungen) | Gleichungen ausgleichen mit Teilchenbild, Quiz |
-| [Säuren und Basen](apps/saeuren-basen) | pH-Skala, Indikatoren, Säuren und Laugen, Quiz |
 | [Neutralisation](apps/neutralisation) | Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen, Quiz |
-| [Reinstoffe und Gemische](apps/reinstoffe) | Mischen, Trennen, Erhitzen mit Becherglas und Teilchenmodell, Quiz |
-| [Stoffmenge](apps/stoffmenge) | Molare Masse, n = m / M, Teilchenzahl, Gasvolumen, Quiz |
 | [Einheiten](apps/einheiten) | Einheiten umrechnen mit Rechenweg, Stellenwerttafel, Quiz |
 
 ## Datenschutz

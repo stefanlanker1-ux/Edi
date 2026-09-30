@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const SITE = process.argv[2] ?? "site";
-const APPS = (process.argv[3] ?? ",atombau,ionenbindung,elektronenpaarbindung,reaktionsgleichungen,saeuren-basen,neutralisation,reinstoffe,stoffmenge,einheiten").split(",");
+const APPS = (process.argv[3] ?? ",atombau,ionenbindung,elektronenpaarbindung,reaktionsgleichungen,neutralisation,einheiten").split(",");
 // weitere Größen: VP="768x1024,1024x768" node scripts/check-ui.mjs
 const VIEWPORTS = process.env.VP ? process.env.VP.split(",").map(v => v.split("x").map(Number)) : [[390, 844], [375, 667], [1280, 800]];
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".webmanifest": "application/manifest+json", ".woff2": "font/woff2", ".woff": "font/woff", ".png": "image/png" };

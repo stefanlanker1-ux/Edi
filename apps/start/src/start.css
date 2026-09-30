@@ -9,9 +9,9 @@
 .st-kicker { margin: 0; color: var(--signal); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .st-head h1 { font-size: clamp(2rem, min(11vw, 7svh), 5.5rem); font-weight: 900; letter-spacing: -.055em; line-height: .9; }
 
-.st-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, 1fr); min-height: 0; }
+.st-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); min-height: 0; }
 /* ab 700 px oder im Querformat drei Spalten (auch Laptops mit 125 %/150 % Skalierung: ~830 × 580) */
-@media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) { .st-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); } }
+@media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) { .st-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); } }
 .st-card {
   position: relative; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 4px; min-height: 0; min-width: 0;
   text-decoration: none; color: inherit; padding: clamp(6px, 1.4svh, 12px) 12px clamp(6px, 1.4svh, 12px) 0; border-bottom: 1px solid var(--rule);
@@ -21,8 +21,8 @@
   .st-card { padding: clamp(8px, 2.4svh, 20px) 20px; border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); }
   .st-card:nth-child(n) { padding-left: 20px; } /* gleiche Einrückung in jeder Spalte (sonst erbt jede zweite Kachel die 12 px der Handy-Ansicht) */
   .st-card:nth-child(3n + 1) { border-left: 0; padding-left: 0; }
-  .st-card:nth-child(n + 7) { border-bottom: 0; }
-  /* Titel einzeilig („Reinstoffe und Gemische“ ≈ 12 em), sonst fehlt in niedrigen Fenstern das Bild dieser Kachel */
+  .st-card:nth-child(n + 4) { border-bottom: 0; }
+  /* Titel einzeilig, sonst fehlt in niedrigen Fenstern das Bild der Kachel */
   .st-grid .st-card h2 { font-size: min(clamp(.95rem, min(4.4vw, 3.6svh), 1.9rem), 2.3vw); }
 }
 .st-card:hover h2, .st-card:hover .st-open { color: var(--signal); }
@@ -34,7 +34,7 @@
 @container (max-height: 30px) { .st-art > * { display: none; } }
 .art-bohr { width: min(100cqw, 100cqh, 150px); aspect-ratio: 1; }
 .art-lewis { width: min(100cqw, 180cqh, 200px); }
-.art-ruler, .art-balance, .art-ph, .art-mol, .art-neut, .art-mix { width: min(100cqw, 220cqh, 240px); }
+.art-ruler, .art-balance, .art-neut { width: min(100cqw, 220cqh, 240px); }
 .art-tiles { display: grid; grid-template-columns: repeat(2, min(36cqw, 72px)); gap: 4px; }
 .art-tiles .tile { display: grid; place-items: center; height: min(28cqh, 46px); border-radius: 2px; border: 1.5px solid; font-weight: 800; font-size: min(1rem, 14cqh); }
 .art-tiles .tile sup { font-size: .62em; }

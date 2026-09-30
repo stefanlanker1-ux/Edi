@@ -41,7 +41,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Keine Verläufe, keine Schatten, kleine Radien (`--radius*` 3–4 px), Linien statt Flächen. Hauptknöpfe/Auswahl schwarz (`--accent`). Fachfarben nur aus der gemeinsamen Palette
   in `tokens.css` (`--hue-red|blue|yellow|green|grey|violet|teal|orange`, je `-soft` für Flächen und `-deep` für Schrift; dezent kräftig, nie grell; Beamer satter):
   Proton/O/H⁺ rot, Elektron/N/OH⁻ blau, Neutron hellgrau, Kation/S gelb, Anion/Cl grün, Alkalimetalle violett, Erdalkalimetalle grünblau, P/Halbmetalle orange.
-  Signalrot nur für die Oberfläche. Ausnahmen: Indikatorfarben (Säuren/Basen, wie im Labor) und Kreidetafel (Einheiten). ✓ immer grün (`--ok`), nie rot.
+  Signalrot nur für die Oberfläche. Ausnahme: Kreidetafel (Einheiten). ✓ immer grün (`--ok`), nie rot.
 - **Nie scrollen** (Handy 390 × 844 und 375 × 667, Desktop): jede Ansicht füllt genau den Bildschirm (`--screen-h`, Klasse `ui-screen`).
   Freies Ausprobieren = `Workbench` (`@lern/ui`): Bühne füllt den Platz, Hauptbedienung direkt darunter (`controls`), alles Weitere in der Werkzeugleiste (`tools`) –
   am Handy öffnet jedes Werkzeug ein Blatt (Zurück-Taste schließt es), breit (≥ 900 px) stehen die Werkzeuge als Register daneben. Nie mehrere Bereiche gleichzeitig offen.
@@ -52,7 +52,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   (Quiz ab ≤ 370 px Breite kompakt wie bei niedrigen Bildschirmen).
 - Keine Erklärsätze in der Oberfläche; Zustand als kurze `Tag`s (✓ neutral, Kation Fe³⁺ …). Erklärungen nur kurz in Erklärkarten und als Tipp nach Fehlern.
 - Multiple Choice: `mc(richtig, falsche)` aus `@lern/quiz`; falsche Antworten möglichst als diagnostische Distraktoren – `d(text, miss, why)` mit Katalog-Schlüssel
-  (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen, Säuren/Basen, Stoffmenge). `mc` bevorzugt Optionen mit Diagnose.
+  (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen). `mc` bevorzugt Optionen mit Diagnose.
 - Quiz-Hilfsmittel je Aufgabe über `tools` von `QuizScreen` (`QuizHelp`): z. B. PSE mit den Elementen der Aufgabe markiert (`PseHelp` in `@lern/chem-ui`, Elemente per `elementsIn(prompt)` aus `@lern/chem`).
   Hilfsmittel dürfen die Lösung nicht direkt verraten (PSE nur Angaben eines gedruckten PSE: Z, Gruppe, Periode, Atommasse).
 - Offline-fähig: Web-Build mit Service Worker, zusätzlich Einzeldatei (`vite build --mode single`).
@@ -114,15 +114,6 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Antwortformen `mc`, `num` (Zahl eintippen), `balance` (Koeffizienten setzen, richtig nur ausgeglichen **und** gekürzt). Gleichung steht als `eq` groß über der Frage (`renderVisual`), nicht im Prompt.
   Erklärkarte je Niveau und Stufe (`explain.tsx`).
 
-## Säuren und Basen (`apps/saeuren-basen`)
-- Nur Unterstufe, nach Arrhenius: Säuren geben in Wasser H⁺ ab, Laugen enthalten OH⁻; Säure + Lauge → Salz + Wasser. Logik in `packages/chem/src/acids.ts`
-  (`ACIDS`, `BASES`, `acidDissociation`, `neutralize` gleicht über `balance` aus, `SUBSTANCES` mit typischem pH, `INDICATORS`, `phLabel`, `dilute`).
-- Werkbank „pH-Skala“: Skala 0–14 in Universalindikator-Farben + Reagenzglas als Bühne, pH-Zähler und Indikator-Wahl darunter; Werkzeuge Stoffe | Säuren & Laugen | Indikatoren | So geht's | Wasser dazu.
-  Gespeichert (`saeuren-basen-v1`): pH, Indikator, gewählter Stoff.
-- Indikatorfarben nur über Tokens `--c-rot … --c-farblos` (`app.css`), Farbnamen aus `indicatorColor` (`colorVar`). Verdünnen vereinfacht: 10-fach Wasser = 1 Schritt Richtung 7, nie über 7 hinaus.
-- Quiz (`src/quiz/tasks.ts`): Antwortformen `mc`, `num` (Zahl), `swatch` (Farbe wählen, ✓/✗ zusätzlich zur Farbe). Fertigkeiten klasse, stoff, indikator, teilchen, formel, neutralisation, verduennen – alle mit `dis`-Distraktoren.
-- Salzformeln ionisch geschrieben (Kation zuerst: NaCH₃COO), Essigsäure als CH₃COOH mit nur 1 abgebbarem H.
-
 ## Neutralisation (`apps/neutralisation`)
 - Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen wie in der Ionenbindung (Breite = Ladung): Reihe 1 Metall-Ionen (gold), Reihe 2 OH⁻ (blau), Verbindungsstriche = H₂O,
   Reihe 3 H⁺ (blau, gestrichelt – ohne Farbe unterscheidbar), Reihe 4 Säurerest (grün). Neutral, wenn OH⁻- und H⁺-Reihe gleich lang sind. Knopf „Reaktion“ zeigt die Produkte
@@ -135,28 +126,6 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Salzformeln ionisch, Kation zuerst (NaCH₃COO, KHCOO, Ca(HCO₃)₂). Wortgleichung mit Laugen-/Säurenamen (Natronlauge + Salzsäure → Natriumchlorid + Wasser).
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): protolyse, protonen (OS), restName, restLadung, hydroxid, bauen (Bausteine, Fallen 1 : 1 / vertauscht / nicht gekürzt),
   wasser, koeffizient (OS), salz, salzName, gleichung. Säuretabelle als Hilfsmittel nur Oberstufe und nur bei Aufgaben, die nicht nach Namen/Ladung der Säurereste fragen.
-
-## Reinstoffe und Gemische (`apps/reinstoffe`)
-- Keine Stufen-Unterscheidung. Logik in `packages/chem/src/mixtures.ts`: `STOFFE` (10 Elemente, 10 Verbindungen; Öl vereinfacht als ein Stoff, Formel Triolein, Anzeige „Öl“),
-  `mix(items)` → Phasen (Wasser + Mischbares eine Phase, Öl eigene, in Wasser Lösliches/CO₂ gelöst, jeder ungelöste Feststoff eine Phase, nicht lösliche Gase eine Gasphase = geschlossenes Gefäß),
-  homogen = 1 Phase, Gemischtypen mit Aggregatzuständen (`MIX_TYPES`: Lösung, Legierung, Gasgemisch | Emulsion, Suspension, Gemenge, Schaum, Rauch, Nebel), Zählung
-  **Phasen / Elemente / Verbindungen** (Stoffe zählen, nicht Atome). `separate(items, method)` (Magnet, Filtrieren, Dekantieren, Scheidetrichter, Eindampfen, Destillieren) liefert Bruchteile oder die Begründung,
-  warum es nicht passt; `heat` (Eisen + Schwefel → FeS, Metalle → Legierung Messing/Bronze/Stahl, Zucker verkohlt). Alltagsbeispiele fürs Quiz in `EVERYDAY` (mit typischer Fehlvorstellung).
-- Werkbank „Mischen“: Bühne = Becherglas (so wie man es sieht: Schichten, Bodensatz, trüb, milchig, Legierungsblock, Deckel bei Gasen) und Teilchenmodell (`components/Beaker.tsx`, gleiche Bereiche;
-  Gelöstes als Ionen/Moleküle verteilt, Feststoffe als Gitter, Legierung zufällig gemischt, Gemenge geschüttelt als Körner, Emulsion als Tröpfchen); nebeneinander oder übereinander, je nachdem was größer wird.
-  Darunter Inhalt als Chips (antippen = heraus), Schütteln/Absetzen, Leeren. Werkzeuge: Stoffe (Regal) | Trennen | Erhitzen | Übersicht (Konzept-Map, aktueller Inhalt markiert) | So geht's.
-  Status: Einteilung, Gemischtyp (s/l …), „x Phasen · y Elemente · z Verbindungen“. Gespeichert (`reinstoffe-v1`): Inhalt, geschüttelt. Stoff- und Teilchenfarben aus der Palette (`--st-*`, `--atom-*` in app.css).
-- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): rein, element, teilchenArt | homogen, typ, zustand | teilchen (zählen), teilchenArt | trennen, erhitzen.
-  Antwortformen `mc`, `map` (in der Einteilung antippen, `ConceptMap` mit `part`), `count` (Phasen/Elemente/Verbindungen, Fallen: Atomsorten statt Stoffe, Stoffe statt Phasen, O₂ als Verbindung).
-  Übersicht als Hilfsmittel nicht bei `zustand` und `map`.
-
-## Stoffmenge (`apps/stoffmenge`)
-- Nur Unterstufe: molare Masse aus dem PSE (Atommassen auf 1 Dezimale, `schoolMass`), n = m / M, m = n · M, N = n · 6,022 · 10²³, Gase 22,4 l/mol. Logik in `packages/chem/src/moles.ts`
-  (`MOLE_SUBSTANCES`, `molarMass`, `molarMassText` als Rechenweg, `fmt` deutsche Zahlen).
-- Werkbank „Rechnen“: Rechenweg wie im Heft als Bühne (① M aus dem PSE, ② n = m / M bzw. m = n · M, darunter N und V bei Gasen), Eingabe Masse/Stoffmenge darunter;
-  Werkzeuge Stoff | PSE | So geht's. Gespeichert (`stoffmenge-v1`): Stoff, Modus, Wert.
-- Quiz (`src/quiz/tasks.ts`): Antwortformen `mc`, `num` (Zahl mit Einheit, Komma oder Punkt), `steps` (Rechenweg M → n ausfüllen, je Feld ✓/✗). Fertigkeiten atommasse, molmasse, formel, stoffmenge, masse, teilchen, volumen.
-  PSE als Hilfsmittel nur, wo es die Lösung nicht verrät (nicht bei „Atommasse ablesen“). Zahlen so gewählt, dass n glatt ist (0,5 … 10 mol).
 
 ## Einheiten (`apps/einheiten`)
 - Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).

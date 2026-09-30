@@ -7,7 +7,4 @@ export * from "./geometry3d.ts";
 export * from "./mol3d.ts";
 export * from "./wedge.ts";
 export * from "./reactions.ts";
-export * from "./acids.ts";
-export * from "./moles.ts";
 export * from "./neutralization.ts";
-export * from "./mixtures.ts";

@@ -8,28 +8,6 @@ interface AppCard { href: string; name: string; desc: string; art: ReactNode; of
 
 const APPS: AppCard[] = [
   {
-    href: "reinstoffe/", name: "Reinstoffe und Gemische", offline: "reinstoffe/reinstoffe-offline.html",
-    desc: "Stoffe mischen, schütteln, trennen und erhitzen – im Becherglas und im Teilchenmodell: homogen oder heterogen, Phasen, Elemente, Verbindungen.",
-    art: (
-      <svg className="art-mix" viewBox="0 0 300 130" aria-hidden="true">
-        {/* Becherglas mit Öl über Wasser und Sand als Bodensatz, daneben die Lupe mit Teilchen */}
-        <rect x="42" y="44" width="76" height="24" style={{ fill: "var(--hue-yellow)" }} />
-        <rect x="42" y="68" width="76" height="36" style={{ fill: "var(--hue-blue-light)" }} />
-        <rect x="42" y="104" width="76" height="12" fill="#dcc79d" />
-        <path d="M34 14l8 6v92a6 6 0 0 0 6 6h64a6 6 0 0 0 6-6V20l9-9" fill="none" stroke="#111111" strokeWidth="3" strokeLinejoin="round" />
-        <circle cx="222" cy="65" r="52" fill="#ffffff" stroke="#111111" strokeWidth="3" />
-        {[[196, 44], [222, 36], [248, 48], [206, 70], [236, 72], [222, 96], [196, 92], [250, 94]].map(([x, y], i) => (
-          <g key={i}>
-            <circle cx={x} cy={y} r="7" style={{ fill: "var(--hue-red)" }} stroke="#111111" strokeWidth="1" />
-            <circle cx={x - 7} cy={y + 5} r="4.5" fill="#f5f4f0" stroke="#111111" strokeWidth="1" />
-            <circle cx={x + 7} cy={y + 5} r="4.5" fill="#f5f4f0" stroke="#111111" strokeWidth="1" />
-          </g>
-        ))}
-        <path d="M118 65h44" stroke="#111111" strokeWidth="2" strokeDasharray="4 3" />
-      </svg>
-    ),
-  },
-  {
     href: "atombau/", name: "Atombau", offline: "atombau/atombau-offline.html",
     desc: "Atome aus Protonen, Neutronen und Elektronen bauen, das Periodensystem entdecken und im Quiz üben.",
     art: <div className="art-bohr"><Bohr Z={6} N={6} E={6} labels={false} /></div>,
@@ -83,22 +61,6 @@ const APPS: AppCard[] = [
     ),
   },
   {
-    href: "saeuren-basen/", name: "Säuren und Basen", offline: "saeuren-basen/saeuren-basen-offline.html",
-    desc: "pH-Skala mit Indikatorfarben ausprobieren, Alltagsstoffe einordnen, Säuren und Laugen erkennen, Neutralisation im Quiz üben.",
-    art: (
-      <svg className="art-ph" viewBox="0 0 300 130" aria-hidden="true">
-        {/* pH-Skala 0–14 mit Universalindikator-Farben, Markierung bei 3 */}
-        {["#d7263d", "#d7263d", "#d7263d", "#ef7d1a", "#ef7d1a", "#f2c500", "#a9c93a", "#3aa655", "#3aa655", "#2a9d8f", "#2f6fd6", "#2f6fd6", "#7b3fbf", "#7b3fbf", "#7b3fbf"].map((c, i) => (
-          <rect key={i} x={12 + i * 18.5} y={50} width="16" height="30" rx="2" fill={c} stroke={i === 3 ? "#111111" : "none"} strokeWidth="3" />
-        ))}
-        <text x="20" y="38" fontSize="16" fontWeight="800" fill="#111111">sauer</text>
-        <text x="150" y="38" fontSize="16" fontWeight="800" textAnchor="middle" fill="#111111">neutral</text>
-        <text x="280" y="38" fontSize="16" fontWeight="800" textAnchor="end" fill="#111111">basisch</text>
-        <text x="75.5" y="110" fontSize="22" fontWeight="800" textAnchor="middle" fill="#e30613">pH 3</text>
-      </svg>
-    ),
-  },
-  {
     href: "neutralisation/", name: "Neutralisation", offline: "neutralisation/neutralisation-offline.html",
     desc: "Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen: jedes H⁺ trifft ein OH⁻, der Rest ist das Salz – mit allen Säuren der Tabelle.",
     art: (
@@ -113,16 +75,6 @@ const APPS: AppCard[] = [
         <path d="M158 65h30m-10-9 10 9-10 9" stroke="#111111" strokeWidth="3" fill="none" />
         <text x="244" y="58" fontSize="20" fontWeight="800" textAnchor="middle" fill="#111111">BaSO₄</text>
         <text x="244" y="86" fontSize="18" fontWeight="800" textAnchor="middle" fill="#e30613">+ 2 H₂O</text>
-      </svg>
-    ),
-  },
-  {
-    href: "stoffmenge/", name: "Stoffmenge", offline: "stoffmenge/stoffmenge-offline.html",
-    desc: "Molare Masse aus dem PSE, n = m / M Schritt für Schritt, Teilchenzahl und Gasvolumen – rechnen und im Quiz üben.",
-    art: (
-      <svg className="art-mol" viewBox="0 0 340 130" aria-hidden="true">
-        <text x="12" y="48" fontSize="25" fontWeight="800" fill="#111111">M(H₂O) = 2 · 1 + 16 = <tspan fill="#e30613">18</tspan></text>
-        <text x="12" y="100" fontSize="25" fontWeight="800" fill="#111111">n = 36 g / 18 g/mol = <tspan fill="#e30613">2 mol</tspan></text>
       </svg>
     ),
   },

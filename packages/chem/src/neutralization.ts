@@ -6,8 +6,10 @@
 // Reine Logik ohne UI; Formeln in ASCII ("Ba(OH)2"), Anzeige über toSubscript bzw. <Formula>.
 
 import { ION_BY_ID, compoundName, formula as saltFormula, ionText, lcm, toSubscript, type Ion } from "./ions.ts";
-import { ACETATE } from "./acids.ts";
 import type { Equation } from "./reactions.ts";
+
+/** Acetat-Ion für Essigsäure (nur hier gebraucht, nicht im Ionen-Baukasten) */
+export const ACETATE: Ion = { id: "CH3COO-", formula: "CH3COO", charge: -1, part: "acetat", name: "Acetat-Ion", os: true };
 
 /** Säure mit ihren Säurerest-Ionen (Tabelle: einprotonig, zweiprotonig, dreiprotonig) */
 export interface ProticAcid {
