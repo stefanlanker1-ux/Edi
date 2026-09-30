@@ -173,8 +173,8 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
     const up = (f: string) => (vorher === "schicht" ? f === ex.solute : floats.includes(f));
     const order = [...shuffle(list.filter(f => !up(f)), r), ...shuffle(list.filter(up), r)];
     order.forEach((f, i) => add(particle(i, f, spots[i][0], spots[i][1], r)));
-    // lange Moleküle liegen anfangs kreuz und quer: vor dem ersten Bild zurechtrücken (sonst würden sie auseinanderspringen)
-    if (w.ps.some(p => p.len)) settle(w);
+    // Anfangslage vor dem ersten Bild zurechtrücken (lange Moleküle liegen kreuz und quer, große stoßen an): sonst würden sie auseinanderrutschen
+    settle(w);
     return w;
   }
 
@@ -577,7 +577,8 @@ function clamp(w: World, ps: FP[], x0: number, x1: number, y0: number, y1: numbe
         const ex = p.x + Math.cos(p.a) * p.len * end, ey = p.y + Math.sin(p.a) * p.len * end, e = p.cap! - w.rc;
         const ox = ex < x0 + e ? x0 + e - ex : ex > x1 - e ? x1 - e - ex : 0;
         const oy = ey < y0 + e ? y0 + e - ey : ey > y1 - e ? y1 - e - ey : 0;
-        if (ox || oy) push(p, ex, ey, ox * .5, oy * .5);
+        const lim = (v: number) => Math.max(-w.rc * .3, Math.min(w.rc * .3, v * .5));
+        if (ox || oy) push(p, ex, ey, lim(ox), lim(oy));
       }
     }
     const e = (p.rad ?? w.rc) - w.rc; // große Moleküle bleiben weiter vom Rand weg
