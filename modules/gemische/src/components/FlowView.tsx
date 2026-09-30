@@ -88,8 +88,10 @@ function layout(cw: number, ch: number, W: number, H: number): Layout {
   return best;
 }
 
-export function FlowView({ world, motion, version, label, onPick, onFrame, focus }: {
+export function FlowView({ world, motion, busy, version, label, onPick, onFrame, focus }: {
   world: World; motion: boolean; version: number; label: string;
+  /** Vorgang läuft: volle Bildrate; sonst (Teilchen bewegen sich nur ruhig) halbe Bildrate – spart Rechenzeit und Akku */
+  busy?: boolean;
   onPick?: (f: string) => void;
   /** nach jedem Zeitschritt (für Anzeige des Zustands) */
   onFrame?: () => void;
@@ -106,6 +108,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   const drawRef = useRef<() => void>(() => {});
   const onFrameRef = useRef(onFrame);
   onFrameRef.current = onFrame;
+  const busyRef = useRef(!!busy);
+  busyRef.current = !!busy;
 
   // neue Welt (anderes Beispiel): Lupe an den Anfang
   useEffect(() => {
@@ -118,6 +122,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
     const ctx = el.getContext("2d");
     if (!ctx) return;
     let raf = 0, frame = 0, dpr = 1;
+    const minis = new Map<string, HTMLCanvasElement>();
 
     // Farben über ein unsichtbares Element auflösen (Tokens können var() oder color-mix() enthalten)
     const probe = document.createElement("span");
@@ -130,7 +135,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
         oil: get("--hue-yellow-deep"), edge: get("--atom-edge"), wall: get("--text") };
       for (const e of els) c[`atom-${e}`] = get(`--atom-${e}`);
       const changed = JSON.stringify(c) !== JSON.stringify(colors.current);
-      if (changed) { colors.current = c; sprites.current.clear(); }
+      if (changed) { colors.current = c; sprites.current.clear(); minis.clear(); bigs.clear(); }
     };
     const sprite = (e: string, r: number) => {
       const rr = Math.max(1, Math.round(r * 2) / 2), key = `${e}|${rr}`;
@@ -154,7 +159,46 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       return s;
     };
 
+    const miniSprite = (f: string, turn: number, pxPerA: number) => {
+      const key = `${f}|${turn}|${pxPerA.toFixed(3)}`;
+      let spr = minis.get(key);
+      if (!spr) {
+        const m = mol(f), a = turn * Math.PI / 8, ca = Math.cos(a), sa = Math.sin(a), sc = pxPerA * dpr;
+        const size = Math.ceil((m.ext + 2) * sc) + 2;
+        spr = document.createElement("canvas");
+        spr.width = spr.height = size;
+        const g = spr.getContext("2d")!;
+        for (const [e, ax, ay] of m.atoms) {
+          g.fillStyle = mix(colors.current[`atom-${e}`] ?? [128, 128, 128], colors.current[`atom-${e}`] ?? [128, 128, 128], 1);
+          g.beginPath(); g.arc(size / 2 + (ax * ca - ay * sa) * sc, size / 2 + (ax * sa + ay * ca) * sc, Math.max(.6 * dpr, atomRadius(e) * sc), 0, Math.PI * 2); g.fill();
+        }
+        minis.set(key, spr);
+      }
+      return spr;
+    };
+
+    const bigs = new Map<string, HTMLCanvasElement>();
+    const bigSprite = (f: string, turn: number, pxPerA: number) => {
+      const key = `${f}|${turn}|${pxPerA.toFixed(2)}`;
+      let spr = bigs.get(key);
+      if (!spr) {
+        const m = mol(f), a = turn * Math.PI / 16, ca = Math.cos(a), sa = Math.sin(a), sc = pxPerA * dpr;
+        const size = Math.ceil((m.ext + 2) * sc) + 4;
+        spr = document.createElement("canvas");
+        spr.width = spr.height = size;
+        const g = spr.getContext("2d")!;
+        for (const [e, ax, ay] of m.atoms) {
+          const ball = sprite(e, atomRadius(e) * sc);
+          g.drawImage(ball, size / 2 + (ax * ca - ay * sa) * sc - ball.width / 2, size / 2 + (ax * sa + ay * ca) * sc - ball.height / 2);
+        }
+        if (bigs.size > 600) bigs.clear();
+        bigs.set(key, spr);
+      }
+      return spr;
+    };
+
     const resize = () => {
+      minis.clear(); bigs.clear();
       dpr = Math.min(2, window.devicePixelRatio || 1);
       const w = box.clientWidth, h = box.clientHeight;
       el.width = Math.max(1, Math.round(w * dpr)); el.height = Math.max(1, Math.round(h * dpr));
@@ -196,15 +240,12 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
         ctx.strokeStyle = rgb("oil"); ctx.lineWidth = lw;
         ctx.beginPath(); ctx.moveTo(tx(0), ty(y)); ctx.lineTo(tx(w.W), ty(y)); ctx.stroke();
       };
-      // Teilchen klein (Übersicht): flache Kreise
+      // Teilchen klein (Übersicht): flache Kreise, je Stoff und Drehung (16 Stufen) einmal vorgezeichnet
       const small = () => {
         for (const p of w.ps) {
-          const m = mol(p.f), s = k[p.f], ca = Math.cos(p.a), sa = Math.sin(p.a);
-          for (const [e, ax, ay] of m.atoms) {
-            const x = p.x + (ax * ca - ay * sa) * s, y = p.y + (ax * sa + ay * ca) * s;
-            ctx.fillStyle = rgb(`atom-${e}`);
-            ctx.beginPath(); ctx.arc(X(x), Y(y), Math.max(.6, atomRadius(e) * s * mv), 0, Math.PI * 2); ctx.fill();
-          }
+          const turn = ((Math.round(p.a / (Math.PI / 8)) % 16) + 16) % 16;
+          const spr = miniSprite(p.f, turn, k[p.f] * mv);
+          ctx.drawImage(spr, X(p.x) - spr.width / 2 / dpr, Y(p.y) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
         }
       };
       vessel(X, Y, 1.6);
@@ -234,16 +275,11 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       ctx.clip();
       vessel(ZX, ZY, 3);
       const seen = w.ps.filter(p => Math.abs(p.x - lx) < rl * 1.4 && Math.abs(p.y - ly) < rl * 1.4);
-      const draws: [number, string, number, number, number][] = [];
+      // je Stoff und Drehung (32 Stufen) einmal vorgezeichnet: schattierte Kugeln von hinten nach vorn
       for (const p of seen) {
-        const m = mol(p.f), s = k[p.f], ca = Math.cos(p.a), sa = Math.sin(p.a);
-        m.atoms.forEach(([e, ax2, ay2], i) => draws.push([p.id * 100 + i, e, p.x + (ax2 * ca - ay2 * sa) * s, p.y + (ax2 * sa + ay2 * ca) * s, atomRadius(e) * s]));
-      }
-      // Reihenfolge je Teilchen beibehalten (Atome von hinten nach vorn)
-      draws.sort((a, b) => a[0] - b[0]);
-      for (const [, e, x, y, r] of draws) {
-        const rp = r * mz, spr = sprite(e, rp);
-        ctx.drawImage(spr, ZX(x) - spr.width / 2, ZY(y) - spr.height / 2);
+        const turn = ((Math.round(p.a / (Math.PI / 16)) % 32) + 32) % 32;
+        const spr = bigSprite(p.f, turn, k[p.f] * mz);
+        ctx.drawImage(spr, ZX(p.x) - spr.width / 2 / dpr, ZY(p.y) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
       }
       phase(ZX, ZY, 3);
       ctx.restore();
@@ -258,11 +294,12 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
     ro?.observe(box);
     const loop = () => {
       frame++;
+      raf = requestAnimationFrame(loop);
+      if (!busyRef.current && frame % 2) return;
       if (frame % 30 === 0) readColors();
       stepFlow(worldRef.current);
       onFrameRef.current?.();
       draw();
-      raf = requestAnimationFrame(loop);
     };
     if (motion) raf = requestAnimationFrame(loop);
     const theme = new MutationObserver(() => { readColors(); draw(); });
