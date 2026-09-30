@@ -6,7 +6,7 @@
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
 import { atomRadius } from "@lern/chem";
 import { kalotteBox, shapeOf } from "@lern/chem-ui";
-import { DRAW, boundaryY, liquidLevel, separatedFlow, sizeOf, stepFlow, type World } from "../flow.ts";
+import { DRAW, MELT, boundaryY, liquidLevel, separatedFlow, sizeOf, stepFlow, type World } from "../flow.ts";
 
 type Layout = { mv: number; ox: number; oy: number; zx: number; zy: number; R: number; side: boolean };
 type Mol = { atoms: [string, number, number][]; ext: number };
@@ -156,7 +156,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       const get = (v: string) => { probe.style.color = `var(${v}, #808080)`; return parse(getComputedStyle(probe).color); };
       const els = new Set(worldRef.current.ps.flatMap(p => mol(p.f).atoms.map(a => a[0])));
       const c: Record<string, [number, number, number]> = { text: get("--text"), muted: get("--muted"), surface: get("--surface"),
-        oil: get("--hue-yellow-deep"), edge: get("--atom-edge"), wall: get("--text") };
+        oil: get("--hue-yellow-deep"), edge: get("--atom-edge"), wall: get("--text"), heat: get("--hue-orange-soft") };
       for (const e of els) c[`atom-${e}`] = get(`--atom-${e}`);
       const changed = JSON.stringify(c) !== JSON.stringify(colors.current);
       if (changed) { colors.current = c; sprites.current.clear(); minis.clear(); bigs.clear(); }
@@ -251,11 +251,18 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
           ctx.moveTo(tx(0), ty(0)); ctx.lineTo(tx(0), ty(w.H)); ctx.lineTo(tx(w.W), ty(w.H)); ctx.lineTo(tx(w.W), ty(0));
         } else if (w.state !== "fest") {
           ctx.rect(tx(0), ty(0), tx(w.W) - tx(0), ty(w.H) - ty(0));
+        } else if (w.melt > 0) {
+          // geschmolzen: im Tiegel, warm hinterlegt (blendet am Ende aus, wenn das Metall erstarrt)
+          const a = Math.min(1, w.melt / 60, (MELT - w.melt) / 20);
+          ctx.save(); ctx.globalAlpha = a;
+          ctx.fillStyle = rgb("heat"); ctx.fillRect(tx(0), ty(0), tx(w.W) - tx(0), ty(w.H) - ty(0));
+          ctx.moveTo(tx(0), ty(0)); ctx.lineTo(tx(0), ty(w.H)); ctx.lineTo(tx(w.W), ty(w.H)); ctx.lineTo(tx(w.W), ty(0));
+          ctx.stroke(); ctx.restore();
         }
         ctx.stroke();
         ctx.setLineDash([]);
         // Trennwände
-        if (w.state !== "fest") for (const x of w.walls) { ctx.beginPath(); ctx.moveTo(tx(x), ty(0)); ctx.lineTo(tx(x), ty(w.H)); ctx.stroke(); }
+        if (w.state !== "fest") for (const x of w.walls) { ctx.beginPath(); ctx.moveTo(tx(x), ty(0)); ctx.lineTo(tx(x), ty(w.wallEnd ?? w.H)); ctx.stroke(); }
       };
       const phase = (tx: (x: number) => number, ty: (y: number) => number, lw: number) => {
         if (!w.floats.length || !separatedFlow(w) || w.shake > 0) return;

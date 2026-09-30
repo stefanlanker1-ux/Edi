@@ -136,7 +136,7 @@ function readInfo(w: World, ex: Example): Info {
   }
   return {
     bound: w.state === "fluessig" ? w.ps.filter(p => p.bound).length : 0, gas: w.ps.filter(p => p.gas).length, sep: separatedFlow(w),
-    walls: w.walls.length, melt: w.melt > 0, busy: w.stir > 0 || w.shake > 0 || w.melt > 0, mixed, doneAt: w.doneAt, t: w.t,
+    walls: w.walls.length, melt: w.melt > 0, busy: w.stir > 0 || w.shake > 0 || w.melt > 0 || w.wallEnd !== undefined, mixed, doneAt: w.doneAt, t: w.t,
   };
 }
 const secs = (steps: number) => `${Math.max(1, Math.round(steps / 60))} s`;

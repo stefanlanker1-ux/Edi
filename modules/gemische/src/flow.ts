@@ -41,6 +41,8 @@ export interface World {
   floats: string[];
   /** Trennwände (x) */
   walls: number[];
+  /** Trennwand wird hochgezogen: unteres Ende (y); darunter können die Teilchen durch */
+  wallEnd?: number;
   /** Zeitschritte, die noch umgerührt / geschüttelt / geschmolzen wird */
   stir: number; shake: number; melt: number;
   /** Temperatur in °C: je wärmer, desto schneller bewegen sich die Teilchen */
@@ -240,6 +242,8 @@ export const STIR = 180;
 export function startMixing(w: World) {
   w.hold = false;
   if (w.state === "fest") { w.walls = []; w.melt = MELT; for (const p of w.ps) p.bound = false; return; }
+  // Gase: Trennwand wird in etwa einer Sekunde hochgezogen (sichtbar), die Gase strömen unten durch
+  if (w.state !== "fluessig" && w.walls.length) { w.wallEnd = w.H; return; }
   w.walls = [];
   if (w.state === "fluessig") w.stir = STIR;
 }
@@ -359,11 +363,16 @@ export function stepFlow(w: World) {
       if (p.x > W - rc) { p.x = 2 * (W - rc) - p.x; p.vx = -Math.abs(p.vx); }
       if (p.y < rc) { p.y = 2 * rc - p.y; p.vy = Math.abs(p.vy); }
       if (p.y > H - rc) { p.y = 2 * (H - rc) - p.y; p.vy = -Math.abs(p.vy); }
-      for (const x of w.walls) {
+      const end = w.wallEnd ?? H;
+      if (p.y - rc < end) for (const x of w.walls) {
         if (ox < x && p.x > x - rc) { p.x = x - rc; p.vx = -Math.abs(p.vx); }
         else if (ox > x && p.x < x + rc) { p.x = x + rc; p.vx = Math.abs(p.vx); }
       }
       turn(p, .004);
+    }
+    if (w.wallEnd !== undefined) {
+      w.wallEnd -= H / 50;
+      if (w.wallEnd <= 0) { w.walls = []; w.wallEnd = undefined; }
     }
     collide(w, w.ps);
     // Geschwindigkeit passt sich langsam der Temperatur an
