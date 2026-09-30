@@ -83,19 +83,30 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`.
 
 ## Gemische (`modules/gemische`)
-- Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**: Modellgemisch (H₂O, H₂O₂, O₃, C – 11 Teilchen), Wasser, Helium,
-  Sprudelwasser, Zuckerwasser (Saccharose), Alkohol und Wasser, Öl und Wasser (Öl vereinfacht als Dodecan), Luft, Erdgas, Wasser im Aquarium.
-  Zweimal gleich viele Verbindungen wie Elemente (Modellgemisch, Aquarium), achtmal verschieden viele; Teilchenzahlen alle verschieden (Test).
-- Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Reinstoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte –
-  **auch O₂, O₃**), Atomsorten. Ozon ist ein Element, nie eine Verbindung.
-- Probieren: Becher (`components/Beaker.tsx`) mit Teilchen als Kalottenmodell (`@lern/chem-ui` `Kalotte`, echte Lage, klein), Flüssigkeit unten, Gas im
-  geschlossenen Gefäß, Modell verteilt. Teilchen antippen → Stoff-Info (`SubstanceSheet`: Element/Verbindung, Strukturformel, 3D).
-  Schütteln (`src/mixing.ts`): Teilchen neu verteilt; Öl und Wasser entmischen sich wieder (Öl tauscht mit Wasser darüber, gerade oder schräg;
-  entmischt = kein Wasser höher als Öl), Lösungen bleiben gemischt; ohne Bewegung (reduzierte Bewegung) gleich das Ergebnis.
-  Werkzeuge: Elemente (Atomsorten mit Farbe) | Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
-- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): teilchen, stoffe, reinGemisch | einordnen, verbindungen, elemente, atomsorten | homogen, alltag.
-  Zählaufgaben als Zahl mit Fallen (Atome statt Teilchen, Atomsorten statt Stoffe, O₂/O₃ als Verbindung, nur Einzelatome als Element …).
-  Bild = Becher (Höhe in Container-Einheiten, nie abgeschnitten); zum Zählen nur Beispiele mit kleinen Molekülen. Hilfsmittel „Farben“: alle Atomfarben der App.
+- Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**, 11–25 Teilchen je Beispiel (alle verschieden):
+  Wasser, Helium im Luftballon, Zuckerwasser (Saccharose), Alkohol und Wasser, Sprudelwasser, Öl und Wasser (Öl vereinfacht als Dodecan),
+  Messing (Cu, Zn), Erdgas (CH₄, C₂H₆, CO₂), Schutzgas zum Schweißen (Ar, CO₂), Modellgemisch (He, Ar, CO₂, CH₄).
+  Zweimal gleich viele Verbindungen wie Elemente (Schutzgas, Modellgemisch), achtmal verschieden viele (Test).
+- **Elemente nur als einzelne Atome** (Edelgase) oder Metallgitter – keine Moleküle aus einer Atomsorte (O₂, O₃, N₂ …), auch nicht im Quiz (Test).
+- Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Reinstoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte), Atomsorten.
+  Teilchenbilder in fünf Arten (`pictureKind`): Element, Verbindung, Gemisch aus Elementen / aus Verbindungen / aus Element und Verbindung.
+- Probieren (`views/MixView.tsx`, `components/Scene.tsx`): links bzw. oben das Gefäß, wie man es sieht (Becherglas, Flasche, Ballon, Gasflasche,
+  Metallstück), mit Lupe zum Teilchenbild (`components/Beaker.tsx`, Kalottenmodell aus echten 3D-Daten). Beide zeigen denselben Zustand
+  (Zuckerwürfel wird kleiner, jedes Öltröpfchen = ein Öl-Teilchen, Trennwände in beiden). Zwischen den Teilchen keine Füllfarbe (dort ist nichts).
+  Teilchen bewegen sich ständig (CSS-Zittern, Flüssigkeit/Gas zusätzlich langsame Schritte); ohne Bewegung (reduzierte Bewegung) nur vorher/nachher.
+- Mischen (`src/mixing.ts`, Raster mit einer Zelle je Teilchen): **Mischen** zeigt, wie das Gemisch entsteht – vorher (`before`) Zuckerkristall am Boden,
+  Alkohol als Schicht, CO₂ im Gasraum über dem Wasser, Gase hinter Trennwänden, Kupfer und Zink als Blöcke; danach lösen sich Kristallteilchen am Rand,
+  Nachbarn tauschen die Plätze (Diffusion), Gas löst sich an der Oberfläche, Metall schmilzt, mischt und erstarrt. Teilchenzahl bleibt gleich (Test).
+  **Schütteln** (Reinstoffe, Öl und Wasser): Öl steigt danach wieder auf (tauscht mit Wasser darüber, nie senkrecht mit Wasser nach unten).
+  Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Farben („nur im Modell“) | Einteilung (Stoffe → Reinstoffe/Gemische mit allen
+  Beispielen) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
+- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`), vier Level: Teilchen und Stoffe (teilchen, stoffe, reinGemisch) |
+  Elemente und Verbindungen (einordnen, bildArt, bildWahl, verbindungen, elemente, atomsorten) | Gemische im Alltag (homogen, gemischart, alltag, reinAlltag) |
+  Lösen und Mischen (wohin, erhalten, masse, zwischen, bewegung, farbe, nachher).
+  Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (Schlüssel = Antworttext, `renderOption`, zwei Spalten). Anordnungen für falsche Bilder:
+  gemischt, unten, oben, getrennt, abwechselnd. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
+  verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag.
+  Hilfsmittel „Farben“: alle Atomfarben des Quiz (verrät nicht, welche vorkommen).
 
 ## Atombau (`modules/atombau`)
 - Start immer: helles Farbschema, Unterstufe, Elektronen kreisen nicht, kein Beamer-Modus (diese Werte werden nicht gespeichert).

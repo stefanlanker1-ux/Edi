@@ -1,12 +1,14 @@
 # Gemische
 
 Reinstoffe und Gemische im Teilchenmodell – an zehn fertigen Beispielen (kein Baukasten):
-Modellgemisch, Wasser, Helium, Sprudelwasser, Zuckerwasser, Alkohol und Wasser, Öl und Wasser, Luft, Erdgas, Wasser im Aquarium.
+Wasser, Helium im Luftballon, Zuckerwasser, Alkohol und Wasser, Sprudelwasser, Öl und Wasser, Messing, Erdgas, Schutzgas zum Schweißen, Modellgemisch.
 
-- **Probieren:** Becher mit den Teilchen (Kalottenmodell aus echten 3D-Daten, klein gezeichnet). Teilchen antippen → Stoff-Info mit Strukturformel und 3D-Modell.
-  **Schütteln** verteilt die Teilchen neu; Öl und Wasser entmischen sich danach wieder (Öl steigt auf, Wasser gleitet nach unten), Lösungen bleiben gemischt.
-  Werkzeuge: Elemente (Atomsorten), Stoffe (Reinstoffe: Verbindungen | Elemente), Zählen, Beispiele.
-- **Quiz:** Teilchen und Stoffe zählen, Reinstoff oder Gemisch, Elemente und Verbindungen, homogen und heterogen – mit Stolpersteinen.
+- **Probieren:** das Gefäß, wie man es sieht, und daneben die Lupe mit den Teilchen (Kalottenmodell aus echten 3D-Daten).
+  Die Teilchen bewegen sich ständig. **Mischen** zeigt, wie das Gemisch entsteht (Zucker löst sich, Gase mischen sich nach dem Entfernen
+  der Trennwand, Kupfer und Zink schmelzen zu Messing …); **Schütteln** trennt Öl und Wasser nur kurz.
+  Teilchen antippen → Stoff-Info mit Strukturformel und 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
+- **Quiz:** Teilchen und Stoffe, Elemente und Verbindungen (auch Teilchenbilder auswählen), Gemische im Alltag, Lösen und Mischen –
+  mit Stolpersteinen.
 
 ## Entwickeln
 Modul der App Edi (`apps/edi`), Adresse `#/gemische`.

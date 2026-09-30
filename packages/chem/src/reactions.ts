@@ -151,7 +151,7 @@ export const SPECIES_NAMES: Record<string, string> = {
   MnCl2: "Mangan(II)-chlorid", "Cu(NO3)2": "Kupfer(II)-nitrat", KMnO4: "Kaliumpermanganat", FeS2: "Eisen(II)-disulfid (Pyrit)", C8H18: "Octan (Benzin)",
   K2Cr2O7: "Kaliumdichromat", CrCl3: "Chrom(III)-chlorid",
   // Gemische
-  O3: "Ozon", He: "Helium", Ar: "Argon", C12H26: "Dodecan (Öl)", C12H22O11: "Saccharose (Zucker)",
+  O3: "Ozon", He: "Helium", Ne: "Neon", Ar: "Argon", C12H26: "Dodecan (Öl)", C12H22O11: "Saccharose (Zucker)",
 };
 
 export const speciesName = (f: string) => SPECIES_NAMES[f] ?? toSubscript(f);
