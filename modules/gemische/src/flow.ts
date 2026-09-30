@@ -21,6 +21,8 @@ export interface FP {
   gi?: number; gj?: number;
   /** Stoßradius (Flüssigkeit: je nach Molekülgröße, sonst rc) */
   rad?: number;
+  /** lange Moleküle (Öl): Stoßform ist ein Stab mit runden Enden – halbe Länge und Dicke (Radius) */
+  len?: number; cap?: number;
   /** eben vom Kristall gelöst: noch so viele Schritte ohne Stoß mit dem Kristall (gleitet hinaus statt weggestoßen zu werden) */
   leave?: number;
   /** Gas über der Flüssigkeit */
@@ -68,6 +70,8 @@ const LIQ_RC = 2.6, GAS_RC = 2.2, GAS_V = .7;
 /** Stoßradius in der Flüssigkeit im Verhältnis zu Wasser: Zucker (Saccharose) ist ein großes Molekül, Ethanol etwas größer als Wasser */
 const SIZE: Record<string, number> = { C12H22O11: 1.8, C2H5OH: 1.3, CO2: 1.15 };
 export const sizeOf = (f: string) => SIZE[f] ?? 1;
+/** lange Moleküle (je rc): halbe Länge und Radius des Stabs – passend zur gezeichneten Kette (Dodecan) */
+const LONG: Record<string, [number, number]> = { C12H26: [1.95, .5] };
 /** gezeichneter Durchmesser in der Flüssigkeit je Stoßradius (Stoßkreise bedecken nur 42 %, gezeichnet dichter) */
 export const DRAW = 2.6;
 /** Gitterabstand im Kristall (waagrecht, senkrecht) je gezeichnetem Durchmesser: Saccharose liegt flach (breiter als hoch),
@@ -122,7 +126,11 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
     const head = ex.before === "gasraum" ? 26 : floats.length ? 14 : 8;
     const hl = liquidArea(list) / W, H = head + hl, rc = LIQ_RC;
     const w: World = { ...base, state: "fluessig", W, H, top: head, rc, ps: [] };
-    const add = (p: FP) => { p.rad = rc * sizeOf(p.f); w.ps.push(p); };
+    const add = (p: FP) => {
+      p.rad = rc * sizeOf(p.f);
+      if (LONG[p.f]) { p.len = LONG[p.f][0] * rc; p.cap = LONG[p.f][1] * rc; }
+      w.ps.push(p);
+    };
     if (vorher === "gasraum" && ex.solute) {
       const others = shuffle(list.filter(f => f !== ex.solute), r);
       const spots = packed(others.length, W, H - liquidArea(others) / W, H, rc, r);
@@ -163,6 +171,8 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
     const up = (f: string) => (vorher === "schicht" ? f === ex.solute : floats.includes(f));
     const order = [...shuffle(list.filter(f => !up(f)), r), ...shuffle(list.filter(up), r)];
     order.forEach((f, i) => add(particle(i, f, spots[i][0], spots[i][1], r)));
+    // lange Moleküle liegen anfangs kreuz und quer: vor dem ersten Bild zurechtrücken (sonst würden sie auseinanderspringen)
+    if (w.ps.some(p => p.len)) settle(w);
     return w;
   }
 
@@ -483,17 +493,59 @@ function veer(p: FP, r: () => number) {
   [p.vx, p.vy] = [p.vx * c - p.vy * s, p.vx * s + p.vy * c];
 }
 
+/** Stoßform eines Teilchens: Strecke (bei runden Teilchen ein Punkt) und Radius */
+function shape(w: World, p: FP): [number, number, number, number, number] {
+  if (!p.len) { const r = p.rad ?? w.rc; return [p.x, p.y, p.x, p.y, r]; }
+  const c = Math.cos(p.a) * p.len, s = Math.sin(p.a) * p.len;
+  return [p.x - c, p.y - s, p.x + c, p.y + s, p.cap!];
+}
+/** nächste Punkte zweier Strecken (für runde Teilchen sind die Strecken Punkte) */
+function closest(a: number[], b: number[]): [number, number, number, number] {
+  const [ax, ay, bx, by] = a, [cx, cy, dx, dy] = b;
+  const ux = bx - ax, uy = by - ay, vx = dx - cx, vy = dy - cy, wx = ax - cx, wy = ay - cy;
+  const A = ux * ux + uy * uy, B = ux * vx + uy * vy, C = vx * vx + vy * vy, D = ux * wx + uy * wy, E = vx * wx + vy * wy;
+  const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
+  let s = 0, t = 0;
+  if (A < 1e-9 && C < 1e-9) { s = 0; t = 0; }
+  else if (A < 1e-9) { t = clamp01(E / C); }
+  else if (C < 1e-9) { s = clamp01(-D / A); }
+  else {
+    const den = A * C - B * B;
+    s = den > 1e-9 ? clamp01((B * E - C * D) / den) : 0;
+    t = (B * s + E) / C;
+    if (t < 0) { t = 0; s = clamp01(-D / A); } else if (t > 1) { t = 1; s = clamp01((B - D) / A); }
+  }
+  return [ax + ux * s, ay + uy * s, cx + vx * t, cy + vy * t];
+}
+/** Teilchen um (ox, oy) verschieben, angreifend am Punkt (px, py): lange Moleküle drehen sich dabei mit */
+function push(p: FP, px: number, py: number, ox: number, oy: number) {
+  p.x += ox; p.y += oy;
+  if (!p.len) return;
+  const rx = px - p.x, ry = py - p.y;
+  p.a += (rx * oy - ry * ox) / (p.len * p.len) * .6;
+}
+
+/** Anfangslage entwirren: Überlappungen auflösen, bevor etwas gezeichnet wird */
+function settle(w: World) {
+  const liquid = w.ps.filter(p => !p.gas);
+  for (let k = 0; k < 60; k++) { separate(w, liquid, 1); clamp(w, liquid, w.rc, w.W - w.rc, w.top + w.rc, w.H - w.rc); }
+}
+
 /** Teilchen, die sich überlappen, auseinanderschieben (Kristallteilchen bleiben stehen) */
 function separate(w: World, ps: FP[], rounds: number) {
-  const rad = (p: FP) => p.rad ?? w.rc;
-  const cell = 2 * Math.max(w.rc, ...ps.map(rad));
+  const reach = (p: FP) => (p.len ? p.len + p.cap! : p.rad ?? w.rc);
+  const cell = 2 * Math.max(w.rc, ...ps.map(reach));
   for (let k = 0; k < rounds; k++) {
     const near = grid(ps, cell);
     for (const p of ps) near(p, q => {
       if (q.id < p.id) return;
-      const d = rad(p) + rad(q);
-      const dx = q.x - p.x, dy = q.y - p.y, dist = Math.hypot(dx, dy);
-      if (dist >= d || dist === 0) return;
+      if (Math.abs(q.x - p.x) > reach(p) + reach(q) || Math.abs(q.y - p.y) > reach(p) + reach(q)) return;
+      const sp = shape(w, p), sq = shape(w, q);
+      const [px, py, qx, qy] = closest(sp, sq);
+      const d = sp[4] + sq[4];
+      let dx = qx - px, dy = qy - py, dist = Math.hypot(dx, dy);
+      if (dist >= d) return;
+      if (dist < 1e-6) { dx = q.x - p.x || 1e-3; dy = q.y - p.y; dist = Math.hypot(dx, dy); }
       const pb = !!p.bound && w.state === "fluessig", qb = !!q.bound && w.state === "fluessig";
       if (pb && qb) return;
       // eben gelöst (aus dem Kristall bzw. aus dem Gas): nur sanft wegschieben, damit nichts springt;
@@ -501,8 +553,8 @@ function separate(w: World, ps: FP[], rounds: number) {
       const soft = p.leave || q.leave ? .15 : 1;
       const o = Math.min((d - dist) * .5 * soft, w.rc * .35) / dist;
       const fp = pb ? 0 : qb ? 2 : 1, fq = qb ? 0 : pb ? 2 : 1;
-      p.x -= dx * o * fp * .5; p.y -= dy * o * fp * .5;
-      q.x += dx * o * fq * .5; q.y += dy * o * fq * .5;
+      if (fp) push(p, px, py, -dx * o * fp * .5, -dy * o * fp * .5);
+      if (fq) push(q, qx, qy, dx * o * fq * .5, dy * o * fq * .5);
     });
   }
 }
@@ -510,6 +562,15 @@ function separate(w: World, ps: FP[], rounds: number) {
 function clamp(w: World, ps: FP[], x0: number, x1: number, y0: number, y1: number) {
   for (const p of ps) {
     if (p.bound) continue;
+    // lange Moleküle: beide Enden bleiben im Gefäß (drehen sich an der Wand)
+    if (p.len) {
+      for (const end of [-1, 1]) {
+        const ex = p.x + Math.cos(p.a) * p.len * end, ey = p.y + Math.sin(p.a) * p.len * end, e = p.cap! - w.rc;
+        const ox = ex < x0 + e ? x0 + e - ex : ex > x1 - e ? x1 - e - ex : 0;
+        const oy = ey < y0 + e ? y0 + e - ey : ey > y1 - e ? y1 - e - ey : 0;
+        if (ox || oy) push(p, ex, ey, ox * .5, oy * .5);
+      }
+    }
     const e = (p.rad ?? w.rc) - w.rc; // große Moleküle bleiben weiter vom Rand weg
     // eben gelöst (CO₂ an der Oberfläche): gleitet hinein statt zu springen
     const lim = (v: number, to: number) => (p.leave ? v + Math.max(-.5, Math.min(.5, to - v)) : to);
