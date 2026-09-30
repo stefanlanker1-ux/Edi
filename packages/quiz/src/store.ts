@@ -3,7 +3,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { recordStat, starsFor, type Answered, type BaseTask, type Game, type LevelKey, type LevelProgress, type TypeStats } from "./types.ts";
+import { RECENT_MAX, freshRound, recordStat, starsFor, taskKey, type Answered, type BaseTask, type Game, type LevelKey, type LevelProgress, type TypeStats } from "./types.ts";
 import { STAGES, dueSkills, recordAnswer, stageOf, type Exam, type Skills } from "./skills.ts";
 
 export interface QuizState<T extends BaseTask> {
@@ -18,6 +18,8 @@ export interface QuizState<T extends BaseTask> {
   misses: Record<string, Record<string, number> | undefined>;
   /** Prüfungstermin je Stufe („Schularbeit am …“), vom Schüler eingetragen */
   exams: Record<string, Exam | undefined>;
+  /** zuletzt gestellte Fragen je Stufe (Kennungen, neueste zuletzt) – neue Runden meiden sie */
+  recent: Record<string, string[] | undefined>;
   /** Runde starten; `due` = fällige Fertigkeiten für Level "due" (sonst aus den Fertigkeiten berechnet) */
   start: (stufe: string, level: LevelKey, due?: string[]) => void;
   setExam: (stufe: string, exam: Exam | null) => void;
@@ -54,12 +56,13 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       rounds: {},
       misses: {},
       exams: {},
+      recent: {},
       ...cfg.seed?.(),
 
       start: (stufe, level, dueIds) => {
         const sk = get().skills[stufe] ?? {};
         const due = level === "due" ? (dueIds ?? dueSkills(sk, Object.keys(sk), Date.now(), get().exams[stufe])) : undefined;
-        const tasks = cfg.makeRound(stufe, level, get().typeStats[stufe], due);
+        const tasks = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? []);
         const game: Game<T> = {
           stufe, level, tasks, i: 0, score: 0, streak: 0, bestStreak: 0, correct: 0, hintUsed: false,
           answers: tasks.map(() => null), startedAt: Date.now(), finished: false,
@@ -73,6 +76,8 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       answer: (stufe, a) => update(stufe, g => {
         if (g.answers[g.i]) return g;
         const type = g.tasks[g.i].type;
+        const key = taskKey(g.tasks[g.i]), rec = get().recent;
+        set({ recent: { ...rec, [stufe]: [...(rec[stufe] ?? []).filter(k => k !== key), key].slice(-RECENT_MAX) } });
         let upgrades = g.upgrades;
         if (type) {
           const all = get().typeStats, st = { ...all[stufe] };
@@ -123,6 +128,6 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
     name: cfg.storageKey,
     version: 1,
     storage: createJSONStorage(() => localStorage),
-    partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, exams: s.exams }),
+    partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, exams: s.exams, recent: s.recent }),
   }));
 }

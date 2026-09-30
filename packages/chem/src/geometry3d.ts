@@ -424,6 +424,17 @@ export function embed3D(m: Molecule, mode: AngleMode = "real"): Embedded3D {
   return embedEPA(m, mode);
 }
 
+/** Räumliche Lage direkt aus den Daten (mol3d.ts) – für Stoffe, die nicht auf dem Raster gebaut werden (Propan, Glucose …); ohne freie Paare und Winkel */
+export function embedMol3D(d: Mol3D): Embedded3D {
+  const c = mul(d.atoms.reduce((s, [, x, y, z]) => add(s, [x, y, z]), [0, 0, 0] as Vec), 1 / d.atoms.length);
+  return {
+    atoms: d.atoms.map(([el, x, y, z], i) => ({ id: i + 1, el, pos: sub([x, y, z], c) })),
+    bonds: d.bonds.map(([a, b, order]) => ({ a: a + 1, b: b + 1, order })),
+    lonePairs: [],
+    angles: [],
+  };
+}
+
 /** Summe der Bindungsdipole (ΔEN · Richtung von δ+ nach δ−) – Richtung des Dipolmoments */
 export function dipoleVector(e: Embedded3D, enOf: (el: string) => number): Vec {
   let d: Vec = [0, 0, 0];

@@ -83,3 +83,7 @@ button.ion-tile:hover { transform: translateY(-2px); }
 .it-item.cation b { color: var(--text); } .it-item span { color: var(--muted); }
 .it-item.hit { border: 2px solid var(--signal); }
 @media (max-height: 720px) { .q-body .iw-stack { --h: 28px; } .q-body .iw-formula { font-size: 1.4rem; } .q-body .ion-wall { gap: 4px; } .q-body .answer-ions { gap: 8px; } }
+
+/* Ionen-Auswahl: Knöpfe wie Tasten */
+.ip-chip { border-color: var(--rule); box-shadow: var(--key-edge); }
+.ip-chip:active { box-shadow: var(--key-edge-pressed); }

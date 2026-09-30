@@ -1,12 +1,10 @@
 import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { StartView } from "./views/StartView.tsx";
-import { PracticeView } from "./views/PracticeView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
 
 const TABS: ShellTab<Tab>[] = [
   { id: "start", label: "Start", icon: "play" },
-  { id: "ueben", label: "Üben", icon: "swap" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
 ];
 
@@ -27,7 +25,6 @@ export function App() {
   return (
     <LernApp name="Reaktionsgleichungen" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["reaktionsgleichungen-v2", "reaktionsgleichungen-quiz"]} stufe={{ value: stufe, onChange: setStufe }}>
       {tab === "start" && <StartView />}
-      {tab === "ueben" && <PracticeView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>
   );

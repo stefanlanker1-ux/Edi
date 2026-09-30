@@ -143,3 +143,7 @@
 .ah-list li { display: grid; justify-items: center; gap: 2px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: .8rem; font-weight: 700; }
 .ah-svg { width: 64px; display: block; }
 @media (max-width: 520px) { .pal-name { display: none; } }
+
+/* Atome und Beispiele: Knöpfe wie Tasten */
+.pal-atom, .ex-chip { border-color: var(--rule); box-shadow: var(--key-edge); }
+.pal-atom:active, .ex-chip:active { box-shadow: var(--key-edge-pressed); }

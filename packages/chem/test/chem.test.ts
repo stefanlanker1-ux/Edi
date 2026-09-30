@@ -31,12 +31,11 @@ test("Konfigurationen Hauptgruppen", () => {
   assert.strictEqual(shortConfigString(86), "[Xe] 6s² 4f¹⁴ 5d¹⁰ 6p⁶");
 });
 
-test("Ausnahmen Cr, Cu, Pd, Au", () => {
-  assert.strictEqual(shortConfigString(24), "[Ar] 4s¹ 3d⁵");
-  assert.strictEqual(shortConfigString(29), "[Ar] 4s¹ 3d¹⁰");
-  assert.strictEqual(shortConfigString(46), "[Kr] 4d¹⁰");
-  assert.strictEqual(shortConfigString(79), "[Xe] 6s¹ 4f¹⁴ 5d¹⁰");
-  assert.strictEqual(shortConfigString(24, 24, { exceptions: false }), "[Ar] 4s² 3d⁴");
+test("eine Regel für alle: Aufbauprinzip ohne Sonderfälle (Cr, Cu, Pd, Au)", () => {
+  assert.strictEqual(shortConfigString(24), "[Ar] 4s² 3d⁴");
+  assert.strictEqual(shortConfigString(29), "[Ar] 4s² 3d⁹");
+  assert.strictEqual(shortConfigString(46), "[Kr] 5s² 4d⁸");
+  assert.strictEqual(shortConfigString(79), "[Xe] 6s² 4f¹⁴ 5d⁹");
 });
 
 test("Ionen", () => {
@@ -58,7 +57,7 @@ test("Schalen", () => {
 test("Ungepaarte Elektronen, Block, Valenz", () => {
   assert.strictEqual(unpairedElectrons(configuration(8)), 2);
   assert.strictEqual(unpairedElectrons(configuration(7)), 3);
-  assert.strictEqual(unpairedElectrons(configuration(24)), 6);
+  assert.strictEqual(unpairedElectrons(configuration(24)), 4); // nach Regel 3d⁴
   assert.strictEqual(unpairedElectrons(configuration(26)), 4);
   assert.strictEqual(blockOf(2), "s"); assert.strictEqual(blockOf(26), "d");
   assert.strictEqual(blockOf(60), "f"); assert.strictEqual(blockOf(35), "p");
@@ -79,7 +78,7 @@ test("Ionennamen", async () => {
 test("Kationen: Elektronen von außen nach innen abgeben", async () => {
   const { shortConfigString } = await import("../src/config.ts");
   assert.strictEqual(shortConfigString(26, 24), "[Ar] 3d⁶");
-  assert.strictEqual(shortConfigString(29, 28), "[Ar] 3d¹⁰");
+  assert.strictEqual(shortConfigString(30, 28), "[Ar] 3d¹⁰");
   assert.strictEqual(shortConfigString(24, 21), "[Ar] 3d³");
   assert.strictEqual(shortConfigString(63, 60), "[Xe] 4f⁶");
   assert.strictEqual(shortConfigString(58, 55), "[Xe] 4f¹");

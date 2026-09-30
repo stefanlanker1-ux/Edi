@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
-import { embed3D, dipoleVector, polarBonds, en, type AngleMode, type Molecule, type Vec } from "@lern/chem";
+import { embed3D, embedMol3D, dipoleVector, polarBonds, en, type AngleMode, type Mol3D, type Molecule, type Vec } from "@lern/chem";
 
 // Farbfamilien nach CPK, Werte aus der gemeinsamen Palette (tokens.css --hue-*; three.js braucht feste Zahlen)
 const CPK: Record<string, number> = { H: 0xf4f4f0, C: 0x3a3a3a, N: 0x4a78bf, O: 0xdd5444, F: 0xa9c46a, Cl: 0x7fb55a, Br: 0xa2503f, I: 0x83569e, S: 0xedc242, P: 0xea9146 };
@@ -33,7 +33,10 @@ function cylinder(a: THREE.Vector3, b: THREE.Vector3, r: number, mat: THREE.Mate
 }
 
 export interface Molecule3DProps {
-  mol: Molecule;
+  /** Molekül vom Raster (Elektronenpaarbindung) … */
+  mol?: Molecule;
+  /** … oder fertige Lage aus den Daten (mol3d.ts), z. B. für Stoffe in Reaktionsgleichungen */
+  data?: Mol3D;
   showAngles?: boolean;
   showLonePairs?: boolean;
   showDipole?: boolean;
@@ -46,10 +49,11 @@ export interface Molecule3DProps {
   look?: Look;
 }
 
-export default function Molecule3D({ mol, showAngles = true, showLonePairs = false, showDipole = false, dipoleArrow = true, autoRotate = true, angleMode = "real", look = "ball" }: Molecule3DProps) {
+export default function Molecule3D({ mol, data, showAngles = true, showLonePairs = false, showDipole = false, dipoleArrow = true, autoRotate = true, angleMode = "real", look = "ball" }: Molecule3DProps) {
   const host = useRef<HTMLDivElement>(null);
   // Blickrichtung bleibt beim Umschalten (Winkel, Paare, Dipol, real/ideal) erhalten – nur ein neues Molekül setzt sie zurück
-  const view = useRef<{ mol: Molecule; look: Look; pos: THREE.Vector3; auto: boolean } | null>(null);
+  const view = useRef<{ key: Molecule | Mol3D | undefined; look: Look; pos: THREE.Vector3; auto: boolean } | null>(null);
+  const key = data ?? mol;
 
   useEffect(() => {
     const box = host.current!;
@@ -70,7 +74,7 @@ export default function Molecule3D({ mol, showAngles = true, showLonePairs = fal
     sun.position.set(3, 5, 6);
     scene.add(sun);
 
-    const e = embed3D(mol, angleMode);
+    const e = data ? embedMol3D(data) : embed3D(mol!, angleMode);
     const group = new THREE.Group();
     scene.add(group);
     const pos = new Map(e.atoms.map(a => [a.id, v3(a.pos)]));
@@ -164,7 +168,7 @@ export default function Molecule3D({ mol, showAngles = true, showLonePairs = fal
       }
     }
     // Teilladungen und Dipolpfeil
-    if (showDipole) {
+    if (showDipole && mol) {
       const signs = new Map<number, string>();
       for (const p of polarBonds(mol)) { signs.set(p.plus, "δ+"); signs.set(p.minus, "δ−"); }
       for (const [id, s] of signs) {
@@ -227,7 +231,7 @@ export default function Molecule3D({ mol, showAngles = true, showLonePairs = fal
     controls.autoRotate = autoRotate && !reduced;
     controls.autoRotateSpeed = 1.6;
     controls.addEventListener("start", () => { controls.autoRotate = false; touched = true; });
-    const saved = view.current?.mol === mol && view.current.look === look ? view.current : null;
+    const saved = view.current && view.current.key === key && view.current.look === look ? view.current : null;
     if (saved) { camera.position.copy(saved.pos); controls.autoRotate = saved.auto; controls.update(); touched = true; }
 
     // Antippen (ohne Ziehen) eines Atoms: Symbol ein/aus
@@ -254,7 +258,7 @@ export default function Molecule3D({ mol, showAngles = true, showLonePairs = fal
     ro.observe(box);
 
     return () => {
-      view.current = { mol, look, pos: camera.position.clone(), auto: controls.autoRotate };
+      view.current = { key, look, pos: camera.position.clone(), auto: controls.autoRotate };
       cancelAnimationFrame(raf);
       labels.domElement.removeEventListener("pointerdown", onDown);
       labels.domElement.removeEventListener("pointerup", onUp);
@@ -269,7 +273,7 @@ export default function Molecule3D({ mol, showAngles = true, showLonePairs = fal
       renderer.dispose();
       box.innerHTML = "";
     };
-  }, [mol, showAngles, showLonePairs, showDipole, dipoleArrow, autoRotate, angleMode, look]);
+  }, [key, mol, data, showAngles, showLonePairs, showDipole, dipoleArrow, autoRotate, angleMode, look]);
 
   return <div ref={host} className="m3d" role="img" aria-label="3D-Modell des Moleküls – ziehen zum Drehen, zoomen mit Mausrad oder zwei Fingern, Atom antippen zeigt das Symbol" />;
 }

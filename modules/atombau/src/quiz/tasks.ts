@@ -5,7 +5,7 @@
 import {
   BY_Z, STABLE_N, GROUP_NAMES, standardNeutrons, configuration, configString, shortConfigString, shells,
   unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed,
-  EXCEPTIONS, MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, type Occupied,
+  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, type Occupied,
 } from "@lern/chem";
 import { mc, d, validTraps, type Trap } from "@lern/quiz";
 
@@ -58,9 +58,14 @@ const chargeLabel = (q: number) => (q === 0 ? "neutral" : `${Math.abs(q)}${q > 0
 const cnt = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const el = (Z: number) => BY_Z[Z];
 const neighbors = (Z: number, maxZ: number) => [Z - 1, Z + 1, Z - 2, Z + 2, Z + 8, Z - 8].filter(z => z >= 1 && z <= maxZ);
-const noExc = (Z: number) => !EXCEPTIONS[Z];
+/** Elemente, deren gemessene Konfiguration vom Aufbauprinzip abweicht (Cr, Cu, Pd, Au …): die App rechnet nach der Regel, das Quiz fragt sie nicht ab */
+const DEVIATING = new Set([24, 29, 41, 42, 44, 45, 46, 47, 57, 58, 64, 78, 79]);
+const noExc = (Z: number) => !DEVIATING.has(Z);
 const mainGroup = (Z: number) => mainGroupNumber(Z) !== null;
 const maxOf = (pool: number[]) => Math.max(...pool);
+/** Aufgaben mit Massen- und Neutronenzahlen nur bis Calcium: geübt wird das Prinzip, nicht Rechnen mit großen Zahlen (kein ¹²⁷I) */
+export const NUCLIDE_MAX_Z = 20;
+const nuclidePool = (pool: number[]) => pool.filter(z => z <= NUCLIDE_MAX_Z);
 
 function isotopeN(Z: number): number {
   if (STABLE_N[Z] && Math.random() < 0.7) return pick(STABLE_N[Z]);
@@ -90,7 +95,7 @@ function shiftedConfig(cfg: Occupied[]): Occupied[] | null {
 // ── Unterstufe ───────────────────────────────────────────────────────────────
 
 export function readParticles(pool: number[], ions = false): Task {
-  const Z = pick(pool), N = isotopeN(Z);
+  const Z = pick(nuclidePool(pool)), N = isotopeN(Z);
   const q = ions ? realCharge(Z) : 0;
   const E = Z - q;
   return {
@@ -120,7 +125,7 @@ export function readParticles(pool: number[], ions = false): Task {
 }
 
 export const massNumber: Gen = pool => {
-  const Z = pick(pool), N = isotopeN(Z), A = Z + N;
+  const Z = pick(nuclidePool(pool)), N = isotopeN(Z), A = Z + N;
   return {
     ...mc(String(A), [
       d(String(Z), "massenzahl-ordnungszahl", `**${Z}** ist die Ordnungszahl (nur die Protonen). Die Massenzahl zählt Protonen **und** Neutronen.`),
@@ -266,7 +271,7 @@ export const ionCharge: Gen = pool => {
 };
 
 export const isotopeNeutrons: Gen = pool => {
-  const Z = pick(pool.filter(z => z > 1));
+  const Z = pick(nuclidePool(pool).filter(z => z > 1));
   const N = isotopeN(Z), A = Z + N;
   return {
     ...mc(String(N), [
@@ -303,7 +308,7 @@ export const typicalIon: Gen = pool => {
 };
 
 export const isotopeCompare: Gen = pool => {
-  const Z = pick(pool.filter(z => (STABLE_N[z]?.length ?? 0) >= 2 || z === 6));
+  const Z = pick(nuclidePool(pool).filter(z => (STABLE_N[z]?.length ?? 0) >= 2 || z === 6));
   const Ns = Z === 6 ? [6, 8] : shuffle(STABLE_N[Z]).slice(0, 2).sort((a, b) => a - b);
   const [a, b] = Ns.map(n => `${el(Z).name}-${Z + n}`);
   const same = Math.random() < 0.5;
@@ -328,7 +333,7 @@ export const isotopeCompare: Gen = pool => {
 // ── Oberstufe ────────────────────────────────────────────────────────────────
 
 export const nuclideInput: Gen = pool => {
-  const Z = pick(pool), N = Math.max(0, standardNeutrons(Z) + pick([0, 0, 1, 2, -1]));
+  const Z = pick(nuclidePool(pool)), N = Math.max(0, standardNeutrons(Z) + pick([0, 0, 1, 2, -1]));
   const q = Math.random() < 0.3 ? 0 : realCharge(Z);
   const E = Z - q;
   return {
@@ -406,7 +411,7 @@ export const blockMC: Gen = pool => {
   // Lutetium ausgenommen: steht hier bei den Lanthanoiden, wird aber zuletzt in 5d befüllt (Zuordnung umstritten)
   const Z = pick(pool.filter(z => z > 2 && z !== 71));
   const b = blockOf(Z);
-  const cfg = configuration(Z, Z, { exceptions: false });
+  const cfg = configuration(Z, Z);
   return {
     ...mc(`${b}-Block`, ["s-Block", "p-Block", "d-Block", "f-Block"]),
     prompt: `In welchem **Block** des Periodensystems steht **${el(Z).name}**?`,
@@ -432,13 +437,13 @@ export const unpairedMC: Gen = pool => {
   };
 };
 
-const ION_SET: [number, number][] = [[26, 2], [26, 3], [29, 2], [29, 1], [30, 2], [25, 2], [27, 2], [28, 2], [24, 3], [11, 1], [12, 2], [13, 3], [8, -2], [17, -1], [16, -2], [7, -3], [20, 2], [35, -1]];
+const ION_SET: [number, number][] = [[26, 2], [26, 3], [29, 2], [30, 2], [25, 2], [27, 2], [28, 2], [24, 3], [11, 1], [12, 2], [13, 3], [8, -2], [17, -1], [16, -2], [7, -3], [20, 2], [35, -1]];
 export const ionConfigMC: Gen = () => {
   const [Z, q] = pick(ION_SET);
   const E = Z - q;
   const right = shortConfigString(Z, E);
   const tm = q > 0 && Z > 20;
-  const wrong1 = tm ? shortConfigString(E, E, { exceptions: false }) : null;
+  const wrong1 = tm ? shortConfigString(E, E) : null;
   return {
     ...mc(right, [
       ...(wrong1 && wrong1 !== right ? [d(wrong1, "ion-3d-zuerst", "Kationen der Übergangsmetalle geben zuerst die **4s**-Elektronen ab (äußerste Schale), nicht die 3d-Elektronen.")] : []),

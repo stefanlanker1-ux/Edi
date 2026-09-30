@@ -5,8 +5,8 @@
 import { REACTION_BY_ID, reactionsFor, parseFormula, sideCounts, elementsOf, equationText, isBalanced, unbalancedElements, speciesName, toSubscript, type Niveau, type Reaction } from "@lern/chem";
 import { buildRound, dis, mc, pick, shuffle, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
 
-/** eq: Gleichung, die groß über der Frage steht (renderVisual) */
-type WithEq = { eq?: string };
+/** eq: Gleichung, die groß über der Frage steht (renderVisual); species: ihre Stoffe (Hilfsmittel „Stoffe“) */
+type WithEq = { eq?: string; species?: string[] };
 export type Task =
   | (McTask & WithEq)
   | (BaseTask & WithEq & { kind: "num"; answer: number })
@@ -87,6 +87,7 @@ function pruefen(s: Stufe): Task {
   return {
     ...mc(right, wrongs),
     eq: equationText(r, coeffs),
+    species: [...r.left, ...r.right],
     praise: "Jedes Element einzeln gezählt – genau so geht's.",
     prompt: "Ist diese Gleichung ausgeglichen?",
     hint: "Zähle jedes Element links und rechts einzeln. Große Zahl vorne · kleine Zahl im Stoff.",
@@ -103,6 +104,7 @@ function koeffizient(rs: Reaction[]): Task {
   const ans = r.coeffs[idx];
   const base = {
     eq: equationText(r, shown),
+    species: [...r.left, ...r.right],
     prompt: `Welche Zahl gehört vor \`${toSubscript(f)}\`?`,
     hint: `Zähle ein Element, das in ${toSubscript(f)} steckt, auf der anderen Seite – so viele Atome brauchst du auch hier.`,
     explain: `${eqBal(r)} → vor ${toSubscript(f)} steht **${ans === 1 ? "1 (wird nicht geschrieben)" : ans}**.`,
@@ -231,5 +233,13 @@ export function makeRound(stufe: string, level: LevelKey, stats?: TypeStats, due
 }
 
 export const reactionOf = (t: Extract<Task, { kind: "balance" }>) => REACTION_BY_ID[t.reaction];
+
+/** Stoffe einer Aufgabe für das Hilfsmittel „Stoffe“ – nicht bei Wortgleichungen und Atome zählen (dort verriete die Info die Lösung) */
+export function speciesOf(t: Task): string[] {
+  if (t.type === "wort" || t.type === "zaehlen") return [];
+  const fs = t.kind === "balance" ? [...reactionOf(t).left, ...reactionOf(t).right] : t.species ?? [];
+  // nach Namen sortiert: die Liste verrät nicht, was links oder rechts steht
+  return [...new Set(fs)].sort((a, b) => speciesName(a).localeCompare(speciesName(b), "de"));
+}
 /** nur für Tests */
 export const GENERATORS = GENS;

@@ -12,6 +12,8 @@ interface Props {
   /** nächste freie Schale gestrichelt andeuten (Baukasten) */
   ghost?: boolean;
   labels?: boolean;
+  /** Anzahl p⁺/n im großen Kern anschreiben (im Quiz aus – sie verriete die Ordnungszahl) */
+  counts?: boolean;
   /** eigene Schalenbesetzung statt Aufbauprinzip (Quiz „Schalen füllen“) */
   shellCounts?: number[];
   onParticleDown?: (type: Particle, e: React.PointerEvent) => void;
@@ -37,7 +39,7 @@ function nucleusLayout(Z: number, N: number) {
   return { pr, pos, r: rmax + pr };
 }
 
-export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, shellCounts, onParticleDown }: Props) {
+export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, counts = true, shellCounts, onParticleDown }: Props) {
   const uid = useId().replace(/:/g, "");
   const g = (name: string) => `url(#${uid}-${name})`;
   const n = Z + N;
@@ -83,8 +85,8 @@ export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, s
           <g onPointerDown={down("proton")} className="grab">
             <circle r={rNuc + 6} fill={g("halo")} />
             <circle r={rNuc} fill={g("p")} />
-            <text y={-2} className="nuc-txt">{Z} p⁺</text>
-            <text y={10} className="nuc-txt">{N} n</text>
+            {counts && <text y={-2} className="nuc-txt">{Z} p⁺</text>}
+            {counts && <text y={10} className="nuc-txt">{N} n</text>}
           </g>
         )}
         {nuc && (

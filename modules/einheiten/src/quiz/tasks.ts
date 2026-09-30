@@ -6,7 +6,7 @@ import {
 } from "@lern/units";
 import { buildRound, mc, pick, shuffle, rnd, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
 import type { Stufe } from "../store.ts";
-import { topicsFor } from "../practice.ts";
+import { topicsFor } from "../topics.ts";
 
 export interface Conv { value: string; from: string; to: string }
 export type Task =

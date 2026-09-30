@@ -1,12 +1,10 @@
 import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { ConvertView } from "./views/ConvertView.tsx";
-import { PracticeView } from "./views/PracticeView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
 
 const TABS: ShellTab<Tab>[] = [
   { id: "convert", label: "Umrechnen", icon: "ruler" },
-  { id: "practice", label: "Üben", icon: "target" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
 ];
 
@@ -25,7 +23,6 @@ export function App() {
   return (
     <LernApp name="Einheiten" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["einheiten-v1", "einheiten-quiz"]} stufe={{ value: stufe, onChange: setStufe }}>
       {tab === "convert" && <ConvertView />}
-      {tab === "practice" && <PracticeView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>
   );

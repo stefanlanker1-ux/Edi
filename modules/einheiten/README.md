@@ -15,9 +15,6 @@ Einheiten umrechnen von der Unterstufe bis zur Oberstufe – immer mit **demselb
     Umrechnungszahl = 10^(Hochzahl vorher − Hochzahl nachher), bei m² bzw. m³ Hochzahl mal 2 bzw. 3.
 - **Rechenweg an der Tafel** (eigener Knopf): Tafelbild mit Kreideschrift zum Abschreiben (Oberstufe zusätzlich mit Zehnerpotenzen).
 - **Veranschaulichung** (Unterstufe): Lineal mit Zoom, 10 × 10-Raster, Würfel aus 1000 kleinen Würfeln, Messbecher, Uhr, Streifen.
-- **Üben** – modular mit abnehmender Hilfe, 8 Aufgaben pro Runde, zwei Versuche mit gezieltem Tipp:
-  Unterstufe ① mit Stellenwerttafel (die eingetippte Zahl erscheint live als zweite Zeile unter der Aufgabe) → ② mit Pfeilen → ③ ohne Hilfe;
-  Oberstufe ① mit Vorsilben-Skala → ② ohne Hilfe (Länge, Fläche & Volumen, Masse, Elektrik, Energie & Leistung, Zeit & Frequenz).
 - **Quiz**: 3 Level je Stufe, Eingabe mit Komma (auch `2,5·10^-4`), in jeder Rückmeldung Pfeilkette/Skala und Rechenweg an der Tafel.
 
 Die Rechenlogik liegt in `packages/units` (`@lern/units`): exakte Brüche (keine Rundungsfehler), Einheitenkatalog,

@@ -157,7 +157,7 @@ const cross = (a: Vec, b: Vec): Vec => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] -
  * (übersichtlicher als Zickzack) – C in einer Reihe, die H genau darüber und darunter, an den Enden auch nach außen.
  * So ist jedes Atom ganz zu sehen.
  */
-function chainView(d: Mol3D): Atom3[] | null {
+export function chainView(d: Mol3D): Atom3[] | null {
   const el = d.atoms.map(a => a[0]);
   const Cs = el.flatMap((e, i) => (e === "C" ? [i] : []));
   const n = Cs.length;

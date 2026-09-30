@@ -1,11 +1,11 @@
-// Eine Gleichung ausgleichen – für Start und Üben gleich: oben Titel (und Auswahl), dann das Teilchenbild,
+// Eine Gleichung ausgleichen (Start): oben Titel (und Auswahl), dann das Teilchenbild,
 // darunter die Gleichung (Zahl antippen = ändern) und genau ein Hauptknopf: „Prüfen“, nach ✓ „Weiter“.
 
 import { useState, type ReactNode } from "react";
 import { Button, Tag, Workbench, buzz, ding } from "@lern/ui";
 import { isBalanced, unbalancedElements, type Reaction } from "@lern/chem";
 import { EquationRow, maxCoef } from "./Equation.tsx";
-import { MoleculeScene, WordLine, hasModel } from "./Molecules.tsx";
+import { MoleculeScene, hasModel } from "./Molecules.tsx";
 
 const gcdAll = (xs: number[]) => xs.reduce((g, x) => { while (x) [g, x] = [x, g % x]; return g; }, 0);
 
@@ -31,7 +31,7 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = "We
   return (
     <Workbench className="rg-wb" tools={[]}
       head={head}
-      stage={hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : <WordLine eq={r} />}
+      stage={hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : null}
       status={shown ? <>
         {!balanced && unbalancedElements(r, coeffs).map(el => <Tag key={el} tone="signal">≠ {el}</Tag>)}
         {balanced && !ok && <Tag tone="signal">kürzen : {g}</Tag>}

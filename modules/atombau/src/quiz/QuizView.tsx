@@ -37,7 +37,7 @@ export function QuizView() {
       renderVisual={t => t.visual
         ? (t.visual.kind === "nuclide"
           ? <Nuclide Z={t.visual.Z} N={t.visual.N} E={t.visual.E} size="xl" blank={t.visual.blank} />
-          : <div className="q-bohr"><Bohr Z={t.visual.Z} N={t.visual.N} E={t.visual.E} labels={t.visual.labels} /></div>)
+          : <div className="q-bohr"><Bohr Z={t.visual.Z} N={t.visual.N} E={t.visual.E} labels={t.visual.labels} counts={false} /></div>)
         : null}
       renderAnswer={(t, a, submit) => <AnswerArea key={t.prompt} task={t} answered={a} onAnswer={submit} />}
       solution={t => (t.kind === "mc" ? null : solutionText(t))}

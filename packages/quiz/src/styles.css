@@ -270,3 +270,8 @@
 }
 .num-answer input:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
 .num-unit { font-weight: 700; }
+
+/* Knöpfe wie Tasten (Unterkante, siehe @lern/ui „Knopf oder Anzeige?“); beantwortete Auswahl ohne Unterkante = nicht mehr antippbar */
+.level-card, .mc-btn, .q-map-btn, .q-exam, .q-exam-lv { border-color: var(--rule); box-shadow: var(--key-edge); }
+.level-card:active, .mc-btn:active:not(:disabled), .q-map-btn:active, .q-exam:active, .q-exam-lv:active { box-shadow: var(--key-edge-pressed); }
+.mc-btn:disabled { box-shadow: none; }

@@ -148,3 +148,7 @@ button.at-rest { min-height: 44px; }
 }
 /* breit: Säuretabelle als Register neben der Bühne – weniger Rand, damit sie ganz sichtbar ist */
 .ui-wb-side .ui-panel-body:has(.acid-table) { padding-top: 10px; padding-bottom: 10px; }
+
+/* Laugen/Säuren-Auswahl: Knöpfe wie Tasten */
+.ip-chip { border-color: var(--rule); box-shadow: var(--key-edge); }
+.ip-chip:active { box-shadow: var(--key-edge-pressed); }

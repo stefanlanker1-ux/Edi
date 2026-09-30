@@ -8,7 +8,7 @@
 
 /* ── Gleichung: immer eine Zeile, Schrift passt sich an (Fit-Text); Stoff antippen = Zahl wählen ───── */
 .eq-fit { width: 100%; min-width: 0; display: flex; justify-content: safe center; overflow: hidden; }
-/* in der Karte (Start/Üben) bis an den Kartenrand – nur dort, wo nichts darüber abschneidet */
+/* in der Karte (Start) bis an den Kartenrand – nur dort, wo nichts darüber abschneidet */
 .rg-controls .eq-fit { width: calc(100% + 28px); margin-inline: -14px; }
 .eq-row { flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: .1em; white-space: nowrap; line-height: 1.1; }
 .eq-part { display: inline-flex; align-items: center; gap: .1em; }
@@ -37,14 +37,13 @@ button.eq-term:active { transform: scale(.96); }
 }
 .eq-pick button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
-/* ── Start und Üben: eine Karte, kein Werkzeugbereich ─────────────────────────────── */
+/* ── Start: eine Karte, kein Werkzeugbereich ─────────────────────────────── */
 .rg-wb { grid-template-columns: minmax(0, 1fr) !important; max-width: 920px; margin: 0 auto; width: 100%; }
 .rg-wb .ui-wb-stage { padding-bottom: 14px; }
 .rg-wb .ui-wb-view { overflow: hidden; }
 .rg-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; width: 100%; }
 .rg-title { margin: 0; font-size: 1.05rem; font-weight: 800; }
 .rg-steps { display: flex; gap: 6px; }
-.rg-niveau { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--muted); }
 .rg-steps button {
   width: 44px; height: 44px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
   font-weight: 800; font-size: 1.05rem;
@@ -91,4 +90,35 @@ button.eq-term:active { transform: scale(.96); }
 @media (max-height: 720px) { .rg-title { font-size: .95rem; } .rg-wb .ui-wb-stage { gap: 8px; } }
 
 /* ohne Teilchenbild (Salze, Metalle): Wortgleichung */
-.rg-words { margin: auto; max-width: 30em; text-align: center; color: var(--muted); font-weight: 600; font-size: clamp(.95rem, 3.6cqw, 1.2rem); line-height: 1.35; text-wrap: balance; }
+
+/* ── Stoff-Info: Namen als Knöpfe (Start: Wortgleichung unter dem Titel), Blatt mit Formel, Strukturformel, 3D ── */
+.rg-names { order: 3; flex-basis: 100%; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: .92rem; }
+.rg-names .rg-plus, .rg-names .rg-arrow { color: var(--muted); font-weight: 700; padding: 0 2px; }
+.sub-name { min-height: 44px; padding: 0 10px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface);
+  font-weight: 700; display: inline-flex; align-items: center; gap: 6px; line-height: 1.15; }
+.sub-name::after { content: "i"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor;
+  font: 800 .66rem/1 var(--font); font-feature-settings: "cv08"; }
+.sub-name:hover { background: var(--surface-2); }
+.sub-facts { display: grid; gap: 8px; justify-items: start; }
+.sub-formula { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -.01em; }
+.sub-struct-box { display: grid; place-items: center; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); min-height: 0; }
+.sub-struct { max-height: 44dvh; height: auto; overflow: visible; }
+.sub-bond { stroke: var(--text); stroke-width: .055; stroke-linecap: round; }
+.sub-sym { font: 700 .42px var(--font); fill: var(--text); }
+.sub-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sub-item { display: grid; gap: 2px; justify-items: start; text-align: left; min-height: 56px; padding: 8px 12px; border: 1.5px solid var(--rule);
+  border-radius: var(--radius-sm); background: var(--surface); }
+.sub-item span { color: var(--muted); font-weight: 700; }
+.sub-item:hover { background: var(--surface-2); }
+.sub-body { display: grid; gap: 12px; align-content: start; min-height: 0; }
+/* 3D: Modell füllt den Platz des Blatts (Formel und Kennzeichen oben, Umschalter unten) */
+.sub-body.is-3d { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; }
+.sub-body.is-3d .m3d { height: 100%; }
+.sub-detail { display: grid; gap: 12px; min-height: 0; }
+.sub-detail:has(.is-3d) { height: 100%; grid-template-rows: auto minmax(0, 1fr); }
+.sub-detail-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sub-detail-head h3 { margin: 0; font-size: 1.15rem; }
+
+/* Knöpfe wie Tasten (Zahlenauswahl, Beispiele, Stoffnamen) */
+.eq-pick button, .rg-steps button, .sub-name, .sub-item { border-color: var(--rule); box-shadow: var(--key-edge); }
+.eq-pick button:active, .rg-steps button:active, .sub-name:active, .sub-item:active { box-shadow: var(--key-edge-pressed); }

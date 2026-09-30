@@ -76,3 +76,7 @@
 @media (max-height: 720px) {
   .task-card.kind-numbers .num-field > span { font-size: .8rem; }
 }
+
+/* Teilchen-Vorrat: Knöpfe wie Tasten */
+.pool.pool-proton, .pool.pool-neutron, .pool.pool-electron { border-color: var(--rule); box-shadow: var(--key-edge); }
+.pool:active { box-shadow: var(--key-edge-pressed); }

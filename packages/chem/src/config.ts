@@ -16,31 +16,12 @@ export interface Subshell {
 export interface Occupied extends Subshell {
   count: number;
 }
-export interface ConfigOptions {
-  /** Ausnahmen vom Aufbauprinzip (Cr, Cu, …) berücksichtigen – Standard: true */
-  exceptions?: boolean;
-}
-
 /** Unterschalen in Reihenfolge steigender Energie (Madelung-Regel) bis 6p */
 export const MADELUNG: Subshell[] = [
   [1, 0], [2, 0], [2, 1], [3, 0], [3, 1], [4, 0], [3, 2], [4, 1], [5, 0], [4, 2], [5, 1], [6, 0], [4, 3], [5, 2], [6, 1],
 ].map(([n, l]) => ({ n, l, max: 2 * (2 * l + 1), key: `${n}${L_NAMES[l]}` }));
 
-/** Abweichende Besetzungen neutraler Atome im Grundzustand */
-export const EXCEPTIONS: Record<number, Record<string, number>> = {
-  24: { "3d": 5, "4s": 1 }, 29: { "3d": 10, "4s": 1 },
-  41: { "4d": 4, "5s": 1 }, 42: { "4d": 5, "5s": 1 },
-  44: { "4d": 7, "5s": 1 }, 45: { "4d": 8, "5s": 1 },
-  46: { "4d": 10, "5s": 0 }, 47: { "4d": 10, "5s": 1 },
-  57: { "4f": 0, "5d": 1 }, 58: { "4f": 1, "5d": 1 },
-  64: { "4f": 7, "5d": 1 }, 78: { "5d": 9, "6s": 1 },
-  79: { "5d": 10, "6s": 1 },
-};
-
-const ORDER_IDX: Record<string, number> = Object.fromEntries(MADELUNG.map((o, i) => [o.key, i]));
-const sub = (key: string) => MADELUNG[ORDER_IDX[key]];
-
-/** Aufbauprinzip ohne Ausnahmen */
+/** Aufbauprinzip (Madelung-Regel), bewusst ohne Sonderfälle – eine Regel für alle Elemente */
 export function aufbau(electrons: number): Occupied[] {
   const out: Occupied[] = [];
   let left = electrons;
@@ -53,31 +34,16 @@ export function aufbau(electrons: number): Occupied[] {
   return out;
 }
 
-function withExceptions(Z: number): Occupied[] {
-  const ex = EXCEPTIONS[Z];
-  const cfg = aufbau(Z);
-  if (!ex) return cfg;
-  const map = new Map(cfg.map(o => [o.key, o.count]));
-  for (const [k, v] of Object.entries(ex)) map.set(k, v);
-  return [...map.entries()]
-    .map(([key, count]) => ({ ...sub(key), count }))
-    .filter(o => o.count > 0)
-    .sort((a, b) => ORDER_IDX[a.key] - ORDER_IDX[b.key]);
-}
-
 /**
  * Elektronenkonfiguration für Z Protonen und `electrons` Elektronen.
  * Kationen: Elektronen werden von außen nach innen entfernt – zuerst aus der äußersten Schale (höchstes n: p vor s),
  * dann (n−1)d, dann (n−2)f → Fe²⁺ = [Ar] 3d⁶, Eu³⁺ = [Xe] 4f⁶, Pb²⁺ = [Xe] 4f¹⁴ 5d¹⁰ 6s².
  * Anionen: weitere Elektronen nach Aufbauprinzip.
  */
-export function configuration(Z: number, electrons = Z, { exceptions = true }: ConfigOptions = {}): Occupied[] {
+export function configuration(Z: number, electrons = Z): Occupied[] {
   if (electrons <= 0) return [];
-  if (Z <= 0 || electrons >= Z) {
-    if (electrons === Z && exceptions && EXCEPTIONS[Z]) return withExceptions(Z);
-    return aufbau(electrons);
-  }
-  const cfg = (exceptions ? withExceptions(Z) : aufbau(Z)).map(o => ({ ...o }));
+  if (Z <= 0 || electrons >= Z) return aufbau(electrons);
+  const cfg = aufbau(Z);
   // „Äußere“ Rangfolge: n + (d: 1 Schale tiefer, f: 2 Schalen tiefer gilt als weiter innen) – ns/np vor (n−1)d vor (n−2)f
   const outer = (o: Occupied) => (o.l === 3 ? o.n + 2 : o.l === 2 ? o.n + 1 : o.n) * 10 + (o.l <= 1 ? o.l + 5 : 0);
   for (let remove = Z - electrons; remove > 0; remove--) {
@@ -92,9 +58,9 @@ export function configuration(Z: number, electrons = Z, { exceptions = true }: C
 }
 
 /** Elektronen je Hauptschale (K, L, M, …) */
-export function shells(Z: number, electrons = Z, opts?: ConfigOptions): number[] {
+export function shells(Z: number, electrons = Z): number[] {
   const out: number[] = [];
-  for (const o of configuration(Z, electrons, opts)) {
+  for (const o of configuration(Z, electrons)) {
     while (out.length < o.n) out.push(0);
     out[o.n - 1] += o.count;
   }
@@ -126,8 +92,8 @@ export const configString = (cfg: Occupied[]) => cfg.map(o => `${o.key}${sup(o.c
 const NOBLE = [2, 10, 18, 36, 54, 86];
 
 /** Edelgas-Kurzschreibweise, z. B. [Ar] 4s² 3d⁶ */
-export function shortConfigString(Z: number, electrons = Z, opts?: ConfigOptions): string {
-  const cfg = configuration(Z, electrons, opts);
+export function shortConfigString(Z: number, electrons = Z): string {
+  const cfg = configuration(Z, electrons);
   let core = 0;
   for (const g of NOBLE) {
     if (g >= electrons) break;

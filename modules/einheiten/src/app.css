@@ -28,11 +28,11 @@
 }
 .qty-chip.comp { border-style: dashed; }
 .qty-chip.on, .unit-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); border-style: solid; }
-.cv-num, .answer-input input, .pr-eq input {
+.cv-num, .answer-input input {
   width: 100%; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--border); border-radius: var(--radius-md); background: var(--surface);
   color: var(--text); font: inherit; font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums;
 }
-.cv-num:focus-visible, .answer-input input:focus-visible, .pr-eq input:focus-visible { outline: 3px solid var(--accent-soft); border-color: var(--accent); }
+.cv-num:focus-visible, .answer-input input:focus-visible { outline: 3px solid var(--accent-soft); border-color: var(--accent); }
 .cv-num[aria-invalid="true"] { border-color: var(--bad); }
 
 /* Auswahllisten (nativ, am Handy Systemauswahl) */
@@ -172,14 +172,6 @@
 .pv .pv-h.to { box-shadow: inset 0 -4px 0 var(--pv-to); }
 .pv .pv-h.from.to { box-shadow: inset 0 -4px 0 var(--pv-from), inset 0 -8px 0 var(--pv-to); }
 .pv .pv-sub { color: var(--muted); font-weight: 700; font-size: .78rem; }
-.pv .pv-corner, .pv .pv-rowh { background: var(--surface); border: none; }
-.pv .pv-rowh { font-size: .9rem; font-weight: 700; text-align: right; padding: 0 8px 0 0; white-space: nowrap; color: var(--muted); }
-.pv-mine .pv-rowh { color: var(--pv-to); }
-.pv td.given { color: var(--text); }
-.pv-mine td { background-image: linear-gradient(var(--ps-to), var(--ps-to)); }
-.pv td.clash { outline: 2.5px dashed var(--bad); outline-offset: -4px; color: var(--bad); }
-.pv-sol td { color: var(--muted); }
-.pv-sol td.added { color: var(--pv-to); }
 .pv td { position: relative; min-width: 34px; height: 46px; font-size: 1.35rem; font-weight: 800; }
 /* viele Spalten am Handy (z. B. l → mm³: 9 Spalten): enger, damit keine Stelle hinter dem Rand verschwindet */
 @media (max-width: 599px) {
@@ -277,44 +269,12 @@
 .ps-res { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .ac-arrow.on path, .ps-path { animation: none; } }
 
-/* ── Üben ──────────────────────────────────────────────────────────────── */
-/* Üben: eine Aufgabe = ein Bildschirm (nie scrollen) */
-.pr-layout { display: flex; flex-direction: column; gap: 12px; max-width: 980px; margin: 0 auto; }
-.pr-settings { display: flex; gap: 8px; align-items: center; flex: none; min-width: 0; }
-.pr-settings .ui-seg { flex: 1; min-width: 0; }
-.pr-card, .pr-done { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
-.pr-card > * { flex: none; }
-.pr-card > .pr-help { flex: 1 1 0; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
-.pr-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.pr-count { font-weight: 800; color: var(--muted); }
-.pr-marks { list-style: none; display: flex; gap: 5px; margin: 0; padding: 0; }
-.pr-marks li { display: grid; place-items: center; width: 26px; height: 26px; border-radius: var(--radius-sm); font-weight: 800; font-size: .95rem; border: 1.5px solid var(--border); }
-.pr-marks li.todo { border-style: dashed; }
-.pr-marks li.ok { background: var(--ok); border-color: var(--ok); color: #fff; }
-.pr-marks li.retry { border-color: var(--ok); color: var(--ok); }
-.pr-marks li.fail { border-color: var(--bad); border-style: dashed; color: var(--bad); }
-.pr-task-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; }
-.pr-eq { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; font-size: 1.35rem; font-weight: 800; }
-.pr-lhs { white-space: nowrap; }
-.pr-mark { font-size: 1.5rem; }
-.pr-task-form.ok input { border-color: var(--ok); }
-.pr-task-form.ok .pr-mark { color: var(--ok); }
-.pr-task-form.bad input, .pr-task-form.retry input { border-color: var(--bad); border-style: dashed; }
-.pr-task-form.bad .pr-mark { color: var(--bad); }
-.pr-check { min-height: 48px; }
-.pr-help { padding-top: 4px; border-top: 1px solid var(--border); }
-.pr-help .ui-fit-inner { display: grid; gap: 8px; }
-.pr-show-help { justify-self: start; }
-.pr-score { font-size: 1.2rem; margin: 0 0 10px; }
-.pr-done .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-@media (max-width: 520px) {
-  .pr-task-form { grid-template-columns: 1fr; }
-  .pr-eq { font-size: 1.2rem; gap: 6px; }
-  .pr-check { width: 100%; justify-content: center; }
-}
-.fb-live { margin-top: 8px; }
 .qty-more { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .qty-more-item { display: grid; gap: 2px; text-align: left; min-height: 56px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
 .qty-more-item span { color: var(--muted); font-size: .85rem; }
 .qty-more-item.on { border-color: var(--rule); background: var(--accent); color: var(--on-accent); }
 .qty-more-item.on span { color: inherit; opacity: .8; }
+
+/* Knöpfe und Auswahllisten wie Tasten */
+.qty-chip, .unit-chip, .sel select, .qty-more-item { border-color: var(--rule); box-shadow: var(--key-edge); }
+.qty-chip:active, .unit-chip:active, .qty-more-item:active { box-shadow: var(--key-edge-pressed); }

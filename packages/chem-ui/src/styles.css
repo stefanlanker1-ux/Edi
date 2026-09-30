@@ -147,3 +147,7 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
 .ph-box.us { height: min(40vh, 330px); }
 .ph-facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 10px 12px; border-left: 3px solid var(--signal); background: var(--surface-2); font-variant-numeric: tabular-nums; }
 .ph-name { font-size: 1.1rem; }
+
+/* Legende des PSE: Knöpfe (Gruppe markieren) – wie Tasten */
+.lg-item { border-color: var(--rule); box-shadow: var(--key-edge); }
+.lg-item:active { box-shadow: var(--key-edge-pressed); }

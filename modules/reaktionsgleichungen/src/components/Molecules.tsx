@@ -4,7 +4,7 @@
 // (geometry.ts): Kugeln nach Tiefe sortiert und dezent schattiert, Farben aus der gemeinsamen Palette.
 
 import { useId, useLayoutEffect, useRef, useState } from "react";
-import { BY_SYMBOL, CATEGORIES, parseFormula, speciesName, type Equation } from "@lern/chem";
+import { BY_SYMBOL, CATEGORIES, parseFormula, type Equation } from "@lern/chem";
 import { atoms3D, radius } from "./geometry.ts";
 
 type Atom = [el: string, x: number, y: number, z: number];
@@ -15,15 +15,6 @@ export const isMolecular = (f: string) =>
   !/NH4/.test(f) && Object.keys(parseFormula(f)).every(el => CATEGORIES[BY_SYMBOL[el].category].kind !== "Metall");
 /** Teilchenbild nur, wenn alle Stoffe der Gleichung Moleküle sind */
 export const hasModel = (eq: Equation) => [...eq.left, ...eq.right].every(isMolecular);
-
-/** Ohne Teilchenbild: die Wortgleichung (Zink + Salzsäure → Zinkchlorid + Wasserstoff) */
-export function WordLine({ eq }: { eq: Equation }) {
-  return (
-    <p className="rg-words">
-      {eq.left.map(speciesName).join(" + ")} <span aria-hidden="true">→</span> {eq.right.map(speciesName).join(" + ")}
-    </p>
-  );
-}
 
 /** Anordnung eines Stoffs von vorn gesehen (x, y) mit Tiefe z, von hinten nach vorn sortiert */
 export function shapeOf(f: string): Atom[] {

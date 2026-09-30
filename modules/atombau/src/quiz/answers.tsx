@@ -105,7 +105,8 @@ function BuildAnswer({ task, answered, submit }: P<"build">) {
     <div className="answer-build">
       <div className="ab-atom-box"><div className="ab-atom">
         <Bohr Z={shown.Z} N={shown.N} E={shown.E} labels={false} />
-        {BY_Z[shown.Z] && <div className="ab-nuc"><Nuclide Z={shown.Z} N={shown.N} E={shown.E} size="sm" /></div>}
+        {/* erst nach dem Prüfen zeigen, was gebaut wurde – vorher verriete die Anzeige die Lösung */}
+        {answered && BY_Z[shown.Z] && <div className="ab-nuc"><Nuclide Z={shown.Z} N={shown.N} E={shown.E} size="sm" /></div>}
       </div></div>
       <div className="ab-controls">
         <Stepper stack tone="proton" label="Protonen" value={shown.Z} max={30} onChange={v => set("Z", v)} />

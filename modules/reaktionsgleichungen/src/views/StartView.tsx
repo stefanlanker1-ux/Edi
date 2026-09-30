@@ -3,6 +3,7 @@
 import { REACTION_BY_ID } from "@lern/chem";
 import { useApp, START } from "../store.ts";
 import { BalanceCard } from "../components/BalanceCard.tsx";
+import { NameLine } from "../components/Substance.tsx";
 
 export function StartView() {
   const { si, sCoeffs, sDone, pickStart, setStart, solvedStart, setTab } = useApp();
@@ -10,10 +11,11 @@ export function StartView() {
   const last = si === START.length - 1;
   return (
     <BalanceCard key={r.id} r={r} coeffs={sCoeffs[si]} onChange={setStart} onSolved={solvedStart}
-      onNext={() => (last ? setTab("ueben") : pickStart(si + 1))} nextLabel={last ? "Zum Üben" : "Nächstes Beispiel"}
+      onNext={() => (last ? setTab("quiz") : pickStart(si + 1))} nextLabel={last ? "Zum Quiz" : "Nächstes Beispiel"}
       head={
         <div className="rg-head">
           <h2 className="rg-title">{r.title}</h2>
+          <NameLine eq={r} />
           <div className="rg-steps" role="group" aria-label="Beispiel">
             {START.map((id, i) => (
               <button key={id} type="button" aria-pressed={i === si} aria-label={`Beispiel ${i + 1}: ${REACTION_BY_ID[id].title}${sDone[i] ? ", gelöst" : ""}`}

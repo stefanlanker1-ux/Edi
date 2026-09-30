@@ -1,10 +1,9 @@
 // Stellenwerttafel wie im Heft: je Spalte eine Stelle („100 m | 10 m | m | dm | cm | mm“), eine Ziffer pro Kästchen.
 // Orange = Komma der Ausgangseinheit, Blaugrün = Komma der Zieleinheit, blaugrüne Ziffern = ergänzte Nullen.
-// PracticeTable: zweite Zeile zeigt live die eingetippte Antwort – passen die Ziffern untereinander?
 
 import { useLayoutEffect, useRef } from "react";
 import { useNarrow } from "@lern/ui";
-import { placeValue, pvColumns, pvPlace, parseQ, fmt, type PvColumn, type Q } from "@lern/units";
+import { placeValue, fmt, type PvColumn, type Q } from "@lern/units";
 
 /** Passt die Tafel trotz enger Spalten nicht (km² → mm²: 14 Spalten), wird sie als Ganzes verkleinert – nie quer scrollen, keine Stelle verstecken */
 function useFitWidth() {
@@ -48,13 +47,13 @@ function range(cols: PvColumn[], used: number[], narrow: boolean): [number, numb
   return [lo, hi];
 }
 
-function Head({ cols, from, to, corner }: { cols: PvColumn[]; from: string; to: string; corner?: boolean }) {
+function Head({ cols, from, to }: { cols: PvColumn[]; from: string; to: string }) {
   const groups = [...new Set(cols.map(c => c.unit))];
   const hasSub = cols.some(c => c.sub);
   const isUnit = (c: PvColumn, u: string) => c.unit === u || c.sub === u;
   return (
     <thead>
-      <tr>{corner && <td className="pv-corner" rowSpan={hasSub ? 2 : 1} />}{cols.map((c, i) => <ColHead key={i} c={c} first={i === 0 || cols[i - 1].unit !== c.unit} alt={groups.indexOf(c.unit) % 2 === 1}
+      <tr>{cols.map((c, i) => <ColHead key={i} c={c} first={i === 0 || cols[i - 1].unit !== c.unit} alt={groups.indexOf(c.unit) % 2 === 1}
         from={isUnit(c, from) && (c.place === "E" || c.sub === from)} to={isUnit(c, to) && (c.place === "E" || c.sub === to)} />)}</tr>
       {hasSub && <tr className="pv-subrow">{cols.map((c, i) => <th key={i} className={`pv-sub${groups.indexOf(c.unit) % 2 ? " alt" : ""}${i === 0 || cols[i - 1].unit !== c.unit ? " g0" : ""}`}>{c.sub ?? ""}</th>)}</tr>}
     </thead>
@@ -97,64 +96,6 @@ export function PlaceValueTable({ value, from, to, units, showResult = true, lab
       </table>
       {showResult && full.fits && <p className="pv-res-line">{fmt(value).text} {from} = <b>{fmt(full.result).text} {to}</b></p>}
       {!full.fits && <p className="muted small">Passt nicht in die Tafel.</p>}
-    </div>
-  );
-}
-
-/**
- * Übungstafel: oben die Aufgabe (Komma orange), darunter live die eingetippte Antwort (Komma blaugrün).
- * Stimmt die Antwort, stehen alle Ziffern genau unter den Ziffern der Aufgabe.
- */
-export function PracticeTable({ value, from, to, units, answer, reveal }: {
-  value: Q; from: string; to: string; units: string[]; answer: string; reveal?: boolean;
-}) {
-  const cols = pvColumns(units);
-  const narrow = useNarrow();
-  const fitRef = useFitWidth();
-  const given = pvPlace(value, from, units);
-  const sol = placeValue(value, from, to, units);
-  const a = parseQ(answer);
-  const mine = a ? pvPlace(a, to, units) : null;
-  const used = [
-    ...given.digits.map((d, i) => (d !== null ? i : -1)), ...sol.cells.map((c, i) => (c.kind !== "empty" ? i : -1)),
-    ...(mine?.fits ? mine.digits.map((d, i) => (d !== null ? i : -1)) : []), given.comma, sol.toE,
-  ].filter(i => i >= 0);
-  const [lo, hi] = range(cols, used, narrow);
-  const cs = cols.slice(lo, hi + 1);
-  const row = (digits: (string | null)[], comma: number, kind: "from" | "to", cls: (i: number) => string = () => "") => (
-    <>
-      {digits.slice(lo, hi + 1).map((d, k) => {
-        const i = k + lo;
-        return (
-          <td key={i} className={`pv-c${cellClass(cs, k)}${cls(i)}`}>
-            {d ?? ""}
-            {i === comma && <span className={`pv-dot ${kind}`} role="img" aria-label={kind === "from" ? "Komma Aufgabe" : "Komma Antwort"} />}
-          </td>
-        );
-      })}
-    </>
-  );
-  const mineRow = mine?.fits ? mine.digits : cols.map(() => null);
-  const solRow = sol.cells.map(c => c.digit);
-  return (
-    <div className="pv-wrap scroll-x" ref={fitRef}>
-      <table className="pv pv-practice" aria-label="Stellenwerttafel zum Üben">
-        <Head cols={cs} from={from} to={to} corner />
-        <tbody>
-          <tr><th scope="row" className="pv-rowh">{fmt(value).text} {from}</th>{row(given.digits, given.comma, "from", i => (given.digits[i] !== null ? " given" : ""))}</tr>
-          <tr className="pv-mine">
-            <th scope="row" className="pv-rowh">{a ? `${fmt(a).text} ${to}` : `? ${to}`}</th>
-            {row(mineRow, sol.toE, "to", i => (mineRow[i] !== null && given.digits[i] !== null && mineRow[i] !== given.digits[i] ? " clash" : ""))}
-          </tr>
-          {reveal && sol.fits && (
-            <tr className="pv-sol">
-              <th scope="row" className="pv-rowh">Lösung</th>
-              {row(solRow, sol.toE, "to", i => (sol.cells[i].kind === "added" ? " added" : ""))}
-            </tr>
-          )}
-        </tbody>
-      </table>
-      {a && mine && !mine.fits && <p className="muted small">Passt nicht in die Tafel.</p>}
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, useReducedMotion } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, GROUP_NAMES, searchElements, standardNeutrons, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons, EXCEPTIONS,
+  shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons,
   ELEMENTS, TRENDS, trendScale, type Category, type TrendKey,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
@@ -113,7 +113,6 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
         <>
           <p className="cfg-line"><span className="cfg-k">Ausführlich</span><code>{configString(cfg)}</code></p>
           <p className="cfg-line"><span className="cfg-k">Kurz</span><code>{shortConfigString(Z)}</code></p>
-          {EXCEPTIONS[Z] && <div className="ui-tags"><Tag tone="signal">Ausnahme – nach Regel <code>{shortConfigString(Z, Z, { exceptions: false })}</code></Tag></div>}
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={cfg} /></FitDown>
         </>
       ),

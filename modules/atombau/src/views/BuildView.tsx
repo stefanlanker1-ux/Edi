@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { Button, FitDown, IconButton, Stepper, Switch, Tag, Workbench, buzz, useReducedMotion, type WorkbenchTool } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, STABLE_N, standardNeutrons, ionName, isStable, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, chargeSup, signed, EXCEPTIONS,
+  shells, SHELL_NAMES, chargeSup, signed,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { ElementPicker } from "../components/ElementPicker.tsx";
@@ -76,12 +76,7 @@ export function BuildView() {
         <>
           <p className="cfg-line"><span className="cfg-k">Ausführlich</span><code>{configString(configuration(Z, E))}</code></p>
           <p className="cfg-line"><span className="cfg-k">Kurz</span><code>{shortConfigString(Z, E)}</code></p>
-          {((E === Z && EXCEPTIONS[Z]) || (q > 0 && Z > 20)) && (
-            <div className="ui-tags">
-              {E === Z && EXCEPTIONS[Z] && <Tag tone="signal">Ausnahme: halb-/vollbesetzte Unterschale</Tag>}
-              {q > 0 && Z > 20 && <Tag>Kation: zuerst höchstes n abgeben</Tag>}
-            </div>
-          )}
+          {q > 0 && Z > 20 && <div className="ui-tags"><Tag>Kation: zuerst höchstes n abgeben</Tag></div>}
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={configuration(Z, E)} color={orbitalColors} /></FitDown>
           <Switch checked={orbitalColors} onChange={v => setOpt({ orbitalColors: v })}>
             Nach Orbital färben (<b className="t-s">s</b> <b className="t-p">p</b> <b className="t-d">d</b> <b className="t-f">f</b>)

@@ -9,7 +9,8 @@ import { pseTool } from "@lern/chem-ui";
 import { EquationRow, FitLine, maxCoef } from "../components/Equation.tsx";
 import { useApp } from "../store.ts";
 import { MoleculeScene, hasModel } from "../components/Molecules.tsx";
-import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, reactionOf, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, reactionOf, speciesOf, type Task } from "./tasks.ts";
+import { SubstanceList } from "../components/Substance.tsx";
 import { explainFor } from "./explain.tsx";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "reaktionsgleichungen-quiz", levelId, makeRound });
@@ -68,9 +69,13 @@ export function QuizView() {
             : null}
       solution={t => (t.kind === "num" ? String(t.answer) : t.kind === "balance" ? equationText(reactionOf(t), reactionOf(t).coeffs) : null)}
       explain={(level, task) => explainFor(stufe, level, task)}
-      tools={t => [
-        pseTool({ stufe, mark: elementsIn(t.kind === "balance" ? equationText(reactionOf(t)) : (("eq" in t && t.eq) || "") + " " + t.prompt) }),
-      ]}
+      tools={t => {
+        const fs = speciesOf(t);
+        return [
+          ...(fs.length ? [{ id: "stoffe", label: "Stoffe", icon: "molecule" as const, content: <SubstanceList key={fs.join()} fs={fs} /> }] : []),
+          pseTool({ stufe, mark: elementsIn(t.kind === "balance" ? equationText(reactionOf(t)) : (("eq" in t && t.eq) || "") + " " + t.prompt) }),
+        ];
+      }}
     />
   );
 }
