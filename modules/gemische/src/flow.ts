@@ -451,7 +451,7 @@ export function stepFlow(w: World) {
     // Öl: Ölmoleküle ziehen sich schwach an, Wasser und Öl stoßen sich etwas stärker ab (wasserabweisend) –
     // so bilden sich beim Schütteln Tröpfchen (Emulsion), die sich danach zusammenschließen und aufsteigen
     const oily = w.floats.length > 0, isOil = (p: FP) => w.floats.includes(p.f);
-    const pull = .09 * (1 - .6 * w.agit);
+    const pull = .12 * (1 - .6 * w.agit);
     const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI) * (oily ? 1.5 : 1));
     for (const p of liquid) near(p, q => {
       if (q.id < p.id) return;
@@ -461,10 +461,20 @@ export function stepFlow(w: World) {
       if (oily) {
         const po = isOil(p), qo = isOil(q);
         if (po !== qo) Rm *= 1.15;
-        else if (po && d > Rm && d < 1.5 * Rm) {
-          const f = pull * (1 - Math.abs(d - 1.25 * Rm) / (.25 * Rm)), nx = dx / d * f, ny = dy / d * f;
-          p.vx += nx; p.vy += ny; q.vx -= nx; q.vy -= ny;
-          return;
+        else if (po) {
+          // Anziehung zwischen den Oberflächen der Stäbe (nicht der Mittelpunkte) – so ziehen sie sich nicht ineinander
+          const sp = shape(w, p), sq = shape(w, q), [ax, ay, bx, by] = closest(sp, sq);
+          const gx = bx - ax, gy = by - ay, g = Math.hypot(gx, gy), gap = g - sp[4] - sq[4], span = sp[4] + sq[4];
+          if (g < 1e-6) return;
+          // zu nah: sanft abstoßen (Druck), etwas weiter weg: anziehen
+          const f = gap < .25 * span ? -.4 * (.25 * span - gap) / span
+            : gap < span ? pull * (1 - Math.abs(gap - .6 * span) / (.4 * span)) : 0;
+          if (f) { const nx = gx / g * f, ny = gy / g * f; p.vx += nx; p.vy += ny; q.vx -= nx; q.vy -= ny; }
+          // berühren sich: aufeinander zu gerichtete Geschwindigkeit fällt weg (kein Hineinschieben im nächsten Schritt)
+          if (gap < 0) {
+            const ux = gx / g, uy = gy / g, vn = (q.vx - p.vx) * ux + (q.vy - p.vy) * uy;
+            if (vn < 0) { p.vx += ux * vn / 2; p.vy += uy * vn / 2; q.vx -= ux * vn / 2; q.vy -= uy * vn / 2; }
+          }
         }
       }
       if (d >= Rm) return;
@@ -494,7 +504,7 @@ export function stepFlow(w: World) {
   // Gas über der Flüssigkeit: Teilchen prallen aneinander ab (wie im Gasbehälter)
   const gas = w.ps.filter(p => p.gas);
   if (gas.length > 1) collide(w, gas);
-  separate(w, liquid, 3);
+  separate(w, liquid, w.floats.length ? 6 : 3);
   clamp(w, liquid, rc, W - rc, w.top + rc, H - rc);
   if (w.stir > 0) w.stir--;
   if (w.shake > 0) w.shake--;

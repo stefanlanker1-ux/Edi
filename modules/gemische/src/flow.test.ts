@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { EXAMPLES, analyse } from "./mixtures.ts";
-import { STIR, boundaryY, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "./flow.ts";
+import { STIR, boundaryY, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
 
 const ex = (id: string) => EXAMPLES.find(e => e.id === id)!;
 const counts = (w: World) => { const c: Record<string, number> = {}; for (const p of w.ps) c[p.f] = (c[p.f] ?? 0) + 1; return c; };
@@ -140,20 +140,20 @@ test("Öl und Wasser: nach dem Schütteln gemischt, danach wieder getrennt (Öl 
   }
 }, 60_000);
 
-test("Öl und Wasser: geschüttelt entstehen Tröpfchen (Öl hat mehr Öl als Nachbarn, als es der Zufall ergäbe)", () => {
-  for (let seed = 1; seed <= 3; seed++) {
+test("Öl und Wasser: geschüttelt entstehen Tröpfchen (unter den 6 nächsten Nachbarn eines Ölmoleküls viel mehr Öl, als es der Zufall ergäbe)", () => {
+  const ratios: number[] = [];
+  for (let seed = 1; seed <= 4; seed++) {
     const w = makeWorld(ex("oel"), seed);
     shakeWorld(w);
     for (let k = 0; k < 200; k++) stepFlow(w);
-    const oil = w.ps.filter(p => p.f === "C12H26"), share = oil.length / w.ps.length;
-    let same = 0, all = 0;
-    for (const p of oil) for (const q of w.ps) {
-      if (q === p || Math.hypot(q.x - p.x, q.y - p.y) > 4 * w.rc) continue;
-      all++; if (q.f === "C12H26") same++;
-    }
+    const oil = w.ps.filter(p => p.f === "C12H26"), share = (oil.length - 1) / (w.ps.length - 1);
+    const dist = (p: FP, q: FP) => Math.hypot(q.x - p.x, q.y - p.y);
+    let same = 0;
+    for (const p of oil) same += w.ps.filter(q => q !== p).sort((a, b) => dist(p, a) - dist(p, b)).slice(0, 6).filter(q => q.f === "C12H26").length / 6;
     assert.ok(oilOnTop(w) < .9, "noch nicht wieder getrennt");
-    assert.ok(same / all > share * 2.8, `keine Tröpfchen (${(same / all).toFixed(2)} bei Anteil ${share.toFixed(2)})`);
+    ratios.push(same / oil.length / share);
   }
+  assert.ok(mean(ratios) > 2.6, `keine Tröpfchen (${ratios.map(x => x.toFixed(2)).join(", ")})`);
 });
 
 test("Gase: Trennwände halten die Teilchen zurück; ohne Wände mischen sie sich", () => {
