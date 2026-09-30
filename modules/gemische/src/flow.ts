@@ -448,12 +448,26 @@ export function stepFlow(w: World) {
     // mittlerer Abstand zweier Nachbarn: aus der Fläche, die jedes Teilchen in der Flüssigkeit braucht
     const reach = (p: FP) => rad(p) * Math.sqrt(Math.PI / LIQ_PHI);
     const maxRad = Math.max(...liquid.map(rad));
-    const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI));
+    // Öl: Ölmoleküle ziehen sich schwach an, Wasser und Öl stoßen sich etwas stärker ab (wasserabweisend) –
+    // so bilden sich beim Schütteln Tröpfchen (Emulsion), die sich danach zusammenschließen und aufsteigen
+    const oily = w.floats.length > 0, isOil = (p: FP) => w.floats.includes(p.f);
+    const pull = .05 * (1 - .7 * w.agit);
+    const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI) * (oily ? 1.5 : 1));
     for (const p of liquid) near(p, q => {
       if (q.id < p.id) return;
-      const Rm = (reach(p) + reach(q)) / 2;
+      let Rm = (reach(p) + reach(q)) / 2;
       const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
-      if (d >= Rm || d === 0) return;
+      if (d === 0) return;
+      if (oily) {
+        const po = isOil(p), qo = isOil(q);
+        if (po !== qo) Rm *= 1.15;
+        else if (po && d > Rm && d < 1.5 * Rm) {
+          const f = pull * (1 - Math.abs(d - 1.25 * Rm) / (.25 * Rm)), nx = dx / d * f, ny = dy / d * f;
+          p.vx += nx; p.vy += ny; q.vx -= nx; q.vy -= ny;
+          return;
+        }
+      }
+      if (d >= Rm) return;
       const f = .4 * (Rm - d) / Rm, nx = dx / d * f, ny = dy / d * f;
       if (!p.bound) { p.vx -= nx; p.vy -= ny; }
       if (!q.bound) { q.vx += nx; q.vy += ny; }
