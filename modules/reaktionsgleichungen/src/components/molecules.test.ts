@@ -1,9 +1,8 @@
-import { readFileSync } from "node:fs";
 import { test, assert } from "vitest";
-import { MOL3D, REACTIONS, REACTION_BY_ID, parseFormula } from "@lern/chem";
-import { hasModel, isMolecular, shapeOf } from "./Molecules.tsx";
+import { MOL3D, REACTIONS, REACTION_BY_ID, atoms3D, atomRadius as radius, hasShape, isMolecular, parseFormula, visibleShare } from "@lern/chem";
+import { shapeOf } from "@lern/chem-ui";
+import { hasModel } from "./Molecules.tsx";
 import { START } from "../store.ts";
-import { atoms3D, hasShape, radius, visibleShare } from "./geometry.ts";
 
 const species = new Set(REACTIONS.flatMap(r => [...r.left, ...r.right]));
 
@@ -20,11 +19,6 @@ test("jeder Stoff der Reaktionen hat ein Teilchenbild mit den richtigen Atomen",
       assert.ok(d > .45 * Math.max(radius(s[i][0]), radius(s[j][0])), `${f}: ${s[i][0]}–${s[j][0]} zu nah (${d.toFixed(2)})`);
     }
   }
-});
-
-test("jedes Element hat eine Atomfarbe (CPK/Jmol) als Token", () => {
-  const css = readFileSync(new URL("../app.css", import.meta.url), "utf8");
-  for (const f of species) for (const el of Object.keys(parseFormula(f))) assert.match(css, new RegExp(`--atom-${el}:`), el);
 });
 
 test("Teilchenbild nur für Moleküle – Salze und Metalle ohne Kalottenmodell", () => {

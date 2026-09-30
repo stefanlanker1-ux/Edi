@@ -151,3 +151,35 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
 /* Legende des PSE: Knöpfe (Gruppe markieren) – wie Tasten */
 .lg-item { border-color: var(--rule); box-shadow: var(--key-edge); }
 .lg-item:active { box-shadow: var(--key-edge-pressed); }
+
+/* ── Atomfarben für das Kalottenmodell (Kalotte.tsx) ─────────────────────────────────────
+   Farbfamilien nach der CPK-Konvention, aus der gemeinsamen Palette (tokens.css): H weiß, C schwarz, N blau, O rot, Cl grün,
+   S gelb, P orange, Alkalimetalle violett, Erdalkalimetalle grünblau; übrige Metalle in passenden Erdtönen.
+   Rand = Atomfarbe, etwas dunkler (dunkel: heller). */
+:root, :root[data-theme="light"] {
+  --atom-edge: #000000; --atom-H: #f5f4f0; --atom-C: #3a3a3a;
+}
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  --atom-N: var(--hue-blue); --atom-O: var(--hue-red); --atom-Cl: var(--hue-green); --atom-S: var(--hue-yellow); --atom-P: var(--hue-orange);
+  --atom-Li: var(--hue-violet); --atom-Na: var(--hue-violet); --atom-K: var(--hue-violet-deep); --atom-Ca: var(--hue-teal); --atom-Mg: #8fc9b9;
+  --atom-Ba: var(--hue-teal-deep); --atom-F: #b6bc4e; --atom-I: #83569e;
+  --atom-Al: #bcaca7; --atom-Fe: #c9683a; --atom-Cu: #c47f47; --atom-Zn: #8a95b5; --atom-Ag: #c9ccd2; --atom-Hg: #aab0c4;
+  --atom-Pb: #71747d; --atom-Mn: #b86b98; --atom-Cr: #8699c2;
+  /* Edelgase: helles Cyan (CPK) */
+  --atom-He: #bfe6ea; --atom-Ne: #a9dde6; --atom-Ar: #8ccbd8;
+}
+/* dunkel: heller Rand und etwas helleres C, damit alles auf dunklem Grund sichtbar bleibt */
+:root[data-theme="dark"] { --atom-edge: #ffffff; --atom-C: #4a4a4a; --atom-H: #ecebe6; --atom-K: #8f76c9; --atom-Ba: #4f998c; }
+.kal-atom { stroke-width: .04; }
+
+/* ── Stoff-Info (Substance.tsx) ─────────────────────────────────────────── */
+.sub-facts { display: grid; gap: 8px; justify-items: start; }
+.sub-formula { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -.01em; }
+.sub-struct-box { display: grid; place-items: center; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); min-height: 0; }
+.sub-struct { max-height: 44dvh; height: auto; overflow: visible; }
+.sub-bond { stroke: var(--text); stroke-width: .055; stroke-linecap: round; }
+.sub-sym { font: 700 .42px var(--font); fill: var(--text); }
+.sub-body { display: grid; gap: 12px; align-content: start; min-height: 0; }
+/* 3D: Modell füllt den Platz des Blatts (Formel und Kennzeichen oben, Umschalter unten) */
+.sub-body.is-3d { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; }
+.sub-body.is-3d .m3d { height: 100%; }

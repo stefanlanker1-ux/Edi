@@ -4,3 +4,5 @@ export * from "./EnergyDiagram.tsx";
 export * from "./Formula.tsx";
 export * from "./PeriodicTable.tsx";
 export * from "./PseHelp.tsx";
+export * from "./Kalotte.tsx";
+export * from "./Substance.tsx";

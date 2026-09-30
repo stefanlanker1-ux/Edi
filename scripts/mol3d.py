@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""3D-Koordinaten für alle Beispielmoleküle (Elektronenpaarbindung, Reaktionsgleichungen).
+"""3D-Koordinaten für alle Beispielmoleküle (Elektronenpaarbindung, Reaktionsgleichungen, Gemische).
 
 Verfahren: Konformere erzeugen (RDKit ETKDG), mit dem Kraftfeld MMFF94 optimieren,
 das energieärmste nehmen. Ergebnis: packages/chem/src/mol3d.ts (reine Daten, offline).
@@ -20,6 +20,9 @@ SMILES = {
     "SO2": "O=S=O", "SO3": "O=S(=O)=O", "H2SO4": "OS(=O)(=O)O", "H3PO4": "OP(=O)(O)O", "HNO3": "O[N+](=O)[O-]",
     "NO": "[N]=O", "NO2": "[O]N=O", "P4": "P12P3P1P23", "P4O10": "O=P12OP3(=O)OP(=O)(O1)OP(=O)(O2)O3",
     "P2O5": "O=P(=O)OP(=O)=O",
+    # Gemische: Ozon, Öl (vereinfacht als Dodecan), Haushaltszucker (Saccharose)
+    "O3": "[O-][O+]=O", "C12H26": "CCCCCCCCCCCC",
+    "C12H22O11": "OC[C@H]1O[C@@](CO)(O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@H]2O)[C@@H](O)[C@@H]1O",
 }
 
 # Gemessene Werte (wie REAL_ANGLES in molecules.ts): hier hält das Kraftfeld sie fest.
@@ -116,6 +119,8 @@ FIXED = {
              + [("H", 1.406 + 0.964 * math.cos(math.radians(180 - 102.2)), 0.964 * math.sin(math.radians(180 - 102.2)), 0.0)],
              [(0, 1, 1), (0, 2, 2), (0, 3, 1), (1, 4, 1)]),
     "P2O5": p2o5(),
+    # Ozon gewinkelt: O–O 1,278 Å, 116,8°
+    "O3": (planar("O", [("O", 1.278, 90 - 58.4), ("O", 1.278, 90 + 58.4)]), [(0, 1, 2), (0, 2, 1)]),
 }
 
 def cage_flat(m):

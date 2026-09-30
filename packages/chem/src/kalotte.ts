@@ -1,19 +1,23 @@
-// Räumliche Anordnung (3D, in Å) für jeden Stoff der Reaktionen – Grundlage für das Teilchenbild (Kalottenmodell).
+// Räumliche Anordnung (3D, in Å) für jeden Stoff – Grundlage für das Teilchenbild (Kalottenmodell) in Reaktionsgleichungen und Gemischen.
 // · Moleküle aus Nichtmetallen: berechnete Lage aus @lern/chem (MOL3D, Kraftfeld MMFF94)
 // · Salze, Metalloxide, Säuren mit Ionen: kleine Bausteine (Tetraeder SO₄, Dreieck NO₃ …, Kationen liegen an)
 // Danach wird jeder Stoff einheitlich ausgerichtet (längste Ausdehnung waagrecht, leicht gekippt, damit er räumlich wirkt).
 
-import { MOL3D, parseFormula, type Mol3D } from "@lern/chem";
+import { BY_SYMBOL, CATEGORIES } from "./elements.ts";
+import { MOL3D, type Mol3D } from "./mol3d.ts";
+import { parseFormula } from "./reactions.ts";
 
-export type Vec = [number, number, number];
+type Vec = [number, number, number];
 export type Atom3 = [el: string, x: number, y: number, z: number];
 
 /** Darstellungsradien (Å, ≈ 0,55 · Van-der-Waals bzw. Ionenradius) – H klein, Metalle groß */
 const RAD: Record<string, number> = {
   H: .6, C: .92, N: .86, O: .84, F: .8, Cl: 1, S: 1.02, P: 1.02, I: 1.12, Br: 1.06,
+  He: .7, Ne: .8, Ar: 1.0,
   Li: .95, Na: 1.12, K: 1.3, Mg: 1, Ca: 1.18, Ba: 1.36, Al: .96, Fe: .95, Cu: .92, Zn: .93, Ag: 1.04, Hg: 1.06, Pb: 1.14, Mn: .95, Cr: .93,
 };
-export const radius = (el: string) => RAD[el] ?? 1;
+export const atomRadius = (el: string) => RAD[el] ?? 1;
+const radius = atomRadius;
 
 // ── Vektoren ─────────────────────────────────────────────────────────────────
 const add = (a: Vec, b: Vec): Vec => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
@@ -327,3 +331,8 @@ export function atoms3D(f: string): Atom3[] {
 
 /** nur für Tests: gibt es eine eigene Anordnung? */
 export const hasShape = (f: string) => !!(MOL3D[f] || INORGANIC[f]) || Object.values(parseFormula(f)).reduce((a, b) => a + b, 0) === 1;
+
+/** Moleküle (aus Nichtmetallen, auch einzelne Atome wie C, He) werden als Kalottenmodell gezeichnet – Salze und Metalle nicht,
+ *  sonst sähe es aus, als gingen Metall und Nichtmetall eine Elektronenpaarbindung ein. */
+export const isMolecular = (f: string) =>
+  !/NH4/.test(f) && Object.keys(parseFormula(f)).every(el => CATEGORIES[BY_SYMBOL[el].category].kind !== "Metall");

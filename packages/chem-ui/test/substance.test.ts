@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { REACTIONS, MOL3D, ionText } from "@lern/chem";
-import { layout2D, substanceInfo } from "./Substance.tsx";
+import { layout2D, substanceInfo } from "../src/Substance.tsx";
 
 const ALL = [...new Set(REACTIONS.flatMap(r => [...r.left, ...r.right]))];
 
@@ -36,4 +36,16 @@ test("Einordnung: Moleküle, Metalle, Ionenverbindungen mit ihren Ionen", () => 
   assert.strictEqual(ions("CaCO3"), "Ca²⁺ CO₃²⁻");
   assert.strictEqual(ions("Al2(SO4)3"), "Al³⁺ SO₄²⁻");
   assert.strictEqual(substanceInfo("Fe2O3").kind, "ionen");
+});
+
+test("Element oder Verbindung, Teilchenart", () => {
+  const k = (f: string) => { const s = substanceInfo(f); return `${s.klass}/${s.kind}`; };
+  assert.strictEqual(k("O3"), "element/molekuel");
+  assert.strictEqual(k("O2"), "element/molekuel");
+  assert.strictEqual(k("He"), "element/atome");
+  assert.strictEqual(k("C"), "element/element");
+  assert.strictEqual(k("Fe"), "element/metall");
+  assert.strictEqual(k("H2O2"), "verbindung/molekuel");
+  assert.strictEqual(k("C12H26"), "verbindung/molekuel");
+  assert.strictEqual(k("NaCl"), "verbindung/ionen");
 });

@@ -7,6 +7,7 @@ Website: **https://stefanlanker1-ux.github.io/Edi/**
 
 | Modul | Inhalt |
 | --- | --- |
+| [Gemische](modules/gemische) | Reinstoffe und Gemische im Teilchenmodell: Teilchen, Elemente, Verbindungen; Öl und Wasser entmischen, Quiz |
 | [Atombau](modules/atombau) | Atome bauen, Periodensystem, Elektronenkonfiguration, Quiz |
 | [Ionenbindung](modules/ionenbindung) | Ionenformeln mit Bausteinen aufstellen, vom Atom zum Ion, Quiz |
 | [Elektronenpaarbindung](modules/elektronenpaarbindung) | Moleküle aus Lewis-Atomen bauen, Valenz- und Keilstrichformel, 3D-Modell, Quiz |
@@ -28,7 +29,7 @@ Eine App-Hülle lädt die Module bei Bedarf; Module hängen nur von den gemeinsa
 ```
 packages/
   chem/     @lern/chem    – Chemie-Daten und -Logik, ohne UI
-  chem-ui/  @lern/chem-ui – Chemie-Darstellungen (Bohrmodell, Atomsymbol, PSE, Formel, 3D)
+  chem-ui/  @lern/chem-ui – Chemie-Darstellungen (Bohrmodell, Atomsymbol, PSE, Formel, Kalottenmodell, Stoff-Info, 3D)
   ui/       @lern/ui      – Designsystem und Bausteine (LernApp, Workbench, Sheet, Fit …)
   quiz/     @lern/quiz    – Quiz-Grundgerüst (Fertigkeiten, Wiederholung, Erklärkarten, Auswertung)
   units/    @lern/units   – Einheiten: exakte Brüche, Katalog, Umrechnung mit Rechenweg

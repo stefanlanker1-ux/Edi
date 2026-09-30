@@ -20,6 +20,7 @@
     "@edi/atombau": "*",
     "@edi/einheiten": "*",
     "@edi/elektronenpaarbindung": "*",
+    "@edi/gemische": "*",
     "@edi/ionenbindung": "*",
     "@edi/neutralisation": "*",
     "@edi/reaktionsgleichungen": "*",

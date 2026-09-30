@@ -60,25 +60,8 @@ button.eq-term:active { transform: scale(.96); }
 .hero-scale { display: block; width: 100%; height: auto; overflow: visible; }
 .explain .ex-example { margin: 12px 0 0; display: grid; gap: 10px; }
 
-/* ── Teilchenbild: Atome flach (Kalottenmodell) ─────────────────────────────────────────
-   Farbfamilien nach der CPK-Konvention, aus der gemeinsamen Palette (tokens.css): H weiß, C schwarz, N blau, O rot, Cl grün,
-   S gelb, P orange, Alkalimetalle violett, Erdalkalimetalle grünblau; übrige Metalle in passenden Erdtönen.
-   Rand = Atomfarbe, etwas dunkler (dunkel: heller). */
-:root, :root[data-theme="light"] {
-  --atom-edge: #000000; --atom-H: #f5f4f0; --atom-C: #3a3a3a;
-}
-:root, :root[data-theme="light"], :root[data-theme="dark"] {
-  --atom-N: var(--hue-blue); --atom-O: var(--hue-red); --atom-Cl: var(--hue-green); --atom-S: var(--hue-yellow); --atom-P: var(--hue-orange);
-  --atom-Na: var(--hue-violet); --atom-K: var(--hue-violet-deep); --atom-Ca: var(--hue-teal); --atom-Mg: #8fc9b9;
-  --atom-Ba: var(--hue-teal-deep); --atom-F: #b6bc4e; --atom-I: #83569e;
-  --atom-Al: #bcaca7; --atom-Fe: #c9683a; --atom-Cu: #c47f47; --atom-Zn: #8a95b5; --atom-Ag: #c9ccd2; --atom-Hg: #aab0c4;
-  --atom-Pb: #71747d; --atom-Mn: #b86b98; --atom-Cr: #8699c2;
-}
-/* dunkel: heller Rand und etwas helleres C, damit alles auf dunklem Grund sichtbar bleibt */
-:root[data-theme="dark"] { --atom-edge: #ffffff; --atom-C: #4a4a4a; --atom-H: #ecebe6; --atom-K: #8f76c9; --atom-Ba: #4f998c; }
 .ms-wrap { width: 100%; height: 100%; min-height: 0; min-width: 0; overflow: hidden; }
 .ms { display: block; width: 100%; height: 100%; max-height: 100%; }
-.atom { stroke-width: .04; }
 .ms-box { fill: var(--surface); stroke: var(--text); stroke-width: .08; }
 .ms-box.ok { stroke: var(--ok); stroke-width: .16; }
 .ms-box.bad { stroke: var(--signal); stroke-width: .16; stroke-dasharray: .35 .25; }
@@ -99,21 +82,11 @@ button.eq-term:active { transform: scale(.96); }
 .sub-name::after { content: "i"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor;
   font: 800 .66rem/1 var(--font); font-feature-settings: "cv08"; }
 .sub-name:hover { background: var(--surface-2); }
-.sub-facts { display: grid; gap: 8px; justify-items: start; }
-.sub-formula { margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -.01em; }
-.sub-struct-box { display: grid; place-items: center; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); min-height: 0; }
-.sub-struct { max-height: 44dvh; height: auto; overflow: visible; }
-.sub-bond { stroke: var(--text); stroke-width: .055; stroke-linecap: round; }
-.sub-sym { font: 700 .42px var(--font); fill: var(--text); }
 .sub-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .sub-item { display: grid; gap: 2px; justify-items: start; text-align: left; min-height: 56px; padding: 8px 12px; border: 1.5px solid var(--rule);
   border-radius: var(--radius-sm); background: var(--surface); }
 .sub-item span { color: var(--muted); font-weight: 700; }
 .sub-item:hover { background: var(--surface-2); }
-.sub-body { display: grid; gap: 12px; align-content: start; min-height: 0; }
-/* 3D: Modell füllt den Platz des Blatts (Formel und Kennzeichen oben, Umschalter unten) */
-.sub-body.is-3d { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; }
-.sub-body.is-3d .m3d { height: 100%; }
 .sub-detail { display: grid; gap: 12px; min-height: 0; }
 .sub-detail:has(.is-3d) { height: 100%; grid-template-rows: auto minmax(0, 1fr); }
 .sub-detail-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }

@@ -1,5 +1,5 @@
 // Gemeinsame Vite-Konfiguration der App Edi:
-//   export default appConfig({ name: "…", shortName: "…", description: "…" }, { legacy: ["atombau", …] });
+//   export default appConfig({ name: "…", shortName: "…", description: "…" }, { legacy: ["atombau", { from: "alt", to: "neu" }, …] });
 // Zwei Builds:
 //   vite build               → dist/        Web-Version (GitHub Pages, Android/iOS via Capacitor), offline-fähig, ein Service Worker
 //   vite build --mode single → dist-single/  eine einzige HTML-Datei mit allen Modulen (Doppelklick genügt)
@@ -20,15 +20,18 @@ export interface AppManifest {
   description: string;
 }
 
+/** frühere Adresse …/<from>/ → #/<to> (to "" = Übersicht); Kurzform "id" = gleicher Name */
+export type Legacy = string | { from: string; to: string };
+
 export interface AppOptions {
-  /** frühere eigenständige Apps unter …/<id>/: Weiterleitung auf #/<id>, alter Service Worker meldet sich ab */
-  legacy?: string[];
+  /** frühere eigenständige Apps: Weiterleitung, alter Service Worker meldet sich ab */
+  legacy?: Legacy[];
 }
 
 export function appConfig(m: AppManifest, o: AppOptions = {}) {
   return defineConfig(({ mode }): UserConfig => {
     const single = mode === "single";
-    const legacy = o.legacy ?? [];
+    const legacy = (o.legacy ?? []).map(l => (typeof l === "string" ? { from: l, to: l } : l));
     return {
       base: "./",
       css: { postcss: { plugins: [modulScope()] } },
@@ -42,7 +45,7 @@ export function appConfig(m: AppManifest, o: AppOptions = {}) {
           workbox: {
             globPatterns: ["**/*.{js,css,html,svg,png,woff2,txt}"],
             // die Abmelde-Skripte der früheren Apps gehören nicht in den Speicher
-            globIgnores: legacy.map(id => `${id}/sw.js`),
+            globIgnores: legacy.map(l => `${l.from}/sw.js`),
             // Adressen: #/<modul> – jede Seitenanfrage bekommt die App; Dateien zum Herunterladen nicht
             navigateFallback: "index.html",
             navigateFallbackDenylist: [/offline\.html$/, /\.txt$/],
@@ -81,20 +84,20 @@ const moduleOf = (file: string | null) => (file ? /[\\/]modules[\\/]([a-z0-9-]+)
 
 /** alte Adressen …/<id>/ weiterleiten; der alte Service Worker unter …/<id>/sw.js löscht seinen Speicher und meldet sich ab.
  *  Gespeicherte Fortschritte (localStorage) bleiben: gleiche Website, gleiche Schlüssel. */
-function legacyPlugin(ids: string[]): Plugin {
-  const page = (id: string) => `<!DOCTYPE html>
+function legacyPlugin(list: { from: string; to: string }[]): Plugin {
+  const page = (to: string) => { const url = to ? `../#/${to}` : "../"; return `<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="0; url=../#/${id}">
-<link rel="canonical" href="../#/${id}">
+<meta http-equiv="refresh" content="0; url=${url}">
+<link rel="canonical" href="${url}">
 <title>Weiterleitung</title>
-<script>location.replace("../#/${id}");</script>
+<script>location.replace("${url}");</script>
 </head>
-<body><a href="../#/${id}">Weiter</a></body>
+<body><a href="${url}">Weiter</a></body>
 </html>
-`;
+`; };
   const sw = `// Frühere eigenständige App: Speicher dieser Adresse löschen, abmelden, offene Fenster auf die neue Adresse bringen.
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil((async () => {
@@ -107,9 +110,9 @@ self.addEventListener("activate", e => e.waitUntil((async () => {
   return {
     name: "edi-legacy",
     generateBundle() {
-      for (const id of ids) {
-        this.emitFile({ type: "asset", fileName: `${id}/index.html`, source: page(id) });
-        this.emitFile({ type: "asset", fileName: `${id}/sw.js`, source: sw });
+      for (const { from, to } of list) {
+        this.emitFile({ type: "asset", fileName: `${from}/index.html`, source: page(to) });
+        this.emitFile({ type: "asset", fileName: `${from}/sw.js`, source: sw });
       }
     },
   };

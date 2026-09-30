@@ -82,6 +82,21 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Offline-fähig: Web-Build mit Service Worker, zusätzlich Einzeldatei mit allen Modulen (`vite build --mode single` → `edi-offline.html`).
 - Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`.
 
+## Gemische (`modules/gemische`)
+- Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**: Modellgemisch (H₂O, H₂O₂, O₃, C – 11 Teilchen), Wasser, Helium,
+  Sprudelwasser, Zuckerwasser (Saccharose), Alkohol und Wasser, Öl und Wasser (Öl vereinfacht als Dodecan), Luft, Erdgas, Wasser im Aquarium.
+  Zweimal gleich viele Verbindungen wie Elemente (Modellgemisch, Aquarium), achtmal verschieden viele; Teilchenzahlen alle verschieden (Test).
+- Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Reinstoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte –
+  **auch O₂, O₃**), Atomsorten. Ozon ist ein Element, nie eine Verbindung.
+- Probieren: Becher (`components/Beaker.tsx`) mit Teilchen als Kalottenmodell (`@lern/chem-ui` `Kalotte`, echte Lage, klein), Flüssigkeit unten, Gas im
+  geschlossenen Gefäß, Modell verteilt. Teilchen antippen → Stoff-Info (`SubstanceSheet`: Element/Verbindung, Strukturformel, 3D).
+  Schütteln (`src/mixing.ts`): Teilchen neu verteilt; Öl und Wasser entmischen sich wieder (Öl tauscht mit Wasser darüber, gerade oder schräg;
+  entmischt = kein Wasser höher als Öl), Lösungen bleiben gemischt; ohne Bewegung (reduzierte Bewegung) gleich das Ergebnis.
+  Werkzeuge: Elemente (Atomsorten mit Farbe) | Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
+- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): teilchen, stoffe, reinGemisch | einordnen, verbindungen, elemente, atomsorten | homogen, alltag.
+  Zählaufgaben als Zahl mit Fallen (Atome statt Teilchen, Atomsorten statt Stoffe, O₂/O₃ als Verbindung, nur Einzelatome als Element …).
+  Bild = Becher (Höhe in Container-Einheiten, nie abgeschnitten); zum Zählen nur Beispiele mit kleinen Molekülen. Hilfsmittel „Farben“: alle Atomfarben der App.
+
 ## Atombau (`modules/atombau`)
 - Start immer: helles Farbschema, Unterstufe, Elektronen kreisen nicht, kein Beamer-Modus (diese Werte werden nicht gespeichert).
 - Gespeichert: Baukasten und Einstellungen (localStorage `atombau-v3`); Quiz in `atombau-quiz` (`src/quiz/store.ts`, übernimmt alten Fortschritt einmalig).
@@ -129,16 +144,16 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   nach dem letzten Beispiel „Zum Quiz“. Mit `BalanceCard`:
   Titel, Teilchenbild (`MoleculeScene`, Kästen passen sich dem Inhalt an, nebeneinander oder übereinander), Ergebnis erst nach „Prüfen“ (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`,
   Kastenrahmen grün bzw. rot gestrichelt), Gleichung **immer einzeilig, nie umbrechen** (`EquationRow`: Fit-Text – Schrift passt sich der Breite an, 26 → min. 10 px; jeder Stoff ist ein Tippziel ≥ 44 px, antippen → Zahlenauswahl 1–12, Niveau 4 bis 30; `FitLine` für die Gleichung über Quizfragen), ein Hauptknopf. Keine Werkzeugleiste, kein 3D.
-  Teilchenbild nur, wenn alle Stoffe Moleküle aus Nichtmetallen sind (`hasModel`/`isMolecular` in `Molecules.tsx`) – Salze und Metalle nie als Kalotten (sähe aus wie Elektronenpaarbindung); dann bleibt die Bühne leer (Start hat nur Moleküle).
-- Stoff-Info (`components/Substance.tsx`): Stoffnamen sind Knöpfe (Start: Wortgleichung unter dem Titel, `NameLine`; Quiz: Hilfsmittel „Stoffe“,
+  Teilchenbild nur, wenn alle Stoffe Moleküle aus Nichtmetallen sind (`hasModel` in `Molecules.tsx`, `isMolecular` in `@lern/chem`) – Salze und Metalle nie als Kalotten (sähe aus wie Elektronenpaarbindung); dann bleibt die Bühne leer (Start hat nur Moleküle).
+- Stoff-Info (gemeinsam: `@lern/chem-ui` `Substance.tsx`, hier `components/Substance.tsx`): Stoffnamen sind Knöpfe (Start: Wortgleichung unter dem Titel, `NameLine`; Quiz: Hilfsmittel „Stoffe“,
   nicht bei Wortgleichungen und Atome zählen, Liste nach Namen sortiert). Blatt: Summenformel, Art (Molekül mit Atomzahlen, Ionenverbindung mit Ionen,
   Metall, Element), Strukturformel (`layout2D`: Ketten gerade, sonst ebene Zeichnung aus `MOL3D`; Käfige wie P₄O₁₀ nur 3D) und 3D-Modell
   (`Molecule3D` mit `data` aus `MOL3D`).
   Fit-Text misst neu bei Größenänderung und nach dem Laden der Schrift; passt es bei 10 px noch nicht, wird die Zeile als Ganzes skaliert (nie abschneiden).
   Die Gleichungszeile ragt nur in der Karte von Start über den Innenabstand hinaus (`.rg-controls .eq-fit`), nie in Quiz-Bild oder Antwort (dort schneidet der Rahmen ab).
   Formelgleichungen als MC-Antwort ebenfalls einzeilig mit Fit-Text (`renderOption` von `QuizScreen` → `FitLine base={18}`). „Ausgeglichen?“-Antworten mit Elementsymbolen („Nein – Ca, C und O stimmen nicht“).
-  Kalottenmodell, **jedes Atom muss gut zu sehen sein (Vorrang vor echtem 3D)** (`components/geometry.ts`, Test ≥ 65 % je Atom über `visibleShare`): Moleküle aus `MOL3D` (MMFF94) in der Ansicht mit dem am wenigsten verdeckten Atom (`orient`, 160 Richtungen), Bindungen bis ×1,15 gestreckt, gebundene Kugeln überlappen; ist trotzdem ein Atom unter 70 % sichtbar, die ebene Zeichnung wie eine Strukturformel (`flatView` aus `flat` der Daten, RDKit 2D, auseinandergeschoben; Glucose, Ethanol, H₃PO₄, CH₄ …; P₄O₁₀ als feste Standard-Zeichnung `flatFixed`, P₄ bleibt Tetraeder). Ketten CₙH₂ₙ₊₂ immer gerade wie die Strukturformel (`chainView`, kein Zickzack). Salze/Säuren aus Bausteinen, Kugeln nach Tiefe sortiert und dezent schattiert
-  (radialer Verlauf – bewusste Ausnahme vom „keine Verläufe“), Farbfamilien nach CPK aus der Palette (`--hue-*`, Tokens `--atom-X`; der Test prüft Farbtoken, Atomzahlen und Abstände). Formeln nie änderbar.
+  Kalottenmodell, **jedes Atom muss gut zu sehen sein (Vorrang vor echtem 3D)** (Geometrie `packages/chem/src/kalotte.ts`, Zeichnung `@lern/chem-ui` `Kalotte`, Test ≥ 65 % je Atom über `visibleShare`): Moleküle aus `MOL3D` (MMFF94) in der Ansicht mit dem am wenigsten verdeckten Atom (`orient`, 160 Richtungen), Bindungen bis ×1,15 gestreckt, gebundene Kugeln überlappen; ist trotzdem ein Atom unter 70 % sichtbar, die ebene Zeichnung wie eine Strukturformel (`flatView` aus `flat` der Daten, RDKit 2D, auseinandergeschoben; Glucose, Ethanol, H₃PO₄, CH₄ …; P₄O₁₀ als feste Standard-Zeichnung `flatFixed`, P₄ bleibt Tetraeder). Ketten CₙH₂ₙ₊₂ immer gerade wie die Strukturformel (`chainView`, kein Zickzack). Salze/Säuren aus Bausteinen, Kugeln nach Tiefe sortiert und dezent schattiert
+  (radialer Verlauf – bewusste Ausnahme vom „keine Verläufe“), Farbfamilien nach CPK aus der Palette (`--hue-*`, Tokens `--atom-X` in `@lern/chem-ui` styles.css; die Tests prüfen Farbtoken, Atomzahlen und Abstände). Formeln nie änderbar.
 - Gespeichert: Stand der Start-Beispiele und Übungsgleichung (`reaktionsgleichungen-v2`); Quiz in `reaktionsgleichungen-quiz`. Stufen-Schalter US/OS (Start immer Unterstufe, nicht gespeichert).
 - Quiz (`src/quiz/tasks.ts`): je Stufe vier Level „Niveau 1–4“. Fertigkeiten `zaehlen` (OS mit Klammern), `pruefen`, `koeffizient`, `koeff-4`, `wort`, `aus-1`, `ausgleichen` (= Niveau 2), `aus-3`, `aus-4`;
   Antwortformen `mc`, `num` (Zahl eintippen), `balance` (Koeffizienten setzen, richtig nur ausgeglichen **und** gekürzt). Gleichung steht als `eq` groß über der Frage (`renderVisual`), nicht im Prompt.

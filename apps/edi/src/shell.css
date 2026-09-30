@@ -1,6 +1,6 @@
 /* Stile der App-Hülle (gelten immer, deshalb eigener Präfix ov-/edi-; Modul-Stile gelten nur unter <html data-modul>) */
 
-/* Übersicht im Swiss Style – ein Bildschirm, nie scrollen: Titel, sechs Kacheln (Handy 2 × 3, breit 3 × 2), Fußzeile */
+/* Übersicht im Swiss Style – ein Bildschirm, nie scrollen: Titel, Kacheln (Handy 2 Spalten, breit 3–4), Fußzeile */
 .ov {
   max-width: 1180px; margin: 0 auto; box-sizing: border-box;
   height: 100vh; height: 100svh;
@@ -11,22 +11,22 @@
 .ov-kicker { margin: 0; color: var(--signal); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .ov-head h1 { font-size: clamp(2rem, min(11vw, 7svh), 5.5rem); font-weight: 900; letter-spacing: -.055em; line-height: .9; }
 
-.ov-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); min-height: 0; }
-/* ab 700 px oder im Querformat drei Spalten (auch Laptops mit 125 %/150 % Skalierung: ~830 × 580) */
-@media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) { .ov-grid { grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); } }
+/* Handy 2 Spalten, breit 3–4 (Werte aus Overview.tsx) */
+.ov-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(var(--rows-m, 3), 1fr); min-height: 0; }
+/* ab 700 px oder im Querformat breite Anordnung (auch Laptops mit 125 %/150 % Skalierung: ~830 × 580) */
+@media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) { .ov-grid { grid-template-columns: repeat(var(--cols-w, 3), 1fr); grid-template-rows: repeat(var(--rows-w, 2), 1fr); } }
 .ov-card {
   position: relative; display: grid; grid-template-rows: auto auto minmax(0, 1fr); gap: 4px; min-height: 0; min-width: 0;
   text-decoration: none; color: inherit; padding: clamp(6px, 1.4svh, 12px) 12px clamp(6px, 1.4svh, 12px) 0; border-bottom: 1px solid var(--rule);
 }
-.ov-card:nth-child(even) { padding-left: 12px; border-left: 1px solid var(--rule); }
-.ov-card:nth-child(n + 5) { border-bottom: 0; }
+.ov-card[data-m2] { padding-left: 12px; border-left: 1px solid var(--rule); }
+.ov-card[data-lastm] { border-bottom: 0; }
 @media (min-width: 700px), (min-width: 560px) and (min-aspect-ratio: 5/4) {
-  .ov-card { padding: clamp(8px, 2.4svh, 20px) 20px; border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); }
-  .ov-card:nth-child(n) { padding-left: 20px; } /* gleiche Einrückung in jeder Spalte (sonst erbt jede zweite Kachel die 12 px der Handy-Ansicht) */
-  .ov-card:nth-child(3n + 1) { border-left: 0; padding-left: 0; }
-  .ov-card:nth-child(n + 4) { border-bottom: 0; }
-  /* Titel einzeilig, sonst fehlt in niedrigen Fenstern das Bild der Kachel */
-  .ov-grid .ov-card h2 { font-size: min(clamp(.95rem, min(4.4vw, 3.6svh), 1.9rem), 2.3vw); }
+  .ov-grid .ov-card { padding: clamp(8px, 2.4svh, 20px) 20px; border-bottom: 1px solid var(--rule); border-left: 1px solid var(--rule); }
+  .ov-grid .ov-card[data-w0] { border-left: 0; padding-left: 0; }
+  .ov-grid .ov-card[data-lastw] { border-bottom: 0; }
+  /* Titel einzeilig, sonst fehlt in niedrigen Fenstern das Bild der Kachel (4 Spalten: etwas kleiner) */
+  .ov-grid .ov-card h2 { font-size: min(clamp(.95rem, min(4.4vw, 3.6svh), 1.9rem), calc(6.9vw / var(--cols-w, 3))); }
 }
 .ov-card:hover h2, .ov-card:hover .ov-open { color: var(--signal); }
 .ov-num { color: var(--signal); font-weight: 800; font-size: .9rem; letter-spacing: .06em; font-variant-numeric: tabular-nums; }
