@@ -1,16 +1,21 @@
 import { test, assert } from "vitest";
+
 import { MOL3D, SPECIES_NAMES, atoms3D, parseFormula } from "@lern/chem";
-import { EXAMPLES, analyse, isElement, mixKind, pictureKind } from "./mixtures.ts";
+import { EXAMPLES as FULL, analyse, isElement, mixKind, pictureKind, small } from "./mixtures.ts";
 import { initial, rng, separated, settled, shake, startMixing, step, type Grid, type Particle, type Sim } from "./mixing.ts";
 
+// Probieren nutzt die Beispiele mit allen Teilchen (flow.test.ts); die Rasterbilder (Quiz, Erklärkarten) ein Zehntel davon
+const EXAMPLES = FULL.map(e => ({ ...e, items: small(e.items) }));
+
 test("zehn Beispiele: zweimal gleich viele Verbindungen wie Elemente, achtmal verschieden; Teilchenzahlen alle verschieden", () => {
-  assert.strictEqual(EXAMPLES.length, 10);
-  const a = EXAMPLES.map(e => analyse(e.items));
-  assert.deepEqual(EXAMPLES.filter((_, i) => a[i].verbindungen.length === a[i].elemente.length).map(e => e.id), ["schutzgas", "modell"]);
+  assert.strictEqual(FULL.length, 10);
+  const a = FULL.map(e => analyse(e.items));
+  assert.deepEqual(FULL.filter((_, i) => a[i].verbindungen.length === a[i].elemente.length).map(e => e.id), ["schutzgas", "modell"]);
   assert.strictEqual(new Set(a.map(x => x.teilchen)).size, 10);
-  for (const x of a) assert.ok(x.teilchen >= 11 && x.teilchen <= 25, `${x.teilchen} Teilchen`);
-  // im Schnitt deutlich mehr Teilchen als früher (10,5)
-  assert.ok(a.reduce((s, x) => s + x.teilchen, 0) / 10 >= 17);
+  for (const x of a) assert.ok(x.teilchen >= 110 && x.teilchen <= 240, `${x.teilchen} Teilchen`);
+  assert.ok(a.reduce((s, x) => s + x.teilchen, 0) / 10 >= 150);
+  // kleine Fassung: gleiche Einteilung
+  for (const e of FULL) assert.strictEqual(pictureKind(small(e.items)), pictureKind(e.items), e.id);
 });
 
 test("Elemente nur als einzelne Atome – keine Moleküle aus einer Atomsorte", () => {

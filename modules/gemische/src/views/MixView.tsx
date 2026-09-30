@@ -1,6 +1,6 @@
-// Probieren: zehn fertige Beispiele (kein Baukasten) – Gefäß, wie man es sieht, und Lupe mit dem Teilchenbild.
-// Die Teilchen bewegen sich ständig. „Mischen“ zeigt, wie das Gemisch entsteht: vorher liegen die Reinstoffe getrennt
-// (Zuckerwürfel, Alkohol-Schicht, Gas über dem Wasser, Gase hinter Trennwänden, Metallstücke), danach verteilen sie sich –
+// Probieren: zehn fertige Beispiele (kein Baukasten) – Gefäß mit allen Teilchen und verschiebbarer Lupe (flow.ts, FlowView).
+// Die Teilchen bewegen sich ständig und fließend. „Mischen“ zeigt, wie das Gemisch entsteht: vorher liegen die Reinstoffe getrennt
+// (Zuckerkristall, Alkohol-Schicht, Gas über dem Wasser, Gase hinter Trennwänden, Metallblöcke), danach verteilen sie sich –
 // die Teilchen bleiben dieselben und gleich viele. Öl und Wasser: „Schütteln“, danach entmischen sie sich wieder.
 // Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
 
@@ -9,8 +9,9 @@ import { Button, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@ler
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, MIX_LABEL, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
-import { initial, rng, seedOf, separated, settled, shake, startMixing, step, type Sim } from "../mixing.ts";
-import { Scene } from "../components/Scene.tsx";
+import { seedOf } from "../mixing.ts";
+import { makeWorld, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
+import { FlowView } from "../components/FlowView.tsx";
 import { useApp } from "../store.ts";
 
 /** kleines Bild eines Teilchens (Liste der Stoffe) */
@@ -116,68 +117,65 @@ function ExampleList({ current, onPick }: { current: number; onPick: (i: number)
 }
 
 type Phase = "ruhe" | "vorher" | "laeuft";
-const MIN_TICKS = 26; // so lange läuft ein Mischvorgang mindestens (Teilchen verteilen sich sichtbar)
+const MIN_FRAMES = 240; // so lange läuft ein Vorgang mindestens (etwa 4 s)
 
 function Mix({ ex, index }: { ex: Example; index: number }) {
   const setEx = useApp(s => s.setEx);
   const reduced = useReducedMotion();
   const seed = seedOf(ex.id);
-  const [sim, setSim] = useState<Sim>(() => initial(ex, seed));
+  const [world, setWorld] = useState<World>(() => makeWorld(ex, seed));
   const [phase, setPhase] = useState<Phase>("ruhe");
-  const [clock, setClock] = useState(0);
-  const [shaking, setShaking] = useState(false);
+  const [version, setVersion] = useState(0);
+  const [sep, setSep] = useState(true);
   const [pick, setPick] = useState<string | null>(null);
   const [tool, setTool] = useState<string | null>(null);
-  const r = useRef(rng(seed + 1));
+  const worldRef = useRef(world), phaseRef = useRef(phase);
+  worldRef.current = world; phaseRef.current = phase;
   const time = useRef(0), runs = useRef(0);
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
   const later = (fn: () => void, ms: number) => { timers.current.push(window.setTimeout(fn, ms)); };
 
-  // Die Teilchen bewegen sich ständig; beim Mischen schneller. Ohne Bewegung (reduzierte Bewegung) nur Vorher/Nachher.
-  useEffect(() => {
-    if (reduced || phase === "vorher" || (phase === "ruhe" && sim.state === "fest")) return;
-    const running = phase === "laeuft";
-    const id = window.setTimeout(() => {
-      if (!running && document.hidden) { setClock(c => c + 1); return; }
-      const next = step(sim, r.current, running ? .5 : .2);
-      setSim(next);
-      if (running) {
-        time.current++;
-        if ((settled(next) && time.current >= MIN_TICKS) || time.current > 160) setPhase("ruhe");
-      }
-      setClock(c => c + 1);
-    }, running ? 320 : 1400);
-    return () => clearTimeout(id);
-  }, [clock, phase, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  /** nach jedem Zeitschritt: Ende des Vorgangs erkennen, Anzeige ab und zu auffrischen */
+  const onFrame = () => {
+    const w = worldRef.current;
+    if (phaseRef.current === "laeuft") {
+      time.current++;
+      if ((settledFlow(w) && time.current >= MIN_FRAMES) || time.current > 2400) setPhase("ruhe");
+    }
+    if (w.t % 15 === 0) setSep(separatedFlow(w));
+  };
   /** ohne Bewegung: gleich das Ergebnis */
-  const finish = (s: Sim) => { let x = s; for (let k = 0; k < 200 && (!settled(x) || k < MIN_TICKS); k++) x = step(x, r.current, .5); return x; };
+  const finish = (w: World) => {
+    for (let k = 0; k < 3000 && (!settledFlow(w) || k < MIN_FRAMES); k++) stepFlow(w);
+    setSep(separatedFlow(w)); setVersion(v => v + 1);
+  };
 
   const doMix = () => {
     buzz();
     time.current = 0;
     if (!ex.before) {
       // Reinstoff oder Öl und Wasser: schütteln
-      if (reduced) { setSim(s => finish(shake(s, r.current))); return; }
-      setShaking(true);
-      setPhase("vorher");
-      later(() => { setShaking(false); setSim(s => shake(s, r.current)); setPhase("laeuft"); }, 600);
+      shakeWorld(world);
+      if (reduced) finish(world); else setPhase("laeuft");
       return;
     }
     // vorher: Reinstoffe getrennt – kurz zeigen, dann mischen
-    setSim(initial(ex, seed + ++runs.current, "vorher"));
+    const w = makeWorld(ex, seed + ++runs.current, "vorher");
+    setWorld(w);
     setPhase("vorher");
     later(() => {
-      setSim(s => { const m = startMixing(s, r.current); return reduced ? finish(m) : m; });
-      setPhase(reduced ? "ruhe" : "laeuft");
-    }, reduced ? 1600 : 1300);
+      startMixing(w);
+      time.current = 0;
+      if (reduced) { finish(w); setPhase("ruhe"); } else setPhase("laeuft");
+    }, reduced ? 1600 : 1400);
   };
 
   const a = analyse(ex.items);
   const kind = mixKind(ex);
-  const type = ex.floats?.length ? (separated(sim.ps, sim.grid, sim.floats) ? "2 Schichten" : "Emulsion") : ex.type;
+  const type = ex.floats?.length ? (sep ? "2 Schichten" : "Emulsion") : ex.type;
   const goTo = (i: number) => { buzz(); setEx(i); setTool(null); };
+  const focus = ex.before === "kristall" ? "unten" as const : ex.floats ? "grenze" as const : undefined;
   return (
     <>
       <Workbench className="gm-wb" active={tool} onActive={setTool}
@@ -188,7 +186,7 @@ function Mix({ ex, index }: { ex: Example; index: number }) {
             {ex.note && <p className="gm-note">{ex.note}</p>}
           </div>
         }
-        stage={<Scene sim={sim} ex={ex} shaking={shaking} onPick={f => { buzz(); setPick(f); }}
+        stage={<FlowView world={world} motion={!reduced} version={version} focus={focus} onFrame={onFrame} onPick={f => { buzz(); setPick(f); }}
           label={`${ex.title}: ${ex.items.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`} />}
         status={<>
           {phase === "vorher" && ex.before ? <Tag>vorher</Tag> : MIX_LABEL[kind].map(l => <Tag key={l}>{l}</Tag>)}

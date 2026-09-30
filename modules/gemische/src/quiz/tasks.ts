@@ -5,7 +5,7 @@
 
 import { toSubscript } from "@lern/chem";
 import { buildRound, d, dis, mc, pick, shuffle, validTraps, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
-import { EXAMPLES, PICTURE_LABEL, analyse, elementName, isElement, shortName, type Before, type PictureKind, type State } from "../mixtures.ts";
+import { EXAMPLES, PICTURE_LABEL, analyse, elementName, isElement, shortName, small, type Before, type PictureKind, type State } from "../mixtures.ts";
 import type { Arrange } from "../mixing.ts";
 
 /** Teilchenbild: Stoffe mit Teilchenzahl, Zustand, Anordnung */
@@ -64,11 +64,11 @@ function mixOf(kind: PictureKind, lo = 4, hi = 12): Pic {
 }
 const someMix = () => mixOf(pick<PictureKind>(["GV", "GV", "GEV", "GEV", "GEV", "GE", "V", "E"]));
 const exOf = (id: string) => EXAMPLES.find(e => e.id === id)!;
-/** Bild eines Beispiels aus „Probieren“ (optional mit weniger Teilchen) */
+/** Bild eines Beispiels aus „Probieren“ – mit einem Zehntel der Teilchen (zum Ansehen und Zählen) */
 function exPic(id: string, arrange: Arrange = "nachher", mix?: [string, number][], solute?: string): Pic {
   const e = exOf(id);
   const s = solute ?? e.solute;
-  return { mix: mix ?? e.items, state: e.state, ...(e.floats ? { floats: e.floats } : {}), ...(e.before ? { before: e.before } : {}), ...(s ? { solute: s } : {}), arrange };
+  return { mix: mix ?? small(e.items), state: e.state, ...(e.floats ? { floats: e.floats } : {}), ...(e.before ? { before: e.before } : {}), ...(s ? { solute: s } : {}), arrange };
 }
 const metalPic = (p: Pic) => p.state === "fest";
 

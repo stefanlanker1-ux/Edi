@@ -3,10 +3,10 @@
 Reinstoffe und Gemische im Teilchenmodell – an zehn fertigen Beispielen (kein Baukasten):
 Wasser, Helium im Luftballon, Zuckerwasser, Alkohol und Wasser, Sprudelwasser, Öl und Wasser, Messing, Erdgas, Schutzgas zum Schweißen, Modellgemisch.
 
-- **Probieren:** das Gefäß, wie man es sieht, und daneben die Lupe mit den Teilchen (Kalottenmodell aus echten 3D-Daten).
-  Die Teilchen bewegen sich ständig. **Mischen** zeigt, wie das Gemisch entsteht (Zucker löst sich, Gase mischen sich nach dem Entfernen
+- **Probieren:** das Gefäß mit allen Teilchen (110–240) und eine verschiebbare Lupe, die etwa 20 Teilchen vergrößert zeigt
+  (Kalottenmodell aus echten 3D-Daten). Die Teilchen bewegen sich ständig und fließend. **Mischen** zeigt, wie das Gemisch entsteht (Zucker löst sich, Gase mischen sich nach dem Entfernen
   der Trennwand, Kupfer und Zink schmelzen zu Messing …); **Schütteln** trennt Öl und Wasser nur kurz.
-  Teilchen antippen → Stoff-Info mit Strukturformel und 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
+  Teilchen in der Lupe antippen → Stoff-Info mit Strukturformel und 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
 - **Quiz:** Teilchen und Stoffe, Elemente und Verbindungen (auch Teilchenbilder auswählen), Gemische im Alltag, Lösen und Mischen –
   mit Stolpersteinen.
 

@@ -33,21 +33,24 @@ export interface Example {
 }
 
 /**
- * Zehn Beispiele. Zweimal gleich viele Verbindungen wie Elemente (Schutzgas, Modellgemisch), achtmal verschieden viele;
- * Teilchenzahlen alle verschieden. Elemente nur als einzelne Atome (He, Ar, Cu, Zn).
+ * Zehn Beispiele mit je 110–240 Teilchen (mit der Lupe betrachtet). Zweimal gleich viele Verbindungen wie Elemente
+ * (Schutzgas, Modellgemisch), achtmal verschieden viele; Teilchenzahlen alle verschieden. Elemente nur als einzelne Atome.
  */
 export const EXAMPLES: Example[] = [
-  { id: "wasser", title: "Wasser", items: [["H2O", 16]], state: "fluessig" },
-  { id: "helium", title: "Helium im Luftballon", items: [["He", 12]], state: "gas" },
-  { id: "zucker", title: "Zuckerwasser", items: [["H2O", 17], ["C12H22O11", 6]], state: "fluessig", before: "kristall", solute: "C12H22O11", type: "Lösung", note: "im Modell viel mehr Zucker" },
-  { id: "alkohol", title: "Alkohol und Wasser", items: [["H2O", 13], ["C2H5OH", 8]], state: "fluessig", before: "schicht", solute: "C2H5OH", type: "Lösung" },
-  { id: "sprudel", title: "Sprudelwasser", items: [["H2O", 20], ["CO2", 5]], state: "fluessig", before: "gasraum", solute: "CO2", type: "Lösung", note: "im Modell viel mehr Kohlenstoffdioxid" },
-  { id: "oel", title: "Öl und Wasser", items: [["H2O", 14], ["C12H26", 5]], state: "fluessig", floats: ["C12H26"], note: "Öl vereinfacht als Dodecan" },
-  { id: "messing", title: "Messing", items: [["Cu", 12], ["Zn", 8]], state: "fest", before: "getrennt", type: "Legierung" },
-  { id: "erdgas", title: "Erdgas", items: [["CH4", 11], ["C2H6", 2], ["CO2", 1]], state: "gas", before: "getrennt", type: "Gasgemisch", note: "Anteile vereinfacht" },
-  { id: "schutzgas", title: "Schutzgas zum Schweißen", items: [["Ar", 9], ["CO2", 2]], state: "gas", before: "getrennt", type: "Gasgemisch" },
-  { id: "modell", title: "Modellgemisch", items: [["He", 3], ["Ar", 4], ["CO2", 5], ["CH4", 6]], state: "modell", before: "getrennt", type: "Gasgemisch" },
+  { id: "wasser", title: "Wasser", items: [["H2O", 160]], state: "fluessig" },
+  { id: "helium", title: "Helium im Luftballon", items: [["He", 120]], state: "gas" },
+  { id: "zucker", title: "Zuckerwasser", items: [["H2O", 170], ["C12H22O11", 30]], state: "fluessig", before: "kristall", solute: "C12H22O11", type: "Lösung", note: "im Modell viel mehr Zucker" },
+  { id: "alkohol", title: "Alkohol und Wasser", items: [["H2O", 130], ["C2H5OH", 80]], state: "fluessig", before: "schicht", solute: "C2H5OH", type: "Lösung" },
+  { id: "sprudel", title: "Sprudelwasser", items: [["H2O", 200], ["CO2", 40]], state: "fluessig", before: "gasraum", solute: "CO2", type: "Lösung", note: "im Modell viel mehr Kohlenstoffdioxid" },
+  { id: "oel", title: "Öl und Wasser", items: [["H2O", 140], ["C12H26", 50]], state: "fluessig", floats: ["C12H26"], note: "Öl vereinfacht als Dodecan" },
+  { id: "messing", title: "Messing", items: [["Cu", 108], ["Zn", 72]], state: "fest", before: "getrennt", type: "Legierung" },
+  { id: "erdgas", title: "Erdgas", items: [["CH4", 110], ["C2H6", 20], ["CO2", 10]], state: "gas", before: "getrennt", type: "Gasgemisch", note: "Anteile vereinfacht" },
+  { id: "schutzgas", title: "Schutzgas zum Schweißen", items: [["Ar", 90], ["CO2", 20]], state: "gas", before: "getrennt", type: "Gasgemisch" },
+  { id: "modell", title: "Modellgemisch", items: [["He", 25], ["Ar", 35], ["CO2", 45], ["CH4", 65]], state: "modell", before: "getrennt", type: "Gasgemisch" },
 ];
+
+/** kleinere Fassung eines Beispiels (ein Zehntel der Teilchen) – für Bilder im Quiz und in Erklärkarten */
+export const small = (items: [string, number][]): [string, number][] => items.map(([f, n]) => [f, Math.max(1, Math.round(n / 10))]);
 
 /** Element: Reinstoff aus nur einer Atomsorte */
 export const isElement = (f: string) => Object.keys(parseFormula(f)).length === 1;

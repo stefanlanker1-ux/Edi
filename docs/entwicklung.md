@@ -83,21 +83,23 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`.
 
 ## Gemische (`modules/gemische`)
-- Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**, 11–25 Teilchen je Beispiel (alle verschieden):
+- Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**, 110–240 Teilchen je Beispiel (alle verschieden):
   Wasser, Helium im Luftballon, Zuckerwasser (Saccharose), Alkohol und Wasser, Sprudelwasser, Öl und Wasser (Öl vereinfacht als Dodecan),
   Messing (Cu, Zn), Erdgas (CH₄, C₂H₆, CO₂), Schutzgas zum Schweißen (Ar, CO₂), Modellgemisch (He, Ar, CO₂, CH₄).
   Zweimal gleich viele Verbindungen wie Elemente (Schutzgas, Modellgemisch), achtmal verschieden viele (Test).
+  Quiz und Erklärkarten zeigen ein Zehntel der Teilchen (`small`) im Rasterbild (`mixing.ts`, `components/Beaker.tsx`).
 - **Elemente nur als einzelne Atome** (Edelgase) oder Metallgitter – keine Moleküle aus einer Atomsorte (O₂, O₃, N₂ …), auch nicht im Quiz (Test).
 - Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Reinstoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte), Atomsorten.
   Teilchenbilder in fünf Arten (`pictureKind`): Element, Verbindung, Gemisch aus Elementen / aus Verbindungen / aus Element und Verbindung.
-- Probieren (`views/MixView.tsx`, `components/Scene.tsx`): links bzw. oben das Gefäß, wie man es sieht (Becherglas, Flasche, Ballon, Gasflasche,
-  Metallstück), mit Lupe zum Teilchenbild (`components/Beaker.tsx`, Kalottenmodell aus echten 3D-Daten). Beide zeigen denselben Zustand
-  (Zuckerwürfel wird kleiner, jedes Öltröpfchen = ein Öl-Teilchen, Trennwände in beiden). Zwischen den Teilchen keine Füllfarbe (dort ist nichts).
-  Teilchen bewegen sich ständig (CSS-Zittern, Flüssigkeit/Gas zusätzlich langsame Schritte); ohne Bewegung (reduzierte Bewegung) nur vorher/nachher.
-- Mischen (`src/mixing.ts`, Raster mit einer Zelle je Teilchen): **Mischen** zeigt, wie das Gemisch entsteht – vorher (`before`) Zuckerkristall am Boden,
-  Alkohol als Schicht, CO₂ im Gasraum über dem Wasser, Gase hinter Trennwänden, Kupfer und Zink als Blöcke; danach lösen sich Kristallteilchen am Rand,
-  Nachbarn tauschen die Plätze (Diffusion), Gas löst sich an der Oberfläche, Metall schmilzt, mischt und erstarrt. Teilchenzahl bleibt gleich (Test).
-  **Schütteln** (Reinstoffe, Öl und Wasser): Öl steigt danach wieder auf (tauscht mit Wasser darüber, nie senkrecht mit Wasser nach unten).
+- Probieren (`views/MixView.tsx`, `components/FlowView.tsx`, Canvas): Gefäß mit allen Teilchen (klein) und **verschiebbarer Lupe**
+  (ziehen oder Pfeiltasten), daneben bzw. darüber die Vergrößerung mit etwa 20 Teilchen als schattiertes Kalottenmodell (`lensRadius`).
+  Teilchen in der Lupe antippen → Stoff-Info. Zwischen den Teilchen keine Füllfarbe. Grenze Öl/Wasser als gerade Linie (`boundaryY`), sobald getrennt.
+- Bewegung (`src/flow.ts`, fließend statt Rasterzellen): Flüssigkeit – Geschwindigkeit ändert sich langsam zufällig, Teilchen stoßen sich ab,
+  Öl hat Auftrieb; Gas – geradeaus, Abprall an Wänden, Trennwänden und aneinander; fest – Schwingen um den Gitterplatz.
+  **Mischen** zeigt den Vorgang ab vorher (`before`): Zuckerkristall löst sich von außen (umrühren, bis alles gelöst ist), Alkohol-Schicht wird
+  umgerührt, CO₂ im Gasraum löst sich an der Oberfläche, Trennwände fallen, Kupfer und Zink schmelzen und erstarren als Gitter.
+  **Schütteln** (Reinstoffe, Öl und Wasser): kräftige Stöße, danach steigt das Öl wieder auf. Tests: Teilchenzahl bleibt, keine Sprünge,
+  gleichmäßig gemischt, Öl wieder oben, Gase mischen sich nur ohne Trennwand, Messing wieder im Gitter. Ohne Bewegung (reduzierte Bewegung) nur vorher/nachher.
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente) | Zählen | Farben („nur im Modell“) | Einteilung (Stoffe → Reinstoffe/Gemische mit allen
   Beispielen) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`), vier Level: Teilchen und Stoffe (teilchen, stoffe, reinGemisch) |

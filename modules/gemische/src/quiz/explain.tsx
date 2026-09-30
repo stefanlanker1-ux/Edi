@@ -4,7 +4,7 @@ import { RichText } from "@lern/ui";
 import type { LevelKey } from "@lern/quiz";
 import { Beaker } from "../components/Beaker.tsx";
 import { initial, seedOf, type Arrange } from "../mixing.ts";
-import { EXAMPLES } from "../mixtures.ts";
+import { EXAMPLES, small } from "../mixtures.ts";
 import { LEVELS, type Task } from "./tasks.ts";
 
 const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
@@ -41,7 +41,7 @@ export function explainFor(level: LevelKey, task?: Task) {
         {e.arr.map((a, i) => (
           <span key={a} className="gm-ex-step">
             {i > 0 && <span className="gm-ex-arrow" aria-hidden="true">→</span>}
-            <Beaker sim={initial(ex, seedOf(ex.id), a)} label={`${ex.title}${e.arr.length > 1 ? ` ${a}` : ""}`} />
+            <Beaker sim={initial({ ...ex, items: small(ex.items) }, seedOf(ex.id), a)} label={`${ex.title}${e.arr.length > 1 ? ` ${a}` : ""}`} />
           </span>
         ))}
       </figure>
