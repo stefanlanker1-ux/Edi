@@ -126,7 +126,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   useEffect(() => {
     const el = canvas.current, box = wrap.current;
     if (!el || !box) return;
-    const ctx = el.getContext("2d");
+    // undurchsichtig: der Browser muss die Fläche nicht mit dem Hintergrund mischen (spart Rechenzeit)
+    const ctx = el.getContext("2d", { alpha: false });
     if (!ctx) return;
     let raf = 0, frame = 0, dpr = 1;
     const minis = new Map<string, HTMLCanvasElement>();
@@ -223,7 +224,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
 
     const resize = () => {
       minis.clear(); bigs.clear();
-      dpr = Math.min(2, window.devicePixelRatio || 1);
+      // Handy: 1,5-fache Pixeldichte reicht für die Kugeln und spart ein Viertel Rechenzeit; breite Bildschirme voll scharf
+      dpr = Math.min(box.clientWidth >= 900 ? 2 : 1.5, window.devicePixelRatio || 1);
       const w = box.clientWidth, h = box.clientHeight;
       el.width = Math.max(1, Math.round(w * dpr)); el.height = Math.max(1, Math.round(h * dpr));
       el.style.width = `${w}px`; el.style.height = `${h}px`;
@@ -236,7 +238,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       if (!L) return;
       const c = colors.current, rgb = (k: string) => mix(c[k] ?? [0, 0, 0], c[k] ?? [0, 0, 0], 1);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, el.width, el.height);
+      ctx.fillStyle = rgb("surface"); ctx.fillRect(0, 0, el.width, el.height);
       const k = scales(w);
       const ox = L.ox, oy = L.oy, mv = L.mv;
       const X = (x: number) => ox + x * mv, Y = (y: number) => oy + y * mv;
