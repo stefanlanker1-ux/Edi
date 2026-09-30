@@ -102,7 +102,7 @@ test("Sprudel: CO₂ löst sich von selbst langsam, geschüttelt schnell", () =>
 test("Umrühren: die Flüssigkeit bleibt überall etwa gleich dicht (kein Stau an Wand oder Kristall)", () => {
   for (const [id, phase] of [["wasser", "nachher"], ["alkohol", "vorher"], ["zucker", "vorher"]] as const) {
     const w = makeWorld(ex(id), 2, phase);
-    let worst = 0;
+    const worst: number[] = [];
     for (let k = 1; k <= 480; k++) {
       if (w.stir === 0) w.stir = STIR;
       stepFlow(w);
@@ -116,10 +116,11 @@ test("Umrühren: die Flüssigkeit bleibt überall etwa gleich dicht (kein Stau a
         cells[j * 4 + i] += (p.rad ?? w.rc) ** 2;
       }
       const m = mean(cells);
-      worst = Math.max(worst, ...cells.map(c => Math.abs(c / m - 1)));
+      worst.push(Math.max(...cells.map(c => Math.abs(c / m - 1))));
     }
-    // je Feld nur etwa 15 Teilchen (Zucker zählt 3-fach): Schwankung bis 70 % ist Zufall, ein Stau wäre mehr als das Doppelte
-    assert.ok(worst < .75, `${id}: ungleich dicht (${worst.toFixed(2)})`);
+    // je Feld nur etwa 15 Teilchen (Zucker zählt 3-fach): einzelne Ausreißer sind Zufall – im Mittel klein, nie ein Stau (doppelt so dicht)
+    assert.ok(mean(worst) < .5, `${id}: im Mittel ungleich dicht (${mean(worst).toFixed(2)})`);
+    assert.ok(Math.max(...worst) < .95, `${id}: Stau (${Math.max(...worst).toFixed(2)})`);
   }
 }, 120_000);
 

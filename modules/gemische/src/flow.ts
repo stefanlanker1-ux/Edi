@@ -129,7 +129,13 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
       others.forEach((f, i) => add(particle(i, f, spots[i][0], spots[i][1], r)));
       list.filter(f => f === ex.solute).forEach((f, i) => {
         const ang = r() * Math.PI * 2;
-        const g = particle(others.length + i, f, rc + r() * (W - 2 * rc), rc + r() * (head - 2 * rc), r, { gas: true, vx: Math.cos(ang) * GAS_V, vy: Math.sin(ang) * GAS_V });
+        // Platz suchen, an dem noch kein anderes Gasteilchen ist
+        let x = 0, y = 0;
+        for (let tries = 0; tries < 200; tries++) {
+          x = rc + r() * (W - 2 * rc); y = rc + r() * (head - 2 * rc);
+          if (w.ps.every(q => !q.gas || (q.x - x) ** 2 + (q.y - y) ** 2 > (2.2 * rc) ** 2)) break;
+        }
+        const g = particle(others.length + i, f, x, y, r, { gas: true, vx: Math.cos(ang) * GAS_V, vy: Math.sin(ang) * GAS_V });
         w.ps.push(g); g.rad = rc; // als Gas klein wie die anderen Gasteilchen, gelöst so groß wie das Molekül
       });
       return w;
@@ -380,7 +386,7 @@ export function stepFlow(w: World) {
       if (p.x < rc || p.x > W - rc) { p.vx = -p.vx; p.x = Math.min(W - rc, Math.max(rc, p.x)); }
       if (p.y < rc) { p.vy = Math.abs(p.vy); p.y = rc; }
       if (p.y > w.top - rc) {
-        if (r() < .025 * hf + .6 * w.agit) { p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = .8; }
+        if (r() < .025 * hf + .6 * w.agit) { p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = .8; p.leave = 30; }
         else { p.vy = -Math.abs(p.vy); p.y = w.top - rc; }
       }
       turn(p, .004);
@@ -412,6 +418,9 @@ export function stepFlow(w: World) {
       const k = .12 * w.agit;
       p.vx += (u - p.vx) * k; p.vy += (v - p.vy) * k;
     }
+    // nie schneller als etwa ein halber Durchmesser je Schritt (auch beim Rühren gleiten die Teilchen)
+    const v = Math.hypot(p.vx, p.vy);
+    if (v > 1.3) { p.vx *= 1.3 / v; p.vy *= 1.3 / v; }
     p.x += p.vx; p.y += p.vy;
     turn(p, .01 / sizeOf(p.f));
   }
@@ -449,6 +458,9 @@ export function stepFlow(w: World) {
       at.delete(`${i},${j}`);
     }
   }
+  // Gas über der Flüssigkeit: Teilchen prallen aneinander ab (wie im Gasbehälter)
+  const gas = w.ps.filter(p => p.gas);
+  if (gas.length > 1) collide(w, gas);
   separate(w, liquid, 3);
   clamp(w, liquid, rc, W - rc, w.top + rc, H - rc);
   if (w.stir > 0) w.stir--;
@@ -482,11 +494,12 @@ function separate(w: World, ps: FP[], rounds: number) {
       const d = rad(p) + rad(q);
       const dx = q.x - p.x, dy = q.y - p.y, dist = Math.hypot(dx, dy);
       if (dist >= d || dist === 0) return;
-      const o = (d - dist) / dist * .5;
       const pb = !!p.bound && w.state === "fluessig", qb = !!q.bound && w.state === "fluessig";
       if (pb && qb) return;
-      // eben gelöst: gleitet aus dem Kristall hinaus
-      if ((pb && q.leave) || (qb && p.leave)) return;
+      // eben gelöst (aus dem Kristall bzw. aus dem Gas): nur sanft wegschieben, damit nichts springt;
+      // sonst höchstens ein Drittel Radius je Runde
+      const soft = p.leave || q.leave ? .15 : 1;
+      const o = Math.min((d - dist) * .5 * soft, w.rc * .35) / dist;
       const fp = pb ? 0 : qb ? 2 : 1, fq = qb ? 0 : pb ? 2 : 1;
       p.x -= dx * o * fp * .5; p.y -= dy * o * fp * .5;
       q.x += dx * o * fq * .5; q.y += dy * o * fq * .5;
@@ -498,10 +511,12 @@ function clamp(w: World, ps: FP[], x0: number, x1: number, y0: number, y1: numbe
   for (const p of ps) {
     if (p.bound) continue;
     const e = (p.rad ?? w.rc) - w.rc; // große Moleküle bleiben weiter vom Rand weg
-    if (p.x < x0 + e) { p.x = x0 + e; p.vx = Math.abs(p.vx) * .3; }
-    if (p.x > x1 - e) { p.x = x1 - e; p.vx = -Math.abs(p.vx) * .3; }
-    if (p.y < y0 + e) { p.y = y0 + e; p.vy = Math.abs(p.vy) * .3; }
-    if (p.y > y1 - e) { p.y = y1 - e; p.vy = -Math.abs(p.vy) * .3; }
+    // eben gelöst (CO₂ an der Oberfläche): gleitet hinein statt zu springen
+    const lim = (v: number, to: number) => (p.leave ? v + Math.max(-.5, Math.min(.5, to - v)) : to);
+    if (p.x < x0 + e) { p.x = lim(p.x, x0 + e); p.vx = Math.abs(p.vx) * .3; }
+    if (p.x > x1 - e) { p.x = lim(p.x, x1 - e); p.vx = -Math.abs(p.vx) * .3; }
+    if (p.y < y0 + e) { p.y = lim(p.y, y0 + e); p.vy = Math.abs(p.vy) * .3; }
+    if (p.y > y1 - e) { p.y = lim(p.y, y1 - e); p.vy = -Math.abs(p.vy) * .3; }
   }
 }
 
@@ -516,7 +531,7 @@ function collide(w: World, ps: FP[]) {
     const nx = dx / dist, ny = dy / dist;
     const rel = (p.vx - q.vx) * nx + (p.vy - q.vy) * ny;
     if (rel > 0) { p.vx -= rel * nx; p.vy -= rel * ny; q.vx += rel * nx; q.vy += rel * ny; }
-    const o = (d - dist) / 2;
+    const o = Math.min((d - dist) / 2, w.rc * .35); // sanft trennen, damit nichts springt
     p.x -= nx * o; p.y -= ny * o; q.x += nx * o; q.y += ny * o;
   });
 }
