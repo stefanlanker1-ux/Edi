@@ -22,12 +22,13 @@
 .lewis .bond.tappable:hover .pair-oval { stroke: var(--accent); }
 .lewis .e { fill: var(--electron); }
 .lewis .e.single { fill: var(--electron); }
+.lewis .e-line { stroke: var(--electron); stroke-width: 6; stroke-linecap: round; }
 .lewis .e-halo { fill: var(--e-single-halo); }
 .lewis .atom-bg { fill: transparent; }
 .lewis .atom.grab { cursor: grab; }
 .lewis .sym { font: 800 40px var(--font); text-anchor: middle; fill: var(--text); }
-.lewis .octet { fill: none; stroke: var(--octet); stroke-width: 4; }
-.lewis .octet.duet { stroke-width: 3; stroke-dasharray: 8 5; }
+.lewis .octet { fill: none; stroke: var(--octet); stroke-width: 3; }
+.lewis .octet.duet { stroke-width: 2.5; stroke-dasharray: 8 5; }
 .lewis .ok-mark { font: 800 16px var(--font); fill: var(--ok); }
 .lewis .count { font: 700 15px var(--font); fill: var(--signal); text-anchor: middle; }
 .lewis .bond-add { cursor: pointer; }

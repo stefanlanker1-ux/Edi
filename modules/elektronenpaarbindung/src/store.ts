@@ -18,12 +18,15 @@ interface State {
   showDeltas: boolean;
   /** Strichformel: normal (Raster) oder Keilstrichformel (räumlich) */
   wedge: boolean;
+  /** Baufeld: Elektronenpaare als Punkte (Lewis) oder als Striche */
+  lines: boolean;
   setTab: (t: Tab) => void;
   setStufe: (s: Stufe) => void;
   setMol: (m: Molecule) => void;
   setShowLonePairs: (v: boolean) => void;
   setShowDeltas: (v: boolean) => void;
   setWedge: (v: boolean) => void;
+  setLines: (v: boolean) => void;
 }
 
 export const useApp = create<State>()(persist(set => ({
@@ -33,17 +36,19 @@ export const useApp = create<State>()(persist(set => ({
   showLonePairs: true,
   showDeltas: false,
   wedge: false,
+  lines: false,
   setTab: tab => set({ tab }),
   setStufe: stufe => set({ stufe }),
   setMol: mol => set({ mol }),
   setShowLonePairs: showLonePairs => set({ showLonePairs }),
   setShowDeltas: showDeltas => set({ showDeltas }),
   setWedge: wedge => set({ wedge }),
+  setLines: lines => set({ lines }),
 }), {
   name: "elektronenpaar-v1",
   version: 2,
   storage: createJSONStorage(() => localStorage),
-  partialize: s => ({ mol: s.mol, showLonePairs: s.showLonePairs }),
+  partialize: s => ({ mol: s.mol, showLonePairs: s.showLonePairs, lines: s.lines }),
   // v1 hat showDeltas gespeichert – jetzt beginnt der Dipol immer ausgeschaltet
   migrate: old => { const { showDeltas: _, ...rest } = (old ?? {}) as Record<string, unknown>; return rest as Partial<State>; },
 }));

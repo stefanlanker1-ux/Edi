@@ -1,5 +1,7 @@
-// Lewis-Darstellung auf dem Raster: Atomsymbole, Elektronen als Punkte, bindende Paare in einem gemeinsamen Oval,
-// Oktett-Kreis um vollständige Atome (wie „8 Elektronen um C = Oktett“).
+// Lewis-Darstellung auf dem Raster: Atomsymbole, Elektronen als Punkte (oder Paare als Striche), bindende Paare in einem gemeinsamen Oval.
+// Großer Kreis um jedes vollständige Atom (Oktett, bei H Duett gestrichelt): Kreise benachbarter Atome überlappen, die bindenden Paare
+// liegen in beiden Kreisen – so sieht man, dass sie zu beiden Atomen zählen. Jedes bindende Paar ist eine Reihe aus zwei Punkten
+// entlang der Bindung (Dreifachbindung = drei Reihen), wie die Striche der Strichformel.
 
 import { electronsOf, loneLayout, bondKey, target, type Molecule } from "@lern/chem";
 
@@ -24,8 +26,13 @@ interface Props {
   cellsFocusable?: boolean;
   /** Tastatur auf einem Atom: Pfeile verschieben, Entf entfernen */
   onAtomKey?: (id: number, key: string) => void;
+  /** Elektronenpaare als Striche statt als Punkte */
+  lines?: boolean;
   svgRef?: React.Ref<SVGSVGElement>;
 }
+
+/** Radius der Oktett-Kreise: reicht über die bindenden Paare hinaus bis in den Kreis des Nachbarn */
+const RING = 67;
 
 /** Enter/Leertaste wie ein Klick (Tastatur) */
 const onKey = (fn: () => void) => (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } };
@@ -37,20 +44,22 @@ function Dot({ x, y, single }: { x: number; y: number; single?: boolean }) {
   </>;
 }
 
-/** Punkte für n Elektronen in Richtung angle (1 = einzeln, 2 = Paar quer zur Richtung) */
-function loneDots(x: number, y: number, angle: number, n: number) {
+/** Punkte für n Elektronen in Richtung angle (1 = einzeln, 2 = Paar quer zur Richtung; als Strich, wenn lines) */
+function loneDots(x: number, y: number, angle: number, n: number, lines?: boolean) {
   const r = (angle * Math.PI) / 180, dx = Math.cos(r), dy = Math.sin(r);
   const px = x + dx * 31, py = y + dy * 31;
   if (n === 1) return <Dot x={px} y={py} single />;
+  if (lines) return <line x1={px - dy * 11} y1={py + dx * 11} x2={px + dy * 11} y2={py - dx * 11} className="e-line" />;
   return <><Dot x={px - dy * 8} y={py + dx * 8} /><Dot x={px + dy * 8} y={py - dx * 8} /></>;
 }
 
-export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highlightCell, bondOptions = [], onBond, onAddBond, onAtomDown, onCell, cellsFocusable, onAtomKey, svgRef }: Props) {
+export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highlightCell, bondOptions = [], onBond, onAddBond, onAtomDown, onCell, cellsFocusable, onAtomKey, lines, svgRef }: Props) {
   let vb = `0 0 ${cols * U} ${rows * U}`;
   if (crop && mol.atoms.length) {
     const xs = mol.atoms.map(a => a.x), ys = mol.atoms.map(a => a.y);
     const x0 = Math.min(...xs), y0 = Math.min(...ys);
-    vb = `${x0 * U - 6} ${y0 * U - 6} ${(Math.max(...xs) - x0 + 1) * U + 12} ${(Math.max(...ys) - y0 + 1) * U + 12}`;
+    const p = showOctet && mol.bonds.length ? RING - U / 2 + 4 : 6; // Platz für die Kreise
+    vb = `${x0 * U - p} ${y0 * U - p} ${(Math.max(...xs) - x0 + 1) * U + 2 * p} ${(Math.max(...ys) - y0 + 1) * U + 2 * p}`;
   }
   const byId = new Map(mol.atoms.map(a => [a.id, a]));
   const used = new Set(mol.atoms.map(a => `${a.x},${a.y}`));
@@ -70,9 +79,9 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highli
       {/* Oktett-Kreise hinter allem */}
       {showOctet && mol.atoms.map(a => {
         const e = electronsOf(mol, a.id);
-        // Kreis nur um Atome mit Oktett (H zeigt nur ✓) – übliche, übersichtliche Darstellung
-        if (!e.complete || !mol.bonds.length || a.el === "H") return null;
-        return <circle key={`o${a.id}`} cx={cx(a.x)} cy={cx(a.y)} r={47} className="octet" />;
+        // Kreis um jedes Atom mit Edelgaskonfiguration (H: Duett, gestrichelt)
+        if (!e.complete || !mol.bonds.length) return null;
+        return <circle key={`o${a.id}`} cx={cx(a.x)} cy={cx(a.y)} r={RING} className={`octet${a.el === "H" ? " duet" : ""}`} />;
       })}
 
       {/* Bindende Elektronenpaare im gemeinsamen Oval */}
@@ -81,15 +90,19 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highli
         const horiz = p.y === q.y;
         const mx = (cx(p.x) + cx(q.x)) / 2, my = (cx(p.y) + cx(q.y)) / 2;
         const len = U + 56, th = 60;
+        // je Paar eine Reihe entlang der Bindung, die Reihen nebeneinander quer dazu
         const offs = b.order === 1 ? [0] : b.order === 2 ? [-9, 9] : [-17, 0, 17];
         return (
           <g key={bondKey(b.a, b.b)} className={`bond${onBond ? " tappable" : ""}`} onClick={onBond ? () => onBond(b.a, b.b) : undefined}
             tabIndex={onBond ? 0 : undefined} onKeyDown={onBond ? onKey(() => onBond(b.a, b.b)) : undefined}
             role={onBond ? "button" : undefined} aria-label={onBond ? `${b.order}-fach-Bindung ${p.el}–${q.el}, tippen zum Ändern` : undefined}>
             <rect x={mx - (horiz ? len : th) / 2} y={my - (horiz ? th : len) / 2} width={horiz ? len : th} height={horiz ? th : len} rx={th / 2} className="pair-oval" />
-            {offs.map((o, i) => horiz
-              ? <g key={i}><Dot x={mx + o} y={my - 8} /><Dot x={mx + o} y={my + 8} /></g>
-              : <g key={i}><Dot x={mx - 8} y={my + o} /><Dot x={mx + 8} y={my + o} /></g>)}
+            {offs.map((o, i) => lines
+              ? (horiz ? <line key={i} x1={mx - 16} x2={mx + 16} y1={my + o} y2={my + o} className="e-line" />
+                : <line key={i} y1={my - 16} y2={my + 16} x1={mx + o} x2={mx + o} className="e-line" />)
+              : horiz
+                ? <g key={i}><Dot x={mx - 8} y={my + o} /><Dot x={mx + 8} y={my + o} /></g>
+                : <g key={i}><Dot x={mx + o} y={my - 8} /><Dot x={mx + o} y={my + 8} /></g>)}
           </g>
         );
       })}
@@ -116,7 +129,7 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highli
               onKeyDown: (ev: React.KeyboardEvent) => { if (/^(Arrow|Delete|Backspace)/.test(ev.key)) { ev.preventDefault(); onAtomKey(a.id, ev.key); } } } : {})}>
             <circle cx={x} cy={y} r={26} className="atom-bg" />
             <text x={x} y={y} className="sym" dy=".35em">{a.el}</text>
-            {lone.map(g => <g key={g.angle}>{loneDots(x, y, g.angle, g.n)}</g>)}
+            {lone.map(g => <g key={g.angle}>{loneDots(x, y, g.angle, g.n, lines)}</g>)}
             {showOctet && mol.bonds.length > 0 && e.complete && <text x={x + 22} y={y - 22} className="ok-mark">✓</text>}
             {showOctet && !e.complete && mol.atoms.length > 1 && <text x={x + 30} y={y + 44} className="count">{e.around}/{target(a.el)}</text>}
           </g>

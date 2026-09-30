@@ -136,8 +136,11 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Tastatur: Atom wählen (Enter), leere Felder per Tab/Enter, Bindungen/＋ per Enter, auf einem Atom Pfeiltasten = verschieben, Entf = entfernen.
 - Benachbarte Atome (waagrecht/senkrecht) binden automatisch, wenn beide ungepaarte Elektronen haben; Tipp auf das Paar-Oval: Einfach → Doppel → Dreifach → lösen.
 - Logik in `packages/chem/src/molecules.ts` (Lewis-Belegung, Oktett, Erkennung bekannter Moleküle, EPA-Geometrie, Polarität) und `src/edit.ts`.
-- Übliche Darstellung: blaue Elektronen, graues Oval für bindende Paare, roter Oktett-Kreis (nicht um H, dort nur ✓).
+- Darstellung: blaue Elektronen, graues Oval für bindende Paare, großer roter Kreis um jedes Atom mit Edelgaskonfiguration (H: Duett, gestrichelt; zusätzlich ✓).
+  Kreise benachbarter Atome überlappen, die bindenden Paare liegen in beiden. Jedes bindende Paar = eine Reihe aus zwei Punkten entlang der Bindung (Dreifachbindung = drei Reihen).
+  Schalter „Punkte | Striche“ unter dem Baufeld (gespeichert): Paare als Striche wie in der Valenzstrichformel.
 - Automatisch erzeugte Valenzstrichformel steht auf breiten Bildschirmen links neben dem Baufeld (`Workbench side="left"`), am Handy im Werkzeug „Formel“.
+  Lage aus `src/strich.ts` (`strichLayout`): wie gebaut, gewinkelte Atome (H₂O, H₂S, O in CH₃OH, H₂O₂ als Zickzack) auf ≈ 105° bzw. 120° gebogen, auch wenn sie im Raster in einer Reihe liegen.
 - Freie Elektronenpaare symmetrisch zu den Bindungen (`loneLayout`, z. B. O in CO₂ schräg ± 45°).
 - Bindungswinkel: gemessene Werte in `REAL_ANGLES` (molecules.ts; H₂S 92,1°, PH₃ 93,5°), sonst EPA-Schätzung mit „ca.“. Polarität: ΔEN ≥ 0,4 polar; H₂S „schwach polar“ (`isWeaklyPolar`). Summenformel unbekannter Kohlenstoffverbindungen nach Hill (CH₅N).
 - 3D-Ansicht nur für **bekannte** Moleküle (`identify`, nicht für frei gebaute), auf Klick: `@lern/chem-ui/3d` (three.js, per `lazy()` nachgeladen):
