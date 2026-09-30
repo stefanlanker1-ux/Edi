@@ -323,6 +323,9 @@ export function stepFlow(w: World) {
         const h = heat(w);
         p.vx = p.vx * .8 + ((p.hx ?? p.x) - p.x) * .06 + (r() - .5) * .06 * h;
         p.vy = p.vy * .8 + ((p.hy ?? p.y) - p.y) * .06 + (r() - .5) * .06 * h;
+        // nach dem Erstarren gleiten die Atome ruhig auf ihre Plätze (nicht schneller als ein Viertel Radius je Schritt)
+        const v = Math.hypot(p.vx, p.vy), vmax = .25 * rc;
+        if (v > vmax) { p.vx *= vmax / v; p.vy *= vmax / v; }
       }
       p.x += p.vx; p.y += p.vy;
       turn(p, melting ? .02 : .002);
@@ -340,13 +343,15 @@ export function stepFlow(w: World) {
       separate(w, w.ps, 2);
       clamp(w, w.ps, rc, W - rc, rc, H - rc);
       if (--w.melt === 0) {
-        // erstarrt: jedes Teilchen sucht sich den nächsten freien Gitterplatz
-        const free = new Set(w.sites.map((_, i) => i));
-        for (const p of shuffle(w.ps, r)) {
-          let best = -1, bd = Infinity;
-          for (const i of free) { const d = (w.sites[i][0] - p.x) ** 2 + (w.sites[i][1] - p.y) ** 2; if (d < bd) { bd = d; best = i; } }
-          free.delete(best);
-          p.hx = w.sites[best][0]; p.hy = w.sites[best][1]; p.bound = true;
+        // erstarrt: Gitterplätze nach kürzesten Wegen verteilen (erst die nächsten Paare aus Atom und Platz) – so wandert keiner weit
+        const pairs: [number, number, number][] = [];
+        w.ps.forEach((p, a) => w.sites.forEach(([x, y], i) => pairs.push([(x - p.x) ** 2 + (y - p.y) ** 2, a, i])));
+        pairs.sort((u, v) => u[0] - v[0]);
+        const doneA = new Set<number>(), doneS = new Set<number>();
+        for (const [, a, i] of pairs) {
+          if (doneA.has(a) || doneS.has(i)) continue;
+          doneA.add(a); doneS.add(i);
+          const p = w.ps[a]; p.hx = w.sites[i][0]; p.hy = w.sites[i][1]; p.bound = true;
         }
       }
     }

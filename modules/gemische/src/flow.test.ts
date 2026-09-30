@@ -191,6 +191,20 @@ test("Gase: Trennwände halten die Teilchen zurück; ohne Wände mischen sie sic
   }
 }, 60_000);
 
+test("Messing: beim Erstarren gleiten die Atome auf ihre Plätze, keiner springt", () => {
+  for (let seed = 1; seed <= 3; seed++) {
+    const w = makeWorld(ex("messing"), seed, "vorher");
+    startMixing(w);
+    const prev = new Map(w.ps.map(p => [p.id, [p.x, p.y]]));
+    let jump = 0;
+    for (let k = 0; k < 800; k++) {
+      stepFlow(w);
+      for (const p of w.ps) { const [x, y] = prev.get(p.id)!; jump = Math.max(jump, Math.hypot(p.x - x, p.y - y) / w.rc); prev.set(p.id, [p.x, p.y]); }
+    }
+    assert.ok(jump < 1, `Sprung ${jump.toFixed(2)} Radien`);
+  }
+});
+
 test("Messing: vorher zwei Blöcke, geschmolzen gemischt, danach wieder ein Gitter", () => {
   const w = makeWorld(ex("messing"), 4, "vorher");
   const split = w.walls[0];
