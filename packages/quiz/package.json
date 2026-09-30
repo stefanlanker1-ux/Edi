@@ -1,0 +1,26 @@
+{
+  "name": "@lern/quiz",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Quiz-Grundgerüst für alle Lern-Apps: Levels, Runden, Speichern, Auswertung, Schwächen üben",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "dependencies": {
+    "@lern/ui": "*"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "zustand": ">=5"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.2"
+  }
+}

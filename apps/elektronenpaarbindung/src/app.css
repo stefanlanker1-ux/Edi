@@ -1,0 +1,145 @@
+/* Elektronenpaarbindung – Lewis-Darstellung (übliche Darstellung: blaue Elektronen, graue Paar-Ovale, roter Oktett-Kreis – Farben aus der gemeinsamen Palette) */
+
+:root, :root[data-theme="light"] {
+  --pair-fill: #ededed; --pair-stroke: #9a9a9a;
+  --octet: var(--hue-red); --e-single-halo: color-mix(in srgb, var(--hue-blue) 20%, transparent);
+  --board: #fafafa; --cell: rgba(0, 0, 0, .025); --cell-stroke: rgba(0, 0, 0, .14);
+}
+:root[data-theme="dark"] {
+  --pair-fill: #2a2a2a; --pair-stroke: #6a6a6a;
+  --octet: var(--hue-red); --e-single-halo: color-mix(in srgb, var(--hue-blue) 28%, transparent);
+  --board: #111111; --cell: rgba(255, 255, 255, .03); --cell-stroke: rgba(255, 255, 255, .16);
+}
+
+/* ── Lewis-SVG ──────────────────────────────────────────────────────────── */
+.lewis { display: block; width: 100%; height: auto; overflow: visible; touch-action: none; user-select: none; -webkit-user-select: none; }
+.lewis .cell { fill: var(--cell); stroke: var(--cell-stroke); stroke-width: 1.5; stroke-dasharray: 5 6; }
+.lewis .cell.hl { fill: color-mix(in srgb, var(--accent) 18%, transparent); stroke: var(--accent); stroke-dasharray: none; }
+.board.armed .lewis .cell { cursor: copy; }
+.board.armed .lewis .cell:hover { fill: color-mix(in srgb, var(--accent) 12%, transparent); }
+.lewis .pair-oval { fill: var(--pair-fill); stroke: var(--pair-stroke); stroke-width: 2.5; opacity: .92; }
+.lewis .bond.tappable { cursor: pointer; }
+.lewis .bond.tappable:hover .pair-oval { stroke: var(--accent); }
+.lewis .e { fill: var(--electron); }
+.lewis .e.single { fill: var(--electron); }
+.lewis .e-halo { fill: var(--e-single-halo); }
+.lewis .atom-bg { fill: transparent; }
+.lewis .atom.grab { cursor: grab; }
+.lewis .sym { font: 800 40px var(--font); text-anchor: middle; fill: var(--text); }
+.lewis .octet { fill: none; stroke: var(--octet); stroke-width: 4; }
+.lewis .octet.duet { stroke-width: 3; stroke-dasharray: 8 5; }
+.lewis .ok-mark { font: 800 16px var(--font); fill: var(--ok); }
+.lewis .count { font: 700 15px var(--font); fill: var(--signal); text-anchor: middle; }
+.lewis .bond-add { cursor: pointer; }
+.lewis .bond-add circle { fill: var(--surface); stroke: var(--accent); stroke-width: 3; }
+.lewis .bond-add path { stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; }
+/* Tastatur: Fokus sichtbar im Baufeld (Feld, Bindung, Atom) */
+.lewis [tabindex]:focus { outline: none; }
+.lewis .cell:focus-visible { stroke: var(--signal); stroke-width: 3; stroke-dasharray: none; }
+.lewis .bond:focus-visible .pair-oval, .lewis .bond-add:focus-visible circle { stroke: var(--signal); stroke-width: 4; }
+.lewis .atom:focus-visible .atom-bg { stroke: var(--signal); stroke-width: 3; }
+.lewis .bond-add:hover circle { fill: var(--accent-soft); }
+
+/* ── Strichformel ───────────────────────────────────────────────────────── */
+.structure { display: block; width: 100%; max-height: 260px; }
+.structure .st-bond { stroke: var(--text); stroke-width: 2.6; stroke-linecap: round; }
+.structure .st-lone { stroke: var(--text); stroke-width: 2.6; stroke-linecap: round; }
+.structure .st-single { fill: var(--text); }
+.structure .st-sym { font: 600 30px var(--font); text-anchor: middle; fill: var(--text); }
+.structure .st-delta { font: 700 13px var(--font); fill: var(--accent); }
+.structure .st-delta.mid { text-anchor: middle; }
+.structure .st-wedge { fill: var(--text); stroke: var(--text); stroke-width: 1; stroke-linejoin: round; }
+.structure .st-dash { stroke: var(--text); stroke-width: 2; stroke-linecap: round; }
+
+/* ── Baufeld ────────────────────────────────────────────────────────────── */
+.builder { display: grid; gap: 12px; }
+.palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.pal-atom {
+  display: grid; justify-items: center; gap: 2px; min-width: 0; padding: 6px 4px 8px; border-radius: var(--radius-md);
+  border: 1.5px solid var(--border); background: var(--surface); touch-action: none; user-select: none; -webkit-user-select: none;
+  transition: transform .1s, box-shadow .15s, border-color .15s;
+}
+.pal-atom:hover { box-shadow: var(--shadow); }
+.pal-atom:active { transform: scale(.95); }
+.pal-atom.armed { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.pal-svg { width: 54px; height: 54px; display: block; }
+.pal-svg .lewis { width: 54px; height: 54px; }
+.pal-name { font-size: .68rem; font-weight: 650; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* niedriges Fenster (Laptop mit 125 %/150 %): Atom-Leiste flacher, damit das Baufeld groß bleibt */
+@media (max-height: 700px) {
+  .palette { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+  .pal-atom { min-height: 44px; padding-top: 2px; padding-bottom: 2px; }
+  .pal-svg, .pal-svg .lewis { width: 38px; height: 38px; }
+  .pal-name { display: none; }
+}
+.board { position: relative; border-radius: var(--radius-md); background: var(--board); padding: 6px; }
+.board-empty { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; padding: 20px; text-align: center; color: var(--muted); font-weight: 600; pointer-events: none; }
+.atom-ghost {
+  position: fixed; left: -26px; top: -26px; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--surface); border: 2px solid var(--accent); font-weight: 800; font-size: 1.3rem; pointer-events: none; z-index: 50; box-shadow: var(--shadow-lg);
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+/* Werkbank und Quiz: Palette oben, das Baufeld füllt den Rest (6 × 5 Felder, Seitenverhältnis 1,2) */
+.eb-wb .ui-wb-view { place-items: stretch; }
+.eb-wb .builder, .answer-mol .builder { display: flex; flex-direction: column; gap: 8px; min-height: 0; height: 100%; }
+.eb-wb .palette, .answer-mol .palette { flex: none; }
+.eb-wb .board, .answer-mol .board { flex: 1 1 0; min-height: 0; container-type: size; display: grid; place-items: center; }
+.eb-wb .board .lewis, .answer-mol .board .lewis { width: min(100cqw, 100cqh * 1.2); }
+.q-body > .answer-mol { flex: 1 1 0; min-height: 200px; display: flex; flex-direction: column; gap: 8px; }
+.answer-mol .builder { flex: 1 1 0; height: auto; }
+.answer-mol > :not(.builder) { flex: none; }
+.struct-box { display: grid; place-items: center; padding: 8px; border-radius: var(--radius-md); background: var(--surface-2); }
+.struct-card { display: grid; gap: 10px; }
+.wedge-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .88rem; color: var(--muted); }
+.wedge-legend li { display: flex; align-items: center; gap: 6px; }
+.wedge-legend svg { width: 34px; height: 12px; flex: none; }
+.wedge-legend .lg-line { stroke: var(--text); stroke-width: 2.4; stroke-linecap: round; }
+.wedge-legend .lg-line.thin { stroke-width: 1.6; }
+.wedge-legend .lg-wedge { fill: var(--text); }
+.res-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; min-width: 0; }
+.res-formula { font-size: 2.2rem; font-weight: 800; }
+.res-name { font-weight: 700; font-size: 1.1rem; }
+.res-ok { color: var(--ok); font-weight: 650; font-size: .9rem; }
+.facts dt { font-size: .76rem; color: var(--muted); }
+.facts dd { margin: 0; font-weight: 700; font-size: 1.05rem; }
+.small { font-size: .85rem; }
+.examples { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+.ex-chip { display: grid; gap: 0; text-align: left; padding: 5px 9px; min-height: 44px; min-width: 0; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface); }
+.ex-chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+.ex-chip .formula { font-weight: 800; font-size: 1.05rem; }
+.ex-chip span:last-child { font-size: .74rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Quiz & Erklärkarten ────────────────────────────────────────────────── */
+/* Lösung beim Molekülbau: Formel links, Lewisformel daneben – passt auch mit CCl₄ (3 × 3 Felder) auf ein Handy */
+.sol-mol { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px; justify-items: start; }
+.sol-mol .formula { font-size: 1.3rem; font-weight: 800; }
+.sol-lewis { width: min(200px, 55vw); }
+@media (max-height: 720px) { .sol-lewis { width: min(150px, 40vw); } }
+.ex-mol { grid-template-columns: 1fr 1fr; align-items: center; }
+.ex-lewis, .ex-struct { width: 100%; max-width: 220px; justify-self: center; }
+.hero-atom .lewis { width: 100%; }
+@media (max-width: 520px) {
+  .palette { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; }
+  .pal-atom { padding: 4px 2px 6px; border-radius: var(--radius-md); }
+  .pal-svg, .pal-svg .lewis { width: 42px; height: 42px; }
+  .pal-name { font-size: .6rem; }
+}
+.armed-done { position: absolute; z-index: 3; right: 10px; bottom: 10px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 0; border-radius: var(--radius-sm); background: var(--accent); color: var(--on-accent); font-weight: 700; }
+.armed-done b { font-size: 1.1rem; }
+.btn-3d { margin-top: 12px; }
+.m3d-controls { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.m3d-loading { display: grid; place-items: center; color: var(--muted); font-weight: 600; }
+
+.eb-tags { min-height: 28px; }
+.eb-wb .res-head { min-height: 44px; }
+.eb-wb .res-formula { font-size: 1.8rem; }
+.struct-box.empty { min-height: 120px; color: var(--faint); font-size: 2rem; }
+.geo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.geo-list li { display: grid; grid-template-columns: 2.4em 1fr auto; gap: 10px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.geo-list b { font-size: 1.1rem; }
+.atoms-help { display: grid; gap: 14px; }
+.ah-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.ah-list li { display: grid; justify-items: center; gap: 2px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: .8rem; font-weight: 700; }
+.ah-svg { width: 64px; display: block; }
+@media (max-width: 520px) { .pal-name { display: none; } }

@@ -1,0 +1,151 @@
+/* Reinstoffe und Gemische – Becherglas, Teilchenmodell, Stoffregal, Trennverfahren, Einteilung (Konzept-Map) */
+
+/* ── Farben der Stoffe (Becher) – aus der gemeinsamen Palette abgeleitet, ruhig ───────── */
+:root, :root[data-theme="light"] {
+  --st-water: #d3e2f4; --st-ethanol: #eef2f6; --st-oel: #f0d57f; --st-cuso4-sol: #8fb1e2;
+  --st-sand: #dcc79d; --st-kalk: #f2f0ea; --st-fe: #6f7176; --st-cu: #bd7545; --st-zn: #a7aeb6; --st-sn: #cdd0d6;
+  --st-s: #edc242; --st-c: #2e2e2e; --st-salt: #fbfbf8; --st-sugar: #fffdf6; --st-cuso4: #3f6fc0; --st-fes: #3d3936; --st-gas: transparent;
+  --st-messing: #d7b24c; --st-bronze: #b47c42; --st-stahl: #8d929a; --st-legierung: #a9a9a9;
+  --glass: #111111;
+}
+:root[data-theme="dark"] {
+  --st-water: #22364f; --st-ethanol: #2a3036; --st-oel: #a98a34; --st-cuso4-sol: #36609f;
+  --glass: #e8e8e8;
+}
+/* Teilchen (Teilchenmodell): Atomfarben aus der gemeinsamen Palette */
+:root, :root[data-theme="light"] {
+  --atom-edge: #000000; --atom-H: #f5f4f0; --atom-C: #3a3a3a; --atom-He: #bfe2e0; --atom-Fe: #c9683a; --atom-Cu: #c47f47;
+  --atom-Zn: #8a95b5; --atom-Sn: #b8bcc4; --atom-Si: #c9b58a;
+}
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  --atom-N: var(--hue-blue); --atom-O: var(--hue-red); --atom-S: var(--hue-yellow); --atom-Na: var(--hue-violet); --atom-Cl: var(--hue-green);
+  --atom-Ca: var(--hue-teal);
+}
+:root[data-theme="dark"] { --atom-edge: #ffffff; --atom-C: #4a4a4a; --atom-H: #ecebe6; }
+
+/* ── Becher ─────────────────────────────────────────────────────────────── */
+.bk { display: block; width: 100%; height: 100%; }
+.bk-wrap { width: 100%; height: 100%; min-height: 0; min-width: 0; overflow: hidden; }
+.bk-glass { fill: none; stroke: var(--glass); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+.bk-lid { fill: var(--glass); }
+.bk-gas { fill: none; }
+.bk-layer { stroke: none; }
+.bk-layer.mixed { fill: color-mix(in srgb, var(--text) 8%, var(--surface)); }
+.bk-grain { stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: .25; }
+.bk-liquid { opacity: .9; }
+.bk-liquid.turbid { opacity: 1; }
+.bk-liquid.milky { fill: color-mix(in srgb, var(--st-water) 55%, #ffffff) !important; }
+:root[data-theme="dark"] .bk-liquid.milky { fill: color-mix(in srgb, var(--st-water) 70%, #9a9a9a) !important; }
+.bk-meniscus { stroke: color-mix(in srgb, var(--glass) 45%, transparent); stroke-width: .7; }
+.bk-drop { stroke: color-mix(in srgb, var(--text) 30%, transparent); stroke-width: .25; }
+.bk-alloy { stroke: color-mix(in srgb, var(--text) 45%, transparent); stroke-width: .5; }
+.bk-cap { font: 700 8.5px var(--font); fill: var(--muted); text-anchor: middle; }
+.pt { stroke-width: .35; }
+.pt-liquid { fill: color-mix(in srgb, var(--st-water) 45%, transparent); }
+.pt-liquid.oel { fill: color-mix(in srgb, var(--st-oel) 40%, transparent); }
+.pt-drop { fill: color-mix(in srgb, var(--st-oel) 55%, transparent); stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: .4; stroke-dasharray: 1.5 1.2; }
+
+/* ── Werkbank ───────────────────────────────────────────────────────────── */
+.mx-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--muted); }
+.mx-controls { display: grid; gap: 8px; }
+.mx-items { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.mx-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-weight: 800; font-size: 1rem;
+}
+.mx-chip.add { min-width: 44px; justify-content: center; border-style: dashed; }
+.mx-chip .ic:last-child { opacity: .5; }
+.sw { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--text) 40%, transparent); flex: none; }
+.mx-actions { display: flex; justify-content: center; gap: 8px; }
+.mx-actions .ui-btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.mx-wb .ui-wb-view { overflow: hidden; }
+
+/* Trennergebnis: kleine Becher nebeneinander */
+.frac { display: flex; justify-content: center; align-items: flex-end; gap: 12px; width: 100%; height: 100%; min-height: 0; }
+.frac-item { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 4px; flex: 1 1 0; max-width: 170px; height: 100%; min-height: 0; }
+.frac-item figcaption { display: grid; text-align: center; gap: 2px; font-size: .9rem; }
+.frac-item figcaption span { color: var(--muted); }
+.bk.small { min-height: 0; }
+
+/* ── Werkzeuge ──────────────────────────────────────────────────────────── */
+.shelf { display: grid; gap: 14px; }
+.shelf-group h3 { margin: 0 0 6px; font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--signal); }
+.shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 6px; }
+.shelf-item {
+  display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; column-gap: 8px; align-items: center; text-align: left;
+  min-height: 60px; padding: 6px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+}
+.shelf-item .sw { grid-row: 1 / span 3; width: 16px; height: 16px; }
+.shelf-item b { font-size: 1.05rem; }
+.shelf-item span { font-size: .85rem; hyphens: auto; overflow-wrap: anywhere; }
+.shelf-item small { font-size: .75rem; color: var(--muted); }
+.shelf-item.on { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.shelf-item.on small { color: inherit; opacity: .75; }
+/* niedrige Fenster (Laptop 125/150 %): Aggregatzustand als (s)/(l)/(g) neben der Formel – das Regal passt ohne Scrollen */
+@media (max-height: 820px) {
+  .shelf { gap: 6px; }
+  .shelf-grid { gap: 4px; }
+  .shelf-group h3 { margin-bottom: 4px; }
+  .shelf-item { min-height: 44px; padding: 4px 8px; grid-template-rows: auto auto; }
+  .shelf-item .sw { grid-row: 1 / span 2; }
+  .shelf-item small { display: none; }
+  .shelf-item b::after { content: " " attr(data-st); font-size: .75rem; font-weight: 600; color: var(--muted); }
+  .shelf-item.on b::after { color: inherit; opacity: .75; }
+}
+.methods { display: grid; gap: 6px; }
+.method {
+  display: grid; gap: 2px; text-align: left; min-height: 52px; padding: 8px 12px; border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text);
+}
+.method span { font-size: .85rem; color: var(--muted); }
+.method.fits { border-style: solid; border-color: var(--text); }
+.mx-how { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; line-height: 1.4; }
+
+/* ── Einteilung (Konzept-Map) ───────────────────────────────────────────── */
+.cm { display: grid; gap: 8px; width: 100%; }
+.cm-root { font-weight: 800; font-size: 1.05rem; border-bottom: 2px solid var(--rule); padding-bottom: 4px; }
+.cm-row { display: grid; grid-template-columns: 6em minmax(0, 1fr); gap: 6px; align-items: start; }
+.cm-row.sub { padding-left: 10px; border-left: 2px solid var(--rule); grid-template-columns: 5.6em minmax(0, 1fr); }
+.cm-kids { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+.cm-node {
+  display: grid; align-content: center; gap: 1px; min-height: 44px; padding: 4px 8px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); text-align: left; font-size: .9rem; line-height: 1.15; min-width: 0; overflow-wrap: anywhere; hyphens: auto;
+}
+.cm-node b { font-weight: 700; }
+.cm-node small { font-size: .75rem; color: var(--muted); }
+.cm-row > .cm-node { border-color: var(--rule); }
+.cm-row.sub > .cm-node { padding-inline: 6px; overflow-wrap: normal; font-size: .84rem; } /* „heterogen“ nie mitten im Wort trennen */
+.cm-node.on { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.cm-node.on small { color: inherit; opacity: .75; }
+button.cm-node:not(:disabled):hover { border-color: var(--text); }
+.cm-node.right { border-color: var(--ok); box-shadow: inset 0 0 0 1.5px var(--ok); }
+.cm-node.wrong { border-color: var(--signal); border-style: dashed; }
+
+/* ── Quiz ───────────────────────────────────────────────────────────────── */
+.q-item { margin: 0 0 6px; text-align: center; font-size: clamp(1.15rem, 5cqw, 1.5rem); font-weight: 800; }
+.q-beaker { height: clamp(110px, 30cqh, 220px); display: grid; }
+.q-body > .count-answer { display: grid; gap: 10px; justify-items: center; }
+.count-answer .rows { display: grid; gap: 6px; }
+.count-answer .ui-stepper { width: min(100%, 300px); }
+.hero-beaker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: 100%; }
+.hero-beaker i { height: 26px; border-radius: var(--radius-sm); border: 1.5px solid var(--text); }
+.hero-beaker .a { background: var(--hue-yellow); } .hero-beaker .b { background: var(--hue-blue-light); }
+.explain .ex-map { margin-top: 10px; }
+@media (max-height: 720px) { .mx-wb .ui-wb-head { display: none; } }
+.ex-beaker { height: 150px; margin-top: 10px; }
+.q-body > .map-answer { width: 100%; }
+
+/* niedrige Handys: nach der Antwort zählt die Rückmeldung – das Bild hat seinen Dienst getan (die Zähler zeigen weiter die Werte) */
+@media (max-height: 720px) {
+  .task-card.kind-count.answered .q-visual, .task-card.kind-mc.answered .q-visual { display: none; }
+}
+
+/* Quiz und Erklärkarte: Überschrift über den Kästchen, drei nebeneinander (passt aufs kleine Handy) */
+.map-answer .cm, .ex-map .cm { gap: 4px; }
+.map-answer .cm-row, .ex-map .cm-row, .map-answer .cm-row.sub, .ex-map .cm-row.sub { grid-template-columns: minmax(0, 1fr); gap: 3px; padding-left: 0; border-left: 0; }
+.map-answer .cm-row > .cm-node, .ex-map .cm-row > .cm-node {
+  min-height: 0; padding: 0; border: 0; background: none; color: var(--signal); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em;
+}
+.map-answer .cm-kids, .ex-map .cm-kids { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.map-answer .cm-kids .cm-node, .ex-map .cm-kids .cm-node { padding: 3px 6px; font-size: .86rem; }
+.ex-map .cm-kids .cm-node { min-height: 36px; }

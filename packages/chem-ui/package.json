@@ -1,0 +1,26 @@
+{
+  "name": "@lern/chem-ui",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Chemie-Darstellungen für React: Bohrmodell, Atomsymbol, Energieschema, Formel; 3D-Moleküle (three.js, eigener Einstieg @lern/chem-ui/3d)",
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css",
+    "./3d": "./src/Molecule3D.tsx"
+  },
+  "dependencies": {
+    "@lern/chem": "*",
+    "three": "^0.186.1"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0"
+  }
+}

@@ -1,0 +1,149 @@
+/* Chemie-Darstellungen (Bohrmodell, Atomsymbol, Energieschema) – Farben hell und dunkel */
+
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  /* Fachfarben aus der gemeinsamen Palette (tokens.css): Proton rot, Neutron hellgrau (auch bei Rot-Grün-Schwäche
+     über die Helligkeit vom Proton unterscheidbar), Elektron blau */
+  --proton: var(--hue-red);      --proton-hi: var(--hue-red);
+  --neutron: var(--hue-grey);    --neutron-hi: var(--hue-grey);
+  --electron: var(--hue-blue);   --electron-hi: var(--hue-blue);
+  --halo: transparent;
+  --o-s: var(--hue-red-deep); --o-p: var(--hue-blue-deep); --o-d: var(--hue-teal-deep); --o-f: var(--hue-orange-deep);
+  --c-alkali: var(--hue-violet-soft); --c-earth: var(--hue-teal-soft); --c-transition: var(--hue-blue-soft); --c-lanthanoid: var(--hue-mauve-soft);
+  --c-metal: var(--hue-grey-soft); --c-metalloid: var(--hue-orange-soft); --c-nonmetal: var(--hue-yellow-soft); --c-halogen: var(--hue-green-soft); --c-noble: var(--hue-red-soft);
+}
+:root, :root[data-theme="light"] { --ring: #cfcfcf; --trend-lo: #f4f4f4; --trend-hi: #111111; }
+:root[data-theme="dark"] { --ring: #3a3a3a; --trend-lo: #1d1d1d; --trend-hi: #f2f2f2; }
+
+.cat-alkali { background: var(--c-alkali); } .cat-earth { background: var(--c-earth); }
+.cat-transition { background: var(--c-transition); } .cat-lanthanoid { background: var(--c-lanthanoid); }
+.cat-metal { background: var(--c-metal); } .cat-metalloid { background: var(--c-metalloid); }
+.cat-nonmetal { background: var(--c-nonmetal); } .cat-halogen { background: var(--c-halogen); } .cat-noble { background: var(--c-noble); }
+.t-s { color: var(--o-s); } .t-p { color: var(--o-p); } .t-d { color: var(--o-d); } .t-f { color: var(--o-f); }
+.tone-proton { --tone: var(--proton); } .tone-neutron { --tone: var(--neutron); } .tone-electron { --tone: var(--electron); }
+
+/* ── Bohrmodell ─────────────────────────────────────────────────────────── */
+.bohr { width: 100%; height: 100%; display: block; overflow: visible; touch-action: none; }
+.bohr .ring { fill: none; stroke: var(--ring); stroke-width: .7; }
+.bohr .ring.ghost { stroke-dasharray: 1.5 3; }
+.bohr .ring-lbl { font-size: 7px; font-weight: 700; fill: var(--faint); font-family: var(--font); }
+.bohr .pt { stroke: rgba(0, 0, 0, .12); stroke-width: .4; }
+.bohr .nuc-txt { font-size: 8px; font-weight: 800; text-anchor: middle; fill: #fff; font-family: var(--font); }
+.bohr .nuc-empty { fill: none; stroke: var(--ring); stroke-dasharray: 2 2; }
+.bohr .el { filter: drop-shadow(0 .6px .8px rgba(0, 0, 0, .18)); }
+.bohr .el.orb-s { fill: var(--o-s); } .bohr .el.orb-p { fill: var(--o-p); } .bohr .el.orb-d { fill: var(--o-d); } .bohr .el.orb-f { fill: var(--o-f); }
+.bohr .grab { cursor: grab; }
+.bohr .shell-rot { transform-box: view-box; transform-origin: 0 0; }
+.bohr.spin .shell-rot { animation: spin 20s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Atomsymbol (Nuklidschreibweise) ────────────────────────────────────── */
+.nuclide { display: inline-grid; grid-template-columns: auto auto auto; grid-template-rows: auto auto; align-items: center; line-height: 1; font-variant-numeric: tabular-nums; column-gap: .07em; font-size: 2rem; }
+.nuclide.sm { font-size: 1.4rem; } .nuclide.lg { font-size: 2.9rem; } .nuclide.xl { font-size: 4.2rem; }
+.nu-a { grid-column: 1; grid-row: 1; justify-self: end; align-self: end; font-size: .4em; font-weight: 700; padding-bottom: .05em; }
+.nu-z { grid-column: 1; grid-row: 2; justify-self: end; align-self: start; font-size: .4em; font-weight: 600; color: var(--muted); padding-top: .05em; }
+.nu-sym { grid-column: 2; grid-row: 1 / 3; font-weight: 750; letter-spacing: -.03em; }
+.nu-q { grid-column: 3; grid-row: 1; align-self: end; font-size: .4em; font-weight: 700; color: var(--accent); min-width: .3em; padding-bottom: .05em; }
+.nuclide.empty .nu-sym { color: var(--faint); }
+
+/* ── Energieschema ──────────────────────────────────────────────────────── */
+.energy { display: flex; gap: 10px; padding: 6px 0; width: max-content; min-width: 100%; }
+.en-axis { writing-mode: vertical-rl; transform: rotate(180deg); font-size: .68rem; color: var(--faint); text-transform: uppercase; letter-spacing: .12em; border-left: 2px solid var(--border); display: flex; justify-content: center; }
+.en-grid { display: grid; row-gap: 6px; align-items: center; }
+.en-row { display: flex; align-items: center; gap: 8px; padding-left: calc(var(--n) * 18px); }
+.en-lbl { font-size: .78rem; font-weight: 700; color: var(--muted); min-width: 22px; text-align: right; }
+.en-boxes { display: flex; }
+.en-box { display: grid; place-items: center; width: 28px; height: 30px; margin-left: -1.5px; border: 1.5px solid var(--text); background: var(--surface); font-size: 15px; font-weight: 700; letter-spacing: -2px; padding: 0; line-height: 1; color: var(--text); }
+.en-boxes .en-box:first-child { border-radius: 6px 0 0 6px; } .en-boxes .en-box:last-child { border-radius: 0 6px 6px 0; }
+.en-boxes .en-box:only-child { border-radius: var(--radius-sm); }
+button.en-box { width: 38px; height: 40px; font-size: 18px; }
+button.en-box:hover:not(:disabled) { background: var(--accent-soft); }
+.en-boxes.orb-s .en-box { color: var(--o-s); } .en-boxes.orb-p .en-box { color: var(--o-p); }
+.en-boxes.orb-d .en-box { color: var(--o-d); } .en-boxes.orb-f .en-box { color: var(--o-f); }
+.formula sub { font-size: .62em; vertical-align: -.25em; line-height: 0; }
+
+/* ── 3D-Ansicht ─────────────────────────────────────────────────────────── */
+.m3d { position: relative; width: 100%; height: min(62vh, 520px); min-height: 300px; border-radius: var(--radius-md); overflow: hidden;
+  background: var(--surface-2); touch-action: none; cursor: grab; }
+/* Im Blatt: die 3D-Ansicht nimmt genau den Platz, den die Schalter übrig lassen – das Blatt scrollt nie */
+.ui-sheet:has(.m3d) .ui-sheet-inner { height: calc(100dvh - 48px); }
+.ui-sheet:has(.m3d) .ui-sheet-body { flex: 1 1 auto; min-height: 0; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden; }
+.ui-sheet .m3d { height: 100%; min-height: 200px; }
+@media (max-width: 899px) { .ui-sheet:has(.m3d) .ui-sheet-inner { height: 92dvh; } }
+.m3d:active { cursor: grabbing; }
+.m3d canvas { display: block; }
+.m3d-labels { position: absolute; inset: 0; }
+.m3d-label { font: 700 14px var(--font); pointer-events: none; user-select: none; }
+.m3d-label.sym { color: #fff; text-shadow: 0 0 3px rgba(0, 0, 0, .7); }
+.m3d-label.sym.light { color: #222; text-shadow: 0 0 3px rgba(255, 255, 255, .9); }
+.m3d-label.angle { color: #fff; background: var(--octet, #d0463b); padding: 2px 7px; border-radius: var(--radius-sm); font-size: 12.5px; }
+.m3d-label.delta { font-size: 15px; padding: 1px 5px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface) 85%, transparent); }
+.m3d-label.delta.plus { color: #b8452f; }
+.m3d-label.delta.minus { color: #2f5f8f; }
+.m3d-label.dipole { color: var(--accent); font-size: 12px; background: color-mix(in srgb, var(--surface) 85%, transparent); padding: 1px 6px; border-radius: var(--radius-sm); }
+
+/* ── Periodensystem ─────────────────────────────────────────────────────── */
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.lg-item { display: inline-flex; align-items: center; gap: 7px; padding: 5px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); font-size: .8rem; font-weight: 600; min-height: 44px; color: var(--muted); }
+.lg-item i { width: 12px; height: 12px; border-radius: 4px; }
+.lg-item[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+@media (max-width: 899px) {
+  .legend { flex-wrap: nowrap; overflow-x: auto; margin: 0 -20px; padding: 0 20px 4px; scrollbar-width: none; }
+  .legend::-webkit-scrollbar { display: none; }
+  .lg-item { flex: none; }
+}
+.pse { display: grid; gap: 4px; }
+.pse-us { grid-template-columns: 18px repeat(8, minmax(0, 1fr)); max-width: 640px; margin: 0 auto; }
+.pse-os { grid-template-columns: 18px repeat(18, minmax(36px, 1fr)); min-width: 730px; }
+.pse-head { font-size: .68rem; color: var(--faint); text-align: center; align-self: end; font-weight: 650; }
+.pse-per { align-self: center; }
+.pse-gap { height: 8px; grid-column: 1 / -1; }
+.pse-cell {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  aspect-ratio: 1 / 1.08; padding: 10px 2px 3px; border-radius: var(--radius-md); border: 0; color: var(--text); min-width: 0; overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .04); transition: opacity .2s, box-shadow .15s;
+}
+.pse-us .pse-cell { aspect-ratio: 1; border-radius: var(--radius-md); padding-top: 12px; }
+button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); z-index: 2; }
+.pc-z { position: absolute; top: 3px; left: 5px; font-size: .6rem; opacity: .7; font-variant-numeric: tabular-nums; font-weight: 600; }
+.pc-sym { font-weight: 750; font-size: 1.05rem; line-height: 1.1; }
+.pse-us .pc-sym { font-size: clamp(1rem, 4.4vw, 1.6rem); }
+.pc-name { font-size: .5rem; opacity: .75; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pse-us .pc-name { font-size: clamp(.5rem, 1.6vw, .7rem); }
+.pse-ph .pc-sym { font-size: .62rem; font-weight: 600; }
+.pse-cell.sel { box-shadow: 0 0 0 3px var(--signal); z-index: 1; }
+.pse-cell.dim { opacity: .2; }
+.pse-cell.hit { box-shadow: 0 0 0 2.5px var(--accent); }
+.pse-cell.right { box-shadow: 0 0 0 3px var(--ok); z-index: 2; }
+.pse-cell.wrong { box-shadow: none; outline: 3px dashed var(--bad); outline-offset: 1px; z-index: 2; }
+.pse-cell.right::after, .pse-cell.wrong::after { position: absolute; top: 2px; right: 4px; font-size: .7rem; font-weight: 800; }
+.pse-cell.right::after { content: "✓"; color: var(--ok); }
+.pse-cell.wrong::after { content: "✗"; color: var(--bad); }
+.pse-cell.trend { color: var(--text); }
+.pse-cell.trend.on-dark { color: var(--on-accent); }
+.pc-val { font-size: .56rem; font-weight: 650; opacity: .9; font-variant-numeric: tabular-nums; }
+.pse-cell:disabled { cursor: default; }
+@media (max-width: 1279px) { .pse-os .pc-name { display: none; } }
+/* Eingepasst: das ganze PSE ist immer sichtbar (Zellen skalieren mit dem Platz) */
+.pse-fit { container-type: size; width: 100%; height: 100%; display: grid; place-items: center; }
+.pse.fit { min-width: 0; margin: 0; }
+.pse-us.fit { width: min(100cqw, 196cqh, 680px); }
+.pse-os.fit { width: 100cqw; max-width: 1180px; grid-template-columns: 14px repeat(18, minmax(0, 1fr)); gap: 2px; }
+.pse-os.fit .pse-cell { aspect-ratio: auto; height: clamp(24px, calc((100cqh - 44px) / 7.3), 62px); padding: 9px 0 2px; border-radius: var(--radius-sm); }
+.pse-os.fit .pc-z { font-size: clamp(.42rem, 1.3cqw, .6rem); top: 2px; left: 2px; }
+.pse-os.fit .pc-sym { font-size: clamp(.6rem, 2.3cqw, 1.05rem); }
+.pse-os.fit .pse-ph .pc-sym { font-size: clamp(.4rem, 1.1cqw, .62rem); }
+.pse-os.fit .pse-head { font-size: clamp(.5rem, 1.4cqw, .68rem); }
+.pse-os.fit .pse-gap { height: 4px; }
+@container (max-width: 600px) { .pse-os.fit .pc-name, .pse-os.fit .pc-val { display: none; } .pse-os.fit .pc-z { display: none; } .pse-os.fit .pse-cell { padding: 0; } }
+@media (max-width: 420px) { .pse-us .pc-name { display: none; } }
+
+.pc-sub { font-size: .66rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pse-us .pc-sub { font-size: clamp(.62rem, 2vw, .82rem); }
+
+/* ── PSE als Hilfsmittel ────────────────────────────────────────────────── */
+.pse-help { display: grid; gap: 12px; }
+/* im Blatt: feste Höhe, das PSE passt sich ein – kein seitliches Scrollen */
+.ph-box { height: min(52vh, 460px); }
+.ph-box.us { height: min(40vh, 330px); }
+.ph-facts { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 10px 12px; border-left: 3px solid var(--signal); background: var(--surface-2); font-variant-numeric: tabular-nums; }
+.ph-name { font-size: 1.1rem; }

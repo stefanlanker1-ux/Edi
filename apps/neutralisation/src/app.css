@@ -1,0 +1,150 @@
+/* Neutralisation – Ionen-Bausteine wie in der Ionenbindung: Kationen gold, Säurereste grün, H⁺ und OH⁻ blau (werden zu Wasser) */
+
+/* Farben aus der gemeinsamen Palette (tokens.css): Kation gelb, Anion grün, H⁺/OH⁻ hellblau */
+:root, :root[data-theme="light"] {
+  --cat-tile-a: var(--hue-yellow); --cat-tile-b: var(--hue-yellow-deep); --cat-tile-border: #111111; --cat-tile-text: #111111;
+  --an-tile-a: var(--hue-green); --an-tile-b: var(--hue-green-deep); --an-tile-border: #111111; --an-tile-text: #111111;
+  --w-tile-a: var(--hue-blue-light); --w-tile-b: var(--hue-blue-deep); --w-tile-border: #111111; --w-tile-text: #111111;
+}
+:root[data-theme="dark"] {
+  --cat-tile-a: var(--hue-yellow); --cat-tile-b: var(--hue-yellow); --cat-tile-border: var(--hue-yellow); --cat-tile-text: #111111;
+  --an-tile-a: var(--hue-green); --an-tile-b: var(--hue-green); --an-tile-border: var(--hue-green); --an-tile-text: #111111;
+  --w-tile-a: var(--hue-blue-light); --w-tile-b: var(--hue-blue-light); --w-tile-border: var(--hue-blue-light); --w-tile-text: #111111;
+}
+.tone-base { --tone: var(--cat-tile-b); } .tone-acid { --tone: var(--an-tile-b); }
+
+/* ── Bausteine ──────────────────────────────────────────────────────────── */
+.nt {
+  display: grid; place-items: center; height: var(--h, 46px); min-width: 0; padding: 0 2px; overflow: hidden; white-space: nowrap;
+  border-radius: var(--radius-sm); border: 1.5px solid; font-weight: 800; line-height: 1;
+  /* Schrift: höchstens 38 % der Höhe, sonst so klein, dass die Beschriftung in die Breite passt */
+  font-size: min(calc(var(--h, 46px) * .38), calc((var(--w) * var(--u, 56px) + (var(--w) - 1) * var(--g, 5px)) / var(--len) * 1.5));
+}
+.nt-cat { background: var(--cat-tile-a); border-color: var(--cat-tile-border); color: var(--cat-tile-text); }
+.nt-an { background: var(--an-tile-a); border-color: var(--an-tile-border); color: var(--an-tile-text); }
+.nt-oh, .nt-h, .nt-water { background: var(--w-tile-a); border-color: var(--w-tile-border); color: var(--w-tile-text); }
+/* H⁺ und OH⁻ auch ohne Farbe unterscheidbar: OH⁻ mit durchgezogener, H⁺ mit gestrichelter Kante; Wasser doppelt */
+.nt-h { border-style: dashed; }
+.nt-water { border-width: 3px; border-style: double; }
+.ion-label { white-space: nowrap; }
+.ion-label sup { font-size: .62em; margin-left: .05em; }
+
+/* ── Neutralisationswand ────────────────────────────────────────────────── */
+.nw { display: grid; gap: 10px; justify-items: center; container-type: inline-size; width: 100%; }
+.nw-grid {
+  --g: 5px;
+  --u: min(72px, calc((100cqw - 10px - (var(--cols) - 1) * var(--g)) / var(--cols)));
+  --h: clamp(30px, calc(var(--u) * .78), 50px);
+  display: grid; grid-template-columns: repeat(var(--cols), var(--u)); grid-template-rows: auto auto 14px auto auto;
+  column-gap: var(--g); row-gap: 4px; justify-content: center; padding: 3px;
+}
+.nw.products .nw-grid { grid-template-rows: auto auto auto auto auto; animation: nw-in .35s ease-out; }
+@keyframes nw-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.nw-unit {
+  display: grid; grid-template-columns: repeat(var(--w), var(--u)); column-gap: var(--g); row-gap: 4px;
+  padding: 0; border: 0; background: none; color: inherit; font: inherit; border-radius: var(--radius-sm);
+  outline: 1.5px dashed color-mix(in srgb, var(--text) 28%, transparent); outline-offset: 2px;
+}
+button.nw-unit { cursor: pointer; transition: transform .12s; }
+button.nw-unit:hover { transform: translateY(-2px); }
+.nw-unit > .nt { grid-column: 1 / -1; }
+.nw-sub { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(var(--w), var(--u)); column-gap: var(--g); }
+.nw-sub > span, .nw-cell { display: grid; }
+.nw-gap { height: var(--h); border: 2px dashed var(--faint); border-radius: var(--radius-sm); opacity: .7; }
+.nw-link { justify-self: center; width: 3px; height: 100%; border-radius: 2px; background: var(--border); }
+.nw-link.on { background: var(--w-tile-b); }
+.nw-tag { justify-self: center; font-size: .8rem; font-weight: 700; color: var(--muted); padding: 2px 0 4px; }
+.nw-result { display: grid; gap: 4px; justify-items: center; text-align: center; }
+.nw-eq { margin: 0; display: flex; align-items: center; justify-content: center; column-gap: 0; row-gap: 2px; flex-wrap: wrap; font-size: clamp(1.05rem, 5cqw, 1.7rem); font-weight: 800; letter-spacing: -.01em; white-space: pre; }
+.nw-term { white-space: nowrap; }
+.nw-balance { margin: 0; color: var(--muted); font-size: .9rem; font-variant-numeric: tabular-nums; white-space: pre-wrap; }
+.nw-balance.ok { color: var(--ok); font-weight: 650; }
+.nw-name { margin: 0; color: var(--muted); font-weight: 650; }
+
+/* ── Werkbank ───────────────────────────────────────────────────────────── */
+.nw-wb .ui-wb-view { overflow: hidden; }
+.nw-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.nw-controls .ui-stepper.compact { grid-template-columns: minmax(0, 1fr); justify-items: center; }
+.nw-controls .ui-stepper-ctl { grid-template-columns: 44px minmax(32px, 52px) 44px; }
+.nw-go {
+  display: grid; justify-items: center; align-content: center; gap: 2px; min-width: 64px; min-height: 58px; padding: 6px 8px;
+  border-radius: var(--radius-md); border: 1.5px solid var(--accent); background: var(--accent); color: var(--on-accent); font-weight: 750; font-size: .78rem;
+}
+.nw-go:disabled { background: transparent; color: var(--text); opacity: .35; }
+.nw-go.on { background: transparent; color: var(--text); }
+/* schmal: Zähler nebeneinander, „Reaktion“ als ganze Zeile darunter */
+@media (max-width: 559px) {
+  .nw-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 6px 8px; }
+  .nw-go { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font-size: .9rem; }
+}
+
+/* Lauge wählen */
+.ip-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.ip-chip {
+  display: grid; justify-items: start; gap: 1px; min-width: 96px; min-height: 48px; padding: 6px 12px; text-align: left;
+  border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface); transition: transform .1s;
+}
+.ip-chip b { font-size: 1.05rem; font-weight: 800; }
+.ip-chip span { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.ip-chip:active { transform: scale(.96); }
+.ip-chip.on { background: var(--cat-tile-a); border-color: var(--cat-tile-border); color: var(--cat-tile-text); }
+.ip-chip.on span { color: inherit; }
+
+/* Säuretabelle */
+.acid-table { display: grid; gap: 6px; }
+/* Gruppenname senkrecht links wie in der Tabelle im Buch – spart Höhe */
+.at-group { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 6px; }
+.at-group h3 { margin: 0; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--signal); border-right: 2px solid var(--signal); padding-left: 2px; white-space: nowrap; overflow: hidden; }
+.at-group ul { list-style: none; margin: 0; padding: 0; display: grid; }
+.at-row { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.3fr); gap: 4px; padding: 1px 0; border-bottom: 1px solid var(--border); }
+.at-acid, .at-rest { border: 1.5px solid transparent; border-radius: var(--radius-sm); background: none; color: inherit; font: inherit; text-align: left; }
+.at-acid { display: flex; align-items: baseline; gap: 0 8px; min-height: 44px; padding: 1px 8px; flex-wrap: wrap; align-content: center; line-height: 1.2; }
+.at-acid b { min-width: 3.6em; }
+button.at-acid, button.at-rest { cursor: pointer; }
+.at-acid b { font-size: 1.02rem; font-weight: 800; }
+.at-acid span { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.at-row.on .at-acid { border-color: var(--accent); }
+/* Säurereste als kleine Kärtchen (Formel über Name), mehrere nebeneinander, wenn Platz ist */
+.at-rests { display: flex; flex-wrap: wrap; align-content: center; gap: 2px 4px; }
+.at-rest { display: grid; align-content: center; gap: 0; padding: 2px 8px; min-width: 0; }
+button.at-rest { min-height: 44px; }
+.at-rest b { font-weight: 800; line-height: 1.2; }
+.at-rest span { font-size: .74rem; color: var(--muted); font-weight: 600; line-height: 1.2; }
+.at-rest.on { background: var(--an-tile-a); border-color: var(--an-tile-border); color: var(--an-tile-text); }
+.at-rest.on span { color: inherit; }
+.at-row.hit { outline: 2px solid var(--signal); outline-offset: -1px; border-radius: var(--radius-sm); }
+
+/* Zerfall in Ionen */
+.unit-sheet { display: grid; gap: 14px; justify-items: center; }
+.us-tiles { --u: 56px; --h: 44px; --g: 5px; display: grid; grid-template-columns: repeat(var(--w), var(--u)); column-gap: var(--g); row-gap: 4px; }
+.us-tiles > .nt { grid-column: 1 / -1; }
+.us-eq { margin: 0; font-size: 1.25rem; font-weight: 800; }
+.us-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; width: 100%; }
+.us-steps li { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.us-steps li.on .us-eq { color: var(--signal); }
+.us-tags { justify-content: center; }
+
+/* ── Quiz ───────────────────────────────────────────────────────────────── */
+.answer-nw { display: grid; gap: 12px; }
+/* im Quiz steht die Gleichung in der Rückmeldung – unter der Wand nur die Bilanz OH⁻ / H⁺ */
+.answer-nw .nw-eq, .answer-nw .nw-name { display: none; }
+/* nach der Antwort hat die Rückmeldung Vorrang: Wand flacher, Verbindungsreihe schmal */
+.task-card.answered .answer-nw { gap: 4px; }
+.task-card.answered .answer-nw .nw-grid { --h: clamp(22px, calc(var(--u) * .5), 30px); row-gap: 2px; grid-template-rows: auto auto 6px auto auto; }
+.task-card.answered .answer-nw .nw-balance { font-size: .82rem; }
+@media (max-height: 720px) { .task-card.answered .answer-nw .nw-grid { display: none; } }
+.hero-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: 100%; }
+.hero-tiles i { height: 18px; border-radius: var(--radius-sm); border: 1.5px solid; }
+.hero-tiles .c { grid-column: span 2; background: var(--cat-tile-a); border-color: var(--cat-tile-border); }
+.hero-tiles .w { background: var(--w-tile-a); border-color: var(--w-tile-border); }
+.hero-tiles .a { grid-column: span 2; background: var(--an-tile-a); border-color: var(--an-tile-border); }
+.ex-example .nw { max-width: 440px; }
+.q-eq { font-size: clamp(1.1rem, 5.5cqw, 1.8rem); font-weight: 800; text-align: center; container-type: inline-size; width: 100%; }
+@media (max-height: 720px) {
+  .q-body .nw-grid { --h: clamp(24px, calc(var(--u) * .6), 34px); row-gap: 3px; grid-template-rows: auto auto 8px auto auto; }
+  .q-body .nw { gap: 4px; }
+  .q-body .nw-eq { font-size: 1rem; }
+  .q-body .answer-nw { gap: 8px; }
+}
+/* breit: Säuretabelle als Register neben der Bühne – weniger Rand, damit sie ganz sichtbar ist */
+.ui-wb-side .ui-panel-body:has(.acid-table) { padding-top: 10px; padding-bottom: 10px; }

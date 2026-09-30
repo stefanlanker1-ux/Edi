@@ -1,0 +1,117 @@
+/* Design-Tokens im Swiss Style: Weiß, Schwarz, ein Rot. Klare Linien statt Schatten, ruhige Flächen.
+   Apps überschreiben bei Bedarf nur einzelne Variablen. */
+
+:root, :root[data-theme="light"] {
+  --font: "Inter Variable", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --bg: #ffffff;
+  --bg-glow: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f4f4f4;
+  --surface-3: #e6e6e6;
+  --border: #dcdcdc;
+  --rule: #111111;          /* kräftige Linie (Überschriften, aktive Elemente) */
+  --text: #111111;
+  --muted: #5c5c5c;
+  --faint: #6e6e6e;
+
+  --accent: #111111;        /* Auswahl, Hauptknöpfe: Schwarz */
+  --accent-2: #000000;
+  --accent-soft: #f0f0f0;
+  --on-accent: #ffffff;
+  --signal: #e30613;        /* Schweizer Rot: Auszeichnung, aktive Markierung – sparsam */
+  --sun: #e30613;           /* Sterne */
+
+  --ok: #1a7f37;   --ok-soft: #eaf5ec;
+  --bad: #c8102e;  --bad-soft: #fcebed;
+  --warn: #111111; --warn-soft: #f4f4f4;
+  --info-soft: #f4f4f4;
+
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, .35);
+  --radius: 4px;
+  --radius-md: 4px;
+  --radius-sm: 3px;
+  --top-h: 60px;
+  --bottom-h: 66px;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d0d0d;
+  --bg-glow: #0d0d0d;
+  --surface: #141414;
+  --surface-2: #1d1d1d;
+  --surface-3: #2a2a2a;
+  --border: #2e2e2e;
+  --rule: #f2f2f2;
+  --text: #f2f2f2;
+  --muted: #a8a8a8;
+  --faint: #8c8c8c;
+
+  --accent: #f2f2f2;
+  --accent-2: #ffffff;
+  --accent-soft: #232323;
+  --on-accent: #0d0d0d;
+  --signal: #ff3b3b;
+  --sun: #ff3b3b;
+
+  --ok: #5fcf7e;   --ok-soft: #14261a;
+  --bad: #ff6b6b;  --bad-soft: #2c1414;
+  --warn: #f2f2f2; --warn-soft: #1d1d1d;
+  --info-soft: #1d1d1d;
+
+  --shadow-sm: none;
+  --shadow: none;
+  --shadow-lg: 0 24px 60px -12px rgba(0, 0, 0, .7);
+  color-scheme: dark;
+}
+
+/* Beamer-Modus: alles etwas größer, stärkere Kontraste (für Projektion im Klassenzimmer) */
+:root[data-beamer] body { zoom: 1.2; min-height: calc(100dvh / 1.2); }
+/* schmaler Beamer (1024 × 768): etwas weniger vergrößern, sonst passt die Kopfzeile nicht */
+@media (max-width: 1199px) { :root[data-beamer] body { zoom: 1.1; min-height: calc(100dvh / 1.1); } }
+:root[data-beamer][data-theme="light"] { --text: #000000; --muted: #333333; --faint: #6a6a6a; --border: #b8b8b8; --surface-3: #d6d6d6; }
+:root[data-beamer][data-theme="dark"] { --text: #ffffff; --muted: #d6d6d6; --faint: #a0a0a0; --border: #4a4a4a; }
+
+/* „Lesbar“ (Legasthenie-Option, Schalter in der Kopfzeile): mehr Abstand zwischen Buchstaben, Wörtern und Zeilen,
+   Text linksbündig statt zentriert – keine andere Schrift, damit Zeichnungen und Formeln gleich bleiben. */
+:root[data-lesbar] body { letter-spacing: .04em; word-spacing: .12em; line-height: 1.65; }
+/* Überschriften behalten ihre eigene Zeilenhöhe und Laufweite (kurz, groß – sonst brechen Kacheltitel um) */
+:root[data-lesbar] p, :root[data-lesbar] li { text-align: left; }
+:root[data-lesbar] code { letter-spacing: .02em; }
+
+/* ── Fachfarben: eine gemeinsame Palette für alle Apps ─────────────────────────────────────────────
+   8 Farbfamilien, dezent kräftig und aufeinander abgestimmt (nicht grell). Je Familie: Grundton (Kugeln, Punkte,
+   Bausteine), -soft (Flächen, PSE-Gruppen), -deep (Schrift, Linien). Das Signalrot bleibt nur der Oberfläche vorbehalten.
+   Zuordnung: Rot = Proton, O, H⁺ · Blau = Elektron, N, OH⁻/Wasser · Gelb = Kation, S · Grün = Anion, Cl · Grau = Neutron ·
+   Violett = Alkalimetalle · Grünblau = Erdalkalimetalle · Orange = P, Halbmetalle. */
+:root, :root[data-theme="light"] {
+  --hue-red: #dd5444;    --hue-red-soft: #f7d6d0;    --hue-red-deep: #b23f31;
+  --hue-blue: #4a78bf;   --hue-blue-soft: #d8e3f4;   --hue-blue-deep: #2f5ea6;   --hue-blue-light: #9fbde6;
+  --hue-yellow: #edc242; --hue-yellow-soft: #f8eabb; --hue-yellow-deep: #94731a;
+  --hue-green: #7fb55a;  --hue-green-soft: #ddedcc;  --hue-green-deep: #4f8a33;
+  --hue-grey: #b5b1aa;   --hue-grey-soft: #e8e6e2;   --hue-grey-deep: #6f6b64;
+  --hue-violet: #9a82d0; --hue-violet-soft: #e6ddf5; --hue-violet-deep: #6a55a6;
+  --hue-teal: #52a592;   --hue-teal-soft: #d3ece5;   --hue-teal-deep: #2f7a68;
+  --hue-orange: #ea9146; --hue-orange-soft: #f9ddc6; --hue-orange-deep: #b0621f;
+  --hue-mauve-soft: #efdce9;
+}
+:root[data-theme="dark"] {
+  --hue-red: #e8705f;    --hue-red-soft: #3f2420;    --hue-red-deep: #f09a8e;
+  --hue-blue: #6e98d6;   --hue-blue-soft: #1f2a3c;   --hue-blue-deep: #9dbbe8;   --hue-blue-light: #9fbde6;
+  --hue-yellow: #edc242; --hue-yellow-soft: #3b321c; --hue-yellow-deep: #edc242;
+  --hue-green: #93c872;  --hue-green-soft: #25321c;  --hue-green-deep: #a5d386;
+  --hue-grey: #c2beb7;   --hue-grey-soft: #2b2a28;   --hue-grey-deep: #c2beb7;
+  --hue-violet: #ad98dc; --hue-violet-soft: #2c263d; --hue-violet-deep: #c3b3ea;
+  --hue-teal: #6cbaa7;   --hue-teal-soft: #1b322c;   --hue-teal-deep: #8ccbbb;
+  --hue-orange: #f0a35f; --hue-orange-soft: #3b2a1c; --hue-orange-deep: #f5b67e;
+  --hue-mauve-soft: #362a33;
+}
+/* Beamer (helles Klassenzimmer): Grundtöne satter, damit nichts verwäscht */
+:root[data-beamer]:not([data-theme="dark"]) {
+  --hue-red: #cc3f2e; --hue-blue: #2f63b3; --hue-yellow: #e2af1c; --hue-green: #5e9e3a;
+  --hue-grey: #a19c94; --hue-violet: #7c5fc4; --hue-teal: #2f8c77; --hue-orange: #dd7a26;
+}

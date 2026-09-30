@@ -1,0 +1,25 @@
+{
+  "name": "edi",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/atombau",
+    "dev:ionen": "npm run dev -w apps/ionenbindung",
+    "dev:paar": "npm run dev -w apps/elektronenpaarbindung",
+    "dev:einheiten": "npm run dev -w apps/einheiten",
+    "dev:saeuren": "npm run dev -w apps/saeuren-basen",
+    "dev:stoffmenge": "npm run dev -w apps/stoffmenge",
+    "dev:neutral": "npm run dev -w apps/neutralisation",
+    "dev:reinstoffe": "npm run dev -w apps/reinstoffe",
+    "dev:start": "npm run dev -w apps/start",
+    "build": "npm run build --workspaces --if-present",
+    "site": "npm run build && node scripts/assemble-site.mjs",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

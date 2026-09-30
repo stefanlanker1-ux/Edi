@@ -1,0 +1,94 @@
+/* Reaktionsgleichungen – Teilchenbild (Moleküle in zwei Kästen), Atombilanz und Gleichung mit Zählern */
+
+:root, :root[data-theme="light"] {
+  --ab-left: #111111;      /* Atome links: gefüllt */
+  --ab-right: #ffffff;     /* Atome rechts: umrandet */
+}
+:root[data-theme="dark"] { --ab-left: #f2f2f2; --ab-right: #111111; }
+
+/* ── Gleichung: immer eine Zeile, Schrift passt sich an (Fit-Text); Stoff antippen = Zahl wählen ───── */
+.eq-fit { width: 100%; min-width: 0; display: flex; justify-content: safe center; overflow: hidden; }
+/* in der Karte (Start/Üben) bis an den Kartenrand – nur dort, wo nichts darüber abschneidet */
+.rg-controls .eq-fit { width: calc(100% + 28px); margin-inline: -14px; }
+.eq-row { flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: .1em; white-space: nowrap; line-height: 1.1; }
+.eq-part { display: inline-flex; align-items: center; gap: .1em; }
+.eq-op { font-weight: 700; padding: 0 .06em; }
+.eq-term { display: inline-flex; align-items: center; gap: .18em; white-space: nowrap; font: inherit; color: var(--text); }
+.eq-formula { font-weight: 800; }
+.eq-num { font-weight: 800; color: var(--signal); font-variant-numeric: tabular-nums; }
+button.eq-term {
+  min-height: 44px; min-width: 44px; padding: 0 .08em; border: 0; background: none; border-radius: var(--radius-sm); cursor: pointer; touch-action: manipulation;
+}
+button.eq-term .eq-num {
+  display: inline-grid; place-items: center; min-width: 1.55em; height: 1.6em; padding: 0 .15em; box-sizing: border-box;
+  border: 1.5px solid var(--text); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+}
+button.eq-term .eq-num.one { border-style: dashed; color: var(--muted); }
+button.eq-term:hover .eq-num, button.eq-term:focus-visible .eq-num { border-color: var(--signal); }
+button.eq-term:active { transform: scale(.96); }
+.fit-line { flex: none; white-space: nowrap; font-weight: 700; font-variant-numeric: tabular-nums; }
+.fit-line.q-eq { margin: 0 0 8px; }
+.fit-line.mc-eq { font-weight: 600; }
+.mc-own .eq-fit { justify-content: flex-start; }
+.eq-pick { display: grid; grid-template-columns: repeat(6, minmax(44px, 1fr)); gap: 6px; }
+.eq-pick button {
+  height: 48px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.eq-pick button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+/* ── Start und Üben: eine Karte, kein Werkzeugbereich ─────────────────────────────── */
+.rg-wb { grid-template-columns: minmax(0, 1fr) !important; max-width: 920px; margin: 0 auto; width: 100%; }
+.rg-wb .ui-wb-stage { padding-bottom: 14px; }
+.rg-wb .ui-wb-view { overflow: hidden; }
+.rg-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; width: 100%; }
+.rg-title { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.rg-steps { display: flex; gap: 6px; }
+.rg-niveau { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--muted); }
+.rg-steps button {
+  width: 44px; height: 44px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  font-weight: 800; font-size: 1.05rem;
+}
+.rg-steps button.on { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
+.rg-steps button.done:not(.on) { color: var(--ok); border-color: var(--ok); }
+.rg-controls { display: grid; gap: 12px; }
+.rg-actions { display: flex; justify-content: center; gap: 8px; }
+.rg-actions .ui-btn-primary { min-width: 150px; }
+
+/* ── Quiz ───────────────────────────────────────────────────────────────── */
+.q-eq { margin: 0 0 8px; text-align: center; font-size: clamp(1.1rem, 4.5cqw, 1.6rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; }
+.bal-answer { display: grid; gap: 14px; justify-items: center; }
+.hero-scale { display: block; width: 100%; height: auto; overflow: visible; }
+.explain .ex-example { margin: 12px 0 0; display: grid; gap: 10px; }
+
+/* ── Teilchenbild: Atome flach (Kalottenmodell) ─────────────────────────────────────────
+   Farbfamilien nach der CPK-Konvention, aus der gemeinsamen Palette (tokens.css): H weiß, C schwarz, N blau, O rot, Cl grün,
+   S gelb, P orange, Alkalimetalle violett, Erdalkalimetalle grünblau; übrige Metalle in passenden Erdtönen.
+   Rand = Atomfarbe, etwas dunkler (dunkel: heller). */
+:root, :root[data-theme="light"] {
+  --atom-edge: #000000; --atom-H: #f5f4f0; --atom-C: #3a3a3a;
+}
+:root, :root[data-theme="light"], :root[data-theme="dark"] {
+  --atom-N: var(--hue-blue); --atom-O: var(--hue-red); --atom-Cl: var(--hue-green); --atom-S: var(--hue-yellow); --atom-P: var(--hue-orange);
+  --atom-Na: var(--hue-violet); --atom-K: var(--hue-violet-deep); --atom-Ca: var(--hue-teal); --atom-Mg: #8fc9b9;
+  --atom-Ba: var(--hue-teal-deep); --atom-F: #b6bc4e; --atom-I: #83569e;
+  --atom-Al: #bcaca7; --atom-Fe: #c9683a; --atom-Cu: #c47f47; --atom-Zn: #8a95b5; --atom-Ag: #c9ccd2; --atom-Hg: #aab0c4;
+  --atom-Pb: #71747d; --atom-Mn: #b86b98; --atom-Cr: #8699c2;
+}
+/* dunkel: heller Rand und etwas helleres C, damit alles auf dunklem Grund sichtbar bleibt */
+:root[data-theme="dark"] { --atom-edge: #ffffff; --atom-C: #4a4a4a; --atom-H: #ecebe6; --atom-K: #8f76c9; --atom-Ba: #4f998c; }
+.ms-wrap { width: 100%; height: 100%; min-height: 0; min-width: 0; overflow: hidden; }
+.ms { display: block; width: 100%; height: 100%; max-height: 100%; }
+.atom { stroke-width: .04; }
+.ms-box { fill: var(--surface); stroke: var(--text); stroke-width: .08; }
+.ms-box.ok { stroke: var(--ok); stroke-width: .16; }
+.ms-box.bad { stroke: var(--signal); stroke-width: .16; stroke-dasharray: .35 .25; }
+.ms-arrow { fill: var(--text); }
+.q-body > .bal-answer { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(60px, 1fr) auto auto; width: 100%; }
+.bal-scene { min-height: 0; height: 100%; width: 100%; display: grid; }
+.ex-scene { height: clamp(90px, 17vh, 150px); }
+/* niedrige Handys: Titel kleiner, Platz für das Teilchenbild */
+@media (max-height: 720px) { .rg-title { font-size: .95rem; } .rg-wb .ui-wb-stage { gap: 8px; } }
+
+/* ohne Teilchenbild (Salze, Metalle): Wortgleichung */
+.rg-words { margin: auto; max-width: 30em; text-align: center; color: var(--muted); font-weight: 600; font-size: clamp(.95rem, 3.6cqw, 1.2rem); line-height: 1.35; text-wrap: balance; }

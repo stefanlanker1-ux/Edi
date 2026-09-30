@@ -1,0 +1,11 @@
+node_modules/
+dist/
+dist-single/
+*.tsbuildinfo
+.DS_Store
+site/
+shots/
+
+# native Projekte (Capacitor) werden bei Bedarf mit "npx cap add" erzeugt
+apps/*/android/
+apps/*/ios/

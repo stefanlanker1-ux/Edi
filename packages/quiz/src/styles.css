@@ -1,0 +1,272 @@
+/* Quiz-Grundgerüst: Menü, Aufgaben, Rückmeldung, Auswertung, Erklärkarten */
+
+/* ── Quiz ───────────────────────────────────────────────────────────────── */
+.quiz-wrap { max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.quiz-hero { display: flex; align-items: center; gap: 16px; border-top: 4px solid var(--rule); }
+.quiz-hero h2 { font-size: 1.7rem; font-weight: 800; letter-spacing: -.03em; margin-bottom: 6px; }
+.quiz-hero p { margin: 0; color: var(--muted); }
+.hero-atom { width: 104px; flex: none; margin-left: auto; }
+.resume { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 16px 18px; border-radius: var(--radius-md); border: 0; background: var(--accent); color: var(--on-accent); font-size: .98rem; font-weight: 650; }
+.resume span { flex: 1; }
+.level-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.level-card { display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); transition: border-color .15s; }
+.level-card:hover { border-color: var(--rule); }
+.level-card:hover .lv-play { color: var(--signal); }
+.lv-num { display: grid; place-items: center; width: 46px; height: 46px; border-radius: var(--radius-md); background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 1.2rem; flex: none; }
+.lv-body { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.lv-name { font-weight: 750; font-size: 1.05rem; overflow-wrap: anywhere; }
+.lv-desc { color: var(--muted); font-size: .88rem; }
+.lv-stats { color: var(--signal); font-size: .78rem; font-weight: 700; margin-top: 2px; }
+.lv-meta { display: grid; justify-items: end; gap: 6px; flex: none; }
+.lv-play { color: var(--faint); }
+@media (max-width: 599px) {
+  .quiz-hero { display: none; }
+  .level-list { gap: 8px; }
+  .level-card { padding: 10px 12px; gap: 12px; }
+  .lv-desc { font-size: .8rem; }
+  .lv-num { width: 38px; height: 38px; font-size: 1.05rem; }
+  .resume { padding: 12px 14px; }
+}
+.quiz-top { display: flex; align-items: center; gap: 12px; }
+.q-prog { flex: 1; min-width: 0; }
+.q-prog-lbl { display: flex; justify-content: space-between; gap: 8px; font-size: .8rem; color: var(--muted); margin-bottom: 6px; font-weight: 650; }
+.q-prog-lbl span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-prog-lbl span:last-child { white-space: nowrap; }
+.q-score { font-weight: 800; font-size: 1.25rem; font-variant-numeric: tabular-nums; }
+.q-score small { font-size: .7rem; color: var(--muted); margin-left: 2px; font-weight: 650; }
+.q-streak { display: flex; align-items: center; gap: 2px; font-weight: 800; color: var(--faint); }
+.q-streak.hot { color: var(--signal); }
+/* Übungen: eine Aufgabe = ein Bildschirm (nie scrollen) */
+.quiz-play { grid-template-rows: auto minmax(0, 1fr); gap: 12px; }
+.task-card, .intro-card { display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden; }
+.q-body { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.q-prompt, .fb-exp { hyphens: auto; }
+.q-body > * { flex: none; }
+.q-body > .q-visual { flex: 1 1 0; min-height: 72px; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.q-visual .ui-fit-inner { display: grid; justify-items: center; }
+.intro-body { flex: 1 1 0; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.q-prompt { font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; flex: none; }
+.q-prompt code, .fb-exp code, .rv-e code { background: var(--surface-2); padding: 1px 6px; border-radius: var(--radius-sm); }
+.q-bohr { width: min(240px, 64vw); aspect-ratio: 1; }
+.mc-grid { display: grid; gap: 8px; }
+.mc-grid:not(.one) { grid-template-columns: 1fr 1fr; }
+.mc-btn { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 52px; padding: 8px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface); font-weight: 600; font-size: 1.02rem; min-width: 0; hyphens: auto; overflow-wrap: break-word; transition: border-color .15s, background .15s, transform .1s; }
+.mc-btn:hover:not(:disabled) { border-color: var(--rule); }
+.mc-btn:active:not(:disabled) { transform: translateY(1px); }
+.mc-btn .mono { font-family: var(--mono); font-size: .95rem; }
+.mc-btn .mc-own { flex: 1 1 0; min-width: 0; }
+.mc-btn > span:not(.mc-key) { min-width: 0; overflow-wrap: anywhere; } /* sehr lange Namen (Magnesiumdihydrogenphosphat) brechen statt überzustehen */
+.mc-key { display: grid; place-items: center; width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--muted); font-size: .8rem; flex: none; }
+.mc-btn.right { border-color: var(--ok); background: var(--ok-soft); }
+.mc-btn.right .mc-key { background: var(--ok); color: #fff; }
+.mc-btn.wrong { border-color: var(--bad); border-style: dashed; background: var(--bad-soft); }
+.mc-btn.wrong .mc-key { background: var(--bad); color: #fff; }
+.mc-btn:disabled { cursor: default; color: var(--text); }
+.mc-btn.faded { display: none; }
+.answer-form { display: grid; gap: 10px; }
+.num-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
+.num-field { display: grid; gap: 6px; }
+.num-field > span { font-size: .86rem; font-weight: 650; color: var(--muted); }
+.num-field input, .num-field select { width: 100%; min-height: 48px; padding: 8px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface-2); font-size: 1.25rem; font-weight: 750; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+.num-field input::-webkit-inner-spin-button, .num-field input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.num-field input:focus, .num-field select:focus { border-color: var(--accent); outline: none; background: var(--surface); }
+.num-field .right { border-color: var(--ok); background: var(--ok-soft); color: var(--text); }
+.num-field .wrong { border-color: var(--bad); border-style: dashed; background: var(--bad-soft); color: var(--text); }
+.num-field .mark { font-weight: 800; }
+.num-field .mark.right { color: var(--ok); } .num-field .mark.wrong { color: var(--bad); }
+.check-btn { justify-self: end; }
+.q-body > .answer-build { flex: 2 1 0; min-height: 120px; }
+.answer-build { display: flex; flex-direction: column; gap: 10px; }
+.ab-atom-box { flex: 1 1 0; min-height: 60px; container-type: size; display: grid; place-items: center; }
+.ab-atom { position: relative; width: min(100cqw, 100cqh, 260px); aspect-ratio: 1; }
+.ab-nuc { position: absolute; right: -10px; bottom: -6px; background: var(--surface); border-radius: var(--radius-md); padding: 4px 10px; border: 1px solid var(--border); }
+.ab-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; flex: none; }
+.ab-controls .check-btn { grid-column: 1 / -1; justify-self: stretch; }
+.answer-boxes { display: flex; flex-direction: column; gap: 10px; }
+.q-body > .answer-boxes, .q-body > .answer-fill { flex: 2 1 0; min-height: 140px; }
+.answer-fill { flex: 1 1 0; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
+.answer-boxes > .answer-fill { min-height: 100px; }
+.box-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .92rem; }
+.q-hint { display: flex; gap: 10px; padding: 8px 12px; border-radius: var(--radius-md); background: var(--warn-soft); font-size: .95rem; }
+.q-hint .ic { color: var(--signal); }
+.q-feedback { border-radius: var(--radius-md); padding: 10px 14px; animation: pop .3s ease-out; }
+.q-feedback.ok { background: var(--ok-soft); }
+.q-feedback.bad { background: var(--bad-soft); }
+.fb-head { display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+.q-feedback.ok .fb-head .ic { color: var(--ok); } .q-feedback.bad .fb-head .ic { color: var(--bad); }
+.fb-pts { margin-left: auto; font-weight: 800; color: var(--ok); }
+.fb-sol { margin-top: 4px; font-weight: 650; }
+.fb-sol > span { color: var(--muted); font-weight: 500; }
+.fb-exp { margin: 4px 0 0; line-height: 1.4; font-size: .95rem; }
+/* Fehlvorstellung hinter der gewählten Option – vor der Erklärung, mit Glühbirne statt nur Farbe; nach einem Treffer der Bestätigungssatz */
+.fb-why { display: flex; gap: 8px; margin: 6px 0 0; padding: 4px 0 4px 10px; border-left: 2px solid var(--signal); line-height: 1.4; font-size: .95rem; font-weight: 600; }
+.fb-why .ic { color: var(--signal); flex: none; margin-top: 2px; }
+.fb-why.ok { border-color: var(--ok); font-weight: 500; color: var(--muted); }
+.fb-why.ok .ic { color: var(--ok); }
+.q-stones h3 .ic { color: var(--signal); }
+.res-stone { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; color: var(--signal); font-weight: 700; font-size: .92rem; }
+.res-stone .ic { flex: none; }
+.q-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex: none; }
+.q-help { display: flex; gap: 2px; min-width: 0; flex: 1 1 auto; }
+@media (max-width: 599px) {
+  .q-help .ui-btn { flex-direction: column; gap: 1px; min-height: 52px; padding: 4px 6px; font-size: .7rem; min-width: 48px; }
+  .q-actions .ui-btn-primary { min-width: 0; padding-inline: 16px; }
+}
+.intro-card h2 { display: flex; align-items: center; gap: 10px; font-size: 1.25rem; }
+.intro-card h2 .ic { color: var(--signal); }
+.explain { display: grid; gap: 16px; }
+.ex-points { margin: 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.5; }
+.ex-points li::marker { color: var(--signal); }
+.ex-points code { background: var(--surface-2); padding: 1px 6px; border-radius: var(--radius-sm); }
+.ex-example { margin: 0; display: grid; gap: 10px; justify-items: center; padding: 16px; border-radius: var(--radius-md); background: var(--surface-2); }
+.ex-visual { display: grid; place-items: center; max-width: 100%; }
+.ex-bohr { width: 180px; aspect-ratio: 1; }
+.ex-example figcaption { font-size: .9rem; color: var(--muted); text-align: center; }
+.q-actions .ui-btn-primary { margin-left: auto; min-width: 140px; flex: none; }
+/* Handy: „Weiter“ darf schmaler werden, sonst überdeckt es bei vier Hilfsmitteln die letzte Beschriftung (Einheiten, 375 px) */
+@media (max-width: 599px) {
+  .q-actions .ui-btn.ui-btn-primary { min-width: 0; padding-inline: 14px; }
+  .q-help:has(> :nth-child(4)) .ui-btn { min-width: 44px; padding-inline: 3px; }
+}
+@keyframes pop { from { transform: scale(.97); opacity: 0; } }
+.result-card { text-align: center; display: grid; gap: 8px; justify-items: center; padding: 32px 18px; }
+.big-stars .ui-star.on { animation: pop .45s ease-out backwards; }
+.big-stars .ui-star:nth-child(2) { animation-delay: .12s; } .big-stars .ui-star:nth-child(3) { animation-delay: .24s; }
+.res-line { margin: 0; font-size: 1.1rem; }
+.res-sub { margin: 0; color: var(--muted); font-size: .9rem; }
+.new-best { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--signal); font-weight: 800; }
+.review { padding-left: 20px; margin: 0; display: grid; gap: 16px; }
+.rv-q { margin: 0; font-weight: 600; }
+.rv-a, .rv-e { margin: 4px 0 0; font-size: .92rem; }
+.rv-e { color: var(--muted); }
+/* Kleine Handys (z. B. iPhone SE, schmale Android-Handys mit 360 px): alles etwas enger, damit nie gescrollt werden muss */
+@media (max-height: 720px), (max-width: 370px) {
+  .quiz-play { gap: 8px; }
+  .task-card, .intro-card { gap: 8px; padding: 12px 14px; }
+  .q-body { gap: 8px; }
+  .q-prompt { font-size: 1rem; }
+  .mc-btn { min-height: 46px; padding: 6px 10px; font-size: .95rem; }
+  .fb-exp { font-size: .86rem; }
+  .fb-why { font-size: .86rem; margin-top: 3px; padding: 2px 0 2px 8px; line-height: 1.35; }
+  .fb-sol { margin-top: 2px; font-size: .92rem; }
+  .q-feedback { padding: 8px 12px; }
+  .fb-head { font-size: 1rem; }
+  .intro-body .ex-example { display: none; }
+  .intro-card h2 { font-size: 1.1rem; }
+  .ab-controls { gap: 6px; }
+  .q-body > .q-visual { min-height: 44px; }
+  .num-field input, .num-field select { min-height: 44px; }
+  .ab-controls .ui-stepper.stack .ui-stepper-ctl input, .ab-controls .ui-stepper.stack .ui-stepper-ctl output { height: 26px; min-height: 26px; }
+  .ab-controls .ui-stepper.stack { gap: 0; }
+}
+
+/* ── Fertigkeiten: Wochenziel, Stufen-Marken, Landkarte ─────────────────── */
+.quiz-menu { gap: 10px; }
+.q-week { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 4px; font-size: .9rem; color: var(--muted); font-weight: 650; white-space: nowrap; }
+.q-week b { color: var(--text); white-space: nowrap; }
+.q-week-boxes { display: flex; gap: 4px; }
+.q-week-boxes i { width: 16px; height: 16px; border: 1.5px solid var(--rule); border-radius: 2px; }
+.q-week-boxes i.on { background: var(--ok); border-color: var(--ok); }
+.q-map-btn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-weight: 700; font-size: .85rem; }
+.sk { display: inline-block; width: 12px; height: 12px; border-radius: 2px; border: 1.5px solid var(--rule); box-sizing: border-box; vertical-align: -1px; flex: none; }
+.sk-neu { border-color: var(--faint); background: transparent; }
+.sk-geübt { border-style: dashed; background: transparent; }
+.sk-sicher { background: var(--text); border-color: var(--text); }
+.sk-gemeistert { background: var(--signal); border-color: var(--signal); }
+.lv-skills { display: flex; align-items: center; gap: 3px; margin-top: 4px; font-size: .76rem; font-weight: 700; color: var(--muted); }
+.lv-skills span { margin-left: 6px; }
+.q-greet { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 519px) { .q-week .q-long { display: none; } .q-week.greet .q-map-btn { padding: 0; min-width: 44px; justify-content: center; } .q-week.greet .q-map-btn span { display: none; } }
+.level-card.due { border-color: var(--signal); }
+.level-card.due .lv-num { background: var(--signal); }
+/* Schularbeit: Zeile im Menü (nur mit Termin), Kalender-Knopf in der Wochenzeile, Formular im Blatt */
+.q-exam { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-weight: 650; font-size: .9rem; text-align: left; }
+.q-exam .ic { color: var(--signal); flex: none; }
+.q-exam > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-exam b { color: var(--signal); white-space: nowrap; }
+.q-exam-btn { margin-left: 0; padding: 0 8px; min-width: 44px; justify-content: center; }
+@media (max-width: 599px) { .q-week.has-exam .q-map-btn { padding: 0 8px; } .q-week.has-exam .q-map-btn span { display: none; } }
+@media (max-width: 399px) { .q-exam { font-size: .84rem; gap: 6px; padding: 0 8px; } }
+/* breit: Level-Karten in zwei Spalten, damit auch Menü mit „Heute fällig“ + „Schwächen üben“ ohne Scrollen passt */
+@media (min-width: 600px) { .level-list { grid-template-columns: 1fr 1fr; } } /* auch Tablet quer / Laptop mit 150 % (~830 px) */
+.q-exam-form { display: grid; gap: 14px; }
+.q-exam-date { display: grid; gap: 6px; font-weight: 650; font-size: .9rem; color: var(--muted); }
+.q-exam-date input { min-height: 48px; padding: 8px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface-2); font: inherit; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+.q-exam-date input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+.q-exam-levels { display: grid; gap: 6px; }
+.q-exam-lv { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-weight: 650; }
+.q-exam-lv.on { border-color: var(--accent); }
+.q-exam-lv input { width: 20px; height: 20px; margin: 0; accent-color: var(--accent); }
+.q-map-exam { margin: 0; display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--signal); font-size: .92rem; }
+.q-map { display: grid; gap: 14px; }
+.q-map-legend { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .8rem; color: var(--muted); }
+.q-map-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.q-map h3 { display: flex; align-items: center; gap: 8px; font-size: 1rem; margin: 0 0 6px; }
+.q-map-num { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 3px; background: var(--accent); color: var(--on-accent); font-size: .8rem; font-weight: 800; }
+.q-map ul { list-style: none; margin: 0; padding: 0; }
+.q-map li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 36px; border-bottom: 1px solid var(--border); font-size: .92rem; }
+.q-map-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.q-map-stage { font-size: .78rem; font-weight: 700; color: var(--muted); }
+.q-map-stage.st-sicher { color: var(--text); } .q-map-stage.st-gemeistert { color: var(--signal); }
+.q-map-due { font-size: .78rem; color: var(--faint); min-width: 4.5em; text-align: right; }
+/* Stolpersteine: Name darf umbrechen, rechts die Anzahl (nach .q-map li, damit die zwei Spalten gewinnen) */
+.q-map .q-stones li { grid-template-columns: minmax(0, 1fr) auto; }
+.q-map .q-stones .q-map-name { white-space: normal; padding: 4px 0; }
+/* Handy: Landkarte enger, damit sie ohne Scrollen ins Blatt passt (reine Anzeige, keine Tippziele) */
+@media (max-width: 599px) { .q-map { gap: 10px; } .q-map li { min-height: 31px; gap: 8px; font-size: .88rem; } .q-map h3 { margin-bottom: 2px; } }
+/* misst sich selbst (useFitSteps): 1 engere Zeilen, 2 noch enger – reine Anzeige, keine Tippziele */
+.q-map[data-fit="1"] { gap: 8px; } .q-map[data-fit="1"] li { min-height: 27px; font-size: .84rem; } .q-map[data-fit="1"] h3 { font-size: .94rem; }
+.q-map[data-fit="2"] { gap: 6px; } .q-map[data-fit="2"] li { min-height: 23px; font-size: .8rem; line-height: 1.25; } .q-map[data-fit="2"] h3 { font-size: .9rem; margin: 0; }
+.q-map[data-fit="2"] .q-map-legend { font-size: .74rem; }
+.res-ups { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.res-up { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: .86rem; font-weight: 700; }
+.res-up.st-gemeistert { border-color: var(--signal); color: var(--signal); }
+@media (max-width: 599px) { .lv-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+/* Flache Desktop-Fenster (z. B. 1280 × 800): Menü mit „Weiterspielen“ und 4 Levels bleibt auf einem Bildschirm */
+@media (min-width: 600px) and (max-height: 840px) {
+  .quiz-hero { padding-top: 14px; padding-bottom: 14px; }
+  .quiz-hero h2 { font-size: 1.45rem; margin-bottom: 2px; }
+  .hero-atom { width: 64px; }
+  .level-list { gap: 10px; }
+  .level-card { padding: 12px 18px; }
+  .resume { padding: 12px 18px; }
+}
+/* „Lesbar“ (mehr Zeilenabstand): Menü bleibt auf einem Bildschirm – Level-Namen sind kurz und dürfen enger stehen (wie Überschriften) */
+:root[data-lesbar] .level-card { padding-top: 11px; padding-bottom: 11px; }
+:root[data-lesbar] .level-list { gap: 10px; }
+:root[data-lesbar] .lv-name { line-height: 1.25; letter-spacing: .01em; }
+@media (max-height: 720px) { :root[data-lesbar] .level-card { padding-top: 6px; padding-bottom: 6px; } :root[data-lesbar] .level-list { gap: 5px; } }
+@media (max-height: 720px) {
+  .quiz-menu { gap: 8px; }
+  .level-card { padding: 8px 12px; gap: 10px; }
+  .level-list { gap: 6px; }
+  .lv-desc { display: none; }
+  .lv-skills { margin-top: 2px; }
+  .result-card { padding: 20px 16px; gap: 6px; }
+}
+
+/* Menü passt nicht auf den Bildschirm (QuizScreen misst und setzt data-fit): stufenweise kompakter statt scrollen */
+.quiz-menu[data-fit="1"], .quiz-menu[data-fit="2"], .quiz-menu[data-fit="3"] { gap: 8px; }
+.quiz-menu[data-fit="1"] .lv-desc, .quiz-menu[data-fit="2"] .lv-desc, .quiz-menu[data-fit="3"] .lv-desc { display: none; }
+.quiz-menu[data-fit="1"] .level-card { padding: 8px 12px; gap: 10px; }
+.quiz-menu[data-fit="1"] .level-list, .quiz-menu[data-fit="2"] .level-list, .quiz-menu[data-fit="3"] .level-list { gap: 6px; }
+.quiz-menu[data-fit="2"] .level-card, .quiz-menu[data-fit="3"] .level-card { padding: 5px 10px; gap: 10px; min-height: 48px; }
+.quiz-menu[data-fit="2"] .resume, .quiz-menu[data-fit="3"] .resume { padding-top: 8px; padding-bottom: 8px; }
+.quiz-menu[data-fit="2"] .lv-name, .quiz-menu[data-fit="3"] .lv-name { font-size: .95rem; line-height: 1.2; }
+.quiz-menu[data-fit="3"] .lv-skills { display: none; }
+.quiz-menu[data-fit="4"] { gap: 8px; }
+.quiz-menu[data-fit="4"] .quiz-hero, .quiz-menu[data-fit="4"] .lv-desc, .quiz-menu[data-fit="4"] .lv-skills { display: none; }
+.quiz-menu[data-fit="4"] .level-list { gap: 6px; }
+.quiz-menu[data-fit="4"] .level-card { padding: 5px 10px; gap: 10px; min-height: 48px; }
+.quiz-menu[data-fit="4"] .resume { padding-top: 8px; padding-bottom: 8px; }
+.quiz-menu[data-fit="4"] .lv-name { font-size: .95rem; line-height: 1.2; }
+.resume { min-height: 44px; } /* Tippziel, auch in der kompakten Stufe */
+
+/* Zahl-Eingabe (NumberAnswer) */
+.num-answer { display: flex; justify-content: center; align-items: center; gap: 10px; }
+.num-answer input {
+  width: 6.5em; height: 52px; text-align: center; font-size: 1.4rem; font-weight: 700; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--rule); background: var(--surface); color: var(--text);
+}
+.num-answer input:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.num-unit { font-weight: 700; }

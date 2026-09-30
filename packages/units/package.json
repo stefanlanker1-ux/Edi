@@ -1,0 +1,19 @@
+{
+  "name": "@lern/units",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "description": "Einheiten umrechnen: exakte Brüche, Einheitenkatalog, Rechenweg, Stellenwerttafel (ohne UI)",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  }
+}
