@@ -451,7 +451,7 @@ export function stepFlow(w: World) {
     // Öl: Ölmoleküle ziehen sich schwach an, Wasser und Öl stoßen sich etwas stärker ab (wasserabweisend) –
     // so bilden sich beim Schütteln Tröpfchen (Emulsion), die sich danach zusammenschließen und aufsteigen
     const oily = w.floats.length > 0, isOil = (p: FP) => w.floats.includes(p.f);
-    const pull = .12 * (1 - .6 * w.agit);
+    const pull = .15 * (1 - .6 * w.agit);
     const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI) * (oily ? 1.5 : 1));
     for (const p of liquid) near(p, q => {
       if (q.id < p.id) return;
@@ -558,9 +558,29 @@ function push(p: FP, px: number, py: number, ox: number, oy: number) {
   p.a += (rx * oy - ry * ox) / (p.len * p.len) * .6;
 }
 
-/** Anfangslage entwirren: Überlappungen auflösen, bevor etwas gezeichnet wird */
+/** Anfangslage entwirren: lange Moleküle so drehen, dass sie die schon liegenden möglichst wenig berühren
+ * (gekreuzte Stäbe ließen sich später nicht mehr trennen), dann Überlappungen auflösen, bevor etwas gezeichnet wird */
 function settle(w: World) {
   const liquid = w.ps.filter(p => !p.gas);
+  const long = liquid.filter(p => p.len);
+  // erste Runde gegen die schon liegenden, zweite gegen alle
+  for (let pass = 0; pass < 2; pass++) long.forEach((p, i) => {
+    const a0 = p.a;
+    let best = a0, bestGap = -Infinity;
+    for (let k = 0; k < 24; k++) {
+      p.a = a0 + k * Math.PI / 24;
+      const sp = shape(w, p);
+      let gap = Infinity;
+      for (const q of pass ? long : long.slice(0, i)) {
+        if (q === p) continue;
+        if (Math.abs(q.x - p.x) > 2 * (p.len! + p.cap!) || Math.abs(q.y - p.y) > 2 * (p.len! + p.cap!)) continue;
+        const sq = shape(w, q), [ax, ay, bx, by] = closest(sp, sq);
+        gap = Math.min(gap, Math.hypot(bx - ax, by - ay) - sp[4] - sq[4]);
+      }
+      if (gap > bestGap + 1e-9) { bestGap = gap; best = p.a; }
+    }
+    p.a = best;
+  });
   for (let k = 0; k < 60; k++) { separate(w, liquid, 1); clamp(w, liquid, w.rc, w.W - w.rc, w.top + w.rc, w.H - w.rc); }
 }
 

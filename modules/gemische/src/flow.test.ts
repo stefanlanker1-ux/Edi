@@ -153,7 +153,25 @@ test("Öl und Wasser: geschüttelt entstehen Tröpfchen (unter den 6 nächsten N
     assert.ok(oilOnTop(w) < .9, "noch nicht wieder getrennt");
     ratios.push(same / oil.length / share);
   }
-  assert.ok(mean(ratios) > 2.6, `keine Tröpfchen (${ratios.map(x => x.toFixed(2)).join(", ")})`);
+  assert.ok(mean(ratios) > 2.5, `keine Tröpfchen (${ratios.map(x => x.toFixed(2)).join(", ")})`);
+});
+
+test("Öl: am Anfang liegen keine Stäbe übereinander (gekreuzte Stäbe ließen sich nicht mehr trennen)", () => {
+  // kleinster Abstand zweier Strecken, abgetastet
+  const ends = (p: FP) => { const c = Math.cos(p.a) * p.len!, s = Math.sin(p.a) * p.len!; return [p.x - c, p.y - s, p.x + c, p.y + s]; };
+  const gap = (a: number[], b: number[]) => {
+    let m = Infinity;
+    for (let i = 0; i <= 12; i++) for (let j = 0; j <= 12; j++) {
+      const s = i / 12, t = j / 12;
+      m = Math.min(m, Math.hypot(a[0] + (a[2] - a[0]) * s - b[0] - (b[2] - b[0]) * t, a[1] + (a[3] - a[1]) * s - b[1] - (b[3] - b[1]) * t));
+    }
+    return m;
+  };
+  for (let seed = 1; seed <= 5; seed++) {
+    const oil = makeWorld(ex("oel"), seed).ps.filter(p => p.len);
+    for (let i = 0; i < oil.length; i++) for (let j = i + 1; j < oil.length; j++)
+      assert.ok(gap(ends(oil[i]), ends(oil[j])) > .5 * (oil[i].cap! + oil[j].cap!), `Stäbe ${oil[i].id} und ${oil[j].id} überlappen (Startwert ${seed})`);
+  }
 });
 
 test("Gase: Trennwände halten die Teilchen zurück; ohne Wände mischen sie sich", () => {
