@@ -43,6 +43,8 @@ export interface World {
   walls: number[];
   /** Trennwand wird hochgezogen: unteres Ende (y); darunter können die Teilchen durch */
   wallEnd?: number;
+  /** Schritt, an dem die Schmelze erstarrt ist (Übergang zum Gitter wird sanft) */
+  frozeAt?: number;
   /** Zeitschritte, die noch umgerührt / geschüttelt / geschmolzen wird */
   stir: number; shake: number; melt: number;
   /** Temperatur in °C: je wärmer, desto schneller bewegen sich die Teilchen */
@@ -316,13 +318,17 @@ export function stepFlow(w: World) {
         // zwei Strömungsmuster im Wechsel: eine Walze, dann zwei übereinander (ψ = sin πx · sin πy bzw. sin πx · sin 2πy)
         const u = 1.5 * (s1 * Math.sin(X) * Math.cos(Y) + (1 - s1) * 2 * Math.sin(X) * Math.cos(2 * Y));
         const v = -1.5 * H / W * Math.cos(X) * (s1 * Math.sin(Y) + (1 - s1) * Math.sin(2 * Y));
-        p.vx = p.vx * .93 + (r() - .5) * .4 + (u - p.vx) * .1 * calm;
-        p.vy = p.vy * .93 + (r() - .5) * .4 + (v - p.vy) * .1 * calm;
+        // Wärmebewegung klingt in der letzten Sekunde aus (kein abrupter Übergang zum Gitter)
+        const jig = .4 * Math.min(1, .25 + w.melt / 80);
+        p.vx = p.vx * .93 + (r() - .5) * jig + (u - p.vx) * .1 * calm;
+        p.vy = p.vy * .93 + (r() - .5) * jig + (v - p.vy) * .1 * calm;
       } else {
         // am Gitterplatz schwingen (bzw. dorthin gleiten)
-        const h = heat(w);
-        p.vx = p.vx * .8 + ((p.hx ?? p.x) - p.x) * .06 + (r() - .5) * .06 * h;
-        p.vy = p.vy * .8 + ((p.hy ?? p.y) - p.y) * .06 + (r() - .5) * .06 * h;
+        // gleich nach dem Erstarren erst sanft gebremst (wie eben noch in der Schmelze), dann wie im Gitter
+        const h = heat(w), e = w.frozeAt === undefined ? 1 : Math.min(1, (w.t - w.frozeAt) / 60);
+        const damp = .93 - .13 * e, pull = .02 + .04 * e;
+        p.vx = p.vx * damp + ((p.hx ?? p.x) - p.x) * pull + (r() - .5) * .06 * h;
+        p.vy = p.vy * damp + ((p.hy ?? p.y) - p.y) * pull + (r() - .5) * .06 * h;
         // nach dem Erstarren gleiten die Atome ruhig auf ihre Plätze (nicht schneller als ein Viertel Radius je Schritt)
         const v = Math.hypot(p.vx, p.vy), vmax = .25 * rc;
         if (v > vmax) { p.vx *= vmax / v; p.vy *= vmax / v; }
@@ -343,6 +349,7 @@ export function stepFlow(w: World) {
       separate(w, w.ps, 2);
       clamp(w, w.ps, rc, W - rc, rc, H - rc);
       if (--w.melt === 0) {
+        w.frozeAt = w.t;
         // erstarrt: Gitterplätze nach kürzesten Wegen verteilen (erst die nächsten Paare aus Atom und Platz) – so wandert keiner weit
         const pairs: [number, number, number][] = [];
         w.ps.forEach((p, a) => w.sites.forEach(([x, y], i) => pairs.push([(x - p.x) ** 2 + (y - p.y) ** 2, a, i])));
