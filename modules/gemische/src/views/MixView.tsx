@@ -11,7 +11,7 @@ import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } f
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, MIX_LABEL, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
 import { seedOf } from "../mixing.ts";
-import { STIR, liquidLevel, makeWorld, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
+import { STIR, atEquilibrium, gasTarget, liquidLevel, makeWorld, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
 import { FlowView } from "../components/FlowView.tsx";
 import { useApp } from "../store.ts";
 
@@ -118,7 +118,7 @@ function ExampleList({ current, onPick }: { current: number; onPick: (i: number)
 }
 
 /** Zustand für die Anzeige (alle 15 Schritte aus der Welt gelesen) */
-interface Info { bound: number; gas: number; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
+interface Info { bound: number; gas: number; eq: number; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
 function readInfo(w: World, ex: Example): Info {
   let mixed = true;
   if (ex.before === "schicht" && ex.solute) {
@@ -135,7 +135,7 @@ function readInfo(w: World, ex: Example): Info {
     mixed = !w.walls.length && ex.items.every(([f]) => Math.abs(mx(f) - w.W / 2) < w.W * .08);
   }
   return {
-    bound: w.state === "fluessig" ? w.ps.filter(p => p.bound).length : 0, gas: w.ps.filter(p => p.gas).length, sep: separatedFlow(w),
+    bound: w.state === "fluessig" ? w.ps.filter(p => p.bound).length : 0, gas: w.ps.filter(p => p.gas).length, eq: gasTarget(w), sep: separatedFlow(w),
     walls: w.walls.length, melt: w.melt > 0, busy: w.stir > 0 || w.shake > 0 || w.melt > 0 || w.wallEnd !== undefined, mixed, doneAt: w.doneAt, t: w.t,
   };
 }
@@ -153,7 +153,8 @@ function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
   const k = ex.solute ? ex.items.find(([f]) => f === ex.solute)![1] : 0;
   const time = (verb: string) => (done !== undefined ? `${verb} in ${secs(done)}` : verb);
   if (ex.before === "kristall") return i.bound ? ["löst sich", `${k - i.bound} / ${k} gelöst`] : ["Lösung", time("gelöst")];
-  if (ex.before === "gasraum") return i.gas ? ["löst sich", `${k - i.gas} / ${k} gelöst`] : ["Lösung", time("gelöst")];
+  // geschlossene Flasche: CO₂ löst sich bzw. perlt aus, bis so viel gelöst ist, wie bei dieser Temperatur geht (kalt mehr, warm weniger)
+  if (ex.before === "gasraum") return [i.gas > i.eq + 1 ? "löst sich" : i.gas < i.eq - 1 ? "perlt aus" : "Gleichgewicht", `${k - i.gas} / ${k} gelöst`];
   if (ex.before === "schicht") return i.mixed ? ["Lösung", time("gemischt")] : ["mischt sich"];
   if (ex.floats?.length) return [i.sep ? "2 Schichten" : "Emulsion", "heterogen"];
   if (ex.state === "fest") return i.walls ? ["getrennt"] : i.melt ? ["geschmolzen"] : [ex.type ?? "Legierung", "homogen"];
@@ -192,7 +193,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
     // bis zum Endzustand rechnen: gelöst bzw. gleichmäßig gemischt (Schütteln/Umrühren wird dabei fortgesetzt)
     for (let k = 0; k < 5000; k++) {
       if (k >= 60 && settledFlow(w) && readInfo(w, ex).mixed) break;
-      if (w.state === "fluessig" && w.stir === 0 && w.shake === 0 && w.ps.some(p => p.bound || p.gas)) {
+      if (w.state === "fluessig" && w.stir === 0 && w.shake === 0 && (w.ps.some(p => p.bound) || (w.closed ? !atEquilibrium(w) : w.ps.some(p => p.gas)))) {
         if (ex.before === "gasraum") shakeWorld(w); else w.stir = STIR;
       }
       stepFlow(w);

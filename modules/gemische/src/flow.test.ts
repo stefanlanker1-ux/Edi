@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { EXAMPLES, analyse } from "./mixtures.ts";
-import { SHAKE, STIR, boundaryY, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
+import { SHAKE, STIR, boundaryY, gasTarget, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
 
 const ex = (id: string) => EXAMPLES.find(e => e.id === id)!;
 const counts = (w: World) => { const c: Record<string, number> = {}; for (const p of w.ps) c[p.f] = (c[p.f] ?? 0) + 1; return c; };
@@ -49,10 +49,12 @@ test("Mischen: Zucker, Alkohol und CO₂ verteilen sich gleichmäßig; der Vorga
     const e = ex(id), w = makeWorld(e, seed, "vorher");
     mixUntilDone(w, id);
     assert.ok(settledFlow(w), `${id}: nicht fertig (Startwert ${seed})`);
-    w.stir = STIR;
-    for (let j = 0; j < 400; j++) stepFlow(w);
+    // Zucker und Alkohol: noch einmal umrühren; Sprudel (nur Schütteln möglich): in Ruhe verteilen lassen
+    if (id === "sprudel") for (let j = 0; j < 900; j++) stepFlow(w);
+    else { w.stir = STIR; for (let j = 0; j < 400; j++) stepFlow(w); }
     const hl = liquidLevel(w);
-    const d = mean(w.ps.filter(p => p.f !== e.solute).map(p => p.y)) - mean(w.ps.filter(p => p.f === e.solute).map(p => p.y));
+    // nur Gelöstes (beim Sprudel bleibt im Gleichgewicht etwas CO₂ im Gasraum)
+    const d = mean(w.ps.filter(p => p.f !== e.solute).map(p => p.y)) - mean(w.ps.filter(p => p.f === e.solute && !p.gas).map(p => p.y));
     assert.ok(Math.abs(d) < hl * .12, `${id}: nicht gemischt (${(d / hl).toFixed(2)})`);
   }
 }, 120_000);
@@ -89,16 +91,34 @@ test("Zucker: geordneter Kristall, löst sich von selbst von außen; warm und ge
   assert.ok(cold > avg(slow) * 1.5, "kalt nicht langsamer");
 }, 240_000);
 
-test("Sprudel: nach einmal Schütteln ist fast alles CO₂ gelöst – bei jeder Temperatur", () => {
+test("Sprudel: nach einmal Schütteln ist das Gleichgewicht erreicht – kalt bleibt wenig CO₂ im Gasraum, warm mehr", () => {
+  const left: number[] = [];
   for (const T of [0, 20, 100]) {
     const w = makeWorld(ex("sprudel"), 2, "vorher");
     w.temp = T;
     shakeWorld(w);
     for (let k = 0; k < SHAKE + 60; k++) stepFlow(w);
-    const left = w.ps.filter(p => p.gas).length;
-    assert.ok(left <= 2, `${T} °C: noch ${left} im Gasraum`);
+    const n = w.ps.filter(p => p.gas).length;
+    assert.ok(Math.abs(n - gasTarget(w)) <= 2, `${T} °C: ${n} im Gasraum, Gleichgewicht ${gasTarget(w)}`);
+    // bleibt im Gleichgewicht (Austausch, aber keine Drift)
+    for (let k = 0; k < 1800; k++) stepFlow(w);
+    assert.ok(Math.abs(w.ps.filter(p => p.gas).length - gasTarget(w)) <= 3, `${T} °C: driftet weg`);
+    left.push(n);
   }
-});
+  assert.ok(left[0] < left[1] && left[1] < left[2], `kalt löst mehr: ${left.join(" < ")}`);
+}, 60_000);
+
+test("Sprudel: erwärmt perlt CO₂ aus, gelöstes verteilt sich im ganzen Wasser", () => {
+  const w = makeWorld(ex("sprudel"), 3, "vorher");
+  shakeWorld(w);
+  for (let k = 0; k < 900; k++) stepFlow(w);
+  const cold = w.ps.filter(p => p.gas).length;
+  const hl = liquidLevel(w), depth = (f: string) => mean(w.ps.filter(p => !p.gas && p.f === f).map(p => (p.y - w.top) / hl));
+  assert.ok(Math.abs(depth("CO2") - depth("H2O")) < .12, `CO₂ nicht verteilt (${depth("CO2").toFixed(2)} gegen ${depth("H2O").toFixed(2)})`);
+  w.temp = 90;
+  for (let k = 0; k < 1200; k++) stepFlow(w);
+  assert.ok(w.ps.filter(p => p.gas).length > cold + 8, `warm: ${w.ps.filter(p => p.gas).length} statt mehr als ${cold + 8}`);
+}, 60_000);
 
 test("Sprudel: CO₂ löst sich von selbst langsam, geschüttelt schnell", () => {
   const gas = (w: World) => w.ps.filter(p => p.gas).length;

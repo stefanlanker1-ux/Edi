@@ -27,6 +27,8 @@ export interface FP {
   leave?: number;
   /** Gas über der Flüssigkeit */
   gas?: boolean;
+  /** beim Schütteln gelöst: sinkt wie ein mitgerissenes Bläschen sanft bis zu dieser Tiefe (verteilt sich im ganzen Wasser) */
+  sink?: number;
 }
 
 export interface World {
@@ -55,6 +57,10 @@ export interface World {
   hold: boolean;
   /** geschlossenes Gefäß */
   closed: boolean;
+  /** geschlossene Flasche: welcher Stoff zwischen Gasraum und Wasser wechselt */
+  closedGas?: string;
+  /** im Gleichgewicht gelöste Gasteilchen, für die noch ein gelöstes ausperlt (Austausch ohne Änderung der Menge) */
+  swap?: number;
   /** Metallgitter: Plätze */
   sites: [number, number][];
   /** Lücke zwischen den Metallblöcken vorher */
@@ -124,7 +130,7 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
   // Flüssigkeit: Gefäß etwas breiter als die Flüssigkeit hoch ist
   const W = ex.state === "fluessig" ? Math.round(Math.sqrt(liquidArea(list) / .8)) : 100;
   // Flüssigkeiten lösen und mischen sich auch von selbst (langsam); Gase und Metalle halten Trennwände bzw. das Gitter zusammen
-  const base = { floats, walls: [] as number[], stir: 0, shake: 0, melt: 0, temp: 20, agit: 0, hold: !!vorher && ex.state !== "fluessig", closed: ex.before === "gasraum", sites: [] as [number, number][], gap: 0, t: 0, r };
+  const base = { floats, walls: [] as number[], stir: 0, shake: 0, melt: 0, temp: 20, agit: 0, hold: !!vorher && ex.state !== "fluessig", closed: ex.before === "gasraum", closedGas: ex.before === "gasraum" ? ex.solute : undefined, sites: [] as [number, number][], gap: 0, t: 0, r };
 
   if (ex.state === "fluessig") {
     const head = ex.before === "gasraum" ? 26 : floats.length ? 14 : 8;
@@ -259,6 +265,22 @@ export function shakeWorld(w: World) { w.shake = SHAKE; }
  */
 export const heat = (w: World) => .5 + .025 * Math.max(0, w.temp);
 
+/**
+ * Sprudel (geschlossene Flasche): Anteil des CO₂, der im Gleichgewicht im Gasraum bleibt. Gase lösen sich in kaltem Wasser besser:
+ * 0 °C 10 %, 20 °C 20 %, 100 °C 60 % (Richtung wie in echt, Werte fürs Modell gewählt).
+ */
+export const gasShare = (temp: number) => .1 + .5 * Math.min(1, Math.max(0, temp) / 100);
+/** Zahl der CO₂-Teilchen, die im Gleichgewicht im Gasraum sind */
+export function gasTarget(w: World): number {
+  if (!w.closed) return 0;
+  const k = w.ps.filter(p => p.f === w.closedGas).length;
+  return Math.round(k * gasShare(w.temp));
+}
+/** Gleichgewicht erreicht: im Gasraum etwa so viel CO₂ wie bei dieser Temperatur (± 1) */
+export function atEquilibrium(w: World): boolean {
+  return !w.closed || Math.abs(w.ps.filter(p => p.gas).length - gasTarget(w)) <= 1;
+}
+
 /** Anteil des Öls unter den obersten Teilchen (so viele, wie es Öl-Teilchen gibt): 1 = alles Öl ganz oben */
 export function oilOnTop(w: World): number {
   const liquid = w.ps.filter(p => !p.gas), k = liquid.filter(p => w.floats.includes(p.f)).length;
@@ -280,7 +302,7 @@ export const separatedFlow = (w: World) => !w.floats.length || oilOnTop(w) >= .9
 export function settledFlow(w: World): boolean {
   if (w.state === "fest") return w.melt <= 0 && !w.walls.length;
   if (w.walls.length || w.hold || w.stir > 0 || w.shake > 0) return false;
-  if (w.ps.some(p => p.gas || p.bound)) return false;
+  if (w.ps.some(p => p.bound) || (w.closed ? !atEquilibrium(w) : w.ps.some(p => p.gas))) return false;
   return separatedFlow(w);
 }
 
@@ -402,6 +424,9 @@ export function stepFlow(w: World) {
   w.agit += (target - w.agit) * .06;
   const hf = heat(w);
   const liquid = w.ps.filter(p => !p.gas);
+  // geschlossene Flasche: Gas löst sich, gelöstes perlt aus – beides, bis das Gleichgewicht der Temperatur erreicht ist
+  const nGas = w.closed ? w.ps.filter(p => p.gas).length : 0, eqGas = gasTarget(w);
+  const inFactor = !w.closed || nGas > eqGas ? 1 : .12;
   const rad = (p: FP) => p.rad ?? rc;
   // Umrühren reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (sonst staut sich das Wasser am Kristall)
   let floor = H;
@@ -410,7 +435,14 @@ export function stepFlow(w: World) {
   const line = w.floats.length ? rawBoundary(w) : 0;
   for (const p of w.ps) {
     if (p.gas) {
-      // Gas über der Flüssigkeit fliegt; trifft es auf die Oberfläche, löst es sich manchmal (geschüttelt: fast immer)
+      // eben ausgeperlt: steigt ruhig durch die Oberfläche in den Gasraum
+      if (p.leave) {
+        p.leave--;
+        if (p.y > w.top - rc) { p.y = Math.max(w.top - rc, p.y - .6); p.x = Math.min(W - rc, Math.max(rc, p.x + p.vx)); turn(p, .004); continue; }
+        p.leave = 0;
+      }
+      // Gas über der Flüssigkeit fliegt; trifft es auf die Oberfläche, löst es sich manchmal (geschüttelt: fast immer) –
+      // in der geschlossenen Flasche nur selten, wenn schon so viel gelöst ist wie im Gleichgewicht
       veer(p, r);
       toSpeed(p, GAS_V * hf);
       // geschüttelt: Gasraum und Wasser werden durchgewirbelt – das Gas wird zur Oberfläche gerissen
@@ -419,7 +451,8 @@ export function stepFlow(w: World) {
       if (p.x < rc || p.x > W - rc) { p.vx = -p.vx; p.x = Math.min(W - rc, Math.max(rc, p.x)); }
       if (p.y < rc) { p.vy = Math.abs(p.vy); p.y = rc; }
       if (p.y > w.top - rc) {
-        if (r() < .025 * hf + .6 * w.agit) { p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = .8 + 2 * w.agit; p.leave = 30; } // geschüttelt: wie ein Bläschen tief hineingerissen
+        if (r() < (.025 * hf + .6 * w.agit) * inFactor) {
+          if (w.closed && inFactor < 1) w.swap = (w.swap ?? 0) + 1; p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = inFactor === 1 ? .8 + 2 * w.agit : .4; p.leave = 30; if (w.shake > 0 && w.agit > .2 && inFactor === 1) p.sink = w.top + .7 * r() * hl; } // geschüttelt: wie ein Bläschen tief hineingerissen
         else { p.vy = -Math.abs(p.vy); p.y = w.top - rc; }
       }
       turn(p, .004);
@@ -441,6 +474,7 @@ export function stepFlow(w: World) {
     // (in der eigenen Schicht wirkt nichts – so wird nichts zusammengedrückt)
     const buoy = !w.floats.length || w.agit > .3 ? 0 : w.floats.includes(p.f) ? (p.y > line - rc ? -.09 : 0) : (p.y < line + rc ? .09 : 0);
     p.vy = p.vy * .96 + (r() - .5) * kick * 0.76 + buoy;
+    if (p.sink !== undefined) { if (p.y < p.sink) { if (p.vy < .25) p.vy += .04; } else p.sink = undefined; }
     if (w.agit > .01 && p.y < floor) {
       // Umrühren (und Schütteln): Strömung, die überall gleich dicht bleibt und nie gegen die Wand drückt (Stromfunktion
       // ψ = sin(πx) · sin(πy) bzw. zwei Walzen sin(2πx) · sin(πy)); beide wechseln fließend ab – so wird durchmischt, nicht nur gedreht
@@ -520,9 +554,21 @@ export function stepFlow(w: World) {
   if (gas.length > 1) collide(w, gas);
   separate(w, liquid, w.floats.length ? 6 : 3);
   clamp(w, liquid, rc, W - rc, w.top + rc, H - rc);
+  // Ausperlen: gelöstes CO₂ nahe der Oberfläche geht in den Gasraum (warm häufiger, geschüttelt schneller)
+  if (w.closed && w.closedGas) {
+    // zu wenig im Gasraum: perlt aus; im Gleichgewicht nur als Austausch für ein eben gelöstes Teilchen
+    const swap = nGas >= eqGas && (w.swap ?? 0) > 0;
+    const near = liquid.filter(p => p.f === w.closedGas && !p.leave && p.y < w.top + 2 * rc);
+    if (near.length && (nGas < eqGas || swap) && r() < (swap ? .05 * hf : .03 * hf + .4 * w.agit)) {
+      const p = near[Math.floor(r() * near.length)];
+      p.gas = true; p.rad = rc; p.vx *= .3; p.vy = -.6; p.leave = 60; p.sink = undefined;
+      if (swap) w.swap!--;
+    }
+    if (nGas < eqGas - 1) w.swap = 0;
+  }
   if (w.stir > 0) w.stir--;
   if (w.shake > 0) w.shake--;
-  if (w.doneAt === undefined && !w.ps.some(p => p.bound || p.gas)) w.doneAt = w.t;
+  if (w.doneAt === undefined && w.shake === 0 && !w.ps.some(p => p.bound) && (w.closed ? atEquilibrium(w) : !w.ps.some(p => p.gas))) w.doneAt = w.t;
   if (w.floats.length) { const y = rawBoundary(w); w.lineY = w.lineY === undefined ? y : w.lineY + (y - w.lineY) * .03; }
 }
 
