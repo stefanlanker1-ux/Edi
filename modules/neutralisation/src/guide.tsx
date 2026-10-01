@@ -28,6 +28,7 @@ const missing = (base: string, acid: string, nB: number, nA: number, answer: "A"
   say, ask: "Was fehlt, damit die **OH⁻-Reihe** und die **H⁺-Reihe** gleich lang sind? Tippe es an.", answer,
   visual: c => <Wall c={c} base={base} acid={acid} step={step} nB={nB} nA={nA} target={answer} />,
   why: { [answer === "A" ? "B" : "A"]: "Dann wird die längere Reihe noch länger. Vergleiche OH⁻ und H⁺." },
+  tip: "Vergleiche die OH⁻-Reihe mit der H⁺-Reihe: Bei der kürzeren fehlt ein Baustein.",
   ok,
 });
 
@@ -61,6 +62,7 @@ const US: GuideStep[] = [
     ask: "Wie viele **Wasser-Moleküle** entstehen aus NaOH + HCl?", answer: 1, num: {},
     visual: c => <Wall c={c} base="naoh" acid="hcl" nB={1} nA={1} />,
     why: { "2": "Ein OH⁻ und ein H⁺ ergeben ein H₂O." },
+    tip: "Jeder Verbindungsstrich zwischen OH⁻ und H⁺ ist ein H₂O.",
     ok: "NaOH + HCl → NaCl + H₂O.",
   },
   missing("caoh2", "hcl", 1, 1, "A",
@@ -70,6 +72,7 @@ const US: GuideStep[] = [
     ask: "Wie viele Wasser-Moleküle entstehen bei **Ca(OH)₂ + 2 HCl**?", answer: 2, num: {},
     visual: c => <Wall c={c} base="caoh2" acid="hcl" nB={1} nA={2} />,
     why: { "1": "Es gibt 2 Paare aus OH⁻ und H⁺.", "3": "Zähle die Verbindungsstriche: OH⁻ + H⁺." },
+    tip: "Zähle die Verbindungsstriche: jeder ist ein H₂O.",
     ok: "2 OH⁻ + 2 H⁺ → 2 H₂O.",
   },
   {
@@ -86,7 +89,7 @@ const US: GuideStep[] = [
     ask: "Welches Salz entsteht aus **2 NaOH + H₂SO₄**?", answer: "Na₂SO₄", options: ["Na₂SO₄", "NaSO₄", "Na(SO₄)₂", "NaH₂SO₄"],
     visual: c => <Wall c={c} base="naoh" acid="h2so4" nB={2} nA={1} />,
     why: { "NaSO₄": "SO₄²⁻ braucht zwei Na⁺.", "Na(SO₄)₂": "Na⁺ ist nur 1+ – es braucht mehr Na, nicht mehr SO₄.", "NaH₂SO₄": "Beide H⁺ wurden zu Wasser." },
-    ok: "Na₂SO₄.",
+    ok: "SO₄²⁻ braucht zwei Na⁺: **Na₂SO₄**.",
   },
   {
     ask: "Wie heißt **Na₂SO₄**?", answer: "Natriumsulfat", options: ["Natriumsulfat", "Natriumsulfit", "Natriumsulfid", "Natriumschwefelsäure"],
@@ -110,13 +113,14 @@ const OS: GuideStep[] = [
     say: "**einprotonig**: HCl, HNO₃, CH₃COOH · **zweiprotonig**: H₂SO₄, H₂CO₃, H₂S · **dreiprotonig**: H₃PO₄. Bei der Essigsäure ist nur das H der COOH-Gruppe abgebbar.",
     ask: "Wie viele H⁺ kann **CH₃COOH** höchstens abgeben?", answer: 1, num: {},
     why: { "4": "Die H-Atome am C werden nicht abgegeben – nur das H der COOH-Gruppe." },
+    tip: "Nur das H, das an ein O-Atom gebunden ist, wird abgegeben.",
     ok: "Essigsäure ist einprotonig: CH₃COOH → H⁺ + CH₃COO⁻.",
   },
   {
     say: "Mehrprotonige Säuren geben H⁺ **schrittweise** ab: H₃PO₄ → H₂PO₄⁻ → HPO₄²⁻ → PO₄³⁻.",
     ask: "Welche Ladung hat der Rest, wenn H₃PO₄ **2 H⁺** abgibt?", answer: "2−", options: ["2−", "1−", "3−"],
     why: { "1−": "Zwei H⁺ weg – zwei negative Ladungen.", "3−": "3− erst, wenn alle drei H⁺ abgegeben sind." },
-    ok: "HPO₄²⁻.",
+    ok: "Je abgegebenem H⁺ eine negative Ladung: **HPO₄²⁻**.",
   },
   {
     say: "Noch H im Rest: **Hydrogen-** (ein H) bzw. **Dihydrogen-** (zwei H).",
@@ -134,12 +138,14 @@ const OS: GuideStep[] = [
     ask: "**2 Al(OH)₃** bringen 6 OH⁻. Wie viele **H₂SO₄** braucht man?", answer: 3, num: {},
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={1} />,
     why: { "6": "Jedes H₂SO₄ bringt 2 H⁺: 6 : 2.", "2": "2 H₂SO₄ sind nur 4 H⁺." },
+    tip: "Wie viele H⁺ bringt ein H₂SO₄? Teile die OH⁻ durch diese Zahl.",
     ok: "2 Al(OH)₃ + 3 H₂SO₄ → Al₂(SO₄)₃ + 6 H₂O.",
   },
   {
     ask: "Wie viele **H₂O** entstehen bei 2 Al(OH)₃ + 3 H₂SO₄?", answer: 6, num: {},
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={3} />,
     why: { "3": "Jedes Paar aus OH⁻ und H⁺ gibt ein H₂O: 6.", "5": "6 OH⁻ treffen auf 6 H⁺." },
+    tip: "Jedes OH⁻ trifft ein H⁺ und bildet ein H₂O. Zähle die OH⁻.",
     ok: "Zahl der H₂O = Zahl der OH⁻ = Zahl der H⁺.",
   },
   missing("caoh2", "h2co3", 1, 1, "A",

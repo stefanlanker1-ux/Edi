@@ -37,6 +37,7 @@ const missing = (cat: string, an: string, nC: number, nA: number, answer: "C" | 
   say, ask: "Welcher Baustein fehlt, damit beide Reihen **gleich lang** sind? Tippe ihn an.", answer,
   visual: c => <Wall c={c} cat={cat} an={an} nC={nC} nA={nA} target={answer} />,
   why: { [answer === "C" ? "A" : "C"]: "Dann wird die andere Reihe noch länger. Vergleiche die Breiten." },
+  tip: "Vergleiche die Breiten: Bei der kürzeren Reihe fehlt ein Baustein.",
   ok,
 });
 
@@ -53,13 +54,14 @@ const US: GuideStep[] = [
     ask: "Wie viele Elektronen nimmt ein **Sauerstoff**-Atom (VI. Hauptgruppe) auf?", answer: 2, num: {},
     visual: () => <Pse mark={8} />,
     why: { "6": "6 hat es schon außen. Bis 8 fehlen 8 − 6.", "8": "Es fehlen nur so viele, bis 8 außen sind." },
+    tip: "Bis 8 Außenelektronen fehlen: 8 − Hauptgruppe.",
     ok: "8 − 6 = 2 → Oxid-Ion **O²⁻**.",
   },
   {
     ask: "Welches Ion bildet **Stickstoff** (V. Hauptgruppe)?", answer: "N³⁻", options: ["N³⁻", "N⁵⁺", "N³⁺", "N⁵⁻"],
     visual: () => <Pse mark={7} />,
     why: { "N⁵⁺": "Nichtmetalle nehmen auf – 3 aufnehmen ist leichter als 5 abgeben.", "N³⁺": "Aufnehmen macht negativ.", "N⁵⁻": "Es fehlen 8 − 5 = 3 Elektronen." },
-    ok: "Nitrid-Ion **N³⁻**.",
+    ok: "8 − 5 = 3 Elektronen aufgenommen → Nitrid-Ion **N³⁻**.",
   },
   missing("Ca2+", "Cl-", 1, 1, "A",
     "Eine Ionenverbindung ist **neutral**: Plus und Minus gleichen sich aus. In der Ionenwand ist die **Breite = Ladung**.",
@@ -84,6 +86,7 @@ const US: GuideStep[] = [
     ask: "Aus **K⁺** und **S²⁻**: Wie viele Kalium-Ionen braucht man für ein Sulfid-Ion?", answer: 2, num: {},
     visual: c => <Wall c={c} cat="K+" an="S2-" nC={1} nA={1} />,
     why: { "1": "1 · 1+ gleicht 2− nicht aus." },
+    tip: "Teile die Ladung des Sulfid-Ions durch die Ladung eines Kalium-Ions.",
     ok: "2 K⁺ gleichen 1 S²⁻ aus → **K₂S**.",
   },
   {
@@ -117,13 +120,13 @@ const OS: GuideStep[] = [
     say: "Hauptgruppen-Ionen erreichen Edelgaskonfiguration: Gruppe 1, 2, 13 → 1+, 2+, 3+; Gruppe 15, 16, 17 → 3−, 2−, 1−.",
     ask: "Welches Ion bildet **Barium** (Gruppe 2)?", answer: "Ba²⁺", options: ["Ba²⁺", "Ba⁺", "Ba²⁻", "Ba⁶⁻"],
     why: { "Ba⁺": "Gruppe 2: zwei Außenelektronen gehen weg.", "Ba²⁻": "Metalle geben Elektronen ab.", "Ba⁶⁻": "6 aufnehmen ist viel mehr als 2 abgeben." },
-    ok: "**Ba²⁺**.",
+    ok: "Gruppe 2: 2 Elektronen abgegeben → **Ba²⁺**.",
   },
   {
     say: "**Mehratomige Ionen** bleiben als Block zusammen: OH⁻ Hydroxid, NO₃⁻ Nitrat, CO₃²⁻ Carbonat, SO₄²⁻ Sulfat, PO₄³⁻ Phosphat, NH₄⁺ Ammonium.",
     ask: "Welche Ladung hat das **Sulfat-Ion** (SO₄)?", answer: "2−", options: ["2−", "1−", "3−", "4−"],
     why: { "1−": "1− hat Nitrat (NO₃⁻).", "3−": "3− hat Phosphat (PO₄³⁻).", "4−": "Die 4 gehört zu den O-Atomen, nicht zur Ladung." },
-    ok: "Sulfat: **SO₄²⁻**.",
+    ok: "**SO₄²⁻**: oben rechts die Ladung, unten die Zahl der O-Atome.",
   },
   missing("Ca2+", "OH-", 1, 1, "A",
     "Mit mehratomigen Ionen gleicht man genauso aus – der ganze Block zählt als ein Baustein.",
@@ -133,19 +136,20 @@ const OS: GuideStep[] = [
     ask: "Welche Formel hat **Calciumhydroxid**?", answer: "Ca(OH)₂", options: ["Ca(OH)₂", "CaOH₂", "CaOH", "Ca₂OH"],
     visual: c => <Wall c={c} cat="Ca2+" an="OH-" nC={1} nA={2} />,
     why: { "CaOH₂": "OH₂ hieße: 1 O und 2 H. Gemeint ist zweimal das ganze OH⁻.", CaOH: "Ca²⁺ braucht zwei OH⁻.", "Ca₂OH": "Es braucht mehr Hydroxid-, nicht mehr Calcium-Ionen." },
-    ok: "**Ca(OH)₂**.",
+    ok: "Zweimal der ganze Block OH: **Ca(OH)₂** = 1 Ca, 2 O, 2 H.",
   },
   {
     ask: "Aus **Al³⁺** und **SO₄²⁻**: Wie viele Sulfat-Ionen gleichen **2** Al³⁺ aus?", answer: 3, num: {},
     visual: c => <Wall c={c} cat="Al3+" an="SO42-" nC={2} nA={1} />,
     why: { "2": "2 · 2− = 4−, aber 2 · 3+ = 6+.", "6": "6 ist die Ladung. Jedes Sulfat bringt 2−." },
+    tip: "Rechne die Plus-Ladungen zusammen und teile durch die Ladung eines Sulfat-Ions.",
     ok: "2 · 3+ = 6+ und 3 · 2− = 6−.",
   },
   {
     ask: "Welche Formel hat **Aluminiumsulfat**?", answer: "Al₂(SO₄)₃", options: ["Al₂(SO₄)₃", "Al₂SO₄₃", "Al₃(SO₄)₂", "AlSO₄"],
     visual: c => <Wall c={c} cat="Al3+" an="SO42-" nC={2} nA={3} />,
     why: { "Al₂SO₄₃": "Ohne Klammer stünde da „43 O-Atome“. Der Block SO₄ kommt in Klammern.", "Al₃(SO₄)₂": "Zähle: 2 Aluminium-Ionen, 3 Sulfat-Ionen.", "AlSO₄": "3+ und 2− gleichen sich nicht aus." },
-    ok: "**Al₂(SO₄)₃**.",
+    ok: "Anzahlen tiefgestellt, Block in Klammern: **Al₂(SO₄)₃**.",
   },
   {
     say: "Nebengruppen-Metalle bilden verschiedene Ionen. Die Ladung steht als **römische Zahl** im Namen: Eisen(III) = Fe³⁺.",
@@ -174,6 +178,7 @@ const OS: GuideStep[] = [
     ask: "Aus **Zn²⁺** und **PO₄³⁻**: Wie viele Zink-Ionen braucht man für **2** Phosphat-Ionen?", answer: 3, num: {},
     visual: c => <Wall c={c} cat="Zn2+" an="PO43-" nC={1} nA={2} />,
     why: { "2": "2 · 2+ = 4+, aber 2 · 3− = 6−.", "6": "6 ist die Ladung. Jedes Zink-Ion bringt 2+." },
+    tip: "Rechne die Minus-Ladungen zusammen und teile durch die Ladung eines Zink-Ions.",
     ok: "3 · 2+ = 6+ = 2 · 3− → **Zn₃(PO₄)₂**.",
   },
 ];

@@ -38,10 +38,12 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - **Erklärung** (`@lern/ui` `Guide`, Knopf `GuideButton`): jede App übergibt `guide` an `LernApp` (je Stufe, `src/guide.tsx`). Breit links neben den Bereichen,
   am Handy unten links vor den Bereichen; roter Ring, bis die Erklärung einmal durchlaufen ist (`lern-erklaert-<App>`). Ganzer Bildschirm, nie scrollen.
   10–15 Schritte, jeder verlangt eine Handlung: Auswahl (`options`), Zahl (`num`) oder ein Ziel im Bild antippen (`visual` ruft `pick(id)`), mit den Bausteinen
-  der App (Bohrmodell, PSE, Ionenwand, Lewis-Formel, Teilchenbild, Pfeilkette …). Falsch → Rückmeldung (`why`) und „Versuch x von 4“; nach 4 Versuchen
-  wird die Lösung markiert (`show`, gestrichelt grün, pulsierend) und muss selbst angetippt werden. Richtig → ✓, die Bestätigung (`ok`) steht über dem nächsten Schritt.
+  der App (Bohrmodell, PSE, Ionenwand, Lewis-Formel, Teilchenbild, Pfeilkette …). Falsch → Rückmeldung zum Denkfehler (`why`, jede falsche Auswahl hat eine),
+  sonst Denkanstoß zum Vorgehen (`tip`, Pflicht bei Zahl und Antippen, nennt die Lösung nicht); ab dem 2. Versuch Rückmeldung + Tipp (`feedback`), dazu „Versuch x von 4“; nach 4 Versuchen
+  wird die Lösung markiert (`show`, gestrichelt grün, pulsierend) und muss selbst angetippt werden. Richtig → ✓, die Bestätigung (`ok`) steht über dem nächsten Schritt
+  und nennt die Regel mit dem Beispiel („Massenzahl = Protonen + Neutronen = 7 + 7 = 14“), nicht nur das Ergebnis.
   Ende: Zusammenfassung „Das kannst du jetzt“, Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab. Test je Modul (`guide.test.ts`, `checkGuide`):
-  Schrittzahl, Antwort unter den Auswahlen, Rückmeldungen passen, Sätze höchstens 22 Wörter.
+  Schrittzahl, Antwort unter den Auswahlen, Rückmeldung zu jeder falschen Auswahl, Tipp bei Zahl/Antippen (ohne die gesuchte Zahl), Sätze höchstens 22 Wörter.
 - Alle Module nutzen für das Quiz `@lern/quiz` (`createQuizStore` + `QuizScreen`); Aufgaben sind reine Daten, Aufgabentyp = Fertigkeit.
   Optional: Level mit Tipp (`QuizLevel.tip` = Glühbirne an der Karte, Aufgabe `hintCue` = Tipp-Knopf hervorgehoben, Tipp kostet keine Punkte) und feste Reihenfolge (`fixedOrder`).
   Fertigkeiten (`skills.ts`): neu → geübt → sicher (2 Treffer in Folge) → gemeistert (Treffer nach ≥ 7 Tagen Abstand); Wiederholung nach 1-3-7-14-30 Tagen

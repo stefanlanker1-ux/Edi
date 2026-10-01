@@ -29,6 +29,9 @@ export interface GuideStep {
   visual?: (c: GuideCtx) => ReactNode;
   /** Rückmeldung zu bestimmten falschen Antworten (Schlüssel = Auswahltext, Zahl oder Ziel) */
   why?: Record<string, string>;
+  /** Denkanstoß zum Vorgehen, ohne die Lösung zu nennen: bei falschen Antworten ohne eigene Rückmeldung,
+   *  ab dem zweiten Fehlversuch zusätzlich zur Rückmeldung */
+  tip?: string;
   /** Bestätigung nach der richtigen Antwort – steht über dem nächsten Schritt */
   ok: string;
   /** Hinweis, wenn nach vier Versuchen die Lösung markiert wird */
@@ -51,6 +54,13 @@ export const parseNum = (s: string) => Number(s.trim().replace(/\s/g, "").replac
 export function isRight(step: GuideStep, a: string | number): boolean {
   if (typeof step.answer === "number") return Math.abs((typeof a === "number" ? a : parseNum(a)) - step.answer) < 1e-9;
   return String(a) === step.answer;
+}
+
+/** Rückmeldung nach einem Fehlversuch: erst die passende Begründung (sonst der Tipp), ab dem zweiten Versuch der Tipp dazu */
+export function feedback(step: GuideStep, why: string | undefined, tries: number): string {
+  const parts = [why ?? step.tip ?? "Noch nicht."];
+  if (why && step.tip && tries >= 2) parts.push(`Tipp: ${step.tip}`);
+  return `${parts.join(" ")} Versuch ${tries} von ${GUIDE_TRIES}.`;
 }
 
 export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }: {
@@ -112,7 +122,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
     const why = step.why?.[typeof step.answer === "number" ? String(parseNum(String(a))) : String(a)];
     setMsg(t >= GUIDE_TRIES
       ? step.show ?? `So geht's: ${typeof step.answer === "number" ? `tippe **${String(step.answer).replace(".", ",")}** ein` : "tippe auf das Markierte"}.`
-      : `${why ?? "Noch nicht."} Versuch ${t} von ${GUIDE_TRIES}.`);
+      : feedback(step, why, t));
   };
   const ctx: GuideCtx = { pick: id => answer(id), show, solved };
   const solText = typeof step.answer === "number" ? String(step.answer).replace(".", ",") : step.answer;

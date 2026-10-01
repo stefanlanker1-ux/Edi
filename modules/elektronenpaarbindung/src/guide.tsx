@@ -26,6 +26,7 @@ const US: GuideStep[] = [
     ask: "Wie viele **einzelne** Elektronen hat ein Sauerstoff-Atom?", answer: 2, num: {},
     visual: () => <Lewis m={mol([["O", 0, 0]])} />,
     why: { "6": "6 sind alle Außenelektronen. Zähle nur die einzelnen (mit Ring).", "4": "4 sind in den zwei Paaren. Gesucht sind die einzelnen." },
+    tip: "Einzelne Elektronen haben einen Ring; Paare stehen zu zweit nebeneinander.",
     ok: "Sauerstoff: 2 Paare, 2 einzelne Elektronen.",
   },
   {
@@ -33,6 +34,7 @@ const US: GuideStep[] = [
     ask: "Wie viele Elektronenpaarbindungen geht ein **Stickstoff**-Atom ein?", answer: 3, num: {},
     visual: () => <Lewis m={mol([["N", 0, 0]])} />,
     why: { "5": "5 sind alle Außenelektronen. Binden können nur die einzelnen.", "1": "Zähle die Elektronen mit Ring." },
+    tip: "Jedes einzelne Elektron (mit Ring) ergibt eine Bindung.",
     ok: "Stickstoff hat 3 einzelne Elektronen → 3 Bindungen.",
   },
   {
@@ -40,6 +42,7 @@ const US: GuideStep[] = [
     ask: "Wie viele Elektronen hat jedes H-Atom im H₂-Molekül um sich?", answer: 2, num: {},
     visual: () => <Lewis m={known("H2")} />,
     why: { "1": "Das gemeinsame Paar zählt für beide Atome: 2 Elektronen." },
+    tip: "Das Paar im grauen Oval gehört beiden Atomen gleichzeitig.",
     ok: "Wasserstoff hat im Molekül **2** Elektronen um sich (Duett) – ✓.",
   },
   {
@@ -47,6 +50,7 @@ const US: GuideStep[] = [
     ask: "Wie viele Elektronen umgeben das O-Atom in **Wasser**?", answer: 8, num: {},
     visual: () => <Lewis m={known("H2O")} />,
     why: { "4": "Zähle auch die zwei bindenden Paare mit: 4 + 4.", "6": "6 hatte das O-Atom allein. Durch die Bindungen kommen 2 dazu." },
+    tip: "Zähle alle Elektronen im roten Kreis – auch die im grauen Oval.",
     ok: "2 freie Paare + 2 bindende Paare = 8 Elektronen.",
   },
   {
@@ -54,13 +58,15 @@ const US: GuideStep[] = [
     ask: "Wie viele **freie** Elektronenpaare hat das O-Atom in Wasser?", answer: 2, num: {},
     visual: () => <Lewis m={known("H2O")} />,
     why: { "4": "4 sind alle Paare. Ohne die 2 bindenden bleiben …", "8": "8 sind die Elektronen. Gefragt sind freie **Paare**." },
-    ok: "Wasser: O hat 2 freie Paare.",
+    tip: "Freie Paare liegen außen, nicht im grauen Oval.",
+    ok: "Wasser: O hat 2 freie und 2 bindende Paare.",
   },
   {
     say: "Haben nach einer Bindung **beide** Atome noch einzelne Elektronen, binden sie noch einmal: **Zweifachbindung**.",
     ask: "Tippe auf das graue **Bindungs-Oval**, um die Bindung zu verstärken.", answer: "bond",
     visual: c => <Lewis m={mol([["O", 0, 0], ["O", 1, 0]], [[0, 1, 1]])} c={c} tap />,
     show: "So geht's: tippe auf das graue Oval zwischen den beiden O-Atomen.",
+    tip: "Die Bindung ist das graue Oval zwischen den beiden Atomen.",
     ok: "O=O: zwei gemeinsame Paare – jetzt haben beide O-Atome ein Oktett.",
   },
   {
@@ -74,6 +80,7 @@ const US: GuideStep[] = [
     ask: "Wie viele **freie** Elektronenpaare hat jedes N-Atom in N₂?", answer: 1, num: {},
     visual: () => <Lewis m={known("N2")} />,
     why: { "3": "3 Paare sind bindend. Frei ist das Paar außen.", "2": "Zähle nur die Paare außerhalb der Bindung." },
+    tip: "Zähle nur die Paare außerhalb der grauen Ovale.",
     ok: "Jedes N: 3 bindende + 1 freies Paar = 8 Elektronen.",
   },
   {
@@ -81,12 +88,13 @@ const US: GuideStep[] = [
     ask: "Welche Formel hat **Methan** (C mit H)?", answer: "CH₄", options: ["CH₄", "CH₂", "CH₃", "C₄H"],
     visual: () => <Lewis m={mol([["C", 0, 0]])} />,
     why: { "CH₂": "Dann blieben 2 einzelne Elektronen übrig.", "CH₃": "Dann bliebe 1 einzelnes Elektron übrig.", "C₄H": "Ein C bindet 4 H, nicht umgekehrt." },
-    ok: "**CH₄**: Methan.",
+    ok: "C hat 4 einzelne Elektronen → 4 Bindungen zu H: **CH₄** (Methan).",
   },
   {
     ask: "Wie viele Elektronen umgeben ein **Cl**-Atom in **CCl₄**?", answer: 8, num: {},
     visual: () => <Lewis m={known("CCl4")} />,
     why: { "6": "Das bindende Paar zählt auch für Cl: 6 + 2.", "7": "Cl hat 7 eigene, mit dem gemeinsamen Partner-Elektron sind es 8." },
+    tip: "Zähle alle Elektronen im roten Kreis um ein Cl – das Paar im Oval mitzählen.",
     ok: "Oktett: 3 freie Paare + 1 bindendes Paar.",
   },
   {
@@ -108,6 +116,7 @@ const OS: GuideStep[] = [
     say: "Punkte = Außenelektronen. Jedes **einzelne** Elektron (mit Ring) kann eine Bindung eingehen.",
     ask: "Wie viele Bindungen geht ein **Kohlenstoff**-Atom ein?", answer: 4, num: {},
     visual: () => <Lewis m={mol([["C", 0, 0]])} />,
+    tip: "Zähle die einzelnen Elektronen (mit Ring) – jedes ergibt eine Bindung.",
     ok: "C: 4 Bindungen, O: 2, N: 3, H und Halogene: 1.",
   },
   {
@@ -115,19 +124,21 @@ const OS: GuideStep[] = [
     ask: "Ethen (C₂H₄): Tippe auf die C–C-Bindung, um sie zu verstärken.", answer: "bond",
     visual: c => <Lewis m={mol([["C", 1, 0], ["C", 2, 0], ["H", 0, 0], ["H", 1, 1], ["H", 3, 0], ["H", 2, 1]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]])} c={c} tap />,
     show: "So geht's: tippe auf das graue Oval zwischen den beiden C-Atomen.",
+    tip: "Die Bindung zwischen zwei Atomen ist das graue Oval.",
     ok: "C=C: Zweifachbindung – beide C haben ein Oktett.",
   },
   {
     ask: "Welche Bindung liegt in **HCN** zwischen C und N vor?", answer: "Dreifachbindung", options: ["Einfachbindung", "Zweifachbindung", "Dreifachbindung"],
     visual: () => <Lewis m={mol([["H", 0, 0], ["C", 1, 0], ["N", 3, 0]], [[0, 1, 1]])} octet={false} />,
     why: { Einfachbindung: "C hat nach H noch 3 einzelne Elektronen, N hat 3.", Zweifachbindung: "Dann hätten C und N noch je 1 einzelnes Elektron." },
-    ok: "H–C≡N.",
+    ok: "H–C≡N: C hat 4 Bindungen, N hat 3 – beide haben ein Oktett.",
   },
   {
     say: "**EPA-Modell**: Elektronenpaare um ein Zentralatom stoßen sich ab und gehen möglichst weit auseinander. **Freie Paare zählen mit**, eine Mehrfachbindung zählt wie **ein** Paar.",
     ask: "Wie viele Elektronenpaare hat das N-Atom in **NH₃** (bindend + frei)?", answer: 4, num: {},
     visual: () => <Lewis m={known("NH3")} />,
     why: { "3": "Das freie Paar zählt mit.", "1": "Zähle auch die drei bindenden Paare." },
+    tip: "Zähle bindende Paare (graue Ovale) und freie Paare zusammen.",
     ok: "4 Paare → wie ein Tetraeder angeordnet.",
   },
   {

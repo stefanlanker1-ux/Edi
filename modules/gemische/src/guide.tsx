@@ -37,6 +37,7 @@ const STEPS: GuideStep[] = [
     ask: "Wie viele **Teilchen** sind im Bild?", answer: 7, num: {},
     visual: () => <Picture p={MIX} />,
     why: { "15": "15 sind alle Atome. Ein Molekül zählt als **ein** Teilchen.", "2": "2 sind die Stoffe. Zähle jedes Teilchen." },
+    tip: "Zähle jedes Molekül und jedes einzelne Atom als ein Teilchen.",
     ok: "4 Wassermoleküle + 3 Heliumatome = 7 Teilchen.",
   },
   {
@@ -44,6 +45,7 @@ const STEPS: GuideStep[] = [
     ask: "Wie viele **verschiedene Stoffe** sind im Bild?", answer: 2, num: {},
     visual: () => <Picture p={MIX} />,
     why: { "7": "7 sind alle Teilchen. Gleiche Teilchen = ein Stoff.", "3": "3 sind die Atomsorten (H, O, He). Gezählt werden Teilchensorten." },
+    tip: "Gleich aussehende Teilchen gehören zum selben Stoff.",
     ok: "Wasser und Helium: 2 Stoffe.",
   },
   {
@@ -59,6 +61,7 @@ const STEPS: GuideStep[] = [
     visual: c => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} c={c} target="Ne" />,
     why: { CO2: "CO₂ hat zwei Atomsorten (C und O) – eine Verbindung." },
     show: "So geht's: tippe auf ein einzelnes Neon-Atom (Ne).",
+    tip: "Ein Element-Teilchen hat Kugeln in nur einer Farbe.",
     ok: "Neon: nur eine Atomsorte → Element. CO₂ → Verbindung.",
   },
   {
@@ -66,12 +69,14 @@ const STEPS: GuideStep[] = [
     ask: "Wie viele **Atomsorten** kommen im Bild vor?", answer: 3, num: {},
     visual: () => <Picture p={SORTEN} />,
     why: { "4": "4 sind die Stoffe. Gezählt werden die Farben.", "8": "8 sind die Teilchen." },
+    tip: "Zähle die verschiedenen Kugelfarben.",
     ok: "H, O und C: 3 Atomsorten.",
   },
   {
     ask: "Wie viele der Stoffe im Bild sind **Verbindungen**?", answer: 2, num: {},
     visual: () => <Picture p={{ mix: [["He", 3], ["H2O", 3], ["CO2", 2]], state: "modell" }} />,
     why: { "3": "Helium hat nur eine Atomsorte – ein Element.", "5": "Gefragt sind Stoffe, nicht Teilchen." },
+    tip: "Eine Verbindung hat Kugeln in mehreren Farben. Zähle Stoffe, nicht Teilchen.",
     ok: "Wasser und CO₂ sind Verbindungen, Helium ist ein Element.",
   },
   {
@@ -115,6 +120,7 @@ const STEPS: GuideStep[] = [
     ask: "In **200 g** Wasser lösen sich **20 g** Zucker. Wie schwer ist das Zuckerwasser?", answer: 220, num: { unit: "g" },
     visual: () => <Picture p={ZUCKER} />,
     why: { "200": "Der Zucker ist noch da – seine 20 g zählen mit.", "210": "Die Masse bleibt ganz erhalten: 200 g + 20 g." },
+    tip: "Zähle die Masse von Wasser und Zucker zusammen.",
     ok: "200 g + 20 g = 220 g – alle Teilchen sind noch da.",
   },
   {

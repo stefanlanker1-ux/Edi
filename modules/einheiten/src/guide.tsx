@@ -24,6 +24,7 @@ const US: GuideStep[] = [
     ask: "Setze die **Umrechnungszahl** ein: 1 m = ? cm", answer: 100, num: { unit: "cm" },
     visual: () => <Chain from="m" to="cm" />,
     why: { "10": "m → dm → cm: zwei Schritte mit je · 10.", "1000": "1000 wäre km → m." },
+    tip: "Zähle in der Pfeilkette die Schritte von m bis cm. Jeder Schritt ist · 10.",
     ok: "1 m = 100 cm (· 10 · 10).",
   },
   {
@@ -38,13 +39,15 @@ const US: GuideStep[] = [
     ask: "7,5 cm = ? mm", answer: 75, num: { unit: "mm" },
     visual: () => <Table from="cm" to="mm" v="7.5" />,
     why: { "750": "Nur ein Schritt (· 10): 7,5 · 10.", "0.75": "mm ist kleiner – die Zahl wird größer." },
-    ok: "7,5 cm = 75 mm.",
+    tip: "cm → mm ist ein Schritt: Komma eine Stelle nach rechts.",
+    ok: "Ein Schritt nach rechts: Komma eine Stelle weiter – 7,5 cm = 75 mm.",
   },
   {
     say: "Massen: t → kg: · 1000, kg → dag: · 100, dag → g: · 10.",
     ask: "0,3 kg = ? dag", answer: 30, num: { unit: "dag" },
     visual: () => <Table from="kg" to="dag" v="0.3" />,
     why: { "3": "kg → dag ist · 100, nicht · 10.", "300": "300 wäre in g (· 1000)." },
+    tip: "kg → dag ist · 100: Komma zwei Stellen nach rechts.",
     ok: "0,3 kg = 30 dag.",
   },
   {
@@ -52,6 +55,7 @@ const US: GuideStep[] = [
     ask: "1 l = ? ml", answer: 1000, num: { unit: "ml" },
     visual: () => <Chain from="l" to="ml" />,
     why: { "100": "l → dl → cl → ml: drei Schritte · 10.", "10": "Das ist nur l → dl." },
+    tip: "Zähle die Schritte l → dl → cl → ml. Jeder ist · 10.",
     ok: "1 l = 1000 ml.",
   },
   {
@@ -65,13 +69,15 @@ const US: GuideStep[] = [
     ask: "1 m² = ? dm²", answer: 100, num: { unit: "dm²" },
     visual: () => <Box><AreaGrid big="dm²" small="cm²" /></Box>,
     why: { "10": "Ein Quadrat 10 × 10 hat 100 kleine Quadrate.", "1000": "1000 ist der Schritt bei Volumen." },
-    ok: "1 m² = 100 dm².",
+    tip: "Ein Flächenschritt ist 10 · 10.",
+    ok: "Flächen-Nachbarn: · 100. 1 m² = 100 dm².",
   },
   {
     say: "1 **ha** = 100 a, 1 **a** = 100 m².",
     ask: "3 a = ? m²", answer: 300, num: { unit: "m²" },
     visual: () => <Box><DimChain from="a" to="m²" /></Box>,
     why: { "30": "Flächen-Schritt: · 100.", "3000": "a → m² ist ein Flächenschritt: · 100." },
+    tip: "a → m² ist ein Flächenschritt.",
     ok: "3 a = 300 m².",
   },
   {
@@ -79,12 +85,14 @@ const US: GuideStep[] = [
     ask: "1 m³ = ? dm³", answer: 1000, num: { unit: "dm³" },
     visual: () => <Box><Cube big="dm³" small="cm³" /></Box>,
     why: { "100": "100 ist der Schritt bei Flächen. Ein Würfel: 10 · 10 · 10.", "10": "10 ist der Schritt bei Längen." },
-    ok: "1 m³ = 1000 dm³.",
+    tip: "Ein Volumenschritt ist 10 · 10 · 10.",
+    ok: "Volumen-Nachbarn: · 1000. 1 m³ = 1000 dm³.",
   },
   {
     say: "**1 l = 1 dm³**, **1 ml = 1 cm³**.",
     ask: "0,5 l = ? cm³", answer: 500, num: { unit: "cm³" },
     why: { "50": "0,5 l = 0,5 dm³ = 500 cm³ (· 1000).", "5": "dm³ → cm³: · 1000." },
+    tip: "Erst l = dm³, dann dm³ → cm³: ein Volumenschritt.",
     ok: "0,5 l = 500 ml = 500 cm³.",
   },
   {
@@ -98,6 +106,7 @@ const US: GuideStep[] = [
     ask: "1,5 h = ? min", answer: 90, num: { unit: "min" },
     visual: () => <Box><Clock big="h" small="min" /></Box>,
     why: { "15": "Keine Zehnerschritte: 1,5 · 60.", "150": "1 h = 60 min, nicht 100 min." },
+    tip: "Jede Stunde hat 60 Minuten: Stunden · 60.",
     ok: "1,5 h = 90 min.",
   },
   {
@@ -126,12 +135,14 @@ const OS: GuideStep[] = [
     ask: "250 MHz = ? GHz", answer: 0.25, num: { unit: "GHz" },
     visual: () => <Scale from="MHz" to="GHz" v="250" />,
     why: { "250000": "GHz ist größer – die Zahl wird kleiner: 250 · 10⁻³.", "2.5": "10^(6 − 9) = 10⁻³: drei Stellen." },
+    tip: "Hochzahl vorher (M) minus Hochzahl nachher (G). Das Komma wandert nach links.",
     ok: "250 · 10⁻³ = 0,25 GHz.",
   },
   {
     ask: "0,01 MΩ = ? kΩ", answer: 10, num: { unit: "kΩ" },
     visual: () => <Scale from="MΩ" to="kΩ" v="0.01" />,
     why: { "0.00001": "kΩ ist kleiner – die Zahl wird größer: · 10³.", "1": "10^(6 − 3) = 10³: drei Stellen." },
+    tip: "Hochzahl vorher (M) minus Hochzahl nachher (k). Das Komma wandert nach rechts.",
     ok: "0,01 · 10³ = 10 kΩ.",
   },
   {
@@ -149,12 +160,14 @@ const OS: GuideStep[] = [
     say: "1 l = 1 dm³ = 10⁻³ m³, 1 ml = 1 cm³.",
     ask: "2,5 l = ? cm³", answer: 2500, num: { unit: "cm³" },
     why: { "25": "dm³ → cm³: · 10³.", "250": "Bei Volumen dreifach: · 1000." },
+    tip: "1 l = 1 dm³, und dm³ → cm³ ist ein Volumenschritt.",
     ok: "2,5 l = 2500 cm³ = 2500 ml.",
   },
   {
     say: "Zeit: 1 h = 60 min = 3600 s, 1 d = 24 h.",
     ask: "1 h = ? s", answer: 3600, num: { unit: "s" },
     why: { "60": "60 sind die Minuten. Jede Minute hat 60 s.", "100": "Zeit hat keine Zehnerschritte." },
+    tip: "Erst h → min, dann min → s: zweimal · 60.",
     ok: "60 · 60 = 3600 s.",
   },
   {
@@ -166,23 +179,27 @@ const OS: GuideStep[] = [
   {
     ask: "**36 km/h** = ? m/s", answer: 10, num: { unit: "m/s" },
     why: { "129.6": "km/h → m/s: geteilt durch 3,6.", "0.01": "36 : 3,6." },
+    tip: "km/h → m/s: durch 3,6 teilen.",
     ok: "36 : 3,6 = 10 m/s.",
   },
   {
     say: "Nur der **Nenner** ändert sich: pro Stunde passiert 60-mal so viel wie pro Minute.",
     ask: "0,5 l/min = ? l/h", answer: 30, num: { unit: "l/h" },
     why: { "0.0083": "Pro Stunde ist es mehr, nicht weniger: · 60.", "50": "1 h = 60 min, nicht 100 min." },
+    tip: "Pro Stunde passiert 60-mal so viel wie pro Minute.",
     ok: "0,5 · 60 = 30 l/h.",
   },
   {
     ask: "1 g/cm³ = ? kg/m³", answer: 1000, num: { unit: "kg/m³" },
     why: { "0.001": "1 m³ = 10⁶ cm³ – oben 10⁻³, unten 10⁻⁶: 10⁻³ / 10⁻⁶ = 10³.", "1": "Zähler und Nenner ändern sich verschieden." },
+    tip: "Zähler g → kg: · 10⁻³. Nenner cm³ → m³: · 10⁻⁶. Dann teilen.",
     ok: "Wasser: 1 g/cm³ = 1000 kg/m³.",
   },
   {
     say: "Druck: 1 bar = 100 000 Pa = 100 000 N/m² = **10 N/cm²**.",
     ask: "2,5 bar = ? N/cm²", answer: 25, num: { unit: "N/cm²" },
     why: { "250000": "In N/m² wären es 250 000. 1 m² = 10 000 cm².", "2.5": "1 bar = 10 N/cm²: 2,5 · 10." },
+    tip: "1 bar = 10 N/cm². Mit dem Wert malnehmen.",
     ok: "2,5 · 10 = 25 N/cm².",
   },
 ];
