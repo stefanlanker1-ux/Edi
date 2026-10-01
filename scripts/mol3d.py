@@ -21,7 +21,7 @@ SMILES = {
     "NO": "[N]=O", "NO2": "[O]N=O", "P4": "P12P3P1P23", "P4O10": "O=P12OP3(=O)OP(=O)(O1)OP(=O)(O2)O3",
     "P2O5": "O=P(=O)OP(=O)=O",
     # Gemische: Ozon, Öl (vereinfacht als Dodecan), Haushaltszucker (Saccharose)
-    "O3": "[O-][O+]=O", "C12H26": "CCCCCCCCCCCC",
+    "O3": "[O-][O+]=O", "C12H26": "CCCCCCCCCCCC", "H2CO3": "OC(=O)O",
     "C12H22O11": "OC[C@H]1O[C@@](CO)(O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@H]2O)[C@@H](O)[C@@H]1O",
 }
 

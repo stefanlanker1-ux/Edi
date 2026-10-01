@@ -11,7 +11,7 @@ import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } f
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, MIX_LABEL, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
 import { seedOf } from "../mixing.ts";
-import { STIR, atEquilibrium, gasTarget, liquidLevel, makeWorld, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
+import { ACID, STIR, atEquilibrium, gasTarget, liquidLevel, makeWorld, openBottle, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
 import { FlowView } from "../components/FlowView.tsx";
 import { useApp } from "../store.ts";
 
@@ -118,7 +118,7 @@ function ExampleList({ current, onPick }: { current: number; onPick: (i: number)
 }
 
 /** Zustand für die Anzeige (alle 15 Schritte aus der Welt gelesen) */
-interface Info { bound: number; gas: number; eq: number; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
+interface Info { bound: number; gas: number; eq: number; aq: number; opened: boolean; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
 function readInfo(w: World, ex: Example): Info {
   let mixed = true;
   if (ex.before === "schicht" && ex.solute) {
@@ -136,13 +136,17 @@ function readInfo(w: World, ex: Example): Info {
   }
   return {
     bound: w.state === "fluessig" ? w.ps.filter(p => p.bound).length : 0, gas: w.ps.filter(p => p.gas).length, eq: gasTarget(w), sep: separatedFlow(w),
+    // gelöst: CO₂ im Wasser und Kohlensäure
+    aq: w.ps.filter(p => !p.gas && (p.f === ex.solute || p.f === ACID)).length, opened: !!w.opened,
     walls: w.walls.length, melt: w.melt > 0, busy: w.stir > 0 || w.shake > 0 || w.melt > 0 || w.wallEnd !== undefined, mixed, doneAt: w.doneAt, t: w.t,
   };
 }
 const secs = (steps: number) => `${Math.max(1, Math.round(steps / 60))} s`;
 
 /** Hauptknopf je Beispiel: sagt, was passiert */
-function actionOf(ex: Example): { label: string; icon: "shake" | "fire" | "up" } {
+function actionOf(ex: Example, i?: Info): { label: string; icon: "shake" | "fire" | "up" } {
+  // Sprudel: erst schütteln (CO₂ löst sich), im Gleichgewicht öffnen, dann wieder schütteln (CO₂ entweicht)
+  if (ex.before === "gasraum" && i && !i.opened && i.doneAt !== undefined) return { label: "Öffnen", icon: "up" };
   if (ex.state === "fest") return { label: "Schmelzen", icon: "fire" };
   if (ex.state !== "fluessig") return ex.before ? { label: ex.items.length > 2 ? "Wände weg" : "Wand weg", icon: "up" } : { label: "Schütteln", icon: "shake" };
   return ex.before === "kristall" || ex.before === "schicht" ? { label: "Umrühren", icon: "shake" } : { label: "Schütteln", icon: "shake" };
@@ -154,7 +158,11 @@ function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
   const time = (verb: string) => (done !== undefined ? `${verb} in ${secs(done)}` : verb);
   if (ex.before === "kristall") return i.bound ? ["löst sich", `${k - i.bound} / ${k} gelöst`] : ["Lösung", time("gelöst")];
   // geschlossene Flasche: CO₂ löst sich bzw. perlt aus, bis so viel gelöst ist, wie bei dieser Temperatur geht (kalt mehr, warm weniger)
-  if (ex.before === "gasraum") return [i.gas > i.eq + 1 ? "löst sich" : i.gas < i.eq - 1 ? "perlt aus" : "Gleichgewicht", `${k - i.gas} / ${k} gelöst`];
+  if (ex.before === "gasraum") {
+    // offen: CO₂ entweicht, bis keins mehr gelöst ist (abgestanden)
+    if (i.opened) return [i.aq ? "offen · perlt aus" : "abgestanden", `${i.aq} / ${k} gelöst`];
+    return [i.gas > i.eq + 1 ? "löst sich" : i.gas < i.eq - 1 ? "perlt aus" : "Gleichgewicht", `${i.aq} / ${k} gelöst`];
+  }
   if (ex.before === "schicht") return i.mixed ? ["Lösung", time("gemischt")] : ["mischt sich"];
   if (ex.floats?.length) return [i.sep ? "2 Schichten" : "Emulsion", "heterogen"];
   if (ex.state === "fest") return i.walls ? ["getrennt"] : i.melt ? ["geschmolzen"] : [ex.type ?? "Legierung", "homogen"];
@@ -193,7 +201,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
     // bis zum Endzustand rechnen: gelöst bzw. gleichmäßig gemischt (Schütteln/Umrühren wird dabei fortgesetzt)
     for (let k = 0; k < 5000; k++) {
       if (k >= 60 && settledFlow(w) && readInfo(w, ex).mixed) break;
-      if (w.state === "fluessig" && w.stir === 0 && w.shake === 0 && (w.ps.some(p => p.bound) || (w.closed ? !atEquilibrium(w) : w.ps.some(p => p.gas)))) {
+      if (w.state === "fluessig" && w.stir === 0 && w.shake === 0 && (w.ps.some(p => p.bound) || (w.closed ? !atEquilibrium(w) : !w.opened && w.ps.some(p => p.gas)))) {
         if (ex.before === "gasraum") shakeWorld(w); else w.stir = STIR;
       }
       stepFlow(w);
@@ -204,6 +212,12 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
   const act = () => {
     buzz();
     const w = worldRef.current;
+    if (ex.before === "gasraum" && !w.opened && w.doneAt !== undefined) {
+      openBottle(w);
+      // ohne Bewegung: 10 s später zeigen (CO₂ perlt langsam aus)
+      if (reduced) { for (let k = 0; k < 600; k++) stepFlow(w); refresh(w); setVersion(v => v + 1); } else refresh(w);
+      return;
+    }
     if (w.state === "fluessig") { if (ex.before === "kristall" || ex.before === "schicht") w.stir = STIR; else shakeWorld(w); }
     else if (w.state === "fest") startMixing(w);
     else if (ex.before) { startMixing(w); startAt.current = w.t; }
@@ -218,7 +232,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
   };
 
   const a = analyse(ex.items);
-  const action = actionOf(ex);
+  const action = actionOf(ex, info);
   const done = ex.before === "schicht" || (ex.before === "getrennt" && ex.state !== "fest") ? mixedAt.current : info.doneAt;
   const canAct = !info.busy && !(ex.state !== "fluessig" && ex.state !== "fest" && ex.before && !info.walls);
   const goTo = (i: number) => { buzz(); setEx(i); setTool(null); };

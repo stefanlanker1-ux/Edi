@@ -1,11 +1,17 @@
 import { test, assert } from "vitest";
+import { parseFormula } from "@lern/chem";
 import { EXAMPLES, analyse } from "./mixtures.ts";
-import { SHAKE, STIR, boundaryY, gasTarget, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
+import { ACID, SHAKE, STIR, boundaryY, gasTarget, openBottle, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
 
 const ex = (id: string) => EXAMPLES.find(e => e.id === id)!;
 const counts = (w: World) => { const c: Record<string, number> = {}; for (const p of w.ps) c[p.f] = (c[p.f] ?? 0) + 1; return c; };
 const inside = (w: World) => w.ps.every(p => Number.isFinite(p.x) && Number.isFinite(p.y) && p.x >= 0 && p.x <= w.W && p.y >= 0 && p.y <= w.H);
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+const atomCounts = (w: World) => {
+  const c: Record<string, number> = {};
+  for (const p of w.ps) for (const [el, n] of Object.entries(parseFormula(p.f))) c[el] = (c[el] ?? 0) + (n as number);
+  return c;
+};
 test("alle Beispiele: gleiche Teilchen vorher und nachher, alle im Gefäß, nichts überlappt stark", () => {
   for (const e of EXAMPLES) for (const phase of ["nachher", "vorher"] as const) {
     const w = makeWorld(e, 5, phase);
@@ -14,7 +20,9 @@ test("alle Beispiele: gleiche Teilchen vorher und nachher, alle im Gefäß, nich
     if (e.before) startMixing(w); else shakeWorld(w);
     for (let k = 0; k < 600; k++) stepFlow(w);
     assert.ok(inside(w), `${e.id} ${phase}: Teilchen außerhalb`);
-    assert.deepEqual(counts(w), Object.fromEntries(e.items), `${e.id}: Teilchen verloren`);
+    // Atome bleiben erhalten (beim Sprudel wird aus CO₂ und Wasser zum Teil Kohlensäure – die Moleküle ändern sich)
+    assert.deepEqual(atomCounts(w), atomCounts(makeWorld(e, 5, phase)), `${e.id}: Atome verloren`);
+    if (e.id !== "sprudel") assert.deepEqual(counts(w), Object.fromEntries(e.items), `${e.id}: Teilchen verloren`);
     // im Mittel kaum Überlappung
     let close = 0;
     for (const p of w.ps) for (const q of w.ps) if (p.id < q.id && !p.gas && !q.gas && Math.hypot(p.x - q.x, p.y - q.y) < w.rc) close++;
@@ -26,9 +34,10 @@ test("Bewegung ist fließend: kleine Schritte je Bild, keine Sprünge", () => {
   for (const e of EXAMPLES) {
     const w = makeWorld(e, 2);
     for (let k = 0; k < 300; k++) {
-      const before = w.ps.map(p => [p.x, p.y]);
+      // nach Nummer (beim Sprudel entstehen und verschwinden Teilchen: Kohlensäure)
+      const before = new Map(w.ps.map(p => [p.id, [p.x, p.y]]));
       stepFlow(w);
-      const jump = Math.max(...w.ps.map((p, i) => Math.hypot(p.x - before[i][0], p.y - before[i][1])));
+      const jump = Math.max(...w.ps.map(p => { const b = before.get(p.id); return b ? Math.hypot(p.x - b[0], p.y - b[1]) : 0; }));
       assert.ok(jump < w.rc * 1.2, `${e.id}: Sprung ${jump.toFixed(2)}`);
     }
   }
@@ -109,15 +118,41 @@ test("Sprudel: nach einmal Schütteln ist das Gleichgewicht erreicht – kalt bl
 }, 60_000);
 
 test("Sprudel: erwärmt perlt CO₂ aus, gelöstes verteilt sich im ganzen Wasser", () => {
-  const w = makeWorld(ex("sprudel"), 3, "vorher");
-  shakeWorld(w);
-  for (let k = 0; k < 900; k++) stepFlow(w);
+  // gelöstes CO₂ und Kohlensäure im Mittel so tief wie das Wasser (drei Startwerte, sonst zu wenige Teilchen für einen Mittelwert)
+  const diff: number[] = [];
+  let w = makeWorld(ex("sprudel"), 3, "vorher");
+  for (const seed of [3, 5, 6]) {
+    w = makeWorld(ex("sprudel"), seed, "vorher");
+    shakeWorld(w);
+    for (let k = 0; k < 900; k++) stepFlow(w);
+    const hl = liquidLevel(w), depth = (f: (p: FP) => boolean) => mean(w.ps.filter(p => !p.gas && f(p)).map(p => (p.y - w.top) / hl));
+    diff.push(depth(p => p.f === "CO2" || p.f === ACID) - depth(p => p.f === "H2O"));
+  }
+  assert.ok(Math.abs(mean(diff)) < .08, `CO₂ nicht verteilt (${diff.map(d => d.toFixed(2)).join(", ")})`);
   const cold = w.ps.filter(p => p.gas).length;
-  const hl = liquidLevel(w), depth = (f: string) => mean(w.ps.filter(p => !p.gas && p.f === f).map(p => (p.y - w.top) / hl));
-  assert.ok(Math.abs(depth("CO2") - depth("H2O")) < .12, `CO₂ nicht verteilt (${depth("CO2").toFixed(2)} gegen ${depth("H2O").toFixed(2)})`);
   w.temp = 90;
   for (let k = 0; k < 1200; k++) stepFlow(w);
   assert.ok(w.ps.filter(p => p.gas).length > cold + 8, `warm: ${w.ps.filter(p => p.gas).length} statt mehr als ${cold + 8}`);
+}, 60_000);
+
+test("Sprudel: geöffnet entweicht das CO₂ – geschüttelt viel schneller; Kohlensäure bildet sich und zerfällt", () => {
+  const aq = (w: World) => w.ps.filter(p => !p.gas && (p.f === "CO2" || p.f === ACID)).length;
+  const left: number[] = [];
+  let acidSeen = 0;
+  for (const shake of [false, true]) {
+    const w = makeWorld(ex("sprudel"), 4, "vorher");
+    shakeWorld(w);
+    for (let k = 0; k < 1200; k++) { stepFlow(w); acidSeen = Math.max(acidSeen, w.ps.filter(p => p.f === ACID).length); }
+    const before = aq(w);
+    openBottle(w);
+    if (shake) shakeWorld(w);
+    for (let k = 0; k < 600; k++) stepFlow(w);
+    assert.ok(aq(w) < before, `${shake ? "geschüttelt" : "ruhig"}: nichts entwichen`);
+    assert.ok(!w.ps.some(p => p.gas && p.y < -3 * w.rc), "Gas außerhalb des Bilds nicht entfernt");
+    left.push(aq(w));
+  }
+  assert.ok(left[1] < left[0] / 3, `geschüttelt nicht schneller: ${left.join(" / ")}`);
+  assert.ok(acidSeen >= 1, "keine Kohlensäure");
 }, 60_000);
 
 test("Sprudel: CO₂ löst sich von selbst langsam, geschüttelt schnell", () => {

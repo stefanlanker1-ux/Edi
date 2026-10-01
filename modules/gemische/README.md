@@ -7,7 +7,8 @@ Wasser, Helium im Luftballon, Zuckerwasser, Alkohol und Wasser, Sprudelwasser, �
   (Kalottenmodell aus echten 3D-Daten). Die Teilchen bewegen sich ständig und fließend. Jedes Beispiel beginnt „vorher“: ein geordneter Zuckerkristall
   im Wasser löst sich von außen – von selbst langsam, umgerührt oder warm schneller (die Zeit wird angezeigt); Alkohol mischt sich, CO₂ löst sich,
   Gase mischen sich nach „Wand weg“, Kupfer und Zink schmelzen zu Messing und gleiten beim Erstarren ins Gitter; **Schütteln** löst das CO₂ im Sprudel bis zum Gleichgewicht
-  (kalt bleibt wenig im Gasraum, warm mehr – erwärmt perlt es aus)
+  (kalt bleibt wenig im Gasraum, warm mehr – erwärmt perlt es aus); danach **Öffnen**: das CO₂ entweicht, geschüttelt sprudelt es heraus.
+  Ein Teil des gelösten CO₂ reagiert mit Wasser zu Kohlensäure (H₂CO₃) und zerfällt wieder
   und verteilt Öl als Tröpfchen im Wasser, die sich danach wieder zur Schicht sammeln. „Von vorn“ beginnt neu.
   Teilchen in der Lupe antippen → Stoff-Info mit Strukturformel und 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
 - **Quiz:** Teilchen und Stoffe, Elemente und Verbindungen (auch Teilchenbilder auswählen), Gemische im Alltag, Lösen und Mischen –

@@ -29,6 +29,8 @@ export interface FP {
   gas?: boolean;
   /** beim Schütteln gelöst: sinkt wie ein mitgerissenes Bläschen sanft bis zu dieser Tiefe (verteilt sich im ganzen Wasser) */
   sink?: number;
+  /** ausgeperlt: steigt als Bläschen durch das Wasser bis an die Oberfläche */
+  rise?: boolean;
 }
 
 export interface World {
@@ -61,6 +63,10 @@ export interface World {
   closedGas?: string;
   /** im Gleichgewicht gelöste Gasteilchen, für die noch ein gelöstes ausperlt (Austausch ohne Änderung der Menge) */
   swap?: number;
+  /** Flasche geöffnet: Gas entweicht nach oben, gelöstes CO₂ perlt aus (geschüttelt viel schneller) */
+  opened?: boolean;
+  /** nächste freie Teilchennummer (Kohlensäure zerfällt in CO₂ und ein neues Wassermolekül) */
+  nextId?: number;
   /** Metallgitter: Plätze */
   sites: [number, number][];
   /** Lücke zwischen den Metallblöcken vorher */
@@ -78,7 +84,7 @@ type Spec = Pick<Example, "items" | "state" | "floats" | "before" | "solute">;
 const LIQ_PHI = .42; // Flächenanteil der Stoßkreise in der Flüssigkeit (gezeichnet werden die Teilchen größer)
 const LIQ_RC = 2.6, GAS_RC = 2.2, GAS_V = .7;
 /** Stoßradius in der Flüssigkeit im Verhältnis zu Wasser: Zucker (Saccharose) ist ein großes Molekül, Ethanol etwas größer als Wasser */
-const SIZE: Record<string, number> = { C12H22O11: 1.8, C2H5OH: 1.3, CO2: 1.15 };
+const SIZE: Record<string, number> = { C12H22O11: 1.8, C2H5OH: 1.3, CO2: 1.15, H2CO3: 1.3 };
 export const sizeOf = (f: string) => SIZE[f] ?? 1;
 /** lange Moleküle (je rc): halbe Länge und Radius des Stabs – passend zur gezeichneten Kette (Dodecan) */
 const LONG: Record<string, [number, number]> = { C12H26: [1.95, .5] };
@@ -258,6 +264,10 @@ export function startMixing(w: World) {
 /** Schütteln (Flüssigkeit): kräftige Stöße, danach Ruhe */
 export const SHAKE = 180; // Schütteln dauert 3 s und ist gemächlich (gut zu verfolgen)
 export function shakeWorld(w: World) { w.shake = SHAKE; }
+/** Sprudelflasche öffnen: Deckel weg, Gleichgewicht mit der Luft (dort fast kein CO₂) – das Gas entweicht */
+export function openBottle(w: World) { if (!w.closedGas) return; w.closed = false; w.opened = true; w.doneAt = undefined; w.swap = 0; }
+/** Kohlensäure: im Modell reagiert etwa jedes sechste gelöste CO₂-Molekül mit Wasser (echt nur etwa 0,2 %) */
+export const ACID = "H2CO3";
 /**
  * Faktor der Teilchengeschwindigkeit bei der eingestellten Temperatur, bezogen auf 20 °C.
  * Echt wäre √(T in K): von 0 °C bis 100 °C nur + 17 % – das sieht man nicht. Im Modell deutlich verstärkt:
@@ -302,7 +312,7 @@ export const separatedFlow = (w: World) => !w.floats.length || oilOnTop(w) >= .9
 export function settledFlow(w: World): boolean {
   if (w.state === "fest") return w.melt <= 0 && !w.walls.length;
   if (w.walls.length || w.hold || w.stir > 0 || w.shake > 0) return false;
-  if (w.ps.some(p => p.bound) || (w.closed ? !atEquilibrium(w) : w.ps.some(p => p.gas))) return false;
+  if (w.ps.some(p => p.bound) || (w.opened ? w.ps.some(p => p.f === w.closedGas || p.f === ACID) : w.closed ? !atEquilibrium(w) : w.ps.some(p => p.gas))) return false;
   return separatedFlow(w);
 }
 
@@ -426,7 +436,7 @@ export function stepFlow(w: World) {
   const liquid = w.ps.filter(p => !p.gas);
   // geschlossene Flasche: Gas löst sich, gelöstes perlt aus – beides, bis das Gleichgewicht der Temperatur erreicht ist
   const nGas = w.closed ? w.ps.filter(p => p.gas).length : 0, eqGas = gasTarget(w);
-  const inFactor = !w.closed || nGas > eqGas ? 1 : .12;
+  const inFactor = w.opened ? .05 : !w.closed || nGas > eqGas ? 1 : .12;
   const rad = (p: FP) => p.rad ?? rc;
   // Umrühren reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (sonst staut sich das Wasser am Kristall)
   let floor = H;
@@ -435,21 +445,21 @@ export function stepFlow(w: World) {
   const line = w.floats.length ? rawBoundary(w) : 0;
   for (const p of w.ps) {
     if (p.gas) {
-      // eben ausgeperlt: steigt ruhig durch die Oberfläche in den Gasraum
-      if (p.leave) {
-        p.leave--;
-        if (p.y > w.top - rc) { p.y = Math.max(w.top - rc, p.y - .6); p.x = Math.min(W - rc, Math.max(rc, p.x + p.vx)); turn(p, .004); continue; }
-        p.leave = 0;
+      // ausgeperlt: steigt als Bläschen durch das Wasser in den Gasraum (geschüttelt schneller)
+      if (p.rise) {
+        if (p.y > w.top - rc) { p.y = Math.max(w.top - rc, p.y - .6 - .8 * w.agit); p.x = Math.min(W - rc, Math.max(rc, p.x + p.vx)); turn(p, .004); continue; }
+        p.rise = false;
       }
       // Gas über der Flüssigkeit fliegt; trifft es auf die Oberfläche, löst es sich manchmal (geschüttelt: fast immer) –
       // in der geschlossenen Flasche nur selten, wenn schon so viel gelöst ist wie im Gleichgewicht
       veer(p, r);
       toSpeed(p, GAS_V * hf);
       // geschüttelt: Gasraum und Wasser werden durchgewirbelt – das Gas wird zur Oberfläche gerissen
-      if (w.shake > 0) p.vy += .06 * w.agit;
+      if (w.shake > 0 && !w.opened) p.vy += .06 * w.agit;
       p.x += p.vx; p.y += p.vy;
       if (p.x < rc || p.x > W - rc) { p.vx = -p.vx; p.x = Math.min(W - rc, Math.max(rc, p.x)); }
-      if (p.y < rc) { p.vy = Math.abs(p.vy); p.y = rc; }
+      // offene Flasche: oben hinaus (wird unten entfernt), sonst prallt das Gas am Deckel ab
+      if (p.y < rc && !w.opened) { p.vy = Math.abs(p.vy); p.y = rc; }
       if (p.y > w.top - rc) {
         if (r() < (.025 * hf + .6 * w.agit) * inFactor) {
           if (w.closed && inFactor < 1) w.swap = (w.swap ?? 0) + 1; p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = inFactor === 1 ? .8 + 2 * w.agit : .4; p.leave = 30; if (w.shake > 0 && w.agit > .2 && inFactor === 1) p.sink = w.top + .7 * r() * hl; } // geschüttelt: wie ein Bläschen tief hineingerissen
@@ -554,21 +564,48 @@ export function stepFlow(w: World) {
   if (gas.length > 1) collide(w, gas);
   separate(w, liquid, w.floats.length ? 6 : 3);
   clamp(w, liquid, rc, W - rc, w.top + rc, H - rc);
-  // Ausperlen: gelöstes CO₂ nahe der Oberfläche geht in den Gasraum (warm häufiger, geschüttelt schneller)
-  if (w.closed && w.closedGas) {
-    // zu wenig im Gasraum: perlt aus; im Gleichgewicht nur als Austausch für ein eben gelöstes Teilchen
-    const swap = nGas >= eqGas && (w.swap ?? 0) > 0;
-    const near = liquid.filter(p => p.f === w.closedGas && !p.leave && p.y < w.top + 2 * rc);
-    if (near.length && (nGas < eqGas || swap) && r() < (swap ? .05 * hf : .03 * hf + .4 * w.agit)) {
-      const p = near[Math.floor(r() * near.length)];
-      p.gas = true; p.rad = rc; p.vx *= .3; p.vy = -.6; p.leave = 60; p.sink = undefined;
+  // Ausperlen: gelöstes CO₂ nahe der Oberfläche geht in den Gasraum (warm häufiger, geschüttelt schneller);
+  // offene Flasche: es perlt ständig aus, geschüttelt bilden sich Bläschen im ganzen Wasser
+  if (w.closedGas) {
+    const swap = w.closed && nGas >= eqGas && (w.swap ?? 0) > 0;
+    const depth = w.opened ? 4 + 30 * w.agit : 2;
+    const near = liquid.filter(p => p.f === w.closedGas && !p.leave && !p.bound && p.y < w.top + depth * rc);
+    const want = w.opened || nGas < eqGas || swap;
+    const tries = w.opened ? 1 + Math.round(w.agit) : 1;
+    for (let t = 0; t < tries && near.length && want; t++) {
+      if (r() >= (swap ? .05 * hf : w.opened ? .04 * hf + .08 * w.agit : .03 * hf + .4 * w.agit)) continue;
+      const p = near.splice(Math.floor(r() * near.length), 1)[0];
+      p.gas = true; p.rad = rc; p.vx *= .3; p.vy = -.6; p.rise = true; p.sink = undefined;
       if (swap) w.swap!--;
     }
     if (nGas < eqGas - 1) w.swap = 0;
+    // Kohlensäure: CO₂ + H₂O ⇌ H₂CO₃ (ein Wassermolekül in der Nähe wird verbraucht bzw. wieder frei)
+    const co2 = liquid.filter(p => p.f === w.closedGas && !p.leave && !p.gas);
+    const acid = liquid.filter(p => p.f === ACID);
+    const gone = new Set<FP>();
+    for (const p of co2) {
+      if (r() >= .002 * hf) continue;
+      const q = liquid.find(q => q.f === "H2O" && !gone.has(q) && Math.hypot(q.x - p.x, q.y - p.y) < 2.6 * rc);
+      if (!q) continue;
+      gone.add(q); p.f = ACID; p.rad = rc * sizeOf(ACID); p.leave = 20;
+    }
+    for (const p of acid) {
+      if (r() >= .01 * hf) continue;
+      p.f = w.closedGas; p.rad = rc * sizeOf(w.closedGas); p.leave = 20;
+      const ang = r() * Math.PI * 2, d = 2.2 * rc;
+      const x = Math.min(W - rc, Math.max(rc, p.x + Math.cos(ang) * d)), y = Math.min(H - rc, Math.max(w.top + rc, p.y + Math.sin(ang) * d));
+      w.nextId ??= Math.max(...w.ps.map(q => q.id)) + 1;
+      w.ps.push(particle(w.nextId++, "H2O", x, y, r, { rad: rc, leave: 20, vx: p.vx, vy: p.vy }));
+    }
+    if (gone.size) w.ps = w.ps.filter(q => !gone.has(q));
+    // offene Flasche: entwichenes Gas verlässt das Bild
+    if (w.opened) w.ps = w.ps.filter(q => !(q.gas && q.y < -2 * rc));
   }
   if (w.stir > 0) w.stir--;
   if (w.shake > 0) w.shake--;
-  if (w.doneAt === undefined && w.shake === 0 && !w.ps.some(p => p.bound) && (w.closed ? atEquilibrium(w) : !w.ps.some(p => p.gas))) w.doneAt = w.t;
+  // fertig: gelöst bzw. im Gleichgewicht; offene Flasche: alles CO₂ entwichen (abgestanden)
+  const flat = () => !w.ps.some(p => p.f === w.closedGas || p.f === ACID);
+  if (w.doneAt === undefined && w.shake === 0 && !w.ps.some(p => p.bound) && (w.opened ? flat() : w.closed ? atEquilibrium(w) : !w.ps.some(p => p.gas))) w.doneAt = w.t;
   if (w.floats.length) { const y = rawBoundary(w); w.lineY = w.lineY === undefined ? y : w.lineY + (y - w.lineY) * .03; }
 }
 

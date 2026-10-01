@@ -130,7 +130,7 @@ export function equationText(eq: Equation, coeffs?: (number | null)[]): string {
 export const SPECIES_NAMES: Record<string, string> = {
   H2: "Wasserstoff", O2: "Sauerstoff", N2: "Stickstoff", Cl2: "Chlor", H2O: "Wasser", H2O2: "Wasserstoffperoxid",
   Mg: "Magnesium", MgO: "Magnesiumoxid", Fe: "Eisen", Fe2O3: "Eisen(III)-oxid", FeS: "Eisensulfid", S: "Schwefel",
-  Na: "Natrium", NaCl: "Natriumchlorid", C: "Kohlenstoff", CO2: "Kohlenstoffdioxid", CO: "Kohlenstoffmonoxid", CH4: "Methan",
+  Na: "Natrium", NaCl: "Natriumchlorid", C: "Kohlenstoff", CO2: "Kohlenstoffdioxid", H2CO3: "Kohlensäure", CO: "Kohlenstoffmonoxid", CH4: "Methan",
   NH3: "Ammoniak", Al: "Aluminium", Al2O3: "Aluminiumoxid", AlCl3: "Aluminiumchlorid", Cu: "Kupfer", CuO: "Kupferoxid",
   CaCO3: "Calciumcarbonat (Kalk)", CaO: "Calciumoxid", Zn: "Zink", HCl: "Chlorwasserstoff (Salzsäure)", ZnCl2: "Zinkchlorid",
   MgCl2: "Magnesiumchlorid", K: "Kalium", KOH: "Kaliumhydroxid", NaOH: "Natriumhydroxid", SO2: "Schwefeldioxid",
