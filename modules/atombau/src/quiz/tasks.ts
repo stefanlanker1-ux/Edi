@@ -57,6 +57,8 @@ const chargeLabel = (q: number) => (q === 0 ? "neutral" : `${Math.abs(q)}${q > 0
 /** Anzahl mit Einzahl/Mehrzahl: 1 Proton, 2 Protonen */
 const cnt = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const el = (Z: number) => BY_Z[Z];
+/** Ordnungszahl des Edelgaskerns in der Kurzschreibweise (Edelgas der vorherigen Periode) */
+const coreOf = (Z: number) => [0, 2, 10, 18, 36, 54, 86].filter(g => g < Z).pop()!;
 const neighbors = (Z: number, maxZ: number) => [Z - 1, Z + 1, Z - 2, Z + 2, Z + 8, Z - 8].filter(z => z >= 1 && z <= maxZ);
 /** Elemente, deren gemessene Konfiguration vom Aufbauprinzip abweicht (Cr, Cu, Pd, Au …): die App rechnet nach der Regel, das Quiz fragt sie nicht ab */
 const DEVIATING = new Set([24, 29, 41, 42, 44, 45, 46, 47, 57, 58, 64, 78, 79]);
@@ -143,7 +145,12 @@ export const massNumber: Gen = pool => {
 export const elementFromProtons: Gen = pool => {
   const Z = pick(pool);
   return {
-    ...mc(el(Z).name, neighbors(Z, maxOf(pool)).map(z => el(z).name)),
+    ...mc(el(Z).name, [
+      // Protonenzahl mit der Massenzahl verwechselt: 12 Protonen → Kohlenstoff (C-12)
+      ...pool.filter(z => z !== Z && z + standardNeutrons(z) === Z).slice(0, 1).map(z => d(el(z).name, "protonen-massenzahl",
+        `${el(z).name} hat die **Massenzahl** ${Z}. Das Element bestimmt die **Protonenzahl**: ${Z} = Ordnungszahl → ${el(Z).name}.`)),
+      ...neighbors(Z, maxOf(pool)).map(z => dis(el(z).name, `${el(z).name} hat ${cnt(z, "Proton", "Protonen")}. Ordnungszahl ${Z} → ${el(Z).name}.`)),
+    ]),
     prompt: `Ein Atom hat **${cnt(Z, "Proton", "Protonen")}**. Um welches Element handelt es sich?`,
     hint: "Die Protonenzahl ist gleich der Ordnungszahl im Periodensystem.",
     explain: `Ordnungszahl ${Z} = **${el(Z).name} (${el(Z).symbol})**. Die Protonenzahl legt das Element eindeutig fest.`,
@@ -194,7 +201,8 @@ export const elementFromBohr: Gen = pool => {
   return {
     ...mc(el(Z).name, [
       ...(shells(Z).length > 1 && outer !== Z ? [d(el(outer).name, "nur-aussenschale", `Du hast nur die äußerste Schale gezählt (${outer}). Für die Ordnungszahl zählen **alle** Elektronen: ${shells(Z).join(" + ")} = ${Z}.`)] : []),
-      ...neighbors(Z, maxOf(pool)).map(z => el(z).name),
+      ...(shells(Z).length !== Z && shells(Z).length !== outer ? [d(el(shells(Z).length).name, "schalen-statt-elektronen", `${shells(Z).length} ist die Zahl der **Schalen**. Für die Ordnungszahl zählen die Elektronen: ${shells(Z).join(" + ")} = ${Z}.`)] : []),
+      ...neighbors(Z, maxOf(pool)).map(z => dis(el(z).name, `${el(z).name} hätte ${cnt(z, "Elektron", "Elektronen")}. Hier: ${shells(Z).join(" + ")} = ${Z}.`)),
     ]),
     prompt: "Welches Element zeigt dieses Bohrmodell? (neutrales Atom)",
     visual: { kind: "bohr", Z, N: standardNeutrons(Z), E: Z, labels: true },
@@ -282,7 +290,7 @@ export const isotopeNeutrons: Gen = pool => {
     ...mc(String(N), [
       d(String(A), "neutronen-massenzahl", `**${A}** ist die Massenzahl (Protonen + Neutronen). Zieh die ${cnt(Z, "Proton", "Protonen")} ab.`),
       d(String(Z), "neutronen-protonen", `**${Z}** ist die Protonenzahl (Ordnungszahl). Neutronen = ${A} − ${Z}.`),
-      ...nums(nearNums(N, 0)),
+      ...nearNums(N, 0).map(n => dis(String(n), `Genau rechnen: Neutronen = ${A} − ${Z} = ${N}.`)),
     ]),
     prompt: `Wie viele Neutronen hat das Isotop **${el(Z).name}-${A}**?`,
     visual: { kind: "nuclide", Z, N, E: Z },
@@ -418,7 +426,11 @@ export const blockMC: Gen = pool => {
   const b = blockOf(Z);
   const cfg = configuration(Z, Z);
   return {
-    ...mc(`${b}-Block`, ["s-Block", "p-Block", "d-Block", "f-Block"]),
+    ...mc(`${b}-Block`, [
+      b === "d" ? d("s-Block", "block-letzte-geschrieben", `Nach Schalen geordnet steht ${el(Z).period}s² am Ende – befüllt wird aber zuletzt ${cfg[cfg.length - 1].key} → d-Block.`) : null,
+      b === "p" ? d("s-Block", "block-letzte-geschrieben", `Die s-Unterschale ist schon voll. Zuletzt befüllt wird ${cfg[cfg.length - 1].key} → p-Block.`) : null,
+      ...["s", "p", "d", "f"].filter(x => x !== b).map(x => dis(`${x}-Block`, `Zuletzt befüllt wird ${cfg[cfg.length - 1].key} → ${b}-Block, nicht ${x}-Block.`)),
+    ]),
     prompt: `In welchem **Block** des Periodensystems steht **${el(Z).name}**?`,
     hint: "Der Block ist die Unterschale, die nach dem Aufbauprinzip zuletzt befüllt wird.",
     explain: `Nach dem Aufbauprinzip wird bei ${el(Z).name} zuletzt die **${cfg[cfg.length - 1].key}**-Unterschale befüllt → **${b}-Block**.`,
@@ -434,7 +446,7 @@ export const unpairedMC: Gen = pool => {
     ...mc(String(u), [
       ...(last.count !== u && last.count <= 7 ? [d(String(last.count), "hund-alle-einzeln", `In ${last.key} sitzen ${last.count} Elektronen, aber nur ${last.max / 2} Kästchen. Nach Hund werden erst alle Kästchen einzeln besetzt, dann wird gepaart.`)] : []),
       ...(u !== 0 ? [d("0", "hund-alle-gepaart", `Nach der Hund'schen Regel werden Kästchen gleicher Energie zuerst **einzeln** besetzt – in ${last.key}${sup(last.count)} bleiben Elektronen ungepaart.`)] : []),
-      ...nums(nearNums(u, 0)),
+      ...nearNums(u, 0).map(n => dis(String(n), `Kästchen zeichnen: ${last.key}${sup(last.count)} → ${u} ungepaart.`)),
     ]),
     prompt: `Wie viele **ungepaarte Elektronen** hat ein **${el(Z).name}**-Atom im Grundzustand?`,
     hint: "Zeichne die äußerste, nicht volle Unterschale als Kästchen und besetze nach der Hund'schen Regel.",
@@ -473,7 +485,8 @@ export const isoelectronic: Gen = () => {
   const g = pick([10, 18, 18, 10, 36, 2]);
   const [Z, q] = pick(ISO[g]);
   const lbl = ([z, c]: [number, number]) => el(z).symbol + chargeSup(c);
-  const wrongs = Object.entries(ISO).filter(([k]) => Number(k) !== g).flatMap(([, v]) => v).map(lbl);
+  const wrongs = Object.entries(ISO).filter(([k]) => Number(k) !== g).flatMap(([k, v]) => v.map(x =>
+    dis(lbl(x), `${lbl(x)} hat ${x[0] - x[1]} Elektronen – wie ${el(Number(k)).name}, nicht wie ${el(g).name} (${g}).`)));
   return {
     ...mc(lbl([Z, q]), [
       d(lbl([Z, -q]), "ladung-vorzeichen", `${lbl([Z, -q])} hätte ${Z + q} Elektronen. Für ${g} Elektronen muss ${el(Z).name} ${q > 0 ? `${q} abgeben` : `${-q} aufnehmen`} → ${lbl([Z, q])}.`),
@@ -489,7 +502,12 @@ export const elementFromConfig: Gen = pool => {
   const Z = pick(pool.filter(z => z >= 3 && cfgOK(z)));
   const s = Math.random() < 0.5 || Z > 36 ? shortConfigString(Z) : configString(configuration(Z));
   return {
-    ...mc(el(Z).name, neighbors(Z, maxOf(pool)).map(z => el(z).name)),
+    ...mc(el(Z).name, [
+      // Edelgaskern nicht mitgezählt: [Ne] 3s² 3p³ → nur 5 Elektronen
+      ...(s.startsWith("[") && Z - coreOf(Z) >= 1 ? [d(el(Z - coreOf(Z)).name, "edelgaskern-vergessen",
+        `[${el(coreOf(Z)).symbol}] steht für ${coreOf(Z)} Elektronen. Dazurechnen: ${coreOf(Z)} + ${Z - coreOf(Z)} = ${Z} → ${el(Z).name}.`)] : []),
+      ...neighbors(Z, maxOf(pool)).map(z => dis(el(z).name, `${el(z).name} hätte ${cnt(z, "Elektron", "Elektronen")}. Alle Hochzahlen zusammen ergeben ${Z}.`)),
+    ]),
     prompt: `Welches Element hat die Konfiguration \`${s}\`?`,
     hint: "Zähle alle Elektronen zusammen (bei [Edelgas] dessen Ordnungszahl dazurechnen).",
     explain: `Summe der Elektronen = **${Z}** → **${el(Z).name}**.`,

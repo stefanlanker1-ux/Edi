@@ -52,7 +52,10 @@ export const ANIONS: Ion[] = [
   mono(16, -2, "sulfid", "Sulfid-Ion"),
   mono(7, -3, "nitrid", "Nitrid-Ion"),
   poly("OH", -1, "hydroxid", "Hydroxid-Ion"),
+  poly("NO2", -1, "nitrit", "Nitrit-Ion"),
   poly("NO3", -1, "nitrat", "Nitrat-Ion"),
+  poly("HCO3", -1, "hydrogencarbonat", "Hydrogencarbonat-Ion"),
+  poly("SO3", -2, "sulfit", "Sulfit-Ion"),
   poly("SO4", -2, "sulfat", "Sulfat-Ion"),
   poly("CO3", -2, "carbonat", "Carbonat-Ion"),
   poly("PO4", -3, "phosphat", "Phosphat-Ion"),
@@ -68,6 +71,11 @@ const NOT_KNOWN = new Set([
   "Fe3+|I-", "Cu2+|I-", "Cu+|F-", "Al3+|CO32-", "Fe3+|CO32-", "Cu+|CO32-", "Cu+|NO3-", "Cu+|PO43-",
   "Ag+|OH-", "Cu+|OH-", "NH4+|OH-", "NH4+|O2-", "NH4+|N3-",
   "Cu2+|N3-", "Fe2+|N3-", "Fe3+|N3-", "Pb2+|N3-",
+  // Cu⁺ ist in Wasser nicht beständig (Cu₂SO₄ zerfällt in Cu und CuSO₄)
+  "Cu+|SO42-", "Cu+|SO32-", "Cu+|NO2-", "Cu+|HCO3-",
+  // Nitrit, Sulfit, Hydrogencarbonat: nicht mit Al³⁺, Fe³⁺, Cu²⁺; Nitrit und Hydrogencarbonat auch nicht mit Schwermetall-Ionen
+  "Al3+|NO2-", "Al3+|SO32-", "Al3+|HCO3-", "Fe3+|NO2-", "Fe3+|SO32-", "Fe3+|HCO3-", "Cu2+|NO2-", "Cu2+|SO32-", "Cu2+|HCO3-",
+  "Fe2+|NO2-", "Zn2+|NO2-", "Pb2+|NO2-", "Ag+|HCO3-", "Pb2+|HCO3-", "Zn2+|HCO3-",
 ]);
 /** Gibt es diese Ionenverbindung als beständigen Stoff? */
 export const isKnownCompound = (cation: Ion, anion: Ion) => !NOT_KNOWN.has(`${cation.id}|${anion.id}`);

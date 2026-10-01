@@ -35,4 +35,8 @@ export const MISS: Record<string, string> = {
   "ion-3d-zuerst": "Kation: 3d- statt 4s-Elektronen abgegeben",
   "periode-n": "Periode ≠ höchste Hauptquantenzahl",
   "hauptgruppe-vs-gruppe": "Hauptgruppe und Gruppennummer verwechselt",
+  "protonen-massenzahl": "Protonenzahl mit der Massenzahl verwechselt",
+  "schalen-statt-elektronen": "Schalen statt Elektronen gezählt",
+  "block-letzte-geschrieben": "Block nach der zuletzt geschriebenen statt zuletzt befüllten Unterschale",
+  "edelgaskern-vergessen": "Edelgaskern beim Zählen vergessen",
 };

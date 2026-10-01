@@ -142,7 +142,7 @@ function name(os: boolean): Task {
   const r = ratio(c, a);
   const wrongs = [
     // sulfid ↔ sulfat ↔ sulfit
-    ...p.an.filter(x => x.id !== a.id && x.part.slice(0, 3) === a.part.slice(0, 3)).map(x =>
+    ...p.an.filter(x => x.id !== a.id && x.part.slice(0, 3) === a.part.slice(0, 3) && !/^hydr/.test(x.part) && !/^hydr/.test(a.part)).map(x =>
       d(compoundName(c, x), "endung-id-at", `${ionText(a)} heißt ${a.name}${a.Z !== undefined ? " – einatomige Anionen enden auf **-id**" : ` – ${x.name} wäre ${ionText(x)}`}.`)),
     // Eisen(II) ↔ Eisen(III)
     ...p.cat.filter(x => x.id !== c.id && x.Z === c.Z).map(x =>

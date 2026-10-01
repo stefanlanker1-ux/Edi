@@ -14,6 +14,11 @@ const num = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : ma
 const unpaired = (el: string) => (el === "H" ? 1 : VALENCE[el] <= 4 ? VALENCE[el] : 8 - VALENCE[el]);
 const goal = (el: string) => (el === "H" ? "Duett (2)" : "Oktett (8)");
 const pool = (os: boolean) => KNOWN.filter(k => os || !k.os);
+/** Oberstufe: meist Moleküle, die es erst dort gibt – sonst wiederholen sich O₂, H₂O … aus der Unterstufe */
+const pickFor = (os: boolean, cands: KnownMolecule[]) => {
+  const fresh = cands.filter(k => k.os);
+  return os && fresh.length && Math.random() < 0.6 ? pick(fresh) : pick(cands);
+};
 const mols = (k: KnownMolecule) => toMolecule(k);
 /** Zentralatom: Atom mit den meisten Bindungspartnern (bei 2-atomigen das erste Nicht-H-Atom) */
 function centerOf(k: KnownMolecule) {
@@ -61,7 +66,7 @@ function around(os: boolean): Task {
 }
 
 function lonePairs(os: boolean): Task {
-  const k = pick(pool(os).filter(x => mols(x).atoms.some(a => a.el !== "H" && a.el !== "C")));
+  const k = pickFor(os, pool(os).filter(x => mols(x).atoms.some(a => a.el !== "H" && a.el !== "C")));
   const m = mols(k);
   const a = pick(m.atoms.filter(x => x.el !== "H" && x.el !== "C"));
   const e = electronsOf(m, a.id), p = e.pairs, V = VALENCE[a.el];
@@ -124,9 +129,27 @@ function bondType(os: boolean): Task {
   };
 }
 
+/** Formel mit anderer Zahl an H am Zentralatom: NH₃ → NH₂ / NH₄ (Bindigkeit verzählt) */
+function hydrideVariants(k: KnownMolecule): { f: string; n: number; X: string; right: number }[] {
+  const c = composition(k.formula);
+  const heavy = c.filter(([el]) => el !== "H");
+  const h = c.find(([el]) => el === "H")?.[1] ?? 0;
+  if (heavy.length !== 1 || heavy[0][1] !== 1 || !h) return [];
+  const X = heavy[0][0];
+  const make = (n: number) => (k.formula.startsWith("H") ? `H${n > 1 ? n : ""}${X}` : `${X}H${n > 1 ? n : ""}`);
+  return [h - 1, h + 1, VALENCE[X]].filter((n, i, a) => n >= 1 && n !== h && a.indexOf(n) === i).map(n => ({ f: make(n), n, X, right: h }));
+}
+
 function formulaQ(os: boolean): Task {
-  const k = pick(pool(os));
-  const wrong = shuffle(pool(os).filter(x => x.id !== k.id)).slice(0, 5).map(x => sub(x.formula));
+  const k = pickFor(os, pool(os));
+  const c = composition(k.formula);
+  const element = c.length === 1 && c[0][1] === 2 ? c[0][0] : null;
+  const wrong = [
+    ...hydrideVariants(k).map(v => d(sub(v.f), v.n === VALENCE[v.X] ? "bindungen-valenz" : "bindungen-fehlend-verzaehlt",
+      `${elementName(v.X)} hat ${num(unpaired(v.X), "ungepaartes Elektron", "ungepaarte Elektronen")} → ${num(v.right, "Bindung", "Bindungen")} zu H: **${sub(k.formula)}**.`)),
+    element ? d(element, "atom-statt-molekuel", `${k.name} besteht aus Molekülen mit **2** Atomen: ${sub(k.formula)}.`) : null,
+    ...shuffle(pool(os).filter(x => x.id !== k.id)).slice(0, 5).map(x => sub(x.formula)),
+  ];
   return {
     ...mc(sub(k.formula), wrong),
     prompt: `Welche Formel hat **${k.name}**?`,
@@ -143,11 +166,19 @@ function gathered(f: string) {
 }
 
 function nameQ(os: boolean): Task {
-  const k = pick(pool(os));
+  const k = pickFor(os, pool(os));
+  const els = (f: string) => composition(f).map(([el]) => el).sort().join();
+  // Moleküle aus denselben Elementen zuerst (CH₄ ↔ C₂H₆, H₂O ↔ H₂O₂): genau zählen
+  const alike = shuffle(pool(true).filter(x => x.id !== k.id && x.name !== k.name && els(x.formula) === els(k.formula)));
   return {
-    ...mc(k.name, shuffle(pool(os).filter(x => x.id !== k.id)).slice(0, 5).map(x => x.name)),
+    ...mc(k.name, [
+      ...alike.slice(0, 3).map(x => d(x.name, "name-verwechselt", `${x.name} ist ${sub(x.formula)} – dieselben Elemente, aber andere Anzahl. ${sub(k.formula)} ist **${k.name}**.`)),
+      ...(composition(k.formula).length > 1 ? composition(k.formula).map(([el]) => elementName(el)).filter(n => n !== k.name).map(n =>
+        d(n, "element-statt-molekuel", `${n} ist nur ein Bestandteil. Das Molekül ${sub(k.formula)} heißt **${k.name}**.`)) : []),
+      ...shuffle(pool(os).filter(x => x.id !== k.id)).slice(0, 5).map(x => x.name),
+    ]),
     prompt: `Wie heißt das Molekül **${sub(k.formula)}**?`,
-    hint: "Schau auf die Atome: C und H → Kohlenwasserstoff, O und H → …",
+    hint: "Zähle die Atome genau: CH₄ und C₂H₆ haben dieselben Elemente, aber andere Namen.",
     explain: `${sub(k.formula)} heißt **${k.name}**.`,
   };
 }
@@ -180,7 +211,7 @@ function angle(): Task {
   const noPairs = s.neighbors === 2 ? "180°" : s.neighbors === 3 ? "120°" : "109,5°";
   const hasMulti = m.bonds.some(b => (b.a === c.id || b.b === c.id) && b.order > 1);
   const wrongs = [
-    s.pairs > 0 ? d("109,5°", "elektronen-statt-atome", `109,5° gilt für 4 Bindungen ohne freie Paare. ${num(s.pairs, "Freies Paar drückt", "Freie Paare drücken")} stärker → etwas kleiner: ${s.angle}.`) : null,
+    s.pairs > 0 ? d("109,5°", "stauchung-ignoriert", `109,5° gilt für 4 Bindungen ohne freie Paare. ${s.pairs === 1 ? "Das freie Paar drückt" : `Die ${s.pairs} freien Paare drücken`} stärker → etwas kleiner: ${s.angle}.`) : null,
     s.pairs > 0 ? d(noPairs, "freie-paare-ignoriert", `${c.el} hat ${num(s.pairs, "freies Elektronenpaar", "freie Elektronenpaare")}, das mitzählt: ${s.neighbors + s.pairs} Richtungen → Tetraeder-Winkel, durch die freien Paare leicht gedrückt: ${s.angle}.`) : null,
     s.geometry === "tetraedrisch" ? d("90°", "wuerfel-statt-tetraeder", "90° wäre die Zeichnung auf dem Papier. Im Raum weichen die 4 Bindungen so weit wie möglich aus → Tetraeder, 109,5°.") : null,
     hasMulti ? d("109,5°", "mehrfachbindung-doppelt-gezaehlt", `Eine Mehrfachbindung zählt wie **ein** Partner: ${c.el} hat ${s.neighbors} Richtungen → ${s.angle}.`) : null,
