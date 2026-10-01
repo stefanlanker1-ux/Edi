@@ -82,6 +82,8 @@
 /* Überschriften behalten ihre eigene Zeilenhöhe und Laufweite (kurz, groß – sonst brechen Kacheltitel um) */
 :root[data-lesbar] p, :root[data-lesbar] li { text-align: left; }
 :root[data-lesbar] code { letter-spacing: .02em; }
+/* Zeichnungen (SVG) ohne zusätzlichen Abstand: der vererbte Wert ist in Pixeln und würde Symbole in kleinen Koordinaten weit verschieben */
+:root[data-lesbar] svg { letter-spacing: normal; word-spacing: normal; }
 
 /* ── Fachfarben: eine gemeinsame Palette für alle Apps ─────────────────────────────────────────────
    8 Farbfamilien, dezent kräftig und aufeinander abgestimmt (nicht grell). Je Familie: Grundton (Kugeln, Punkte,
