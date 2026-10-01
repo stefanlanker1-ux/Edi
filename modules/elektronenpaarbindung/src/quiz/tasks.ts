@@ -26,17 +26,17 @@ function bindigkeit(): Task {
   const el = pick(["H", "C", "N", "O", "F", "Cl"]);
   const n = el === "H" ? 1 : 8 - VALENCE[el], V = VALENCE[el];
   const wrongs = [
-    V !== n ? d(String(V), "bindungen-valenz", `${V} ist die Zahl der Valenzelektronen. Bindungen gehen nur die **ungepaarten** ein: bis zum ${goal(el)} ${n === 1 ? "fehlt 1" : `fehlen ${n}`}.`) : null,
-    el !== "H" && n < 4 ? d(String(n + 1), "bindungen-fehlend-verzaehlt", `${elementName(el)} hat ${V} Valenzelektronen: ${V - n} davon sind schon gepaart, nur ${n === 1 ? "1 ist" : `${n} sind`} ungepaart.`) : null,
+    V !== n ? d(String(V), "bindungen-valenz", `${V} ist die Zahl der Außenelektronen. Bindungen gehen nur die **ungepaarten** ein: bis zum ${goal(el)} ${n === 1 ? "fehlt 1" : `fehlen ${n}`}.`) : null,
+    el !== "H" && n < 4 ? d(String(n + 1), "bindungen-fehlend-verzaehlt", `${elementName(el)} hat ${V} Außenelektronen: ${V - n} davon sind schon gepaart, nur ${n === 1 ? "1 ist" : `${n} sind`} ungepaart.`) : null,
     el === "H" ? d("4", "h-oktett", "Wasserstoff hat nur 1 Elektron und Platz für 2 (Duett, wie Helium) – es fehlt genau 1 → **1** Bindung.") : null,
-    el === "C" ? d("2", "bindungen-fehlend-verzaehlt", "Kohlenstoff hat 4 Valenzelektronen, und alle 4 sind ungepaart – bis zum Oktett fehlen **4**, also 4 Bindungen.") : null,
+    el === "C" ? d("2", "bindungen-fehlend-verzaehlt", "Kohlenstoff hat 4 Außenelektronen, und alle 4 sind ungepaart – bis zum Oktett fehlen **4**, also 4 Bindungen.") : null,
     "1", "2", "3", "4",
   ];
   return {
     ...mc(String(n), wrongs),
     prompt: `Wie viele Elektronenpaarbindungen geht ein **${elementName(el)}**-Atom (${el}) normalerweise ein?`,
     hint: "Zähle die ungepaarten Elektronen im Lewis-Symbol – jedes kann eine Bindung eingehen.",
-    explain: `${elementName(el)} hat ${VALENCE[el] === 1 ? "1 Valenzelektron" : `${VALENCE[el]} Valenzelektronen`}. ${el === "H" ? "Bis zum Duett (2 Elektronen) fehlt 1" : n === 1 ? "Bis zum Oktett fehlt 1" : `Bis zum Oktett fehlen ${n}`} → **${n}** Bindung${n > 1 ? "en" : ""}.`,
+    explain: `${elementName(el)} hat ${VALENCE[el] === 1 ? "1 Außenelektron" : `${VALENCE[el]} Außenelektronen`}. ${el === "H" ? "Bis zum Duett (2 Elektronen) fehlt 1" : n === 1 ? "Bis zum Oktett fehlt 1" : `Bis zum Oktett fehlen ${n}`} → **${n}** Bindung${n > 1 ? "en" : ""}.`,
   };
 }
 
@@ -49,7 +49,7 @@ function around(os: boolean): Task {
   const wrongs = a.el === "H"
     ? [d("8", "h-oktett", "Wasserstoff hat nur die erste Schale – die ist mit **2** Elektronen voll (wie bei Helium).")]
     : [
-      V !== 8 ? d(String(V), "nur-valenz-gezaehlt", `${V} sind nur die eigenen Valenzelektronen. Jede Bindung bringt ein Elektron des Partners dazu: ${e.lone} freie + ${2 * e.bonds} in ${num(e.bonds, "Bindung", "Bindungen")} = 8.`) : null,
+      V !== 8 ? d(String(V), "nur-valenz-gezaehlt", `${V} sind nur die eigenen Außenelektronen. Jede Bindung bringt ein Elektron des Partners dazu: ${e.lone} freie + ${2 * e.bonds} in ${num(e.bonds, "Bindung", "Bindungen")} = 8.`) : null,
       2 * e.bonds !== 8 ? d(String(2 * e.bonds), "nur-bindungen-gezaehlt", `${2 * e.bonds} sind nur die Elektronen in den Bindungen. Dazu kommen ${e.lone} freie → 8.`) : null,
     ];
   return {
@@ -66,7 +66,7 @@ function lonePairs(os: boolean): Task {
   const a = pick(m.atoms.filter(x => x.el !== "H" && x.el !== "C"));
   const e = electronsOf(m, a.id), p = e.pairs, V = VALENCE[a.el];
   const wrongs = [
-    Math.floor(V / 2) !== p ? d(String(Math.floor(V / 2)), "valenz-als-paare", `Nicht alle ${V} Valenzelektronen sind frei: ${e.bonds} stecken in Bindungen. Frei bleiben ${e.lone} → ${num(p, "Paar", "Paare")}.`) : null,
+    Math.floor(V / 2) !== p ? d(String(Math.floor(V / 2)), "valenz-als-paare", `Nicht alle ${V} Außenelektronen sind frei: ${e.bonds} stecken in Bindungen. Frei bleiben ${e.lone} → ${num(p, "Paar", "Paare")}.`) : null,
     e.bonds !== p ? d(String(e.bonds), "bindungen-statt-paare", `${e.bonds} ist die Zahl der Bindungen. Gefragt sind die **freien** Paare: ${V} − ${e.bonds} = ${e.lone} Elektronen = ${num(p, "Paar", "Paare")}.`) : null,
     p > 0 ? d(String(e.lone), "elektronen-statt-paare", `${e.lone} freie Elektronen, aber je zwei bilden ein Paar → ${num(p, "Paar", "Paare")}.`) : null,
     "0", "1", "2", "3",
@@ -74,8 +74,8 @@ function lonePairs(os: boolean): Task {
   return {
     ...mc(String(p), wrongs),
     prompt: `Wie viele **freie Elektronenpaare** hat ein ${elementName(a.el)}-Atom im Molekül **${k.name}** (${sub(k.formula)})?`,
-    hint: "Valenzelektronen minus Elektronen, die in Bindungen stecken – der Rest bildet Paare.",
-    explain: `${elementName(a.el)} hat ${VALENCE[a.el]} Valenzelektronen, davon ${electronsOf(m, a.id).bonds} in Bindungen. Übrig: ${electronsOf(m, a.id).lone} → **${p}** freie${p === 1 ? "s" : ""} Paar${p === 1 ? "" : "e"}.`,
+    hint: "Außenelektronen minus Elektronen, die in Bindungen stecken – der Rest bildet Paare.",
+    explain: `${elementName(a.el)} hat ${VALENCE[a.el]} Außenelektronen, davon ${electronsOf(m, a.id).bonds} in Bindungen. Übrig: ${electronsOf(m, a.id).lone} → **${p}** freie${p === 1 ? "s" : ""} Paar${p === 1 ? "" : "e"}.`,
   };
 }
 
@@ -99,7 +99,7 @@ function build(os: boolean): Task {
   return {
     kind: "build", molecule: k.id, elements, traps,
     prompt: `Baue das Molekül **${k.name}** (${sub(k.formula)}).`,
-    hint: "Jedes Atom braucht am Ende 8 Elektronen (H: 2). Mehrfachbindungen durch Tippen auf das Bindungs-Oval.",
+    hint: "Im fertigen Molekül hat jedes Atom 8 Elektronen um sich (H: 2). Mehrfachbindung: Bindungs-Oval antippen.",
     explain: `${k.name}: ${bondList(k)} – alle Atome haben Edelgaskonfiguration.`,
   };
 }
@@ -114,13 +114,13 @@ function bondType(os: boolean): Task {
   const less = (o: number) => d(bondName(o), "mehrfachbindung-uebersehen",
     `Mit ${o === 1 ? "nur einem gemeinsamen Paar" : "zwei gemeinsamen Paaren"} hätte ${X.el} erst ${around - 2 * (b.order - o)} Elektronen. Erst ${b.order} gemeinsame Paare bringen beide aufs ${g}.`);
   const more = (o: number) => d(bondName(o), "oktett-ueberschritten",
-    `${X.el} hat ${num(VALENCE[X.el], "Valenzelektron", "Valenzelektronen")}, davon ${num(unpaired(X.el), "ungepaartes", "ungepaarte")}. Mit ${o} Paaren hätte es ${around + 2 * (o - b.order)} Elektronen – mehr als ein ${g.split(" ")[0]}.`);
+    `${X.el} hat ${num(VALENCE[X.el], "Außenelektron", "Außenelektronen")}, davon ${num(unpaired(X.el), "ungepaartes", "ungepaarte")}. Mit ${o} Paaren hätte es ${around + 2 * (o - b.order)} Elektronen – mehr als ein ${g.split(" ")[0]}.`);
   const wrongs = [1, 2, 3].filter(o => o !== b.order).map(o => (o < b.order ? less(o) : more(o)));
   return {
     ...mc(bondName(b.order), wrongs),
     prompt: `Welche Bindung liegt im Molekül **${k.name}** (${sub(k.formula)}) zwischen ${pair} vor?`,
-    hint: "Wie viele Elektronen fehlen jedem Atom bis zum Oktett (H: Duett)? So viele Paare müssen sie teilen.",
-    explain: `Damit beide Atome ${A.el === "H" || B.el === "H" ? "Edelgaskonfiguration (H: Duett, sonst Oktett)" : "ein Oktett"} erreichen, teilen sie **${b.order}** Elektronenpaar${b.order > 1 ? "e" : ""} → ${bondName(b.order)}.`,
+    hint: "Wie viele ungepaarte Elektronen hat jedes Atom? So viele Paare teilen die beiden.",
+    explain: `Mit **${b.order}** gemeinsamen Elektronenpaar${b.order > 1 ? "en" : ""} hat jedes Atom ${A.el === "H" || B.el === "H" ? "Edelgaskonfiguration (H: Duett, sonst Oktett)" : "ein Oktett"} → ${bondName(b.order)}.`,
   };
 }
 

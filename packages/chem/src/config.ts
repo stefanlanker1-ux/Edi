@@ -85,7 +85,10 @@ export function chargeText(charge: number): string {
   return (abs === 1 ? "" : String(abs)) + (charge > 0 ? "+" : "−");
 }
 /** +2 → "+2", −1 → "−1", 0 → "0" */
-export const signed = (v: number) => (v > 0 ? `+${v}` : v < 0 ? `−${-v}` : "0");
+/** Ladung in Ionenschreibweise wie im Formelzeichen (Na⁺ → „1+“, O²⁻ → „2−“), neutral „0“ */
+export const signed = (v: number) => (v > 0 ? `${v}+` : v < 0 ? `${-v}−` : "0");
+/** Zahl mit echtem Minuszeichen für Rechnungen: −1 */
+export const minus = (v: number) => (v < 0 ? `−${-v}` : String(v));
 
 export const configString = (cfg: Occupied[]) => cfg.map(o => `${o.key}${sup(o.count)}`).join(" ");
 
@@ -178,6 +181,15 @@ export function mainGroupNumber(Z: number): number | null {
   return null;
 }
 export const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
+/**
+ * Gruppe in der Schreibweise der Stufe – überall gleich (PSE-Kopf, Steckbrief, Quiz):
+ * Unterstufe römische Hauptgruppe („IV. Hauptgruppe“), Oberstufe Gruppe 1–18 („Gruppe 14“).
+ */
+export function groupLabel(Z: number, os: boolean): string {
+  const g = BY_Z[Z]?.group, mg = mainGroupNumber(Z);
+  if (g == null) return "Lanthanoide";
+  return !os && mg ? `${ROMAN[mg]}. Hauptgruppe` : `Gruppe ${g}`;
+}
 
 /** Namensstamm einatomiger Anionen: Cl → Chlorid, O → Oxid, N → Nitrid … */
 export const ANION_STEM: Record<string, string> = {

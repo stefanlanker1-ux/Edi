@@ -1,7 +1,7 @@
 // Quiz-Aufgaben zur Ionenbindung (reine Daten, damit Runden gespeichert werden können).
 
 import {
-  CATIONS, ANIONS, ION_BY_ID, ionsFor, ratio, formula, toSubscript, compoundName, ionText, chargeFull, isKnownCompound, BY_Z, type Ion,
+  CATIONS, ANIONS, ION_BY_ID, ionsFor, ratio, formula, toSubscript, compoundName, ionText, chargeFull, isKnownCompound, BY_Z, type Ion, groupLabel,
 } from "@lern/chem";
 import { buildRound, mc, d, pick, shuffle, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { weakTypes } from "@lern/quiz";
@@ -34,8 +34,8 @@ function charge(os: boolean): Task {
   const wrongs = q > 0
     ? [
       d(opt(-q), "ion-gegenteil", `${el.name} ist ein Metall. Metalle geben Elektronen ab – das Ion wird **positiv**.`),
-      d(opt(q - 8), "auffuellen-statt-abgeben", `Bis zur 8 aufzufüllen hieße ${8 - n} Elektronen aufnehmen. ${n === 1 ? "1 Elektron" : `${n} Elektronen`} abgeben ist viel leichter – Metalle geben ab.`),
-      d(opt(q + 1), "ladung-verzaehlt", `${el.name} steht in Hauptgruppe ${n}: es hat ${n === 1 ? "1 Außenelektron" : `${n} Außenelektronen`} und gibt genau ${n === 1 ? "dieses" : "diese"} ab.`),
+      d(opt(q - 8), "auffuellen-statt-abgeben", `Metalle bilden positive Ionen: ${el.name} gibt ${n === 1 ? "sein 1 Außenelektron" : `seine ${n} Außenelektronen`} ab → ${ionText(ion)}.`),
+      d(opt(q + 1), "ladung-verzaehlt", `${el.name} steht in der ${groupLabel(el.Z, os)}: es hat ${n === 1 ? "1 Außenelektron" : `${n} Außenelektronen`} und gibt genau ${n === 1 ? "dieses" : "diese"} ab.`),
     ]
     : [
       d(opt(-q), "ion-gegenteil", `${el.name} ist ein Nichtmetall. Nichtmetalle nehmen Elektronen auf – das Ion wird **negativ**.`),
@@ -45,8 +45,9 @@ function charge(os: boolean): Task {
   return {
     ...mc(opt(q), wrongs),
     prompt: `Welches Ion bildet **${el.name}**?`,
-    hint: "Hauptgruppe I–III: so viele Elektronen abgeben. Hauptgruppe V–VII: bis zur 8 auffüllen.",
-    explain: `${el.name} ${q > 0 ? `gibt ${q} Elektron${q > 1 ? "en" : ""} ab` : `nimmt ${-q} Elektron${q < -1 ? "en" : ""} auf`} und erreicht so eine volle Außenschale → **${ionText(ion)}**.${os ? "" : ""}`,
+    hint: os ? "Gruppe 1, 2, 13: 1, 2, 3 Elektronen abgeben. Gruppe 15–17: bis 8 auffüllen."
+      : "Hauptgruppe I–III: so viele Elektronen abgeben. Hauptgruppe V–VII: bis zur 8 auffüllen.",
+    explain: `${el.name} ${q > 0 ? `gibt ${q} Elektron${q > 1 ? "en" : ""} ab` : `nimmt ${-q} Elektron${q < -1 ? "en" : ""} auf`}. Das Ion hat dann eine volle Außenschale wie ein Edelgas → **${ionText(ion)}**.${os ? "" : ""}`,
   };
 }
 
@@ -54,17 +55,16 @@ function charge(os: boolean): Task {
 function electrons(): Task {
   const ion = pick(mono([...ionsFor(CATIONS, false), ...ionsFor(ANIONS, false)]));
   const el = BY_Z[ion.Z!], n = Math.abs(ion.charge);
-  const verb = ion.charge > 0 ? "abgeben" : "aufnehmen";
   const other = ion.charge > 0
-    ? d(String(8 - n), "auffuellen-statt-abgeben", `${8 - n} aufnehmen ergäbe auch eine volle Schale – aber ${n === 1 ? "1 Elektron" : `${n} Elektronen`} abgeben ist viel leichter. Metalle geben ab.`)
+    ? d(String(8 - n), "auffuellen-statt-abgeben", `Metalle nehmen keine Elektronen auf. ${el.name} gibt ${n === 1 ? "sein 1 Außenelektron" : `seine ${n} Außenelektronen`} ab → ${ionText(ion)}.`)
     : d(String(8 - n), "abgeben-statt-aufnehmen", `${8 - n} ist die Zahl der Außenelektronen. ${el.name} gibt sie nicht ab, sondern nimmt ${n === 1 ? "1 Elektron" : `${n} Elektronen`} auf – dann sind es 8.`);
   return {
     ...mc(String(n), [other, ...["1", "2", "3", "4", "5", "6", "7"].filter(x => x !== String(n) && x !== String(8 - n))]),
-    prompt: `Wie viele Elektronen muss ein **${el.name}**-Atom ${verb}, um eine volle Außenschale zu bekommen?`,
+    prompt: `Ein **${el.name}**-Atom wird zum Ion. Wie viele Elektronen ${ion.charge > 0 ? "gibt es ab" : "nimmt es auf"}?`,
     hint: "Schau auf die Hauptgruppe: Sie sagt, wie viele Außenelektronen das Atom hat.",
     explain: `${el.name} hat ${ion.charge > 0 ? n : 8 - n} Außenelektron${(ion.charge > 0 ? n : 8 - n) === 1 ? "" : "en"}. ${ion.charge > 0
-      ? (n === 1 ? "Am einfachsten ist es, dieses **1** Elektron abzugeben" : `Am einfachsten ist es, diese **${n}** abzugeben`)
-      : `Bis zur 8 ${n === 1 ? "fehlt" : "fehlen"} **${n}**`} → ${ionText(ion)}.`,
+      ? (n === 1 ? "Es gibt dieses **1** Elektron ab" : `Es gibt diese **${n}** ab`)
+      : `Es nimmt **${n}** auf, dann sind es 8`} → ${ionText(ion)}, volle Außenschale wie ein Edelgas.`,
   };
 }
 
@@ -214,7 +214,7 @@ export const TYPE_NAMES: Record<string, string> = {
 interface Level extends QuizLevel { types: string[] }
 export const LEVELS: Record<Stufe, Level[]> = {
   us: [
-    { id: "us-1", name: "Ionenladungen", desc: "Welches Ion bildet ein Element – und warum?", types: ["charge", "electrons", "count"] },
+    { id: "us-1", name: "Ionenladungen", desc: "Welches Ion bildet ein Element – und warum?", types: ["charge", "electrons"] },
     { id: "us-2", name: "Formeln aufstellen", desc: "Ladungen ausgleichen mit Bausteinen", types: ["build", "formula", "count"] },
     { id: "us-3", name: "Namen & Formeln", desc: "Von der Formel zum Namen und zurück", types: ["name", "formula", "build"] },
   ],

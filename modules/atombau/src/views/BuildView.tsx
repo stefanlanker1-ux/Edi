@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { Button, FitDown, IconButton, Stepper, Switch, Tag, Workbench, buzz, useReducedMotion, type WorkbenchTool } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, STABLE_N, standardNeutrons, ionName, isStable, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, chargeSup, signed,
+  shells, SHELL_NAMES, chargeSup, signed, mainGroupNumber, ROMAN,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { ElementPicker } from "../components/ElementPicker.tsx";
@@ -65,7 +65,7 @@ export function BuildView() {
           <div><dt>Ordnungszahl Z</dt><dd>{Z}</dd></div>
           <div><dt>Massenzahl A</dt><dd>{Z + N}</dd></div>
           <div><dt>Ladung</dt><dd>{signed(q)}</dd></div>
-          {el && <div><dt>Periode · Gruppe</dt><dd>{el.period} · {el.group ?? "La–Lu"}</dd></div>}
+          {el && <div><dt>Periode · {os ? "Gruppe" : "Hauptgruppe"}</dt><dd>{el.period} · {os ? (el.group ?? "La–Lu") : (mainGroupNumber(Z) ? ROMAN[mainGroupNumber(Z)!] : `Gruppe ${el.group ?? "La–Lu"}`)}</dd></div>}
           <div><dt>Schalen</dt><dd>{sh.length ? sh.map((c, i) => `${SHELL_NAMES[i]}${c}`).join(" ") : "–"}</dd></div>
           {el && isStable(Z, N) === false && <div><dt>Stabile Isotope</dt><dd>{STABLE_N[Z].map(n => `${el.symbol}-${Z + n}`).join(", ")}</dd></div>}
         </dl>
@@ -135,7 +135,7 @@ function statusTags(Z: number, N: number, E: number) {
   ];
   if ([2, 10, 18, 36, 54, 86].includes(E)) out.push(<Tag key="n" tone="ok">✓ Edelgaskonfiguration</Tag>);
   const stable = isStable(Z, N);
-  if (stable === true) out.push(<Tag key="s" tone="ok">✓ stabil</Tag>);
+  if (stable === true) out.push(<Tag key="s" tone="ok">✓ Kern stabil</Tag>);
   else if (stable === false || el.radioactive) out.push(<Tag key="s" tone="bad">✗ radioaktiv</Tag>);
   return out;
 }

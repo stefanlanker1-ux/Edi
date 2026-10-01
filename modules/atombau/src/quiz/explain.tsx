@@ -37,11 +37,11 @@ const TEXT: Record<string, Explanation> = {
     points: [
       "**Ionen** sind geladene Teilchen. Gibt ein Atom Elektronen ab, wird es positiv (**Kation**), nimmt es welche auf, negativ (**Anion**).",
       "Ladung = Protonen − Elektronen.",
-      "Atome bilden Ionen, um eine volle Außenschale wie die Edelgase zu bekommen: Na → Na⁺, Cl → Cl⁻.",
+      "Ionen der Hauptgruppen haben eine volle Außenschale wie ein Edelgas: Na⁺ wie Ne, Cl⁻ wie Ar.",
       "**Isotope** haben gleich viele Protonen, aber unterschiedlich viele Neutronen, z. B. Kohlenstoff-12 und Kohlenstoff-14.",
     ],
     example: { kind: "nuclide", Z: 11, N: 12, E: 10 },
-    caption: "Natrium-Ion: 11 Protonen, 10 Elektronen → Ladung +1",
+    caption: "Natrium-Ion: 11 Protonen, 10 Elektronen → Ladung 1+",
   },
   "os-1": {
     points: [

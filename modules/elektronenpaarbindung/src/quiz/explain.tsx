@@ -10,12 +10,12 @@ import type { Stufe } from "../store.ts";
 
 const TEXT: Record<string, { points: string[]; mol: string }> = {
   "us-1": { mol: "CH4", points: [
-    "Nichtmetall-Atome erreichen die Edelgaskonfiguration, indem sie **Elektronen teilen**: Zwei ungepaarte Elektronen bilden ein gemeinsames **Elektronenpaar** = eine Bindung.",
-    "Jedes Atom zählt die gemeinsamen Elektronen mit: So hat C im Methan **8 Elektronen (Oktett)**, jedes H **2 (Duett)**.",
+    "Nichtmetall-Atome **teilen Elektronen**: Zwei ungepaarte **Außenelektronen** (Valenzelektronen) bilden ein gemeinsames **Elektronenpaar** = eine Bindung.",
+    "Jedes Atom zählt die gemeinsamen Elektronen mit: C im Methan hat **8 (Oktett)** wie Ne, jedes H **2 (Duett)** wie He.",
     "Anzahl der Bindungen = ungepaarte Elektronen: H 1, O 2, N 3, C 4, Cl 1.",
   ] },
   "us-2": { mol: "O2", points: [
-    "Reicht ein Paar nicht fürs Oktett? Dann teilen die Atome **zwei** (Doppelbindung) oder **drei** Paare (Dreifachbindung).",
+    "Haben zwei Atome mehrere ungepaarte Elektronen, teilen sie **zwei** (Doppelbindung) oder **drei** Paare (Dreifachbindung).",
     "O₂: O=O (Doppelbindung) · N₂: N≡N (Dreifachbindung) · CO₂: O=C=O.",
     "Nicht bindende Elektronen bleiben als **freie Elektronenpaare** am Atom.",
   ] },
@@ -27,7 +27,7 @@ const TEXT: Record<string, { points: string[]; mol: string }> = {
   "os-1": { mol: "HCN", points: [
     "Kohlenstoff bildet immer **4 Bindungen**, Stickstoff 3, Sauerstoff 2, Wasserstoff und Halogene 1.",
     "Mehrfachbindungen: C=C (Ethen), C≡C (Ethin), C=O (Methanal), C≡N (Blausäure).",
-    "Jedes Atom außer H braucht am Ende 8 Elektronen – freie Paare mitzählen.",
+    "Im Molekül hat jedes Atom außer H 8 Elektronen um sich – freie Paare mitzählen.",
   ] },
   "os-2": { mol: "H2O", points: [
     "**EPA-Modell:** Elektronenpaare am Zentralatom stoßen sich ab und gehen so weit wie möglich auseinander. Eine Mehrfachbindung zählt wie ein Paar.",

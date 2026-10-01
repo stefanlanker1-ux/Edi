@@ -89,7 +89,7 @@ export function Builder({ mol, onChange, elements, onInfo, lines, octet = true }
           return (
             <button key={el} type="button" className={`pal-atom${armed === el ? " armed" : ""}`} onPointerDown={ev => startDrag(ev, el)}
               onClick={ev => { if (ev.detail === 0) setArmed(el); }}
-              aria-pressed={armed === el} aria-label={`${elementName(el)}: ${VALENCE[el]} Valenzelektronen, ${e.singles} ungepaart`}>
+              aria-pressed={armed === el} aria-label={`${elementName(el)}: ${VALENCE[el]} Außenelektronen, ${e.singles} ungepaart`}>
               <span className="pal-svg"><AtomChip el={el} /></span>
               <span className="pal-name">{elementName(el)}</span>
             </button>

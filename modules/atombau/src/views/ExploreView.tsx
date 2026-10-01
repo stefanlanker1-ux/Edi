@@ -6,7 +6,7 @@ import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, use
 import {
   BY_Z, CATEGORIES, GROUP_NAMES, searchElements, standardNeutrons, configuration, configString, shortConfigString,
   shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons,
-  ELEMENTS, TRENDS, trendScale, type Category, type TrendKey,
+  ELEMENTS, TRENDS, trendScale, type Category, type TrendKey, mainGroupNumber, ROMAN,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { PeriodicTable, Legend, BlockLegend } from "@lern/chem-ui";
@@ -79,7 +79,9 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
     ["Atommasse", `${el.mass.toLocaleString("de-AT")} u`],
     ["p⁺ · n · e⁻", `${Z} · ${N} · ${Z}`],
     ["Periode", `${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`],
-    ["Gruppe", el.group === null ? "Lanthanoide" : `${el.group}${GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`],
+    os || mainGroupNumber(Z) === null
+      ? ["Gruppe", el.group === null ? "Lanthanoide" : `${el.group}${GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`]
+      : ["Hauptgruppe", `${ROMAN[mainGroupNumber(Z)!]}${el.group && GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`],
     ["Art", CATEGORIES[el.category].kind],
   ];
   if (val !== null) rows.push(["Außenelektronen", val]);

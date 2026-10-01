@@ -2,7 +2,7 @@
 // Antippen zeigt die Daten wie auf einem gedruckten PSE (Z, Gruppe, Periode, Atommasse) – nicht mehr, sonst wäre die Lösung verraten.
 
 import { useState, type ReactNode } from "react";
-import { BY_Z, mainGroupNumber, ROMAN } from "@lern/chem";
+import { BY_Z, groupLabel } from "@lern/chem";
 import { BlockLegend, PeriodicTable } from "./PeriodicTable.tsx";
 
 export function PseHelp({ stufe, mark = [], sub, facts, blocks }: {
@@ -18,7 +18,6 @@ export function PseHelp({ stufe, mark = [], sub, facts, blocks }: {
 }) {
   const [sel, setSel] = useState<number | null>(mark[0] ?? null);
   const el = sel ? BY_Z[sel] : null;
-  const g = sel ? mainGroupNumber(sel) : null;
   return (
     <div className="pse-help">
       <div className={`pse-fit ph-box ${stufe}`}>
@@ -30,8 +29,7 @@ export function PseHelp({ stufe, mark = [], sub, facts, blocks }: {
         <div className="ph-facts" aria-live="polite">
           <b className="ph-name">{el.name}</b>
           <span>Z = {el.Z}</span>
-          {g && <span>{ROMAN[g]}. Hauptgruppe</span>}
-          {!g && el.group && <span>Gruppe {el.group}</span>}
+          <span>{groupLabel(el.Z, stufe === "os")}</span>
           <span>{el.period}. Periode</span>
           <span>{el.mass.toLocaleString("de-AT")} u</span>
           {facts?.(el.Z)}

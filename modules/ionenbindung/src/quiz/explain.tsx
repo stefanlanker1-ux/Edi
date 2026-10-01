@@ -12,7 +12,7 @@ interface Ex { points: string[]; c: string; a: string }
 const TEXT: Record<string, Ex> = {
   "us-1": { c: "Mg2+", a: "O2-", points: [
     "Metalle **geben** Außenelektronen **ab** → positive Ionen (Kationen). Nichtmetalle **nehmen** Elektronen **auf** → negative Ionen (Anionen).",
-    "Ziel ist eine volle Außenschale wie bei den Edelgasen.",
+    "Die Ionen haben dann eine volle Außenschale wie ein Edelgas: Mg²⁺ wie Ne.",
     "Hauptgruppe I, II, III → Ladung 1+, 2+, 3+. Hauptgruppe V, VI, VII → Ladung 3−, 2−, 1−.",
   ] },
   "us-2": { c: "Ca2+", a: "Cl-", points: [
@@ -26,7 +26,7 @@ const TEXT: Record<string, Ex> = {
     "In der Formel steht das Metall vorne: Aluminiumoxid → Al₂O₃.",
   ] },
   "os-1": { c: "Fe3+", a: "O2-", points: [
-    "Hauptgruppen-Ionen erreichen die Edelgaskonfiguration (Na⁺, Ca²⁺, Cl⁻, O²⁻).",
+    "Hauptgruppen-Ionen haben Edelgaskonfiguration: Na⁺ wie Ne, Cl⁻ wie Ar.",
     "Nebengruppenmetalle bilden oft mehrere Ionen – die **römische Zahl** nennt die Ladung: Eisen(II) = Fe²⁺, Eisen(III) = Fe³⁺.",
     "**Mehratomige Ionen** tragen die Ladung als Ganzes: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
   ] },

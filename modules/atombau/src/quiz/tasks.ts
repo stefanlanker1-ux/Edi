@@ -4,10 +4,10 @@
 
 import {
   BY_Z, STABLE_N, GROUP_NAMES, standardNeutrons, configuration, configString, shortConfigString, shells,
-  unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed,
+  unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed, minus, groupLabel,
   MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, type Occupied,
 } from "@lern/chem";
-import { mc, d, validTraps, type Trap } from "@lern/quiz";
+import { mc, d, dis, validTraps, type Trap } from "@lern/quiz";
 
 export type Stufe = "us" | "os";
 
@@ -150,16 +150,18 @@ export const elementFromProtons: Gen = pool => {
   };
 };
 
-export const pseFind: Gen = pool => {
-  const Z = pick(pool), e = el(Z), v = rnd(0, 2), mg = mainGroupNumber(Z);
+/** Element im PSE finden. `groups`: auch nach Periode und Gruppe fragen (Unterstufe erst ab Level 2, römische Hauptgruppe; Oberstufe Gruppe 1–18) */
+export const pseFind = (os: boolean, groups: boolean): Gen => pool => {
+  const Z = pick(pool), e = el(Z), mg = mainGroupNumber(Z);
+  const v = groups && (os ? e.group !== null : mg !== null) ? rnd(0, 2) : rnd(0, 1);
   let prompt: string;
   if (v === 0) prompt = `Tippe im Periodensystem auf **${e.name}**.`;
-  else if (v === 1 || mg === null) prompt = `Tippe auf das Element mit der Ordnungszahl **${Z}**.`;
-  else prompt = `Tippe auf das Element in der **${e.period}. Periode** und **${ROMAN[mg]}. Hauptgruppe**.`;
+  else if (v === 1) prompt = `Tippe auf das Element mit der Ordnungszahl **${Z}**.`;
+  else prompt = `Tippe auf das Element in der **${e.period}. Periode** und **${groupLabel(Z, os)}**.`;
   return {
     kind: "pse", answer: Z, prompt,
-    hint: v === 2 && mg !== null ? "Perioden sind die Zeilen, Gruppen die Spalten." : `Das Symbol beginnt mit „${e.symbol[0]}“.`,
-    explain: `Gesucht war **${e.name} (${e.symbol})**: Ordnungszahl ${Z}, ${e.period}. Periode${e.group ? `, Gruppe ${e.group}` : ""}.`,
+    hint: v === 2 ? "Perioden sind die Zeilen, Gruppen die Spalten." : `Das Symbol beginnt mit „${e.symbol[0]}“.`,
+    explain: `Gesucht war **${e.name} (${e.symbol})**: Ordnungszahl ${Z}${groups ? `, ${e.period}. Periode, ${groupLabel(Z, os)}` : ""}.`,
   };
 };
 
@@ -260,13 +262,16 @@ export const ionCharge: Gen = pool => {
   const E = Z - q;
   return {
     ...mc(chargeLabel(q), [
-      d(chargeLabel(-q), "ladung-vorzeichen", `${Z > E ? `Es fehlen Elektronen (negativ), also überwiegen die Protonen → **positiv**.` : `Es sind mehr Elektronen (negativ) als Protonen → **negativ**.`}`),
+      d(chargeLabel(-q), "ladung-vorzeichen", Z > E
+        ? `${cnt(Z, "Proton", "Protonen")} (+) und nur ${cnt(E, "Elektron", "Elektronen")} (−): Es gibt mehr positive Ladungen → **positiv**.`
+        : `${cnt(E, "Elektron", "Elektronen")} (−) und nur ${cnt(Z, "Proton", "Protonen")} (+): Es gibt mehr negative Ladungen → **negativ**.`),
       d("neutral", "ladung-neutral", `Neutral wäre es nur mit gleich vielen Protonen und Elektronen. Hier: ${cnt(Z, "Proton", "Protonen")}, ${cnt(E, "Elektron", "Elektronen")}.`),
-      chargeLabel(q + (q > 0 ? 1 : -1)), chargeLabel(q > 0 ? (q - 1 || 2) : (q + 1 || -2)),
+      dis(chargeLabel(q + (q > 0 ? 1 : -1)), `${Z} − ${E} = ${minus(q)} – noch einmal genau rechnen: **${chargeLabel(q)}**.`),
+      dis(chargeLabel(q > 0 ? (q - 1 || 2) : (q + 1 || -2)), `${Z} − ${E} = ${minus(q)} – noch einmal genau rechnen: **${chargeLabel(q)}**.`),
     ]),
     prompt: `Ein Teilchen hat **${cnt(Z, "Proton", "Protonen")}** und **${cnt(E, "Elektron", "Elektronen")}**. Welche Ladung hat es?`,
     hint: "Protonen sind positiv, Elektronen negativ. Rechne Protonen − Elektronen.",
-    explain: `Ladung = Protonen − Elektronen = ${Z} − ${E} = **${signed(q)}** → ${q > 0 ? "Kation" : "Anion"} ${el(Z).symbol}${chargeSup(q)}.`,
+    explain: `Ladung = Protonen − Elektronen = ${Z} − ${E} = ${minus(q)} → **${signed(q)}** → ${q > 0 ? "Kation" : "Anion"} ${el(Z).symbol}${chargeSup(q)}.`,
   };
 };
 
@@ -297,13 +302,13 @@ export const typicalIon: Gen = pool => {
         ? `${el(Z).name} ist ein Metall und **gibt** seine ${cnt(v, "Außenelektron", "Außenelektronen")} ab – dann fehlen negative Ladungen, das Ion ist **positiv**.`
         : `${el(Z).name} ist ein Nichtmetall und **nimmt** Elektronen auf – zusätzliche negative Ladungen machen das Ion **negativ**.`),
       q > 0
-        ? d(opt(-(8 - v)), "auffuellen-statt-abgeben", `Bis zur 8 aufzufüllen wären ${8 - v} Elektronen. Einfacher ist es, die ${cnt(v, "Außenelektron", "Außenelektronen")} abzugeben → ${opt(q)}.`)
-        : d(opt(v), "abgeben-statt-aufnehmen", `Alle ${v} Außenelektronen abzugeben wäre viel zu aufwendig. ${el(Z).name} nimmt die fehlenden ${cnt(8 - v, "Elektron", "Elektronen")} auf → ${opt(q)}.`),
+        ? d(opt(-(8 - v)), "auffuellen-statt-abgeben", `Metalle nehmen keine Elektronen auf. ${el(Z).name} gibt ${v === 1 ? "sein" : "seine"} ${cnt(v, "Außenelektron", "Außenelektronen")} ab → ${opt(q)}.`)
+        : d(opt(v), "abgeben-statt-aufnehmen", `Nichtmetalle geben ihre Außenelektronen nicht ab. ${el(Z).name} nimmt ${cnt(8 - v, "Elektron", "Elektronen")} auf → ${opt(q)}.`),
       opt(q > 0 ? q + 1 : q - 1), opt(q > 0 ? (q === 1 ? 2 : q - 1) : (q === -1 ? -2 : q + 1)),
     ]),
-    prompt: `Welches Ion bildet **${el(Z).name}** bevorzugt?`,
-    hint: "Atome geben Elektronen ab oder nehmen welche auf, bis sie die Edelgaskonfiguration erreichen.",
-    explain: `${el(Z).name} hat ${cnt(valenceElectrons(Z)!, "Außenelektron", "Außenelektronen")}. ${q > 0 ? `Es gibt ${q} ab` : `Es nimmt ${-q} auf`} und erreicht so die Elektronenanordnung eines Edelgases → **${opt(q)}**.`,
+    prompt: `Welches Ion bildet **${el(Z).name}** meist?`,
+    hint: "Metalle geben ihre Außenelektronen ab, Nichtmetalle nehmen bis 8 auf. Das Ion hat dann Edelgaskonfiguration.",
+    explain: `${el(Z).name} hat ${cnt(valenceElectrons(Z)!, "Außenelektron", "Außenelektronen")}. ${q > 0 ? `Es gibt ${q} ab` : `Es nimmt ${-q} auf`}. Dann hat das Ion dieselbe Elektronenanordnung wie ein Edelgas → **${opt(q)}**.`,
   };
 };
 
@@ -353,7 +358,7 @@ export const nuclideInput: Gen = pool => {
       ...(q ? [{ field: "q", value: 0, miss: "ladung-neutral", why: `${cnt(Z, "Proton", "Protonen")} und ${cnt(E, "Elektron", "Elektronen")} sind nicht gleich viele – das Teilchen ist geladen.` }] : []),
     ], { z: Z, a: Z + N, q }),
     hint: "A = Protonen + Neutronen. Ladung = Protonen − Elektronen.",
-    explain: `Z = **${Z}**, A = ${Z} + ${N} = **${Z + N}**, Ladung = ${Z} − ${E} = **${signed(q)}**.`,
+    explain: `Z = **${Z}**, A = ${Z} + ${N} = **${Z + N}**, Ladung = ${Z} − ${E} = ${minus(q)} → **${signed(q)}**.`,
   };
 };
 
@@ -522,7 +527,8 @@ export const TYPES: Record<Stufe, Record<string, TaskType>> = {
     T("particles", "Teilchen aus dem Atomsymbol", p => readParticles(p)),
     T("mass", "Massenzahl", massNumber),
     T("fromProtons", "Element aus der Protonenzahl", elementFromProtons),
-    T("pse", "Elemente im PSE finden", pseFind),
+    T("pse", "Elemente im PSE finden", pseFind(false, false)),
+    T("pseGroup", "Periode und Hauptgruppe im PSE", pseFind(false, true)),
     T("buildAtom", "Atome bauen", p => buildAtom(p)),
     T("fromBohr", "Bohrmodell lesen", elementFromBohr),
     T("shells", "Schalen füllen", fillShells),
@@ -539,7 +545,7 @@ export const TYPES: Record<Stufe, Record<string, TaskType>> = {
     T("nuclide", "Atomsymbol schreiben", nuclideInput),
     T("isotope", "Isotope", isotopeNeutrons),
     T("fromProtons", "Element aus der Protonenzahl", elementFromProtons),
-    T("pse", "Elemente im PSE finden", pseFind),
+    T("pse", "Elemente im PSE finden", pseFind(true, true)),
     T("config", "Elektronenkonfiguration", configMC),
     T("short", "Kurzschreibweise", shortConfigMC),
     T("boxes", "Kästchenschema", fillBoxes),
@@ -559,7 +565,7 @@ export const LEVELS: Record<Stufe, Level[]> = {
     { id: "us-1", name: "Teilchen im Atom", desc: "Protonen, Neutronen, Elektronen und Massenzahl",
       types: ["particles", "mass", "fromProtons", "pse", "buildAtom"] },
     { id: "us-2", name: "Schalenmodell", desc: "Bohrmodell lesen, Schalen füllen, Außenelektronen",
-      types: ["fromBohr", "shells", "outer", "period", "pse"] },
+      types: ["fromBohr", "shells", "outer", "period", "pseGroup"] },
     { id: "us-3", name: "Ionen & Isotope", desc: "Ladungen, Isotope und Edelgasregel",
       types: ["ionCharge", "isotope", "typicalIon", "buildIon", "isoCompare"] },
   ],

@@ -2,12 +2,12 @@
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Molekülen); hier nur der Name für Landkarte und Auswertung.
 
 export const MISS: Record<string, string> = {
-  "bindungen-valenz": "Anzahl Bindungen = Valenzelektronen",
+  "bindungen-valenz": "Anzahl Bindungen = Außenelektronen",
   "bindungen-fehlend-verzaehlt": "Ungepaarte Elektronen verzählt",
-  "h-oktett": "Wasserstoff braucht 8 Elektronen",
-  "nur-valenz-gezaehlt": "Nur eigene Valenzelektronen gezählt (Bindungspartner vergessen)",
+  "h-oktett": "Auch um H 8 Elektronen gezählt",
+  "nur-valenz-gezaehlt": "Nur eigene Außenelektronen gezählt (Bindungspartner vergessen)",
   "nur-bindungen-gezaehlt": "Nur bindende Elektronen gezählt (freie vergessen)",
-  "valenz-als-paare": "Alle Valenzelektronen als freie Paare gezählt",
+  "valenz-als-paare": "Alle Außenelektronen als freie Paare gezählt",
   "bindungen-statt-paare": "Bindungen statt freie Paare gezählt",
   "elektronen-statt-paare": "Elektronen statt Paare gezählt",
   "mehrfachbindung-uebersehen": "Mehrfachbindung übersehen",
