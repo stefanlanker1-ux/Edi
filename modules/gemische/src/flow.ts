@@ -413,6 +413,8 @@ export function stepFlow(w: World) {
       // Gas über der Flüssigkeit fliegt; trifft es auf die Oberfläche, löst es sich manchmal (geschüttelt: fast immer)
       veer(p, r);
       toSpeed(p, GAS_V * hf);
+      // geschüttelt: Gasraum und Wasser werden durchgewirbelt – das Gas wird zur Oberfläche gerissen
+      if (w.shake > 0) p.vy += .06 * w.agit;
       p.x += p.vx; p.y += p.vy;
       if (p.x < rc || p.x > W - rc) { p.vx = -p.vx; p.x = Math.min(W - rc, Math.max(rc, p.x)); }
       if (p.y < rc) { p.vy = Math.abs(p.vy); p.y = rc; }

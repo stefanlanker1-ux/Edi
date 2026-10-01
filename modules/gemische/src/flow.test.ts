@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { EXAMPLES, analyse } from "./mixtures.ts";
-import { STIR, boundaryY, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
+import { SHAKE, STIR, boundaryY, liquidLevel, makeWorld, oilOnTop, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type FP, type World } from "./flow.ts";
 
 const ex = (id: string) => EXAMPLES.find(e => e.id === id)!;
 const counts = (w: World) => { const c: Record<string, number> = {}; for (const p of w.ps) c[p.f] = (c[p.f] ?? 0) + 1; return c; };
@@ -88,6 +88,17 @@ test("Zucker: geordneter Kristall, löst sich von selbst von außen; warm und ge
   const cold = avg([1, 2].map(s => dissolve(0, false, s)));
   assert.ok(cold > avg(slow) * 1.5, "kalt nicht langsamer");
 }, 240_000);
+
+test("Sprudel: nach einmal Schütteln ist fast alles CO₂ gelöst – bei jeder Temperatur", () => {
+  for (const T of [0, 20, 100]) {
+    const w = makeWorld(ex("sprudel"), 2, "vorher");
+    w.temp = T;
+    shakeWorld(w);
+    for (let k = 0; k < SHAKE + 60; k++) stepFlow(w);
+    const left = w.ps.filter(p => p.gas).length;
+    assert.ok(left <= 2, `${T} °C: noch ${left} im Gasraum`);
+  }
+});
 
 test("Sprudel: CO₂ löst sich von selbst langsam, geschüttelt schnell", () => {
   const gas = (w: World) => w.ps.filter(p => p.gas).length;
