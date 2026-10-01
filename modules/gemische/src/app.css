@@ -122,5 +122,5 @@
 .gm-ex-step .gm-beaker { width: 100%; height: auto; }
 .gm-ex-arrow { font-weight: 800; color: var(--muted); }
 /* Statuszeile immer einzeilig: sonst verschiebt sich das Bild (und die Lupe), wenn sich die Kennzeichen ändern */
-.gm-status { display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; }
+.gm-status { display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .gm-status > * { white-space: nowrap; flex: none; }
