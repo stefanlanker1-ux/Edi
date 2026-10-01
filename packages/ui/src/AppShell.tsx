@@ -8,10 +8,12 @@ import { Rescue } from "./Rescue.tsx";
 
 export interface ShellTab<T extends string> { id: T; label: string; short?: string; icon: IconName }
 
-export function AppShell<T extends string>({ name, logo, homeHref, tabs, active, onTab, actions, storage, children }: {
+export function AppShell<T extends string>({ name, logo, homeHref, tabs, active, onTab, actions, lead, storage, children }: {
   name: string; logo?: ReactNode;
   /** Link zur Übersicht aller Apps (Logo wird klickbar) */
   homeHref?: string; tabs: ShellTab<T>[]; active: T; onTab: (t: T) => void; actions?: ReactNode;
+  /** links vor den Bereichen (Knopf „Erklärung“) */
+  lead?: ReactNode;
   /** localStorage-Schlüssel der App: „Neu starten“ nach einem Absturz setzt sie zurück */
   storage?: string[]; children: ReactNode;
 }) {
@@ -31,6 +33,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
         {homeHref
           ? <a className="ui-brand" href={homeHref} title="Zur Übersicht">{logo}<h1 className="ui-brand-name">{name}</h1></a>
           : <div className="ui-brand">{logo}<h1 className="ui-brand-name">{name}</h1></div>}
+        {lead && <div className="ui-lead">{lead}</div>}
         <nav className="ui-top-tabs" aria-label="Bereiche">{nav("ui-top-tab")}</nav>
         <div className="ui-top-actions">
           {actions}
@@ -45,7 +48,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
         </div>
       </header>
       <main id="main" className="ui-main"><Rescue key={active} storage={storage}>{children}</Rescue></main>
-      <nav className="ui-bottom-nav" aria-label="Bereiche">{nav("ui-bn-tab")}</nav>
+      <nav className="ui-bottom-nav" aria-label="Bereiche">{lead && <div className="ui-bn-lead">{lead}</div>}{nav("ui-bn-tab")}</nav>
     </>
   );
 }

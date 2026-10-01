@@ -6,12 +6,13 @@
 // Den Link zur Übersicht liefert die App-Hülle über den Kontext HomeLink (modul.ts).
 // Farbschema und Beamer werden bewusst nicht gespeichert: die App startet hell und ohne Beamer-Modus.
 
-import { StrictMode, useContext, useEffect, useSyncExternalStore, type ReactNode } from "react";
+import { StrictMode, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell, type ShellTab } from "./AppShell.tsx";
 import { IconButton, Segmented } from "./components.tsx";
 import { applyTheme } from "./hooks.ts";
 import { HomeLink } from "./modul.ts";
+import { Guide, GuideButton, type GuideDef } from "./Guide.tsx";
 
 /** läuft als Android/iOS-App (Capacitor) */
 export const isNative: boolean = !!(globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
@@ -52,7 +53,7 @@ export interface StufeSwitch<S extends string> {
 
 const US_OS = [{ value: "us", label: "Unterstufe", short: "US" }, { value: "os", label: "Oberstufe", short: "OS" }];
 
-export function LernApp<T extends string, S extends string = "us" | "os">({ name, logo, tabs, tab, onTab, storage, stufe, actions, children }: {
+export function LernApp<T extends string, S extends string = "us" | "os">({ name, logo, tabs, tab, onTab, storage, stufe, actions, guide, children }: {
   name: string;
   logo: ReactNode;
   tabs: ShellTab<T>[];
@@ -64,6 +65,8 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   stufe?: StufeSwitch<S>;
   /** weitere Knöpfe vor den Standard-Schaltern */
   actions?: ReactNode;
+  /** geführte Erklärung (je Stufe) – Knopf „Erklärung“ links in der Kopfzeile, am Ende geht es zum Quiz */
+  guide?: GuideDef;
   children: ReactNode;
 }) {
   const { theme, beamer } = useDisplay();
@@ -77,8 +80,19 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
     return () => { delete document.body.dataset.stufe; };
   }, [stufeValue]);
 
+  const [guideOpen, setGuideOpen] = useState(false);
+  // Knopf hervorgehoben, bis die Erklärung einmal ganz durchlaufen ist (je App, nur auf diesem Gerät)
+  const doneKey = `lern-erklaert-${name}`;
+  const [fresh, setFresh] = useState(() => { try { return !localStorage.getItem(doneKey); } catch { return true; } });
+  const quizTab = tabs.find(t => t.id === "quiz");
+  const finish = () => {
+    try { localStorage.setItem(doneKey, "1"); } catch { /* egal */ }
+    setFresh(false); setGuideOpen(false);
+    if (quizTab) onTab(quizTab.id);
+  };
   return (
     <AppShell name={name} logo={logo} homeHref={homeHref} tabs={tabs} active={tab} storage={storage}
+      lead={guide && <GuideButton fresh={fresh} onClick={() => setGuideOpen(true)} />}
       onTab={t => { onTab(t); window.scrollTo({ top: 0 }); }}
       actions={<>
         {stufe && <Segmented<S> label="Schulstufe" value={stufe.value} onChange={stufe.onChange} options={stufe.options ?? (US_OS as StufeSwitch<S>["options"] & object)} />}
@@ -89,6 +103,8 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
           onClick={() => setDisplay({ theme: theme === "light" ? "dark" : "light" })} />
       </>}>
       {children}
+      {guide && <Guide key={`${guide.title}|${stufeValue ?? ""}`} def={guide} open={guideOpen} onClose={() => setGuideOpen(false)} onFinish={finish}
+        finishLabel={quizTab ? "Zum Quiz" : "Fertig"} />}
     </AppShell>
   );
 }

@@ -2,6 +2,7 @@ import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { StartView } from "./views/StartView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
+import { guideFor } from "./guide.tsx";
 
 const TABS: ShellTab<Tab>[] = [
   { id: "start", label: "Start", icon: "play" },
@@ -23,7 +24,7 @@ const Logo = () => (
 export function App() {
   const { tab, setTab, stufe, setStufe } = useApp();
   return (
-    <LernApp name="Reaktionsgleichungen" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["reaktionsgleichungen-v2", "reaktionsgleichungen-quiz"]} stufe={{ value: stufe, onChange: setStufe }}>
+    <LernApp name="Reaktionsgleichungen" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["reaktionsgleichungen-v2", "reaktionsgleichungen-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
       {tab === "start" && <StartView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

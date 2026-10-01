@@ -2,6 +2,7 @@ import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { BuildView } from "./views/BuildView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
+import { guideFor } from "./guide.tsx";
 
 const TABS: ShellTab<Tab>[] = [
   { id: "build", label: "Formeln bauen", short: "Bauen", icon: "grid" },
@@ -22,7 +23,7 @@ const Logo = () => (
 export function App() {
   const { tab, setTab, stufe, setStufe } = useApp();
   return (
-    <LernApp name="Ionenbindung" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["ionenbindung-v1", "ionenbindung-quiz"]} stufe={{ value: stufe, onChange: setStufe }}>
+    <LernApp name="Ionenbindung" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["ionenbindung-v1", "ionenbindung-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
       {tab === "build" && <BuildView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

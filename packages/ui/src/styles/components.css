@@ -58,7 +58,7 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-btn:disabled { opacity: .45; }
 .ui-btn-lg { min-height: 52px; padding: 12px 24px; font-size: 1.05rem; }
 .ui-btn-primary { background: var(--accent); color: var(--on-accent); }
-@media (hover: hover) { .ui-btn-primary:hover:not(:disabled) { background: var(--signal); color: #fff; } }
+@media (hover: hover) { .ui-btn-primary:hover:not(:disabled) { background: var(--signal); color: var(--on-signal); } }
 .ui-btn-soft { background: transparent; border-color: var(--rule); color: var(--text); }
 .ui-btn-soft:hover:not(:disabled) { background: var(--surface-2); }
 .ui-btn-ghost { background: var(--surface); border-color: var(--border); color: var(--text); }
@@ -257,3 +257,85 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-btn-soft:disabled, .ui-btn-ghost:disabled, .ui-stepper-ctl button:disabled { box-shadow: none; }
 .ui-icon-btn { border-width: 1.5px; }
 .ui-icon-btn.pressed { box-shadow: none; }
+
+/* ── Erklärung (Guide) ───────────────────────────────────────────────────── */
+.ui-lead { display: none; align-items: center; flex: none; }
+/* Handy: Kopfzeile ist voll – „Erklärung“ steht unten links vor den Bereichen */
+.ui-bn-lead { display: grid; place-items: center; padding: 0 4px 0 max(8px, env(safe-area-inset-left)); }
+.ui-bn-lead .ui-guide-btn { flex-direction: column; gap: 2px; min-height: 52px; padding: 4px 10px; font-size: .74rem; }
+@media (min-width: 900px) { .ui-lead { display: flex; } .ui-bn-lead { display: none; } }
+.ui-guide-btn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 7px; border: 0; border-radius: var(--radius-sm);
+  background: var(--accent); color: var(--on-accent); font-weight: 750; letter-spacing: -.01em; white-space: nowrap;
+}
+.ui-guide-btn:active { transform: translateY(1px); }
+.ui-guide-btn-ic { position: relative; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--signal); color: var(--on-signal); }
+.ui-guide-btn-ic .ic { margin-left: 2px; }
+/* noch nie durchlaufen: ein Ring wandert vom roten Punkt nach außen (lädt zum Antippen ein) */
+.ui-guide-btn.fresh .ui-guide-btn-ic::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; border: 2px solid var(--signal); animation: ui-guide-ring 1.8s ease-out infinite; }
+@keyframes ui-guide-ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.9); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .ui-guide-btn.fresh .ui-guide-btn-ic::after { animation: none; opacity: 0; } }
+
+.ui-guide { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); color: var(--text); overflow: hidden; }
+.ui-guide::backdrop { background: var(--bg); }
+.ui-guide-in {
+  display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 12px; height: 100%; max-width: 1180px; margin: 0 auto;
+  padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.ui-guide-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 4px 12px; }
+.ui-guide-head h2 { margin: 0; font-size: 1.05rem; font-weight: 800; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-guide-badge { display: inline-flex; align-items: center; gap: 4px; color: var(--signal); font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.ui-guide-count { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--muted); }
+.ui-guide-bar { grid-column: 1 / -1; height: 3px; background: var(--border); }
+.ui-guide-bar i { display: block; height: 100%; background: var(--signal); transition: width .4s ease; }
+.ui-guide-body { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; min-height: 0; }
+.ui-guide-body.no-visual { grid-template-rows: auto; align-content: center; }
+.ui-guide-visual { container-type: size; min-height: 0; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; padding: 8px; }
+.ui-guide-text { display: grid; gap: 8px; align-content: end; }
+.ui-guide-text p { margin: 0; }
+.ui-guide-ok { display: flex; gap: 6px; align-items: flex-start; color: var(--ok); font-size: .9rem; font-weight: 650; animation: ui-guide-in .3s ease; }
+.ui-guide-ok .ic { flex: none; margin-top: 1px; }
+.ui-guide-say { line-height: 1.4; }
+.ui-guide-ask { font-weight: 750; font-size: 1.05rem; line-height: 1.35; }
+.ui-guide-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 8px; }
+.ui-guide-opts.many { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ui-guide-opt {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 48px; padding: 8px 12px; border: 1.5px solid var(--rule);
+  border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-weight: 650; text-align: center; box-shadow: var(--key-edge);
+}
+.ui-guide-opt:active { box-shadow: var(--key-edge-pressed); }
+.ui-guide-opt.right { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+/* Lösung nach vier Versuchen: gestrichelt umrandet und pulsierend (nicht nur über Farbe) */
+.ui-guide-opt.sol, .ui-guide-num input.sol { outline: 3px dashed var(--ok); outline-offset: 2px; animation: ui-guide-pulse 1.1s ease-in-out infinite; }
+.g-sol { outline: 3px dashed var(--ok); outline-offset: 2px; animation: ui-guide-pulse 1.1s ease-in-out infinite; }
+svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stroke-dasharray: 6 4; animation: ui-guide-pulse 1.1s ease-in-out infinite; }
+@keyframes ui-guide-pulse { 50% { opacity: .55; } }
+@keyframes ui-guide-in { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .ui-guide-opt.sol, .ui-guide-num input.sol, .g-sol, svg .g-sol, .g-sol-svg { animation: none; } .ui-guide-ok { animation: none; } }
+.ui-guide-num { display: flex; align-items: center; gap: 8px; }
+.ui-guide-num input { width: 8ch; min-height: 48px; padding: 6px 10px; font-size: 1.25rem; font-weight: 700; text-align: center; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.ui-guide-num input.right { border-color: var(--ok); color: var(--ok); }
+.ui-guide-unit { font-weight: 700; }
+.ui-guide-msg { display: flex; gap: 6px; align-items: flex-start; min-height: 1.5em; font-weight: 650; font-size: .92rem; }
+.ui-guide-msg .ic { flex: none; margin-top: 1px; }
+.ui-guide-msg.right { color: var(--ok); }
+.ui-guide-msg.sol { color: var(--ok); }
+.ui-guide-end { display: grid; align-content: center; gap: 14px; max-width: 640px; width: 100%; margin: 0 auto; }
+.ui-guide-end h3 { margin: 0; font-size: 1.3rem; }
+.ui-guide-end ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; line-height: 1.4; }
+.ui-guide-end-btns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+@media (min-width: 900px) {
+  .ui-guide-body { grid-template-columns: minmax(0, 1.25fr) minmax(320px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 24px; }
+  .ui-guide-body.no-visual { grid-template-columns: minmax(0, 640px); justify-content: center; }
+  .ui-guide-text { align-content: center; }
+  .ui-guide-ask { font-size: 1.15rem; }
+}
+/* niedrige Handys: kompakter */
+@media (max-height: 700px) {
+  .ui-guide-in { gap: 8px; }
+  .ui-guide-text { gap: 6px; }
+  .ui-guide-say { font-size: .92rem; line-height: 1.3; }
+  .ui-guide-ask { font-size: .98rem; }
+  .ui-guide-opt { min-height: 44px; padding: 6px 10px; }
+}
+.ui-bottom-nav:has(.ui-bn-lead) { grid-template-columns: auto; }

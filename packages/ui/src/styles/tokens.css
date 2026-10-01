@@ -21,6 +21,7 @@
   --accent-soft: #f0f0f0;
   --on-accent: #ffffff;
   --signal: #e30613;        /* Schweizer Rot: Auszeichnung, aktive Markierung – sparsam */
+  --on-signal: #ffffff;
   --sun: #e30613;           /* Sterne */
 
   --ok: #1a7f37;   --ok-soft: #eaf5ec;
@@ -56,6 +57,7 @@
   --accent-soft: #232323;
   --on-accent: #0d0d0d;
   --signal: #ff3b3b;
+  --on-signal: #ffffff;
   --sun: #ff3b3b;
 
   --ok: #5fcf7e;   --ok-soft: #14261a;

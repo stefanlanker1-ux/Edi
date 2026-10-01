@@ -3,6 +3,7 @@ import { useApp, type Tab } from "./store.ts";
 import { BuildView } from "./views/BuildView.tsx";
 import { ExploreView } from "./views/ExploreView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
+import { guideFor } from "./guide.tsx";
 
 const TABS: ShellTab<Tab>[] = [
   { id: "build", label: "Bauen", icon: "atom" },
@@ -26,7 +27,7 @@ export function App() {
   const { tab, setTab, stufe, setStufe } = useApp();
 
   return (
-    <LernApp name="Atombau" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["atombau-v3", "atombau-quiz"]} stufe={{ value: stufe, onChange: setStufe }}>
+    <LernApp name="Atombau" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["atombau-v3", "atombau-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
       {tab === "build" && <BuildView />}
       {tab === "pse" && <ExploreView />}
       {tab === "quiz" && <QuizView />}
