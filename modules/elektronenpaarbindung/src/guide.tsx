@@ -131,7 +131,7 @@ const OS: GuideStep[] = [
     ok: "4 Paare → wie ein Tetraeder angeordnet.",
   },
   {
-    say: "4 Paare: Tetraeder. Sitzen an einer Ecke nur ein freies Paar, sieht man nur die Atome: eine Pyramide.",
+    say: "4 Paare zeigen in die Ecken eines Tetraeders. Ist eine Ecke ein freies Paar, bilden die Atome eine Pyramide.",
     ask: "Welche **Molekülgeometrie** hat NH₃?", answer: "trigonal-pyramidal", options: ["trigonal-pyramidal", "trigonal-planar", "tetraedrisch", "gewinkelt"],
     why: { "trigonal-planar": "Das freie Paar drückt die H-Atome nach unten – nicht flach.", tetraedrisch: "Tetraedrisch ist die Anordnung der Paare; die Form der Atome ist eine Pyramide.", gewinkelt: "Gewinkelt sind Moleküle mit 2 Bindungen und 2 freien Paaren (H₂O)." },
     ok: "NH₃: trigonal-pyramidal, ca. 107°.",
@@ -158,7 +158,7 @@ const OS: GuideStep[] = [
   {
     say: "Die **Elektronegativität** (EN) gibt an, wie stark ein Atom die Bindungselektronen anzieht. ΔEN ≥ 0,4: **polare** Bindung.",
     ask: "Welche Bindung ist **am stärksten polar**?", answer: "H–F", options: ["H–F", "H–Cl", "C–H", "Cl–Cl"],
-    why: { "H–Cl": "Polar, aber F hat die größere EN (4,0) als Cl (3,2).", "C–H": "ΔEN nur 0,4 – kaum polar.", "Cl–Cl": "Gleiche Atome: ΔEN = 0, unpolar." },
+    why: { "H–Cl": "Polar, aber F hat die größere EN (4,0) als Cl (3,2).", "C–H": "ΔEN = 2,55 − 2,20 ≈ 0,35 – unter 0,4, also unpolar.", "Cl–Cl": "Gleiche Atome: ΔEN = 0, unpolar." },
     ok: "ΔEN(H–F) = 3,98 − 2,20 ≈ 1,8.",
   },
   {

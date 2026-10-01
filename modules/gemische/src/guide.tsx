@@ -4,6 +4,7 @@
 import { Fit, type GuideCtx, type GuideDef, type GuideStep } from "@lern/ui";
 import { toSubscript } from "@lern/chem";
 import { Beaker } from "./components/Beaker.tsx";
+import { MuesliBowl } from "./components/MuesliBowl.tsx";
 import { initial, seedOf } from "./mixing.ts";
 import type { Pic } from "./quiz/tasks.ts";
 import { nameOf } from "./mixtures.ts";
@@ -99,6 +100,7 @@ const STEPS: GuideStep[] = [
   },
   {
     ask: "Welche Art von Gemisch ist **Müsli**?", answer: "Gemenge", options: ["Gemenge", "Suspension", "Legierung"],
+    visual: () => <div className="gm-g"><MuesliBowl mixed={1} shaking={false} /></div>,
     why: { Suspension: "Im Müsli ist keine Flüssigkeit – nur feste Teile.", Legierung: "Legierungen sind Metalle, bis zu den Atomen gemischt." },
     ok: "Feste Teile nebeneinander → Gemenge. Das gilt auch für große Stücke.",
   },

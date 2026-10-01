@@ -12,7 +12,8 @@ import { AreaGrid, Clock, Cube } from "./components/Visuals.tsx";
 import { tableFor } from "./quiz/tasks.ts";
 
 const Box = ({ children }: { children: ReactNode }) => <div className="eh-g">{children}</div>;
-const Chain = ({ from, to, v }: { from: string; to: string; v?: string }) => <Box><ArrowChain from={from} to={to} value={v ? parseQ(v) : null} showValues={!!v} /></Box>;
+/** Pfeilkette nur mit den Schritten (ohne Ergebniszeile) – die Rechnung macht der Schüler */
+const Chain = ({ from, to }: { from: string; to: string }) => <Box><ArrowChain from={from} to={to} value={null} showValues={false} caption={false} /></Box>;
 const Table = ({ from, to, v }: { from: string; to: string; v: string }) =>
   <Box><PlaceValueTable value={parseQ(v)!} from={from} to={to} units={tableFor(from, to)!} showResult={false} label={`${v} ${from} → ${to}`} /></Box>;
 const Scale = ({ from, to, v }: { from: string; to: string; v?: string }) => <Box><PowerScale from={from} to={to} value={v ? parseQ(v) : null} showResult={false} showFactor={false} /></Box>;
@@ -21,7 +22,7 @@ const US: GuideStep[] = [
   {
     say: "Längen in Nachbarschritten: km → m: · 1000, m → dm → cm → mm: je · 10. Die Pfeilkette zeigt den Weg.",
     ask: "Setze die **Umrechnungszahl** ein: 1 m = ? cm", answer: 100, num: { unit: "cm" },
-    visual: () => <Chain from="m" to="cm" v="1" />,
+    visual: () => <Chain from="m" to="cm" />,
     why: { "10": "m → dm → cm: zwei Schritte mit je · 10.", "1000": "1000 wäre km → m." },
     ok: "1 m = 100 cm (· 10 · 10).",
   },
@@ -49,7 +50,7 @@ const US: GuideStep[] = [
   {
     say: "Hohlmaße: hl → l: · 100, l → dl → cl → ml: je · 10.",
     ask: "1 l = ? ml", answer: 1000, num: { unit: "ml" },
-    visual: () => <Chain from="l" to="ml" v="1" />,
+    visual: () => <Chain from="l" to="ml" />,
     why: { "100": "l → dl → cl → ml: drei Schritte · 10.", "10": "Das ist nur l → dl." },
     ok: "1 l = 1000 ml.",
   },
@@ -62,7 +63,7 @@ const US: GuideStep[] = [
   {
     say: "**Fläche** = Länge · Länge. 1 dm = 10 cm, also 1 dm² = 10 · 10 = **100 cm²**. Flächen-Nachbarn: **· 100**.",
     ask: "1 m² = ? dm²", answer: 100, num: { unit: "dm²" },
-    visual: () => <Box><AreaGrid big="m²" small="dm²" /></Box>,
+    visual: () => <Box><AreaGrid big="dm²" small="cm²" /></Box>,
     why: { "10": "Ein Quadrat 10 × 10 hat 100 kleine Quadrate.", "1000": "1000 ist der Schritt bei Volumen." },
     ok: "1 m² = 100 dm².",
   },
@@ -76,7 +77,7 @@ const US: GuideStep[] = [
   {
     say: "**Volumen** = Länge · Länge · Länge: 1 dm³ = 10 · 10 · 10 = **1000 cm³**. Volumen-Nachbarn: **· 1000**.",
     ask: "1 m³ = ? dm³", answer: 1000, num: { unit: "dm³" },
-    visual: () => <Box><Cube big="m³" small="dm³" /></Box>,
+    visual: () => <Box><Cube big="dm³" small="cm³" /></Box>,
     why: { "100": "100 ist der Schritt bei Flächen. Ein Würfel: 10 · 10 · 10.", "10": "10 ist der Schritt bei Längen." },
     ok: "1 m³ = 1000 dm³.",
   },

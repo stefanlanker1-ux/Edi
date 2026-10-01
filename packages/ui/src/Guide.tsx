@@ -88,7 +88,11 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
     return () => { removeEventListener("popstate", onPop); if (!popped && history.state?.uiGuide) history.back(); };
   }, [open]);
   // jedes Öffnen beginnt vorn
-  useEffect(() => { if (open) { setI(0); reset(); setOkLine(null); } }, [open]);
+  // jedes Öffnen beginnt vorn; ein noch laufender Wechsel zum nächsten Schritt wird beim Schließen verworfen
+  useEffect(() => { clearTimeout(timer.current); if (open) { setI(0); reset(); setOkLine(null); } }, [open]);
+  // Tastatur und Vorlesen: nach jedem Schritt steht der Fokus am neuen Text
+  const textRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (open && i > 0) textRef.current?.focus({ preventScroll: true }); }, [i, open]);
   useEffect(() => () => clearTimeout(timer.current), []);
 
   function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); }
@@ -103,6 +107,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
     ding(false); buzz(); setShake(s => s + 1);
     const t = tries + 1;
     setTries(t);
+    // Lösung zeigen: die falsche Zahl weg, damit die vorgegebene Zahl im Feld zu sehen ist
+    if (t >= GUIDE_TRIES) setVal("");
     const why = step.why?.[typeof step.answer === "number" ? String(parseNum(String(a))) : String(a)];
     setMsg(t >= GUIDE_TRIES
       ? step.show ?? `So geht's: ${typeof step.answer === "number" ? `tippe **${String(step.answer).replace(".", ",")}** ein` : "tippe auf das Markierte"}.`
@@ -116,7 +122,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
       {open && (
         <div className="ui-guide-in">
           <header className="ui-guide-head">
-            <span className="ui-guide-badge"><Icon name="play" size={16} />Erklärung</span>
+            <span className="ui-guide-badge"><Icon name="play" size={16} /><span>Erklärung</span></span>
             <h2>{def.title}</h2>
             <span className="ui-guide-count" aria-label={`Schritt ${Math.min(i + 1, n)} von ${n}`}>{done ? "fertig" : `${i + 1} / ${n}`}</span>
             <IconButton icon="close" label="Erklärung schließen" onClick={onClose} />
@@ -135,12 +141,12 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
           ) : (
             <div className={`ui-guide-body${step.visual ? "" : " no-visual"}`}>
               {step.visual && <div className={`ui-guide-visual${solved ? " solved" : ""}${show ? " show" : ""}`}>{step.visual(ctx)}</div>}
-              <div className="ui-guide-text">
+              <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
                 {okLine && <p className="ui-guide-ok" key={`ok${i}`}><Icon name="check" size={18} /><span><RichText text={okLine} /></span></p>}
                 {step.say && <p className="ui-guide-say"><RichText text={step.say} /></p>}
                 <p className="ui-guide-ask"><RichText text={step.ask} /></p>
                 {step.options && (
-                  <div className={`ui-guide-opts${step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
+                  <div className={`ui-guide-opts${step.options.some(o => o.length > 16) ? " long" : step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
                     {step.options.map(o => {
                       const right = solved && o === step.answer, mark = show && o === step.answer;
                       return (

@@ -189,8 +189,8 @@ const OS: GuideStep[] = [
   },
   {
     say: "Achtung: **4s** liegt energetisch tiefer als 3d und wird zuerst gefüllt.",
-    ask: "Kalium hat 19 Elektronen. Wohin kommt das **19.** Elektron (nach 3p⁶)?", answer: "4s", options: ["4s", "3d", "4p"],
-    visual: () => <Fit className="ab-g-fit" min={0.2}><EnergyDiagram cfg={configuration(19)} /></Fit>,
+    ask: "Im Bild: Argon, 18 Elektronen. Kalium hat eines mehr. Wohin kommt das **19.** Elektron?", answer: "4s", options: ["4s", "3d", "4p"],
+    visual: () => <Fit className="ab-g-fit" min={0.2}><EnergyDiagram cfg={configuration(18)} lastIndex={7} /></Fit>,
     why: { "3d": "3d liegt höher als 4s – es kommt erst nach 4s dran.", "4p": "4p kommt erst nach 4s und 3d." },
     ok: "Kalium: … 3p⁶ 4s¹.",
   },
