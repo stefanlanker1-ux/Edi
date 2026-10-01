@@ -29,6 +29,7 @@ const missing = (base: string, acid: string, nB: number, nA: number, answer: "A"
   visual: c => <Wall c={c} base={base} acid={acid} step={step} nB={nB} nA={nA} target={answer} />,
   why: { [answer === "A" ? "B" : "A"]: "Dann wird die längere Reihe noch länger. Vergleiche OH⁻ und H⁺." },
   tip: "Vergleiche die OH⁻-Reihe mit der H⁺-Reihe: Bei der kürzeren fehlt ein Baustein.",
+  labels: [{ at: ".nt-oh", text: "OH⁻ der Lauge", side: "left", point: "left" }, { at: ".nt-h", text: "H⁺ der Säure", side: "left", point: "left" }],
   ok,
 });
 
@@ -63,6 +64,7 @@ const US: GuideStep[] = [
     visual: c => <Wall c={c} base="naoh" acid="hcl" nB={1} nA={1} />,
     why: { "2": "Ein OH⁻ und ein H⁺ ergeben ein H₂O." },
     tip: "Jeder Verbindungsstrich zwischen OH⁻ und H⁺ ist ein H₂O.",
+    labels: [{"at": ".nt-oh", "text": "OH⁻ der Lauge", "point": "left", "side": "left"}, {"at": ".nt-h", "text": "H⁺ der Säure", "point": "left", "side": "left"}, {"at": ".nw-link.on", "text": "H⁺ + OH⁻ → H₂O", "side": "right"}],
     ok: "NaOH + HCl → NaCl + H₂O.",
   },
   missing("caoh2", "hcl", 1, 1, "A",
@@ -73,6 +75,7 @@ const US: GuideStep[] = [
     visual: c => <Wall c={c} base="caoh2" acid="hcl" nB={1} nA={2} />,
     why: { "1": "Es gibt 2 Paare aus OH⁻ und H⁺.", "3": "Zähle die Verbindungsstriche: OH⁻ + H⁺." },
     tip: "Zähle die Verbindungsstriche: jeder ist ein H₂O.",
+    labels: [{"at": ".nw-link.on", "text": "H⁺ + OH⁻ → H₂O", "side": "right"}],
     ok: "2 OH⁻ + 2 H⁺ → 2 H₂O.",
   },
   {
@@ -80,6 +83,7 @@ const US: GuideStep[] = [
     ask: "Welches Salz entsteht aus Ca(OH)₂ und HCl?", answer: "CaCl₂", options: ["CaCl₂", "CaCl", "CaH₂", "Ca(OH)Cl"],
     visual: c => <Wall c={c} base="caoh2" acid="hcl" nB={1} nA={2} />,
     why: { CaCl: "Ca²⁺ braucht zwei Cl⁻.", "CaH₂": "Die H⁺ werden zu Wasser – im Salz ist der Säurerest.", "Ca(OH)Cl": "Alle OH⁻ wurden zu Wasser." },
+    labels: [{"at": ".nt-cat", "text": "Metall-Ion", "point": "left", "side": "left"}, {"at": ".nt-an", "text": "Säurerest", "point": "left", "side": "left"}],
     ok: "Calciumchlorid **CaCl₂**.",
   },
   missing("naoh", "h2so4", 1, 1, "B",
@@ -89,6 +93,7 @@ const US: GuideStep[] = [
     ask: "Welches Salz entsteht aus **2 NaOH + H₂SO₄**?", answer: "Na₂SO₄", options: ["Na₂SO₄", "NaSO₄", "Na(SO₄)₂", "NaH₂SO₄"],
     visual: c => <Wall c={c} base="naoh" acid="h2so4" nB={2} nA={1} />,
     why: { "NaSO₄": "SO₄²⁻ braucht zwei Na⁺.", "Na(SO₄)₂": "Na⁺ ist nur 1+ – es braucht mehr Na, nicht mehr SO₄.", "NaH₂SO₄": "Beide H⁺ wurden zu Wasser." },
+    labels: [{"at": ".nt-cat", "text": "Metall-Ion", "point": "left", "side": "left"}, {"at": ".nt-an", "text": "Säurerest", "point": "left", "side": "left"}],
     ok: "SO₄²⁻ braucht zwei Na⁺: **Na₂SO₄**.",
   },
   {
@@ -139,6 +144,7 @@ const OS: GuideStep[] = [
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={1} />,
     why: { "6": "Jedes H₂SO₄ bringt 2 H⁺: 6 : 2.", "2": "2 H₂SO₄ sind nur 4 H⁺." },
     tip: "Wie viele H⁺ bringt ein H₂SO₄? Teile die OH⁻ durch diese Zahl.",
+    labels: [{"at": ".nt-oh", "text": "OH⁻ der Lauge", "point": "left", "side": "left"}, {"at": ".nt-h", "text": "H⁺ der Säure", "point": "bottom", "side": "bottom"}],
     ok: "2 Al(OH)₃ + 3 H₂SO₄ → Al₂(SO₄)₃ + 6 H₂O.",
   },
   {
@@ -146,6 +152,7 @@ const OS: GuideStep[] = [
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={3} />,
     why: { "3": "Jedes Paar aus OH⁻ und H⁺ gibt ein H₂O: 6.", "5": "6 OH⁻ treffen auf 6 H⁺." },
     tip: "Jedes OH⁻ trifft ein H⁺ und bildet ein H₂O. Zähle die OH⁻.",
+    labels: [{"at": ".nw-link.on", "text": "H⁺ + OH⁻ → H₂O", "side": "right"}],
     ok: "Zahl der H₂O = Zahl der OH⁻ = Zahl der H⁺.",
   },
   missing("caoh2", "h2co3", 1, 1, "A",
@@ -155,6 +162,7 @@ const OS: GuideStep[] = [
     ask: "Wie heißt **Ca(HCO₃)₂**?", answer: "Calciumhydrogencarbonat", options: ["Calciumhydrogencarbonat", "Calciumcarbonat", "Calciumdihydrogencarbonat"],
     visual: c => <Wall c={c} base="caoh2" acid="h2co3" step={1} nB={1} nA={2} />,
     why: { Calciumcarbonat: "Im Rest steckt noch ein H: HCO₃⁻.", Calciumdihydrogencarbonat: "HCO₃⁻ hat nur 1 H." },
+    labels: [{"at": ".nt-an", "text": "Säurerest mit H", "point": "left", "side": "left"}],
     ok: "Hydrogencarbonat – kommt im Leitungswasser vor.",
   },
   {

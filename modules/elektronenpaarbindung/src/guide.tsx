@@ -27,6 +27,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={mol([["O", 0, 0]])} />,
     why: { "6": "6 sind alle Außenelektronen. Zähle nur die einzelnen (mit Ring).", "4": "4 sind in den zwei Paaren. Gesucht sind die einzelnen." },
     tip: "Einzelne Elektronen haben einen Ring; Paare stehen zu zweit nebeneinander.",
+    labels: [{"at": ".lone.pair", "text": "Elektronenpaar"}, {"at": ".lone.one", "text": "einzelnes Elektron"}],
     ok: "Sauerstoff: 2 Paare, 2 einzelne Elektronen.",
   },
   {
@@ -35,6 +36,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={mol([["N", 0, 0]])} />,
     why: { "5": "5 sind alle Außenelektronen. Binden können nur die einzelnen.", "1": "Zähle die Elektronen mit Ring." },
     tip: "Jedes einzelne Elektron (mit Ring) ergibt eine Bindung.",
+    labels: [{"at": ".lone.one", "text": "einzelnes Elektron"}],
     ok: "Stickstoff hat 3 einzelne Elektronen → 3 Bindungen.",
   },
   {
@@ -43,6 +45,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={known("H2")} />,
     why: { "1": "Das gemeinsame Paar zählt für beide Atome: 2 Elektronen." },
     tip: "Das Paar im grauen Oval gehört beiden Atomen gleichzeitig.",
+    labels: [{"at": ".bond", "text": "bindendes Paar", "side": "top"}],
     ok: "Wasserstoff hat im Molekül **2** Elektronen um sich (Duett) – ✓.",
   },
   {
@@ -51,6 +54,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={known("H2O")} />,
     why: { "4": "Zähle auch die zwei bindenden Paare mit: 4 + 4.", "6": "6 hatte das O-Atom allein. Durch die Bindungen kommen 2 dazu." },
     tip: "Zähle alle Elektronen im roten Kreis – auch die im grauen Oval.",
+    labels: [{"at": ".octet:not(.duet)", "text": "Oktett", "point": "ne", "side": "top"}, {"at": ".bond", "text": "bindendes Paar"}],
     ok: "2 freie Paare + 2 bindende Paare = 8 Elektronen.",
   },
   {
@@ -59,6 +63,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={known("H2O")} />,
     why: { "4": "4 sind alle Paare. Ohne die 2 bindenden bleiben …", "8": "8 sind die Elektronen. Gefragt sind freie **Paare**." },
     tip: "Freie Paare liegen außen, nicht im grauen Oval.",
+    labels: [{"at": ".lone.pair", "text": "freies Paar"}, {"at": ".bond", "text": "bindendes Paar"}],
     ok: "Wasser: O hat 2 freie und 2 bindende Paare.",
   },
   {
@@ -67,6 +72,7 @@ const US: GuideStep[] = [
     visual: c => <Lewis m={mol([["O", 0, 0], ["O", 1, 0]], [[0, 1, 1]])} c={c} tap />,
     show: "So geht's: tippe auf das graue Oval zwischen den beiden O-Atomen.",
     tip: "Die Bindung ist das graue Oval zwischen den beiden Atomen.",
+    labels: [{"at": ".bond", "text": "Zweifachbindung", "side": "top", "afterSolved": true}],
     ok: "O=O: zwei gemeinsame Paare – jetzt haben beide O-Atome ein Oktett.",
   },
   {
@@ -74,6 +80,7 @@ const US: GuideStep[] = [
     options: ["Einfachbindung", "Zweifachbindung", "Dreifachbindung"],
     visual: () => <Lewis m={mol([["N", 0, 0], ["N", 2, 0]])} octet={false} />,
     why: { Einfachbindung: "Dann hätte jedes N noch 2 einzelne Elektronen.", Zweifachbindung: "Dann hätte jedes N noch 1 einzelnes Elektron." },
+    labels: [{"at": ".lone.one", "text": "einzelnes Elektron"}],
     ok: "N≡N: drei gemeinsame Paare.",
   },
   {
@@ -81,6 +88,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={known("N2")} />,
     why: { "3": "3 Paare sind bindend. Frei ist das Paar außen.", "2": "Zähle nur die Paare außerhalb der Bindung." },
     tip: "Zähle nur die Paare außerhalb der grauen Ovale.",
+    labels: [{"at": ".bond", "text": "Dreifachbindung", "side": "top"}],
     ok: "Jedes N: 3 bindende + 1 freies Paar = 8 Elektronen.",
   },
   {
@@ -88,6 +96,7 @@ const US: GuideStep[] = [
     ask: "Welche Formel hat **Methan** (C mit H)?", answer: "CH₄", options: ["CH₄", "CH₂", "CH₃", "C₄H"],
     visual: () => <Lewis m={mol([["C", 0, 0]])} />,
     why: { "CH₂": "Dann blieben 2 einzelne Elektronen übrig.", "CH₃": "Dann bliebe 1 einzelnes Elektron übrig.", "C₄H": "Ein C bindet 4 H, nicht umgekehrt." },
+    labels: [{"at": ".lone.one", "text": "einzelnes Elektron"}],
     ok: "C hat 4 einzelne Elektronen → 4 Bindungen zu H: **CH₄** (Methan).",
   },
   {
@@ -95,6 +104,7 @@ const US: GuideStep[] = [
     visual: () => <Lewis m={known("CCl4")} />,
     why: { "6": "Das bindende Paar zählt auch für Cl: 6 + 2.", "7": "Cl hat 7 eigene, mit dem gemeinsamen Partner-Elektron sind es 8." },
     tip: "Zähle alle Elektronen im roten Kreis um ein Cl – das Paar im Oval mitzählen.",
+    labels: [{"at": ".bond", "text": "bindendes Paar"}, {"at": ".lone.pair", "text": "freies Paar", "nth": -1}],
     ok: "Oktett: 3 freie Paare + 1 bindendes Paar.",
   },
   {
@@ -117,6 +127,7 @@ const OS: GuideStep[] = [
     ask: "Wie viele Bindungen geht ein **Kohlenstoff**-Atom ein?", answer: 4, num: {},
     visual: () => <Lewis m={mol([["C", 0, 0]])} />,
     tip: "Zähle die einzelnen Elektronen (mit Ring) – jedes ergibt eine Bindung.",
+    labels: [{"at": ".lone.one", "text": "einzelnes Elektron"}],
     ok: "C: 4 Bindungen, O: 2, N: 3, H und Halogene: 1.",
   },
   {
@@ -125,6 +136,7 @@ const OS: GuideStep[] = [
     visual: c => <Lewis m={mol([["C", 1, 0], ["C", 2, 0], ["H", 0, 0], ["H", 1, 1], ["H", 3, 0], ["H", 2, 1]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]])} c={c} tap />,
     show: "So geht's: tippe auf das graue Oval zwischen den beiden C-Atomen.",
     tip: "Die Bindung zwischen zwei Atomen ist das graue Oval.",
+    labels: [{"at": ".bond", "text": "Zweifachbindung", "side": "top", "afterSolved": true}],
     ok: "C=C: Zweifachbindung – beide C haben ein Oktett.",
   },
   {
@@ -139,6 +151,7 @@ const OS: GuideStep[] = [
     visual: () => <Lewis m={known("NH3")} />,
     why: { "3": "Das freie Paar zählt mit.", "1": "Zähle auch die drei bindenden Paare." },
     tip: "Zähle bindende Paare (graue Ovale) und freie Paare zusammen.",
+    labels: [{"at": ".lone.pair", "text": "freies Paar"}, {"at": ".bond", "text": "bindendes Paar"}],
     ok: "4 Paare → wie ein Tetraeder angeordnet.",
   },
   {
@@ -152,12 +165,14 @@ const OS: GuideStep[] = [
     ask: "Welchen **Bindungswinkel** hat Wasser (2 bindende, 2 freie Paare)?", answer: "104,5°", options: ["104,5°", "109,5°", "120°", "180°"],
     visual: () => <Lewis m={known("H2O")} />,
     why: { "109,5°": "109,5° ist der Tetraederwinkel. Die zwei freien Paare drücken stärker.", "120°": "120° gilt für 3 Paare (trigonal-planar).", "180°": "Wasser ist gewinkelt, nie linear." },
+    labels: [{"at": ".lone.pair", "text": "freies Paar"}, {"at": ".bond", "text": "bindendes Paar"}],
     ok: "H₂O: gewinkelt, 104,5°.",
   },
   {
     ask: "Welchen Bindungswinkel hat **CO₂** (O=C=O)?", answer: "180°", options: ["180°", "120°", "109,5°", "104,5°"],
     visual: () => <Lewis m={known("CO2")} />,
     why: { "120°": "C hat keine freien Paare – nur 2 Bereiche (zwei Zweifachbindungen).", "109,5°": "Eine Zweifachbindung zählt wie ein Paar: nur 2 Bereiche.", "104,5°": "Das gilt für Wasser mit 2 freien Paaren." },
+    labels: [{"at": ".bond", "text": "Zweifachbindung", "side": "top"}],
     ok: "2 Bereiche → linear, 180°.",
   },
   {

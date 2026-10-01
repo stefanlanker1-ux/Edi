@@ -41,7 +41,7 @@ export function Kalotte({ f, cx, cy, gid, scale = 1 }: { f: string; cx: number; 
   return (
     <g className="kal" transform={`translate(${cx} ${cy}) scale(${scale})`}>
       {shapeOf(f).map(([el, x, y], i) => (
-        <circle key={i} className="kal-atom" style={{ fill: `url(#${gid}-${el})`, stroke: `color-mix(in srgb, var(--atom-${el}) 55%, var(--atom-edge))` }}
+        <circle key={i} data-el={el} className="kal-atom" style={{ fill: `url(#${gid}-${el})`, stroke: `color-mix(in srgb, var(--atom-${el}) 55%, var(--atom-edge))` }}
           cx={ox + x} cy={oy + y} r={atomRadius(el)} />
       ))}
     </g>

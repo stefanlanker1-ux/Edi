@@ -38,6 +38,7 @@ const missing = (cat: string, an: string, nC: number, nA: number, answer: "C" | 
   visual: c => <Wall c={c} cat={cat} an={an} nC={nC} nA={nA} target={answer} />,
   why: { [answer === "C" ? "A" : "C"]: "Dann wird die andere Reihe noch länger. Vergleiche die Breiten." },
   tip: "Vergleiche die Breiten: Bei der kürzeren Reihe fehlt ein Baustein.",
+  labels: [{ at: ".ion-tile.cation", text: "Kation", side: "left", point: "left" }, { at: ".ion-tile.anion", text: "Anion", side: "left", point: "left" }],
   ok,
 });
 
@@ -71,6 +72,7 @@ const US: GuideStep[] = [
     ask: "Welche Formel hat diese Verbindung?", answer: "CaCl₂", options: ["CaCl₂", "Ca₂Cl", "CaCl", "Ca₂Cl₂"],
     visual: c => <Wall c={c} cat="Ca2+" an="Cl-" nC={1} nA={2} />,
     why: { "Ca₂Cl": "1 Calcium-Ion, 2 Chlorid-Ionen – die 2 gehört zum Cl.", CaCl: "So wäre es nicht neutral: 2+ und 1−.", "Ca₂Cl₂": "Man kürzt auf das kleinste Verhältnis 1 : 2." },
+    labels: [{"at": ".ion-tile.cation", "text": "Kation", "point": "left", "side": "left"}, {"at": ".ion-tile.anion", "text": "Anion", "point": "left", "side": "left"}],
     ok: "**CaCl₂**: Calciumchlorid.",
   },
   missing("Al3+", "O2-", 2, 2, "A",
@@ -136,6 +138,7 @@ const OS: GuideStep[] = [
     ask: "Welche Formel hat **Calciumhydroxid**?", answer: "Ca(OH)₂", options: ["Ca(OH)₂", "CaOH₂", "CaOH", "Ca₂OH"],
     visual: c => <Wall c={c} cat="Ca2+" an="OH-" nC={1} nA={2} />,
     why: { "CaOH₂": "OH₂ hieße: 1 O und 2 H. Gemeint ist zweimal das ganze OH⁻.", CaOH: "Ca²⁺ braucht zwei OH⁻.", "Ca₂OH": "Es braucht mehr Hydroxid-, nicht mehr Calcium-Ionen." },
+    labels: [{"at": ".ion-tile.anion", "text": "Hydroxid-Ion: ein Block", "point": "left", "side": "left"}],
     ok: "Zweimal der ganze Block OH: **Ca(OH)₂** = 1 Ca, 2 O, 2 H.",
   },
   {
@@ -149,6 +152,7 @@ const OS: GuideStep[] = [
     ask: "Welche Formel hat **Aluminiumsulfat**?", answer: "Al₂(SO₄)₃", options: ["Al₂(SO₄)₃", "Al₂SO₄₃", "Al₃(SO₄)₂", "AlSO₄"],
     visual: c => <Wall c={c} cat="Al3+" an="SO42-" nC={2} nA={3} />,
     why: { "Al₂SO₄₃": "Ohne Klammer stünde da „43 O-Atome“. Der Block SO₄ kommt in Klammern.", "Al₃(SO₄)₂": "Zähle: 2 Aluminium-Ionen, 3 Sulfat-Ionen.", "AlSO₄": "3+ und 2− gleichen sich nicht aus." },
+    labels: [{"at": ".ion-tile.anion", "text": "Sulfat-Ion: ein Block", "point": "left", "side": "left"}],
     ok: "Anzahlen tiefgestellt, Block in Klammern: **Al₂(SO₄)₃**.",
   },
   {

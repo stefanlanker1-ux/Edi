@@ -54,6 +54,7 @@ const US: GuideStep[] = [
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 1]} />,
     why: { "1": "Ein O₂-Molekül hat 2 O-Atome.", "3": "Zähle nur links vom Pfeil." },
     tip: "Ein O₂-Molekül besteht aus zwei roten Kugeln. Zähle nur links vom Pfeil.",
+    labels: [{"at": ".ms-box", "text": "Edukte", "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": "Produkte", "nth": -1, "point": "top", "side": "above"}, {"at": "[data-el=\"O\"]", "text": "O-Atom", "side": "left"}],
     ok: "Links: 2 O-Atome.",
   },
   {
@@ -61,6 +62,7 @@ const US: GuideStep[] = [
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 1]} />,
     why: { "2": "Rechts ist nur ein H₂O mit einem O-Atom." },
     tip: "Zähle die roten Kugeln rechts vom Pfeil.",
+    labels: [{"at": ".ms-box", "text": "Edukte", "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": "Produkte", "nth": -1, "point": "top", "side": "above"}],
     ok: "Links 2 O, rechts 1 O: Die Gleichung ist **nicht ausgeglichen**.",
   },
   {
@@ -69,6 +71,7 @@ const US: GuideStep[] = [
     visual: c => <Pick c={c} eq={KNALLGAS} k={[1, 1, 1]} answer={2} />,
     why: { "0": "Vor H₂ ändert sich die Zahl der O-Atome nicht.", "1": "Links stimmt O schon. Rechts fehlt ein O." },
     tip: "Suche rechts den Stoff, der O-Atome enthält.",
+    labels: [{"at": ".ms-box", "text": "Edukte", "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": "Produkte", "nth": -1, "point": "top", "side": "above"}],
     ok: "2 H₂O: rechts jetzt 2 O – aber auch 4 H.",
   },
   {
@@ -76,12 +79,14 @@ const US: GuideStep[] = [
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 2]} />,
     why: { "4": "Ein H₂ hat schon 2 H-Atome: 2 · 2 = 4.", "1": "Links sind dann nur 2 H." },
     tip: "Links müssen so viele H-Atome stehen wie rechts. Jedes H₂ hat zwei.",
+    labels: [{"at": ".ms-box", "text": "Edukte", "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": "Produkte", "nth": -1, "point": "top", "side": "above"}, {"at": "[data-el=\"H\"]", "text": "H-Atom", "side": "left"}],
     ok: "2 H₂: links 4 H, rechts 4 H.",
   },
   {
     ask: "Ist die Gleichung jetzt ausgeglichen?", answer: "Ja – H und O stimmen", options: ["Ja – H und O stimmen", "Nein – H stimmt nicht", "Nein – O stimmt nicht"],
     visual: () => <Scene eq={KNALLGAS} k={[2, 1, 2]} />,
     why: { "Nein – H stimmt nicht": "Links 2 · 2 = 4 H, rechts 2 · 2 = 4 H.", "Nein – O stimmt nicht": "Links 2 O, rechts 2 · 1 = 2 O." },
+    labels: [{"at": ".ms-box", "text": "Edukte", "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": "Produkte", "nth": -1, "point": "top", "side": "above"}],
     ok: "**2 H₂ + O₂ → 2 H₂O** – links und rechts gleich viele Atome.",
   },
   {

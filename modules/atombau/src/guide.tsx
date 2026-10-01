@@ -60,6 +60,7 @@ const US: GuideStep[] = [
     visual: c => <BohrPick c={c} Z={6} N={6} E={6} target="electron" />,
     why: { proton: "Das ist ein Proton – es sitzt im Kern.", neutron: "Das ist ein Neutron – es sitzt im Kern." },
     tip: "Elektronen sind blau und liegen außen auf den Ringen, nicht im Kern.",
+    labels: [{"at": ".bohr .nuc", "text": "Kern", "side": "left", "point": "left"}, {"at": ".bohr .ring", "text": "Hülle", "nth": -1, "point": "ne", "side": "top"}, {"at": ".bohr .el", "text": "Elektron", "side": "right", "afterSolved": true}],
     ok: "Elektronen sind in der Hülle, Protonen und Neutronen im Kern.",
   },
   {
@@ -68,6 +69,7 @@ const US: GuideStep[] = [
     visual: () => <Nucleus p={6} n={6} />,
     why: { "12": "12 sind alle Teilchen im Kern. Zähle nur die roten (mit +).", "18": "Zähle nur die roten Teilchen im Kern." },
     tip: "Zähle nur die roten Kugeln mit + – die grauen sind Neutronen.",
+    labels: [{"at": ".ab-g-np.proton", "text": "Proton", "side": "left"}, {"at": ".ab-g-np.neutron", "text": "Neutron", "side": "right"}],
     ok: "6 Protonen – damit ist es Kohlenstoff.",
   },
   {
@@ -83,6 +85,7 @@ const US: GuideStep[] = [
     visual: () => <BohrOnly Z={6} N={6} E={6} />,
     why: { "12": "12 ist Protonen + Neutronen. Elektronen gibt es so viele wie Protonen." },
     tip: "Im neutralen Atom gleichen sich Plus und Minus aus.",
+    labels: [{"at": ".bohr .nuc", "text": "Kern", "side": "left", "point": "left"}, {"at": ".bohr .el", "text": "Elektron", "side": "right"}],
     ok: "Neutrales Atom: Elektronen = Protonen = Ordnungszahl, bei Kohlenstoff 6.",
   },
   {
@@ -91,6 +94,7 @@ const US: GuideStep[] = [
     visual: () => <BohrOnly Z={7} N={7} E={7} />,
     why: { "21": "Elektronen zählen nicht mit – nur Protonen und Neutronen.", "7": "Zähle Protonen **und** Neutronen zusammen." },
     tip: "Zähle alle Teilchen im Kern zusammen.",
+    labels: [{"at": ".bohr .nuc", "text": "Kern: Protonen + Neutronen", "side": "left", "point": "left"}],
     ok: "Massenzahl = Protonen + Neutronen = 7 + 7 = 14 (Stickstoff-14).",
   },
   {
@@ -99,6 +103,7 @@ const US: GuideStep[] = [
     visual: () => <BohrOnly Z={9} N={10} E={9} shells={[2, 0]} />,
     why: { "8": "Fluor hat nur 9 Elektronen: 9 − 2 = 7.", "9": "2 sind schon auf der 1. Schale." },
     tip: "Ziehe die Elektronen der 1. Schale von allen Elektronen ab.",
+    labels: [{"at": ".bohr .ring", "text": "1. Schale", "nth": 0, "point": "nw", "side": "top"}, {"at": ".bohr .ring", "text": "2. Schale", "nth": 1, "point": "ne", "side": "top"}],
     ok: "Fluor: 2 · 7. Die 2. Schale ist die äußerste.",
   },
   {
@@ -107,6 +112,7 @@ const US: GuideStep[] = [
     visual: () => <BohrOnly Z={11} N={12} E={11} />,
     why: { "11": "11 sind alle Elektronen. Zähle nur die äußerste Schale.", "8": "8 sind auf der 2. Schale – die äußerste ist die 3." },
     tip: "Zähle nur die Punkte auf dem äußersten Ring.",
+    labels: [{"at": ".bohr .ring", "text": "äußerste Schale", "nth": -1, "point": "ne", "side": "top"}],
     ok: "Natrium: 2 · 8 · 1 – also 1 Außenelektron.",
   },
   {
@@ -137,6 +143,7 @@ const US: GuideStep[] = [
     ask: "Welche Ladung hat dieses Teilchen?", answer: "1+", options: ["1+", "1−", "neutral", "11+"],
     visual: () => <BohrOnly Z={11} N={12} E={10} />,
     why: { "1−": "Es fehlt ein Elektron (−) – also bleibt ein Plus übrig.", neutral: "11 Plus, 10 Minus: ein Plus bleibt übrig.", "11+": "Die 10 Elektronen gleichen 10 Protonen aus." },
+    labels: [{"at": ".bohr .nuc", "text": "Kern: 11 Protonen", "side": "left", "point": "left"}],
     ok: "Natrium-Ion **Na⁺**: ein Elektron weniger als Protonen.",
   },
   {
@@ -144,6 +151,7 @@ const US: GuideStep[] = [
     ask: "Welches Ion bildet **Chlor** (VII. Hauptgruppe, 7 Außenelektronen)?", answer: "Cl⁻", options: ["Cl⁻", "Cl⁺", "Cl⁷⁺", "Cl²⁻"],
     visual: () => <BohrOnly Z={17} N={18} E={17} />,
     why: { "Cl⁺": "Chlor fehlt 1 Elektron bis 8 – es nimmt eines auf.", "Cl⁷⁺": "7 abgeben ist viel schwerer als 1 aufnehmen.", "Cl²⁻": "Chlor fehlt nur 1 Elektron bis 8." },
+    labels: [{"at": ".bohr .ring", "text": "äußerste Schale", "nth": -1, "point": "ne", "side": "top"}],
     ok: "Chlorid-Ion **Cl⁻**: ein Elektron mehr als Protonen.",
   },
   {
@@ -152,6 +160,7 @@ const US: GuideStep[] = [
     visual: () => <Center><Nuclide Z={17} N={20} E={17} size="xl" /></Center>,
     why: { "37": "37 ist die Massenzahl: 37 − 17 = ?", "17": "17 sind die Protonen. Neutronen = 37 − 17." },
     tip: "Neutronen = Massenzahl − Protonen.",
+    labels: [{"at": ".nu-a", "text": "Massenzahl", "side": "top", "point": "top"}, {"at": ".nu-z", "text": "Ordnungszahl", "side": "bottom", "point": "bottom"}],
     ok: "Neutronen = Massenzahl − Protonenzahl: 37 − 17 = 20.",
   },
   {
@@ -170,6 +179,7 @@ const OS: GuideStep[] = [
     visual: () => <Center><Nuclide Z={17} N={20} E={17} size="xl" /></Center>,
     why: { "37": "37 ist die Massenzahl. Neutronen = 37 − 17.", "17": "17 sind die Protonen." },
     tip: "Neutronen = Massenzahl (oben) − Ordnungszahl (unten).",
+    labels: [{"at": ".nu-a", "text": "Massenzahl", "side": "top", "point": "top"}, {"at": ".nu-z", "text": "Ordnungszahl", "side": "bottom", "point": "bottom"}],
     ok: "37 − 17 = 20 Neutronen (Chlor-37, ein Isotop).",
   },
   {
@@ -178,6 +188,7 @@ const OS: GuideStep[] = [
     visual: () => <Center><Nuclide Z={16} N={16} E={18} size="xl" /></Center>,
     why: { "14": "2− heißt: zwei Elektronen **mehr** als Protonen.", "16": "Das Teilchen ist geladen (2−) – es hat mehr Elektronen als Protonen." },
     tip: "Eine negative Ladung heißt: mehr Elektronen als Protonen.",
+    labels: [{"at": ".nu-z", "text": "Ordnungszahl", "side": "bottom", "point": "bottom"}, {"at": ".nu-q", "text": "Ladung", "side": "right"}],
     ok: "16 − (−2) = 18 Elektronen: das Sulfid-Ion S²⁻.",
   },
   {

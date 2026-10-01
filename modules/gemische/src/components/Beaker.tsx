@@ -89,7 +89,7 @@ export function ParticleView({ sim, onPick, gid }: { sim: Sim; onPick?: (f: stri
         const [cx, cy] = center(sim, p.cell);
         const x = cx + p.jx * S * .12, y = cy + p.jy * S * .12;
         return (
-          <g key={p.id} className={`gm-p${onPick ? " pick" : ""}`} style={{ transform: `translate(${x}px, ${y}px)` }} onClick={onPick && (() => onPick(p.f))}>
+          <g key={p.id} data-f={p.f} className={`gm-p${onPick ? " pick" : ""}`} style={{ transform: `translate(${x}px, ${y}px)` }} onClick={onPick && (() => onPick(p.f))}>
             {onPick && <rect className="gm-hit" x={-S / 2} y={-S / 2} width={S} height={S} rx={3} />}
             <g className="gm-jig" style={{ animationDelay: `${-((p.id * 373) % 1000) / 400}s`, animationDuration: `${1.8 + ((p.id * 7) % 5) * .25}s` }}>
               <Kalotte f={p.f} cx={0} cy={0} gid={gid} scale={k[p.f]} />

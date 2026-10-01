@@ -118,12 +118,12 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, rings = show
         const lone = loneLayout(mol, a.id);
         const e = electronsOf(mol, a.id);
         return (
-          <g key={a.id} className={`atom${onAtomDown ? " grab" : ""}`} onPointerDown={onAtomDown ? ev => onAtomDown(a.id, ev) : undefined}
+          <g key={a.id} data-el={a.el} className={`atom${onAtomDown ? " grab" : ""}`} onPointerDown={onAtomDown ? ev => onAtomDown(a.id, ev) : undefined}
             {...(onAtomKey ? { tabIndex: 0, role: "button", "aria-label": `${a.el} – Pfeiltasten verschieben, Entf entfernen`,
               onKeyDown: (ev: React.KeyboardEvent) => { if (/^(Arrow|Delete|Backspace)/.test(ev.key)) { ev.preventDefault(); onAtomKey(a.id, ev.key); } } } : {})}>
             <circle cx={x} cy={y} r={26} className="atom-bg" />
             <text x={x} y={y} className="sym" dy=".35em">{a.el}</text>
-            {lone.map(g => <g key={g.angle}>{loneDots(x, y, g.angle, g.n, lines)}</g>)}
+            {lone.map(g => <g key={g.angle} className={g.n === 1 ? "lone one" : "lone pair"}>{loneDots(x, y, g.angle, g.n, lines)}</g>)}
             {showOctet && mol.bonds.length > 0 && e.complete && <text x={x + 22} y={y - 22} className="ok-mark">✓</text>}
             {showOctet && !e.complete && mol.atoms.length > 1 && <text x={x + 30} y={y + 44} className="count">{e.around}/{target(a.el)}</text>}
           </g>

@@ -44,6 +44,9 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   und nennt die Regel mit dem Beispiel („Massenzahl = Protonen + Neutronen = 7 + 7 = 14“), nicht nur das Ergebnis.
   Ende: Zusammenfassung „Das kannst du jetzt“, Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab. Test je Modul (`guide.test.ts`, `checkGuide`):
   Schrittzahl, Antwort unter den Auswahlen, Rückmeldung zu jeder falschen Auswahl, Tipp bei Zahl/Antippen (ohne die gesuchte Zahl), Sätze höchstens 22 Wörter.
+  Beschriftung mit Pfeilen (`labels`, Baustein `Callouts`): Begriff am Rand, Pfeil auf ein Teil des Bildes (CSS-Selektor, z. B. `.bohr .nuc`, `.lone.pair`,
+  `[data-f="H2O"]`, `[data-el="O"]`, `.ion-tile.cation`, `.ms-box`); ohne `nth` das Teil, das der Seite am nächsten liegt; weicht Schrift im Bild aus (`AVOID`).
+  Nie die gesuchte Antwort beschriften (prüft `checkGuide`), außer mit `afterSolved` (erscheint erst nach der richtigen Antwort).
 - Alle Module nutzen für das Quiz `@lern/quiz` (`createQuizStore` + `QuizScreen`); Aufgaben sind reine Daten, Aufgabentyp = Fertigkeit.
   Optional: Level mit Tipp (`QuizLevel.tip` = Glühbirne an der Karte, Aufgabe `hintCue` = Tipp-Knopf hervorgehoben, Tipp kostet keine Punkte) und feste Reihenfolge (`fixedOrder`).
   Fertigkeiten (`skills.ts`): neu → geübt → sicher (2 Treffer in Folge) → gemeistert (Treffer nach ≥ 7 Tagen Abstand); Wiederholung nach 1-3-7-14-30 Tagen

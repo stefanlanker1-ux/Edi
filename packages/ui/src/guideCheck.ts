@@ -34,8 +34,13 @@ export function checkGuide(def: GuideDef): string[] {
       for (const k of Object.keys(s.why ?? {})) if (!Number.isFinite(Number(k)) || Number(k) === s.answer) out.push(`${at}: Rückmeldung „${k}“ ist keine falsche Zahl`);
     }
     if (!s.options && !s.num && !s.visual) out.push(`${at}: Antippen ohne Bild`);
+    // Beschriftungen nur mit Bild und nie mit der gesuchten Antwort (außer erst nach der richtigen Antwort)
+    if (s.labels?.length && !s.visual) out.push(`${at}: Beschriftung ohne Bild`);
+    const sol = String(s.answer).replace(".", ",");
+    for (const l of s.labels ?? []) if (!l.afterSolved && (l.text === sol || (typeof s.answer === "number"
+      ? new RegExp(`(^|[^0-9,\\p{L}])${sol}([^0-9,\\p{L}]|$)`, "u").test(l.text) : sol.length > 2 && l.text.includes(sol)))) out.push(`${at}: Beschriftung „${l.text}“ verrät die Lösung`);
     if (!s.ok) out.push(`${at}: Bestätigung fehlt`);
-    for (const t of [s.say ?? "", s.ask, s.ok, s.show ?? "", s.tip ?? "", ...Object.values(s.why ?? {})]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
+    for (const t of [s.say ?? "", s.ask, s.ok, s.show ?? "", s.tip ?? "", ...Object.values(s.why ?? {}), ...(s.labels ?? []).map(l => l.text)]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
   });
   return out;
 }

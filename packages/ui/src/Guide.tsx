@@ -10,6 +10,7 @@ import { Icon } from "./icons.tsx";
 import { RichText } from "./RichText.tsx";
 import { ding } from "./feedback.ts";
 import { buzz } from "./hooks.ts";
+import { Callouts, type Callout } from "./Callouts.tsx";
 
 /** Was ein Bild bekommt: `pick` meldet ein angetipptes Ziel, `show` = Lösung markieren, `solved` = schon richtig */
 export interface GuideCtx { pick: (id: string) => void; show: boolean; solved: boolean }
@@ -27,6 +28,9 @@ export interface GuideStep {
   num?: { unit?: string };
   /** Bild des Schritts – ruft `pick(id)` beim Antippen eines Ziels (dann ohne `options`/`num`) */
   visual?: (c: GuideCtx) => ReactNode;
+  /** Begriffe mit Pfeil auf Teile des Bildes (Kern, Elektron, bindendes Paar …) – nie die gesuchte Antwort,
+   *  außer mit `afterSolved` */
+  labels?: Callout[];
   /** Rückmeldung zu bestimmten falschen Antworten (Schlüssel = Auswahltext, Zahl oder Ziel) */
   why?: Record<string, string>;
   /** Denkanstoß zum Vorgehen, ohne die Lösung zu nennen: bei falschen Antworten ohne eigene Rückmeldung,
@@ -150,7 +154,12 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
             </div>
           ) : (
             <div className={`ui-guide-body${step.visual ? "" : " no-visual"}`}>
-              {step.visual && <div className={`ui-guide-visual${solved ? " solved" : ""}${show ? " show" : ""}`}>{step.visual(ctx)}</div>}
+              {step.visual && (
+                <div className={`ui-guide-visual${solved ? " solved" : ""}${show ? " show" : ""}`}>
+                  {step.visual(ctx)}
+                  {step.labels && <Callouts key={i} items={step.labels} solved={solved} />}
+                </div>
+              )}
               <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
                 {okLine && <p className="ui-guide-ok" key={`ok${i}`}><Icon name="check" size={18} /><span><RichText text={okLine} /></span></p>}
                 {step.say && <p className="ui-guide-say"><RichText text={step.say} /></p>}

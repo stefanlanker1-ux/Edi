@@ -290,7 +290,7 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-guide-bar i { display: block; height: 100%; background: var(--signal); transition: width .4s ease; }
 .ui-guide-body { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; min-height: 0; }
 .ui-guide-body.no-visual { grid-template-rows: auto; align-content: center; }
-.ui-guide-visual { container-type: size; min-height: 0; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; padding: 8px; }
+.ui-guide-visual { position: relative; container-type: size; min-height: 0; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; padding: 8px; }
 .ui-guide-text { display: grid; gap: 8px; align-content: end; }
 .ui-guide-text p { margin: 0; }
 .ui-guide-ok { display: flex; gap: 6px; align-items: flex-start; color: var(--ok); font-size: .9rem; font-weight: 650; animation: ui-guide-in .3s ease; }
@@ -345,3 +345,12 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 /* schmal: nur das rote Play-Zeichen statt „Erklärung“, damit der App-Name ganz zu lesen ist */
 @media (max-width: 479px) { .ui-guide-badge span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .ui-guide-head { gap: 4px 8px; } }
 .ui-guide-text:focus { outline: none; }
+
+/* Beschriftung mit Pfeilen (Erklärung): Begriff am Rand, schwarzer Pfeil aufs Teil; Tippen geht durch */
+.ui-callouts { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.ui-callouts-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ui-callouts-lines line { stroke: var(--text); stroke-width: 1.5; }
+.ui-callouts-lines polygon, .ui-callouts-lines circle { fill: var(--text); }
+.ui-callout { position: absolute; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+  padding: 0 6px; background: var(--surface); border: 1px solid var(--text); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 600; line-height: 1; white-space: nowrap; color: var(--text); letter-spacing: 0; word-spacing: 0; }

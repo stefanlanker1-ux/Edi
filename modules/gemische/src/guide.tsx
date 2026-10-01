@@ -38,6 +38,7 @@ const STEPS: GuideStep[] = [
     visual: () => <Picture p={MIX} />,
     why: { "15": "15 sind alle Atome. Ein Molekül zählt als **ein** Teilchen.", "2": "2 sind die Stoffe. Zähle jedes Teilchen." },
     tip: "Zähle jedes Molekül und jedes einzelne Atom als ein Teilchen.",
+    labels: [{"at": "[data-f=\"H2O\"]", "text": "Molekül = 1 Teilchen", "side": "left"}, {"at": "[data-f=\"He\"]", "text": "Atom = 1 Teilchen", "side": "right"}],
     ok: "4 Wassermoleküle + 3 Heliumatome = 7 Teilchen.",
   },
   {
@@ -62,6 +63,7 @@ const STEPS: GuideStep[] = [
     why: { CO2: "CO₂ hat zwei Atomsorten (C und O) – eine Verbindung." },
     show: "So geht's: tippe auf ein einzelnes Neon-Atom (Ne).",
     tip: "Ein Element-Teilchen hat Kugeln in nur einer Farbe.",
+    labels: [{"at": "[data-f=\"Ne\"]", "text": "Element", "side": "right", "afterSolved": true}, {"at": "[data-f=\"CO2\"]", "text": "Verbindung", "side": "left", "afterSolved": true}],
     ok: "Neon: nur eine Atomsorte → Element. CO₂ → Verbindung.",
   },
   {
@@ -90,6 +92,7 @@ const STEPS: GuideStep[] = [
     ask: "Was ist **Zuckerwasser**?", answer: "homogenes Gemisch", options: ["homogenes Gemisch", "heterogenes Gemisch", "Reinstoff"],
     visual: () => <Picture p={ZUCKER} />,
     why: { "heterogenes Gemisch": "Der Zucker ist gelöst – man sieht keine Teile.", Reinstoff: "Klar heißt nicht rein: Zucker und Wasser sind zwei Stoffe." },
+    labels: [{"at": "[data-f=\"C12H22O11\"]", "text": "Zucker-Molekül", "side": "left"}, {"at": "[data-f=\"H2O\"]", "text": "Wasser-Molekül", "side": "right"}],
     ok: "Gelöster Zucker ist überall gleich verteilt.",
   },
   {
@@ -121,6 +124,7 @@ const STEPS: GuideStep[] = [
     visual: () => <Picture p={ZUCKER} />,
     why: { "200": "Der Zucker ist noch da – seine 20 g zählen mit.", "210": "Die Masse bleibt ganz erhalten: 200 g + 20 g." },
     tip: "Zähle die Masse von Wasser und Zucker zusammen.",
+    labels: [{"at": "[data-f=\"C12H22O11\"]", "text": "Zucker-Molekül", "side": "left"}, {"at": "[data-f=\"H2O\"]", "text": "Wasser-Molekül", "side": "right"}],
     ok: "200 g + 20 g = 220 g – alle Teilchen sind noch da.",
   },
   {
@@ -128,6 +132,7 @@ const STEPS: GuideStep[] = [
     ask: "Was ist **zwischen** den Teilchen?", answer: "Nichts – leerer Raum", options: ["Nichts – leerer Raum", "Luft", "Wasser"],
     visual: () => <Picture p={MIX} />,
     why: { Luft: "Luft besteht selbst aus Teilchen.", Wasser: "Wasser besteht aus diesen Teilchen – dazwischen ist nichts." },
+    labels: [{"at": "[data-f=\"H2O\"]", "text": "Teilchen", "side": "left"}],
     ok: "Zwischen den Teilchen ist leerer Raum.",
   },
   {
