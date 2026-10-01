@@ -19,6 +19,7 @@ const TEXT: Record<string, Ex> = {
     "Eine Ionenverbindung ist nach außen **neutral**: Die positiven und negativen Ladungen gleichen sich aus.",
     "Jeder Baustein ist so breit wie seine Ladung. Nimm so viele goldene und grüne Bausteine, bis **beide Reihen gleich lang** sind.",
     "Die Anzahl der Ionen steht als kleine Zahl (Index) in der Formel – die 1 schreibt man nicht.",
+    "Im Salz gibt es keine Paare oder Moleküle: Jedes Ion ist von vielen Gegen-Ionen umgeben (**Ionengitter**).",
   ] },
   "us-3": { c: "Al3+", a: "O2-", points: [
     "Im Namen kommt zuerst das **Metall**, dann das Nichtmetall mit der Endung **-id**: Natrium + Chlor → Natrium**chlorid**.",

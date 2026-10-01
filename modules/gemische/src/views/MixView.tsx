@@ -138,26 +138,20 @@ function Arten({ ex }: { ex: Example }) {
   const cell = CELL[ex.id];
   return (
     <div className="gm-arten">
-      <table>
-        <thead><tr><th scope="col"><span className="gm-arten-diag">verteilt ↓ · in →</span></th>{ZS.map(z => <th key={z} scope="col">{z}</th>)}</tr></thead>
-        <tbody>
-          {ZS.map(r => (
-            <tr key={r}>
-              <th scope="row">{r}</th>
-              {ZS.map(c => {
-                const k = `${r}|${c}` as const, list = ARTEN[k];
-                return (
-                  <td key={c} className={k === cell ? "on" : undefined}>
-                    {list ? list.map(([n, e, hom]) => (
-                      <span key={n} className={`gm-art${ex.type === n && k === cell ? " cur" : ""}`}><b>{n}</b>{hom && <i> homogen</i>}<small>{e}</small></span>
-                    )) : "–"}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <p className="gm-cap">verteilter Stoff in Hauptstoff</p>
+      <dl>
+        {ZS.flatMap(r => ZS.map(c => `${r}|${c}` as const)).filter(k => ARTEN[k]).map(k => {
+          const [r, c] = k.split("|");
+          return (
+            <div key={k} className={k === cell ? "on" : undefined}>
+              <dt>{r} in {c}</dt>
+              <dd>{ARTEN[k]!.map(([n, e, hom], i) => (
+                <span key={n} className={`gm-art${ex.type === n && k === cell ? " cur" : ""}`}>{i > 0 && " · "}<b>{n}</b> ({e}{hom ? ", homogen" : ""})</span>
+              ))}</dd>
+            </div>
+          );
+        })}
+      </dl>
     </div>
   );
 }

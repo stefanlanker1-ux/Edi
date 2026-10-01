@@ -78,13 +78,14 @@ function FeedbackExtra({ task }: { task: Task }) {
 }
 
 /** Hilfsmittel passend zur Aufgabe – ohne Ergebnis (nicht bei Fragen nach der Umrechnungszahl selbst, dort wäre es die Lösung) */
-function toolsFor(t: Task): QuizTool[] {
+function toolsFor(t: Task, os: boolean): QuizTool[] {
   const c = t.kind === "input" ? t : t.type?.endsWith("compare") ? t.conv : undefined;
   if (!c || c.from === c.to) return [];
   const out: QuizTool[] = [];
   if (dimOf(c.from, c.to)) out.push({ id: "arrows", label: "Pfeile", icon: "ruler", wide: true, content: <DimChain from={c.from} to={c.to} /> });
   else if (chainFor(c.from, c.to)) out.push({ id: "arrows", label: "Pfeile", icon: "ruler", wide: true, content: <ArrowChain from={c.from} to={c.to} showValues={false} caption={false} /> });
-  if (prefixStep(c.from, c.to)) out.push({ id: "scale", label: "Skala", icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> });
+  // Vorsilben-Skala (Zehnerpotenzen) nur in der Oberstufe bzw. bei seltenen Vorsilben
+  if (prefixStep(c.from, c.to) && (os || rare(c.from, c.to))) out.push({ id: "scale", label: "Skala", icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> });
   const table = t.kind === "input" ? tableFor(c.from, c.to) : undefined;
   if (table) out.push({ id: "table", label: "Stellen", icon: "table", wide: true, content: <PlaceValueTable value={parseQ(c.value)!} from={c.from} to={c.to} units={table} showResult={false} label={`${c.value} ${c.from} → ${c.to}`} /> });
   if (!out.length) out.push({ id: "subst", label: "Einsetzen", icon: "board", wide: true, content: <SubstFlow s={solve("1", c.from, c.to)} /> });
@@ -107,7 +108,7 @@ export function QuizView() {
       renderAnswer={(t, a, submit) => (t.kind === "input" ? <InputAnswer key={t.prompt} task={t} answered={a} submit={submit} /> : null)}
       solution={t => (t.kind === "input" ? (() => { const s = solutionOf(t); return `${t.round !== undefined ? "≈ " + fmt(s.result, { digits: t.round }).text : fmt(s.result).text} ${t.to}`; })() : null)}
       feedbackExtra={t => (t.kind === "input" || t.conv ? <FeedbackExtra task={t} /> : null)}
-      tools={toolsFor}
+      tools={t => toolsFor(t, stufe === "os")}
       explain={(level, task) => explainFor(stufe, level, task)}
     />
   );
