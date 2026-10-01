@@ -100,8 +100,8 @@ export function speak(text: string) {
 
 const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
 
-export function QuizHelp({ tools = [], hint, onHint, hintUsed, answered, explain, read }: {
-  tools?: QuizTool[]; hint?: boolean; onHint?: () => void; hintUsed?: boolean; answered: boolean; explain?: ReactNode;
+export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, answered, explain, read }: {
+  tools?: QuizTool[]; hint?: boolean; hintCue?: boolean; onHint?: () => void; hintUsed?: boolean; answered: boolean; explain?: ReactNode;
   /** Text zum Vorlesen (Aufgabe) – Knopf erscheint nur, wenn das Gerät vorlesen kann */
   read?: string;
 }) {
@@ -111,7 +111,8 @@ export function QuizHelp({ tools = [], hint, onHint, hintUsed, answered, explain
     <>
       <span className="q-help">
         {read && canSpeak && <Button variant="quiet" icon="sound" aria-label="Aufgabe vorlesen" onClick={() => speak(read)}>Vorlesen</Button>}
-        {hint && !answered && <Button variant="quiet" icon="bulb" onClick={onHint} disabled={hintUsed}>Tipp</Button>}
+        {hint && !answered && <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={onHint} disabled={hintUsed}
+          aria-label={hintCue ? "Tipp zu dieser Aufgabe" : undefined}>Tipp</Button>}
         {tools.map(t => <Button key={t.id} variant="quiet" icon={t.icon} onClick={() => setOpen(t.id)}>{t.label}</Button>)}
         {explain && <Button variant="quiet" icon="book" onClick={() => setOpen("explain")}>Erklärung</Button>}
       </span>
@@ -163,7 +164,7 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
   const examOn = !!exam && examIn !== null && examIn >= 0;
   const examIds = exam?.types?.length ? exam.types : allTypes;
   const examCount = stageCounts(sk, examIds);
-  const card = (level: LevelKey, n: ReactNode, title: string, desc: string, ids?: string[]) => {
+  const card = (level: LevelKey, n: ReactNode, title: string, desc: string, ids?: string[], tip?: boolean) => {
     const pr = progress[p.levelId(level)];
     const c = ids ? stageCounts(sk, ids) : null;
     return (
@@ -179,14 +180,15 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
             </span>
           )}
         </span>
-        <span className="lv-meta"><Stars value={pr?.stars ?? 0} /><Icon name="play" className="lv-play" /></span>
+        <span className="lv-meta"><Stars value={pr?.stars ?? 0} />
+          <span className="lv-go">{tip && <span className="lv-tip" role="img" aria-label="mit Tipp"><Icon name="bulb" /></span>}<Icon name="play" className="lv-play" /></span></span>
       </button>
     );
   };
   // Nie scrollen: passt das Menü nicht (kleines Handy, viele Level, „Weiterspielen“), stufenweise kompakter –
   // 1 ohne Beschreibungen, 2 engere Karten, 3 ohne Fertigkeiten-Kästchen, 4 ohne Titelkarte
   const menuRef = useRef<HTMLDivElement>(null);
-  useFitSteps(menuRef, 4, [p.stufe, !!running, due.length, weak.length, examOn, back, p.levels.length]);
+  useFitSteps(menuRef, 5, [p.stufe, !!running, due.length, weak.length, examOn, back, p.levels.length]);
   return (
     <div className="quiz-wrap quiz-menu" ref={menuRef}>
       <Card className="quiz-hero">
@@ -224,7 +226,7 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
       )}
       <div className="level-list">
         {due.length > 0 && card("due", <Icon name="target" />, "Heute fällig", `${due.length} ${due.length === 1 ? "Fertigkeit" : "Fertigkeiten"} wiederholen${examOn ? " · vor der Schularbeit" : " · ca. 4 Minuten"}`)}
-        {p.levels.map((l, i) => card(i, String(i + 1), l.name, l.desc, l.types))}
+        {p.levels.map((l, i) => card(i, String(i + 1), l.name, l.desc, l.types, l.tip))}
         {card("mix", "★", "Alles gemischt", "Aufgaben aus allen Levels")}
         {weak.length > 0 && card("weak", <Icon name="reset" />, "Schwächen üben", weak.map(name).join(", "))}
       </div>
@@ -419,7 +421,7 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
       </div>
       <div className="q-actions" ref={nextRef}>
         <QuizHelp tools={[...(p.tools?.(t) ?? []), ...(extra ? [{ id: "weg", label: "Lösung", icon: "board" as const, wide: true, content: extra }] : [])]}
-          hint onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
+          hint hintCue={t.hintCue} onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
           read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => `${"ABCD"[i]}: ${o}`) : [])].filter(Boolean).join(". ")} />
         {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? "Auswertung" : "Weiter"}</Button>}
       </div>

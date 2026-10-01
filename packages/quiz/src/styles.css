@@ -260,6 +260,15 @@
 .quiz-menu[data-fit="4"] .level-card { padding: 5px 10px; gap: 10px; min-height: 48px; }
 .quiz-menu[data-fit="4"] .resume { padding-top: 8px; padding-bottom: 8px; }
 .quiz-menu[data-fit="4"] .lv-name { font-size: .95rem; line-height: 1.2; }
+/* Stufe 5 (viele Level, kleiner Bildschirm): wie 4, dazu Sterne und Pfeil in einer Zeile, Karten so niedrig wie ein Tippziel */
+.quiz-menu[data-fit="5"] { gap: 6px; }
+.quiz-menu[data-fit="5"] .quiz-hero, .quiz-menu[data-fit="5"] .lv-desc, .quiz-menu[data-fit="5"] .lv-skills { display: none; }
+.quiz-menu[data-fit="5"] .level-list { gap: 4px; }
+.quiz-menu[data-fit="5"] .level-card { padding: 3px 10px; gap: 10px; min-height: 44px; }
+.quiz-menu[data-fit="5"] .lv-num { width: 34px; height: 34px; font-size: 1rem; }
+.quiz-menu[data-fit="5"] .lv-meta { display: flex; align-items: center; gap: 8px; }
+.quiz-menu[data-fit="5"] .resume { padding-top: 6px; padding-bottom: 6px; }
+.quiz-menu[data-fit="5"] .lv-name { font-size: .95rem; line-height: 1.2; }
 .resume { min-height: 44px; } /* Tippziel, auch in der kompakten Stufe */
 
 /* Zahl-Eingabe (NumberAnswer) */
@@ -275,3 +284,7 @@
 .level-card, .mc-btn, .q-map-btn, .q-exam, .q-exam-lv { border-color: var(--rule); box-shadow: var(--key-edge); }
 .level-card:active, .mc-btn:active:not(:disabled), .q-map-btn:active, .q-exam:active, .q-exam-lv:active { box-shadow: var(--key-edge-pressed); }
 .mc-btn:disabled { box-shadow: none; }
+/* Level mit Tipp: Tipp-Knopf als Einladung hervorgehoben (Rahmen in Signalfarbe, Glühbirne rot) */
+.q-help .ui-btn.q-hint-cue { box-shadow: inset 0 0 0 2px var(--signal); color: var(--signal); font-weight: 800; }
+.lv-go { display: flex; align-items: center; gap: 4px; }
+.lv-tip { display: inline-flex; color: var(--signal); }

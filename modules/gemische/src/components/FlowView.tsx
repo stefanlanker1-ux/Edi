@@ -111,6 +111,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   const lay = useRef<Layout | null>(null);
   /** Ziehen: Abstand zwischen Finger und Mitte der Lupe bleibt gleich */
   const drag = useRef<[number, number] | null>(null);
+  /** in der Lupe angetipptes Teilchen – Stoff-Info öffnet erst beim Loslassen */
+  const picked = useRef<string | null>(null);
   const motionRef = useRef(motion);
   motionRef.current = motion;
   const worldRef = useRef(world);
@@ -374,7 +376,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       const wx = lx + (p.px - L.zx) / (L.R / rl), wy = ly + (p.py - L.zy) / (L.R / rl);
       let best = null as null | string, bd = Infinity;
       for (const q of w.ps) { const d = Math.hypot(q.x - wx, q.y - wy); if (d < bd) { bd = d; best = q.f; } }
-      if (best && bd < rl * .35) onPick?.(best);
+      // erst beim Loslassen öffnen (click): öffnet das Blatt schon beim Aufsetzen, schließt es der nachfolgende Klick am Handy wieder
+      picked.current = best && bd < rl * .5 ? best : null;
       return;
     }
     if (p.x >= -5 && p.x <= w.W + 5 && p.y >= -5 && p.y <= w.H + 5) {
@@ -387,6 +390,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   };
   const move = (e: PointerEvent) => { const o = drag.current; if (!o) return; const p = toWorld(e); if (p) moveLens(p.x + o[0], p.y + o[1]); };
   const up = () => { drag.current = null; };
+  const click = () => { const f = picked.current; picked.current = null; if (f) onPick?.(f); };
   const key = (e: KeyboardEvent) => {
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
     if (!d) return;
@@ -397,7 +401,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
 
   return (
     <div className="gm-flow" ref={wrap} tabIndex={0} role="img" aria-label={`${label}. Lupe mit den Pfeiltasten verschieben.`} onKeyDown={key}>
-      <canvas ref={canvas} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} />
+      <canvas ref={canvas} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { up(); picked.current = null; }} onClick={click} />
     </div>
   );
 }

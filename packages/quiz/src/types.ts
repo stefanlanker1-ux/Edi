@@ -14,6 +14,8 @@ export interface BaseTask {
   praise?: string;
   /** Diagnose für Eingabe-Aufgaben: trifft ein eingegebener Wert eine Falle, nennt die Rückmeldung die Fehlvorstellung */
   traps?: Trap[];
+  /** Level mit Tipp: der Tipp ist auf die Aufgabe zugeschnitten – Knopf hervorgehoben („Tipp antippen“) */
+  hintCue?: boolean;
 }
 
 /** Falle bei Eingabe-Aufgaben: Feld `field` hat genau `value` (oder mindestens `min`) → Fehlvorstellung `miss` */
@@ -65,7 +67,8 @@ export type Submit = (a: Omit<Answered, "gained">) => void;
 export type LevelKey = number | "mix" | "weak" | "due";
 
 /** Level mit seinen Fertigkeiten (Aufgabentyp-ids) – die Landkarte zeigt je Fertigkeit die Stufe */
-export interface QuizLevel { id: string; name: string; desc: string; types?: string[] }
+/** `tip`: Level mit zugeschnittenem Tipp je Aufgabe (Glühbirne an der Karte) */
+export interface QuizLevel { id: string; name: string; desc: string; types?: string[]; tip?: boolean }
 
 export interface Game<T extends BaseTask = BaseTask> {
   stufe: string;
@@ -188,8 +191,9 @@ export const RECENT_MAX = 400;
 /**
  * Runde ohne Wiederholungen: erzeugt mehrere Kandidaten-Runden und nimmt für jeden Platz eine Frage desselben Typs,
  * die zuletzt nicht gestellt wurde – gibt es keine mehr, die am längsten zurückliegende. `recent`: Kennungen, neueste zuletzt.
+ * `keepType`: jeder Platz behält seinen Typ (Level mit fester Reihenfolge der Aufgabentypen).
  */
-export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly string[], extra = 10): T[] {
+export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly string[], extra = 10, keepType = false): T[] {
   const first = make();
   const age = new Map<string, number>();
   recent.forEach((k, i) => age.set(k, i));
@@ -217,8 +221,8 @@ export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly
   };
   return first.map(slot => {
     let [best, a] = pick(slot.type);
-    // Typ erschöpft (nur schon gestellte Fragen) → neue Frage eines anderen Typs dieses Levels
-    if (a >= 0) { const [other, b] = pick(null); if (other && b < 0) best = other; }
+    // Typ erschöpft (nur schon gestellte Fragen) → neue Frage eines anderen Typs dieses Levels (außer bei fester Reihenfolge)
+    if (a >= 0 && !keepType) { const [other, b] = pick(null); if (other && b < 0) best = other; }
     best ??= slot;
     used.add(taskKey(best));
     count.set(best.type, (count.get(best.type) ?? 0) + 1);

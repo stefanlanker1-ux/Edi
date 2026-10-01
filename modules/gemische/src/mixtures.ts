@@ -51,6 +51,18 @@ export const EXAMPLES: Example[] = [
   { id: "modell", title: "Modellgemisch", items: [["He", 25], ["Ar", 35], ["CO2", 45], ["CH4", 65]], state: "modell", before: "getrennt", type: "Gasgemisch" },
 ];
 
+/**
+ * Müsli: ein Gemenge aus sichtbaren Stücken – ohne Teilchenbild. Das Gemisch-Konzept gilt auch für Bestandteile,
+ * die selbst aus vielen Stoffen bestehen (Flocken, Rosinen, Nüsse).
+ */
+export interface Part { id: "flocke" | "rosine" | "nuss"; name: string; n: number }
+export const MUESLI = {
+  id: "muesli", title: "Müsli", type: "Gemenge", note: "keine Teilchen – sichtbare Stücke",
+  parts: [{ id: "flocke", name: "Haferflocken", n: 16 }, { id: "rosine", name: "Rosinen", n: 10 }, { id: "nuss", name: "Haselnüsse", n: 8 }] as Part[],
+};
+/** alle Beispiele in „Probieren“: die Teilchen-Beispiele, dann Müsli */
+export const EXAMPLE_COUNT = EXAMPLES.length + 1;
+
 /** kleinere Fassung eines Beispiels (ein Zehntel der Teilchen) – für Bilder im Quiz und in Erklärkarten */
 export const small = (items: [string, number][]): [string, number][] => items.map(([f, n]) => [f, Math.max(1, Math.round(n / 10))]);
 

@@ -55,6 +55,8 @@ export interface World {
   temp: number;
   /** Stärke von Schütteln/Umrühren (0 … 1): steigt und fällt sanft, damit sich die Bewegung nie ruckartig ändert */
   agit: number;
+  /** Sprudel: zuletzt gerechnete Temperatur und ob seitdem abgekühlt wurde (dann löst sich das Gas zügig) */
+  lastTemp?: number; cooled?: boolean;
   /** vorher: noch nichts löst sich (Kristall, Gas warten) */
   hold: boolean;
   /** geschlossenes Gefäß */
@@ -248,6 +250,8 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
   return w;
 }
 
+/** Metallschmelze: Wärmebewegung (Stoßstärke, Dämpfung), langsame Wärmeströmung, Druck (gleich dicht, keine Lücken) */
+const JIG = .9, DAMP = .95, CONV = .9, PRESS = 1;
 /** Schmelzen und wieder Erstarren (Metall): 10 s */
 export const MELT = 600;
 /** Umrühren (Flüssigkeit): 3 s */
@@ -263,7 +267,8 @@ export function startMixing(w: World) {
 }
 /** Schütteln (Flüssigkeit): kräftige Stöße, danach Ruhe */
 export const SHAKE = 180; // Schütteln dauert 3 s und ist gemächlich (gut zu verfolgen)
-export function shakeWorld(w: World) { w.shake = SHAKE; }
+/** Öl und Wasser länger (5 s): so wird das Öl ganz fein verteilt, bevor es sich wieder sammelt */
+export function shakeWorld(w: World) { w.shake = w.state === "fluessig" && w.floats.length ? Math.round(SHAKE * 5 / 3) : SHAKE; }
 /** Sprudelflasche öffnen: Deckel weg, Gleichgewicht mit der Luft (dort fast kein CO₂) – das Gas entweicht */
 export function openBottle(w: World) { if (!w.closedGas) return; w.closed = false; w.opened = true; w.doneAt = undefined; w.swap = 0; }
 /** Kohlensäure: im Modell reagiert etwa jedes sechste gelöste CO₂-Molekül mit Wasser (echt nur etwa 0,2 %) */
@@ -277,9 +282,9 @@ export const heat = (w: World) => .5 + .025 * Math.max(0, w.temp);
 
 /**
  * Sprudel (geschlossene Flasche): Anteil des CO₂, der im Gleichgewicht im Gasraum bleibt. Gase lösen sich in kaltem Wasser besser:
- * 0 °C 10 %, 20 °C 20 %, 100 °C 60 % (Richtung wie in echt, Werte fürs Modell gewählt).
+ * 0 °C 5 %, 20 °C 21 %, 50 °C 45 %, 100 °C 85 % (Richtung wie in echt, im Modell verstärkt, damit man den Unterschied sieht).
  */
-export const gasShare = (temp: number) => .1 + .5 * Math.min(1, Math.max(0, temp) / 100);
+export const gasShare = (temp: number) => .05 + .8 * Math.min(1, Math.max(0, temp) / 100);
 /** Zahl der CO₂-Teilchen, die im Gleichgewicht im Gasraum sind */
 export function gasTarget(w: World): number {
   if (!w.closed) return 0;
@@ -344,16 +349,20 @@ export function stepFlow(w: World) {
     const melting = w.melt > 0;
     for (const p of w.ps) {
       if (melting) {
-        // geschmolzen: fließt (gleiche Strömung wie beim Umrühren, bleibt überall gleich dicht) und wird gegen Ende ruhig
-        const calm = Math.min(1, w.melt / 60, (MELT - w.melt) / 30 + .1);
-        const X = Math.PI * p.x / W, Y = Math.PI * p.y / H, s1 = (1 + Math.sin(w.t / 12)) / 2;
-        // zwei Strömungsmuster im Wechsel: eine Walze, dann zwei übereinander (ψ = sin πx · sin πy bzw. sin πx · sin 2πy)
-        const u = 1.5 * (s1 * Math.sin(X) * Math.cos(Y) + (1 - s1) * 2 * Math.sin(X) * Math.cos(2 * Y));
-        const v = -1.5 * H / W * Math.cos(X) * (s1 * Math.sin(Y) + (1 - s1) * Math.sin(2 * Y));
-        // Wärmebewegung klingt in der letzten Sekunde aus (kein abrupter Übergang zum Gitter)
-        const jig = .4 * Math.min(1, .25 + w.melt / 80);
-        p.vx = p.vx * .93 + (r() - .5) * jig + (u - p.vx) * .1 * calm;
-        p.vy = p.vy * .93 + (r() - .5) * jig + (v - p.vy) * .1 * calm;
+        // geschmolzen: jedes Atom bewegt sich ungeordnet (Wärmebewegung) und gleitet an den Nachbarn vorbei – keine gemeinsame
+        // Strömung, die Gruppen von Atomen verschiebt. So vermischen sich Kupfer und Zink gleichmäßig nach und nach (Diffusion).
+        // Gegen Ende (Erstarren) wird die Bewegung ruhiger – kein abrupter Übergang zum Gitter.
+        const jig = JIG * Math.min(1, .25 + w.melt / 80);
+        // dazu eine langsame, gleichmäßige Wärmeströmung (warme Schmelze steigt auf, kühlere sinkt) – ohne Stöße
+        const X = Math.PI * p.x / W, Y = Math.PI * p.y / H, s1 = (1 + Math.sin(w.t / 90)) / 2;
+        const u = CONV * (s1 * Math.sin(X) * Math.cos(Y) + (1 - s1) * Math.sin(2 * X) * Math.cos(Y));
+        const v0 = -CONV * H / W * (s1 * Math.cos(X) * Math.sin(Y) + (1 - s1) * 2 * Math.cos(2 * X) * Math.sin(Y));
+        const calm = Math.min(1, w.melt / 60, (MELT - w.melt) / 60);
+        p.vx = p.vx * DAMP + (r() - .5) * jig + (u - p.vx) * .04 * calm;
+        p.vy = p.vy * DAMP + (r() - .5) * jig + (v0 - p.vy) * .04 * calm;
+        // ruhig gleiten: höchstens ein knapper halber Radius je Schritt
+        const v = Math.hypot(p.vx, p.vy), vmax = .4 * rc;
+        if (v > vmax) { p.vx *= vmax / v; p.vy *= vmax / v; }
       } else {
         // am Gitterplatz schwingen (bzw. dorthin gleiten)
         // gleich nach dem Erstarren erst sanft gebremst (wie eben noch in der Schmelze), dann wie im Gitter
@@ -375,7 +384,7 @@ export function stepFlow(w: World) {
         if (q.id < p.id) return;
         const dx = q.x - p.x, dy = q.y - p.y, d = Math.hypot(dx, dy);
         if (d >= R || d === 0) return;
-        const f = .3 * (R - d) / R, nx = dx / d * f, ny = dy / d * f;
+        const f = PRESS * (R - d) / R, nx = dx / d * f, ny = dy / d * f;
         p.vx -= nx; p.vy -= ny; q.vx += nx; q.vy += ny;
       });
       separate(w, w.ps, 2);
@@ -437,6 +446,11 @@ export function stepFlow(w: World) {
   // geschlossene Flasche: Gas löst sich, gelöstes perlt aus – beides, bis das Gleichgewicht der Temperatur erreicht ist
   const nGas = w.closed ? w.ps.filter(p => p.gas).length : 0, eqGas = gasTarget(w);
   const inFactor = w.opened ? .05 : !w.closed || nGas > eqGas ? 1 : .12;
+  if (w.closed) {
+    if (w.lastTemp !== undefined && w.temp < w.lastTemp) w.cooled = true;
+    if (nGas <= eqGas + 1) w.cooled = false;
+    w.lastTemp = w.temp;
+  }
   const rad = (p: FP) => p.rad ?? rc;
   // Umrühren reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (sonst staut sich das Wasser am Kristall)
   let floor = H;
@@ -461,7 +475,8 @@ export function stepFlow(w: World) {
       // offene Flasche: oben hinaus (wird unten entfernt), sonst prallt das Gas am Deckel ab
       if (p.y < rc && !w.opened) { p.vy = Math.abs(p.vy); p.y = rc; }
       if (p.y > w.top - rc) {
-        if (r() < (.025 * hf + .6 * w.agit) * inFactor) {
+        // eben abgekühlt (weit über dem Gleichgewicht): das Gas löst sich zügig, auch ohne Schütteln
+        if (r() < (.025 * hf + .6 * w.agit + (w.cooled ? .35 : 0)) * inFactor) {
           if (w.closed && inFactor < 1) w.swap = (w.swap ?? 0) + 1; p.gas = false; p.rad = rc * sizeOf(p.f); p.vx *= .3; p.vy = inFactor === 1 ? .8 + 2 * w.agit : .4; p.leave = 30; if (w.shake > 0 && w.agit > .2 && inFactor === 1) p.sink = w.top + .7 * r() * hl; } // geschüttelt: wie ein Bläschen tief hineingerissen
         else { p.vy = -Math.abs(p.vy); p.y = w.top - rc; }
       }
@@ -478,7 +493,8 @@ export function stepFlow(w: World) {
     }
     // Wärmebewegung (mit der Temperatur) plus Schütteln/Umrühren; Geschwindigkeit ändert sich nur allmählich (fließend).
     // Große Moleküle (Zucker) bewegen sich langsamer.
-    const kick = (.29 * hf + (w.shake > 0 ? 1 : 1.35) * w.agit) / Math.sqrt(sizeOf(p.f));
+    // Öl wird beim Schütteln stärker herumgeworfen (sonst wandern die langen Moleküle nur als Klumpen mit)
+    const kick = (.29 * hf + (w.shake > 0 ? (w.floats.includes(p.f) ? 2.2 : 1) : 1.35) * w.agit) / Math.sqrt(sizeOf(p.f));
     p.vx = p.vx * .96 + (r() - .5) * kick * 0.76;
     // Auftrieb nur für Teilchen auf der falschen Seite der Grenze: Öl darunter steigt, Wasser darüber sinkt
     // (in der eigenen Schicht wirkt nichts – so wird nichts zusammengedrückt)
@@ -493,7 +509,14 @@ export function stepFlow(w: World) {
       const u = amp * (s1 * Math.sin(X) + (1 - s1) * Math.sin(2 * X)) * Math.cos(Y);
       const v = -amp * hl / W * (s1 * Math.cos(X) + (1 - s1) * 2 * Math.cos(2 * X)) * Math.sin(Y);
       const k = .12 * w.agit;
-      p.vx += (u - p.vx) * k; p.vy += (v - p.vy) * k;
+      let eu = 0, ev = 0;
+      if (w.shake > 0) {
+        // Schütteln: zusätzlich kleine Wirbel, die ständig wandern (ψ = sin(3πx + a) · sin(3πy + b)) – zieht Schichten in feine Fäden und Tröpfchen
+        const a = w.t / 9 + 2 * Math.sin(w.t / 37), b = w.t / 13 - 2 * Math.sin(w.t / 29), X3 = 3 * X + a, Y3 = 3 * Y + b;
+        eu = 2 * Math.sin(X3) * Math.cos(Y3);
+        ev = -2 * hl / W * Math.cos(X3) * Math.sin(Y3);
+      }
+      p.vx += (u + eu - p.vx) * k; p.vy += (v + ev - p.vy) * k;
     }
     // nie schneller als etwa ein halber Durchmesser je Schritt (auch beim Rühren gleiten die Teilchen)
     const v = Math.hypot(p.vx, p.vy);
@@ -509,7 +532,8 @@ export function stepFlow(w: World) {
     // Öl: Ölmoleküle ziehen sich schwach an, Wasser und Öl stoßen sich etwas stärker ab (wasserabweisend) –
     // so bilden sich beim Schütteln Tröpfchen (Emulsion), die sich danach zusammenschließen und aufsteigen
     const oily = w.floats.length > 0, isOil = (p: FP) => w.floats.includes(p.f);
-    const pull = .15 * (1 - .6 * w.agit);
+    // geschüttelt: Anziehung und Abstoßung fast weg – das Öl wird fein verteilt (keine Klumpen), erst danach finden sich Tröpfchen
+    const calm = (1 - w.agit) ** 2, pull = .15 * calm;
     const near = grid(liquid, maxRad * Math.sqrt(Math.PI / LIQ_PHI) * (oily ? 1.5 : 1));
     for (const p of liquid) near(p, q => {
       if (q.id < p.id) return;
@@ -518,7 +542,7 @@ export function stepFlow(w: World) {
       if (d === 0) return;
       if (oily) {
         const po = isOil(p), qo = isOil(q);
-        if (po !== qo) Rm *= 1.15;
+        if (po !== qo) Rm *= 1 + .15 * calm;
         else if (po) {
           // Anziehung zwischen den Oberflächen der Stäbe (nicht der Mittelpunkte) – so ziehen sie sich nicht ineinander
           const sp = shape(w, p), sq = shape(w, q), [ax, ay, bx, by] = closest(sp, sq);
@@ -568,7 +592,8 @@ export function stepFlow(w: World) {
   // offene Flasche: es perlt ständig aus, geschüttelt bilden sich Bläschen im ganzen Wasser
   if (w.closedGas) {
     const swap = w.closed && nGas >= eqGas && (w.swap ?? 0) > 0;
-    const depth = w.opened ? 4 + 30 * w.agit : 2;
+    // weit unter dem Gleichgewicht (z. B. eben erwärmt): Bläschen bilden sich auch tiefer im Wasser – es perlt sichtbar aus
+    const depth = w.opened ? 4 + 30 * w.agit : w.closed && nGas < eqGas - 2 ? 2 + 2 * Math.min(4, eqGas - nGas) : 2;
     const near = liquid.filter(p => p.f === w.closedGas && !p.leave && !p.bound && p.y < w.top + depth * rc);
     const want = w.opened || nGas < eqGas || swap;
     const tries = w.opened ? 1 + Math.round(w.agit) : 1;

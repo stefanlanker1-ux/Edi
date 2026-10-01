@@ -115,6 +115,8 @@ test("Sprudel: nach einmal Schütteln ist das Gleichgewicht erreicht – kalt bl
     left.push(n);
   }
   assert.ok(left[0] < left[1] && left[1] < left[2], `kalt löst mehr: ${left.join(" < ")}`);
+  // deutlich zu sehen: warm mindestens die Hälfte des CO₂ mehr im Gasraum als kalt
+  assert.ok(left[2] - left[0] >= 20, `Unterschied kalt/warm zu klein: ${left.join(" / ")}`);
 }, 60_000);
 
 test("Sprudel: erwärmt perlt CO₂ aus, gelöstes verteilt sich im ganzen Wasser", () => {
@@ -132,7 +134,7 @@ test("Sprudel: erwärmt perlt CO₂ aus, gelöstes verteilt sich im ganzen Wasse
   const cold = w.ps.filter(p => p.gas).length;
   w.temp = 90;
   for (let k = 0; k < 1200; k++) stepFlow(w);
-  assert.ok(w.ps.filter(p => p.gas).length > cold + 8, `warm: ${w.ps.filter(p => p.gas).length} statt mehr als ${cold + 8}`);
+  assert.ok(w.ps.filter(p => p.gas).length > cold + 15, `warm: ${w.ps.filter(p => p.gas).length} statt mehr als ${cold + 15}`);
 }, 60_000);
 
 test("Sprudel: geöffnet entweicht das CO₂ – geschüttelt viel schneller; Kohlensäure bildet sich und zerfällt", () => {
@@ -153,6 +155,18 @@ test("Sprudel: geöffnet entweicht das CO₂ – geschüttelt viel schneller; Ko
   }
   assert.ok(left[1] < left[0] / 3, `geschüttelt nicht schneller: ${left.join(" / ")}`);
   assert.ok(acidSeen >= 1, "keine Kohlensäure");
+}, 60_000);
+
+test("Sprudel: abgekühlt löst sich das CO₂ zügig wieder (ohne Schütteln)", () => {
+  const w = makeWorld(ex("sprudel"), 2, "vorher");
+  w.temp = 100;
+  shakeWorld(w);
+  for (let k = 0; k < 900; k++) stepFlow(w);
+  const hot = w.ps.filter(p => p.gas).length;
+  w.temp = 0;
+  for (let k = 0; k < 600; k++) stepFlow(w);
+  const cold = w.ps.filter(p => p.gas).length;
+  assert.ok(hot >= 28 && cold <= 12, `100 °C: ${hot}, nach 10 s bei 0 °C: ${cold}`);
 }, 60_000);
 
 test("Sprudel: CO₂ löst sich von selbst langsam, geschüttelt schnell", () => {
@@ -206,21 +220,29 @@ test("Öl und Wasser: nach dem Schütteln gemischt, danach wieder getrennt (Öl 
   }
 }, 60_000);
 
-test("Öl und Wasser: geschüttelt entstehen Tröpfchen (unter den 6 nächsten Nachbarn eines Ölmoleküls viel mehr Öl, als es der Zufall ergäbe)", () => {
-  const ratios: number[] = [];
-  for (let seed = 1; seed <= 4; seed++) {
-    const w = makeWorld(ex("oel"), seed);
-    shakeWorld(w);
-    for (let k = 0; k < 200; k++) stepFlow(w);
+test("Öl und Wasser: geschüttelt fein verteilt (keine Klumpen), danach sammeln sich Tröpfchen", () => {
+  // Anteil Öl unter den 6 nächsten Nachbarn eines Ölmoleküls, bezogen auf den Zufall (1 = ganz gleichmäßig verteilt)
+  const clumping = (w: World) => {
     const oil = w.ps.filter(p => p.f === "C12H26"), share = (oil.length - 1) / (w.ps.length - 1);
     const dist = (p: FP, q: FP) => Math.hypot(q.x - p.x, q.y - p.y);
     let same = 0;
     for (const p of oil) same += w.ps.filter(q => q !== p).sort((a, b) => dist(p, a) - dist(p, b)).slice(0, 6).filter(q => q.f === "C12H26").length / 6;
-    assert.ok(oilOnTop(w) < .9, "noch nicht wieder getrennt");
-    ratios.push(same / oil.length / share);
+    return same / oil.length / share;
+  };
+  const shaken: number[] = [], later: number[] = [];
+  for (let seed = 1; seed <= 4; seed++) {
+    const w = makeWorld(ex("oel"), seed);
+    const start = clumping(w);
+    shakeWorld(w);
+    while (w.shake > 0) stepFlow(w);
+    shaken.push(clumping(w));
+    assert.ok(shaken[shaken.length - 1] < start * .7, `nicht fein verteilt (${start.toFixed(2)} → ${shaken[shaken.length - 1].toFixed(2)})`);
+    for (let k = 0; k < 90; k++) stepFlow(w);
+    later.push(clumping(w));
   }
-  assert.ok(mean(ratios) > 2.5, `keine Tröpfchen (${ratios.map(x => x.toFixed(2)).join(", ")})`);
-});
+  assert.ok(mean(shaken) < 2, `beim Schütteln Klumpen (${shaken.map(x => x.toFixed(2)).join(", ")})`);
+  assert.ok(mean(later) > mean(shaken) * 1.2, `danach keine Tröpfchen (${later.map(x => x.toFixed(2)).join(", ")})`);
+}, 60_000);
 
 test("Öl: am Anfang liegen keine Stäbe übereinander (gekreuzte Stäbe ließen sich nicht mehr trennen)", () => {
   // kleinster Abstand zweier Strecken, abgetastet

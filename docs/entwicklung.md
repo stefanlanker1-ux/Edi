@@ -36,6 +36,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - React 19 + TypeScript (strict) + Vite. State mit zustand. Keine weiteren UI-Frameworks.
 - Gemeinsames gehört in `packages/`; Module importieren `@lern/*` (Quelltext wird direkt gebündelt, kein eigener Build-Schritt für Pakete).
 - Alle Module nutzen für das Quiz `@lern/quiz` (`createQuizStore` + `QuizScreen`); Aufgaben sind reine Daten, Aufgabentyp = Fertigkeit.
+  Optional: Level mit Tipp (`QuizLevel.tip` = Glühbirne an der Karte, Aufgabe `hintCue` = Tipp-Knopf hervorgehoben, Tipp kostet keine Punkte) und feste Reihenfolge (`fixedOrder`).
   Fertigkeiten (`skills.ts`): neu → geübt → sicher (2 Treffer in Folge) → gemeistert (Treffer nach ≥ 7 Tagen Abstand); Wiederholung nach 1-3-7-14-30 Tagen
   (Abstand wächst nur mit einem Treffer an einem neuen Tag, fällig ab Mitternacht des Fälligkeitstags), Fehler = morgen wieder fällig. Level "due" = „Heute fällig“; „Schwächen üben“ = Fertigkeiten mit Fehlern, die seitdem nicht wieder sicher sind (`recordStat`). Menü zeigt Wochenziel (3 Runden), Stufen je Level und die Landkarte (Blatt); Auswertung nennt Trefferquote, Zeit
   und erreichte Stufen. Keine Wiederholungen: der Store merkt sich die zuletzt gestellten Fragen (`recent`, Prüfsumme `taskKey`, 400 je Stufe),
@@ -94,6 +95,9 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Messing (Cu, Zn), Erdgas (CH₄, C₂H₆, CO₂), Schutzgas zum Schweißen (Ar, CO₂), Modellgemisch (He, Ar, CO₂, CH₄).
   Zweimal gleich viele Verbindungen wie Elemente (Schutzgas, Modellgemisch), achtmal verschieden viele (Test).
   Quiz und Erklärkarten zeigen ein Zehntel der Teilchen (`small`) im Rasterbild (`mixing.ts`, `components/Beaker.tsx`).
+  Als elftes Beispiel **Müsli** (`MUESLI`, `components/MuesliBowl.tsx`): Gemenge aus sichtbaren Stücken (Haferflocken, Rosinen, Haselnüsse) ohne Teilchenbild –
+  das Gemisch-Konzept gilt auch für Bestandteile, die selbst aus vielen Stoffen bestehen. Vorher jede Sorte als Haufen, **Mischen** (Schale wackelt, Stücke gleiten
+  an zufällige Plätze), **Auslesen** (zurück in Haufen); Werkzeuge Zutaten | Zählen (Bestandteile, Stücke) | Einteilung | Arten | Beispiele.
 - **Elemente nur als einzelne Atome** (Edelgase) oder Metallgitter – keine Moleküle aus einer Atomsorte (O₂, O₃, N₂ …), auch nicht im Quiz (Test).
 - Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Stoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte), Atomsorten.
   Die Erklärkarte nennt trotzdem alle Arten von Elementen (einzelne Atome, Metallgitter, Moleküle wie O₂), nur die Bilder zeigen keine Element-Moleküle.
@@ -101,7 +105,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Probieren (`views/MixView.tsx`, `components/FlowView.tsx`, Canvas): Gefäß mit allen Teilchen (klein) und **verschiebbarer Lupe**
   (anfassen und ziehen – Abstand zum Finger bleibt; daneben tippen – Lupe gleitet hin; Pfeiltasten), daneben bzw. darüber die Vergrößerung mit etwa 20 Teilchen
   als schattiertes Kalottenmodell (`lensRadius`). Die Lupe springt nie: sie gleitet, und das Bild ordnet sich nicht neu an (Statuszeile immer einzeilig,
-  höchstens zwei kurze Kennzeichen, `.gm-status`). Teilchen in der Lupe antippen → Stoff-Info. Grenze Öl/Wasser als gerade Linie (`boundaryY`), sobald getrennt.
+  höchstens zwei kurze Kennzeichen, `.gm-status`). Teilchen in der Lupe antippen → Stoff-Info (öffnet beim Loslassen; das Blatt ignoriert den Klick gleich nach dem Öffnen, sonst schließt es am Handy sofort wieder). Grenze Öl/Wasser als gerade Linie (`boundaryY`), sobald getrennt.
 - Jedes Beispiel beginnt **vorher** (`before`): Zuckerkristall im Wasser (Lupe auf seiner Oberkante), Alkohol obenauf, CO₂ über dem Wasser, Gase hinter Trennwänden,
   Kupfer- und Zinkblock. Hauptknopf sagt, was er tut: **Umrühren** (Zucker, Alkohol, 3 s), **Schütteln** (Sprudel, Öl, Reinstoffe), **Wand weg** (Gase), **Schmelzen** (Messing);
   daneben **Von vorn** (Anfang wieder herstellen). Flüssigkeiten lösen und mischen sich auch **von selbst** (langsam; warm schneller) – Rühren/Schütteln beschleunigt.
@@ -115,23 +119,24 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Zeit bis gelöst (Test): 20 °C ruhig etwa 25 s, gerührt deutlich schneller, 80 °C deutlich schneller, 0 °C deutlich langsamer. CO₂ löst sich beim Auftreffen auf die
   Oberfläche selten (von selbst), geschüttelt fast immer; beim Schütteln wird das Gas zur Oberfläche gerissen und sinkt als mitgerissenes Bläschen bis zu einer zufälligen Tiefe (`sink`) –
   so verteilt es sich im ganzen Wasser. **Gleichgewicht** (geschlossene Flasche, `closed`): gelöstes CO₂ nahe der Oberfläche perlt aus, bis so viel im Gasraum ist, wie bei der
-  Temperatur dazugehört (`gasShare`: 0 °C 10 %, 20 °C 20 %, 100 °C 60 % – kaltes Wasser löst mehr Gas); im Gleichgewicht nur Austausch (`swap`: für jedes gelöste perlt eines aus).
-  Erwärmen → CO₂ perlt aus. Statuszeile „löst sich | perlt aus | Gleichgewicht · x / 40 gelöst“.
+  Temperatur dazugehört (`gasShare`: 0 °C 5 %, 20 °C 21 %, 50 °C 45 %, 100 °C 85 % – kaltes Wasser löst mehr Gas; im Modell verstärkt, damit es gut zu sehen ist); im Gleichgewicht nur Austausch (`swap`: für jedes gelöste perlt eines aus).
+  Erwärmen → CO₂ perlt aus (weit unter dem Gleichgewicht auch tiefer im Wasser); abkühlen → das Gas löst sich zügig wieder (`cooled`, auch ohne Schütteln, Test). Statuszeile „löst sich | perlt aus | Gleichgewicht · x / 40 gelöst“.
   **Öffnen** (Knopf, sobald das Gleichgewicht erreicht ist; `openBottle`): Deckel weg, Gas fliegt oben hinaus (wird entfernt), gelöstes CO₂ perlt aus und steigt als Bläschen
   auf (`rise`); **Schütteln** der offenen Flasche: Bläschen im ganzen Wasser, das CO₂ entweicht in wenigen Sekunden („offen · perlt aus“ → „abgestanden“).
   **Kohlensäure**: CO₂ + H₂O ⇌ H₂CO₃ (`ACID`; ein Wassermolekül in der Nähe wird verbraucht bzw. wieder frei, Atome bleiben erhalten; im Modell etwa jedes zehnte gelöste
   CO₂-Molekül, echt nur etwa 0,2 %). 3D-Daten H₂CO₃ aus `scripts/mol3d.py`. Tests zählen beim Sprudel Atome statt Moleküle. Tests: Gleichgewicht nach Schütteln bei 0/20/100 °C, keine Drift, kalt mehr gelöst, warm perlt aus, gleichmäßig verteilt.
   **Umrühren/Schütteln** (`agit`, setzt sanft ein und klingt sanft aus): Strömung ohne Stau – Stromfunktion ψ = sin πx · sin πy bzw. zwei Walzen, fließend im Wechsel;
-  reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (Test: überall etwa gleich dicht). **Schmelze** (Messing, `MELT` 10 s): gleiche Strömung mit Walzen
-  nebeneinander bzw. übereinander im Wechsel, Druck für gleichmäßige Dichte, danach Erstarren im Gitter.
+  reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (Test: überall etwa gleich dicht). Beim **Schütteln** zusätzlich kleine,
+  ständig wandernde Wirbel (ψ = sin(3πx + a) · sin(3πy + b)). **Schmelze** (Messing, `MELT` 10 s): jedes Atom bewegt sich ungeordnet (Wärmebewegung) und gleitet
+  an den Nachbarn vorbei, dazu eine langsame, gleichmäßige Wärmeströmung ohne Stöße und Druck gegen Lücken – Kupfer und Zink vermischen sich nach und nach, danach Erstarren im Gitter.
   Darstellung (`FlowView`): fester Takt von 60 Rechenschritten/s unabhängig von der Bildrate (60/120 Hz); gezeichnet wird eine Lage, die der gerechneten
   wie an einer kritisch gedämpften Feder folgt (`glide`, je 1/60 s ein Federschritt – glättet das Zittern der Stöße, besonders in der Lupe).
   Zeichenfläche undurchsichtig, am Handy 1,5-fache Pixeldichte (ab 900 px Breite 2-fach).
   Keine Sprünge (Messwerte je Beispiel, siehe Tests): Trennung überlappender Teilchen höchstens ein Drittel Radius je Runde, Geschwindigkeit in der Flüssigkeit begrenzt,
   eben gelöste Teilchen (Kristall, CO₂) gleiten hinaus bzw. hinein (`leave`), jede Flüssigkeit wird vor dem ersten Bild entwirrt (`settle`).
   **Öl** (`LONG`): Dodecan stößt als Stab mit runden Enden (Kapsel, `shape`/`closest`/`push`), dreht sich bei Stößen und an der Wand – Ketten kreuzen sich nie.
-  Öl zieht Öl leicht an, gemessen zwischen den Oberflächen der Stäbe (zu nah: Abstoßung, bei Berührung fällt die aufeinander zu gerichtete Geschwindigkeit weg; beim Schütteln schwächer) –
-  geschüttelt entstehen Tröpfchen, die sich wieder zur Schicht sammeln. Startlage: jeder Stab wird so gedreht, dass er die anderen möglichst wenig berührt (`settle`; gekreuzte Stäbe ließen sich später nicht mehr trennen, Test). Test: unter den 6 nächsten Nachbarn eines Ölmoleküls deutlich mehr Öl als zufällig.
+  Öl zieht Öl leicht an, gemessen zwischen den Oberflächen der Stäbe (zu nah: Abstoßung, bei Berührung fällt die aufeinander zu gerichtete Geschwindigkeit weg; beim Schütteln fast weg, Öl wird
+  stärker herumgeworfen, Öl und Wasser länger geschüttelt: 5 s) – geschüttelt **fein verteilt** (keine Klumpen), danach finden sich Tröpfchen, die sich wieder zur Schicht sammeln. Startlage: jeder Stab wird so gedreht, dass er die anderen möglichst wenig berührt (`settle`; gekreuzte Stäbe ließen sich später nicht mehr trennen, Test). Test: geschüttelt unter den 6 nächsten Nachbarn eines Ölmoleküls kaum mehr Öl als zufällig, 1,5 s danach deutlich mehr (Tröpfchen).
   **Gase**: „Wand weg“ zieht die Trennwand in knapp 1 s hoch (`wallEnd`), die Gase strömen unten durch. **Schmelze** im warm hinterlegten Tiegel.
   Reduzierte Bewegung: Knopf rechnet bis zum Endzustand (gelöst bzw. gleichmäßig gemischt).
   **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C): Teilchengeschwindigkeit im Modell verstärkt (`heat`: 0 °C × 0,5, 20 °C × 1, 100 °C × 3; echt wären nur + 17 %),
@@ -140,9 +145,13 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente; beim Sprudel zusätzlich „entsteht in kleiner Menge“: Kohlensäure, `forms`) | Zählen | Farben („nur im Modell“) |
   Einteilung (Stoffe → Reinstoffe/Gemische mit allen Beispielen; niedrige Handys ohne Wurzel) | Arten (verteilter Stoff in Hauptstoff: Gemenge, Legierung, Suspension,
   Lösung, Rauch, Emulsion, Nebel, Schaum, Gasgemisch mit Alltagsbeispiel; aktuelles Beispiel markiert) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
-- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`), vier Level: Teilchen und Stoffe (teilchen, stoffe, reinOderGemisch – nur nach Teilchen, ohne Element/Verbindung) |
-  Elemente und Verbindungen (einordnen, reinGemisch, bildArt, bildWahl, verbindungen, elemente, atomsorten) | Gemische im Alltag (homogen, gemischart, alltag, reinAlltag) |
-  Lösen und Mischen (wohin, erhalten, masse, zwischen, bewegung, farbe, nachher) – ohne Sprudel (dort reagiert ein Teil zu Kohlensäure, die Erklärkarte nennt das).
+- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`), sechs Niveaus in festen Paaren – mit Tipp (1, 3, 5) und ohne (2, 4, 6) – plus „Alles gemischt“:
+  Teilchen und Stoffe (teilchen, stoffe, atomsorten, reinOderGemisch, einordnen, reinGemisch, elemente, verbindungen, bildArt, bildWahl) |
+  Gemische im Alltag (alltag ×2, homogen ×3, gemischart ×3, reinAlltag ×2) | Lösen und Mischen (wohin, erhalten, masse, zwischen, bewegung, farbe, nachher, bewegung, farbe, nachher).
+  **Feste Reihenfolge** (`seq`, leicht → schwer, `ordered`; der Store ersetzt Wiederholungen nur innerhalb des Typs, `fixedOrder`), keine Frage doppelt in einer Runde.
+  Jede Aufgabe hat einen allgemeinen Tipp (`hint`) und einen **zugeschnittenen** (`tip`, mit den Stoffen, Formeln oder Zahlen der Aufgabe); in den Niveaus mit Tipp
+  wird er zum Tipp und der Knopf hervorgehoben (`hintCue` in `@lern/quiz`, kostet dort keine Punkte), Glühbirne an der Levelkarte, Erklärkarte nennt den Tipp-Knopf.
+  Sprudel nicht im Quiz (dort reagiert ein Teil zu Kohlensäure).
   Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (Schlüssel = Antworttext, `renderOption`, zwei Spalten). Anordnungen für falsche Bilder:
   gemischt, unten, oben, getrennt, abwechselnd. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
   verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag.

@@ -10,7 +10,8 @@ import type { Arrange } from "../mixing.ts";
 
 /** Teilchenbild: Stoffe mit Teilchenzahl, Zustand, Anordnung */
 export interface Pic { mix: [string, number][]; state: State; floats?: string[]; before?: Before; solute?: string; arrange?: Arrange }
-type Extra = { pic?: Pic; pics?: Record<string, Pic> };
+/** `tip`: auf die Aufgabe zugeschnittener Tipp (Level mit Tipp), sonst gilt der allgemeine `hint` */
+type Extra = { pic?: Pic; pics?: Record<string, Pic>; tip?: string };
 export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer: number });
 
 const F = toSubscript;
@@ -94,6 +95,7 @@ function teilchen(): Task {
     kind: "num", answer: a.teilchen, pic: m, traps,
     prompt: "Wie viele **Teilchen** sind im Bild?",
     hint: "Ein Teilchen ist ein Molekül oder ein einzelnes Atom. Zähle jedes Teilchen einmal.",
+    tip: `Zähle jede Sorte einzeln: ${list(m.mix.map(([f]) => F(f)))}. Dann zusammenzählen. Ein Molekül zählt als 1.`,
     explain: `${m.mix.map(([f, n]) => `${n} × ${F(f)}`).join(" + ")} = **${a.teilchen} Teilchen**.`,
     praise: "Jedes Molekül als ein Teilchen gezählt – genau so geht's.",
   };
@@ -110,6 +112,7 @@ function stoffe(): Task {
     pic: m,
     prompt: "Wie viele **verschiedene Stoffe** sind im Bild?",
     hint: "Gleiche Teilchen sind derselbe Stoff. Zähle die verschiedenen Teilchensorten.",
+    tip: `Im Bild sind ${a.teilchen} Teilchen. Wie viele davon sehen verschieden aus? Gleiche zählen nur einmal.`,
     explain: `Verschiedene Teilchen: ${names(a.stoffe)} → **${cnt(s, "Stoff", "Stoffe")}**.`,
   };
   if (Math.random() < .5) {
@@ -136,7 +139,8 @@ function reinOderGemisch(): Task {
   const kind = pick<PictureKind>(["E", "V", "GE", "GV", "GEV"]);
   const m = mixOf(kind);
   const a = analyse(m.mix);
-  const base = { pic: m, prompt: "Reinstoff oder Gemisch?", hint: "Sind alle Teilchen gleich? Gleiche Teilchen = ein Stoff." };
+  const base = { pic: m, prompt: "Reinstoff oder Gemisch?", hint: "Sind alle Teilchen gleich? Gleiche Teilchen = ein Stoff.",
+    tip: "Vergleiche die Teilchen: Sehen alle genau gleich aus? Ein Teilchen darf mehrere Farben haben." };
   if (kind === "E" || kind === "V") {
     const f = a.stoffe[0];
     return {
@@ -166,7 +170,8 @@ function reinGemisch(): Task {
   const m = mixOf(kind);
   const a = analyse(m.mix);
   const f = a.stoffe[0];
-  const q = { prompt: "Reinstoff oder Gemisch? Und was für ein Stoff?", hint: "Sind alle Teilchen gleich? Wie viele Atomsorten hat ein Teilchen?" };
+  const q = { prompt: "Reinstoff oder Gemisch? Und was für ein Stoff?", hint: "Sind alle Teilchen gleich? Wie viele Atomsorten hat ein Teilchen?",
+    tip: "Schritt 1: Sind alle Teilchen gleich? Schritt 2: Hat ein Teilchen eine Farbe oder mehrere?" };
   if (kind === "E") {
     return {
       ...mc(REIN_E, [
@@ -243,9 +248,19 @@ function bildArt(): Task {
     pic: m,
     prompt: "Was zeigt das Teilchenbild?",
     hint: "Wie viele Teilchensorten gibt es? Hat ein Teilchen eine oder mehrere Atomsorten?",
+    tip: `Schritt 1: Wie viele Teilchensorten? Hier sind es ${a.stoffe.length}. Schritt 2: Teilchen einfarbig oder mehrfarbig?`,
     explain: `${names(a.stoffe)} → **${PICTURE_LABEL[kind]}**.`,
   };
 }
+
+/** Woran man das gesuchte Bild erkennt (Level mit Tipp) */
+const WAHL_TIP: Record<PictureKind, string> = {
+  E: "Gesucht: alle Teilchen gleich, jedes nur in einer Farbe.",
+  V: "Gesucht: alle Teilchen gleich, jedes mit mehreren Farben.",
+  GE: "Gesucht: verschiedene Teilchen, jedes nur in einer Farbe.",
+  GV: "Gesucht: verschiedene Teilchen, jedes mit mehreren Farben.",
+  GEV: "Gesucht: verschiedene Teilchen – einige einfarbig, einige mehrfarbig.",
+};
 
 /** Welches Bild zeigt …? – Teilchenbilder als Antworten */
 function bildWahl(): Task {
@@ -261,6 +276,7 @@ function bildWahl(): Task {
       pics: Object.fromEntries(keys.map((k, i) => [k, all[i]])),
       prompt: `Welches Bild zeigt **${kind === "E" ? "ein Element" : kind === "V" ? "eine Verbindung" : `ein ${PICTURE_LABEL[kind]}`}**?`,
       hint: "Gleiche Teilchen = ein Stoff. Eine Atomsorte = Element, mehrere im Teilchen = Verbindung.",
+      tip: WAHL_TIP[kind],
       explain: `${PICTURE_LABEL[kind]}: ${names(analyse(right.mix).stoffe)}.`,
     };
   }
@@ -277,6 +293,7 @@ function atomsorten(): Task {
     ] as Trap[], { n }),
     prompt: "Wie viele **Atomsorten** kommen im Bild vor?",
     hint: "Jede Atomsorte hat eine eigene Farbe. Zähle die verschiedenen Farben.",
+    tip: "Achte nur auf die Kugelfarben, nicht auf die Teilchen. Jede Farbe zählt einmal. **Farben** zeigt die Namen.",
     explain: `Atomsorten: ${list(a.atomsorten.map(el => `${elementName(el)} (${el})`))} → **${n}**.`,
   };
 }
@@ -296,6 +313,7 @@ function verbindungen(): Task {
     ] as Trap[], { n: v }),
     prompt: "Wie viele der Stoffe im Bild sind **Verbindungen**?",
     hint: "Eine Verbindung hat mindestens zwei verschiedene Atomsorten in einem Teilchen.",
+    tip: "Suche Teilchen mit mehreren Farben. Jede solche Teilchensorte ist eine Verbindung. Gleiche zählen einmal.",
     explain: a.verbindungen.length ? `Verbindungen: ${names(a.verbindungen)} → **${v}**.` : "Kein Teilchen hat zwei Atomsorten → **0** Verbindungen.",
   };
 }
@@ -312,6 +330,7 @@ function elemente(): Task {
     ] as Trap[], { n: e }),
     prompt: "Wie viele der Stoffe im Bild sind **Elemente**?",
     hint: "Ein Element hat nur eine Atomsorte – einzelne Atome, ein Gitter oder Moleküle wie O₂.",
+    tip: "Suche Teilchen mit nur einer Farbe. Jede solche Teilchensorte ist ein Element. Gleiche zählen einmal.",
     explain: a.elemente.length ? `Elemente: ${names(a.elemente)} → **${e}**.` : "Jedes Teilchen hat mehrere Atomsorten → **0** Elemente.",
   };
 }
@@ -339,6 +358,7 @@ function einordnen(): Task {
     ...opts, pic,
     prompt: `**${name}** (${F(f)}): Element, Verbindung oder Gemisch?`,
     hint: "Wie viele Atomsorten stecken in einem Teilchen?",
+    tip: `Lies die Formel ${F(f)}: Jeder Großbuchstabe ist eine Atomsorte. Eine Sorte = Element, mehrere = Verbindung.`,
     explain: isElement(f)
       ? `${name}: nur ${elementName(els[0])}-Atome (${els[0]}) → **Element**${metal ? ", auch im Metallgitter" : ""}.`
       : `${name}: ${list(els)} in einem Teilchen → **Verbindung**.`,
@@ -380,6 +400,15 @@ const EVERYDAY: Everyday[] = [
   { name: "Müsli", ans: HETEROGEN, why: "Man sieht Flocken, Nüsse und Rosinen." },
 ];
 
+/** Tipp nach der typischen Fehlvorstellung des Beispiels */
+const HOMOGEN_TIP: Record<string, string> = {
+  "klar-reinstoff": "Klar heißt nicht rein. Zähle auf, was alles darin steckt.",
+  "sieht-einheitlich": "Denk ans Mikroskop: Wären dort Tröpfchen, Körner oder Blasen zu sehen?",
+  "geloest-heterogen": "Gelöstes sieht man nicht mehr. Gibt es irgendwo eine Grenze?",
+  "entmischt-homogen": "Lass es eine Weile stehen. Bilden sich Schichten?",
+  "verbindung-gemisch": "Wie viele verschiedene Teilchen gibt es? Eine Verbindung ist ein Stoff.",
+};
+
 function homogen(): Task {
   const e = pick(EVERYDAY);
   const others = [HOMOGEN, HETEROGEN, REIN].filter(o => o !== e.ans && o !== e.trap?.[0]);
@@ -388,6 +417,7 @@ function homogen(): Task {
     ...(e.ex ? { pic: exPic(e.ex) } : {}),
     prompt: `Was ist **${e.name}**?`,
     hint: "Homogen: überall gleich, keine Grenze. Heterogen: Teile oder Schichten sind zu erkennen.",
+    tip: HOMOGEN_TIP[e.trap?.[1] ?? ""] ?? `Stell dir ${e.name} im Glas vor. Siehst du Teile, Tröpfchen oder Schichten?`,
     explain: `${e.name}: **${e.ans}**. ${e.why}`,
   };
 }
@@ -430,27 +460,37 @@ const GEMISCHARTEN: Art[] = [
   { name: "Bierschaum", ans: "Schaum", why: "Gasblasen in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "Im Schaum stecken Gasblasen, keine Tröpfchen."]] },
 ];
 
+/** Tipp: Entscheidung nach dem Stoff, in dem verteilt wird */
+const IN_FLUESSIG = "In einer Flüssigkeit: gelöst = Lösung, Tröpfchen = Emulsion, Körner = Suspension, Blasen = Schaum.";
+const IN_GAS = "In einem Gas: nur Gase = Gasgemisch, Tröpfchen = Nebel, feste Teilchen = Rauch.";
+const NUR_FEST = "Nur Feststoffe: Metalle bis zu den Atomen gemischt = Legierung, sichtbare Körner = Gemenge.";
+const ART_TIP: Record<string, string> = {
+  "Lösung": IN_FLUESSIG, Emulsion: IN_FLUESSIG, Suspension: IN_FLUESSIG, Schaum: IN_FLUESSIG,
+  Gasgemisch: IN_GAS, Nebel: IN_GAS, Rauch: IN_GAS, Legierung: NUR_FEST, Gemenge: NUR_FEST,
+};
+
 function gemischart(): Task {
   const g = pick(GEMISCHARTEN);
   return {
     ...mc(g.ans, [...g.traps.map(([t, k, w]) => d(t, k, w)), ...shuffle(ARTEN.filter(a => a !== g.ans))], 4, g.why),
     prompt: `Welche Art von Gemisch ist **${g.name}**?`,
     hint: "Welche Zustände sind gemischt – fest, flüssig, gasförmig? Sieht man Teile?",
+    tip: ART_TIP[g.ans],
     explain: `${g.name}: **${g.ans}**. ${g.why}`,
   };
 }
 
-interface Stoff { name: string; ans: "Element" | "Verbindung" | "Gemisch"; why: string; trap?: [string, string, string] }
+interface Stoff { name: string; ans: "Element" | "Verbindung" | "Gemisch"; why: string; trap?: [string, string, string]; tip?: string }
 const ALLTAG: Stoff[] = [
   { name: "Gold", ans: "Element", why: "Nur Gold-Atome." },
   { name: "Kupfer", ans: "Element", why: "Nur Kupfer-Atome im Gitter.", trap: ["Verbindung", "element-verbindung", "Die Kupfer-Atome sind verbunden – aber alle gleich. Eine Atomsorte: Element."] },
   { name: "Eisen", ans: "Element", why: "Nur Eisen-Atome im Gitter.", trap: ["Verbindung", "element-verbindung", "Die Eisen-Atome sind verbunden – aber alle gleich. Eine Atomsorte: Element."] },
   { name: "Helium", ans: "Element", why: "Nur Helium-Atome." },
   { name: "Neon in der Leuchtreklame", ans: "Element", why: "Nur Neon-Atome." },
-  { name: "Diamant", ans: "Element", why: "Nur Kohlenstoff-Atome, fest verbunden.", trap: ["Verbindung", "element-verbindung", "Im Diamant sind nur C-Atome verbunden – eine Atomsorte: Element."] },
+  { name: "Diamant", ans: "Element", tip: "Diamant ist aus Kohlenstoff (C). Wie viele Atomsorten sind das?", why: "Nur Kohlenstoff-Atome, fest verbunden.", trap: ["Verbindung", "element-verbindung", "Im Diamant sind nur C-Atome verbunden – eine Atomsorte: Element."] },
   { name: "Wasser (H₂O)", ans: "Verbindung", why: "H und O fest verbunden, alle Teilchen gleich.", trap: ["Gemisch", "verbindung-gemisch", "Wasser enthält H und O – aber in jedem Teilchen fest verbunden. Ein Stoff."] },
   { name: "Kohlenstoffdioxid (CO₂)", ans: "Verbindung", why: "C und O fest verbunden.", trap: ["Element", "verbindung-element", "CO₂ hat zwei Atomsorten (C und O) – eine Verbindung."] },
-  { name: "Haushaltszucker", ans: "Verbindung", why: "C, H und O fest verbunden, alle Teilchen gleich.", trap: ["Gemisch", "verbindung-gemisch", "Zucker besteht aus gleichen Teilchen – ein Reinstoff, und zwar eine Verbindung."] },
+  { name: "Haushaltszucker", ans: "Verbindung", tip: "Alle Zuckerteilchen sind gleich. Ein Teilchen enthält C, H und O.", why: "C, H und O fest verbunden, alle Teilchen gleich.", trap: ["Gemisch", "verbindung-gemisch", "Zucker besteht aus gleichen Teilchen – ein Reinstoff, und zwar eine Verbindung."] },
   { name: "Kochsalz (NaCl)", ans: "Verbindung", why: "Natrium und Chlor fest verbunden (Ionen).", trap: ["Gemisch", "verbindung-gemisch", "Kochsalz ist ein Reinstoff aus Na⁺ und Cl⁻ – eine Verbindung."] },
   { name: "Methan (CH₄)", ans: "Verbindung", why: "C und H fest verbunden.", trap: ["Element", "verbindung-element", "CH₄ hat zwei Atomsorten (C und H) – eine Verbindung."] },
   { name: "Luft", ans: "Gemisch", why: "Stickstoff, Sauerstoff, Argon und mehr.", trap: ["Verbindung", "klar-reinstoff", "Luft enthält mehrere Stoffe, die nicht verbunden sind."] },
@@ -464,7 +504,7 @@ const ALLTAG: Stoff[] = [
   { name: "Aluminium", ans: "Element", why: "Nur Aluminium-Atome im Gitter." },
   { name: "Argon in der Glühlampe", ans: "Element", why: "Nur Argon-Atome." },
   { name: "Ammoniak (NH₃)", ans: "Verbindung", why: "N und H fest verbunden.", trap: ["Gemisch", "verbindung-gemisch", "NH₃-Teilchen sind alle gleich – N und H sind im Teilchen verbunden."] },
-  { name: "reiner Alkohol (Ethanol)", ans: "Verbindung", why: "C, H und O fest verbunden, alle Teilchen gleich.", trap: ["Gemisch", "verbindung-gemisch", "Ethanol besteht aus gleichen Teilchen – ein Stoff mit drei Atomsorten."] },
+  { name: "reiner Alkohol (Ethanol)", ans: "Verbindung", tip: "Alle Ethanol-Teilchen sind gleich. Ein Teilchen enthält C, H und O.", why: "C, H und O fest verbunden, alle Teilchen gleich.", trap: ["Gemisch", "verbindung-gemisch", "Ethanol besteht aus gleichen Teilchen – ein Stoff mit drei Atomsorten."] },
   { name: "Kalk (CaCO₃)", ans: "Verbindung", why: "Ca, C und O fest verbunden.", trap: ["Element", "verbindung-element", "CaCO₃ hat drei Atomsorten – eine Verbindung."] },
   { name: "Rost (Fe₂O₃)", ans: "Verbindung", why: "Eisen und Sauerstoff fest verbunden.", trap: ["Gemisch", "verbindung-gemisch", "Im Rost sind Fe und O verbunden – ein neuer Stoff, kein Gemisch."] },
   { name: "Meerwasser", ans: "Gemisch", why: "Salze sind im Wasser gelöst.", trap: ["Verbindung", "klar-reinstoff", "Meerwasser enthält Wasser und viele Salze – mehrere Stoffe."] },
@@ -480,6 +520,9 @@ function alltag(): Task {
     ...mc(label(s.ans), [...(s.trap ? [d(label(s.trap[0]), s.trap[1], s.trap[2])] : []), ...others], 3, s.why),
     prompt: `**${s.name}**: Reinstoff oder Gemisch? Element oder Verbindung?`,
     hint: "Ein Stoff oder mehrere? Wenn einer: eine Atomsorte oder mehrere?",
+    tip: s.tip ?? (/\(.*[A-Z].*\)/.test(s.name) ? "Lies die Formel: Jeder Großbuchstabe ist eine Atomsorte."
+      : s.ans === "Gemisch" ? `Zähle auf, was alles in ${s.name} steckt. Mehr als ein Stoff?`
+      : `Steht ${s.name.split(" ")[0]} im Periodensystem? Dann ist es eine Atomsorte.`),
     explain: `${s.name}: **${label(s.ans)}**. ${s.why}`,
   };
 }
@@ -512,6 +555,7 @@ function reinAlltag(): Task {
     ...opts,
     prompt: `Auf der Packung steht ${s.label}. Was ist das chemisch?`,
     hint: "Reinstoff heißt in der Chemie: nur **ein** Stoff, nur eine Teilchensorte.",
+    tip: "„Rein“ auf der Packung heißt: nichts dazugegeben. Chemisch zählt nur: Wie viele Stoffe stecken darin?",
     explain: `${s.label}: **${s.ans}**. ${s.why}`,
   };
 }
@@ -537,6 +581,7 @@ function wohin(): Task {
     pic: exPic(s.id, "vorher"),
     prompt: `${s.what} Was passiert mit den **${s.who}**?`,
     hint: "Teilchen verschwinden nicht und ändern sich beim Mischen nicht.",
+    tip: `Die ${s.who} bleiben, wie sie sind. Sie bewegen sich ständig. Wohin können sie im Wasser?`,
     explain: `Die ${s.who} lösen sich voneinander und verteilen sich **zwischen den Wasserteilchen**. Es sind gleich viele wie vorher.`,
   };
 }
@@ -555,7 +600,8 @@ function erhalten(): Task {
     kind: "num", answer: k, traps,
     pic: exPic(s.id, "vorher", mix),
     prompt: `So sieht es **vorher** aus. Wie viele **${s.who}** sind im Wasser, wenn alles gemischt ist?`,
-    hint: `Zähle die ${s.who} im Bild. Beim Mischen geht kein Teilchen verloren.`,
+    hint: "Beim Mischen geht kein Teilchen verloren.",
+    tip: `Zähle nur die ${s.who} im Bild. Beim Mischen geht keines verloren und keines kommt dazu.`,
     explain: `Vorher ${k}, nachher **${k}** ${s.who}. Sie verteilen sich nur.`,
     praise: "Gleich viele Teilchen wie vorher – genau so ist es.",
   };
@@ -574,6 +620,7 @@ function masse(): Task {
     ], 4, `${w} g + ${z} g = ${w + z} g.`),
     prompt: `In **${w} g** ${solvent} lösen sich **${z} g** ${stoff}. Wie schwer ist ${what} jetzt?`,
     hint: "Beim Lösen verschwinden keine Teilchen. Was bedeutet das für die Masse?",
+    tip: `Der ${stoff} ist noch da, nur verteilt. Zähle beide Massen zusammen.`,
     explain: `Alle Teilchen sind noch da: ${w} g + ${z} g = **${w + z} g**.`,
   };
 }
@@ -596,6 +643,7 @@ function zwischen(): Task {
     pic: exPic(s.ex),
     prompt: `Was ist zwischen ${s.of}?`,
     hint: "Ein Stoff besteht nur aus seinen Teilchen. Was bleibt dann für die Lücken?",
+    tip: "Auch Luft und Wasserdampf bestehen aus Teilchen. Die passen nicht in die Lücken. Was bleibt übrig?",
     explain: "Zwischen den Teilchen ist **nichts** – leerer Raum. Auch Luft besteht aus Teilchen.",
   };
 }
@@ -624,6 +672,7 @@ function bewegung(): Task {
     ...(s.pic ? { pic: s.pic } : {}),
     prompt: s.q,
     hint: "Stehen Teilchen je still?",
+    tip: "Teilchen stehen nie still – im Gas fliegen sie, im Festen schwingen sie am Platz.",
     explain: "Teilchen bewegen sich **ständig** – im Gas frei, in Flüssigkeiten aneinander vorbei, im Festen am Platz.",
   };
 }
@@ -651,9 +700,19 @@ function farbe(): Task {
     ...mc(s.ok, s.w, 3, "Genau: Teilchen haben nicht die Eigenschaften des Stoffs."),
     prompt: s.q,
     hint: "Hat ein einzelnes Teilchen dieselben Eigenschaften wie der ganze Stoff?",
+    tip: /flüssig|fest/.test(s.q) ? "Fest und flüssig beschreiben, wie viele Teilchen zusammen liegen – nicht ein Teilchen."
+      : "Die Farben im Modell sind nur ausgedacht. Farbe sieht man erst bei sehr vielen Teilchen.",
     explain: "Farbe, fest oder flüssig sind Eigenschaften des **Stoffs**. Ein einzelnes Teilchen hat sie nicht.",
   };
 }
+
+const NACHHER_TIP: Record<string, string> = {
+  zucker: "Gelöste Teilchen verteilen sich überall – auch oben. Und es fehlt keines.",
+  alkohol: "Alkohol mischt sich ganz mit Wasser. Es fehlt kein Teilchen.",
+  oel: "Öl ist leichter als Wasser und mischt sich nicht mit ihm.",
+  messing: "Die Atome sind beim Schmelzen wild durcheinander. So erstarren sie auch.",
+  schutzgas: "Gasteilchen fliegen ständig umher. Sie bleiben nirgends unter sich.",
+};
 
 /** Welches Teilchenbild passt nachher? */
 function nachher(): Task {
@@ -691,6 +750,7 @@ function nachher(): Task {
     pics: Object.fromEntries(keys.map((k, i) => [k, all[i]])),
     prompt: c.q,
     hint: s === "oel" ? "Mischen sich Öl und Wasser? Was schwimmt oben?" : "Teilchen verschwinden nicht und bewegen sich ständig.",
+    tip: NACHHER_TIP[s],
     explain: s === "oel" ? "Öl und Wasser trennen sich wieder: **Öl oben**, Wasser unten." : "Die Teilchen sind **gleichmäßig verteilt** – und alle noch da.",
   };
 }
@@ -717,23 +777,51 @@ export const TYPE_NAMES: Record<string, string> = {
   bewegung: "Teilchen bewegen sich", farbe: "Teilchen und Stoff", nachher: "Nach dem Mischen",
 };
 
-interface Level extends QuizLevel { types: string[] }
+/** `seq`: feste Reihenfolge der zehn Aufgaben (leicht → schwer), `cue`: Tipp auf die Aufgabe zugeschnitten und hervorgehoben */
+interface Level extends QuizLevel { types: string[]; seq: string[]; cue: boolean }
+const BASICS = ["teilchen", "stoffe", "atomsorten", "reinOderGemisch", "einordnen", "reinGemisch", "elemente", "verbindungen", "bildArt", "bildWahl"];
+const EVERYDAY_SEQ = ["alltag", "alltag", "homogen", "homogen", "homogen", "gemischart", "gemischart", "gemischart", "reinAlltag", "reinAlltag"];
+const SOLVING = ["wohin", "erhalten", "masse", "zwischen", "bewegung", "farbe", "nachher", "bewegung", "farbe", "nachher"];
+const level = (n: number, name: string, desc: string, seq: string[], cue: boolean): Level =>
+  ({ id: `gm-n${n}`, name, desc: cue ? `mit Tipp: ${desc}` : desc, seq, cue, tip: cue, types: [...new Set(seq)] });
 export const LEVELS: Level[] = [
-  { id: "gm-1", name: "Teilchen und Stoffe", desc: "Teilchen zählen, Stoffe erkennen, Reinstoff oder Gemisch", types: ["teilchen", "stoffe", "reinOderGemisch"] },
-  { id: "gm-2", name: "Elemente und Verbindungen", desc: "Teilchenbilder einordnen, Elemente und Verbindungen zählen", types: ["einordnen", "reinGemisch", "bildArt", "bildWahl", "verbindungen", "elemente", "atomsorten"] },
-  { id: "gm-3", name: "Gemische im Alltag", desc: "Homogen oder heterogen, Arten von Gemischen, „rein“", types: ["homogen", "gemischart", "alltag", "reinAlltag"] },
-  { id: "gm-4", name: "Lösen und Mischen", desc: "Teilchen bleiben erhalten, bewegen sich, haben keine Farbe", types: ["wohin", "erhalten", "masse", "zwischen", "bewegung", "farbe", "nachher"] },
+  level(1, "Teilchen und Stoffe", "Teilchen, Stoffe, Atomsorten, Element, Verbindung", BASICS, true),
+  level(2, "Teilchen und Stoffe", "wie Niveau 1, Tipp nur allgemein", BASICS, false),
+  level(3, "Gemische im Alltag", "Homogen oder heterogen, Arten von Gemischen, „rein“", EVERYDAY_SEQ, true),
+  level(4, "Gemische im Alltag", "wie Niveau 3, Tipp nur allgemein", EVERYDAY_SEQ, false),
+  level(5, "Lösen und Mischen", "Teilchen bleiben erhalten, bewegen sich, haben keine Farbe", SOLVING, true),
+  level(6, "Lösen und Mischen", "wie Niveau 5, Tipp nur allgemein", SOLVING, false),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `gm-${level}`);
 export const levelName = (level: LevelKey) =>
-  level === "mix" ? "Alles gemischt" : level === "weak" ? "Schwächen üben" : level === "due" ? "Heute fällig" : LEVELS[level].name;
+  level === "mix" ? "Alles gemischt" : level === "weak" ? "Schwächen üben" : level === "due" ? "Heute fällig"
+    : LEVELS[level].cue ? `${LEVELS[level].name} · mit Tipp` : LEVELS[level].name;
+
+/** Tipp festlegen: zugeschnitten und hervorgehoben (cue) oder allgemein */
+function withHint(t: Task, cue: boolean): Task {
+  const { tip, ...rest } = t;
+  return cue && tip ? { ...rest, hint: tip, hintCue: true } : rest;
+}
+
+/** Aufgaben in fester Reihenfolge, keine Frage doppelt (gleicher Typ → anderes Beispiel) */
+function ordered(seq: string[], cue: boolean): Task[] {
+  const seen = new Set<string>();
+  const sig = (t: Task) => t.prompt + JSON.stringify(t.pic ?? t.pics ?? null);
+  return seq.map(id => {
+    let t = GENS[id]();
+    for (let k = 0; k < 40 && seen.has(sig(t)); k++) t = GENS[id]();
+    seen.add(sig(t));
+    return { ...withHint(t, cue), type: id };
+  });
+}
 
 export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, due: string[] = []): Task[] {
+  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].cue);
   let ids = level === "mix" ? [...new Set(LEVELS.flatMap(l => l.types))]
     : level === "weak" ? weakTypes(stats, id => LEVELS.some(l => l.types.includes(id)))
     : level === "due" ? due.filter(id => GENS[id])
-    : LEVELS[level].types;
+    : LEVELS[0].types;
   if (!ids.length) ids = LEVELS[0].types;
-  return buildRound(ids, GENS, 10);
+  return buildRound(ids, GENS, 10).map(t => withHint(t, false));
 }

@@ -1,4 +1,4 @@
-// Probieren: zehn fertige Beispiele (kein Baukasten) – Gefäß mit allen Teilchen und verschiebbarer Lupe (flow.ts, FlowView).
+// Probieren: zehn fertige Beispiele im Teilchenmodell und Müsli (Gemenge aus sichtbaren Stücken, kein Baukasten) – Gefäß mit allen Teilchen und verschiebbarer Lupe (flow.ts, FlowView).
 // Die Teilchen bewegen sich ständig und fließend. Jedes Beispiel beginnt „vorher“: Zuckerkristall im Wasser, Alkohol obenauf,
 // CO₂ über dem Wasser, Gase hinter Trennwänden, Metallblöcke. Flüssigkeiten lösen und mischen sich von selbst (langsam; warm schneller),
 // der Knopf sagt, was er tut: Umrühren, Schütteln, Trennwand weg, Schmelzen. „Von vorn“ stellt den Anfang wieder her.
@@ -9,10 +9,11 @@ import { useId, useRef, useState } from "react";
 import { Button, Icon, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@lern/ui";
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
-import { EXAMPLES, MIX_LABEL, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
+import { EXAMPLES, EXAMPLE_COUNT, MIX_LABEL, MUESLI, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
 import { seedOf } from "../mixing.ts";
 import { ACID, STIR, atEquilibrium, gasTarget, liquidLevel, makeWorld, openBottle, separatedFlow, settledFlow, shakeWorld, startMixing, stepFlow, type World } from "../flow.ts";
 import { FlowView } from "../components/FlowView.tsx";
+import { MuesliBowl } from "../components/MuesliBowl.tsx";
 import { useApp } from "../store.ts";
 
 /** kleines Bild eines Teilchens (Liste der Stoffe) */
@@ -85,7 +86,8 @@ function Counts({ ex }: { ex: Example }) {
 
 /** Einteilung der Stoffe mit allen Beispielen; das aktuelle ist hervorgehoben (antippen = dorthin wechseln) */
 function Einteilung({ current, onPick }: { current: number; onPick: (i: number) => void }) {
-  const kind = mixKind(EXAMPLES[current]);
+  const M = EXAMPLES.length;
+  const kind = current === M ? "heterogen" : mixKind(EXAMPLES[current]);
   const leaf = (k: MixKind, label: string) => (
     <div className={`gm-leaf${k === kind ? " on" : ""}`}>
       <b>{label}</b>
@@ -93,6 +95,7 @@ function Einteilung({ current, onPick }: { current: number; onPick: (i: number) 
         {EXAMPLES.map((e, i) => mixKind(e) === k && (
           <button key={e.id} type="button" className="gm-chip" aria-pressed={i === current} onClick={() => { buzz(); onPick(i); }}>{e.title}</button>
         ))}
+        {k === "heterogen" && <button type="button" className="gm-chip" aria-pressed={current === M} onClick={() => { buzz(); onPick(M); }}>{MUESLI.title}</button>}
       </div>
     </div>
   );
@@ -131,10 +134,10 @@ const ARTEN: Partial<Record<`${Z}|${Z}`, [string, string, boolean][]>> = {
 /** Zelle des Beispiels in der Tabelle: [verteilter Stoff, Hauptstoff] */
 const CELL: Record<string, `${Z}|${Z}`> = {
   zucker: "fest|flüssig", alkohol: "flüssig|flüssig", sprudel: "Gas|flüssig", oel: "flüssig|flüssig", messing: "fest|fest",
-  erdgas: "Gas|Gas", schutzgas: "Gas|Gas", modell: "Gas|Gas",
+  erdgas: "Gas|Gas", schutzgas: "Gas|Gas", modell: "Gas|Gas", muesli: "fest|fest",
 };
 
-function Arten({ ex }: { ex: Example }) {
+function Arten({ ex }: { ex: Pick<Example, "id" | "type"> }) {
   const cell = CELL[ex.id];
   return (
     <div className="gm-arten">
@@ -159,7 +162,7 @@ function Arten({ ex }: { ex: Example }) {
 function ExampleList({ current, onPick }: { current: number; onPick: (i: number) => void }) {
   return (
     <div className="gm-examples">
-      {EXAMPLES.map((e, i) => (
+      {[...EXAMPLES, MUESLI].map((e, i) => (
         <button key={e.id} type="button" aria-pressed={i === current} className="gm-ex" onClick={() => { buzz(); onPick(i); }}>
           <span className="gm-ex-n">{i + 1}</span><span>{e.title}</span>
         </button>
@@ -294,7 +297,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
         head={
           <div className="gm-head">
             <h2 className="gm-title">{ex.title}</h2>
-            <span className="gm-num">{index + 1} / {EXAMPLES.length}</span>
+            <span className="gm-num">{index + 1} / {EXAMPLE_COUNT}</span>
             {ex.note && <p className="gm-note">{ex.note}</p>}
           </div>
         }
@@ -332,10 +335,67 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
   );
 }
 
+/** Müsli: Gemenge aus sichtbaren Stücken – Mischen und wieder Auslesen (Trennen von Hand), kein Teilchenbild */
+function Muesli({ index }: { index: number }) {
+  const setEx = useApp(s => s.setEx);
+  const reduced = useReducedMotion();
+  // 0 = jede Sorte für sich, sonst Nummer des Mischens (jedes Mal eine neue Verteilung)
+  const [mixed, setMixed] = useState(0);
+  const [shaking, setShaking] = useState(false);
+  const [tool, setTool] = useState<string | null>(null);
+  const runs = useRef(0);
+  const goTo = (i: number) => { buzz(); setEx(i); setTool(null); };
+  const act = () => {
+    buzz();
+    setMixed(mixed ? 0 : ++runs.current);
+    if (!mixed && !reduced) { setShaking(true); setTimeout(() => setShaking(false), 700); }
+  };
+  const parts = MUESLI.parts;
+  return (
+    <Workbench className="gm-wb" active={tool} onActive={setTool}
+      head={
+        <div className="gm-head">
+          <h2 className="gm-title">{MUESLI.title}</h2>
+          <span className="gm-num">{index + 1} / {EXAMPLE_COUNT}</span>
+          <p className="gm-note">{MUESLI.note}</p>
+        </div>
+      }
+      stage={<MuesliBowl mixed={mixed} shaking={shaking} />}
+      status={<div className="gm-status">{(mixed ? [MUESLI.type, "heterogen"] : ["getrennt"]).map(l => <Tag key={l}>{l}</Tag>)}</div>}
+      controls={
+        <div className="gm-controls">
+          <div className="gm-row">
+            <IconButton icon="back" label="Voriges Beispiel" onClick={() => goTo(index - 1)} />
+            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}>{mixed ? "Auslesen" : "Mischen"}</Button>
+            <IconButton icon="arrow" label="Nächstes Beispiel" onClick={() => goTo(index + 1)} />
+          </div>
+        </div>
+      }
+      tools={[
+        { id: "stoffe", label: "Zutaten", icon: "molecule", content: (
+          <div className="gm-subs">
+            <ul className="gm-parts">{parts.map(p => <li key={p.id}><b>{p.name}</b><span>{p.n} Stück</span></li>)}</ul>
+            <p className="gm-small">Jeder Bestandteil besteht selbst aus vielen Stoffen.</p>
+          </div>
+        ) },
+        { id: "zaehlen", label: "Zählen", icon: "table", content: (
+          <dl className="gm-counts">
+            <div><dt>Bestandteile</dt><dd>{parts.length}</dd></div>
+            <div><dt>Stücke</dt><dd>{parts.reduce((s, p) => s + p.n, 0)}</dd></div>
+          </dl>
+        ) },
+        { id: "einteilung", label: "Einteilung", icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
+        { id: "arten", label: "Arten", icon: "beaker", title: "Arten von Gemischen", content: <Arten ex={MUESLI} /> },
+        { id: "beispiele", label: "Beispiele", icon: "grid", content: <ExampleList current={index} onPick={i => goTo(i)} /> },
+      ]} />
+  );
+}
+
 export function MixView() {
   const ex = useApp(s => s.ex);
   // key: neues Beispiel → Anfangslage neu
   // Temperatur gilt für alle Beispiele (nicht gespeichert, Start bei 20 °C)
   const [temp, setTemp] = useState(20);
+  if (ex === EXAMPLES.length) return <Muesli index={ex} />;
   return <Mix key={ex} ex={EXAMPLES[ex]} index={ex} temp={temp} setTemp={setTemp} />;
 }

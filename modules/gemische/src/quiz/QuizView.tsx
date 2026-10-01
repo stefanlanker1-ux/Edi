@@ -10,7 +10,7 @@ import { LEVELS, TYPE_NAMES, describe, levelId, levelName, makeRound, type Pic, 
 import { explainFor } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
 
-export const useQuiz = createQuizStore<Task>({ storageKey: "gemische-quiz", levelId, makeRound });
+export const useQuiz = createQuizStore<Task>({ storageKey: "gemische-quiz", levelId, makeRound, fixedOrder: true });
 
 /** alle Atomsorten, die im Quiz vorkommen */
 export const QUIZ_ATOMS = ["H", "C", "N", "O", "S", "He", "Ne", "Ar", "Cu", "Zn", "Fe", "Al"];

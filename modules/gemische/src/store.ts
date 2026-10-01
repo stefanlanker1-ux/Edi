@@ -2,13 +2,13 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { EXAMPLES } from "./mixtures.ts";
+import { EXAMPLE_COUNT } from "./mixtures.ts";
 
 export type Tab = "probieren" | "quiz";
 
 interface State {
   tab: Tab;
-  /** Index in EXAMPLES */
+  /** Index in EXAMPLES (EXAMPLES.length = Müsli) */
   ex: number;
   setTab: (t: Tab) => void;
   setEx: (i: number) => void;
@@ -18,7 +18,7 @@ export const useApp = create<State>()(persist(set => ({
   tab: "probieren",
   ex: 0,
   setTab: tab => set({ tab }),
-  setEx: i => set({ ex: (i + EXAMPLES.length) % EXAMPLES.length }),
+  setEx: i => set({ ex: (i + EXAMPLE_COUNT) % EXAMPLE_COUNT }),
 }), {
   name: "gemische-v1",
   version: 1,
@@ -26,7 +26,7 @@ export const useApp = create<State>()(persist(set => ({
   partialize: s => ({ ex: s.ex }),
   merge: (saved, current) => {
     const m = { ...current, ...(saved as Partial<State>) };
-    if (!(m.ex >= 0 && m.ex < EXAMPLES.length)) m.ex = 0;
+    if (!(m.ex >= 0 && m.ex < EXAMPLE_COUNT)) m.ex = 0;
     return m;
   },
 }));

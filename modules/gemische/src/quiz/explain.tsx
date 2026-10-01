@@ -1,4 +1,4 @@
-// Kurze Erklärkarten je Level mit Teilchenbildern als Beispiel (Level 4: vorher → nachher).
+// Kurze Erklärkarten je Thema mit Teilchenbildern als Beispiel (Lösen: vorher → nachher); Level mit Tipp nennen den Tipp-Knopf.
 
 import { RichText } from "@lern/ui";
 import type { LevelKey } from "@lern/quiz";
@@ -8,36 +8,33 @@ import { EXAMPLES, small } from "../mixtures.ts";
 import { LEVELS, type Task } from "./tasks.ts";
 
 const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
-  "gm-1": { ex: "modell", arr: ["nachher"], points: [
-    "Ein **Teilchen** ist ein Molekül oder ein einzelnes Atom. Ein Molekül zählt als ein Teilchen.",
-    "Gleiche Teilchen bilden einen **Stoff**. Verschiedene Teilchen sind verschiedene Stoffe.",
+  basics: { ex: "modell", arr: ["nachher"], points: [
+    "Ein **Teilchen** ist ein Molekül oder ein einzelnes Atom. Gleiche Teilchen bilden einen **Stoff**.",
     "**Reinstoff:** nur eine Teilchensorte. **Gemisch:** mehrere Teilchensorten.",
+    "**Element:** nur **eine** Atomsorte (He, Cu, O₂). **Verbindung:** mehrere Atomsorten fest im Teilchen (H₂O, CO₂).",
   ] },
-  "gm-2": { ex: "modell", arr: ["nachher"], points: [
-    "**Element:** Reinstoff aus nur **einer** Atomsorte – einzelne Atome (He), ein Metallgitter (Cu) oder Moleküle (O₂, N₂).",
-    "**Verbindung:** Reinstoff aus **mehreren** Atomsorten, fest im Teilchen verbunden (H₂O, CO₂).",
-    "Verschiedene Atome in einem Bild heißen noch nicht Gemisch. Entscheidend: Sind die Teilchen gleich?",
-  ] },
-  "gm-3": { ex: "oel", arr: ["nachher"], points: [
+  everyday: { ex: "oel", arr: ["nachher"], points: [
     "**Homogen:** überall gleich, keine Grenze zu sehen – Lösung, Legierung, Gasgemisch.",
     "**Heterogen:** Teile, Tröpfchen oder Schichten sind zu erkennen – Emulsion, Suspension, Gemenge.",
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
-  "gm-4": { ex: "zucker", arr: ["vorher", "nachher"], points: [
+  solving: { ex: "zucker", arr: ["vorher", "nachher"], points: [
     "Beim Lösen verteilen sich die Teilchen. Sie verschwinden nicht, die **Masse bleibt gleich**.",
     "Teilchen bewegen sich **ständig**. Darum mischen sich Gase und Lösungen von selbst.",
     "Zwischen den Teilchen ist **nichts**. Farben im Modell dienen nur zur Unterscheidung.",
-    "Ausnahme Sprudel: Ein kleiner Teil des CO₂ reagiert mit Wasser zu **Kohlensäure**.",
   ] },
 };
+const TOPIC: Record<string, string> = { "gm-n1": "basics", "gm-n2": "basics", "gm-n3": "everyday", "gm-n4": "everyday", "gm-n5": "solving", "gm-n6": "solving" };
+const CUE = "In diesem Niveau hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.";
 
 export function explainFor(level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[level].id : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;
-  const e = TEXT[id];
+  const e = TEXT[TOPIC[id]];
+  const points = LEVELS.find(l => l.id === id)?.cue ? [CUE, ...e.points] : e.points;
   const ex = EXAMPLES.find(x => x.id === e.ex)!;
   return (
     <div className="explain">
-      <ul className="ex-points">{e.points.map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
+      <ul className="ex-points">{points.map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
       <figure className="ex-example gm-ex-fig">
         {e.arr.map((a, i) => (
           <span key={a} className="gm-ex-step">

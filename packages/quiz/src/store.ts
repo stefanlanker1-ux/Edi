@@ -39,6 +39,8 @@ export interface QuizConfig<T extends BaseTask> {
   makeRound: (stufe: string, level: LevelKey, stats?: TypeStats, due?: string[]) => T[];
   /** Anfangswerte, z. B. aus einer älteren Speicherung übernommen */
   seed?: () => Partial<Pick<QuizState<T>, "progress" | "typeStats">>;
+  /** Level (Zahl) mit fester Reihenfolge der Aufgabentypen – Wiederholungen werden nur innerhalb des Typs ersetzt */
+  fixedOrder?: boolean;
 }
 
 export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
@@ -62,7 +64,7 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       start: (stufe, level, dueIds) => {
         const sk = get().skills[stufe] ?? {};
         const due = level === "due" ? (dueIds ?? dueSkills(sk, Object.keys(sk), Date.now(), get().exams[stufe])) : undefined;
-        const tasks = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? []);
+        const tasks = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? [], 10, !!cfg.fixedOrder && typeof level === "number");
         const game: Game<T> = {
           stufe, level, tasks, i: 0, score: 0, streak: 0, bestStreak: 0, correct: 0, hintUsed: false,
           answers: tasks.map(() => null), startedAt: Date.now(), finished: false,
@@ -96,7 +98,8 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
           set({ misses: { ...all, [stufe]: m } });
         }
         const streak = a.ok ? g.streak + 1 : 0;
-        const gained = a.ok ? (g.hintUsed ? 5 : 10) + (streak >= 3 ? Math.min(10, (streak - 2) * 2) : 0) : 0;
+        // in Leveln mit Tipp (hintCue) kostet der Tipp keine Punkte – er gehört dort zum Lernweg
+        const gained = a.ok ? (g.hintUsed && !g.tasks[g.i]?.hintCue ? 5 : 10) + (streak >= 3 ? Math.min(10, (streak - 2) * 2) : 0) : 0;
         const answers = g.answers.slice();
         answers[g.i] = { ...a, gained };
         return { ...g, answers, streak, upgrades, bestStreak: Math.max(g.bestStreak, streak), correct: g.correct + (a.ok ? 1 : 0), score: g.score + gained };
