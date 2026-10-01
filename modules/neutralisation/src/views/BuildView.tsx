@@ -40,7 +40,7 @@ export function BuildView() {
             <Stepper compact tone="base" label={<Formula f={base.formula} />} value={nB} min={1} max={6} onChange={v => set({ nB: v })} />
             <Stepper compact tone="acid" label={<Formula f={acid.formula} />} value={nA} min={1} max={6} onChange={v => set({ nA: v })} />
             <button type="button" className={`nw-go${react ? " on" : ""}`} disabled={!balanced} aria-pressed={react}
-              aria-label={react ? "Ausgangsstoffe zeigen" : "Reaktion: Salz und Wasser zeigen"} onClick={() => { buzz(); setReact(!react); }}>
+              aria-label={react ? "Edukte zeigen" : "Reaktion: Salz und Wasser zeigen"} onClick={() => { buzz(); setReact(!react); }}>
               <Icon name={react ? "back" : "play"} size={22} /><span>{react ? "Zurück" : "Reaktion"}</span>
             </button>
           </div>

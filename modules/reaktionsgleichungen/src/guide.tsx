@@ -49,7 +49,7 @@ const eqOf = (l: string[], r: string[]): Equation => ({ left: l, right: r });
 
 const US: GuideStep[] = [
   {
-    say: "Bei einer Reaktion werden Atome nur **neu verbunden**. Keines geht verloren, keines kommt dazu.",
+    say: "**Gesetz der Massenerhaltung:** Bei einer Reaktion werden Atome nur **neu verbunden**. Keines geht verloren, keines kommt dazu.",
     ask: "Zähle die **roten** O-Atome **links** vom Pfeil. Wie viele sind es?", answer: 2, num: {},
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 1]} />,
     why: { "1": "Ein O₂-Molekül hat 2 O-Atome.", "3": "Zähle nur links vom Pfeil." },
@@ -106,11 +106,11 @@ const US: GuideStep[] = [
     ok: "CH₄ + 2 O₂ → CO₂ + 2 H₂O.",
   },
   {
-    say: "Links vom Pfeil stehen die **Ausgangsstoffe**, rechts die **Produkte**.",
+    say: "Links vom Pfeil stehen die **Edukte** (Ausgangsstoffe), rechts die **Produkte**.",
     ask: "Welche Gleichung passt zu: **Stickstoff + Wasserstoff → Ammoniak**?", answer: "N₂ + 3 H₂ → 2 NH₃",
     options: ["N₂ + 3 H₂ → 2 NH₃", "N + 3 H → NH₃", "N₂ + H₂ → NH₃", "2 NH₃ → N₂ + 3 H₂"],
     why: { "N + 3 H → NH₃": "Stickstoff und Wasserstoff kommen als Moleküle N₂ und H₂ vor.", "N₂ + H₂ → NH₃": "Nicht ausgeglichen: links 2 N, rechts 1 N.", "2 NH₃ → N₂ + 3 H₂": "Ammoniak ist das Produkt – es steht rechts." },
-    ok: "Ausgangsstoffe N₂ und H₂, Produkt NH₃.",
+    ok: "Edukte N₂ und H₂, Produkt NH₃.",
   },
   {
     say: "Manchmal geht es nur mit einer **halben** Zahl: Für 3 H-Atome bräuchte man 1½ H₂.",
@@ -172,10 +172,10 @@ const OS: GuideStep[] = [
     ok: "CaCO₃ + 2 HCl → CaCl₂ + H₂O + CO₂.",
   },
   {
-    ask: "Welcher Stoff ist ein **Ausgangsstoff**?", answer: "NO₂", options: ["NO₂", "HNO₃", "NO"],
+    ask: "Welcher Stoff ist ein **Edukt**?", answer: "NO₂", options: ["NO₂", "HNO₃", "NO"],
     visual: () => <Line eq={eqOf(["NO2", "H2O"], ["HNO3", "NO"])} k={[3, 1, 2, 1]} />,
     why: { "HNO₃": "HNO₃ steht rechts – es ist ein Produkt.", NO: "NO steht rechts – es ist ein Produkt." },
-    ok: "Ausgangsstoffe links: NO₂ und H₂O.",
+    ok: "Edukte links: NO₂ und H₂O.",
   },
   {
     say: "Verbrennung: erst C, dann H, zuletzt O. Ergibt sich eine halbe Zahl, **alles verdoppeln**.",
@@ -198,9 +198,9 @@ const OS: GuideStep[] = [
     ok: "2 H₂ + O₂ → 2 H₂O.",
   },
   {
-    ask: "Welche Gleichung passt zu: **Calciumcarbonat → Calciumoxid + Kohlenstoffdioxid**?", answer: "CaCO₃ → CaO + CO₂",
+    ask: "Welche Gleichung passt zu: **Calciumcarbonat → Calciumoxid + Kohlendioxid**?", answer: "CaCO₃ → CaO + CO₂",
     options: ["CaCO₃ → CaO + CO₂", "CaCO₃ → Ca + C + O₃", "CaCO₃ → CaO₂ + C", "CaO + CO₂ → CaCO₃"],
-    why: { "CaCO₃ → Ca + C + O₃": "Es entstehen Calciumoxid und Kohlenstoffdioxid, nicht die Elemente.", "CaCO₃ → CaO₂ + C": "Calciumoxid ist CaO, Kohlenstoffdioxid CO₂.", "CaO + CO₂ → CaCO₃": "Calciumcarbonat ist der Ausgangsstoff – links." },
+    why: { "CaCO₃ → Ca + C + O₃": "Es entstehen Calciumoxid und Kohlendioxid, nicht die Elemente.", "CaCO₃ → CaO₂ + C": "Calciumoxid ist CaO, Kohlendioxid CO₂.", "CaO + CO₂ → CaCO₃": "Calciumcarbonat ist der Edukt – links." },
     ok: "Zerlegung: CaCO₃ → CaO + CO₂.",
   },
 ];
@@ -208,11 +208,11 @@ const OS: GuideStep[] = [
 export function guideFor(stufe: "us" | "os"): GuideDef {
   return stufe === "us"
     ? { title: "Reaktionsgleichungen", steps: US, outro: [
-      "Atome bleiben erhalten: links und rechts gleich viele von jeder Sorte.",
+      "Massenerhaltung: links und rechts gleich viele Atome von jeder Sorte.",
       "Formeln nie ändern – nur **Zahlen davor** setzen.",
       "Zahl davor × kleine Zahl = Atome (3 C₃H₈ → 24 H).",
       "Verbrennung: C, H, zuletzt O. Halbe Zahl → alles verdoppeln.",
-      "Ausgangsstoffe links, Produkte rechts; Wortgleichung → Formelgleichung.",
+      "Edukte links, Produkte rechts; Wortgleichung → Formelgleichung.",
     ] }
     : { title: "Reaktionsgleichungen", steps: OS, outro: [
       "Klammern: Zahl dahinter gilt für die ganze Gruppe (Ca(NO₃)₂ → 6 O).",

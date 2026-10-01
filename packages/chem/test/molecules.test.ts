@@ -32,7 +32,7 @@ test("Bindungen nur mit ungepaarten Elektronen", () => {
   const cl2: Molecule = { atoms: [{ id: 1, el: "Cl", x: 0, y: 0 }, { id: 2, el: "Cl", x: 1, y: 0 }], bonds: [] };
   assert.ok(canBond(cl2, 1, 2));
   cl2.bonds.push({ a: 1, b: 2, order: 1 });
-  assert.ok(!canBond(cl2, 1, 2), "keine Doppelbindung bei Cl2");
+  assert.ok(!canBond(cl2, 1, 2), "keine Zweifachbindung bei Cl2");
 });
 
 test("Formel, Geometrie, Polarität", () => {

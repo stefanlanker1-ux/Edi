@@ -6,7 +6,7 @@ import type { GuideDef } from "./Guide.tsx";
 /** Sätze mit mehr als `max` Wörtern (Aufzählungen mit Doppelpunkt/Gleichheitszeichen zählen als ein Satz je Teil) */
 export function longGuideSentences(text: string, max = 22): string[] {
   const plain = text.replace(/\*\*|`/g, "");
-  return plain.split(/(?<=[.!?])\s+/).filter(s => s.split(/\s+/).filter(w => /[A-Za-zÄÖÜäöüß]/.test(w)).length > max);
+  return plain.replace(/([.!?])\s+/g, "$1\n").split("\n").filter(s => s.split(/\s+/).filter(w => /[A-Za-zÄÖÜäöüß]/.test(w)).length > max);
 }
 
 export function checkGuide(def: GuideDef): string[] {

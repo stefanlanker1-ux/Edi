@@ -14,8 +14,8 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
     "**Element:** nur **eine** Atomsorte (He, Cu, O₂). **Verbindung:** mehrere Atomsorten fest im Teilchen (H₂O, CO₂).",
   ] },
   everyday: { ex: "oel", arr: ["nachher"], points: [
-    "**Homogen:** überall gleich, keine Grenze zu sehen – Lösung, Legierung, Gasgemisch.",
-    "**Heterogen:** Teile, Tröpfchen oder Schichten sind zu erkennen – Emulsion, Suspension, Gemenge.",
+    "**Homogen:** überall gleich, keine Grenze zu sehen – Lösung (s/l), Legierung (s/s), Gasgemisch (g/g).",
+    "**Heterogen:** Teile, Tröpfchen oder Schichten sind zu erkennen – Emulsion (l/l), Suspension (s/l), Gemenge (s/s).",
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
   solving: { ex: "zucker", arr: ["vorher", "nachher"], points: [

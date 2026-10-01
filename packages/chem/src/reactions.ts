@@ -130,7 +130,7 @@ export function equationText(eq: Equation, coeffs?: (number | null)[]): string {
 export const SPECIES_NAMES: Record<string, string> = {
   H2: "Wasserstoff", O2: "Sauerstoff", N2: "Stickstoff", Cl2: "Chlor", H2O: "Wasser", H2O2: "Wasserstoffperoxid",
   Mg: "Magnesium", MgO: "Magnesiumoxid", Fe: "Eisen", Fe2O3: "Eisen(III)-oxid", FeS: "Eisensulfid", S: "Schwefel",
-  Na: "Natrium", NaCl: "Natriumchlorid", C: "Kohlenstoff", CO2: "Kohlenstoffdioxid", H2CO3: "Kohlensäure", CO: "Kohlenstoffmonoxid", CH4: "Methan",
+  Na: "Natrium", NaCl: "Natriumchlorid", C: "Kohlenstoff", CO2: "Kohlendioxid", H2CO3: "Kohlensäure", CO: "Kohlenmonoxid", CH4: "Methan",
   NH3: "Ammoniak", Al: "Aluminium", Al2O3: "Aluminiumoxid", AlCl3: "Aluminiumchlorid", Cu: "Kupfer", CuO: "Kupferoxid",
   CaCO3: "Calciumcarbonat (Kalk)", CaO: "Calciumoxid", Zn: "Zink", HCl: "Chlorwasserstoff (Salzsäure)", ZnCl2: "Zinkchlorid",
   MgCl2: "Magnesiumchlorid", K: "Kalium", KOH: "Kaliumhydroxid", NaOH: "Natriumhydroxid", SO2: "Schwefeldioxid",
@@ -148,7 +148,7 @@ export const SPECIES_NAMES: Record<string, string> = {
   KNO3: "Kaliumnitrat", H3PO4: "Phosphorsäure", Na3PO4: "Natriumphosphat", HNO3: "Salpetersäure", "Ca(NO3)2": "Calciumnitrat",
   NO2: "Stickstoffdioxid", NaClO: "Natriumhypochlorit", P4: "Phosphor (weiß)", P4O10: "Tetraphosphordecaoxid",
   "Al2(SO4)3": "Aluminiumsulfat", "Ca3(PO4)2": "Calciumphosphat", CaSO4: "Calciumsulfat (Gips)", CH3OH: "Methanol", MnO2: "Mangan(IV)-oxid (Braunstein)",
-  MnCl2: "Mangan(II)-chlorid", "Cu(NO3)2": "Kupfer(II)-nitrat", KMnO4: "Kaliumpermanganat", FeS2: "Eisen(II)-disulfid (Pyrit)", C8H18: "Octan (Benzin)",
+  MnCl2: "Mangan(II)-chlorid", "Cu(NO3)2": "Kupfer(II)-nitrat", KMnO4: "Kaliumpermanganat", FeS2: "Eisen(II)-disulfid (Pyrit)", C8H18: "Oktan (Benzin)",
   K2Cr2O7: "Kaliumdichromat", CrCl3: "Chrom(III)-chlorid",
   // Gemische
   O3: "Ozon", He: "Helium", Ne: "Neon", Ar: "Argon", C12H26: "Dodecan (Öl)", C12H22O11: "Saccharose (Zucker)",
@@ -271,7 +271,7 @@ export const REACTIONS: Reaction[] = [
   O4("cu-hno3", "Kupfer in verd. Salpetersäure", "umsetzung", ["Cu", "HNO3"], ["Cu(NO3)2", "NO", "H2O"]),
   O4("ag-hno3", "Silber in Salpetersäure", "umsetzung", ["Ag", "HNO3"], ["AgNO3", "NO", "H2O"]),
   O4("pyrit", "Pyrit rösten", "umsetzung", ["FeS2", "O2"], ["Fe2O3", "SO2"]),
-  O4("octan", "Benzin verbrennt (Octan)", "umsetzung", ["C8H18", "O2"], ["CO2", "H2O"]),
+  O4("octan", "Benzin verbrennt (Oktan)", "umsetzung", ["C8H18", "O2"], ["CO2", "H2O"]),
   O4("chlorat", "Chlor in heißer Kalilauge", "umsetzung", ["Cl2", "KOH"], ["KCl", "KClO3", "H2O"]),
   O4("permanganat", "Chlor aus Permanganat", "umsetzung", ["KMnO4", "HCl"], ["KCl", "MnCl2", "Cl2", "H2O"]),
   O4("dichromat", "Chlor aus Dichromat", "umsetzung", ["K2Cr2O7", "HCl"], ["KCl", "CrCl3", "Cl2", "H2O"]),

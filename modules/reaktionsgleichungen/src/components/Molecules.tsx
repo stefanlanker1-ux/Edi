@@ -1,4 +1,4 @@
-// Teilchenbild: links Kasten mit den Ausgangsstoffen, Pfeil, rechts Kasten mit den Produkten
+// Teilchenbild: links Kasten mit den Edukten, Pfeil, rechts Kasten mit den Produkten
 // (bei hohem, schmalem Platz – Handy hochkant – übereinander mit Pfeil nach unten).
 // Jeder Stoff steht als eigener Stapel – so viele Moleküle, wie der Koeffizient sagt. Kalottenmodell aus echter 3D-Geometrie
 // (@lern/chem-ui Kalotte): Kugeln nach Tiefe sortiert und dezent schattiert, Farben aus der gemeinsamen Palette.

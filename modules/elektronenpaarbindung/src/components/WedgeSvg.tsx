@@ -20,7 +20,7 @@ export function WedgeSvg({ mol, lonePairs = true, deltas = false }: { mol: Molec
   if (deltas) for (const p of polarBonds(mol)) { sign.set(p.plus, "δ+"); sign.set(p.minus, "δ−"); }
 
   return (
-    <svg className="structure wedge" viewBox={vb} role="img" aria-label="Keilstrichformel">
+    <svg className="structure wedge" viewBox={vb} role="img" aria-label="Geometrische Strukturformel">
       {w.bonds.map(b => {
         const p = at.get(b.from)!, q = at.get(b.to)!;
         const L = Math.hypot(q.x - p.x, q.y - p.y) || 1;

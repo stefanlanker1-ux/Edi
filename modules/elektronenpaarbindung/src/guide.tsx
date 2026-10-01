@@ -50,14 +50,14 @@ const US: GuideStep[] = [
     ok: "2 freie Paare + 2 bindende Paare = 8 Elektronen.",
   },
   {
-    say: "Paare, die nicht binden, heißen **freie Elektronenpaare**.",
+    say: "Paare, die nicht binden, heißen **freie** (nichtbindende) **Elektronenpaare**.",
     ask: "Wie viele **freie** Elektronenpaare hat das O-Atom in Wasser?", answer: 2, num: {},
     visual: () => <Lewis m={known("H2O")} />,
     why: { "4": "4 sind alle Paare. Ohne die 2 bindenden bleiben …", "8": "8 sind die Elektronen. Gefragt sind freie **Paare**." },
     ok: "Wasser: O hat 2 freie Paare.",
   },
   {
-    say: "Haben nach einer Bindung **beide** Atome noch einzelne Elektronen, binden sie noch einmal: **Doppelbindung**.",
+    say: "Haben nach einer Bindung **beide** Atome noch einzelne Elektronen, binden sie noch einmal: **Zweifachbindung**.",
     ask: "Tippe auf das graue **Bindungs-Oval**, um die Bindung zu verstärken.", answer: "bond",
     visual: c => <Lewis m={mol([["O", 0, 0], ["O", 1, 0]], [[0, 1, 1]])} c={c} tap />,
     show: "So geht's: tippe auf das graue Oval zwischen den beiden O-Atomen.",
@@ -65,9 +65,9 @@ const US: GuideStep[] = [
   },
   {
     ask: "Stickstoff hat 3 einzelne Elektronen. Welche Bindung liegt in **N₂** vor?", answer: "Dreifachbindung",
-    options: ["Einfachbindung", "Doppelbindung", "Dreifachbindung"],
+    options: ["Einfachbindung", "Zweifachbindung", "Dreifachbindung"],
     visual: () => <Lewis m={mol([["N", 0, 0], ["N", 2, 0]])} octet={false} />,
-    why: { Einfachbindung: "Dann hätte jedes N noch 2 einzelne Elektronen.", Doppelbindung: "Dann hätte jedes N noch 1 einzelnes Elektron." },
+    why: { Einfachbindung: "Dann hätte jedes N noch 2 einzelne Elektronen.", Zweifachbindung: "Dann hätte jedes N noch 1 einzelnes Elektron." },
     ok: "N≡N: drei gemeinsame Paare.",
   },
   {
@@ -115,12 +115,12 @@ const OS: GuideStep[] = [
     ask: "Ethen (C₂H₄): Tippe auf die C–C-Bindung, um sie zu verstärken.", answer: "bond",
     visual: c => <Lewis m={mol([["C", 1, 0], ["C", 2, 0], ["H", 0, 0], ["H", 1, 1], ["H", 3, 0], ["H", 2, 1]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]])} c={c} tap />,
     show: "So geht's: tippe auf das graue Oval zwischen den beiden C-Atomen.",
-    ok: "C=C: Doppelbindung – beide C haben ein Oktett.",
+    ok: "C=C: Zweifachbindung – beide C haben ein Oktett.",
   },
   {
-    ask: "Welche Bindung liegt in **HCN** zwischen C und N vor?", answer: "Dreifachbindung", options: ["Einfachbindung", "Doppelbindung", "Dreifachbindung"],
+    ask: "Welche Bindung liegt in **HCN** zwischen C und N vor?", answer: "Dreifachbindung", options: ["Einfachbindung", "Zweifachbindung", "Dreifachbindung"],
     visual: () => <Lewis m={mol([["H", 0, 0], ["C", 1, 0], ["N", 3, 0]], [[0, 1, 1]])} octet={false} />,
-    why: { Einfachbindung: "C hat nach H noch 3 einzelne Elektronen, N hat 3.", Doppelbindung: "Dann hätten C und N noch je 1 einzelnes Elektron." },
+    why: { Einfachbindung: "C hat nach H noch 3 einzelne Elektronen, N hat 3.", Zweifachbindung: "Dann hätten C und N noch je 1 einzelnes Elektron." },
     ok: "H–C≡N.",
   },
   {
@@ -146,7 +146,7 @@ const OS: GuideStep[] = [
   {
     ask: "Welchen Bindungswinkel hat **CO₂** (O=C=O)?", answer: "180°", options: ["180°", "120°", "109,5°", "104,5°"],
     visual: () => <Lewis m={known("CO2")} />,
-    why: { "120°": "C hat keine freien Paare – nur 2 Bereiche (zwei Doppelbindungen).", "109,5°": "Eine Doppelbindung zählt wie ein Paar: nur 2 Bereiche.", "104,5°": "Das gilt für Wasser mit 2 freien Paaren." },
+    why: { "120°": "C hat keine freien Paare – nur 2 Bereiche (zwei Zweifachbindungen).", "109,5°": "Eine Zweifachbindung zählt wie ein Paar: nur 2 Bereiche.", "104,5°": "Das gilt für Wasser mit 2 freien Paaren." },
     ok: "2 Bereiche → linear, 180°.",
   },
   {
@@ -194,7 +194,7 @@ export function guideFor(stufe: "us" | "os"): GuideDef {
       "Einzelne Außenelektronen = mögliche Bindungen: H 1, O 2, N 3, C 4.",
       "Ein gemeinsames Paar = eine Bindung; es zählt für **beide** Atome.",
       "Im Molekül **Oktett** (8), bei H **Duett** (2). Freie Paare zählen mit.",
-      "Doppel- und Dreifachbindung, wenn noch einzelne Elektronen übrig sind (O₂, N₂).",
+      "Zweifach- und Dreifachbindung, wenn noch einzelne Elektronen übrig sind (O₂, N₂).",
       "Formeln und Namen: H₂O, NH₃, CH₄, CCl₄, Cl₂ …",
     ] }
     : { title: "Elektronenpaarbindung", steps: OS, outro: [

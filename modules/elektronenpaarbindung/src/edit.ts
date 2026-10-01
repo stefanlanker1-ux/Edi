@@ -40,7 +40,7 @@ export function move(m: Molecule, id: number, x: number, y: number): Molecule {
 export const remove = (m: Molecule, id: number): Molecule =>
   ({ atoms: m.atoms.filter(a => a.id !== id), bonds: m.bonds.filter(b => b.a !== id && b.b !== id) });
 
-/** Tipp auf eine Bindung: Einfach → Doppel → Dreifach (wenn möglich), sonst lösen */
+/** Tipp auf eine Bindung: Einfach → Zweifach → Dreifach (wenn möglich), sonst lösen */
 export function cycleBond(m: Molecule, a: number, b: number): { mol: Molecule; action: "up" | "removed" } {
   const k = bondKey(a, b);
   if (canBond(m, a, b)) return { mol: { ...m, bonds: m.bonds.map(x => (bondKey(x.a, x.b) === k ? { ...x, order: x.order + 1 } : x)) }, action: "up" };

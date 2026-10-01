@@ -157,7 +157,7 @@ const cross = (a: Vec, b: Vec): Vec => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] -
  * (bei Gleichstand die schräge, räumlich wirkende). Danach längste Ausdehnung waagrecht, größtes Atom oben.
  */
 /**
- * Kettenmoleküle CₙH₂ₙ₊₂ (Ethan, Propan, Butan, Pentan, Octan): als gerade Kette wie die Strukturformel
+ * Kettenmoleküle CₙH₂ₙ₊₂ (Ethan, Propan, Butan, Pentan, Oktan): als gerade Kette wie die Strukturformel
  * (übersichtlicher als Zickzack) – C in einer Reihe, die H genau darüber und darunter, an den Enden auch nach außen.
  * So ist jedes Atom ganz zu sehen.
  */

@@ -12,7 +12,7 @@ test("Wasser bauen: Bindungen entstehen automatisch", () => {
   assert.strictEqual(identify(m)?.id, "H2O");
 });
 
-test("Kohlenstoffdioxid: Doppelbindungen per Tipp", () => {
+test("Kohlendioxid: Zweifachbindungen per Tipp", () => {
   let m = empty();
   m = place(m, "O", 1, 1); m = place(m, "C", 2, 1); m = place(m, "O", 3, 1);
   assert.ok(!isComplete(m));

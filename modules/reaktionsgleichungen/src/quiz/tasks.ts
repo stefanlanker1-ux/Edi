@@ -206,36 +206,36 @@ function wort(s: Stufe): Task {
     return {
       ...mc(eqBal(r), [
         unbalanced === eqBal(r) ? null : dis(unbalanced, "Die Stoffe stimmen, aber die Atome sind nicht ausgeglichen – die Zahlen davor fehlen."),
-        dis(swapped, "Seiten vertauscht: Ausgangsstoffe stehen links vom Pfeil, Produkte rechts."),
+        dis(swapped, "Seiten vertauscht: Edukte stehen links vom Pfeil, Produkte rechts."),
         atoms && di ? dis(atoms, `${speciesName(di)} kommt als Molekül ${toSubscript(di)} vor – nicht als einzelnes ${DIATOMIC[di]}-Atom.`) : null,
         ...others,
       ]),
       eq: words,
       prompt: "Welche Gleichung passt zur Wortgleichung?",
-      hint: "Links stehen die Ausgangsstoffe, rechts die Produkte – und die Atome müssen ausgeglichen sein.",
+      hint: "Links stehen die Edukte, rechts die Produkte – und die Atome müssen ausgeglichen sein.",
       explain: `**${eqBal(r)}**`,
     };
   }
-  // Welcher Stoff ist Produkt / Ausgangsstoff?
+  // Welcher Stoff ist Produkt / Edukt?
   const askProduct = Math.random() < 0.6;
   const inPool = askProduct ? r.right : r.left, otherPool = askProduct ? r.left : r.right;
   const right = pick(inPool);
-  const side = askProduct ? "links – das ist ein Ausgangsstoff" : "rechts – das ist ein Produkt";
+  const side = askProduct ? "links – das ist ein Edukt" : "rechts – das ist ein Produkt";
   const els = new Set(elementsOf(r));
   // Stoffe aus denselben Elementen, die in dieser Reaktion nicht vorkommen (z. B. CO statt CO₂)
   const lookalikes = shuffle([...new Set(REACTIONS_ALL.flatMap(x => [...x.left, ...x.right]))])
     .filter(f => !inPool.includes(f) && !otherPool.includes(f) && Object.keys(parseFormula(f)).every(e => els.has(e)));
   const wrongs = [
     ...otherPool.filter(f => !inPool.includes(f)).map(f => dis(toSubscript(f), `${toSubscript(f)} steht ${side}.`)),
-    ...lookalikes.slice(0, 2).map(f => dis(toSubscript(f), `${toSubscript(f)} kommt in dieser Gleichung nicht vor – ${askProduct ? "die Produkte stehen rechts vom Pfeil" : "die Ausgangsstoffe stehen links vom Pfeil"}.`)),
+    ...lookalikes.slice(0, 2).map(f => dis(toSubscript(f), `${toSubscript(f)} kommt in dieser Gleichung nicht vor – ${askProduct ? "die Produkte stehen rechts vom Pfeil" : "die Edukte stehen links vom Pfeil"}.`)),
     ...shuffle(rs.flatMap(x => [...x.left, ...x.right])).filter(f => !inPool.includes(f) && !otherPool.includes(f)).slice(0, 3).map(toSubscript),
   ];
   return {
     ...mc(toSubscript(right), wrongs),
     eq: eqBal(r),
-    prompt: `**${r.title}:** Welcher Stoff ist ein **${askProduct ? "Produkt" : "Ausgangsstoff"}**?`,
-    hint: "Ausgangsstoffe stehen links vom Pfeil, Produkte rechts.",
-    explain: `${askProduct ? "Produkte (rechts)" : "Ausgangsstoffe (links)"}: ${inPool.map(withName).join(", ")} → **${toSubscript(right)}**.`,
+    prompt: `**${r.title}:** Welcher Stoff ist ein **${askProduct ? "Produkt" : "Edukt"}**?`,
+    hint: "Edukte stehen links vom Pfeil, Produkte rechts.",
+    explain: `${askProduct ? "Produkte (rechts)" : "Edukte (links)"}: ${inPool.map(withName).join(", ")} → **${toSubscript(right)}**.`,
   };
 }
 

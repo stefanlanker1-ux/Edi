@@ -20,7 +20,7 @@ export function StructureSvg({ mol, lonePairs = true, deltas = false }: { mol: M
   const sign = new Map<number, string>();
   if (deltas) for (const p of polarBonds(mol)) { sign.set(p.plus, "δ+"); sign.set(p.minus, "δ−"); }
   return (
-    <svg className="structure" viewBox={vb} role="img" aria-label="Valenzstrichformel">
+    <svg className="structure" viewBox={vb} role="img" aria-label="Strukturformel">
       {mol.bonds.map(b => {
         const p = at.get(b.a)!, q = at.get(b.b)!;
         const L = Math.hypot(q.x - p.x, q.y - p.y) || 1;

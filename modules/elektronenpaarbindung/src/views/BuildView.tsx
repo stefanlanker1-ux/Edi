@@ -51,11 +51,11 @@ export function BuildView() {
   const polarity = isPolar(mol) ? "polar" : polarBonds(mol).length ? "unpolar (symmetrisch)" : isWeaklyPolar(mol) ? "schwach polar" : "unpolar";
   const tools: WorkbenchTool[] = [
     {
-      id: "formel", label: "Formel", title: showWedge ? "Keilstrichformel" : "Strichformel", icon: "bond", content: (
+      id: "formel", label: "Formel", title: showWedge ? "Geometrische Strukturformel" : "Strukturformel", icon: "bond", content: (
         <>
           {done && mol.atoms.length > 1 && (
             <Segmented<"flat" | "wedge"> label="Darstellung" value={wedge ? "wedge" : "flat"} onChange={v => setWedge(v === "wedge")}
-              options={[{ value: "flat", label: "Strichformel" }, { value: "wedge", label: "Keilstrichformel", short: "Keilstrich" }]} />
+              options={[{ value: "flat", label: "Strukturformel" }, { value: "wedge", label: "Geometrische Strukturformel", short: "geometrisch" }]} />
           )}
           {mol.atoms.length
             ? <div className="struct-box">{showWedge
@@ -168,8 +168,8 @@ function WedgeLegend() {
   return (
     <ul className="wedge-legend">
       <li><svg viewBox="0 0 40 14" aria-hidden="true"><line x1="3" y1="7" x2="37" y2="7" className="lg-line" /></svg>in der Papierebene</li>
-      <li><svg viewBox="0 0 40 14" aria-hidden="true"><polygon points="3,7 37,1.5 37,12.5" className="lg-wedge" /></svg>zeigt nach vorn (zu dir)</li>
-      <li><svg viewBox="0 0 40 14" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map(i => { const x = 5 + i * 6.2, h = 1 + i * 1.1; return <line key={i} x1={x} x2={x} y1={7 - h} y2={7 + h} className="lg-line thin" />; })}</svg>zeigt nach hinten</li>
+      <li><svg viewBox="0 0 40 14" aria-hidden="true"><polygon points="3,7 37,1.5 37,12.5" className="lg-wedge" /></svg>Keil: zeigt nach vorn (zu dir)</li>
+      <li><svg viewBox="0 0 40 14" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map(i => { const x = 5 + i * 6.2, h = 1 + i * 1.1; return <line key={i} x1={x} x2={x} y1={7 - h} y2={7 + h} className="lg-line thin" />; })}</svg>strichliert: zeigt nach hinten</li>
     </ul>
   );
 }

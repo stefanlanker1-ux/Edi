@@ -87,7 +87,9 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   beschreibend statt zielgerichtet – nie „das Atom will/braucht ein Oktett“, sondern „das Ion hat dann eine volle Außenschale wie ein Edelgas“;
   Gruppen je Stufe: Unterstufe römische Hauptgruppe („IV. Hauptgruppe“), Oberstufe Gruppe 1–18 (`groupLabel` in `@lern/chem`, auch PSE-Kopf und PSE-Hilfe);
   Ladungen als Zahl vor dem Zeichen: 2+, 1− (`signed`, `chargeFull`), Rechnung mit echtem Minus (`minus`);
-  „Außenelektronen“ (einmal eingeführt als „Außenelektronen (Valenzelektronen)“), „Ausgangsstoffe (Edukte)“ und „Produkte“.
+  „Außenelektronen“ (einmal eingeführt als „Außenelektronen (Valenzelektronen)“), „Edukte (Ausgangsstoffe)“ und „Produkte“,
+  „Zweifachbindung“, „freie (nichtbindende) Elektronenpaare“, „Strukturformel“ / „geometrische Strukturformel“ (Keil = nach vorn, strichliert = nach hinten),
+  „Kohlendioxid“, „Kohlenmonoxid“, „Oktan“, „Gesetz der Massenerhaltung“, Gemischarten mit Aggregatzuständen (Lösung s/l, Emulsion l/l …).
 - Tipps verraten die Lösung nicht und passen zur Aufgabe (z. B. Tipp je Reaktionstyp); jede falsche Antwort bekommt eine Rückmeldung, wo möglich mit Katalog-Schlüssel.
 - Multiple Choice: `mc(richtig, falsche)` aus `@lern/quiz`; falsche Antworten möglichst als diagnostische Distraktoren – `d(text, miss, why)` mit Katalog-Schlüssel
   (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen). `mc` bevorzugt Optionen mit Diagnose.
@@ -194,7 +196,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 ## Elektronenpaarbindung (`modules/elektronenpaarbindung`)
 - Baufeld 6 × 5: Atome ziehen oder antippen und Felder antippen (Auswahl bleibt aktiv bis „Fertig“). Aus dem Feld ziehen = entfernen.
   Tastatur: Atom wählen (Enter), leere Felder per Tab/Enter, Bindungen/＋ per Enter, auf einem Atom Pfeiltasten = verschieben, Entf = entfernen.
-- Benachbarte Atome (waagrecht/senkrecht) binden automatisch, wenn beide ungepaarte Elektronen haben; Tipp auf das Paar-Oval: Einfach → Doppel → Dreifach → lösen.
+- Benachbarte Atome (waagrecht/senkrecht) binden automatisch, wenn beide ungepaarte Elektronen haben; Tipp auf das Paar-Oval: Einfach → Zweifach → Dreifach → lösen.
 - Logik in `packages/chem/src/molecules.ts` (Lewis-Belegung, Oktett, Erkennung bekannter Moleküle, EPA-Geometrie, Polarität) und `src/edit.ts`.
 - Darstellung: blaue Elektronen, graues Oval für bindende Paare, großer roter Kreis um jedes Atom mit Edelgaskonfiguration (H: Duett, gestrichelt; zusätzlich ✓).
   Kreise benachbarter Atome überlappen, die bindenden Paare liegen in beiden. Jedes bindende Paar = eine Reihe aus zwei Punkten entlang der Bindung (Dreifachbindung = drei Reihen).
@@ -218,7 +220,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Logik in `packages/chem/src/reactions.ts`: `parseFormula` (Klammern, tiefgestellte Ziffern), `balance` (Nullraum mit Brüchen → kleinste ganze Koeffizienten, `null` bei mehrdeutigen Gleichungen), `isBalanced`, `unbalancedElements`, `equationText` (Koeffizient 1 weglassen, `null` = „?“).
 - Reaktionen in `REACTIONS` mit `stufe` (us/os) und `niveau` 1–4 (`reactionsFor(stufe, …niveaus)`), Titel, Art, Formeln ASCII wie `Ca(OH)2`; Stoffnamen in `SPECIES_NAMES` (jeder Stoff braucht einen Namen).
   Niveaus: US 1 eine Zahl · 2 mehrere Zahlen · 3 Verbrennungen/Metalloxide · 4 knifflig (halbe Zahl → verdoppeln, Al + HCl); OS 1 Salze/Säuren (Ionen als Block) · 2 Zerfall/Fällung/Neutralisation ·
-  3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Octan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 5 Aufgaben).
+  3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 5 Aufgaben).
 - Aufbau (einfach, wenige Knöpfe): Tabs **Start | Quiz**. Start = 5 Beispielreaktionen nur aus Molekülen (`START` im Store: Knallgas, HCl, NH₃, Methan, Propan; Knöpfe 1–5, ✓ wenn gelöst),
   nach dem letzten Beispiel „Zum Quiz“. Mit `BalanceCard`:
   Titel, Teilchenbild (`MoleculeScene`, Kästen passen sich dem Inhalt an, nebeneinander oder übereinander), Ergebnis erst nach „Prüfen“ (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`,

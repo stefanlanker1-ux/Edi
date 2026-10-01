@@ -16,7 +16,7 @@ const TEXT: Record<string, Explanation> = {
   "us-1": {
     points: [
       "Im **Kern** sind Protonen (p⁺) und Neutronen (n). In der **Hülle** sind die Elektronen (e⁻).",
-      "Die **Ordnungszahl Z** ist die Anzahl der Protonen. Sie legt fest, welches Element es ist.",
+      "Die **Ordnungszahl Z** (Protonenzahl, Kernladungszahl) ist die Anzahl der Protonen. Sie legt fest, welches Element es ist.",
       "Die **Massenzahl A** zählt alle Kernteilchen: A = Protonen + Neutronen. Also: Neutronen = A − Z.",
       "Im **neutralen Atom** gibt es gleich viele Elektronen wie Protonen.",
     ],
@@ -27,8 +27,8 @@ const TEXT: Record<string, Explanation> = {
     points: [
       "Die Elektronen sind auf **Schalen** verteilt – von innen nach außen K, L, M, N.",
       "Die K-Schale fasst **2**, die L-Schale **8** und die M-Schale (bis Calcium) **8** Elektronen.",
-      "Die Elektronen der äußersten Schale heißen **Außenelektronen**. Ihre Anzahl ist die Nummer der Hauptgruppe.",
-      "Die Anzahl der Schalen ist die Nummer der **Periode**.",
+      "Die Elektronen der äußersten Schale heißen **Außenelektronen** (Valenzelektronen). Ihre Anzahl ist die Nummer der Hauptgruppe (Spalte).",
+      "Die Anzahl der Schalen ist die Nummer der **Periode** (Zeile).",
     ],
     example: { kind: "bohr", Z: 11, N: 12, E: 11 },
     caption: "Natrium: K 2, L 8, M 1 → 3. Periode, I. Hauptgruppe",
@@ -37,7 +37,7 @@ const TEXT: Record<string, Explanation> = {
     points: [
       "**Ionen** sind geladene Teilchen. Gibt ein Atom Elektronen ab, wird es positiv (**Kation**), nimmt es welche auf, negativ (**Anion**).",
       "Ladung = Protonen − Elektronen.",
-      "Ionen der Hauptgruppen haben eine volle Außenschale wie ein Edelgas: Na⁺ wie Ne, Cl⁻ wie Ar.",
+      "Ionen der Hauptgruppen haben eine volle Außenschale wie ein Edelgas (**Edelgaszustand**): Na⁺ wie Ne, Cl⁻ wie Ar.",
       "**Isotope** haben gleich viele Protonen, aber unterschiedlich viele Neutronen, z. B. Kohlenstoff-12 und Kohlenstoff-14.",
     ],
     example: { kind: "nuclide", Z: 11, N: 12, E: 10 },

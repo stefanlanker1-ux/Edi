@@ -84,7 +84,7 @@ function lonePairs(os: boolean): Task {
   };
 }
 
-/** „1 Doppelbindung und 2 Einfachbindungen“ */
+/** „1 Zweifachbindung und 2 Einfachbindungen“ */
 function bondList(k: KnownMolecule) {
   const by = [3, 2, 1].map(o => [o, mols(k).bonds.filter(b => b.order === o).length] as const).filter(([, c]) => c > 0);
   const parts = by.map(([o, c]) => `${c} ${bondName(o)}${c > 1 ? "en" : ""}`);
@@ -98,7 +98,7 @@ function build(os: boolean): Task {
   // Fallen: QuizView meldet atomsOff (Atomzahl stimmt nicht), multi (Mehrfachbindungen gesetzt), complete (alle Oktette voll)
   const traps: Trap[] = [
     { field: "atomsOff", value: 1, miss: "atomzahl-falsch", why: `${k.name} ist ${sub(k.formula)}: ${num(k.atoms.length, "Atom", "Atome")}. Zähle die Atome in der Formel.` },
-    ...(multi ? [{ field: "multi", value: 0, miss: "mehrfachbindung-uebersehen", why: `${k.name} braucht ${bondList(k)}. Tipp aufs Bindungs-Oval macht aus einer Einfach- eine Doppelbindung.` }] : []),
+    ...(multi ? [{ field: "multi", value: 0, miss: "mehrfachbindung-uebersehen", why: `${k.name} braucht ${bondList(k)}. Tipp aufs Bindungs-Oval macht aus einer Einfach- eine Zweifachbindung.` }] : []),
     { field: "complete", value: 0, miss: "oktett-offen", why: "Ein Atom hat noch nicht 8 Elektronen (H: 2) – der rote Kreis zeigt es. Fertig ist ein Molekül erst, wenn alle Kreise ✓ sind." },
   ];
   return {
@@ -293,7 +293,7 @@ interface Level extends QuizLevel { types: string[] }
 export const LEVELS: Record<Stufe, Level[]> = {
   us: [
     { id: "us-1", name: "Elektronenpaare & Oktett", desc: "Wie viele Bindungen? Wie viele freie Paare?", types: ["bindigkeit", "around", "lonePairs"] },
-    { id: "us-2", name: "Moleküle bauen", desc: "Einfach-, Doppel- und Dreifachbindungen", types: ["build", "bondType", "bindigkeit"] },
+    { id: "us-2", name: "Moleküle bauen", desc: "Einfach-, Zweifach- und Dreifachbindungen", types: ["build", "bondType", "bindigkeit"] },
     { id: "us-3", name: "Namen & Formeln", desc: "Wasser, Ammoniak, Methan & Co.", types: ["name", "formula", "build"] },
   ],
   os: [

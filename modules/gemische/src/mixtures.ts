@@ -43,7 +43,7 @@ export const EXAMPLES: Example[] = [
   { id: "helium", title: "Helium im Luftballon", items: [["He", 120]], state: "gas" },
   { id: "zucker", title: "Zuckerwasser", items: [["H2O", 170], ["C12H22O11", 30]], state: "fluessig", before: "kristall", solute: "C12H22O11", type: "Lösung", note: "im Modell viel mehr Zucker" },
   { id: "alkohol", title: "Alkohol und Wasser", items: [["H2O", 130], ["C2H5OH", 80]], state: "fluessig", before: "schicht", solute: "C2H5OH", type: "Lösung" },
-  { id: "sprudel", title: "Sprudelwasser", items: [["H2O", 200], ["CO2", 40]], state: "fluessig", before: "gasraum", solute: "CO2", type: "Lösung", note: "im Modell viel mehr Kohlenstoffdioxid", forms: ["H2CO3"] },
+  { id: "sprudel", title: "Sprudelwasser", items: [["H2O", 200], ["CO2", 40]], state: "fluessig", before: "gasraum", solute: "CO2", type: "Lösung", note: "im Modell viel mehr Kohlendioxid", forms: ["H2CO3"] },
   { id: "oel", title: "Öl und Wasser", items: [["H2O", 140], ["C12H26", 50]], state: "fluessig", floats: ["C12H26"], note: "Öl vereinfacht als Dodecan" },
   { id: "messing", title: "Messing", items: [["Cu", 108], ["Zn", 72]], state: "fest", before: "getrennt", type: "Legierung" },
   { id: "erdgas", title: "Erdgas", items: [["CH4", 110], ["C2H6", 20], ["CO2", 10]], state: "gas", before: "getrennt", type: "Gasgemisch", note: "Anteile vereinfacht" },

@@ -227,7 +227,7 @@ export const KNOWN: KnownMolecule[] = [
   { id: "H2O", name: "Wasser", formula: "H2O", atoms: [["O", 1, 0], ["H", 0, 0], ["H", 1, 1]], bonds: [[0, 1, 1], [0, 2, 1]] },
   { id: "NH3", name: "Ammoniak", formula: "NH3", atoms: [["N", 1, 1], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]] },
   { id: "CH4", name: "Methan", formula: "CH4", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] },
-  { id: "CO2", name: "Kohlenstoffdioxid", formula: "CO2", atoms: [["O", 0, 0], ["C", 1, 0], ["O", 2, 0]], bonds: [[0, 1, 2], [1, 2, 2]] },
+  { id: "CO2", name: "Kohlendioxid", formula: "CO2", atoms: [["O", 0, 0], ["C", 1, 0], ["O", 2, 0]], bonds: [[0, 1, 2], [1, 2, 2]] },
   { id: "CCl4", name: "Tetrachlormethan", formula: "CCl4", atoms: [["C", 1, 1], ["Cl", 1, 0], ["Cl", 0, 1], ["Cl", 2, 1], ["Cl", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] },
   { id: "H2S", name: "Schwefelwasserstoff", formula: "H2S", atoms: [["S", 1, 0], ["H", 0, 0], ["H", 1, 1]], bonds: [[0, 1, 1], [0, 2, 1]], os: true },
   { id: "PH3", name: "Phosphan", formula: "PH3", atoms: [["P", 1, 1], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]], os: true },
@@ -256,7 +256,7 @@ const KNOWN_KEYS = new Map(KNOWN.map(k => [canonicalKey(toMolecule(k)), k]));
 export const identify = (m: Molecule) => KNOWN_KEYS.get(canonicalKey(m)) ?? null;
 export const KNOWN_BY_ID: Record<string, KnownMolecule> = Object.fromEntries(KNOWN.map(k => [k.id, k]));
 
-export const bondName = (order: number) => (order === 1 ? "Einfachbindung" : order === 2 ? "Doppelbindung" : "Dreifachbindung");
+export const bondName = (order: number) => (order === 1 ? "Einfachbindung" : order === 2 ? "Zweifachbindung" : "Dreifachbindung");
 
 const SIDE_ANGLE: Record<Side, number> = { right: 0, down: 90, left: 180, up: 270 };
 

@@ -37,7 +37,7 @@ const TEXT: Record<string, Ex> = {
     "Die Zahlen im Ion (z. B. die 4 in SO₄) ändern sich nie.",
   ] },
   "os-3": { c: "Fe2+", a: "SO42-", points: [
-    "Einatomige Anionen enden auf **-id** (Chlorid, Oxid, Sulfid). Mehratomige enden meist auf **-at** (Sulfat, Nitrat, Carbonat).",
+    "Einatomige Anionen enden auf **-id** (Chlorid, Oxid, Sulfid; F⁻, Cl⁻, Br⁻, I⁻ = **Halogenid**-Ionen). Mehratomige enden meist auf **-at** (Sulfat, Nitrat, Carbonat).",
     "Achtung: Sulfid (S²⁻) ≠ Sulfat (SO₄²⁻), Nitrid (N³⁻) ≠ Nitrat (NO₃⁻).",
     "Bei Nebengruppenmetallen die Ladung als römische Zahl angeben: FeSO₄ = Eisen(II)-sulfat.",
   ] },

@@ -15,14 +15,14 @@ const TEXT: Record<string, { points: string[]; mol: string }> = {
     "Anzahl der Bindungen = ungepaarte Elektronen: H 1, O 2, N 3, C 4, Cl 1.",
   ] },
   "us-2": { mol: "O2", points: [
-    "Haben zwei Atome mehrere ungepaarte Elektronen, teilen sie **zwei** (Doppelbindung) oder **drei** Paare (Dreifachbindung).",
-    "O₂: O=O (Doppelbindung) · N₂: N≡N (Dreifachbindung) · CO₂: O=C=O.",
-    "Nicht bindende Elektronen bleiben als **freie Elektronenpaare** am Atom.",
+    "Haben zwei Atome mehrere ungepaarte Elektronen, teilen sie **zwei** (Zweifachbindung) oder **drei** Paare (Dreifachbindung).",
+    "O₂: O=O (Zweifachbindung) · N₂: N≡N (Dreifachbindung) · CO₂: O=C=O.",
+    "Nicht bindende Elektronen bleiben als **freie** (nichtbindende) **Elektronenpaare** am Atom.",
   ] },
   "us-3": { mol: "NH3", points: [
     "Die **Summenformel** zählt die Atome: NH₃ = 1 N und 3 H.",
-    "Die **Valenzstrichformel** zeigt jede Bindung als Strich und freie Paare als kurze Striche.",
-    "Wichtige Namen: H₂O Wasser, NH₃ Ammoniak, CH₄ Methan, HCl Chlorwasserstoff, CO₂ Kohlenstoffdioxid.",
+    "Die **Strukturformel** (Valenzstrichformel) zeigt jede Bindung als Strich und freie Paare als kurze Striche.",
+    "Wichtige Namen: H₂O Wasser, NH₃ Ammoniak, CH₄ Methan, HCl Chlorwasserstoff, CO₂ Kohlendioxid.",
   ] },
   "os-1": { mol: "HCN", points: [
     "Kohlenstoff bildet immer **4 Bindungen**, Stickstoff 3, Sauerstoff 2, Wasserstoff und Halogene 1.",
