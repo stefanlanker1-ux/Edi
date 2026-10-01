@@ -6,7 +6,8 @@ import { polarBonds, type Molecule } from "@lern/chem";
 import { strichLayout } from "../strich.ts";
 
 const U = 70;
-const GAP = 17; // Abstand der Striche vom Atomsymbol
+const GAP = 17; // Abstand der Striche vom Atomsymbol (zweibuchstabige Symbole in waagrechter Richtung etwas mehr)
+const gap = (el: string, ux: number) => GAP + (el.length > 1 ? 8 * Math.abs(ux) : 0);
 
 export function StructureSvg({ mol, lonePairs = true, deltas = false }: { mol: Molecule; lonePairs?: boolean; deltas?: boolean }) {
   const l = useMemo(() => strichLayout(mol), [mol]);
@@ -26,7 +27,7 @@ export function StructureSvg({ mol, lonePairs = true, deltas = false }: { mol: M
         const ux = (q.x - p.x) / L, uy = (q.y - p.y) / L, nx = -uy, ny = ux;
         const offs = b.order === 1 ? [0] : b.order === 2 ? [-4, 4] : [-7, 0, 7];
         return offs.map((o, i) => (
-          <line key={`${b.a}-${b.b}-${i}`} x1={p.x + ux * GAP + nx * o} y1={p.y + uy * GAP + ny * o} x2={q.x - ux * GAP + nx * o} y2={q.y - uy * GAP + ny * o} className="st-bond" />
+          <line key={`${b.a}-${b.b}-${i}`} x1={p.x + ux * gap(p.el, ux) + nx * o} y1={p.y + uy * gap(p.el, ux) + ny * o} x2={q.x - ux * gap(q.el, ux) + nx * o} y2={q.y - uy * gap(q.el, ux) + ny * o} className="st-bond" />
         ));
       })}
       {pts.map(a => (

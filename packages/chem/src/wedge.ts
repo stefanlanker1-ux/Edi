@@ -264,7 +264,9 @@ export function wedgeLayout(m: Molecule, mode: AngleMode = "real"): WedgeLayout 
     const order = nbs(hub.id).sort((x, y) => Number(el(x) === "H") - Number(el(y) === "H"));
     order.forEach((id, i) => {
       const [ang, kind] = tpl[i];
-      const L = len(sub(P.get(id)!, P.get(hub.id)!)) * (kind === "plain" ? 1 : 0.9);
+      // Bindungen gleich lang wie in der üblichen Zeichnung (echte Längen ließen C–H neben C–Cl gestaucht wirken);
+      // Partner mit freien Elektronenpaaren (Cl) etwas weiter außen, damit sich deren Paare nicht berühren
+      const L = meanLen * (kind === "plain" ? 1 : 0.95) * (electronsOf(m, id).pairs ? 1.2 : 1);
       const a = atoms.find(x => x.id === id)!;
       a.x = Math.cos(rad(ang)) * L; a.y = Math.sin(rad(ang)) * L;
       const b = bonds.find(x => (x.a === id && x.b === hub.id) || (x.b === id && x.a === hub.id))!;

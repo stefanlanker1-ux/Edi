@@ -6,6 +6,7 @@ import { polarBonds, wedgeLayout, type Molecule } from "@lern/chem";
 
 const BOND = 70; // mittlere Bindung in Pixel (wie ein Rasterschritt der Strichformel)
 const GAP = 16; // Abstand der Striche vom Atomsymbol
+const gap = (el: string, ux: number) => GAP + (el.length > 1 ? 8 * Math.abs(ux) : 0);
 
 export function WedgeSvg({ mol, lonePairs = true, deltas = false }: { mol: Molecule; lonePairs?: boolean; deltas?: boolean }) {
   const w = useMemo(() => wedgeLayout(mol), [mol]);
@@ -24,14 +25,16 @@ export function WedgeSvg({ mol, lonePairs = true, deltas = false }: { mol: Molec
         const p = at.get(b.from)!, q = at.get(b.to)!;
         const L = Math.hypot(q.x - p.x, q.y - p.y) || 1;
         const ux = (q.x - p.x) / L, uy = (q.y - p.y) / L, nx = -uy, ny = ux;
-        const ax = p.x + ux * GAP, ay = p.y + uy * GAP, bx = q.x - ux * GAP, by = q.y - uy * GAP;
+        // zweibuchstabige Symbole (Cl, Br) sind breiter: dort in waagrechter Richtung mehr Abstand
+        const ga = gap(p.el, ux), gb = gap(q.el, ux);
+        const ax = p.x + ux * ga, ay = p.y + uy * ga, bx = q.x - ux * gb, by = q.y - uy * gb;
         const key = `${b.a}-${b.b}`;
         if (b.kind === "wedge") {
           const h = 6;
           return <polygon key={key} points={`${ax},${ay} ${bx + nx * h},${by + ny * h} ${bx - nx * h},${by - ny * h}`} className="st-wedge" />;
         }
         if (b.kind === "dash") {
-          const n = Math.max(4, Math.round((L - 2 * GAP) / 6));
+          const n = Math.max(4, Math.round((L - ga - gb) / 6));
           return (
             <g key={key}>
               {Array.from({ length: n }, (_, i) => {
