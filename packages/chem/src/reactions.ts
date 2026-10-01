@@ -182,7 +182,7 @@ const R = (stufe: "us" | "os", niveau: Niveau) => (id: string, title: string, ki
 const U1 = R("us", 1), U2 = R("us", 2), U3 = R("us", 3), U4 = R("us", 4);
 const O1 = R("os", 1), O2 = R("os", 2), O3 = R("os", 3), O4 = R("os", 4);
 
-/** Reaktionen der Unter- und Oberstufe (Österreich) nach Niveau – alle mit eindeutiger Lösung */
+/** Reaktionen der Unter- und Oberstufe nach Niveau – alle mit eindeutiger Lösung */
 export const REACTIONS: Reaction[] = [
   // Unterstufe · Niveau 1: eine Zahl (oder gar keine) setzen
   U1("knallgas", "Knallgasreaktion", "synthese", ["H2", "O2"], ["H2O"]),

@@ -26,7 +26,7 @@ export function BuildView() {
 
   return (
     <>
-      <Workbench className="nw-wb" label="Lauge und Säure wählen" active={tool} onActive={setTool}
+      <Workbench className="nw-wb" label="Hydroxid und Säure wählen" active={tool} onActive={setTool}
         stage={<Fit min={0.5}><NeutralWall base={base} acid={acid} step={step} nB={nB} nA={nA} products={react} onUnit={setSheet} /></Fit>}
         status={<>
           {!balanced && <Tag tone="signal">{oh < h ? <>+ <Formula f={base.formula} /></> : <>+ <Formula f={acid.formula} /></>}</Tag>}
@@ -46,7 +46,7 @@ export function BuildView() {
           </div>
         }
         tools={[
-          { id: "b", label: <>Lauge <Formula f={base.formula} /></>, title: "Lauge", icon: "anion",
+          { id: "b", label: <>Hydroxid <Formula f={base.formula} /></>, title: "Hydroxid", icon: "anion",
             content: <BasePicker value={bId} os={os} onPick={id => pick({ base: id })} /> },
           { id: "a", label: <>Säure <Formula f={acid.formula} /></>, title: "Säure", icon: "table", wide: true,
             content: FINE_POINTER

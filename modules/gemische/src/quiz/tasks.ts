@@ -130,6 +130,37 @@ function stoffe(): Task {
 
 const REIN_E = "Reinstoff – Element", REIN_V = "Reinstoff – Verbindung", GEMISCH = "Gemisch";
 
+/** Level 1: Reinstoff oder Gemisch? – nur nach Teilchen, ohne Element/Verbindung (kommt erst in Level 2) */
+const R_OK = "Reinstoff – alle Teilchen gleich", G_OK = "Gemisch – verschiedene Teilchen";
+function reinOderGemisch(): Task {
+  const kind = pick<PictureKind>(["E", "V", "GE", "GV", "GEV"]);
+  const m = mixOf(kind);
+  const a = analyse(m.mix);
+  const base = { pic: m, prompt: "Reinstoff oder Gemisch?", hint: "Sind alle Teilchen gleich? Gleiche Teilchen = ein Stoff." };
+  if (kind === "E" || kind === "V") {
+    const f = a.stoffe[0];
+    return {
+      ...mc(R_OK, [
+        kind === "V" ? d("Gemisch – verschiedene Atome", "verbindung-gemisch", `Alle Teilchen sind gleich (${F(f)}). Mehrere Atome **in einem Teilchen** sind trotzdem ein Stoff.`)
+          : dis("Gemisch – verschiedene Atome", `Alle Teilchen sind gleich: nur ${F(f)}.`),
+        dis(G_OK, `Alle Teilchen sind gleich: nur ${F(f)}. Ein Gemisch hätte verschiedene Teilchen.`),
+      ], 3),
+      ...base,
+      explain: `Nur ${shortName(f)}-Teilchen (${F(f)}) → **Reinstoff**.`,
+    };
+  }
+  return {
+    ...mc(G_OK, [
+      d(R_OK, "sorten-uebersehen", `Es gibt ${cnt(a.stoffe.length, "Teilchensorte", "verschiedene Teilchensorten")}: ${names(a.stoffe)}. Das sind mehrere Stoffe.`),
+      kind === "GE" ? d("Reinstoff – nur einzelne Atome", "nur-elemente-rein", `Einzelne Atome verschiedener Sorten sind verschiedene Stoffe: ${names(a.stoffe)}.`)
+        : d("Reinstoff – lauter Moleküle", "sorten-uebersehen", `Die Moleküle sind nicht alle gleich: ${names(a.stoffe)} – mehrere Stoffe.`),
+    ], 3),
+    ...base,
+    explain: `Verschiedene Teilchen: ${names(a.stoffe)} → **Gemisch**.`,
+  };
+}
+
+/** Level 2: Reinstoff (Element oder Verbindung) oder Gemisch? */
 function reinGemisch(): Task {
   const kind = pick<PictureKind>(["E", "V", "GE", "GV", "GEV"]);
   const m = mixOf(kind);
@@ -280,7 +311,7 @@ function elemente(): Task {
       { field: "n", value: particles, miss: "teilchen-statt-stoffe", why: `**${particles}** sind die einzelnen Atome. Gefragt ist, wie viele **Stoffe** Elemente sind.` },
     ] as Trap[], { n: e }),
     prompt: "Wie viele der Stoffe im Bild sind **Elemente**?",
-    hint: "Ein Element hat nur eine Atomsorte. Hier sind das die einzelnen Atome.",
+    hint: "Ein Element hat nur eine Atomsorte – einzelne Atome, ein Gitter oder Moleküle wie O₂.",
     explain: a.elemente.length ? `Elemente: ${names(a.elemente)} → **${e}**.` : "Jedes Teilchen hat mehrere Atomsorten → **0** Elemente.",
   };
 }
@@ -490,8 +521,8 @@ function reinAlltag(): Task {
 const LOESEN = [
   { id: "zucker", what: "Zucker löst sich in Wasser.", f: "C12H22O11", who: "Zuckerteilchen" },
   { id: "alkohol", what: "Alkohol mischt sich mit Wasser.", f: "C2H5OH", who: "Alkoholteilchen" },
-  { id: "sprudel", what: "Im Sprudler löst sich Kohlenstoffdioxid in Wasser.", f: "CO2", who: "CO₂-Teilchen" },
 ];
+// Sprudel nicht: dort reagiert ein kleiner Teil des CO₂ mit Wasser zu Kohlensäure (Probieren zeigt das)
 
 /** Was passiert mit den Teilchen beim Lösen? */
 function wohin(): Task {
@@ -532,16 +563,16 @@ function erhalten(): Task {
 
 /** Masse beim Lösen bleibt erhalten */
 function masse(): Task {
-  const [stoff, what] = pick([["Zucker", "das Zuckerwasser"], ["Salz", "das Salzwasser"], ["Zucker", "der Tee"]]);
+  const [stoff, what, solvent] = pick([["Zucker", "das Zuckerwasser", "Wasser"], ["Salz", "das Salzwasser", "Wasser"], ["Zucker", "der Tee", "Tee"]]);
   const w = pick([100, 150, 200, 250, 300, 400, 500]), z = pick([10, 20, 30, 40, 50]);
   const g = (x: number) => `${x} g`;
   return {
     ...mc(g(w + z), [
       d(g(w), "verschwindet", `Der ${stoff} ist noch da – nur verteilt. Seine ${z} g zählen mit.`),
       d(g(w + z / 2), "masse-aendert", "Die Teilchen werden beim Lösen nicht leichter. Die Masse bleibt gleich."),
-      d(g(w + 2 * z), "masse-aendert", `Beim Lösen kommt nichts dazu. Wasser und ${stoff} zusammen wiegen genauso viel.`),
+      d(g(w + 2 * z), "masse-aendert", `Beim Lösen kommt nichts dazu. ${solvent} und ${stoff} zusammen wiegen genauso viel.`),
     ], 4, `${w} g + ${z} g = ${w + z} g.`),
-    prompt: `In **${w} g** Wasser lösen sich **${z} g** ${stoff}. Wie schwer ist ${what} jetzt?`,
+    prompt: `In **${w} g** ${solvent} lösen sich **${z} g** ${stoff}. Wie schwer ist ${what} jetzt?`,
     hint: "Beim Lösen verschwinden keine Teilchen. Was bedeutet das für die Masse?",
     explain: `Alle Teilchen sind noch da: ${w} g + ${z} g = **${w + z} g**.`,
   };
@@ -626,9 +657,9 @@ function farbe(): Task {
 
 /** Welches Teilchenbild passt nachher? */
 function nachher(): Task {
-  const s = pick(["zucker", "alkohol", "sprudel", "oel", "messing", "schutzgas"]);
+  const s = pick(["zucker", "alkohol", "oel", "messing", "schutzgas"]);
   const small: Record<string, [string, number][]> = {
-    zucker: [["H2O", 12], ["C12H22O11", 3]], alkohol: [["H2O", 10], ["C2H5OH", 5]], sprudel: [["H2O", 12], ["CO2", 3]],
+    zucker: [["H2O", 12], ["C12H22O11", 3]], alkohol: [["H2O", 10], ["C2H5OH", 5]],
     oel: [["H2O", 10], ["C12H26", 5]], messing: [["Cu", 6], ["Zn", 2]], schutzgas: [["Ar", 5], ["CO2", 3]],
   };
   const p = (arrange: Arrange, m = small[s]): Pic => exPic(s, arrange, m, s === "schutzgas" ? "CO2" : undefined);
@@ -642,10 +673,6 @@ function nachher(): Task {
       [p("oben"), "geloest-heterogen", "Alkohol bleibt nicht als Schicht oben. Er mischt sich ganz mit Wasser."],
       [p("unten"), "geloest-unten", "Alkohol sammelt sich nicht unten. Er verteilt sich überall."],
       [p("nachher", water), "verschwindet", "Hier fehlt der Alkohol. Er ist noch da – nur verteilt."]] },
-    sprudel: { q: "Kohlenstoffdioxid hat sich im Wasser gelöst. Welches Bild passt?", ok: "Genau: Die CO₂-Teilchen sind zwischen den Wasserteilchen verteilt.", wrong: [
-      [p("vorher"), "geloest-heterogen", "Hier ist das Gas noch über dem Wasser, nicht gelöst."],
-      [p("unten"), "geloest-unten", "Gelöstes Gas sammelt sich nicht unten. Es verteilt sich überall."],
-      [p("nachher", water), "verschwindet", "Hier fehlt das CO₂. Gelöst ist es noch da."]] },
     oel: { q: "Öl und Wasser wurden geschüttelt. Wie sieht es nach einer Weile aus?", ok: "Genau: Öl und Wasser trennen sich wieder, Öl oben.", wrong: [
       [p("gemischt"), "oel-mischt", "Öl und Wasser mischen sich nicht. Das Öl steigt wieder auf."],
       [p("unten"), "oel-unten", "Öl ist leichter als Wasser. Es schwimmt oben."]] },
@@ -671,7 +698,7 @@ function nachher(): Task {
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
 const RAW: Record<string, () => Task> = {
-  teilchen, stoffe, reinGemisch, einordnen, bildArt, bildWahl, verbindungen, elemente, atomsorten,
+  teilchen, stoffe, reinOderGemisch, reinGemisch, einordnen, bildArt, bildWahl, verbindungen, elemente, atomsorten,
   homogen, gemischart, alltag, reinAlltag, wohin, erhalten, masse, zwischen, bewegung, farbe, nachher,
 };
 /** neu würfeln, bis keine zwei Atomsorten ähnliche Farben haben */
@@ -682,7 +709,7 @@ const GENS: Record<string, () => Task> = Object.fromEntries(Object.entries(RAW).
 }]));
 
 export const TYPE_NAMES: Record<string, string> = {
-  teilchen: "Teilchen zählen", stoffe: "Stoffe zählen", reinGemisch: "Reinstoff oder Gemisch",
+  teilchen: "Teilchen zählen", stoffe: "Stoffe zählen", reinOderGemisch: "Reinstoff oder Gemisch", reinGemisch: "Reinstoff, Element oder Verbindung",
   einordnen: "Element oder Verbindung", bildArt: "Teilchenbild einordnen", bildWahl: "Teilchenbild auswählen",
   verbindungen: "Verbindungen zählen", elemente: "Elemente zählen", atomsorten: "Atomsorten zählen",
   homogen: "Homogen oder heterogen", gemischart: "Art des Gemischs", alltag: "Stoffe im Alltag", reinAlltag: "„Rein“ im Alltag",
@@ -692,8 +719,8 @@ export const TYPE_NAMES: Record<string, string> = {
 
 interface Level extends QuizLevel { types: string[] }
 export const LEVELS: Level[] = [
-  { id: "gm-1", name: "Teilchen und Stoffe", desc: "Teilchen zählen, Stoffe erkennen, Reinstoff oder Gemisch", types: ["teilchen", "stoffe", "reinGemisch"] },
-  { id: "gm-2", name: "Elemente und Verbindungen", desc: "Teilchenbilder einordnen, Elemente und Verbindungen zählen", types: ["einordnen", "bildArt", "bildWahl", "verbindungen", "elemente", "atomsorten"] },
+  { id: "gm-1", name: "Teilchen und Stoffe", desc: "Teilchen zählen, Stoffe erkennen, Reinstoff oder Gemisch", types: ["teilchen", "stoffe", "reinOderGemisch"] },
+  { id: "gm-2", name: "Elemente und Verbindungen", desc: "Teilchenbilder einordnen, Elemente und Verbindungen zählen", types: ["einordnen", "reinGemisch", "bildArt", "bildWahl", "verbindungen", "elemente", "atomsorten"] },
   { id: "gm-3", name: "Gemische im Alltag", desc: "Homogen oder heterogen, Arten von Gemischen, „rein“", types: ["homogen", "gemischart", "alltag", "reinAlltag"] },
   { id: "gm-4", name: "Lösen und Mischen", desc: "Teilchen bleiben erhalten, bewegen sich, haben keine Farbe", types: ["wohin", "erhalten", "masse", "zwischen", "bewegung", "farbe", "nachher"] },
 ];

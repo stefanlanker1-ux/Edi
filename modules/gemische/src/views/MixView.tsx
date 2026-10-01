@@ -3,7 +3,7 @@
 // CO₂ über dem Wasser, Gase hinter Trennwänden, Metallblöcke. Flüssigkeiten lösen und mischen sich von selbst (langsam; warm schneller),
 // der Knopf sagt, was er tut: Umrühren, Schütteln, Trennwand weg, Schmelzen. „Von vorn“ stellt den Anfang wieder her.
 // Öl und Wasser: „Schütteln“, danach entmischen sie sich wieder.
-// Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Beispiele.
+// Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Arten (Gemischarten-Tabelle), Beispiele.
 
 import { useId, useRef, useState } from "react";
 import { Button, Icon, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@lern/ui";
@@ -57,13 +57,24 @@ function Substances({ ex, onPick }: { ex: Example; onPick: (f: string) => void }
     <div className="gm-subs">
       <p className="gm-cap">Reinstoffe</p>
       <div className="gm-cols">{col("Verbindungen", a.verbindungen)}{col("Elemente", a.elemente)}</div>
+      {ex.forms && (
+        <div className="gm-forms">
+          <p className="gm-cap">Entsteht in kleiner Menge (Reaktion mit Wasser)</p>
+          {ex.forms.map(f => (
+            <button key={f} type="button" className="gm-sub" onClick={() => { buzz(); onPick(f); }}>
+              <MiniParticle f={f} size={36} />
+              <span><b>{nameOf(f)}</b><small>{toSubscript(f)}</small></span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function Counts({ ex }: { ex: Example }) {
   const a = analyse(ex.items);
-  const rows: [string, number][] = [["Teilchen", a.teilchen], ["Reinstoffe", a.stoffe.length], ["davon Verbindungen", a.verbindungen.length],
+  const rows: [string, number][] = [["Teilchen", a.teilchen], ["Stoffe", a.stoffe.length], ["davon Verbindungen", a.verbindungen.length],
     ["davon Elemente", a.elemente.length], ["Atomsorten", a.atomsorten.length]];
   return (
     <dl className="gm-counts">
@@ -101,6 +112,52 @@ function Einteilung({ current, onPick }: { current: number; onPick: (i: number) 
           {leaf("heterogen", "heterogen")}
         </div>
       </div>
+    </div>
+  );
+}
+
+type Z = "fest" | "flüssig" | "Gas";
+const ZS: Z[] = ["fest", "flüssig", "Gas"];
+/** Arten von Gemischen: verteilter Stoff (Zeile) in Hauptstoff (Spalte); homogen und heterogen mit Alltagsbeispiel */
+const ARTEN: Partial<Record<`${Z}|${Z}`, [string, string, boolean][]>> = {
+  "fest|fest": [["Gemenge", "Müsli", false], ["Legierung", "Messing", true]],
+  "fest|flüssig": [["Suspension", "Sand in Wasser", false], ["Lösung", "Zuckerwasser", true]],
+  "fest|Gas": [["Rauch", "Ruß in Luft", false]],
+  "flüssig|flüssig": [["Emulsion", "Milch", false], ["Lösung", "Alkohol in Wasser", true]],
+  "flüssig|Gas": [["Nebel", "Wolke", false]],
+  "Gas|flüssig": [["Schaum", "Schlagsahne", false], ["Lösung", "Sprudelwasser", true]],
+  "Gas|Gas": [["Gasgemisch", "Luft", true]],
+};
+/** Zelle des Beispiels in der Tabelle: [verteilter Stoff, Hauptstoff] */
+const CELL: Record<string, `${Z}|${Z}`> = {
+  zucker: "fest|flüssig", alkohol: "flüssig|flüssig", sprudel: "Gas|flüssig", oel: "flüssig|flüssig", messing: "fest|fest",
+  erdgas: "Gas|Gas", schutzgas: "Gas|Gas", modell: "Gas|Gas",
+};
+
+function Arten({ ex }: { ex: Example }) {
+  const cell = CELL[ex.id];
+  return (
+    <div className="gm-arten">
+      <table>
+        <thead><tr><th scope="col"><span className="gm-arten-diag">verteilt ↓ · in →</span></th>{ZS.map(z => <th key={z} scope="col">{z}</th>)}</tr></thead>
+        <tbody>
+          {ZS.map(r => (
+            <tr key={r}>
+              <th scope="row">{r}</th>
+              {ZS.map(c => {
+                const k = `${r}|${c}` as const, list = ARTEN[k];
+                return (
+                  <td key={c} className={k === cell ? "on" : undefined}>
+                    {list ? list.map(([n, e, hom]) => (
+                      <span key={n} className={`gm-art${ex.type === n && k === cell ? " cur" : ""}`}><b>{n}</b>{hom && <i> homogen</i>}<small>{e}</small></span>
+                    )) : "–"}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -273,6 +330,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
           { id: "zaehlen", label: "Zählen", icon: "table", content: <Counts ex={ex} /> },
           { id: "farben", label: "Farben", icon: "atom", content: <Legend els={a.atomsorten} /> },
           { id: "einteilung", label: "Einteilung", icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
+          { id: "arten", label: "Arten", icon: "beaker", title: "Arten von Gemischen", content: <Arten ex={ex} /> },
           { id: "beispiele", label: "Beispiele", icon: "grid", content: <ExampleList current={index} onPick={i => goTo(i)} /> },
         ]} />
       <SubstanceSheet f={pick} onClose={() => setPick(null)} />

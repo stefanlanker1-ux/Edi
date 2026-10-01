@@ -63,7 +63,7 @@ export function parseQ(input: string): Q | null {
   const m = s.match(/^(.*?)(?:·10\^(-?\d+)|e(-?\d+))$/i);
   if (m) { s = m[1]; exp = Number(m[2] ?? m[3]); if (s === "") s = "1"; }
   else if (/^10\^-?\d+$/.test(s)) { return pow10(Number(s.slice(3))); }
-  // Tausenderpunkte wie in Österreich: 40.000.000 oder 1.250,5 (mehrere Punkte bzw. Punkt und Komma)
+  // Tausenderpunkte (übliche Schreibweise): 40.000.000 oder 1.250,5 (mehrere Punkte bzw. Punkt und Komma)
   if (/^-?\d{1,3}(\.\d{3})+(,\d*)?$/.test(s) && (/\..*\./.test(s) || s.includes(","))) s = s.replace(/\./g, "");
   s = s.replace(",", ".");
   if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return null;
@@ -77,7 +77,7 @@ export function parseQ(input: string): Q | null {
 
 /**
  * Mögliche Werte einer Schülereingabe: die Einheit darf dahinter stehen („0,06 m“), und „48.000“ ist mehrdeutig
- * (Dezimalpunkt oder österreichischer Tausenderpunkt) – dann zählen beide Lesarten.
+ * (Dezimalpunkt oder Tausenderpunkt) – dann zählen beide Lesarten.
  */
 export function parseAnswer(input: string, unit?: string): Q[] {
   let s = input.trim();

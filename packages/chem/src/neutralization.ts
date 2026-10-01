@@ -37,6 +37,8 @@ export interface Hydroxide {
   name: string;
   /** Name der Lauge, falls gebräuchlich (Natronlauge) */
   lauge?: string;
+  /** in Wasser kaum löslich – keine typische Lauge (Mg(OH)₂, Al(OH)₃) */
+  poor?: boolean;
   cation: Ion;
   /** nur Oberstufe */
   os?: boolean;
@@ -52,7 +54,7 @@ export const PROTIC_ACIDS: ProticAcid[] = [
   { id: "hcl", name: "Chlorwasserstoff", alt: "Hydrogenchlorid", aq: "Salzsäure", formula: "HCl", protons: 1, rests: [rest("Cl", -1, "chlorid", "Chlorid-Ion")] },
   { id: "hclo4", name: "Perchlorsäure", formula: "HClO4", protons: 1, rests: [rest("ClO4", -1, "perchlorat", "Perchlorat-Ion")] },
   { id: "hcooh", name: "Ameisensäure", formula: "HCOOH", protons: 1, rests: [rest("HCOO", -1, "formiat", "Formiat-Ion")] },
-  { id: "hbr", name: "Hydrogenbromid", alt: "Bromwasserstoff", aq: "Bromwasserstoffsäure", formula: "HBr", protons: 1, rests: [rest("Br", -1, "bromid", "Bromid-Ion")] },
+  { id: "hbr", name: "Bromwasserstoff", alt: "Hydrogenbromid", aq: "Bromwasserstoffsäure", formula: "HBr", protons: 1, rests: [rest("Br", -1, "bromid", "Bromid-Ion")] },
   { id: "hno3", name: "Salpetersäure", formula: "HNO3", protons: 1, rests: [rest("NO3", -1, "nitrat", "Nitrat-Ion")] },
   { id: "ch3cooh", name: "Essigsäure", formula: "CH3COOH", protons: 1, rests: [ACETATE] },
   // zweiprotonige Säuren
@@ -70,17 +72,17 @@ export const PROTIC_ACIDS: ProticAcid[] = [
 ];
 
 const OH = ION_BY_ID["OH-"];
-const hyd = (id: string, cation: string, name: string, lauge?: string, os?: boolean): Hydroxide =>
-  ({ id, formula: saltFormula(ION_BY_ID[cation], OH), name, lauge, cation: ION_BY_ID[cation], ...(os ? { os } : {}) });
+const hyd = (id: string, cation: string, name: string, lauge?: string, os?: boolean, poor?: boolean): Hydroxide =>
+  ({ id, formula: saltFormula(ION_BY_ID[cation], OH), name, lauge, cation: ION_BY_ID[cation], ...(os ? { os } : {}), ...(poor ? { poor } : {}) });
 
 export const HYDROXIDES: Hydroxide[] = [
   hyd("lioh", "Li+", "Lithiumhydroxid"),
   hyd("naoh", "Na+", "Natriumhydroxid", "Natronlauge"),
   hyd("koh", "K+", "Kaliumhydroxid", "Kalilauge"),
-  hyd("mgoh2", "Mg2+", "Magnesiumhydroxid"),
+  hyd("mgoh2", "Mg2+", "Magnesiumhydroxid", undefined, false, true),
   hyd("caoh2", "Ca2+", "Calciumhydroxid", "Kalkwasser"),
   hyd("baoh2", "Ba2+", "Bariumhydroxid", "Barytwasser"),
-  hyd("aloh3", "Al3+", "Aluminiumhydroxid", undefined, true),
+  hyd("aloh3", "Al3+", "Aluminiumhydroxid", undefined, true, true),
 ];
 
 export const PROTIC_BY_ID: Record<string, ProticAcid> = Object.fromEntries(PROTIC_ACIDS.map(a => [a.id, a]));
@@ -94,9 +96,10 @@ export const proticWord = (n: number) => ["einprotonig", "zweiprotonig", "dreipr
 
 /**
  * Salze, die es in Wasser nicht gibt (sie zersetzen sich / reagieren mit Wasser): Aluminium mit den Säureresten schwacher Säuren
- * (Sulfid, Carbonat, Sulfit und ihre Hydrogen-Formen). Die App zeigt einen Hinweis, das Quiz fragt sie nicht ab.
+ * (Sulfid, Carbonat, Sulfit und ihre Hydrogen-Formen), Magnesiumsulfid (MgS + 2 H₂O → Mg(OH)₂ + H₂S).
+ * Die App zeigt einen Hinweis, das Quiz fragt sie nicht ab.
  */
-const NOT_IN_WATER = new Set(["Al3+|S2-", "Al3+|HS-", "Al3+|CO32-", "Al3+|HCO3-", "Al3+|SO32-", "Al3+|HSO3-"]);
+const NOT_IN_WATER = new Set(["Al3+|S2-", "Al3+|HS-", "Al3+|CO32-", "Al3+|HCO3-", "Al3+|SO32-", "Al3+|HSO3-", "Mg2+|S2-"]);
 export const isKnownSalt = (b: Hydroxide, r: Ion) => !NOT_IN_WATER.has(`${b.cation.id}|${r.id}`);
 
 export interface NeutralEq {

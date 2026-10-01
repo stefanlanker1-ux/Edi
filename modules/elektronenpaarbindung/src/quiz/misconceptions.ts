@@ -1,5 +1,4 @@
 // Fehlvorstellungen (Stolpersteine) zur Elektronenpaarbindung – Schlüssel für diagnostische Distraktoren und Fallen im Baufeld.
-// Quellen: Taber „Chemical misconceptions“ (RSC), Barke „Diagnose und Korrektur von Schülervorstellungen“, Nicoll (2001) zur Polarität.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Molekülen); hier nur der Name für Landkarte und Auswertung.
 
 export const MISS: Record<string, string> = {

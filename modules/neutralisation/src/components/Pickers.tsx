@@ -10,7 +10,7 @@ import { IonLabel, catTile, hTile, ohTile, restTile } from "./NeutralWall.tsx";
 
 export function BasePicker({ value, os, onPick }: { value: string; os: boolean; onPick: (id: string) => void }) {
   return (
-    <div className="ip-list" role="radiogroup" aria-label="Lauge (Metallhydroxid)">
+    <div className="ip-list" role="radiogroup" aria-label="Metallhydroxid">
       {hydroxidesFor(os).map(b => (
         <button key={b.id} type="button" role="radio" aria-checked={b.id === value} className={`ip-chip base${b.id === value ? " on" : ""}`} onClick={() => onPick(b.id)}>
           <b><Formula f={b.formula} /></b><span>{b.lauge ?? b.name}</span>
@@ -80,6 +80,7 @@ export function UnitSheet({ which, base, acid, step, os, onClose }: {
           <p className="us-eq">{hydroxideDissociation(base)}</p>
           <div className="ui-tags us-tags">
             {base.lauge && <Tag>in Wasser: {base.lauge}</Tag>}
+            {base.poor && <Tag>in Wasser kaum löslich</Tag>}
             <Tag tone="signal">{base.cation.charge} OH⁻ je <Formula f={base.formula} /></Tag>
             <Tag>Ladung <IonLabel ion={base.cation} /> = Zahl der OH⁻</Tag>
           </div>

@@ -3,7 +3,7 @@
 import { RichText } from "@lern/ui";
 import { solve } from "@lern/units";
 import type { LevelKey } from "@lern/quiz";
-import { LEVELS, tableFor, type Task } from "./tasks.ts";
+import { LEVELS, tableFor, type Stufe, type Task } from "./tasks.ts";
 import { LiveHelp } from "../components/LiveHelp.tsx";
 import { DimChain } from "../components/DimChain.tsx";
 import { rare } from "../help.ts";
@@ -29,6 +29,11 @@ const TEXT: Record<string, { points: string[]; ex: [string, string, string] }> =
     "Jede Stufe **· 10 · 10 · 10 = · 1000** – Komma **drei** Stellen",
     "1 l = 1 dm³ · 1 ml = 1 cm³",
   ] },
+  t5: { ex: ["1,5", "h", "min"], points: [
+    "1 d = **24 h** · 1 h = **60 min** · 1 min = **60 s**",
+    "Zeit rechnet **nicht in Zehnern**: 1,5 h = 1,5 · 60 min = **90 min**, nicht 150 min",
+    "0,5 h = 30 min · 0,25 h = 15 min",
+  ] },
   n5: { ex: ["72", "km/h", "m/s"], points: [
     "1 h = 60 min = 3600 s",
     "**Jede Einheit einzeln ersetzen**: 1 km/h = 1000 m / 3600 s = **1/3,6 m/s**",
@@ -36,9 +41,12 @@ const TEXT: Record<string, { points: string[]; ex: [string, string, string] }> =
   ] },
 };
 
-export function explainFor(level: LevelKey, task?: Task) {
-  const id = typeof level === "number" ? LEVELS[level].id
-    : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;
+export function explainFor(stufe: Stufe, level: LevelKey, task?: Task) {
+  const levels = LEVELS[stufe];
+  const lid = typeof level === "number" ? levels[level].id
+    : (levels.find(l => task?.type && l.types.includes(task.type)) ?? levels[0]).id;
+  // Oberstufe hat dieselben Erklärungen (Kennung mit „os-“); Unterstufe Niveau 5 = Zeit
+  const id = stufe === "us" && lid === "n5" ? "t5" : lid.replace(/^os-/, "");
   const e = TEXT[id];
   const [, from, to] = e.ex;
   return (

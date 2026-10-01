@@ -14,7 +14,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
     "**Reinstoff:** nur eine Teilchensorte. **Gemisch:** mehrere Teilchensorten.",
   ] },
   "gm-2": { ex: "modell", arr: ["nachher"], points: [
-    "**Element:** Reinstoff aus nur **einer** Atomsorte – einzelne Atome (He, Ar) oder ein Metallgitter (Cu).",
+    "**Element:** Reinstoff aus nur **einer** Atomsorte – einzelne Atome (He), ein Metallgitter (Cu) oder Moleküle (O₂, N₂).",
     "**Verbindung:** Reinstoff aus **mehreren** Atomsorten, fest im Teilchen verbunden (H₂O, CO₂).",
     "Verschiedene Atome in einem Bild heißen noch nicht Gemisch. Entscheidend: Sind die Teilchen gleich?",
   ] },
@@ -27,6 +27,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
     "Beim Lösen verteilen sich die Teilchen. Sie verschwinden nicht, die **Masse bleibt gleich**.",
     "Teilchen bewegen sich **ständig**. Darum mischen sich Gase und Lösungen von selbst.",
     "Zwischen den Teilchen ist **nichts**. Farben im Modell dienen nur zur Unterscheidung.",
+    "Ausnahme Sprudel: Ein kleiner Teil des CO₂ reagiert mit Wasser zu **Kohlensäure**.",
   ] },
 };
 

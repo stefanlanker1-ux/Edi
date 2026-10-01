@@ -1,5 +1,4 @@
 // Fehlvorstellungen (Stolpersteine) zur Ionenbindung – Schlüssel für diagnostische Distraktoren und Fallen im Baukasten.
-// Quellen: Taber „Chemical misconceptions“ (RSC), Barke „Diagnose und Korrektur von Schülervorstellungen“.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Ionen); hier nur der Name für Landkarte und Auswertung.
 
 export const MISS: Record<string, string> = {

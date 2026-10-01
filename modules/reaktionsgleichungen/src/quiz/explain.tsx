@@ -21,9 +21,10 @@ const TEXT: Record<string, Ex> = {
     "Am Ende **kleinste ganze Zahlen**: 4 Fe + 3 O₂ → 2 Fe₂O₃, nicht 8 Fe + 6 O₂ → 4 Fe₂O₃.",
   ] },
   "us-3": { reaction: "propan", points: [
-    "**Edukte** (Ausgangsstoffe) links, **Produkte** rechts vom Pfeil →.",
+    "**Ausgangsstoffe** (Edukte) links, **Produkte** rechts vom Pfeil →.",
     "Verbrennung: C wird zu CO₂, H zu H₂O. Zuerst C, dann H, **zuletzt O₂**.",
     "C₃H₈: 3 CO₂ und 4 H₂O → rechts 10 O → **5 O₂**.",
+    "Metalloxid (Hochofen, Thermit): der **Sauerstoff wechselt den Partner** – zuerst das Metall, dann O zählen.",
   ] },
   "us-4": { reaction: "ethan", points: [
     "Manchmal braucht O₂ eine **halbe Zahl**: C₂H₆ + 3½ O₂ → 2 CO₂ + 3 H₂O.",

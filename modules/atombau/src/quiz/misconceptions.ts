@@ -1,5 +1,4 @@
 // Fehlvorstellungen (Stolpersteine) zum Atombau – Schlüssel für diagnostische Distraktoren und Fallen in Eingabe-Aufgaben.
-// Quellen: RSC „Chemical misconceptions“, Barke „Chemiedidaktik: Diagnose und Korrektur von Schülervorstellungen“, eigene Erfahrung.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Zahlen); hier nur der Name für Landkarte und Auswertung.
 
 export const MISS: Record<string, string> = {

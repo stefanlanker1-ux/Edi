@@ -124,3 +124,17 @@
 /* Statuszeile immer einzeilig: sonst verschiebt sich das Bild (und die Lupe), wenn sich die Kennzeichen ändern */
 .gm-status { display: flex; flex-wrap: nowrap; justify-content: center; gap: 6px; min-width: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .gm-status > * { white-space: nowrap; flex: none; }
+
+/* Arten von Gemischen: verteilter Stoff (Zeile) in Hauptstoff (Spalte) */
+.gm-arten table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .85rem; }
+.gm-arten th, .gm-arten td { border-bottom: 1px solid var(--border); padding: 6px 4px; vertical-align: top; text-align: left; }
+.gm-arten thead th { border-bottom: 2px solid var(--rule); font-weight: 800; }
+.gm-arten tbody th { font-weight: 800; width: 22%; }
+.gm-arten-diag { display: block; font-size: .7rem; font-weight: 600; color: var(--muted); }
+.gm-arten td.on { outline: 2px solid var(--signal); outline-offset: -2px; }
+.gm-art { display: block; margin-bottom: 4px; overflow-wrap: anywhere; }
+.gm-art b { font-weight: 700; }
+.gm-art i { font-style: normal; font-size: .72rem; color: var(--muted); }
+.gm-art small { display: block; color: var(--muted); font-size: .75rem; }
+.gm-art.cur b { color: var(--signal); }
+.gm-forms { display: grid; gap: 6px; margin-top: 10px; }

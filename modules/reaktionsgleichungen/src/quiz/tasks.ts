@@ -2,7 +2,7 @@
 // Antwortformen: "mc" (Auswahl), "num" (Zahl eintippen), "balance" (Koeffizienten setzen).
 // Je Stufe vier Level = Niveau 1–4 (Reaktionen tragen ihr Niveau, siehe REACTIONS in @lern/chem).
 
-import { REACTION_BY_ID, reactionsFor, parseFormula, sideCounts, elementsOf, equationText, isBalanced, unbalancedElements, speciesName, toSubscript, type Niveau, type Reaction } from "@lern/chem";
+import { REACTION_BY_ID, REACTIONS as REACTIONS_ALL, balance, reactionsFor, parseFormula, sideCounts, elementsOf, equationText, isBalanced, unbalancedElements, speciesName, toSubscript, type Niveau, type Reaction } from "@lern/chem";
 import { buildRound, dis, mc, pick, shuffle, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
 
 /** eq: Gleichung, die groß über der Frage steht (renderVisual); species: ihre Stoffe (Hilfsmittel „Stoffe“) */
@@ -102,22 +102,56 @@ function koeffizient(rs: Reaction[]): Task {
   const shown: (number | null)[] = r.coeffs.map((c, i) => (i === idx ? null : c));
   const f = [...r.left, ...r.right][idx];
   const ans = r.coeffs[idx];
+  const counts = parseFormula(f);
+  // ein Element des Stoffs, am liebsten eines, das auf seiner Seite nur in diesem Stoff steckt
+  const side = idx < r.left.length ? r.left : r.right;
+  const els = Object.keys(counts);
+  const el = els.find(e => side.filter(x => parseFormula(x)[e]).length === 1) ?? els[0];
+  const per = counts[el], need = ans * per;
+  const elementOnly = els.length === 1;
   const base = {
     eq: equationText(r, shown),
     species: [...r.left, ...r.right],
     prompt: `Welche Zahl gehört vor \`${toSubscript(f)}\`?`,
-    hint: `Zähle ein Element, das in ${toSubscript(f)} steckt, auf der anderen Seite – so viele Atome brauchst du auch hier.`,
-    explain: `${eqBal(r)} → vor ${toSubscript(f)} steht **${ans === 1 ? "1 (wird nicht geschrieben)" : ans}**.`,
+    hint: elementOnly
+      ? `Zähle die ${el}-Atome auf der anderen Seite.${per > 1 ? ` Ein ${toSubscript(f)} bringt ${per} davon.` : ""}`
+      : `Zähle die ${el}-Atome auf der anderen Seite. Ein ${toSubscript(f)} bringt ${per} davon.`,
+    explain: `${eqBal(r)} → ${need} ${el}-Atom${need === 1 ? "" : "e"}${per > 1 ? ` : ${per} je ${toSubscript(f)}` : ""} → vor ${toSubscript(f)} steht **${ans === 1 ? "1 (wird nicht geschrieben)" : ans}**.`,
   };
   if (Math.random() < 0.4) return { kind: "num", answer: ans, ...base };
-  return { ...mc(String(ans), wrongNums(ans, shuffle([1, 2, 3, 4, 5, 6, ans - 1, ans + 1, ans + 2, ans * 2]))), ...base };
+  return {
+    ...mc(String(ans), [
+      per > 1 && need !== ans ? dis(String(need), `${need} ${el}-Atome braucht es – in einem ${toSubscript(f)} stecken schon ${per}: ${need} : ${per} = ${ans}.`) : null,
+      per > 1 && per !== ans && per !== need ? dis(String(per), `${per} ist der Index in ${toSubscript(f)}. Davor steht, wie viele ${toSubscript(f)} es braucht: ${ans}.`) : null,
+      ans > 1 ? dis("1", `Mit 1 ${toSubscript(f)} stimmen die ${el}-Atome nicht: es braucht ${need}, also ${ans} · ${toSubscript(f)}.`) : null,
+      ...wrongNums(ans, shuffle([ans - 1, ans + 1, ans + 2, ans + 3, ans * 2])),
+    ]),
+    ...base,
+  };
+}
+
+const METALS = new Set(["Li", "Na", "K", "Mg", "Ca", "Ba", "Al", "Fe", "Cu", "Zn", "Hg", "Ag", "Pb", "Mn", "Cr"]);
+const single = (f: string) => Object.keys(parseFormula(f)).length === 1;
+
+/** Vorgehen passend zur Reaktion: Verbrennung, Sauerstoff wechselt den Partner – sonst null */
+function strategy(r: Reaction): string | null {
+  const fuel = r.left.find(f => f !== "O2" && !single(f) && (parseFormula(f).C || parseFormula(f).H) && !Object.keys(parseFormula(f)).some(e => METALS.has(e)));
+  if (r.left.includes("O2") && fuel && r.right.some(f => ["CO2", "H2O", "SO2", "N2"].includes(f)))
+    return "Verbrennung: zuerst die Elemente außer O (C → CO₂, H → H₂O …), zuletzt O₂ – das enthält nur Sauerstoff.";
+  const oxide = r.left.find(f => !single(f) && parseFormula(f).O && Object.keys(parseFormula(f)).some(e => METALS.has(e)));
+  const metal = oxide && Object.keys(parseFormula(oxide)).find(e => METALS.has(e) && r.right.includes(e));
+  if (oxide && metal) {
+    const partner = r.right.find(f => f !== metal && parseFormula(f).O);
+    return `Sauerstoff wechselt den Partner: zuerst ${metal} einstellen, dann die O-Atome aus ${toSubscript(oxide)} zählen${partner ? ` – so viele brauchen die ${toSubscript(partner)}` : ""}.`;
+  }
+  return null;
 }
 
 const HINTS: Record<Stufe, string[]> = {
   us: [
     "Zähle jedes Element links und rechts. Fehlt eines, die Zahl vor dem Stoff erhöhen – nie die Formel ändern.",
     "Beginne mit dem Element, das nur in je einem Stoff links und rechts vorkommt. Sauerstoff meist zuletzt. Am Ende kleinste ganze Zahlen.",
-    "Verbrennung: zuerst C (→ CO₂), dann H (→ H₂O), zuletzt O₂ – das enthält nur Sauerstoff.",
+    "Zuerst ein Element, das links und rechts nur in je einem Stoff steckt; reine Elemente (O₂, Fe …) zuletzt.",
     "Brauchst du eine halbe Zahl (z. B. 3½ O₂)? Dann alle Zahlen verdoppeln.",
   ],
   os: [
@@ -128,6 +162,13 @@ const HINTS: Record<Stufe, string[]> = {
   ],
 };
 
+/** Tipp: passendes Vorgehen für die Reaktion, auf Niveau 4 dazu „verdoppeln“ */
+function hintFor(r: Reaction, s: Stufe, nv: Niveau): string {
+  const st = strategy(r);
+  if (!st) return HINTS[s][nv - 1];
+  return nv === 4 ? `${st} Halbe Zahl nötig? Alles verdoppeln.` : st;
+}
+
 /** Ganze Gleichung ausgleichen (Koeffizienten setzen) auf einem Niveau */
 function ausgleichen(s: Stufe, nv: Niveau): Task {
   const r = pick(pool(s, nv).filter(x => x.coeffs.some(c => c > 1)));
@@ -135,10 +176,14 @@ function ausgleichen(s: Stufe, nv: Niveau): Task {
     kind: "balance", reaction: r.id,
     praise: nv >= 3 ? "Schwierige Gleichung ausgeglichen und gekürzt – stark." : "Element für Element ausgeglichen und gekürzt – genau so geht's.",
     prompt: `Gleiche die Gleichung aus: **${r.title}**`,
-    hint: HINTS[s][nv - 1],
+    hint: hintFor(r, s, nv),
     explain: `**${eqBal(r)}** – ${elementsOf(r).map(e => `${e}: ${sideCounts(r.left, r.coeffs.slice(0, r.left.length))[e]}`).join(", ")} auf beiden Seiten.`,
   };
 }
+
+const DIATOMIC: Record<string, string> = { H2: "H", O2: "O", N2: "N", Cl2: "Cl" };
+/** Stoff mit Namen ohne doppelte Klammern: „HCl – Chlorwasserstoff (Salzsäure)“ */
+const withName = (f: string) => `${toSubscript(f)} – ${speciesName(f)}`;
 
 /** Wortgleichung → Formelgleichung bzw. Produkt erkennen (Auswahl) */
 function wort(s: Stufe): Task {
@@ -150,33 +195,47 @@ function wort(s: Stufe): Task {
     const others = shuffle(rs.filter(x => x.id !== r.id)).slice(0, 2).map(eqBal);
     const unbalanced = equationText(r);
     const swapped = equationText({ left: r.right, right: r.left }, [...r.coeffs.slice(r.left.length), ...r.coeffs.slice(0, r.left.length)]);
+    // Elemente, die als Moleküle vorkommen, fälschlich als einzelne Atome geschrieben (O statt O₂)
+    const di = [...r.left, ...r.right].find(f => DIATOMIC[f]);
+    let atoms: string | null = null;
+    if (di) {
+      const eq = { left: r.left.map(f => DIATOMIC[f] ?? f), right: r.right.map(f => DIATOMIC[f] ?? f) };
+      const co = balance(eq);
+      if (co) atoms = equationText(eq, co);
+    }
     return {
       ...mc(eqBal(r), [
         unbalanced === eqBal(r) ? null : dis(unbalanced, "Die Stoffe stimmen, aber die Atome sind nicht ausgeglichen – die Zahlen davor fehlen."),
         dis(swapped, "Seiten vertauscht: Ausgangsstoffe stehen links vom Pfeil, Produkte rechts."),
+        atoms && di ? dis(atoms, `${speciesName(di)} kommt als Molekül ${toSubscript(di)} vor – nicht als einzelnes ${DIATOMIC[di]}-Atom.`) : null,
         ...others,
       ]),
       eq: words,
       prompt: "Welche Gleichung passt zur Wortgleichung?",
-      hint: "Links stehen die Ausgangsstoffe (Edukte), rechts die Produkte – und die Atome müssen ausgeglichen sein.",
+      hint: "Links stehen die Ausgangsstoffe, rechts die Produkte – und die Atome müssen ausgeglichen sein.",
       explain: `**${eqBal(r)}**`,
     };
   }
-  // Welcher Stoff ist Produkt / Edukt?
+  // Welcher Stoff ist Produkt / Ausgangsstoff?
   const askProduct = Math.random() < 0.6;
   const inPool = askProduct ? r.right : r.left, otherPool = askProduct ? r.left : r.right;
   const right = pick(inPool);
   const side = askProduct ? "links – das ist ein Ausgangsstoff" : "rechts – das ist ein Produkt";
+  const els = new Set(elementsOf(r));
+  // Stoffe aus denselben Elementen, die in dieser Reaktion nicht vorkommen (z. B. CO statt CO₂)
+  const lookalikes = shuffle([...new Set(REACTIONS_ALL.flatMap(x => [...x.left, ...x.right]))])
+    .filter(f => !inPool.includes(f) && !otherPool.includes(f) && Object.keys(parseFormula(f)).every(e => els.has(e)));
   const wrongs = [
     ...otherPool.filter(f => !inPool.includes(f)).map(f => dis(toSubscript(f), `${toSubscript(f)} steht ${side}.`)),
+    ...lookalikes.slice(0, 2).map(f => dis(toSubscript(f), `${toSubscript(f)} kommt in dieser Gleichung nicht vor – ${askProduct ? "die Produkte stehen rechts vom Pfeil" : "die Ausgangsstoffe stehen links vom Pfeil"}.`)),
     ...shuffle(rs.flatMap(x => [...x.left, ...x.right])).filter(f => !inPool.includes(f) && !otherPool.includes(f)).slice(0, 3).map(toSubscript),
   ];
   return {
     ...mc(toSubscript(right), wrongs),
     eq: eqBal(r),
-    prompt: `**${r.title}:** Welcher Stoff ist ein **${askProduct ? "Produkt" : "Edukt (Ausgangsstoff)"}**?`,
-    hint: "Edukte stehen links vom Pfeil, Produkte rechts.",
-    explain: `${askProduct ? "Produkte (rechts)" : "Edukte (links)"}: ${inPool.map(f => `${toSubscript(f)} (${speciesName(f)})`).join(", ")} → **${toSubscript(right)}**.`,
+    prompt: `**${r.title}:** Welcher Stoff ist ein **${askProduct ? "Produkt" : "Ausgangsstoff"}**?`,
+    hint: "Ausgangsstoffe stehen links vom Pfeil, Produkte rechts.",
+    explain: `${askProduct ? "Produkte (rechts)" : "Ausgangsstoffe (links)"}: ${inPool.map(withName).join(", ")} → **${toSubscript(right)}**.`,
   };
 }
 

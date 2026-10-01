@@ -6,7 +6,8 @@ import { useState } from "react";
 import { Button } from "@lern/ui";
 import { QuizScreen, createQuizStore, type Answered, type QuizTool, type Submit } from "@lern/quiz";
 import { fmt, parseQ, solve, chainFor, prefixStep, unitName } from "@lern/units";
-import { LEVELS, STUFE, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, tableFor, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, tableFor, type Task } from "./tasks.ts";
+import { useApp } from "../store.ts";
 import { explainFor } from "./explain.tsx";
 import { ChalkBoard } from "../components/ChalkBoard.tsx";
 import { PlaceValueTable } from "../components/PlaceValueTable.tsx";
@@ -91,14 +92,15 @@ function toolsFor(t: Task): QuizTool[] {
 }
 
 export function QuizView() {
+  const stufe = useApp(s => s.stufe);
   return (
     <QuizScreen<Task>
-      stufe={STUFE}
+      stufe={stufe}
       title="Quiz"
       useQuiz={useQuiz}
-      levels={LEVELS}
-      levelName={levelName}
-      levelId={l => levelId(STUFE, l)}
+      levels={LEVELS[stufe]}
+      levelName={l => levelName(stufe, l)}
+      levelId={l => levelId(stufe, l)}
       typeName={id => TYPE_NAMES[id]}
       heroArt={<span className="hero-ruler" aria-hidden="true">{Array.from({ length: 11 }, (_, i) => <i key={i} className={i % 5 === 0 ? "l" : ""} />)}</span>}
       renderVisual={t => (t.kind === "input" ? <TaskBanner from={t.from} to={t.to} value={t.value} /> : null)}
@@ -106,7 +108,7 @@ export function QuizView() {
       solution={t => (t.kind === "input" ? (() => { const s = solutionOf(t); return `${t.round !== undefined ? "≈ " + fmt(s.result, { digits: t.round }).text : fmt(s.result).text} ${t.to}`; })() : null)}
       feedbackExtra={t => (t.kind === "input" || t.conv ? <FeedbackExtra task={t} /> : null)}
       tools={toolsFor}
-      explain={(level, task) => explainFor(level, task)}
+      explain={(level, task) => explainFor(stufe, level, task)}
     />
   );
 }

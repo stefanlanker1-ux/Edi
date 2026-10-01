@@ -1,11 +1,13 @@
 // Fehlvorstellungen (Stolpersteine) zur Neutralisation – Schlüssel für diagnostische Distraktoren und Fallen im Baukasten.
-// Quellen: Barke „Chemiedidaktik: Diagnose und Korrektur von Schülervorstellungen“ (Säuren/Basen), RSC „Chemical misconceptions“.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Stoffen); hier nur der Name für Landkarte und Auswertung.
 
 export const MISS: Record<string, string> = {
   "index-als-ladung": "Index als Ladung gelesen (H₂⁺ statt 2 H⁺)",
   "ohne-ladung": "Beim Zerfall neutrale Atome statt Ionen",
   "rest-ladung-eins": "Säurerest immer 1−",
+  "ein-proton": "Jede Säure gibt nur 1 H⁺ ab",
+  "atome-statt-h": "Alle Atome statt der H-Atome gezählt",
+  "rest-verwechselt": "Säurerest einer ähnlichen Säure",
   "rest-ladung-vorzeichen": "Säurerest positiv geladen",
   "rest-ladung-sauerstoff": "Ladung aus der Zahl der O-Atome",
   "alle-h-sauer": "Alle H-Atome als abgebbar gezählt",
@@ -20,12 +22,16 @@ export const MISS: Record<string, string> = {
   "kation-ladung": "Ladung des Metall-Ions verzählt",
   "ein-wasser": "Immer nur 1 H₂O",
   "wasser-summe": "Wasser = Summe der Formeleinheiten",
+  "eine-formeleinheit": "Nur eine Formeleinheit gezählt",
+  "ladung-statt-anzahl": "H⁺ bzw. OH⁻ je Formeleinheit statt Anzahl der Formeleinheiten",
+  "index-aus-formel": "Index aus Säure oder Hydroxid ins Salz übernommen",
   "wasser-atome": "H₂O aus H-Atomen statt aus H⁺ + OH⁻",
   "wasser-vergessen": "Wasser als Produkt vergessen",
   "salz-1zu1": "Salz immer 1 : 1",
   "indizes-vertauscht": "Indizes im Salz vertauscht",
   "klammer-vergessen": "Klammer um mehratomiges Ion vergessen",
   "h-im-salz": "H der Säure im Salz gelassen",
+  "edukt-statt-salz": "Hydroxid statt Salz gewählt",
   "koeff-1zu1": "Immer 1 Lauge + 1 Säure",
   "koeff-vertauscht": "Koeffizienten von Lauge und Säure vertauscht",
   "nicht-gekuerzt": "Verhältnis nicht gekürzt",

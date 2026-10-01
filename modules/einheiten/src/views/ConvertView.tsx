@@ -20,11 +20,11 @@ export const EXAMPLES: Record<string, [string, string, string]> = {
 };
 
 export function ConvertView() {
-  const { conv, setConv } = useApp();
+  const { conv, setConv, stufe } = useApp();
   // seltene Vorsilben (µm, MHz …): Vorsilben-Skala und Zehnerpotenzen, sonst Pfeilkette und Stellenwerttafel
   const os = rare(conv.from, conv.to);
   const qt = QUANTITY[conv.qty];
-  const units = unitsFor(qt, true);
+  const units = unitsFor(qt, stufe === "os");
   const v = parseQ(conv.value);
   const s = v ? solve(v, conv.from, conv.to) : null;
   const pickQty = (id: string) => { buzz(); const [value, from, to] = EXAMPLES[id]; setConv({ qty: id, value, from, to }); };
@@ -39,7 +39,7 @@ export function ConvertView() {
 
   return (
     <Workbench className="cv-wb" label="Rechenweg" tools={tools}
-      head={<QuantitySelect value={conv.qty} onChange={pickQty} />}
+      head={<QuantitySelect value={conv.qty} os={stufe === "os"} onChange={pickQty} />}
       stage={
         <div className="cv-stage">
           <div className="cv-line">

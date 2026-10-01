@@ -16,7 +16,7 @@ const TEXT: Record<string, Ex> = {
     "Namen: Chlorid, Bromid, Sulfid (ohne O) · Nitrat, Sulfat, Carbonat, Phosphat · Sulfit (ein O weniger) · Acetat, Formiat.",
   ] },
   "us-2": { b: "caoh2", a: "hcl", points: [
-    "Laugen enthalten **OH⁻-Ionen**: Ca(OH)₂ → Ca²⁺ + 2 OH⁻.",
+    "Metallhydroxide bestehen aus Metall-Ionen und **OH⁻-Ionen**: Ca(OH)₂ → Ca²⁺ + 2 OH⁻. In Wasser gelöst heißen sie **Laugen**.",
     "Bei der Neutralisation wird aus jedem **H⁺ + OH⁻ ein H₂O**.",
     "Nimm so viele Lauge und Säure, bis die **OH⁻-Reihe und die H⁺-Reihe gleich lang** sind.",
   ] },
