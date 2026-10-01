@@ -20,6 +20,8 @@ interface State {
   wedge: boolean;
   /** Baufeld: Elektronenpaare als Punkte (Lewis) oder als Striche */
   lines: boolean;
+  /** Baufeld: Oktett-Kreise um vollständige Atome */
+  octet: boolean;
   setTab: (t: Tab) => void;
   setStufe: (s: Stufe) => void;
   setMol: (m: Molecule) => void;
@@ -27,6 +29,7 @@ interface State {
   setShowDeltas: (v: boolean) => void;
   setWedge: (v: boolean) => void;
   setLines: (v: boolean) => void;
+  setOctet: (v: boolean) => void;
 }
 
 export const useApp = create<State>()(persist(set => ({
@@ -37,6 +40,7 @@ export const useApp = create<State>()(persist(set => ({
   showDeltas: false,
   wedge: false,
   lines: false,
+  octet: true,
   setTab: tab => set({ tab }),
   setStufe: stufe => set({ stufe }),
   setMol: mol => set({ mol }),
@@ -44,11 +48,12 @@ export const useApp = create<State>()(persist(set => ({
   setShowDeltas: showDeltas => set({ showDeltas }),
   setWedge: wedge => set({ wedge }),
   setLines: lines => set({ lines }),
+  setOctet: octet => set({ octet }),
 }), {
   name: "elektronenpaar-v1",
   version: 2,
   storage: createJSONStorage(() => localStorage),
-  partialize: s => ({ mol: s.mol, showLonePairs: s.showLonePairs, lines: s.lines }),
+  partialize: s => ({ mol: s.mol, showLonePairs: s.showLonePairs, lines: s.lines, octet: s.octet }),
   // v1 hat showDeltas gespeichert – jetzt beginnt der Dipol immer ausgeschaltet
   migrate: old => { const { showDeltas: _, ...rest } = (old ?? {}) as Record<string, unknown>; return rest as Partial<State>; },
 }));

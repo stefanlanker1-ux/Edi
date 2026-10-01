@@ -1,5 +1,5 @@
 // Lewis-Darstellung auf dem Raster: Atomsymbole, Elektronen als Punkte (oder Paare als Striche), bindende Paare in einem gemeinsamen Oval.
-// Großer Kreis um jedes vollständige Atom (Oktett, bei H Duett gestrichelt): Kreise benachbarter Atome überlappen, die bindenden Paare
+// Großer Kreis um jedes vollständige Atom (Oktett, bei H Duett gestrichelt; im Vordergrund, abschaltbar): Kreise benachbarter Atome überlappen, die bindenden Paare
 // liegen in beiden Kreisen – so sieht man, dass sie zu beiden Atomen zählen. Jedes bindende Paar ist eine Reihe aus zwei Punkten
 // entlang der Bindung (Dreifachbindung = drei Reihen), wie die Striche der Strichformel.
 
@@ -15,6 +15,8 @@ interface Props {
   /** Ausschnitt statt ganzem Raster (für Beispiele) */
   crop?: boolean;
   showOctet?: boolean;
+  /** Oktett-Kreise zeichnen (Standard: wie showOctet) */
+  rings?: boolean;
   grid?: boolean;
   highlightCell?: [number, number] | null;
   bondOptions?: [number, number][];
@@ -53,7 +55,7 @@ function loneDots(x: number, y: number, angle: number, n: number, lines?: boolea
   return <><Dot x={px - dy * 8} y={py + dx * 8} /><Dot x={px + dy * 8} y={py - dx * 8} /></>;
 }
 
-export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highlightCell, bondOptions = [], onBond, onAddBond, onAtomDown, onCell, cellsFocusable, onAtomKey, lines, svgRef }: Props) {
+export function LewisSvg({ mol, cols, rows, crop, showOctet = true, rings = showOctet, grid, highlightCell, bondOptions = [], onBond, onAddBond, onAtomDown, onCell, cellsFocusable, onAtomKey, lines, svgRef }: Props) {
   let vb = `0 0 ${cols * U} ${rows * U}`;
   if (crop && mol.atoms.length) {
     const xs = mol.atoms.map(a => a.x), ys = mol.atoms.map(a => a.y);
@@ -74,14 +76,6 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highli
         return <rect key={i} x={x * U + 6} y={y * U + 6} width={U - 12} height={U - 12} rx={4}
           className={`cell${hl ? " hl" : ""}`} onClick={onCell ? () => onCell(x, y) : undefined}
           {...(focus ? { tabIndex: 0, role: "button", "aria-label": `Feld ${y + 1}-${x + 1}`, onKeyDown: onKey(() => onCell!(x, y)) } : {})} />;
-      })}
-
-      {/* Oktett-Kreise hinter allem */}
-      {showOctet && mol.atoms.map(a => {
-        const e = electronsOf(mol, a.id);
-        // Kreis um jedes Atom mit Edelgaskonfiguration (H: Duett, gestrichelt)
-        if (!e.complete || !mol.bonds.length) return null;
-        return <circle key={`o${a.id}`} cx={cx(a.x)} cy={cx(a.y)} r={RING} className={`octet${a.el === "H" ? " duet" : ""}`} />;
       })}
 
       {/* Bindende Elektronenpaare im gemeinsamen Oval */}
@@ -134,6 +128,14 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, grid, highli
             {showOctet && !e.complete && mol.atoms.length > 1 && <text x={x + 30} y={y + 44} className="count">{e.around}/{target(a.el)}</text>}
           </g>
         );
+      })}
+
+      {/* Oktett-Kreise im Vordergrund (lassen Tippen und Ziehen durch) */}
+      {rings && mol.atoms.map(a => {
+        const e = electronsOf(mol, a.id);
+        // Kreis um jedes Atom mit Edelgaskonfiguration (H: Duett, gestrichelt)
+        if (!e.complete || !mol.bonds.length) return null;
+        return <circle key={`o${a.id}`} cx={cx(a.x)} cy={cx(a.y)} r={RING} className={`octet${a.el === "H" ? " duet" : ""}`} />;
       })}
     </svg>
   );

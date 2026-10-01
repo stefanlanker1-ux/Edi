@@ -21,7 +21,7 @@ export const OS_ELEMENTS = [...US_ELEMENTS, "S", "P", "Br", "I"];
 const Molecule3D = lazy(() => import("@lern/chem-ui/3d"));
 
 export function BuildView() {
-  const { stufe, mol, setMol, showLonePairs, setShowLonePairs, showDeltas, setShowDeltas, wedge, setWedge, lines, setLines } = useApp();
+  const { stufe, mol, setMol, showLonePairs, setShowLonePairs, showDeltas, setShowDeltas, wedge, setWedge, lines, setLines, octet, setOctet } = useApp();
   const [info, setInfo] = useState<string | null>(null);
   const [tool, setTool] = useState<string | null>(null);
   const [show3d, setShow3d] = useState(false);
@@ -132,10 +132,13 @@ export function BuildView() {
               : <span className="res-name muted">Molekül bauen</span>}
           </div>
         }
-        stage={<Builder mol={mol} onChange={m => { setMol(m); setInfo(null); }} elements={os ? OS_ELEMENTS : US_ELEMENTS} onInfo={setInfo} lines={lines} />}
+        stage={<Builder mol={mol} onChange={m => { setMol(m); setInfo(null); }} elements={os ? OS_ELEMENTS : US_ELEMENTS} onInfo={setInfo} lines={lines} octet={octet} />}
         controls={
-          <Segmented<"dots" | "lines"> label="Elektronenpaare" value={lines ? "lines" : "dots"} onChange={v => setLines(v === "lines")}
-            options={[{ value: "dots", label: "Punkte" }, { value: "lines", label: "Striche" }]} />
+          <div className="build-controls">
+            <Segmented<"dots" | "lines"> label="Elektronenpaare" value={lines ? "lines" : "dots"} onChange={v => setLines(v === "lines")}
+              options={[{ value: "dots", label: "Punkte" }, { value: "lines", label: "Striche" }]} />
+            <Switch checked={octet} onChange={setOctet}>Oktett</Switch>
+          </div>
         }
         status={<>{status}{info && <Tag>{info}</Tag>}</>} />
 

@@ -27,7 +27,7 @@
 .lewis .atom-bg { fill: transparent; }
 .lewis .atom.grab { cursor: grab; }
 .lewis .sym { font: 800 40px var(--font); text-anchor: middle; fill: var(--text); }
-.lewis .octet { fill: none; stroke: var(--octet); stroke-width: 3; }
+.lewis .octet { fill: none; stroke: var(--octet); stroke-width: 3; pointer-events: none; }
 .lewis .octet.duet { stroke-width: 2.5; stroke-dasharray: 8 5; }
 .lewis .ok-mark { font: 800 16px var(--font); fill: var(--ok); }
 .lewis .count { font: 700 15px var(--font); fill: var(--signal); text-anchor: middle; }
@@ -148,3 +148,6 @@
 /* Atome und Beispiele: Knöpfe wie Tasten */
 .pal-atom, .ex-chip { border-color: var(--rule); box-shadow: var(--key-edge); }
 .pal-atom:active, .ex-chip:active { box-shadow: var(--key-edge-pressed); }
+
+/* Bedienung unter dem Baufeld: Punkte/Striche und Schalter „Oktett“ in einer Zeile */
+.build-controls { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }

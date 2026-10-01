@@ -13,8 +13,8 @@ export function AtomChip({ el }: { el: string }) {
   return <LewisSvg mol={m} cols={1} rows={1} showOctet={false} />;
 }
 
-export function Builder({ mol, onChange, elements, onInfo, lines }: {
-  mol: Molecule; onChange: (m: Molecule) => void; elements: string[]; onInfo?: (msg: string) => void; lines?: boolean;
+export function Builder({ mol, onChange, elements, onInfo, lines, octet = true }: {
+  mol: Molecule; onChange: (m: Molecule) => void; elements: string[]; onInfo?: (msg: string) => void; lines?: boolean; octet?: boolean;
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const [armed, setArmed] = useState<string | null>(null);
@@ -106,7 +106,7 @@ export function Builder({ mol, onChange, elements, onInfo, lines }: {
         <LewisSvg svgRef={svgRef} mol={mol} cols={COLS} rows={ROWS} grid highlightCell={hl}
           bondOptions={bondOptions(mol)} onBond={onBond} onAddBond={(a, b) => { buzz(); onChange(addBond(mol, a, b)); }}
           onAtomDown={(id, e) => startDrag(e, mol.atoms.find(a => a.id === id)!.el, id)} onCell={onCell}
-          cellsFocusable={!!armed} onAtomKey={onAtomKey} lines={lines} />
+          cellsFocusable={!!armed} onAtomKey={onAtomKey} lines={lines} rings={octet} />
         {!mol.atoms.length && !armed && <p className="board-empty">Atom hierher ziehen</p>}
       </div>
       {drag && <div className="atom-ghost" style={{ transform: `translate(${drag.x}px, ${drag.y}px)` }}>{drag.el}</div>}
