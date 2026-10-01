@@ -9,7 +9,7 @@ import { ChalkBoard } from "../components/ChalkBoard.tsx";
 import { VisualFor } from "../components/Visuals.tsx";
 import { LiveHelp, hasTable } from "../components/LiveHelp.tsx";
 import { Num, sci, sciNeeded, timeMixed } from "../format.tsx";
-import { rare } from "../help.ts";
+import { scaleMode } from "../help.ts";
 
 /** Beispiel je Größe (beim Wechsel der Größe) */
 export const EXAMPLES: Record<string, [string, string, string]> = {
@@ -22,7 +22,7 @@ export const EXAMPLES: Record<string, [string, string, string]> = {
 export function ConvertView() {
   const { conv, setConv, stufe } = useApp();
   // seltene Vorsilben (µm, MHz …): Vorsilben-Skala und Zehnerpotenzen, sonst Pfeilkette und Stellenwerttafel
-  const os = rare(conv.from, conv.to);
+  const os = scaleMode(stufe === "os", conv.from, conv.to);
   const qt = QUANTITY[conv.qty];
   const units = unitsFor(qt, stufe === "os");
   const v = parseQ(conv.value);

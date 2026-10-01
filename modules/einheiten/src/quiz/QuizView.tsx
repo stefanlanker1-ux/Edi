@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Button } from "@lern/ui";
 import { QuizScreen, createQuizStore, type Answered, type QuizTool, type Submit } from "@lern/quiz";
-import { fmt, parseQ, solve, chainFor, prefixStep, unitName } from "@lern/units";
+import { fmt, parseQ, solve, chainFor, unitName } from "@lern/units";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, tableFor, type Task } from "./tasks.ts";
 import { useApp } from "../store.ts";
 import { explainFor } from "./explain.tsx";
@@ -16,7 +16,7 @@ import { ArrowChain } from "../components/ArrowChain.tsx";
 import { PowerScale } from "../components/PowerScale.tsx";
 import { DimChain, dimOf } from "../components/DimChain.tsx";
 import { SubstFlow } from "../components/Visuals.tsx";
-import { rare } from "../help.ts";
+import { scaleMode } from "../help.ts";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "einheiten-quiz", levelId, makeRound });
 type InputTask = Extract<Task, { kind: "input" }>;
@@ -64,14 +64,14 @@ function TaskBanner({ from, to, value }: { from: string; to: string; value: stri
 }
 
 /** Lösungsweg (Blatt „Lösung“ nach dem Antworten): Pfeilkette bzw. Skala und Rechenweg an der Tafel */
-function FeedbackExtra({ task }: { task: Task }) {
+function FeedbackExtra({ task, oberstufe }: { task: Task; oberstufe: boolean }) {
   const conv = task.kind === "input" ? { value: task.value, from: task.from, to: task.to } : task.conv;
   if (!conv) return null;
   const s = solve(conv.value, conv.from, conv.to);
-  const os = rare(conv.from, conv.to);
+  const os = scaleMode(oberstufe, conv.from, conv.to);
   return (
     <>
-      {dimOf(conv.from, conv.to) ? <DimChain from={conv.from} to={conv.to} /> : <LiveHelp s={s} os={os} table={tableFor(conv.from, conv.to)} part="calc" />}
+      {!os && dimOf(conv.from, conv.to) ? <DimChain from={conv.from} to={conv.to} /> : <LiveHelp s={s} os={os} table={tableFor(conv.from, conv.to)} part="calc" />}
       <ChalkBoard s={s} os={os} />
     </>
   );
@@ -82,10 +82,10 @@ function toolsFor(t: Task, os: boolean): QuizTool[] {
   const c = t.kind === "input" ? t : t.type?.endsWith("compare") ? t.conv : undefined;
   if (!c || c.from === c.to) return [];
   const out: QuizTool[] = [];
+  // Oberstufe mit Vorsilben: nur die Skala mit Zehnerpotenzen (keine Pfeile, keine Stellenwerttafel)
+  if (scaleMode(os, c.from, c.to)) return [{ id: "scale", label: "Skala", icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> }];
   if (dimOf(c.from, c.to)) out.push({ id: "arrows", label: "Pfeile", icon: "ruler", wide: true, content: <DimChain from={c.from} to={c.to} /> });
   else if (chainFor(c.from, c.to)) out.push({ id: "arrows", label: "Pfeile", icon: "ruler", wide: true, content: <ArrowChain from={c.from} to={c.to} showValues={false} caption={false} /> });
-  // Vorsilben-Skala (Zehnerpotenzen) nur in der Oberstufe bzw. bei seltenen Vorsilben
-  if (prefixStep(c.from, c.to) && (os || rare(c.from, c.to))) out.push({ id: "scale", label: "Skala", icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> });
   const table = t.kind === "input" ? tableFor(c.from, c.to) : undefined;
   if (table) out.push({ id: "table", label: "Stellen", icon: "table", wide: true, content: <PlaceValueTable value={parseQ(c.value)!} from={c.from} to={c.to} units={table} showResult={false} label={`${c.value} ${c.from} → ${c.to}`} /> });
   if (!out.length) out.push({ id: "subst", label: "Einsetzen", icon: "board", wide: true, content: <SubstFlow s={solve("1", c.from, c.to)} /> });
@@ -107,7 +107,7 @@ export function QuizView() {
       renderVisual={t => (t.kind === "input" ? <TaskBanner from={t.from} to={t.to} value={t.value} /> : null)}
       renderAnswer={(t, a, submit) => (t.kind === "input" ? <InputAnswer key={t.prompt} task={t} answered={a} submit={submit} /> : null)}
       solution={t => (t.kind === "input" ? (() => { const s = solutionOf(t); return `${t.round !== undefined ? "≈ " + fmt(s.result, { digits: t.round }).text : fmt(s.result).text} ${t.to}`; })() : null)}
-      feedbackExtra={t => (t.kind === "input" || t.conv ? <FeedbackExtra task={t} /> : null)}
+      feedbackExtra={t => (t.kind === "input" || t.conv ? <FeedbackExtra task={t} oberstufe={stufe === "os"} /> : null)}
       tools={t => toolsFor(t, stufe === "os")}
       explain={(level, task) => explainFor(stufe, level, task)}
     />

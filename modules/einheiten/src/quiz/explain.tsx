@@ -6,7 +6,7 @@ import type { LevelKey } from "@lern/quiz";
 import { LEVELS, tableFor, type Stufe, type Task } from "./tasks.ts";
 import { LiveHelp } from "../components/LiveHelp.tsx";
 import { DimChain } from "../components/DimChain.tsx";
-import { rare } from "../help.ts";
+import { scaleMode } from "../help.ts";
 
 // Nur das Nötigste als Formel – das Bild erklärt den Rest.
 const TEXT: Record<string, { points: string[]; ex: [string, string, string] }> = {
@@ -41,18 +41,41 @@ const TEXT: Record<string, { points: string[]; ex: [string, string, string] }> =
   ] },
 };
 
+/** Oberstufe: Vorsilben als Zehnerpotenzen auf der Skala statt Pfeilkette */
+const OS_TEXT: Record<string, string[]> = {
+  n1: [
+    "Vorsilben sind Zehnerpotenzen: k = 10³, d = 10⁻¹, c = 10⁻², m = 10⁻³, µ = 10⁻⁶",
+    "Umrechnungszahl = 10^(Hochzahl vorher − Hochzahl nachher): mm → m: 10^(−3 − 0) = **10⁻³**",
+    "1 m = 10³ mm · 1 kg = 10³ g",
+  ],
+  n2: [
+    "Gleich wie Zehnerschritte: Umrechnungszahl als Zehnerpotenz, dann **mal** rechnen",
+    "1,5 g = 1,5 · 10⁻³ kg = **0,0015 kg**",
+  ],
+  n3: [
+    "Fläche: Hochzahl der Vorsilbe **mal 2** – 1 m² = (10² cm)² = **10⁴ cm²**",
+    "2,5 m² = 2,5 · 10⁴ cm² = 25 000 cm²",
+    "1 a = 100 m² · 1 ha = 10 000 m² (ohne Vorsilbe merken)",
+  ],
+  n4: [
+    "Volumen: Hochzahl der Vorsilbe **mal 3** – 1 dm³ = (10 cm)³ = **10³ cm³**",
+    "1 l = 1 dm³ · 1 ml = 1 cm³",
+  ],
+};
+
 export function explainFor(stufe: Stufe, level: LevelKey, task?: Task) {
   const levels = LEVELS[stufe];
   const lid = typeof level === "number" ? levels[level].id
     : (levels.find(l => task?.type && l.types.includes(task.type)) ?? levels[0]).id;
   // Oberstufe hat dieselben Erklärungen (Kennung mit „os-“); Unterstufe Niveau 5 = Zeit
   const id = stufe === "us" && lid === "n5" ? "t5" : lid.replace(/^os-/, "");
-  const e = TEXT[id];
+  const e = stufe === "os" && OS_TEXT[id] ? { ...TEXT[id], points: OS_TEXT[id] } : TEXT[id];
   const [, from, to] = e.ex;
+  const scale = scaleMode(stufe === "os", from, to);
   return (
     <div className="explain">
       <ul className="ex-points">{e.points.map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
-      {id === "n3" || id === "n4" ? <DimChain from={from} to={to} /> : <LiveHelp s={solve(...e.ex)} os={rare(from, to)} table={tableFor(from, to)} part="calc" />}
+      {!scale && (id === "n3" || id === "n4") ? <DimChain from={from} to={to} /> : <LiveHelp s={solve(...e.ex)} os={scale} table={tableFor(from, to)} part="calc" />}
     </div>
   );
 }
