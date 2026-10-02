@@ -177,7 +177,7 @@ const OS: GuideStep[] = [
   },
   {
     ask: tr("Wie heißt **FeSO₄**?", "What is **FeSO₄** called?"), answer: tr("Eisen(II)-sulfat", "Iron(II) sulfate"), options: [tr("Eisen(II)-sulfat", "Iron(II) sulfate"), tr("Eisen(III)-sulfat", "Iron(III) sulfate"), tr("Eisen(II)-sulfid", "Iron(II) sulfide"), tr("Eisen(IV)-sulfat", "Iron(IV) sulfate")],
-    why: { [tr("Eisen(III)-sulfat", "Iron(III) sulfate")]: "SO₄²⁻ ist 2− – ein Fe muss 2+ tragen.", [tr("Eisen(II)-sulfid", "Iron(II) sulfide")]: "SO₄ enthält Sauerstoff: Sulfat.", [tr("Eisen(IV)-sulfat", "Iron(IV) sulfate")]: "Die 4 gehört zum Sauerstoff, nicht zum Eisen." },
+    why: { [tr("Eisen(III)-sulfat", "Iron(III) sulfate")]: tr("SO₄²⁻ ist 2− – ein Fe muss 2+ tragen.", "SO₄²⁻ is 2− – one Fe must carry 2+."), [tr("Eisen(II)-sulfid", "Iron(II) sulfide")]: tr("SO₄ enthält Sauerstoff: Sulfat.", "SO₄ contains oxygen: sulfate."), [tr("Eisen(IV)-sulfat", "Iron(IV) sulfate")]: tr("Die 4 gehört zum Sauerstoff, nicht zum Eisen.", "The 4 belongs to the oxygen, not to the iron.") },
     ok: tr("Fe²⁺ + SO₄²⁻ → Eisen(II)-sulfat.", "Fe²⁺ + SO₄²⁻ → iron(II) sulfate."),
   },
   {

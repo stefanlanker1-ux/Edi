@@ -19,7 +19,7 @@ const F = toSubscript;
 const int = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
 const cnt = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")}${tr(" und ", " and ")}${xs[xs.length - 1]}`);
-const names = (fs: string[]) => list(fs.map(f => `${shortName(f)} (${F(f)})`));
+const names = (fs: string[]) => list(fs.map(f => `${tr(shortName(f), shortName(f).toLowerCase())} (${F(f)})`));
 const nearNums = (x: number, min = 0) => [x + 1, x - 1, x + 2, x - 2, x + 3].filter(v => v >= min).map(String);
 const sum = (m: [string, number][]) => m.reduce((s, [, n]) => s + n, 0);
 /** Satzanfang groß (englische Namen stehen klein in den Daten) */
@@ -206,7 +206,7 @@ function reinGemisch(): Task {
   return {
     ...mc(GEMISCH, [
       onlyAtoms
-        ? d(REIN_E, "nur-elemente-rein", tr(`${names(a.stoffe)} sind verschiedene Elemente. Mehrere Stoffe ergeben ein Gemisch.`, `${names(a.stoffe)} are different elements. Several substances make a mixture.`))
+        ? d(REIN_E, "nur-elemente-rein", tr(`${names(a.stoffe)} sind verschiedene Elemente. Mehrere Stoffe ergeben ein Gemisch.`, `${cap(names(a.stoffe))} are different elements. Several substances make a mixture.`))
         : d(REIN_V, "sorten-uebersehen", tr(`Es gibt ${cnt(a.stoffe.length, "Teilchensorte", "verschiedene Teilchensorten")}. Mehrere Stoffe ergeben ein Gemisch.`, `There are ${cnt(a.stoffe.length, "kind of particle", "different kinds of particles")}. Several substances make a mixture.`)),
       onlyAtoms ? d(REIN_V, "gemisch-verbindung", tr("Die Atome sind nicht miteinander verbunden. Jede Atomsorte ist ein eigener Stoff.", "The atoms are not bonded to each other. Each kind of atom is a substance of its own.")) : REIN_E,
     ], 3),
@@ -230,13 +230,13 @@ function confuse(actual: PictureKind, said: PictureKind, p: Pic, text: string): 
       ? d(text, "verbindung-element", tr(`Ein ${F(v)}-Teilchen enthält ${list(a.atomsorten)} – mehrere Atomsorten: eine Verbindung.`, `A ${F(v)} particle contains ${list(a.atomsorten)} – several kinds of atoms: a compound.`))
       : d(text, "verbindung-gemisch", tr(`Die Atome sind im Teilchen fest verbunden. Alle Teilchen sind gleich (${F(v)}).`, `The atoms are firmly bonded in the particle. All particles are the same (${F(v)}).`));
     case "GE": return said === "E"
-      ? d(text, "nur-elemente-rein", tr(`${names(a.elemente)}: verschiedene Elemente. Mehrere Stoffe ergeben ein Gemisch.`, `${names(a.elemente)}: different elements. Several substances make a mixture.`))
+      ? d(text, "nur-elemente-rein", tr(`${names(a.elemente)}: verschiedene Elemente. Mehrere Stoffe ergeben ein Gemisch.`, `${cap(names(a.elemente))}: different elements. Several substances make a mixture.`))
       : said === "V" ? d(text, "gemisch-verbindung", tr("Die Atome sind nicht verbunden. Jede Atomsorte ist ein eigener Stoff.", "The atoms are not bonded. Each kind of atom is a substance of its own."))
       : d(text, "element-verbindung", tr("Hier sind nur einzelne Atome – das sind Elemente, keine Verbindungen.", "Here there are only single atoms – these are elements, not compounds."));
     case "GV": return said === "V"
       ? d(text, "sorten-uebersehen", tr(`Es gibt verschiedene Moleküle: ${names(a.verbindungen)}. Mehrere Stoffe.`, `There are different molecules: ${names(a.verbindungen)}. Several substances.`))
       : said === "E" ? dis(text, tr("Jedes Molekül hat mehrere Atomsorten – das sind Verbindungen.", "Each molecule has several kinds of atoms – these are compounds."))
-      : d(text, "verbindung-element", tr(`${names(a.verbindungen)} haben je mehrere Atomsorten – alles Verbindungen.`, `${names(a.verbindungen)} each have several kinds of atoms – all compounds.`));
+      : d(text, "verbindung-element", tr(`${names(a.verbindungen)} haben je mehrere Atomsorten – alles Verbindungen.`, `${list(a.verbindungen.map(F))} each have several kinds of atoms – all compounds.`));
     case "GEV": return said === "GE"
       ? d(text, "verbindung-element", tr(`${shortName(v)} (${F(v)}) hat mehrere Atomsorten – das ist eine Verbindung.`, `${shortName(v)} (${F(v)}) has several kinds of atoms – that is a compound.`))
       : said === "GV" ? d(text, "element-verbindung", tr(`Die einzelnen ${el}-Atome sind ein Element, keine Verbindung.`, `The single ${el} atoms are an element, not a compound.`))
@@ -257,7 +257,7 @@ function bildArt(): Task {
     prompt: tr("Was zeigt das Teilchenbild?", "What does the particle picture show?"),
     hint: tr("Wie viele Teilchensorten gibt es? Hat ein Teilchen eine oder mehrere Atomsorten?", "How many kinds of particles are there? Does a particle have one or several kinds of atoms?"),
     tip: tr(`Schritt 1: Wie viele Teilchensorten? Hier sind es ${a.stoffe.length}. Schritt 2: Teilchen einfarbig oder mehrfarbig?`, `Step 1: How many kinds of particles? Here there are ${a.stoffe.length}. Step 2: Particles one colour or several colours?`),
-    explain: `${names(a.stoffe)} → **${PICTURE_LABEL[kind]}**.`,
+    explain: `${cap(names(a.stoffe))} → **${PICTURE_LABEL[kind]}**.`,
   };
 }
 

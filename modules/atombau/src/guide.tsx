@@ -200,7 +200,7 @@ const OS: GuideStep[] = [
     ok: tr("4. Zeile, 16. Spalte: Selen (Z = 34).", "Row 4, column 16: selenium (Z = 34)."),
   },
   {
-    say: tr("Elektronen füllen **Unterschalen** nach steigender Energie: 1s 2s 2p 3s 3p **4s 3d** 4p … Eine s-Unterschale fasst 2, p 6, d 10 Elektronen.", "Electrons fill **subshells** in order of increasing energy: 1s 2s 2p 3s 3p **4s 3d** 4p … An s subshell holds 2, p 6, d 10 electrons."),
+    say: tr("Elektronen füllen **Unterschalen** nach steigender Energie: 1s 2s 2p 3s 3p **4s 3d** 4p … Eine s-Unterschale fasst 2, p 6, d 10 Elektronen.", "Electrons fill **subshells** by increasing energy: 1s 2s 2p 3s 3p **4s 3d** 4p. An s subshell holds 2, p 6, d 10 electrons."),
     ask: tr("Wie viele Elektronen passen in eine **p**-Unterschale?", "How many electrons fit into a **p** subshell?"), answer: "6", options: ["2", "6", "10", "8"],
     visual: () => <Fit className="ab-g-fit" min={0.2}><EnergyDiagram cfg={configuration(18)} /></Fit>,
     why: { "2": tr("2 passen in eine s-Unterschale (1 Kästchen).", "2 fit into an s subshell (1 box)."), "10": tr("10 passen in eine d-Unterschale.", "10 fit into a d subshell."), "8": tr("8 ist eine ganze Schale (s + p).", "8 is a whole shell (s + p).") },

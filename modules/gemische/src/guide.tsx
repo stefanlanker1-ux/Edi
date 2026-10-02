@@ -102,7 +102,7 @@ const STEPS: GuideStep[] = [
     ok: tr("Fetttröpfchen in Wasser → heterogen (Emulsion).", "Fat droplets in water → heterogeneous (emulsion)."),
   },
   {
-    say: tr("Arten: fest **gelöst** in flüssig = Lösung, feste **Körner** in flüssig = Suspension, **Tröpfchen** in flüssig = Emulsion, **Blasen** = Schaum, Metalle = Legierung, feste Teile = Gemenge.", "Types: solid **dissolved** in liquid = solution, solid **grains** in liquid = suspension, **droplets** in liquid = emulsion, **bubbles** = foam, metals = alloy, solid pieces = coarse mixture."),
+    say: tr("Arten: fest **gelöst** in flüssig = Lösung, feste **Körner** in flüssig = Suspension, **Tröpfchen** in flüssig = Emulsion, **Blasen** = Schaum, Metalle = Legierung, feste Teile = Gemenge.", "Types: **dissolved** = solution, **grains** in liquid = suspension, **droplets** = emulsion, **bubbles** = foam, metals = alloy, solid pieces = coarse mixture."),
     ask: tr("Welche Art von Gemisch ist **Sand in Wasser**?", "What type of mixture is **sand in water**?"), answer: tr("Suspension", "Suspension"), options: [tr("Suspension", "Suspension"), tr("Lösung", "Solution"), tr("Emulsion", "Emulsion"), tr("Gemenge", "Coarse mixture")],
     why: { [tr("Lösung", "Solution")]: tr("Sand löst sich nicht – man sieht die Körner.", "Sand does not dissolve – you can see the grains."), [tr("Emulsion", "Emulsion")]: tr("Sand ist fest – Körner, keine Tröpfchen.", "Sand is solid – grains, not droplets."), [tr("Gemenge", "Coarse mixture")]: tr("Im Gemenge sind nur Feststoffe – hier ist Wasser dabei.", "A coarse mixture has only solids – here there is water.") },
     ok: tr("Feste Körner in einer Flüssigkeit → Suspension.", "Solid grains in a liquid → suspension."),

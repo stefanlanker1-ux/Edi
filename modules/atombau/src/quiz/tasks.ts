@@ -133,7 +133,7 @@ export function readParticles(pool: number[], ions = false): Task {
       { field: "p", value: Z + N, miss: "massenzahl-ordnungszahl", why: tr(`**${Z + N}** ist die Massenzahl. Die Protonen stehen unten als Ordnungszahl.`, `**${Z + N}** is the mass number. The protons are at the bottom as the atomic number.`) },
     ], { p: Z, n: N, e: E }),
     hint: tr(`Unten steht die Ordnungszahl, oben die Massenzahl (Protonen + Neutronen)${q ? ", rechts oben die Ladung" : ""}.`,
-      `The atomic number is at the bottom, the mass number (protons + neutrons) at the top${q ? ", the charge at the top right" : ""}.`),
+      `Bottom: atomic number. Top: mass number (protons + neutrons)${q ? ". Top right: charge" : ""}.`),
     explain: tr(`Protonen = Ordnungszahl = **${Z}**. Neutronen = Massenzahl − Ordnungszahl = ${Z + N} − ${Z} = **${N}**. `,
       `Protons = atomic number = **${Z}**. Neutrons = mass number − atomic number = ${Z + N} − ${Z} = **${N}**. `)
       + (q ? tr(`Ladung ${chargeLabel(q)}: ${fewerMore(q)} als Protonen → **${E}** Elektronen.`, `Charge ${chargeLabel(q)}: ${fewerMore(q)} than protons → **${E}** electrons.`)
@@ -147,7 +147,7 @@ export const massNumber: Gen = pool => {
     ...mc(String(A), [
       d(String(Z), "massenzahl-ordnungszahl", tr(`**${Z}** ist die Ordnungszahl (nur die Protonen). Die Massenzahl zählt Protonen **und** Neutronen.`, `**${Z}** is the atomic number (only the protons). The mass number counts protons **and** neutrons.`)),
       d(String(N), "massenzahl-neutronen", tr(`**${N}** sind nur die Neutronen. Dazu kommen die ${P(Z)}.`, `**${N}** are only the neutrons. Add the ${P(Z)}.`)),
-      d(String(2 * Z + N), "elektronen-mitgezaehlt", tr(`Du hast die Elektronen mitgezählt. Sie sind rund 2000-mal leichter als ein Proton und zählen nicht zur Massenzahl.`, `You counted the electrons too. They are about 2000 times lighter than a proton and do not count towards the mass number.`)),
+      d(String(2 * Z + N), "elektronen-mitgezaehlt", tr(`Du hast die Elektronen mitgezählt. Sie sind rund 2000-mal leichter als ein Proton und zählen nicht zur Massenzahl.`, `You counted the electrons too. They are about 2000 times lighter than a proton. They do not count towards the mass number.`)),
       ...nums(nearNums(A, 1)),
     ], 4, tr(`Genau: ${Z} + ${N} = ${A}.`, `Exactly: ${Z} + ${N} = ${A}.`)),
     prompt: tr(`Ein Atom hat **${P(Z)}** und **${Nn(N)}**. Wie groß ist seine Massenzahl?`, `An atom has **${P(Z)}** and **${Nn(N)}**. What is its mass number?`),
@@ -243,7 +243,7 @@ export const fillShells: Gen = pool => {
     ],
     hint: tr("Von innen nach außen füllen: K fasst 2, L fasst 8, M zunächst 8 Elektronen.", "Fill from the inside out: K holds 2, L holds 8, M first 8 electrons."),
     explain: `${tr("Von innen nach außen", "From the inside out")}: ${target.map((c, i) => `${SHELL_NAMES[i]} = ${c}`).join(", ")}.`
-      + (Z > 18 ? tr(" Ab Kalium kommt die N-Schale dran, bevor die M-Schale mehr als 8 Elektronen bekommt.", " From potassium on, the N shell is used before the M shell gets more than 8 electrons.") : ""),
+      + (Z > 18 ? tr(" Ab Kalium kommt die N-Schale dran, bevor die M-Schale mehr als 8 Elektronen bekommt.", " From potassium on, the N shell fills before the M shell has more than 8.") : ""),
   };
 };
 
@@ -364,7 +364,7 @@ export const isotopeCompare: Gen = pool => {
     prompt: `**${a}** ${tr("und", "and")} **${b}** ${tr("sind Isotope.", "are isotopes.")} ${same ? tr("Was haben sie gemeinsam?", "What do they have in common?") : tr("Worin unterscheiden sie sich?", "How do they differ?")}`,
     hint: tr("Isotope gehören zum selben Element.", "Isotopes belong to the same element."),
     explain: tr(`Isotope haben die **gleiche Protonenzahl** (${Z}, deshalb dasselbe Element), aber eine **andere Neutronenzahl** (${Ns[0]} bzw. ${Ns[1]}) und damit eine andere Massenzahl.`,
-      `Isotopes have the **same proton number** (${Z}, so the same element) but a **different neutron number** (${Ns[0]} and ${Ns[1]}) and so a different mass number.`),
+      `Isotopes have the **same proton number** (${Z}, so the same element). They have a **different neutron number** (${Ns[0]} and ${Ns[1]}), so a different mass number.`),
   };
 };
 
@@ -428,7 +428,7 @@ export const shortConfigMC: Gen = pool => {
       ...[Z + 1, Z - 1, Z + 2].map(z => d(shortConfigString(z), "elektronen-verzaehlt", tr(`Kern plus Hochzahlen müssen **${Z}** Elektronen ergeben.`, `Core plus superscripts must give **${Z}** electrons.`))),
     ]),
     prompt: tr(`Welche Kurzschreibweise (Edelgaskern) gehört zu **${el(Z).name}**?`, `Which short notation (noble gas core) belongs to **${el(Z).name}**?`),
-    hint: tr("Nimm das Edelgas der vorherigen Periode als Kern und schreibe nur die restlichen Elektronen dazu.", "Take the noble gas of the previous period as the core and add only the remaining electrons."),
+    hint: tr("Nimm das Edelgas der vorherigen Periode als Kern und schreibe nur die restlichen Elektronen dazu.", "Use the noble gas of the previous period as the core. Then add the remaining electrons."),
     explain: tr(`${el(Z).name} (Z = ${Z}) steht in der ${el(Z).period}. Periode: \`${right}\`.`, `${el(Z).name} (Z = ${Z}) is in period ${el(Z).period}: \`${right}\`.`),
   };
 };

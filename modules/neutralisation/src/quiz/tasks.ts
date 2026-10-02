@@ -99,7 +99,7 @@ function protonen(): Task {
   return {
     ...mc(String(k), [
       hs > k ? d(String(hs), "alle-h-sauer", tr(`${F(a.formula)} hat ${hs} H-Atome, aber nur das H der **COOH-Gruppe** ist sauer – die H am C bleiben gebunden.`, `${F(a.formula)} has ${hs} H atoms, but only the H of the **COOH group** is acidic – the H on C stay bonded.`)) : null,
-      k > 1 ? d("1", "ein-proton", tr(`${F(a.formula)} ist ${proticWord(k)}: alle ${k} H vorne in der Formel können als H⁺ abgegeben werden (schrittweise).`, `${F(a.formula)} is ${proticWord(k)}: all ${k} H at the front of the formula can be given off as H⁺ (step by step).`)) : null,
+      k > 1 ? d("1", "ein-proton", tr(`${F(a.formula)} ist ${proticWord(k)}: alle ${k} H vorne in der Formel können als H⁺ abgegeben werden (schrittweise).`, `${F(a.formula)} is ${proticWord(k)}: all ${k} front H can be given off as H⁺, step by step.`)) : null,
       o > 0 && o !== k && o !== hs && o <= 4 ? d(String(o), "rest-ladung-sauerstoff", tr(`Die ${o} O-Atome geben nichts ab. Abgegeben werden die H vorne in der Formel: **${k}**.`, `The ${o} O atoms give off nothing. The H at the front of the formula are given off: **${k}**.`)) : null,
       atoms <= 4 && atoms !== k && atoms !== hs && atoms !== o ? d(String(atoms), "atome-statt-h", tr(`${F(a.formula)} hat ${atoms} Atome – abgegeben werden nur die H vorne in der Formel: **${k}**.`, `${F(a.formula)} has ${atoms} atoms – only the H at the front of the formula are given off: **${k}**.`)) : null,
       "1", "2", "3", "4",
@@ -216,7 +216,7 @@ function bauen(os: boolean): Task {
   return {
     kind: "build", base: b.id, acid: a.id, step: k, traps,
     prompt: tr(`Neutralisiere **${F(b.formula)}** mit **${F(a.formula)}**${partialText(a, k)}. Wie viele von jedem?`, `Neutralise **${F(b.formula)}** with **${F(a.formula)}**${partialText(a, k)}. How many of each?`),
-    hint: tr("Nimm so viele von jedem, bis die OH⁻-Reihe und die H⁺-Reihe gleich lang sind – mit möglichst wenigen.", "Take as many of each as needed until the OH⁻ row and the H⁺ row are the same length – with as few as possible."),
+    hint: tr("Nimm so viele von jedem, bis die OH⁻-Reihe und die H⁺-Reihe gleich lang sind – mit möglichst wenigen.", "Use as few as possible until the OH⁻ and H⁺ rows are equally long."),
     explain: `${n.nBase} · ${q} OH⁻ = ${n.water} OH⁻ ${tr("und", "and")} ${n.nAcid} · ${k} H⁺ = ${n.water} H⁺ → ${n.water} H₂O ${tr("und", "and")} **${F(n.salt)}**.`,
     f: [b.formula, a.formula],
   };
@@ -317,7 +317,7 @@ function gleichung(os: boolean): Task {
     ...mc(right, [
       w !== 1 ? wrong(n.eq, [n.nBase, n.nAcid, 1, 1], "ein-wasser", tr(`Es entstehen so viele H₂O, wie H⁺ und OH⁻ sich treffen: **${w} H₂O**.`, `As many H₂O form as H⁺ and OH⁻ meet: **${w} H₂O**.`)) : null,
       wrong({ left: n.eq.left, right: [n.salt] }, [n.nBase, n.nAcid, 1], "wasser-vergessen", tr("H⁺ und OH⁻ werden zu Wasser – **H₂O** gehört auf die rechte Seite.", "H⁺ and OH⁻ become water – **H₂O** belongs on the right-hand side.")),
-      n.nBase !== 1 || n.nAcid !== 1 ? wrong(n.eq, [1, 1, 1, w], "koeff-1zu1", tr(`Links müssen ${n.nBase} ${F(b.formula)} und ${n.nAcid} ${F(a.formula)} stehen, sonst stimmen die Atome nicht.`, `On the left there must be ${n.nBase} ${F(b.formula)} and ${n.nAcid} ${F(a.formula)}, otherwise the atoms do not match.`)) : null,
+      n.nBase !== 1 || n.nAcid !== 1 ? wrong(n.eq, [1, 1, 1, w], "koeff-1zu1", tr(`Links müssen ${n.nBase} ${F(b.formula)} und ${n.nAcid} ${F(a.formula)} stehen, sonst stimmen die Atome nicht.`, `The left side needs ${n.nBase} ${F(b.formula)} and ${n.nAcid} ${F(a.formula)}. Otherwise the atoms do not match.`)) : null,
       n.nBase !== n.nAcid ? wrong(n.eq, [n.nAcid, n.nBase, 1, w], "koeff-vertauscht", tr(`Über Kreuz: ${F(b.formula)} bringt ${c.charge} OH⁻, ${F(a.formula)} ${k} H⁺ → ${n.nBase} : ${n.nAcid}.`, `Crosswise: ${F(b.formula)} brings ${c.charge} OH⁻, ${F(a.formula)} ${k} H⁺ → ${n.nBase} : ${n.nAcid}.`)) : null,
       s11 !== n.salt ? wrong({ left: n.eq.left, right: [s11, "H2O"] }, [1, 1, 1, 1], "salz-1zu1", tr(`${F(s11)} ist nicht neutral: ${ionText(c)} und ${ionText(r)} → ${F(n.salt)}.`, `${F(s11)} is not neutral: ${ionText(c)} and ${ionText(r)} → ${F(n.salt)}.`)) : null,
       wrong(n.eq, [n.nBase, n.nAcid, 1, 2 * w], "wasser-atome", tr(`Aus einem H⁺ und einem OH⁻ wird **ein** H₂O – also ${w}, nicht ${2 * w}.`, `One H⁺ and one OH⁻ make **one** H₂O – so ${w}, not ${2 * w}.`)),

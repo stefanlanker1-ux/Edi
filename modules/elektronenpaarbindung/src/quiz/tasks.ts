@@ -19,6 +19,8 @@ const atomOf = (el: string) => tr(`${elementName(el)}-Atom`, `${elementName(el).
 const bn = (o: number) => tr(bondName(o), bondName(o).toLowerCase());
 const geo = geometryName;
 const pool = (os: boolean) => KNOWN.filter(k => os || !k.os);
+/** Name mitten im englischen Satz klein (carbon dioxide), im Deutschen unverändert */
+const mid = (k: KnownMolecule) => tr(k.name, k.name.charAt(0).toLowerCase() + k.name.slice(1));
 /** Oberstufe: meist Moleküle, die es erst dort gibt – sonst wiederholen sich O₂, H₂O … aus der Unterstufe */
 const pickFor = (os: boolean, cands: KnownMolecule[]) => {
   const fresh = cands.filter(k => k.os);
@@ -65,7 +67,7 @@ function around(os: boolean): Task {
     ];
   return {
     ...mc(String(t), [...wrongs, "2", "4", "6", "8"]),
-    prompt: tr(`Wie viele Elektronen umgeben ein **${elementName(a.el)}**-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many electrons surround a **${elementName(a.el)}** atom in the molecule **${k.name}** (${sub(k.formula)})?`),
+    prompt: tr(`Wie viele Elektronen umgeben ein **${elementName(a.el)}**-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many electrons surround a **${elementName(a.el)}** atom in the molecule **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("Zähle die freien Elektronen und die Elektronen der Bindungen zusammen.", "Add the non-bonding electrons and the electrons in the bonds."),
     explain: tr(`Im fertigen Molekül hat jedes Atom Edelgaskonfiguration: ${a.el === "H" ? "Wasserstoff 2 Elektronen (Duett, wie Helium)" : "8 Elektronen (Oktett)"} → **${t}**.`, `In the finished molecule every atom has a noble gas configuration: ${a.el === "H" ? "hydrogen 2 electrons (duet, like helium)" : "8 electrons (octet)"} → **${t}**.`),
   };
@@ -84,7 +86,7 @@ function lonePairs(os: boolean): Task {
   ];
   return {
     ...mc(String(p), wrongs),
-    prompt: tr(`Wie viele **freie Elektronenpaare** hat ein ${elementName(a.el)}-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many **lone pairs** does a ${atomOf(a.el)} have in the molecule **${k.name}** (${sub(k.formula)})?`),
+    prompt: tr(`Wie viele **freie Elektronenpaare** hat ein ${elementName(a.el)}-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many **lone pairs** does a ${atomOf(a.el)} have in the molecule **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("Außenelektronen minus Elektronen, die in Bindungen stecken – der Rest bildet Paare.", "Outer electrons minus electrons in bonds – the rest form pairs."),
     explain: tr(`${elementName(a.el)} hat ${VALENCE[a.el]} Außenelektronen, davon ${electronsOf(m, a.id).bonds} in Bindungen. Übrig: ${electronsOf(m, a.id).lone} → **${p}** freie${p === 1 ? "s" : ""} Paar${p === 1 ? "" : "e"}.`,
       `${elementName(a.el)} has ${VALENCE[a.el]} outer electrons, ${electronsOf(m, a.id).bonds} of them in bonds. Left: ${electronsOf(m, a.id).lone} → **${p}** lone pair${p === 1 ? "" : "s"}.`),
@@ -110,7 +112,7 @@ function build(os: boolean): Task {
   ];
   return {
     kind: "build", molecule: k.id, elements, traps,
-    prompt: tr(`Baue das Molekül **${k.name}** (${sub(k.formula)}).`, `Build the molecule **${k.name}** (${sub(k.formula)}).`),
+    prompt: tr(`Baue das Molekül **${k.name}** (${sub(k.formula)}).`, `Build the molecule **${mid(k)}** (${sub(k.formula)}).`),
     hint: tr("Im fertigen Molekül hat jedes Atom 8 Elektronen um sich (H: 2). Mehrfachbindung: Bindungs-Oval antippen.", "In the finished molecule every atom has 8 electrons around it (H: 2). Multiple bond: tap the bond oval."),
     explain: tr(`${k.name}: ${bondList(k)} – alle Atome haben Edelgaskonfiguration.`, `${k.name}: ${bondList(k)} – all atoms have a noble gas configuration.`),
   };
@@ -132,7 +134,7 @@ function bondType(os: boolean): Task {
   const wrongs = [1, 2, 3].filter(o => o !== b.order).map(o => (o < b.order ? less(o) : more(o)));
   return {
     ...mc(bondName(b.order), wrongs),
-    prompt: tr(`Welche Bindung liegt im Molekül **${k.name}** (${sub(k.formula)}) zwischen ${pair} vor?`, `Which bond is there in the molecule **${k.name}** (${sub(k.formula)}) between ${pair}?`),
+    prompt: tr(`Welche Bindung liegt im Molekül **${k.name}** (${sub(k.formula)}) zwischen ${pair} vor?`, `Which bond joins ${pair} in **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("Wie viele ungepaarte Elektronen hat jedes Atom? So viele Paare teilen die beiden.", "How many unpaired electrons does each atom have? That many pairs are shared."),
     explain: tr(`Mit **${b.order}** gemeinsamen Elektronenpaar${b.order > 1 ? "en" : ""} hat jedes Atom ${A.el === "H" || B.el === "H" ? "Edelgaskonfiguration (H: Duett, sonst Oktett)" : "ein Oktett"} → ${bondName(b.order)}.`,
       `With **${b.order}** shared electron pair${b.order > 1 ? "s" : ""} each atom has ${A.el === "H" || B.el === "H" ? "a noble gas configuration (H: duet, otherwise octet)" : "an octet"} → ${bn(b.order)}.`),
@@ -162,7 +164,7 @@ function formulaQ(os: boolean): Task {
   ];
   return {
     ...mc(sub(k.formula), wrong),
-    prompt: tr(`Welche Formel hat **${k.name}**?`, `What is the formula of **${k.name}**?`),
+    prompt: tr(`Welche Formel hat **${k.name}**?`, `What is the formula of **${mid(k)}**?`),
     hint: tr("Überlege, wie viele Bindungen jedes Atom eingeht.", "Think about how many bonds each atom forms."),
     explain: `${k.name} = **${sub(k.formula)}**${gathered(k.formula) !== k.formula ? ` (${tr("Summenformel", "molecular formula")} ${sub(gathered(k.formula))})` : ""}.`,
   };
@@ -182,14 +184,14 @@ function nameQ(os: boolean): Task {
   const alike = shuffle(pool(true).filter(x => x.id !== k.id && x.name !== k.name && els(x.formula) === els(k.formula)));
   return {
     ...mc(k.name, [
-      ...alike.slice(0, 3).map(x => d(x.name, "name-verwechselt", tr(`${x.name} ist ${sub(x.formula)} – dieselben Elemente, aber andere Anzahl. ${sub(k.formula)} ist **${k.name}**.`, `${x.name} is ${sub(x.formula)} – the same elements but different numbers. ${sub(k.formula)} is **${k.name}**.`))),
+      ...alike.slice(0, 3).map(x => d(x.name, "name-verwechselt", tr(`${x.name} ist ${sub(x.formula)} – dieselben Elemente, aber andere Anzahl. ${sub(k.formula)} ist **${k.name}**.`, `${x.name} is ${sub(x.formula)} – the same elements but different numbers. ${sub(k.formula)} is **${mid(k)}**.`))),
       ...(composition(k.formula).length > 1 ? composition(k.formula).map(([el]) => elementName(el)).filter(n => n !== k.name).map(n =>
-        d(n, "element-statt-molekuel", tr(`${n} ist nur ein Bestandteil. Das Molekül ${sub(k.formula)} heißt **${k.name}**.`, `${n} is only one component. The molecule ${sub(k.formula)} is called **${k.name}**.`))) : []),
+        d(n, "element-statt-molekuel", tr(`${n} ist nur ein Bestandteil. Das Molekül ${sub(k.formula)} heißt **${k.name}**.`, `${n} is only one component. The molecule ${sub(k.formula)} is called **${mid(k)}**.`))) : []),
       ...shuffle(pool(os).filter(x => x.id !== k.id)).slice(0, 5).map(x => x.name),
     ]),
     prompt: tr(`Wie heißt das Molekül **${sub(k.formula)}**?`, `What is the molecule **${sub(k.formula)}** called?`),
     hint: tr("Zähle die Atome genau: CH₄ und C₂H₆ haben dieselben Elemente, aber andere Namen.", "Count the atoms carefully: CH₄ and C₂H₆ have the same elements but different names."),
-    explain: tr(`${sub(k.formula)} heißt **${k.name}**.`, `${sub(k.formula)} is called **${k.name}**.`),
+    explain: tr(`${sub(k.formula)} heißt **${k.name}**.`, `${sub(k.formula)} is called **${mid(k)}**.`),
   };
 }
 
@@ -210,7 +212,7 @@ function geometry(): Task {
   ];
   return {
     ...mc(G, wrongs),
-    prompt: tr(`Welche **Molekülgeometrie** hat **${k.name}** (${sub(k.formula)})?`, `What is the **molecular shape** of **${k.name}** (${sub(k.formula)})?`),
+    prompt: tr(`Welche **Molekülgeometrie** hat **${k.name}** (${sub(k.formula)})?`, `What is the **molecular shape** of **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("EPA-Modell: Bindungspartner und freie Elektronenpaare am Zentralatom stoßen sich ab. Mehrfachbindungen zählen wie eine.", "VSEPR model: bonding partners and lone pairs on the central atom repel each other. Multiple bonds count as one."),
     explain: tr(`Zentralatom ${centerOf(k).el}: ${s.neighbors} Bindungspartner + ${s.pairs === 1 ? "1 freies Paar" : `${s.pairs} freie Paare`} → **${G}** (Winkel ${s.angle}).`, `Central atom ${centerOf(k).el}: ${s.neighbors} bonding partners + ${pairsEn(s.pairs)} → **${G}** (angle ${s.angle}).`),
   };
@@ -232,7 +234,7 @@ function angle(): Task {
   ];
   return {
     ...mc(s.angle, wrongs),
-    prompt: tr(`Welchen **Bindungswinkel** hat **${k.name}** (${sub(k.formula)})?`, `What is the **bond angle** in **${k.name}** (${sub(k.formula)})?`),
+    prompt: tr(`Welchen **Bindungswinkel** hat **${k.name}** (${sub(k.formula)})?`, `What is the **bond angle** in **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("Tetraeder 109,5°. Freie Elektronenpaare brauchen mehr Platz und drücken die Bindungen etwas zusammen.", "Tetrahedron 109.5°. Lone pairs need more space and push the bonds a little closer together."),
     explain: tr(`${k.name} ist ${s.geometry} → **${s.angle}**.${s.pairs ? " Die freien Elektronenpaare stoßen stärker ab als bindende Paare." : ""}`, `${k.name} is ${geo(s.geometry)} → **${s.angle}**.${s.pairs ? " Lone pairs repel more strongly than bonding pairs." : ""}`),
   };
@@ -251,7 +253,7 @@ function polar(): Task {
         ? d(UNP, "form-uebersehen", tr(`${k.name} ist ${shapeAt(m, centerOf(k).id)!.geometry}, nicht symmetrisch: Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, not symmetrical: the partial charges do not cancel → dipole.`))
         : d(UNP, "en-uebersehen", tr(`ΔEN = ${delta.toFixed(2).replace(".", ",")} ≥ 0,4: Das elektronegativere Atom zieht die Elektronen zu sich → polare Bindung = polares Molekül (nur 2 Atome).`, `ΔEN = ${delta.toFixed(2)} ≥ 0.4: the more electronegative atom pulls the electrons towards itself → polar bond = polar molecule (only 2 atoms).`)))
       : (hasPolarBonds
-        ? d(POL, "polare-bindung-polares-molekuel", tr(`Die Bindungen sind polar, aber ${k.name} ist symmetrisch gebaut: Die Teilladungen heben sich gegenseitig auf → kein Dipol.`, `The bonds are polar, but ${k.name} is symmetrical: the partial charges cancel each other → no dipole.`))
+        ? d(POL, "polare-bindung-polares-molekuel", tr(`Die Bindungen sind polar, aber ${k.name} ist symmetrisch gebaut: Die Teilladungen heben sich gegenseitig auf → kein Dipol.`, `The bonds are polar, but ${mid(k)} is symmetrical: the partial charges cancel each other → no dipole.`))
         : k.id === "CH4"
           ? d(POL, "polare-bindung-polares-molekuel", tr("C–H ist mit ΔEN 0,35 kaum polar, und Methan ist symmetrisch (Tetraeder) → unpolar.", "C–H is hardly polar with ΔEN 0.35, and methane is symmetrical (tetrahedron) → non-polar."))
           : d(POL, "gleiche-en-polar", tr(`Beide Atome sind gleich elektronegativ (ΔEN = 0): Keines zieht stärker → keine Teilladungen.`, `Both atoms are equally electronegative (ΔEN = 0): neither pulls harder → no partial charges.`))),
@@ -260,7 +262,7 @@ function polar(): Task {
   ];
   return {
     ...mc(right, wrongs),
-    prompt: tr(`Ist das Molekül **${k.name}** (${sub(k.formula)}) polar oder unpolar?`, `Is the molecule **${k.name}** (${sub(k.formula)}) polar or non-polar?`),
+    prompt: tr(`Ist das Molekül **${k.name}** (${sub(k.formula)}) polar oder unpolar?`, `Is the molecule **${mid(k)}** (${sub(k.formula)}) polar or non-polar?`),
     hint: tr("1. Gibt es polare Bindungen (ΔEN ≥ 0,4)? 2. Heben sich die Teilladungen durch den symmetrischen Bau auf?", "1. Are there polar bonds (ΔEN ≥ 0.4)? 2. Do the partial charges cancel because of a symmetrical shape?"),
     explain: p
       ? tr(`${k.name} hat polare Bindungen, und die Teilladungen heben sich nicht auf → **polar** (Dipol).`, `${k.name} has polar bonds, and the partial charges do not cancel → **polar** (dipole).`)
