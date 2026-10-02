@@ -18,7 +18,14 @@ const n = MODULES.length, colsW = n <= 6 ? 3 : 4;
 
 export function Overview() {
   const lang = useLang();
-  useLayoutEffect(() => { applyTheme("light"); document.title = tr("Edi – Lern-Apps", "Edi – Learning apps"); }, [lang]);
+  useLayoutEffect(() => {
+    applyTheme("light");
+    document.title = tr("Edi – Lern-Apps", "Edi – Learning apps");
+    // Beschreibung der Seite in der gewählten Sprache (Teilen-Vorschau, Suche)
+    document.querySelector('meta[name="description"]')?.setAttribute("content", tr(
+      "Lern-Apps für Chemie und Einheiten: Gemische, Atombau, Ionenbindung, Elektronenpaarbindung, Reaktionsgleichungen, Neutralisation, Einheiten umrechnen.",
+      "Learning apps for chemistry and units: mixtures, atomic structure, ionic bonding, covalent bonding, chemical equations, neutralisation, unit conversion."));
+  }, [lang]);
   return (
     <div className="ov">
       <header className="ov-head">

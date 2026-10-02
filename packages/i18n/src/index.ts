@@ -56,3 +56,18 @@ export const tr = <T,>(de: T, en: T): T => (lang === "en" ? en : de);
 export const num = (s: string | number) => (lang === "en" ? String(s).replace(",", ".") : String(s).replace(".", ","));
 
 apply();
+
+/** Eigennamen und Wörter, die im Englischen auch mitten im Satz groß bleiben */
+const KEEP_CAPS = new Set(["Bohr", "Hund", "Pauli", "Lewis", "Aufbau", "Avogadro", "Celsius", "Kelvin", "Fahrenheit", "English", "German",
+  "Roman", "Latin", "Greek", "Hill", "Edi", "Newton", "Joule", "Watt", "Pascal"]);
+/**
+ * Englische Schreibweise: Namen mitten im Satz klein („Tap **argon**“, „formula of **sodium nitride**“) – die Daten schreiben
+ * Element- und Stoffnamen groß wie im Deutschen. Satzanfänge, Eigennamen, Abkürzungen und Elementsymbole bleiben unverändert.
+ */
+export function midCase(s: string): string {
+  // ohne Lookbehind (ältere Safari-Versionen kennen ihn nicht): das Wort davor wird mitgenommen und unverändert zurückgegeben
+  return s.replace(/((?:[a-z→=]|[a-z0-9)][,;:]) (?:\*\*)?)([A-Z][a-z]{2,})(?![A-Za-z])/g, (_, pre: string, w: string) => pre + (KEEP_CAPS.has(w) ? w : w.toLowerCase()));
+}
+
+/** englischer unbestimmter Artikel vor einem Wort: „an oxygen atom“, „a carbon atom“, „an octet“, „a duet“ */
+export const article = (word: string) => (/^(?:[aeio]|u(?!ni|s[eu]|r[ae]))/i.test(word.replace(/^\*+/, "")) ? "an" : "a");

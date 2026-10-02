@@ -5,7 +5,7 @@ import {
 } from "@lern/chem";
 import { buildRound, mc, d, pick, shuffle, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import type { Stufe } from "../store.ts";
-import { num as dec, tr } from "@lern/i18n";
+import { article, num as dec, tr } from "@lern/i18n";
 
 export type Task = McTask | (BaseTask & { kind: "build"; molecule: string; elements: string[] });
 
@@ -46,7 +46,7 @@ function bindigkeit(): Task {
   ];
   return {
     ...mc(String(n), wrongs),
-    prompt: tr(`Wie viele Elektronenpaarbindungen geht ein **${elementName(el)}**-Atom (${el}) normalerweise ein?`, `How many covalent bonds does a **${elementName(el)}** atom (${el}) normally form?`),
+    prompt: tr(`Wie viele Elektronenpaarbindungen geht ein **${elementName(el)}**-Atom (${el}) normalerweise ein?`, `How many covalent bonds does ${article(elementName(el))} **${elementName(el)}** atom (${el}) normally form?`),
     hint: tr("Zähle die ungepaarten Elektronen im Lewis-Symbol – jedes kann eine Bindung eingehen.", "Count the unpaired electrons in the Lewis symbol – each can form one bond."),
     explain: tr(`${elementName(el)} hat ${VALENCE[el] === 1 ? "1 Außenelektron" : `${VALENCE[el]} Außenelektronen`}. ${el === "H" ? "Bis zum Duett (2 Elektronen) fehlt 1" : n === 1 ? "Bis zum Oktett fehlt 1" : `Bis zum Oktett fehlen ${n}`} → **${n}** Bindung${n > 1 ? "en" : ""}.`,
       `${elementName(el)} has ${VALENCE[el] === 1 ? "1 outer electron" : `${VALENCE[el]} outer electrons`}. ${el === "H" ? "1 is missing for the duet (2 electrons)" : `${n} ${n === 1 ? "is" : "are"} missing for the octet`} → **${n}** bond${n > 1 ? "s" : ""}.`),
@@ -67,7 +67,7 @@ function around(os: boolean): Task {
     ];
   return {
     ...mc(String(t), [...wrongs, "2", "4", "6", "8"]),
-    prompt: tr(`Wie viele Elektronen umgeben ein **${elementName(a.el)}**-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many electrons surround a **${elementName(a.el)}** atom in the molecule **${mid(k)}** (${sub(k.formula)})?`),
+    prompt: tr(`Wie viele Elektronen umgeben ein **${elementName(a.el)}**-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many electrons surround ${article(elementName(a.el))} **${elementName(a.el)}** atom in the molecule **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("Zähle die freien Elektronen und die Elektronen der Bindungen zusammen.", "Add the non-bonding electrons and the electrons in the bonds."),
     explain: tr(`Im fertigen Molekül hat jedes Atom Edelgaskonfiguration: ${a.el === "H" ? "Wasserstoff 2 Elektronen (Duett, wie Helium)" : "8 Elektronen (Oktett)"} → **${t}**.`, `In the finished molecule every atom has a noble gas configuration: ${a.el === "H" ? "hydrogen 2 electrons (duet, like helium)" : "8 electrons (octet)"} → **${t}**.`),
   };
@@ -86,7 +86,7 @@ function lonePairs(os: boolean): Task {
   ];
   return {
     ...mc(String(p), wrongs),
-    prompt: tr(`Wie viele **freie Elektronenpaare** hat ein ${elementName(a.el)}-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many **lone pairs** does a ${atomOf(a.el)} have in the molecule **${mid(k)}** (${sub(k.formula)})?`),
+    prompt: tr(`Wie viele **freie Elektronenpaare** hat ein ${elementName(a.el)}-Atom im Molekül **${k.name}** (${sub(k.formula)})?`, `How many **lone pairs** does ${article(atomOf(a.el))} ${atomOf(a.el)} have in the molecule **${mid(k)}** (${sub(k.formula)})?`),
     hint: tr("Außenelektronen minus Elektronen, die in Bindungen stecken – der Rest bildet Paare.", "Outer electrons minus electrons in bonds – the rest form pairs."),
     explain: tr(`${elementName(a.el)} hat ${VALENCE[a.el]} Außenelektronen, davon ${electronsOf(m, a.id).bonds} in Bindungen. Übrig: ${electronsOf(m, a.id).lone} → **${p}** freie${p === 1 ? "s" : ""} Paar${p === 1 ? "" : "e"}.`,
       `${elementName(a.el)} has ${VALENCE[a.el]} outer electrons, ${electronsOf(m, a.id).bonds} of them in bonds. Left: ${electronsOf(m, a.id).lone} → **${p}** lone pair${p === 1 ? "" : "s"}.`),
@@ -130,7 +130,7 @@ function bondType(os: boolean): Task {
       `With ${o === 1 ? "only one shared pair" : "two shared pairs"} ${X.el} would only have ${around - 2 * (b.order - o)} electrons. Only ${b.order} shared pairs give both a full ${g}.`));
   const more = (o: number) => d(bondName(o), "oktett-ueberschritten",
     tr(`${X.el} hat ${num(VALENCE[X.el], "Außenelektron", "Außenelektronen")}, davon ${num(unpaired(X.el), "ungepaartes", "ungepaarte")}. Mit ${o} Paaren hätte es ${around + 2 * (o - b.order)} Elektronen – mehr als ein ${g.split(" ")[0]}.`,
-      `${X.el} has ${num(VALENCE[X.el], "outer electron", "outer electrons")}, ${num(unpaired(X.el), "unpaired one", "unpaired ones")}. With ${o} pairs it would have ${around + 2 * (o - b.order)} electrons – more than an ${g.split(" ")[0]}.`));
+      `${X.el} has ${num(VALENCE[X.el], "outer electron", "outer electrons")}, ${num(unpaired(X.el), "unpaired one", "unpaired ones")}. With ${o} pairs it would have ${around + 2 * (o - b.order)} electrons – more than ${article(g)} ${g.split(" ")[0]}.`));
   const wrongs = [1, 2, 3].filter(o => o !== b.order).map(o => (o < b.order ? less(o) : more(o)));
   return {
     ...mc(bondName(b.order), wrongs),
