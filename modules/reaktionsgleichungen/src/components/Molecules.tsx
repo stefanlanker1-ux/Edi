@@ -64,8 +64,8 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
         <KalotteShades gid={gid} els={kalotteElements(all)} />
         {frame(0, 0)}
         {frame(ox, oy)}
-        {side(0, n, 0, 0)}
-        {side(n, all.length, ox, oy)}
+        <g className="ms-edukte">{side(0, n, 0, 0)}</g>
+        <g className="ms-produkte">{side(n, all.length, ox, oy)}</g>
         <path className="ms-arrow" d={arrow} />
       </svg>
     </div>
