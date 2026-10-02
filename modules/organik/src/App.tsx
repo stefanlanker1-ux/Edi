@@ -1,11 +1,11 @@
-import { LernApp, type ShellTab } from "@lern/ui";
+import { LernApp, tr, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { DrawView } from "./views/DrawView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
 import { GUIDE } from "./guide.tsx";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "zeichnen", label: "Zeichnen", icon: "bond" },
+  { id: "zeichnen", label: tr("Zeichnen", "Draw"), icon: "bond" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
 ];
 
@@ -23,7 +23,7 @@ const Logo = () => (
 export function App() {
   const { tab, setTab } = useApp();
   return (
-    <LernApp name="Nomenklatur" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["organik-v1", "organik-quiz"]} guide={GUIDE}>
+    <LernApp name={tr("Nomenklatur", "Nomenclature")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["organik-v1", "organik-quiz"]} guide={GUIDE}>
       {tab === "zeichnen" && <DrawView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

@@ -1,5 +1,6 @@
 // Prüft Übersicht und alle Module der Site: Überlaufen, Tippziele, Konsolenfehler – in drei Bildschirmgrößen.
 // Aufruf: node scripts/check-ui.mjs [site-Ordner] [,modul1,modul2]  (leer = Übersicht)  – Playwright muss erreichbar sein (PLAYWRIGHT=/pfad/node_modules/playwright/index.mjs, Chromium in PLAYWRIGHT_BROWSERS_PATH).
+// LOCALE=en-GB prüft die englische Oberfläche (Standard de-DE).
 // LESBAR=1 prüft zusätzlich mit eingeschalteter Option „Lesbar“ (größere Abstände) – nichts darf dadurch überlaufen.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 import http from "node:http";
@@ -10,6 +11,7 @@ const SITE = process.argv[2] ?? "site";
 const APPS = (process.argv[3] ?? ",gemische,atombau,ionenbindung,elektronenpaarbindung,reaktionsgleichungen,neutralisation,organik,einheiten").split(",");
 // weitere Größen: VP="768x1024,1024x768" node scripts/check-ui.mjs
 const VIEWPORTS = process.env.VP ? process.env.VP.split(",").map(v => v.split("x").map(Number)) : [[390, 844], [375, 667], [1280, 800]];
+const PORT = Number(process.env.PORT ?? 4173);
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".json": "application/json", ".webmanifest": "application/manifest+json", ".woff2": "font/woff2", ".woff": "font/woff", ".png": "image/png" };
 
 const server = http.createServer((req, res) => {
@@ -20,7 +22,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { "content-type": MIME[path.extname(f)] ?? "application/octet-stream" });
   fs.createReadStream(f).pipe(res);
 });
-await new Promise(r => server.listen(4173, r));
+await new Promise(r => server.listen(PORT, r));
 
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const findings = [];
@@ -65,14 +67,14 @@ async function check(page, app, vp, view) {
 for (const app of APPS) {
   for (const [w, h] of VIEWPORTS) {
     const vp = `${w}×${h}`;
-    const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 900, isMobile: w < 900 });
+    const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 900, isMobile: w < 900, locale: process.env.LOCALE ?? "de-DE" });
     if (process.env.LESBAR) await ctx.addInitScript(() => { try { localStorage.setItem("lern-lesbar", "on"); } catch { /* egal */ } });
     const page = await ctx.newPage();
     page.setDefaultTimeout(1500);
     try {
     page.on("console", m => { if (m.type() === "error") note(app, vp, "konsole", m.text().slice(0, 160)); });
     page.on("pageerror", e => note(app, vp, "konsole", "pageerror " + String(e).slice(0, 160)));
-    const url = `http://localhost:4173/${app ? "#/" + app : ""}`;
+    const url = `http://localhost:${PORT}/${app ? "#/" + app : ""}`;
     await page.goto(url, { waitUntil: "networkidle" }).catch(() => {});
     await check(page, app, vp, "start");
     if (!app) { await ctx.close(); continue; }
@@ -83,7 +85,7 @@ for (const app of APPS) {
       const t = tabs[i];
       let label = `#${i}`;
       try { label = (await t.getAttribute("aria-label")) || (await t.textContent()) || label; } catch { continue; }
-      if (/Beamer|Farbschema|Startseite|Übersicht|Lesbar/.test(label)) continue; // Lesbar wird über LESBAR=1 geprüft, nicht mitten im Lauf umgeschaltet
+      if (/Beamer|Farbschema|Startseite|Übersicht|Lesbar|Projector|[Cc]olou?r scheme|Home|Overview|Readable|English|Deutsch/.test(label)) continue; // Lesbar wird über LESBAR=1 geprüft, nicht mitten im Lauf umgeschaltet
       try { await t.click({ timeout: 1500 }); } catch { continue; }
       await check(page, app, vp, `tab:${label.trim().slice(0, 20)}`);
       // Werkzeuge im Blatt / Register durchgehen
@@ -105,29 +107,29 @@ for (const app of APPS) {
     if (await quizTab.count()) {
       try { await quizTab.click({ timeout: 2000 }); } catch { /* egal */ }
       await check(page, app, vp, "quiz-menü");
-      const start = page.locator("button:has-text('Start'), button:has-text('Los'), button:has-text('Runde'), button:has-text('üben'), button:has-text('Üben'), .level-card").first();
+      const start = page.locator("button:has-text('Start'), button:has-text('Los'), button:has-text('Let'), button:has-text('Runde'), button:has-text('üben'), button:has-text('Üben'), .level-card").first();
       if (await start.count()) {
         try { await start.click({ timeout: 2000 }); } catch { /* egal */ }
         for (let k = 0; k < 6; k++) {
           await check(page, app, vp, `quiz-aufgabe ${k + 1}`);
           // Hilfsmittel/Lösung-Blätter öffnen
-          for (const nm of ["PSE", "Pfeile", "Skala", "Lösung", "Tafel", "Hilfe"]) {
+          for (const nm of ["PSE", "Pfeile", "Skala", "Lösung", "Tafel", "Hilfe", "PT", "Arrows", "Scale", "Solution", "Board", "Help"]) {
             const b = page.locator(`button:has-text('${nm}')`).first();
             if (await b.count() && await b.isVisible()) {
               try { await b.click({ timeout: 800 }); await check(page, app, vp, `quiz-aufgabe ${k + 1}/blatt:${nm}`); } catch { /* egal */ }
-              const close = page.locator("button[aria-label*=Schließen], button[aria-label*=Zurück]").first();
+              const close = page.locator("button[aria-label*=Schließen], button[aria-label*=Zurück], button[aria-label*=Close], button[aria-label*=Back]").first();
               if (await close.count()) { try { await close.click({ timeout: 800 }); } catch { /* egal */ } }
             }
           }
           // erste Antwortoption wählen, dann prüfen/weiter
-          const opt = page.locator(".quiz-card button, main button").filter({ hasNotText: /Weiter|Prüfen|Abbrechen|Menü|PSE|Pfeile|Skala|Lösung|Tafel|Hilfe|Zurück/ }).first();
+          const opt = page.locator(".quiz-card button, main button").filter({ hasNotText: /Weiter|Prüfen|Abbrechen|Menü|PSE|Pfeile|Skala|Lösung|Tafel|Hilfe|Zurück|Next|Check|Cancel|Menu|PT|Arrows|Scale|Solution|Board|Help|Back/ }).first();
           if (await opt.count()) { try { await opt.click({ timeout: 800 }); } catch { /* egal */ } }
           const inp = page.locator("main input[type=text], main input[type=number], main input:not([type])").first();
           if (await inp.count() && await inp.isVisible()) { try { await inp.fill("1"); } catch { /* egal */ } }
-          const pruef = page.locator("button:has-text('Prüfen')").first();
+          const pruef = page.locator("button:has-text('Prüfen'), button:has-text('Check')").first();
           if (await pruef.count() && await pruef.isVisible()) { try { await pruef.click({ timeout: 800 }); } catch { /* egal */ } }
           await check(page, app, vp, `quiz-rückmeldung ${k + 1}`);
-          const weiter = page.locator("button:has-text('Weiter'), button:has-text('Nächste')").first();
+          const weiter = page.locator("button:has-text('Weiter'), button:has-text('Nächste'), button:has-text('Next')").first();
           if (await weiter.count() && await weiter.isVisible()) { try { await weiter.click({ timeout: 800 }); } catch { break; } } else break;
         }
       }

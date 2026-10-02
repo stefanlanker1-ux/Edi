@@ -9,7 +9,7 @@ import { layout } from "../layout.ts";
 import { keepStereo, stereoBonds } from "../stereo.ts";
 import type { Mol } from "../mol.ts";
 import { samples, rng } from "./generate.ts";
-import { altEnglish, toEnglish } from "./english.ts";
+import { altEnglish, toEnglish } from "../english.ts";
 import { toMolblock } from "./molfile.ts";
 
 const OUT = process.env.ORACLE_OUT;

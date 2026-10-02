@@ -12,13 +12,15 @@
 import { formula, graph, hCount, components, HALOGENS, type El, type Graph, type Mol } from "./mol.ts";
 import { findRings, STEM, type Ring, type RingInfo } from "./rings.ts";
 import { stereoBonds, type Stereo } from "./stereo.ts";
+import { localizeEn, parentEn, prefixEn, toEnglish } from "./english.ts";
+import { tr, getLang } from "@lern/i18n";
 
 export type Kind = "saeure" | "ester" | "amid" | "nitril" | "al" | "on" | "ol" | "thiol" | "amin";
 /** Priorität der Hauptgruppen (höchste zuerst) */
 export const RANK: Kind[] = ["saeure", "ester", "amid", "nitril", "al", "on", "ol", "thiol", "amin"];
 const C_TYPE = new Set<Kind>(["saeure", "ester", "amid", "nitril", "al"]);
 
-export const KIND_INFO: Record<Kind, { label: string; group: string; suffix: string; prefix: string }> = {
+export const KIND_INFO: Record<Kind, { label: string; group: string; suffix: string; prefix: string }> = tr({
   saeure: { label: "Carbonsäure", group: "–COOH", suffix: "-säure", prefix: "Carboxy-" },
   ester: { label: "Ester", group: "–COO–", suffix: "-säure…ester", prefix: "…oxycarbonyl-" },
   amid: { label: "Amid", group: "–CONH₂", suffix: "-amid", prefix: "Carbamoyl-" },
@@ -28,7 +30,17 @@ export const KIND_INFO: Record<Kind, { label: string; group: string; suffix: str
   ol: { label: "Alkohol", group: "–OH", suffix: "-ol", prefix: "Hydroxy-" },
   thiol: { label: "Thiol", group: "–SH", suffix: "-thiol", prefix: "Sulfanyl-" },
   amin: { label: "Amin", group: "–NH₂", suffix: "-amin", prefix: "Amino-" },
-};
+}, {
+  saeure: { label: "Carboxylic acid", group: "–COOH", suffix: "-oic acid", prefix: "carboxy-" },
+  ester: { label: "Ester", group: "–COO–", suffix: "alkyl …-oate", prefix: "…oxycarbonyl-" },
+  amid: { label: "Amide", group: "–CONH₂", suffix: "-amide", prefix: "carbamoyl-" },
+  nitril: { label: "Nitrile", group: "–C≡N", suffix: "-nitrile", prefix: "cyano-" },
+  al: { label: "Aldehyde", group: "–CHO", suffix: "-al", prefix: "oxo-" },
+  on: { label: "Ketone", group: "C=O", suffix: "-one", prefix: "oxo-" },
+  ol: { label: "Alcohol", group: "–OH", suffix: "-ol", prefix: "hydroxy-" },
+  thiol: { label: "Thiol", group: "–SH", suffix: "-thiol", prefix: "sulfanyl-" },
+  amin: { label: "Amine", group: "–NH₂", suffix: "-amine", prefix: "amino-" },
+});
 
 export interface Group {
   kind: Kind;
@@ -702,7 +714,27 @@ export interface NameOptions extends Flags {
   pick?: "reverse" | "otherChain";
 }
 
+/** Name des Moleküls; auf Englisch Name, Teile, weitere Namen und Meldungen übersetzt */
 export function name(mol: Mol, opt: NameOptions = {}): NameResult {
+  const r = nameDe(mol, opt);
+  if (getLang() !== "en") return r;
+  return r.ok ? localizeEn(r) : { ...r, reason: REASON_EN[r.reason] ?? r.reason };
+}
+
+const REASON_EN: Record<string, string> = {
+  "Noch nichts gezeichnet": "Nothing drawn yet", "Mehrere getrennte Teile – verbinde sie": "Several separate parts – connect them",
+  "Kein Kohlenstoff – keine organische Verbindung": "No carbon – not an organic compound", "Keine andere Möglichkeit": "No other option",
+  "Bindung zwischen zwei Nicht-Kohlenstoff-Atomen": "Bond between two non-carbon atoms", "Mehrfachbindung am Halogen": "Multiple bond at the halogen",
+  "Zwei Doppelbindungen zu O am selben C": "Two double bonds to O on the same C", "Nitril im Ring": "Nitrile in a ring",
+  "C=N- oder C=S-Doppelbindung": "C=N or C=S double bond", "Keten (C=C=O)": "Ketene (C=C=O)",
+  "Kohlensäure-Abkömmling (zwei Heteroatome am C=O)": "Carbonic acid derivative (two heteroatoms on C=O)", "Säureanhydrid": "Acid anhydride",
+  "Amid im Ring": "Amide in a ring", "Säurehalogenid oder Thioester": "Acid halide or thioester", "C=N-Doppelbindung": "C=N double bond",
+  "Stickstoff an zwei C=O": "Nitrogen on two C=O", "Imid (N an zwei C=O)": "Imide (N on two C=O)",
+  "Mehrere Ringe teilen sich Atome": "Several rings share atoms", "Ring mit mehreren Heteroatomen": "Ring with several heteroatoms",
+  "Heterocyclus mit mehr als 6 Atomen": "Heterocycle with more than 6 atoms", "Teilweise ungesättigter Heterocyclus": "Partially unsaturated heterocycle",
+};
+
+function nameDe(mol: Mol, opt: NameOptions): NameResult {
   const { ctx, bad } = prepare(mol);
   const f = formula(mol);
   if (bad) return { ok: false, reason: bad, formula: f };
@@ -978,9 +1010,10 @@ function classes(ctx: Ctx): string[] {
 }
 
 const nums = (xs: number[]) => xs.join(", ");
-const PARENT_WORD = (o: Option) => (o.kind === "chain" ? "Hauptkette" : "Ring");
+const PARENT_WORD = (o: Option) => (o.kind === "chain" ? tr("Hauptkette", "Main chain") : tr("Ring", "Ring"));
 
 function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
+  if (getLang() === "en") return stepsEn(ctx, o, K, r);
   const out: string[] = [];
   const n = o.counted.length;
   const info = K ? KIND_INFO[K] : undefined;
@@ -1013,6 +1046,42 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
   return out;
 }
 
+/** Lösungsweg auf Englisch (gleiche Schritte, englische Namen und Endungen) */
+function stepsEn(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
+  const out: string[] = [];
+  const n = o.counted.length;
+  const info = K ? KIND_INFO[K] : undefined;
+  let nm = r.name;
+  try { nm = toEnglish(r); } catch { /* deutscher Name bleibt */ }
+  if (K === "ester") out.push(`Principal group: **ester** ${info!.group}. Name = alkyl part + acid part ending in **-oate**.`);
+  else if (info && n) out.push(`Principal group: **${info.label.toLowerCase()}** ${info.group} → ending **${info.suffix}**${n > 1 ? ` (${n}× → ${MULT[n]}…)` : ""}.`);
+  else out.push("No group with an ending: the name ends in **-ane**, **-ene** or **-yne**.");
+  const others = RANK.filter(k => k !== K && ctx.groups.some(x => x.kind === k));
+  if (others.length) out.push(`Other groups as prefixes: ${others.map(k => `**${KIND_INFO[k].prefix}**`).join(", ")}.`);
+  if (o.kind === "chain") {
+    const why = n ? `longest chain with the principal group${n > 1 ? "s" : ""}` : "longest chain";
+    out.push(`Main chain: ${why} → **${o.seq.length} C** = **${STEM[o.seq.length]}ane**.`);
+  } else {
+    const rk = o.ring!;
+    const rn = rk.kind === "benzen" ? "benzene (benzene ring)" : parentEn(rk.kind === "carbo" ? rk.base + "an" : rk.base);
+    out.push(`Parent: a **ring** comes before a chain → **${rn}**.`);
+  }
+  const what = [n ? "principal group" : "", o.en.length || o.yn.length ? "multiple bond" : "", o.prefixes.length ? "side chains" : ""].filter(Boolean);
+  if (o.seq.length > 1 && what.length) out.push(`Numbering: so that the **${what[0]}** get${what[0] === "side chains" ? "" : "s"} the lowest number.`);
+  if (n && o.kind === "chain" && o.mode === "incl" && K && C_TYPE.has(K)) out.push(`The C of the ${info!.label.toLowerCase()} group is **C1** – the number is not written in the name.`);
+  if (o.en.length) out.push(`Double bond at C${nums(o.en)} → **-ene**.`);
+  for (const st of r.stereo) out.push(ezStep(ctx, st));
+  if (o.yn.length) out.push(`Triple bond at C${nums(o.yn)} → **-yne**.`);
+  if (r.prefixes.length) {
+    const list = r.prefixes.map(p => `**${prefixEn(`${p.locs.length ? p.locs.join(",") + "-" : ""}${p.locs.length > 1 ? MULT[p.locs.length] : ""}${p.name}`)}**`);
+    out.push(`Prefixes: ${list.join(", ")}.`);
+    if (r.prefixes.length > 1) out.push(`Sort alphabetically (di, tri do not count): ${r.prefixes.map(p => prefixEn(p.name.replace(/[()]/g, ""))).join(" · ")}.`);
+  }
+  if (r.ester) out.push(`Alkyl part **${nm.slice(0, nm.lastIndexOf(" "))}**, acid part **${nm.slice(nm.lastIndexOf(" ") + 1)}** → **${nm}**.`);
+  else out.push(`Name: **${nm}**`);
+  return out;
+}
+
 const SUBN = "₀₁₂₃₄₅₆₇₈₉";
 /** Kurzform einer Gruppe für den Lösungsweg: CH₃, Cl, OH, NO₂ … (−1 = H) */
 function groupLabel(g: Graph, a: number): string {
@@ -1026,14 +1095,15 @@ function groupLabel(g: Graph, a: number): string {
 function ezStep(ctx: Ctx, st: StereoAt): string {
   const { g } = ctx;
   const z = (a: number) => (a < 0 ? 1 : g.el.get(a) === "NO2" ? 7 : ({ C: 6, N: 7, O: 8, F: 9, S: 16, Cl: 17, Br: 35, I: 53 } as Record<string, number>)[g.el.get(a)!]);
-  const rank = (p: number, q: number) => `${groupLabel(g, p)} vor ${groupLabel(g, q)}${z(p) === z(q) ? " – gleiches Atom, die Nachbarn entscheiden" : ""}`;
+  const rank = (p: number, q: number) => tr(`${groupLabel(g, p)} vor ${groupLabel(g, q)}${z(p) === z(q) ? " – gleiches Atom, die Nachbarn entscheiden" : ""}`,
+    `${groupLabel(g, p)} before ${groupLabel(g, q)}${z(p) === z(q) ? " – same atom, the neighbours decide" : ""}`);
   const at = st.loc;
   // in Nummernfolge: erst das C mit der kleineren Nummer
   const sides = [{ l: st.la, p: st.pa, q: st.qa }, { l: st.lb, p: st.pb, q: st.qb }].sort((x, y) => (x.l ?? 99) - (y.l ?? 99));
-  const one = (x: { l?: number; p: number; q: number }) => `${x.l ? `An C${x.l}` : "Am anderen C"}: ${rank(x.p, x.q)}.`;
-  const head = `Doppelbindung C${at}: Vorrang hat die größere Ordnungszahl. ${one(sides[0])} ${one(sides[1])}`;
-  if (!st.desc) return `${head} E/Z ist aus der Zeichnung nicht ablesbar – Gruppen schräg zeichnen.`;
-  return `${head} ${st.desc === "Z" ? "Beide auf **derselben** Seite → **Z** (zusammen)." : "Auf **verschiedenen** Seiten → **E** (entgegen)."}`;
+  const one = (x: { l?: number; p: number; q: number }) => `${x.l ? tr(`An C${x.l}`, `At C${x.l}`) : tr("Am anderen C", "At the other C")}: ${rank(x.p, x.q)}.`;
+  const head = `${tr(`Doppelbindung C${at}: Vorrang hat die größere Ordnungszahl.`, `Double bond C${at}: the higher atomic number has priority.`)} ${one(sides[0])} ${one(sides[1])}`;
+  if (!st.desc) return `${head} ${tr("E/Z ist aus der Zeichnung nicht ablesbar – Gruppen schräg zeichnen.", "E/Z cannot be read from the drawing – draw the groups at an angle.")}`;
+  return `${head} ${st.desc === "Z" ? tr("Beide auf **derselben** Seite → **Z** (zusammen).", "Both on the **same** side → **Z** (together).") : tr("Auf **verschiedenen** Seiten → **E** (entgegen).", "On **opposite** sides → **E** (opposite).")}`;
 }
 
 /** nur für Prüfungen: Name jedes möglichen Substituenten (Atom am Stammsystem `at`, erstes Atom `first`), alle Bindungen außerhalb von Ringen */

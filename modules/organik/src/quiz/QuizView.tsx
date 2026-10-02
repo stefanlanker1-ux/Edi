@@ -5,7 +5,7 @@
 import { createQuizStore, NumberAnswer, QuizScreen } from "@lern/quiz";
 import type { Mol } from "../chem/mol.ts";
 import { MolSvg, type View } from "../components/MolSvg.tsx";
-import { Segmented } from "@lern/ui";
+import { Segmented, tr } from "@lern/ui";
 import { Groups } from "../views/DrawView.tsx";
 import { STEM } from "../chem/rings.ts";
 import { useApp } from "../store.ts";
@@ -18,7 +18,7 @@ export const useQuiz = createQuizStore<Task>({ storageKey: "organik-quiz", level
 /** Formel der Aufgabe (Lewis oder Gerüst wie beim Zeichnen); Antwort-Formeln als Gerüstformel, damit sie klein lesbar bleiben */
 function QuizMol({ mol, small }: { mol: Mol; small?: boolean }) {
   const { view } = useApp();
-  return <MolSvg mol={mol} view={small ? "skelett" : view} label="Strukturformel" minW={small ? 2.5 : 3} minH={small ? 1.8 : 2} className={small ? "opt" : "q"} />;
+  return <MolSvg mol={mol} view={small ? "skelett" : view} label={tr("Strukturformel", "Structural formula")} minW={small ? 2.5 : 3} minH={small ? 1.8 : 2} className={small ? "opt" : "q"} />;
 }
 
 /** Hilfsmittel „Groß“: dieselbe Formel bildschirmfüllend, Lewis oder Gerüst */
@@ -26,8 +26,8 @@ function BigMol({ mol }: { mol: Mol }) {
   const { view, setView } = useApp();
   return (
     <div className="og-big">
-      <Segmented<View> label="Darstellung" value={view} onChange={setView} options={[{ value: "lewis", label: "Lewis" }, { value: "skelett", label: "Gerüst" }]} />
-      <MolSvg mol={mol} view={view} label="Strukturformel groß" minW={3} minH={2} />
+      <Segmented<View> label={tr("Darstellung", "View")} value={view} onChange={setView} options={[{ value: "lewis", label: "Lewis" }, { value: "skelett", label: tr("Gerüst", "Skeletal") }]} />
+      <MolSvg mol={mol} view={view} label={tr("Strukturformel groß", "Structural formula, large")} minW={3} minH={2} />
     </div>
   );
 }
@@ -46,8 +46,8 @@ function rules(t: Task) {
   if (!stems && !groups) return null;
   return (
     <div className="og-rules">
-      {stems && <section><h3>Stämme</h3><Stems /></section>}
-      {groups && <section><h3>Gruppen nach Rang</h3><Groups /></section>}
+      {stems && <section><h3>{tr("Stämme", "Stems")}</h3><Stems /></section>}
+      {groups && <section><h3>{tr("Gruppen nach Rang", "Groups by rank")}</h3><Groups /></section>}
     </div>
   );
 }
@@ -56,7 +56,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe="us"
-      title="Quiz · Nomenklatur"
+      title={tr("Quiz · Nomenklatur", "Quiz · Nomenclature")}
       useQuiz={useQuiz}
       levels={LEVELS}
       levelName={levelName}
@@ -70,8 +70,8 @@ export function QuizView() {
       solution={t => (t.kind === "num" ? String(t.answer) : null)}
       explain={(level, task) => explainFor(level, task)}
       tools={t => [
-        ...(t.mol ? [{ id: "gross", label: "Groß", icon: "search" as const, content: <BigMol mol={t.mol} /> }] : []),
-        ...(rules(t) ? [{ id: "regeln", label: "Regeln", icon: "table" as const, content: rules(t) }] : []),
+        ...(t.mol ? [{ id: "gross", label: tr("Groß", "Large"), icon: "search" as const, content: <BigMol mol={t.mol} /> }] : []),
+        ...(rules(t) ? [{ id: "regeln", label: tr("Regeln", "Rules"), icon: "table" as const, content: rules(t) }] : []),
       ]}
     />
   );

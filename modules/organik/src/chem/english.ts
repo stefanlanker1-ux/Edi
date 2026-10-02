@@ -3,7 +3,7 @@
 // on → one, amin → amine …), das End-e des Stamms fällt vor einem Vokal weg (propan-2-ol), Ester als „Alkyl Säure-oat“,
 // Heterocyclen mit -e (pyridine). Weitere Namen (cis/trans, ältere Schreibweise, Schulnamen, Trivialnamen) über `altEnglish`.
 
-import type { NameOk, Sub } from "../naming.ts";
+import type { NameOk, NamePart, Sub } from "./naming.ts";
 
 const HETERO: Record<string, string> = {
   pyridin: "pyridine", piperidin: "piperidine", pyrrolidin: "pyrrolidine", aziridin: "aziridine", azetidin: "azetidine",
@@ -33,7 +33,7 @@ export const prefixEn = (t: string) => lower(t)
   .replace(/ylidin(?!e)/g, "ylidyne");
 
 /** Stammsystem: butan → butane, but-2-en → but-2-ene, pent-1-en-4-in → pent-1-en-4-yne, pyridin → pyridine */
-function parentEn(t: string): string {
+export function parentEn(t: string): string {
   const s = lower(t);
   return HETERO[s] ?? s.replace(/an$/, "ane").replace(/en$/, "ene").replace(/in$/, "yne");
 }
@@ -140,4 +140,47 @@ export function altEnglish(alt: string, r: NameOk, en: string): string | undefin
   const old = /^([\d,]+)-([A-ZÄÖÜ][a-zäöü]+)$/.exec(alt);
   if (old) { const w = wordEn(old[2]); return w && `${old[1]}-${w}`; }
   return;
+}
+
+// ── Anzeige auf Englisch ─────────────────────────────────────────────────────
+
+/** Name in Teilen mit Kennung (gleiche Farben wie im deutschen Namen); zusammengesetzt = toEnglish(r) */
+export function partsEn(r: NameOk): NamePart[] {
+  const conv = (ps: NamePart[]): NamePart[] => {
+    const pi = ps.findIndex(p => p.key === "parent"), qi = ps.findIndex(p => p.key === "principal");
+    const pre = ps.slice(0, pi < 0 ? qi : pi).map(p => ({ ...p, text: prefixEn(p.text) }));
+    if (pi < 0) return [...pre, { ...ps[qi], text: RETAINED[lower(ps[qi].text)] }];
+    if (qi < 0) return [...pre, { ...ps[pi], text: parentEn(ps[pi].text) }];
+    const suffix = suffixOf(ps[qi].text, r.ester ? ESTER_SUFFIX : SUFFIX);
+    const whole = attach(parentEn(ps[pi].text), suffix);
+    return [...pre, { ...ps[pi], text: whole.slice(0, whole.length - suffix.length) }, { ...ps[qi], text: suffix }];
+  };
+  if (!r.ester) return conv(r.parts);
+  const acid = r.parts.slice(0, r.parts.findIndex(p => p.key === "alkyl"));
+  const qi = acid.findIndex(p => p.key === "principal");
+  const anion = acid.some(p => p.key === "parent") ? conv(acid)
+    : [...acid.slice(0, qi).map(p => ({ ...p, text: prefixEn(p.text) })), { ...acid[qi], text: "benzoate" }];
+  return [{ text: alkylsEn(r.ester.alkyls, r.ester.alkylLocs), key: "alkyl" }, { text: " " }, ...anion];
+}
+
+/** weitere Namen, die es im Deutschen nicht prüfbar gibt (Abkürzungen, Sammelnamen) */
+const EXTRA_EN: Record<string, string> = {
+  Sumpfgas: "marsh gas", Alkohol: "alcohol", Glykol: "glycol", Aspirin: "aspirin", TNT: "TNT", MTBE: "MTBE", Ether: "ether",
+  "Aldohexose, z. B. Glucose": "aldohexose, e.g. glucose", Citral: "citral",
+};
+const CLASS_EN: Record<string, string> = {
+  Aromat: "Aromatic", Alkin: "Alkyne", Alken: "Alkene", Cycloalken: "Cycloalkene", Alkan: "Alkane", Cycloalkan: "Cycloalkane",
+  Aminosäure: "Amino acid", Carbonsäure: "Carboxylic acid", Ester: "Ester", Amid: "Amide", Nitril: "Nitrile", Aldehyd: "Aldehyde",
+  Keton: "Ketone", Phenol: "Phenol", Alkohol: "Alcohol", Thiol: "Thiol", Amin: "Amine", Ether: "Ether", Halogenverbindung: "Halogen compound",
+  Nitroverbindung: "Nitro compound", Heterocyclus: "Heterocycle", Thioether: "Thioether",
+};
+export const classEn = (c: string) => CLASS_EN[c] ?? c;
+
+/** Ergebnis für die englische Anzeige: Name, Teile, weitere Namen, Stoffklassen (Vorsilben bleiben deutsch – Kennungen für Logik) */
+export function localizeEn(r: NameOk): NameOk {
+  let en: string;
+  try { en = toEnglish(r); } catch { return r; }
+  const alt = [...new Set(r.alt.map(a => altEnglish(a, r, en) ?? EXTRA_EN[a]).filter((a): a is string => !!a && a !== en))];
+  const ester = r.ester && { ...r.ester, alkyl: alkylsEn(r.ester.alkyls, r.ester.alkylLocs), acid: en.slice(en.indexOf(" ") + 1) };
+  return { ...r, name: en, parts: partsEn(r), alt, classes: r.classes.map(classEn), ...(ester ? { ester } : {}) };
 }

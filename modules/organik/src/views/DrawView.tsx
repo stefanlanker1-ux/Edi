@@ -2,7 +2,7 @@
 // Werkzeuge: Beispiele | Lösungsweg | Gruppen (Prioritäten) | Ansicht Lewis/Gerüst | Rückgängig | Neu.
 
 import { useMemo, useState } from "react";
-import { Button, RichText, Segmented, Sheet, Tag, Workbench, type WorkbenchTool } from "@lern/ui";
+import { Button, RichText, Segmented, Sheet, Tag, tr, Workbench, type WorkbenchTool } from "@lern/ui";
 import { ELEMENTS, elLabel, type El } from "../chem/mol.ts";
 import { name, KIND_INFO, RANK, type NameOk } from "../chem/naming.ts";
 import { coloring } from "../components/colors.ts";
@@ -14,7 +14,7 @@ import { useApp, type Mode, type Pen } from "../store.ts";
 
 const MAIN: Pen[] = ["C", "O", "N", "S"];
 const MORE: Pen[] = ["F", "Cl", "Br", "I", "NO2", "benzol", "ring6", "ring5"];
-const RING_LABEL: Record<RingKind, string> = { benzol: "Benzolring", ring6: "Sechsring", ring5: "Fünfring" };
+const RING_LABEL: Record<RingKind, string> = tr({ benzol: "Benzolring", ring6: "Sechsring", ring5: "Fünfring" }, { benzol: "Benzene ring", ring6: "Six-membered ring", ring5: "Five-membered ring" });
 const isEl = (p: Pen): p is El => (ELEMENTS as string[]).includes(p);
 export const penLabel = (p: Pen) => (isEl(p) ? elLabel(p) : RING_LABEL[p as RingKind]);
 
@@ -43,18 +43,18 @@ function Palette() {
   const [more, setMore] = useState(false);
   const pens = [...MAIN, extra];
   return (
-    <div className="og-pens" role="toolbar" aria-label="Stifte">
+    <div className="og-pens" role="toolbar" aria-label={tr("Stifte", "Pens")}>
       {pens.map(p => (
         <button key={p} type="button" className={`og-pen${pen === p ? " on" : ""}`} aria-pressed={pen === p} aria-label={penLabel(p)} onClick={() => setPen(p)}>
           <PenFace p={p} />
         </button>
       ))}
-      <button type="button" className="og-pen more" aria-haspopup="dialog" onClick={() => setMore(true)}>Mehr</button>
-      <Sheet open={more} title="Stifte" onClose={() => setMore(false)}>
+      <button type="button" className="og-pen more" aria-haspopup="dialog" onClick={() => setMore(true)}>{tr("Mehr", "More")}</button>
+      <Sheet open={more} title={tr("Stifte", "Pens")} onClose={() => setMore(false)}>
         <div className="og-more">
           {MORE.map(p => (
             <button key={p} type="button" className={`og-pen big${pen === p ? " on" : ""}`} aria-pressed={pen === p} onClick={() => { setPen(p); setMore(false); }}>
-              <PenFace p={p} /><small>{isEl(p) ? (p === "NO2" ? "Nitro" : { F: "Fluor", Cl: "Chlor", Br: "Brom", I: "Iod" }[p as string]) : RING_LABEL[p as RingKind]}</small>
+              <PenFace p={p} /><small>{isEl(p) ? (p === "NO2" ? "Nitro" : tr<Record<string, string>>({ F: "Fluor", Cl: "Chlor", Br: "Brom", I: "Iod" }, { F: "Fluorine", Cl: "Chlorine", Br: "Bromine", I: "Iodine" })[p as string]) : RING_LABEL[p as RingKind]}</small>
             </button>
           ))}
         </div>
@@ -72,7 +72,7 @@ function ColorName({ res }: { res: NameOk }) {
 function NameBar({ res }: { res: ReturnType<typeof name> }) {
   const { mol, shown, show, color } = useApp();
   if (!mol.atoms.length) return <div className="og-name empty" aria-hidden="true" />;
-  if (!shown) return <div className="og-name"><Button variant="primary" icon="text" onClick={() => show(true)}>Benennen</Button></div>;
+  if (!shown) return <div className="og-name"><Button variant="primary" icon="text" onClick={() => show(true)}>{tr("Benennen", "Name it")}</Button></div>;
   if (!res.ok) return <div className="og-name" role="status"><Tag tone="signal">{res.reason}</Tag></div>;
   const sub = res.formula.replace(/\d+/g, d => d.replace(/\d/g, c => "₀₁₂₃₄₅₆₇₈₉"[+c]));
   return (
@@ -93,7 +93,7 @@ function Examples({ onPick }: { onPick: () => void }) {
   return (
     <div className="og-ex">
       <label className="og-ex-pick">
-        <span>Stoffklasse</span>
+        <span>{tr("Stoffklasse", "Compound class")}</span>
         <select value={group} onChange={e => setGroup(Number(e.target.value))}>
           {EXAMPLES.map((g, i) => <option key={g.title} value={i}>{g.title}</option>)}
         </select>
@@ -103,7 +103,7 @@ function Examples({ onPick }: { onPick: () => void }) {
           const m = exampleMol(s), r = name(m);
           return (
             <button key={s} type="button" className="og-ex-item" onClick={() => { load(m); onPick(); }}>
-              <MolSvg mol={m} view="skelett" label={`Beispiel ${r.formula}`} minW={2} minH={1.4} className="mini" />
+              <MolSvg mol={m} view="skelett" label={`${tr("Beispiel", "Example")} ${r.formula}`} minW={2} minH={1.4} className="mini" />
             </button>
           );
         })}
@@ -114,9 +114,9 @@ function Examples({ onPick }: { onPick: () => void }) {
 
 function Steps({ res }: { res: ReturnType<typeof name> }) {
   const { mol, shown, show } = useApp();
-  if (!mol.atoms.length) return <p className="og-muted">Noch nichts gezeichnet.</p>;
+  if (!mol.atoms.length) return <p className="og-muted">{tr("Noch nichts gezeichnet.", "Nothing drawn yet.")}</p>;
   if (!res.ok) return <p className="og-muted">{res.reason}</p>;
-  if (!shown) return <Button variant="primary" icon="text" onClick={() => show(true)}>Benennen</Button>;
+  if (!shown) return <Button variant="primary" icon="text" onClick={() => show(true)}>{tr("Benennen", "Name it")}</Button>;
   return <ol className="og-steps">{res.steps.map((s, i) => <li key={i}><RichText text={s} /></li>)}</ol>;
 }
 
@@ -124,17 +124,18 @@ export function Groups() {
   return (
     <div className="og-groups">
       <table>
-        <thead><tr><th scope="col">Rang</th><th scope="col">Gruppe</th><th scope="col">Endung</th><th scope="col">Vorsilbe</th></tr></thead>
+        <thead><tr><th scope="col">{tr("Rang", "Rank")}</th><th scope="col">{tr("Gruppe", "Group")}</th><th scope="col">{tr("Endung", "Ending")}</th><th scope="col">{tr("Vorsilbe", "Prefix")}</th></tr></thead>
         <tbody>
           {RANK.map((k, i) => (
             <tr key={k}><td>{i + 1}</td><td><b>{KIND_INFO[k].label}</b> <span className="og-muted">{KIND_INFO[k].group}</span></td><td>{KIND_INFO[k].suffix}</td><td>{KIND_INFO[k].prefix}</td></tr>
           ))}
-          <tr><td>–</td><td><b>Ether</b> <span className="og-muted">R–O–R</span></td><td>–</td><td>Methoxy-, Ethoxy-</td></tr>
-          <tr><td>–</td><td><b>Halogen</b> <span className="og-muted">–Cl</span></td><td>–</td><td>Fluor-, Chlor-, Brom-, Iod-</td></tr>
-          <tr><td>–</td><td><b>Nitro</b> <span className="og-muted">–NO₂</span></td><td>–</td><td>Nitro-</td></tr>
+          <tr><td>–</td><td><b>Ether</b> <span className="og-muted">R–O–R</span></td><td>–</td><td>{tr("Methoxy-, Ethoxy-", "methoxy-, ethoxy-")}</td></tr>
+          <tr><td>–</td><td><b>{tr("Halogen", "Halogen")}</b> <span className="og-muted">–Cl</span></td><td>–</td><td>{tr("Fluor-, Chlor-, Brom-, Iod-", "fluoro-, chloro-, bromo-, iodo-")}</td></tr>
+          <tr><td>–</td><td><b>Nitro</b> <span className="og-muted">–NO₂</span></td><td>–</td><td>{tr("Nitro-", "nitro-")}</td></tr>
         </tbody>
       </table>
-      <p className="og-rule"><b>E/Z</b> an C=C: an jedem C die Gruppe mit größerer Ordnungszahl. Gleiche Seite = <b>Z</b>, verschiedene Seiten = <b>E</b>.</p>
+      <p className="og-rule">{tr(<><b>E/Z</b> an C=C: an jedem C die Gruppe mit größerer Ordnungszahl. Gleiche Seite = <b>Z</b>, verschiedene Seiten = <b>E</b>.</>,
+        <><b>E/Z</b> at C=C: on each C the group with the higher atomic number. Same side = <b>Z</b>, opposite sides = <b>E</b>.</>)}</p>
     </div>
   );
 }
@@ -144,20 +145,20 @@ export function DrawView() {
   const res = useMemo(() => name(mol), [mol]);
   const [active, setActive] = useState<string | null>(null);
   const tools: WorkbenchTool[] = [
-    { id: "beispiele", label: "Beispiele", icon: "molecule", wide: true, content: <Examples onPick={() => setActive(null)} /> },
-    { id: "weg", label: "Schritte", title: "Benennen Schritt für Schritt", icon: "book", content: <Steps res={res} /> },
-    { id: "gruppen", label: "Gruppen", title: "Funktionelle Gruppen nach Rang", icon: "table", wide: true, content: <Groups /> },
-    { id: "ansicht", label: view === "lewis" ? "Lewis" : "Gerüst", icon: "bond", onClick: () => setView(view === "lewis" ? "skelett" : "lewis") },
-    { id: "zurueck", label: "Zurück", icon: "back", onClick: undo, disabled: !past.length },
-    { id: "neu", label: "Neu", icon: "reset", onClick: clear, disabled: !mol.atoms.length },
+    { id: "beispiele", label: tr("Beispiele", "Examples"), icon: "molecule", wide: true, content: <Examples onPick={() => setActive(null)} /> },
+    { id: "weg", label: tr("Schritte", "Steps"), title: tr("Benennen Schritt für Schritt", "Naming step by step"), icon: "book", content: <Steps res={res} /> },
+    { id: "gruppen", label: tr("Gruppen", "Groups"), title: tr("Funktionelle Gruppen nach Rang", "Functional groups by rank"), icon: "table", wide: true, content: <Groups /> },
+    { id: "ansicht", label: view === "lewis" ? "Lewis" : tr("Gerüst", "Skeletal"), icon: "bond", onClick: () => setView(view === "lewis" ? "skelett" : "lewis") },
+    { id: "zurueck", label: tr("Zurück", "Undo"), icon: "back", onClick: undo, disabled: !past.length },
+    { id: "neu", label: tr("Neu", "New"), icon: "reset", onClick: clear, disabled: !mol.atoms.length },
   ];
   return (
     <Workbench className="og-wb" stage={<Editor res={res} />} tools={tools} active={active} onActive={setActive}
       controls={(
         <div className="og-controls">
           <Palette />
-          <Segmented<Mode> label="Antippen" value={mode} onChange={setMode}
-            options={[{ value: "add", label: "Anfügen" }, { value: "swap", label: "Tauschen" }, { value: "erase", label: "Löschen" }]} />
+          <Segmented<Mode> label={tr("Antippen", "Tap")} value={mode} onChange={setMode}
+            options={[{ value: "add", label: tr("Anfügen", "Add") }, { value: "swap", label: tr("Tauschen", "Swap") }, { value: "erase", label: tr("Löschen", "Erase") }]} />
           <NameBar res={res} />
         </div>
       )} />

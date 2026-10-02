@@ -15,6 +15,7 @@ import type { NameResult } from "../chem/naming.ts";
 import { useApp, type Pen } from "../store.ts";
 import { decorations, MolSvg, U } from "./MolSvg.tsx";
 import { coloring } from "./colors.ts";
+import { tr } from "@lern/i18n";
 
 /** Ausschnitt der Zeichenfläche: Mitte (in Bindungslängen) und Maßstab (px je Bindung) */
 interface Cam { cx: number; cy: number; s: number }
@@ -82,7 +83,7 @@ export function Editor({ res }: { res: NameResult }) {
   const refuse = (id: number | null, why?: string) => {
     buzz([20, 40, 20]); setNo(id); window.setTimeout(() => setNo(null), 420);
     const e = id !== null ? elOf(id) : undefined;
-    say(why ?? (e ? `${elLabel(e)} hat keine freie Bindung mehr` : "Geht hier nicht"));
+    say(why ?? (e ? tr(`${elLabel(e)} hat keine freie Bindung mehr`, `${elLabel(e)} has no free bond left`) : tr("Geht hier nicht", "Not possible here")));
   };
   /** gelungen: kurz vibrieren (fühlbare Bestätigung), Meldung weg */
   const apply = (m: Mol | null, id: number | null = null, why?: string) => {
@@ -99,15 +100,15 @@ export function Editor({ res }: { res: NameResult }) {
   const tapAtom = (id: number) => {
     if (mode === "erase") return apply(removeAtom(mol, id));
     if (mode === "swap") {
-      if (!isEl(pen)) return refuse(id, "Tauschen geht nur mit einem Element");
+      if (!isEl(pen)) return refuse(id, tr("Tauschen geht nur mit einem Element", "Swapping only works with an element"));
       const used = usedValence(graph(mol), id);
-      return apply(replace(mol, id, pen), id, elOf(id) === pen ? `Das ist schon ${elLabel(pen)}` : `${elLabel(pen)} hat nur ${VALENCE[pen]} Bindung${VALENCE[pen] > 1 ? "en" : ""} – hier sind es ${used}`);
+      return apply(replace(mol, id, pen), id, elOf(id) === pen ? tr(`Das ist schon ${elLabel(pen)}`, `That is already ${elLabel(pen)}`) : tr(`${elLabel(pen)} hat nur ${VALENCE[pen]} Bindung${VALENCE[pen] > 1 ? "en" : ""} – hier sind es ${used}`, `${elLabel(pen)} has only ${VALENCE[pen]} bond${VALENCE[pen] > 1 ? "s" : ""} – here there are ${used}`));
     }
     apply(isEl(pen) ? append(mol, id, pen) : addRing(mol, id, pen as RingKind), id);
   };
   /** H antippen: Stift genau dort anhängen (H wird ersetzt) */
   const tapH = (id: number, angle: number) => {
-    if (mode === "erase") return refuse(id, "H gehört zum Atom – das Atom antippen");
+    if (mode === "erase") return refuse(id, tr("H gehört zum Atom – das Atom antippen", "H belongs to the atom – tap the atom"));
     if (!isEl(pen)) return apply(addRing(mol, id, pen as RingKind), id);
     const deg = Math.round(angle / 30) * 30;
     const a = mol.atoms.find(x => x.id === id)!;
@@ -121,15 +122,15 @@ export function Editor({ res }: { res: NameResult }) {
       const st = stereoBonds(mol).find(x => (x.a === a && x.b === b) || (x.a === b && x.b === a));
       if (st) {
         const f = flipBond(mol, a, b);
-        if (f) { apply(f); return say(st.desc ? `${st.desc} → ${st.desc === "E" ? "Z" : "E"}` : "Gespiegelt", false); }
+        if (f) { apply(f); return say(st.desc ? `${st.desc} → ${st.desc === "E" ? "Z" : "E"}` : tr("Gespiegelt", "Mirrored"), false); }
       }
-      return refuse(null, "Tauschen an Bindungen: nur C=C mit E/Z");
+      return refuse(null, tr("Tauschen an Bindungen: nur C=C mit E/Z", "Swapping bonds: only C=C with E/Z"));
     }
-    apply(cycleBond(mol, a, b), null, "Mehr Bindungen gehen hier nicht – beide Atome sind voll");
+    apply(cycleBond(mol, a, b), null, tr("Mehr Bindungen gehen hier nicht – beide Atome sind voll", "No more bonds possible here – both atoms are full"));
   };
   const tapEmpty = () => {
     if (!mol.atoms.length) return apply(isEl(pen) ? start(pen) : addRing(mol, null, pen as RingKind));
-    say(mode === "erase" ? "Atom oder Bindung antippen" : mode === "swap" ? "Atom antippen = tauschen, ziehen = verschieben" : "Atom antippen oder davon wegziehen", false);
+    say(mode === "erase" ? tr("Atom oder Bindung antippen", "Tap an atom or bond") : mode === "swap" ? tr("Atom antippen = tauschen, ziehen = verschieben", "Tap an atom = swap, drag = move") : tr("Atom antippen oder davon wegziehen", "Tap an atom or drag away from it"), false);
   };
   // neu zeichnen im Zickzack – E/Z bleibt erhalten
   const tidy = () => { cam.current = null; apply(keepStereo(mol, layout(mol))); };
@@ -168,13 +169,13 @@ export function Editor({ res }: { res: NameResult }) {
       if (d.moved && mode === "swap") {
         const x = Math.round(d.x * 4) / 4, y = Math.round(d.y * 4) / 4;
         const hit = atomAt(mol, x, y, 0.5);
-        return hit !== undefined && hit !== d.from ? refuse(d.from, "Dort ist schon ein Atom") : apply(move(mol, d.from, x, y));
+        return hit !== undefined && hit !== d.from ? refuse(d.from, tr("Dort ist schon ein Atom", "There is already an atom there")) : apply(move(mol, d.from, x, y));
       }
       if (!d.moved || mode !== "add" || !isEl(pen)) { tapAtom(d.from); return; }
       const t = target(d);
       if (t.atom !== undefined) apply(connect(mol, d.from, t.atom), d.from,
         freeValence(mol, d.from) < 1 ? undefined : `${elLabel(elOf(t.atom)!)} hat keine freie Bindung mehr`);
-      else if (atomAt(mol, t.x, t.y, 0.35) !== undefined) refuse(d.from, "Dort ist schon ein Atom");
+      else if (atomAt(mol, t.x, t.y, 0.35) !== undefined) refuse(d.from, tr("Dort ist schon ein Atom", "There is already an atom there"));
       else apply(appendAt(mol, d.from, pen, t.x, t.y), d.from);
       return;
     }
@@ -194,11 +195,11 @@ export function Editor({ res }: { res: NameResult }) {
   const preview = drag?.moved && mode === "add" && isEl(pen) ? target(drag) : null;
   const moving = drag?.moved && mode === "swap" ? { x: Math.round(drag.x * 4) / 4, y: Math.round(drag.y * 4) / 4 } : null;
   const from = drag ? mol.atoms.find(a => a.id === drag.from) : undefined;
-  const elName = (e: Pen) => (isEl(e) ? elLabel(e) : e === "benzol" ? "Benzolring" : e === "ring6" ? "Sechsring" : "Fünfring");
+  const elName = (e: Pen) => (isEl(e) ? elLabel(e) : e === "benzol" ? tr("Benzolring", "Benzene ring") : e === "ring6" ? tr("Sechsring", "Six-membered ring") : tr("Fünfring", "Five-membered ring"));
 
   return (
     <div className={`og-editor mode-${mode}`} ref={box}>
-      <MolSvg mol={mol} view={view} svgRef={svg} viewBox={viewBox} label={ok ? `Strukturformel: ${ok.name}` : `Zeichnung mit ${mol.atoms.length} Atomen`}
+      <MolSvg mol={mol} view={view} svgRef={svg} viewBox={viewBox} label={ok ? `${tr("Strukturformel", "Structural formula")}: ${ok.name}` : tr(`Zeichnung mit ${mol.atoms.length} Atomen`, `Drawing with ${mol.atoms.length} atoms`)}
         parent={ok?.parent.atoms} parentRing={ok?.parent.kind === "ring"} numbers={!!ok && ok.parent.size > 1}
         group={ok?.principalAtoms} tint={tint} ez={ok?.stereo.filter(x => x.desc)} minW={6} minH={4.2}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => setDrag(null)}>
@@ -211,10 +212,10 @@ export function Editor({ res }: { res: NameResult }) {
           })}
           {mol.bonds.map(b => {
             const p = mol.atoms.find(a => a.id === b.a)!, q = mol.atoms.find(a => a.id === b.b)!;
-            const order = ["Einfach", "Doppel", "Dreifach"][b.order - 1];
+            const order = tr(["Einfach", "Doppel", "Dreifach"], ["Single", "Double", "Triple"])[b.order - 1];
             return (
               <line key={`${b.a}-${b.b}`} data-bond={`${b.a}-${b.b}`} className="og-hit-bond" style={{ strokeWidth: Math.max(0.4, hitR * 0.9) * U }} x1={p.x * U} y1={p.y * U} x2={q.x * U} y2={q.y * U}
-                tabIndex={0} role="button" aria-label={`${order}bindung ${p.el}–${q.el}`} onKeyDown={key(() => tapBond(b.a, b.b))} />
+                tabIndex={0} role="button" aria-label={tr(`${order}bindung ${p.el}–${q.el}`, `${order} bond ${p.el}–${q.el}`)} onKeyDown={key(() => tapBond(b.a, b.b))} />
             );
           })}
           {mol.atoms.map(a => (
@@ -237,7 +238,7 @@ export function Editor({ res }: { res: NameResult }) {
             </g>
           )}
           {!mol.atoms.length && (
-            <g className="og-start" role="button" tabIndex={0} aria-label={`${elName(pen)} setzen`} onKeyDown={key(tapEmpty)}>
+            <g className="og-start" role="button" tabIndex={0} aria-label={tr(`${elName(pen)} setzen`, `Place ${elName(pen)}`)} onKeyDown={key(tapEmpty)}>
               <circle cx={0} cy={0} r={0.55 * U} />
               <text x={0} y={0} dominantBaseline="central" textAnchor="middle">{isEl(pen) ? elLabel(pen) : "⬡"}</text>
             </g>
@@ -245,10 +246,10 @@ export function Editor({ res }: { res: NameResult }) {
         </g>
       </MolSvg>
       <p className={`og-msg${msg ? " on" : ""}${msg?.bad ? " bad" : ""}`} role="status" aria-live="polite">{msg?.text}</p>
-      {mol.atoms.length >= 3 && <IconButton icon="grid" label="Ordnen" className="og-tidy" onClick={tidy} />}
+      {mol.atoms.length >= 3 && <IconButton icon="grid" label={tr("Ordnen", "Tidy up")} className="og-tidy" onClick={tidy} />}
       {ok && (
         <button type="button" className={`og-color${color ? " on" : ""}`} aria-pressed={color} onClick={() => setColor(!color)}>
-          <span className="og-color-dots" aria-hidden="true"><i className="h-blue" /><i className="h-red" /><i className="h-green" /></span>Farbe
+          <span className="og-color-dots" aria-hidden="true"><i className="h-blue" /><i className="h-red" /><i className="h-green" /></span>{tr("Farbe", "Colour")}
         </button>
       )}
     </div>

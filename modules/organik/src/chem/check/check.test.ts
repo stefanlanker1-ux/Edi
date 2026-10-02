@@ -5,7 +5,7 @@ import { describe, expect, test } from "vitest";
 import { name, TRIVIAL, type NameOk } from "../naming.ts";
 import { parseSmiles, smilesMol } from "../smiles.ts";
 import { alkaneTrees, TRIVIAL_SMILES } from "./generate.ts";
-import { altEnglish, toEnglish } from "./english.ts";
+import { altEnglish, toEnglish } from "../english.ts";
 import { toMolblock } from "./molfile.ts";
 
 const nm = (s: string, stereo = false) => {

@@ -1,7 +1,8 @@
 // Fehlvorstellungen (Stolpersteine) beim Benennen – Schlüssel für diagnostische Distraktoren und Fallen.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit dem konkreten Molekül); hier nur der Name für Landkarte und Auswertung.
+import { tr } from "@lern/i18n";
 
-export const MISS: Record<string, string> = {
+export const MISS: Record<string, string> = tr({
   "zaehlen": "C-Atome falsch gezählt",
   "kette-kurz": "Nicht die längste Kette gewählt",
   "alle-c": "Seitenketten in die Hauptkette gezählt",
@@ -17,4 +18,20 @@ export const MISS: Record<string, string> = {
   "klasse": "Stoffklasse verwechselt",
   "ester-teile": "Säure- und Alkylteil des Esters vertauscht",
   "formel-lesen": "Name falsch in eine Formel übersetzt",
-};
+}, {
+  "zaehlen": "Miscounted C atoms",
+  "kette-kurz": "Did not choose the longest chain",
+  "alle-c": "Counted side chains into the main chain",
+  "nummer": "Numbered from the wrong end",
+  "alphabet": "Prefixes not in alphabetical order",
+  "multi": "Identical groups not combined with di, tri",
+  "mehrfach-vergessen": "Missed a double or triple bond",
+  "en-in": "Mixed up -ene and -yne",
+  "ez": "Mixed up E and Z",
+  "endung": "Mixed up the ending of the group",
+  "c-gruppe": "Did not count the C of the group",
+  "prio": "Mixed up the priority of the groups",
+  "klasse": "Mixed up the compound class",
+  "ester-teile": "Swapped the acid and alkyl parts of the ester",
+  "formel-lesen": "Translated the name into the wrong formula",
+});
