@@ -114,3 +114,13 @@
 .og-editor { -webkit-tap-highlight-color: transparent; }
 .mode-erase .og-hit-atom { fill: color-mix(in srgb, var(--signal) 7%, transparent); stroke: var(--signal); stroke-width: 1.5; stroke-dasharray: 4 3; }
 .mode-swap .og-hit-atom { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
+
+/* Meldung auf der Zeichenfläche, Ordnen, Ziel beim Ziehen */
+.og-msg { position: absolute; left: 50%; top: 8px; transform: translate(-50%, -6px); margin: 0; max-width: calc(100% - 72px); padding: 6px 12px;
+  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); font-size: .88rem; font-weight: 650; text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; }
+.og-msg.on { opacity: 1; transform: translate(-50%, 0); }
+.og-msg.bad { border-color: var(--signal); border-style: dashed; }
+.og-msg.bad::before { content: "✗ "; color: var(--signal); }
+.og-tidy { position: absolute; right: 6px; top: 6px; }
+.og-preview .og-target { fill: color-mix(in srgb, var(--ok) 14%, transparent); stroke: var(--ok); stroke-width: 2.5; stroke-dasharray: none; }
