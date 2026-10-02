@@ -1,0 +1,106 @@
+/* Benennung – Zeichenfläche, Stifte, Namensleiste, Werkzeuge (Grundlagen aus @lern/ui) */
+
+/* Zeichnung */
+.mol-svg { display: block; width: 100%; height: 100%; max-width: 100%; max-height: 100%; overflow: visible; font-family: inherit; }
+.mol-bond line { stroke: var(--text); stroke-width: 2.4; stroke-linecap: round; }
+.mol-h line { stroke: var(--text); stroke-width: 1.8; stroke-linecap: round; }
+.mol-h text { font-size: 17px; font-weight: 600; fill: var(--text); }
+.mol-lp { stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; }
+.mol-atom text { font-size: 22px; font-weight: 700; fill: var(--text); }
+.mol-atom-bg { fill: var(--surface); }
+.mol-atom.el-o text { fill: var(--hue-red-deep); }
+.mol-atom.el-n text { fill: var(--hue-blue-deep); }
+.mol-atom.el-s text { fill: var(--hue-yellow-deep); }
+.mol-atom.el-x text { fill: var(--hue-green-deep); }
+.mol-band { stroke: var(--hue-yellow-soft); stroke-width: 18; stroke-linecap: round; }
+.mol-band-dot { fill: var(--hue-yellow-soft); }
+.mol-group { fill: var(--hue-red-soft); }
+.mol-num { font-size: 14px; font-weight: 800; fill: var(--signal); font-variant-numeric: tabular-nums; }
+.mol-svg.mini .mol-bond line { stroke-width: 3.2; }
+.mol-svg.mini .mol-atom text { font-size: 26px; }
+
+/* Zeichenfläche */
+.og-wb .ui-wb-view { place-items: stretch; overflow: hidden; }
+.og-editor { position: relative; width: 100%; height: 100%; min-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+.og-editor .mol-svg { position: absolute; inset: 0; }
+.og-hits circle, .og-hits line { cursor: pointer; outline: none; }
+.og-hit-atom { fill: transparent; }
+.og-hit-atom:hover, .og-hit-atom:focus-visible { fill: color-mix(in srgb, var(--text) 8%, transparent); }
+.og-hit-atom:focus-visible, .og-hit-bond:focus-visible { stroke: var(--signal); stroke-width: 2; }
+.og-hit-atom.from { fill: color-mix(in srgb, var(--accent) 12%, transparent); }
+.og-hit-atom.no { fill: color-mix(in srgb, var(--signal) 18%, transparent); stroke: var(--signal); stroke-width: 2; stroke-dasharray: 4 3; }
+.og-hit-bond { stroke: transparent; stroke-width: 20; stroke-linecap: round; }
+.og-hit-bond:hover { stroke: color-mix(in srgb, var(--text) 7%, transparent); }
+.mode-erase .og-hit-atom:hover, .mode-erase .og-hit-bond:hover { stroke-dasharray: 4 3; stroke: var(--signal); stroke-width: 2; }
+.mode-erase .og-hit-bond:hover { stroke-width: 20; stroke: color-mix(in srgb, var(--signal) 18%, transparent); stroke-dasharray: none; }
+.og-preview line { stroke: var(--muted); stroke-width: 2.4; stroke-dasharray: 5 4; }
+.og-preview circle { fill: var(--surface); stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.og-preview text { font-size: 18px; font-weight: 700; fill: var(--muted); }
+.og-start { cursor: pointer; }
+.og-start circle { fill: var(--surface); stroke: var(--text); stroke-width: 2; stroke-dasharray: 6 5; }
+.og-start text { font-size: 26px; font-weight: 800; fill: var(--text); }
+.og-start:focus-visible circle { stroke: var(--signal); }
+
+/* Stifte, Modus, Name */
+.og-controls { display: grid; justify-items: center; gap: 6px; }
+.og-pens { display: flex; justify-content: center; gap: 6px; flex-wrap: nowrap; max-width: 100%; }
+.og-pen { min-width: 44px; min-height: 44px; padding: 0 8px; display: inline-grid; place-items: center; font-weight: 800; font-size: 1.05rem;
+  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
+.og-pen.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.og-pen.more { font-size: .85rem; font-weight: 700; }
+.og-pen.big { min-height: 64px; gap: 2px; }
+.og-pen.big small { font-size: .78rem; font-weight: 650; }
+.og-ring-icon polygon, .og-ring-icon line { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.og-more { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.og-name { min-height: 52px; width: 100%; display: grid; place-items: center; text-align: center; }
+.og-name.empty { min-height: 0; }
+.og-iupac { margin: 0; font-size: clamp(1rem, 4.4vw, 1.3rem); font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; hyphens: manual; }
+.og-meta { margin: 2px 0 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 8px; color: var(--muted); font-size: .85rem; }
+.og-alt { font-weight: 650; }
+.og-formula { font-weight: 700; color: var(--text); }
+.og-muted { color: var(--muted); }
+
+/* Beispiele */
+.og-ex { display: grid; gap: 10px; }
+.og-ex-pick { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.og-ex-pick select { flex: 1; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: inherit; font-weight: 650; }
+.og-chip { min-height: 36px; padding: 4px 10px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-weight: 650; font-size: .85rem; }
+.og-chip.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.og-ex-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.og-ex-item { height: 72px; padding: 6px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); box-shadow: var(--key-edge); }
+.og-ex-item .mol-svg { pointer-events: none; }
+
+/* Lösungsweg und Gruppen */
+.og-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 8px; }
+.og-groups table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.og-groups th { text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--signal); border-bottom: 2px solid var(--rule); padding: 4px 6px; }
+.og-groups td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.og-groups td:first-child { font-weight: 800; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 370px) {
+  .og-pen { min-width: 42px; padding: 0 5px; }
+  .og-pens { gap: 4px; }
+}
+
+/* Quiz */
+.q-og { width: 100%; height: 100%; min-height: 0; display: grid; place-items: center; container-type: size; }
+.q-og .mol-svg { width: 100%; height: 100%; }
+.og-opt { display: block; width: 100%; height: clamp(64px, 14vh, 120px); }
+.og-opt .mol-svg { width: 100%; height: 100%; }
+.og-stems { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.og-stems li { padding: 4px 2px; border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center; font-size: .9rem; }
+.og-stems b { display: block; font-variant-numeric: tabular-nums; }
+.og-ex-fig { display: grid; justify-items: center; gap: 4px; margin: 0; }
+.og-ex-fig .mol-svg { width: 100%; height: clamp(110px, 24vh, 200px); }
+.og-ex-fig figcaption { font-weight: 800; }
+
+/* Erklärung */
+.og-g { width: 100%; height: 100%; }
+.og-g-svg { width: 100%; height: auto; max-height: 100%; }
+.og-g-hit { fill: transparent; cursor: pointer; }
+.og-g-hit:hover { fill: color-mix(in srgb, var(--text) 8%, transparent); }
+.og-g-hit.g-sol { fill: none; stroke: var(--ok); stroke-width: 3; stroke-dasharray: 5 4; }
+.og-big { display: grid; gap: 10px; justify-items: center; height: min(70vh, 560px); grid-template-rows: auto minmax(0, 1fr); }
+.og-big .mol-svg { width: 100%; height: 100%; }
+.og-rules { display: grid; gap: 14px; }
+.og-rules h3 { margin: 0 0 6px; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--signal); }

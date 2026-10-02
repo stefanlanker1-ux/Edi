@@ -10,7 +10,8 @@ import { modul as elektronenpaarbindung } from "@edi/elektronenpaarbindung";
 import { modul as reaktionsgleichungen } from "@edi/reaktionsgleichungen";
 import { modul as neutralisation } from "@edi/neutralisation";
 import { modul as einheiten } from "@edi/einheiten";
+import { modul as organik } from "@edi/organik";
 
-export const MODULES: readonly LernModule[] = [gemische, atombau, ionenbindung, elektronenpaarbindung, reaktionsgleichungen, neutralisation, einheiten];
+export const MODULES: readonly LernModule[] = [gemische, atombau, ionenbindung, elektronenpaarbindung, reaktionsgleichungen, neutralisation, organik, einheiten];
 
 export const moduleById = (id: string): LernModule | undefined => MODULES.find(m => m.id === id);

@@ -1,0 +1,65 @@
+import { describe, expect, test } from "vitest";
+import { EXAMPLES, exampleMol } from "./examples.ts";
+import { name } from "./naming.ts";
+import { addRing, append, connect, cycleBond, replace, start } from "./edit.ts";
+import type { Mol } from "./mol.ts";
+
+const minDist = (m: Mol) => {
+  let d = Infinity;
+  for (const a of m.atoms) for (const b of m.atoms) if (a.id < b.id) d = Math.min(d, Math.hypot(a.x - b.x, a.y - b.y));
+  return d;
+};
+
+describe("Beispiele", () => {
+  const all = EXAMPLES.flatMap(g => g.items);
+  test.each(all)("%s: benennbar, Atome mit Abstand, Bindungen gleich lang", s => {
+    const m = exampleMol(s);
+    expect(name(m).ok).toBe(true);
+    if (m.atoms.length > 1) expect(minDist(m)).toBeGreaterThan(0.7);
+    for (const b of m.bonds) {
+      const p = m.atoms.find(a => a.id === b.a)!, q = m.atoms.find(a => a.id === b.b)!;
+      expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeGreaterThan(0.9);
+      expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeLessThan(1.1);
+    }
+  });
+  test("keine doppelten Beispiele", () => expect(new Set(all).size).toBe(all.length));
+});
+
+describe("Zeichnen", () => {
+  test("Kette durch Antippen, Zickzack", () => {
+    let m = start("C");
+    for (let i = 0; i < 3; i++) m = append(m, i, "C")!;
+    expect((name(m) as { name: string }).name).toBe("Butan");
+    expect(minDist(m)).toBeGreaterThan(0.9);
+    // Zickzack: C1 und C3 auf gleicher Höhe
+    expect(Math.abs(m.atoms[0].y - m.atoms[2].y)).toBeLessThan(0.01);
+  });
+  test("Verzweigen, Element tauschen, Doppelbindung", () => {
+    let m = start("C");
+    m = append(m, 0, "C")!; m = append(m, 1, "C")!; m = append(m, 1, "C")!;
+    expect((name(m) as { name: string }).name).toBe("2-Methylpropan");
+    m = replace(m, 3, "O")!;
+    expect((name(m) as { name: string }).name).toBe("Propan-2-ol");
+    const d = cycleBond(m, 0, 1)!;
+    expect((name(d) as { name: string }).name).toBe("Prop-1-en-2-ol");
+    expect(cycleBond(cycleBond(d, 0, 1)!, 0, 1)).not.toBeNull();
+  });
+  test("Wertigkeit: nichts an volle Atome", () => {
+    let m = start("Cl");
+    m = append(m, 0, "C")!;
+    expect(append(m, 0, "C")).toBeNull();
+    expect(replace(m, 1, "Cl")).not.toBeNull();
+    const o = append(start("O"), 0, "C")!;
+    expect(cycleBond(o, 0, 1)!.bonds[0].order).toBe(2);
+    expect(connect(o, 0, 1)!.bonds[0].order).toBe(2);
+  });
+  test("Ringe", () => {
+    const b = addRing({ atoms: [], bonds: [] }, null, "benzol")!;
+    expect((name(b) as { name: string }).name).toBe("Benzen");
+    const t = addRing(start("C"), 0, "benzol")!;
+    expect((name(t) as { name: string }).name).toBe("Methylbenzen");
+    const c = addRing(start("O"), 0, "ring5")!;
+    expect((name(c) as { name: string }).name).toBe("Cyclopentanol");
+    expect(minDist(t)).toBeGreaterThan(0.9);
+  });
+});

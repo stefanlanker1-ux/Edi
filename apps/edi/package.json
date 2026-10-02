@@ -23,6 +23,7 @@
     "@edi/gemische": "*",
     "@edi/ionenbindung": "*",
     "@edi/neutralisation": "*",
+    "@edi/organik": "*",
     "@edi/reaktionsgleichungen": "*",
     "@lern/chem-ui": "*",
     "@lern/quiz": "*",
