@@ -70,6 +70,8 @@ export interface MolSvgProps {
   className?: string;
   /** Mindestgröße des Ausschnitts in Bindungslängen (kleine Moleküle nicht riesig) */
   minW?: number; minH?: number;
+  /** fester Ausschnitt (Zeichenfläche: Maßstab bleibt beim Zeichnen gleich) */
+  viewBox?: [number, number, number, number];
   /** interaktive Ebene (Treffer, Vorschau) – liegt über der Zeichnung */
   children?: ReactNode;
   svgRef?: React.Ref<SVGSVGElement>;
@@ -90,7 +92,7 @@ export function viewBoxOf(mol: Mol, view: View, minW = 4, minH = 3): [number, nu
   return [x0 * U, y0 * U, (x1 - x0) * U, (y1 - y0) * U];
 }
 
-export function MolSvg({ mol, view, parent, parentRing, numbers, group, label, className, minW, minH, children, svgRef, ...ptr }: MolSvgProps) {
+export function MolSvg({ mol, view, parent, parentRing, numbers, group, label, className, minW, minH, viewBox, children, svgRef, ...ptr }: MolSvgProps) {
   const g = graph(mol);
   const pos = new Map(mol.atoms.map(a => [a.id, { x: a.x * U, y: a.y * U }]));
   const lewis = view === "lewis";
@@ -98,7 +100,7 @@ export function MolSvg({ mol, view, parent, parentRing, numbers, group, label, c
   // Gerüstformel: C ohne Beschriftung (außer allein stehend)
   const shown = (id: number) => lewis || g.el.get(id) !== "C" || g.nb.get(id)!.length === 0;
   const R = 0.22 * U;
-  const vb = viewBoxOf(mol, view, minW, minH);
+  const vb = viewBox ?? viewBoxOf(mol, view, minW, minH);
   // Mittelpunkt des Rings je Ringbindung: Doppelbindung als zweiter Strich innen (wie üblich gezeichnet)
   const ringCenter = new Map<string, { x: number; y: number }>();
   for (const r of findRings(g).rings) {

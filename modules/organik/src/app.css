@@ -29,10 +29,16 @@
 .og-hit-atom:focus-visible, .og-hit-bond:focus-visible { stroke: var(--signal); stroke-width: 2; }
 .og-hit-atom.from { fill: color-mix(in srgb, var(--accent) 12%, transparent); }
 .og-hit-atom.no { fill: color-mix(in srgb, var(--signal) 18%, transparent); stroke: var(--signal); stroke-width: 2; stroke-dasharray: 4 3; }
-.og-hit-bond { stroke: transparent; stroke-width: 20; stroke-linecap: round; }
+.og-hit-bond { stroke: transparent; stroke-linecap: round; }
+.og-hit-h { fill: transparent; cursor: copy; }
+.og-hit-h:hover { fill: color-mix(in srgb, var(--accent) 10%, transparent); }
+.og-new { fill: none; stroke: var(--ok); stroke-width: 3; animation: og-pop .45s ease-out forwards; pointer-events: none; }
+@keyframes og-pop { from { opacity: 1; transform: scale(.6); } to { opacity: 0; transform: scale(1.25); } }
+.og-new { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) { .og-new { animation: none; opacity: 0; } }
 .og-hit-bond:hover { stroke: color-mix(in srgb, var(--text) 7%, transparent); }
 .mode-erase .og-hit-atom:hover, .mode-erase .og-hit-bond:hover { stroke-dasharray: 4 3; stroke: var(--signal); stroke-width: 2; }
-.mode-erase .og-hit-bond:hover { stroke-width: 20; stroke: color-mix(in srgb, var(--signal) 18%, transparent); stroke-dasharray: none; }
+.mode-erase .og-hit-bond:hover { stroke: color-mix(in srgb, var(--signal) 18%, transparent); stroke-dasharray: none; }
 .og-preview line { stroke: var(--muted); stroke-width: 2.4; stroke-dasharray: 5 4; }
 .og-preview circle { fill: var(--surface); stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 3 3; }
 .og-preview text { font-size: 18px; font-weight: 700; fill: var(--muted); }
@@ -104,3 +110,7 @@
 .og-big .mol-svg { width: 100%; height: 100%; }
 .og-rules { display: grid; gap: 14px; }
 .og-rules h3 { margin: 0 0 6px; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--signal); }
+/* Modus sichtbar machen (am Handy gibt es kein Überfahren mit der Maus) */
+.og-editor { -webkit-tap-highlight-color: transparent; }
+.mode-erase .og-hit-atom { fill: color-mix(in srgb, var(--signal) 7%, transparent); stroke: var(--signal); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.mode-swap .og-hit-atom { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }

@@ -1,14 +1,34 @@
 // Zeichenfläche: Atom antippen = Stift anhängen (bzw. tauschen/löschen), Bindung antippen = Einfach → Doppel → Dreifach,
 // vom Atom wegziehen = neues Atom in 30°-Schritten, auf ein anderes Atom ziehen = Bindung (Ring schließen).
-// Leere Fläche: erstes Atom oder Ring. Tastatur: Atome und Bindungen per Tab, Enter wie Antippen.
+// Leere Fläche: erstes Atom oder Ring. In der Lewis-Formel ein H antippen = Stift an dieser Stelle anhängen.
+// Maßstab fest (eine Bindung ≈ 56 px, Tippziele ≥ 48 px): das Bild springt beim Zeichnen nicht, es wird nur verschoben
+// oder verkleinert, wenn die Zeichnung nicht mehr passt. Tastatur: Atome und Bindungen per Tab, Enter wie Antippen.
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { buzz } from "@lern/ui";
 import { addRing, append, appendAt, atomAt, connect, cycleBond, removeAtom, removeBond, replace, start, type RingKind } from "../chem/edit.ts";
 import { ELEMENTS, elLabel, type El, type Mol } from "../chem/mol.ts";
 import type { NameResult } from "../chem/naming.ts";
 import { useApp, type Pen } from "../store.ts";
-import { MolSvg, U } from "./MolSvg.tsx";
+import { decorations, MolSvg, U } from "./MolSvg.tsx";
+
+/** Ausschnitt der Zeichenfläche: Mitte (in Bindungslängen) und Maßstab (px je Bindung) */
+interface Cam { cx: number; cy: number; s: number }
+
+/** Ausschnitt nachführen: gleich lassen, wenn alles passt; sonst minimal verschieben; erst wenn das nicht reicht, verkleinern */
+function follow(cam: Cam | null, mol: Mol, w: number, h: number, pad: number, sMax: number): Cam {
+  if (!mol.atoms.length) return { cx: 0, cy: 0, s: sMax };
+  const xs = mol.atoms.map(a => a.x), ys = mol.atoms.map(a => a.y);
+  const x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+  const fit = Math.min(sMax, w / (x1 - x0), h / (y1 - y0));
+  let c = cam ?? { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s: Math.min(sMax, fit) };
+  if (c.s > fit + 1e-6 || c.s < Math.min(sMax, fit) * 0.6) c = { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s: Math.min(sMax, fit) };
+  const hw = w / 2 / c.s, hh = h / 2 / c.s;
+  let { cx, cy } = c;
+  if (x0 < cx - hw) cx = x0 + hw; else if (x1 > cx + hw) cx = x1 - hw;
+  if (y0 < cy - hh) cy = y0 + hh; else if (y1 > cy + hh) cy = y1 - hh;
+  return { cx, cy, s: c.s };
+}
 
 const isEl = (p: Pen): p is El => (ELEMENTS as string[]).includes(p);
 const RAD = Math.PI / 180;
@@ -19,7 +39,32 @@ export function Editor({ res }: { res: NameResult }) {
   const { mol, setMol, pen, mode, view, shown } = useApp();
   const svg = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
+  const downOn = useRef<Element | null>(null);
   const [no, setNo] = useState<number | null>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const upd = () => setSize({ w: el.clientWidth, h: el.clientHeight });
+    upd();
+    const ro = new ResizeObserver(upd);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Maßstab: höchstens ~56 px je Bindung (am Handy), auf großen Flächen etwas mehr
+  const sMax = Math.max(48, Math.min(72, Math.min(size.w, size.h) / 5.5));
+  const cam = useRef<Cam | null>(null);
+  if (size.w > 0) cam.current = follow(cam.current, mol, size.w, size.h, view === "lewis" ? 1 : 0.7, sMax);
+  const c = cam.current;
+  const viewBox: [number, number, number, number] | undefined = c && size.w > 0
+    ? [(c.cx - size.w / 2 / c.s) * U, (c.cy - size.h / 2 / c.s) * U, (size.w / c.s) * U, (size.h / c.s) * U] : undefined;
+  /** Trefferradius in Bindungslängen: mindestens 24 px, damit jedes Tippziel ≥ 48 px ist */
+  const hitR = Math.max(0.42, c ? 24 / c.s : 0.42);
+  // zuletzt angefügtes Atom kurz hervorheben (sichtbare Rückmeldung zum Tippen)
+  const prevIds = useRef(new Set<number>());
+  const fresh = mol.atoms.filter(a => prevIds.current.size && !prevIds.current.has(a.id)).map(a => a.id);
+  useLayoutEffect(() => { prevIds.current = new Set(mol.atoms.map(a => a.id)); }, [mol]);
 
   const refuse = (id: number | null) => { buzz([20, 40, 20]); setNo(id); window.setTimeout(() => setNo(null), 420); };
   const apply = (m: Mol | null, id: number | null = null) => (m ? setMol(m) : refuse(id));
@@ -35,6 +80,15 @@ export function Editor({ res }: { res: NameResult }) {
     if (mode === "swap") return isEl(pen) ? apply(replace(mol, id, pen), id) : refuse(id);
     apply(isEl(pen) ? append(mol, id, pen) : addRing(mol, id, pen as RingKind), id);
   };
+  /** H antippen: Stift genau dort anhängen (H wird ersetzt) */
+  const tapH = (id: number, angle: number) => {
+    if (mode === "erase") return refuse(id);
+    if (!isEl(pen)) return apply(addRing(mol, id, pen as RingKind), id);
+    const deg = Math.round(angle / 30) * 30;
+    const a = mol.atoms.find(x => x.id === id)!;
+    const busy = atomAt(mol, a.x + Math.cos(deg * RAD), a.y + Math.sin(deg * RAD), 0.5) !== undefined;
+    apply(append(mol, id, pen, busy ? angle : deg), id);
+  };
   const tapBond = (a: number, b: number) => (mode === "erase" ? setMol(removeBond(mol, a, b)) : apply(cycleBond(mol, a, b)));
   const tapEmpty = () => { if (!mol.atoms.length) setMol(isEl(pen) ? start(pen) : addRing(mol, null, pen as RingKind)!); };
 
@@ -48,18 +102,20 @@ export function Editor({ res }: { res: NameResult }) {
   };
 
   const onDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    const el = (e.target as Element).closest("[data-atom],[data-bond]");
+    const el = (e.target as Element).closest("[data-atom],[data-bond],[data-h]");
+    downOn.current = null;
     if (!el) { tapEmpty(); return; }
-    if (el.hasAttribute("data-bond")) return; // Bindung: beim Loslassen
+    if (!el.hasAttribute("data-atom")) { downOn.current = el; return; } // Bindung, H: beim Loslassen auf demselben Ziel
     const id = Number(el.getAttribute("data-atom"));
     const p = point(e);
-    svg.current!.setPointerCapture(e.pointerId);
+    try { svg.current!.setPointerCapture(e.pointerId); } catch { /* ältere Browser: ohne Festhalten */ }
     setDrag({ from: id, x: p.x, y: p.y, moved: false, id: e.pointerId });
   };
   const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!drag || e.pointerId !== drag.id) return;
     const p = point(e), a = mol.atoms.find(x => x.id === drag.from)!;
-    const moved = drag.moved || Math.hypot(p.x - a.x, p.y - a.y) > 0.45;
+    // Zittern des Fingers ist noch kein Ziehen
+    const moved = drag.moved || Math.hypot(p.x - a.x, p.y - a.y) > Math.max(0.5, hitR);
     setDrag({ ...drag, x: p.x, y: p.y, moved });
   };
   const onUp = (e: React.PointerEvent<SVGSVGElement>) => {
@@ -73,8 +129,14 @@ export function Editor({ res }: { res: NameResult }) {
       else apply(appendAt(mol, d.from, pen, t.x, t.y), d.from);
       return;
     }
+    // nur ein vollständiges Antippen zählt: Loslassen auf dem Ziel, auf dem der Finger aufgesetzt hat
+    const was = downOn.current;
+    downOn.current = null;
+    if (!was || !was.contains(e.target as Node)) return;
     const b = (e.target as Element).closest("[data-bond]");
-    if (b) { const [x, y] = b.getAttribute("data-bond")!.split("-").map(Number); tapBond(x, y); }
+    if (b) { const [x, y] = b.getAttribute("data-bond")!.split("-").map(Number); tapBond(x, y); return; }
+    const hh = (e.target as Element).closest("[data-h]");
+    if (hh) { const [x, ang] = hh.getAttribute("data-h")!.split(":").map(Number); tapH(x, ang); }
   };
 
   const key = (fn: () => void) => (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } };
@@ -84,23 +146,29 @@ export function Editor({ res }: { res: NameResult }) {
   const elName = (e: Pen) => (isEl(e) ? elLabel(e) : e === "benzol" ? "Benzolring" : e === "ring6" ? "Sechsring" : "Fünfring");
 
   return (
-    <div className={`og-editor mode-${mode}`}>
-      <MolSvg mol={mol} view={view} svgRef={svg} label={ok ? `Strukturformel: ${ok.name}` : `Zeichnung mit ${mol.atoms.length} Atomen`}
+    <div className={`og-editor mode-${mode}`} ref={box}>
+      <MolSvg mol={mol} view={view} svgRef={svg} viewBox={viewBox} label={ok ? `Strukturformel: ${ok.name}` : `Zeichnung mit ${mol.atoms.length} Atomen`}
         parent={ok?.parent.atoms} parentRing={ok?.parent.kind === "ring"} numbers={!!ok && ok.parent.size > 1}
         group={ok?.principalAtoms} minW={6} minH={4.2}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => setDrag(null)}>
         <g className="og-hits">
+          {fresh.map(id => { const a = mol.atoms.find(x => x.id === id)!; return <circle key={`new${id}`} className="og-new" cx={a.x * U} cy={a.y * U} r={0.42 * U} aria-hidden="true" />; })}
+          {view === "lewis" && mode !== "erase" && decorations(mol).filter(d => d.kind === "H").map((d, i) => {
+            const a = mol.atoms.find(x => x.id === d.atom)!;
+            const x = a.x + Math.cos(d.angle * RAD) * 0.66, y = a.y + Math.sin(d.angle * RAD) * 0.66;
+            return <circle key={`h${i}`} data-h={`${d.atom}:${d.angle}`} className="og-hit-h" cx={x * U} cy={y * U} r={Math.min(0.3, hitR * 0.7) * U} aria-hidden="true" />;
+          })}
           {mol.bonds.map(b => {
             const p = mol.atoms.find(a => a.id === b.a)!, q = mol.atoms.find(a => a.id === b.b)!;
             const order = ["Einfach", "Doppel", "Dreifach"][b.order - 1];
             return (
-              <line key={`${b.a}-${b.b}`} data-bond={`${b.a}-${b.b}`} className="og-hit-bond" x1={p.x * U} y1={p.y * U} x2={q.x * U} y2={q.y * U}
+              <line key={`${b.a}-${b.b}`} data-bond={`${b.a}-${b.b}`} className="og-hit-bond" style={{ strokeWidth: Math.max(0.4, hitR * 0.9) * U }} x1={p.x * U} y1={p.y * U} x2={q.x * U} y2={q.y * U}
                 tabIndex={0} role="button" aria-label={`${order}bindung ${p.el}–${q.el}`} onKeyDown={key(() => tapBond(b.a, b.b))} />
             );
           })}
           {mol.atoms.map(a => (
             <circle key={a.id} data-atom={a.id} className={`og-hit-atom${no === a.id ? " no" : ""}${drag?.from === a.id ? " from" : ""}`}
-              cx={a.x * U} cy={a.y * U} r={0.4 * U} tabIndex={0} role="button" aria-label={`Atom ${elLabel(a.el)}`} onKeyDown={key(() => tapAtom(a.id))} />
+              cx={a.x * U} cy={a.y * U} r={hitR * U} tabIndex={0} role="button" aria-label={`Atom ${elLabel(a.el)}`} onKeyDown={key(() => tapAtom(a.id))} />
           ))}
           {preview && from && (
             <g className="og-preview" aria-hidden="true">
