@@ -6,6 +6,7 @@ import { searchElements } from "@lern/chem";
 import { PeriodicTable } from "@lern/chem-ui";
 import { maxZFor } from "../store.ts";
 import type { Stufe } from "../quiz/tasks.ts";
+import { tr } from "@lern/i18n";
 
 export function ElementPicker({ open, stufe, selected, title, onPick, onClose }: {
   open: boolean; stufe: Stufe; selected: number; title: string; onPick: (Z: number) => void; onClose: () => void;
@@ -27,13 +28,13 @@ export function ElementPicker({ open, stufe, selected, title, onPick, onClose }:
   );
 }
 
-export function SearchBox({ value, onChange, onEnter, placeholder = "Name, Symbol oder Ordnungszahl" }: {
+export function SearchBox({ value, onChange, onEnter, placeholder = tr("Name, Symbol oder Ordnungszahl", "Name, symbol or atomic number") }: {
   value: string; onChange: (v: string) => void; onEnter?: () => void; placeholder?: string;
 }) {
   return (
     <label className="search">
       <Icon name="search" />
-      <input type="search" value={value} placeholder={placeholder} aria-label="Element suchen" enterKeyHint="search"
+      <input type="search" value={value} placeholder={placeholder} aria-label={tr("Element suchen", "Search element")} enterKeyHint="search"
         onChange={e => onChange(e.target.value)} onKeyDown={e => { if (e.key === "Enter") { onEnter?.(); (e.target as HTMLInputElement).blur(); } }} />
     </label>
   );

@@ -9,6 +9,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { Formula } from "@lern/chem-ui";
 import { ionChargeText, neutralCounts, neutralEquation, equationText, restOf, type Hydroxide, type Ion, type ProticAcid } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 type Kind = "cat" | "an" | "oh" | "h" | "water";
 
@@ -43,7 +44,7 @@ function Unit({ w, col, row, top, bottom, label, onClick }: {
   const style = { gridColumn: `${col + 1} / span ${w}`, gridRow: `${row} / span 2`, "--w": w } as CSSProperties;
   const inner = <>{top}{bottom}</>;
   if (!onClick) return <span className="nw-unit" style={style} aria-label={label}>{inner}</span>;
-  return <button type="button" className="nw-unit" style={style} aria-label={`${label} – Zerfall in Ionen anzeigen`} onClick={onClick}>{inner}</button>;
+  return <button type="button" className="nw-unit" style={style} aria-label={tr(`${label} – Zerfall in Ionen anzeigen`, `${label} – show dissociation into ions`)} onClick={onClick}>{inner}</button>;
 }
 
 export function NeutralWall({ base, acid, step, nB, nA, products = false, showResult = true, onUnit }: {
@@ -69,9 +70,9 @@ export function NeutralWall({ base, acid, step, nB, nA, products = false, showRe
           {/* Salz: Kationen und Säurereste bleiben als Ionen zusammen */}
           {Array.from({ length: nB }, (_, i) => <span key={`c${i}`} className="nw-cell" style={{ gridColumn: `${i * q + 1} / span ${q}`, gridRow: 1 }}>{catTile(base)}</span>)}
           {Array.from({ length: nA }, (_, i) => <span key={`a${i}`} className="nw-cell" style={{ gridColumn: `${i * k + 1} / span ${k}`, gridRow: 2 }}>{restTile(r)}</span>)}
-          <span className="nw-tag" style={{ gridColumn: `1 / span ${cols}`, gridRow: 3 }}>Salz · <Formula f={n.salt} />{salts > 1 && ` × ${salts}`}</span>
+          <span className="nw-tag" style={{ gridColumn: `1 / span ${cols}`, gridRow: 3 }}>{tr("Salz", "Salt")} · <Formula f={n.salt} />{salts > 1 && ` × ${salts}`}</span>
           {Array.from({ length: oh }, (_, i) => <span key={`w${i}`} className="nw-cell" style={{ gridColumn: i + 1, gridRow: 4 }}>{waterTile()}</span>)}
-          <span className="nw-tag" style={{ gridColumn: `1 / span ${cols}`, gridRow: 5 }}>Wasser · {oh} H<sub>2</sub>O</span>
+          <span className="nw-tag" style={{ gridColumn: `1 / span ${cols}`, gridRow: 5 }}>{tr("Wasser", "Water")} · {oh} H<sub>2</sub>O</span>
         </div>
       ) : (
         <div className="nw-grid" style={grid} key="e">
@@ -79,14 +80,14 @@ export function NeutralWall({ base, acid, step, nB, nA, products = false, showRe
             <Unit key={`b${i}`} w={q} col={i * q} row={1} label={base.name} onClick={onUnit && (() => onUnit("base"))}
               top={catTile(base)} bottom={<span className="nw-sub">{Array.from({ length: q }, (_, j) => <span key={j}>{ohTile()}</span>)}</span>} />
           ))}
-          {h > oh && <span className="nw-gap" style={{ gridColumn: `${oh + 1} / span ${h - oh}`, gridRow: 2 }} role="img" aria-label={`es fehlen ${h - oh} OH⁻`} />}
+          {h > oh && <span className="nw-gap" style={{ gridColumn: `${oh + 1} / span ${h - oh}`, gridRow: 2 }} role="img" aria-label={tr(`es fehlen ${h - oh} OH⁻`, `${h - oh} OH⁻ missing`)} />}
           {/* Verbindungen: je H⁺ + OH⁻ ein Wassermolekül */}
           {Array.from({ length: cols }, (_, i) => <i key={`l${i}`} className={`nw-link${i < pairs ? " on" : ""}`} style={{ gridColumn: i + 1, gridRow: 3 }} />)}
           {Array.from({ length: nA }, (_, i) => (
             <Unit key={`s${i}`} w={k} col={i * k} row={4} label={acid.name} onClick={onUnit && (() => onUnit("acid"))}
               top={<span className="nw-sub">{Array.from({ length: k }, (_, j) => <span key={j}>{hTile()}</span>)}</span>} bottom={restTile(r)} />
           ))}
-          {oh > h && <span className="nw-gap" style={{ gridColumn: `${h + 1} / span ${oh - h}`, gridRow: 4 }} role="img" aria-label={`es fehlen ${oh - h} H⁺`} />}
+          {oh > h && <span className="nw-gap" style={{ gridColumn: `${h + 1} / span ${oh - h}`, gridRow: 4 }} role="img" aria-label={tr(`es fehlen ${oh - h} H⁺`, `${oh - h} H⁺ missing`)} />}
         </div>
       )}
       {showResult && (
@@ -97,9 +98,9 @@ export function NeutralWall({ base, acid, step, nB, nA, products = false, showRe
               : <><EqLine text={equationText({ left: n.eq.left, right: [] }, [nB, nA]).replace(/ →\s*$/, "")} /><span>{" → "}</span><span>?</span></>}
           </p>
           <p className={`nw-balance${balanced ? " ok" : ""}`}>
-            {balanced ? `✓ ${oh} OH⁻ + ${h} H⁺ → ${oh} H₂O` : `≠ ${nB} · ${q} OH⁻ = ${oh} OH⁻  aber  ${nA} · ${k} H⁺ = ${h} H⁺`}
+            {balanced ? `✓ ${oh} OH⁻ + ${h} H⁺ → ${oh} H₂O` : `≠ ${nB} · ${q} OH⁻ = ${oh} OH⁻  ${tr("aber", "but")}  ${nA} · ${k} H⁺ = ${h} H⁺`}
           </p>
-          {balanced && <p className="nw-name">{n.saltName} + Wasser</p>}
+          {balanced && <p className="nw-name">{n.saltName} + {tr("Wasser", "water")}</p>}
         </div>
       )}
     </div>

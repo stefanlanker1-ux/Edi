@@ -4,6 +4,7 @@
 import { Fragment, type CSSProperties, type ReactElement } from "react";
 import { ATOM, div, unitSi, toNumber, ladderFor, fmt, q, type Solution, type Row } from "@lern/units";
 import { RowView, numText } from "../format.tsx";
+import { tr } from "@lern/i18n";
 
 const ratio = (a: string, b: string) => Math.round(toNumber(div(unitSi(a), unitSi(b))));
 const nf = (n: number) => fmt(q(n)).text;
@@ -80,9 +81,9 @@ export function AreaGrid({ big, small }: { big: string; small: string }) {
         ))}
         <path d={`M${X + S + 6} ${Y + c / 2} h14`} className="ar-arrow" />
         <text x={X + S + 24} y={Y + c / 2 + 4} className="ar-note strong">1 {small}</text>
-        <text x={X + S + 24} y={Y + c + 12} className="ar-note">1 Reihe: 10 {small}</text>
+        <text x={X + S + 24} y={Y + c + 12} className="ar-note">{tr("1 Reihe", "1 row")}: 10 {small}</text>
         <path d={`M${X + S + 6} ${Y} v${S} h-4 M${X + S + 6} ${Y} h-4`} className="ar-brace" />
-        <text x={X + S + 24} y={Y + S - 8} className="ar-note">10 Reihen:</text>
+        <text x={X + S + 24} y={Y + S - 8} className="ar-note">{tr("10 Reihen:", "10 rows:")}</text>
         <text x={X + S + 24} y={Y + S + 8} className="ar-note strong">100 {small}</text>
         <text x={X + S / 2} y={Y + S + 26} className="ar-cap">1 {big} = 100 {small}</text>
       </svg>
@@ -178,13 +179,13 @@ export function Clock({ big, small }: { big: string; small: string }) {
 
 // ── Zusammengesetzte Einheiten: Einsetz-Kette ──────────────────────────────
 function stepLabel(prev: Row, row: Row, i: number, last: boolean): string {
-  if (last) return "ausrechnen";
-  if (i === 1 && row.num && (row.num.every(t => !t.v || t.v.n === t.v.d) && (row.den ?? []).every(t => !t.v || t.v.n === t.v.d))) return "zerlegen";
-  if (row.unit !== undefined && prev.unit !== undefined) return "Definition";
-  if (row.unit !== undefined) return "zusammenfassen";
-  if ((row.num ?? []).some(t => t.pow && t.pow > 1) || (row.den ?? []).some(t => t.pow && t.pow > 1)) return "einsetzen";
-  if (prev.num && (prev.num.some(t => t.pow && t.pow > 1) || (prev.den ?? []).some(t => t.pow && t.pow > 1))) return "Potenz ausrechnen";
-  return "einsetzen";
+  if (last) return tr("ausrechnen", "calculate");
+  if (i === 1 && row.num && (row.num.every(t => !t.v || t.v.n === t.v.d) && (row.den ?? []).every(t => !t.v || t.v.n === t.v.d))) return tr("zerlegen", "split");
+  if (row.unit !== undefined && prev.unit !== undefined) return tr("Definition", "definition");
+  if (row.unit !== undefined) return tr("zusammenfassen", "combine");
+  if ((row.num ?? []).some(t => t.pow && t.pow > 1) || (row.den ?? []).some(t => t.pow && t.pow > 1)) return tr("einsetzen", "substitute");
+  if (prev.num && (prev.num.some(t => t.pow && t.pow > 1) || (prev.den ?? []).some(t => t.pow && t.pow > 1))) return tr("Potenz ausrechnen", "work out power");
+  return tr("einsetzen", "substitute");
 }
 export function SubstFlow({ s }: { s: Solution }) {
   const rows = s.rel.rows;

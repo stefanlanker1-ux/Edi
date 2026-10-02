@@ -1,7 +1,8 @@
 // Fehlvorstellungen (Stolpersteine) zur Elektronenpaarbindung – Schlüssel für diagnostische Distraktoren und Fallen im Baufeld.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Molekülen); hier nur der Name für Landkarte und Auswertung.
+import { tr } from "@lern/i18n";
 
-export const MISS: Record<string, string> = {
+const MISS_DE: Record<string, string> = {
   "bindungen-valenz": "Anzahl Bindungen = Außenelektronen",
   "bindungen-fehlend-verzaehlt": "Ungepaarte Elektronen verzählt",
   "h-oktett": "Auch um H 8 Elektronen gezählt",
@@ -30,3 +31,33 @@ export const MISS: Record<string, string> = {
   "ionisch-statt-polar": "Polare Bindung für Ionenbindung gehalten",
   "en-statt-differenz": "Höchste Elektronegativität statt größter Differenz",
 };
+const MISS_EN: Record<string, string> = {
+  "bindungen-valenz": "Number of bonds = outer electrons",
+  "bindungen-fehlend-verzaehlt": "Unpaired electrons miscounted",
+  "h-oktett": "Counted 8 electrons around H too",
+  "nur-valenz-gezaehlt": "Only own outer electrons counted (bonding partner forgotten)",
+  "nur-bindungen-gezaehlt": "Only bonding electrons counted (lone pairs forgotten)",
+  "valenz-als-paare": "All outer electrons counted as lone pairs",
+  "bindungen-statt-paare": "Bonds counted instead of lone pairs",
+  "elektronen-statt-paare": "Electrons counted instead of pairs",
+  "mehrfachbindung-uebersehen": "Multiple bond overlooked",
+  "oktett-ueberschritten": "More pairs than electrons allow (beyond the octet)",
+  "atomzahl-falsch": "Wrong number of atoms (formula not read)",
+  "oktett-offen": "Molecule submitted with an octet still open",
+  "freie-paare-ignoriert": "Lone pairs ignored for the shape",
+  "elektronen-statt-atome": "Arrangement of electron pairs confused with molecular shape",
+  "aussen-paare-gezaehlt": "Lone pairs of the outer atoms counted",
+  "mehrfachbindung-doppelt-gezaehlt": "Multiple bond counted as several partners",
+  "stauchung-ignoriert": "Lone pairs push harder – angle below 109.5° overlooked",
+  "atom-statt-molekuel": "Element molecule written as a single atom (O instead of O₂)",
+  "element-statt-molekuel": "Name of a component instead of the molecule",
+  "name-verwechselt": "Name of a similar molecule (atoms not counted carefully)",
+  "wuerfel-statt-tetraeder": "Angle as in the drawing (90°) instead of in space",
+  "polare-bindung-polares-molekuel": "Polar bond = polar molecule (symmetry overlooked)",
+  "form-uebersehen": "Bent/pyramidal shape overlooked",
+  "en-uebersehen": "Electronegativity difference overlooked",
+  "gleiche-en-polar": "Bond between identical atoms taken as polar",
+  "ionisch-statt-polar": "Polar bond taken as an ionic bond",
+  "en-statt-differenz": "Highest electronegativity instead of largest difference",
+};
+export const MISS = tr(MISS_DE, MISS_EN);

@@ -1,10 +1,10 @@
 {
-  "name": "@lern/units",
+  "name": "@lern/i18n",
   "version": "1.0.0",
   "private": true,
   "license": "UNLICENSED",
   "type": "module",
-  "description": "Einheiten umrechnen: exakte Brüche, Einheitenkatalog, Rechenweg, Stellenwerttafel (ohne UI)",
+  "description": "Sprache Deutsch/Englisch: Erkennung aus der Gerätesprache, Wahl gespeichert, tr(de, en) (ohne UI)",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -15,8 +15,5 @@
   "devDependencies": {
     "typescript": "^7.0.2",
     "vitest": "^5.0.2"
-  },
-  "dependencies": {
-    "@lern/i18n": "*"
   }
 }

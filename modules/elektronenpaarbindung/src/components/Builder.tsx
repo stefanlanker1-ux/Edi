@@ -6,6 +6,7 @@ import { buzz } from "@lern/ui";
 import { electronsOf, elementName, VALENCE, type Molecule } from "@lern/chem";
 import { COLS, ROWS, atomAt, place, move, remove, cycleBond, addBond, bondOptions } from "../edit.ts";
 import { LewisSvg } from "./LewisSvg.tsx";
+import { tr } from "@lern/i18n";
 
 /** Kleines Lewis-Symbol eines einzelnen Atoms (für die Leiste) */
 export function AtomChip({ el }: { el: string }) {
@@ -47,7 +48,7 @@ export function Builder({ mol, onChange, elements, onInfo, lines, octet = true }
       if (!moved) { if (fromId === undefined) setArmed(el); return; }
       const cell = cellAt(ev.clientX, ev.clientY);
       if (fromId !== undefined) {
-        if (!cell) { onChange(remove(mol, fromId)); buzz(20); onInfo?.(`${el} entfernt`); return; }
+        if (!cell) { onChange(remove(mol, fromId)); buzz(20); onInfo?.(tr(`${el} entfernt`, `${el} removed`)); return; }
         const next = move(mol, fromId, cell[0], cell[1]);
         if (next !== mol) { buzz(); onChange(next); }
         return;
@@ -66,14 +67,14 @@ export function Builder({ mol, onChange, elements, onInfo, lines, octet = true }
   const onBond = (a: number, b: number) => {
     const r = cycleBond(mol, a, b);
     buzz(); onChange(r.mol);
-    if (r.action === "removed") onInfo?.("Bindung gelöst – ＋ bindet neu");
+    if (r.action === "removed") onInfo?.(tr("Bindung gelöst – ＋ bindet neu", "Bond broken – ＋ bonds again"));
   };
 
   // Tastatur: Pfeile verschieben das Atom um ein Feld, Entf entfernt es
   const onAtomKey = (id: number, key: string) => {
     const a = mol.atoms.find(t => t.id === id);
     if (!a) return;
-    if (key === "Delete" || key === "Backspace") { onChange(remove(mol, id)); buzz(20); onInfo?.(`${a.el} entfernt`); return; }
+    if (key === "Delete" || key === "Backspace") { onChange(remove(mol, id)); buzz(20); onInfo?.(tr(`${a.el} entfernt`, `${a.el} removed`)); return; }
     const [dx, dy] = key === "ArrowLeft" ? [-1, 0] : key === "ArrowRight" ? [1, 0] : key === "ArrowUp" ? [0, -1] : [0, 1];
     const x = a.x + dx, y = a.y + dy;
     if (x < 0 || y < 0 || x >= COLS || y >= ROWS) return;
@@ -83,13 +84,13 @@ export function Builder({ mol, onChange, elements, onInfo, lines, octet = true }
 
   return (
     <div className="builder">
-      <div className="palette" role="toolbar" aria-label="Atome">
+      <div className="palette" role="toolbar" aria-label={tr("Atome", "Atoms")}>
         {elements.map(el => {
           const e = electronsOf({ atoms: [{ id: 1, el, x: 0, y: 0 }], bonds: [] }, 1);
           return (
             <button key={el} type="button" className={`pal-atom${armed === el ? " armed" : ""}`} onPointerDown={ev => startDrag(ev, el)}
               onClick={ev => { if (ev.detail === 0) setArmed(el); }}
-              aria-pressed={armed === el} aria-label={`${elementName(el)}: ${VALENCE[el]} Außenelektronen, ${e.singles} ungepaart`}>
+              aria-pressed={armed === el} aria-label={tr(`${elementName(el)}: ${VALENCE[el]} Außenelektronen, ${e.singles} ungepaart`, `${elementName(el)}: ${VALENCE[el]} outer electrons, ${e.singles} unpaired`)}>
               <span className="pal-svg"><AtomChip el={el} /></span>
               <span className="pal-name">{elementName(el)}</span>
             </button>
@@ -99,15 +100,15 @@ export function Builder({ mol, onChange, elements, onInfo, lines, octet = true }
       <div className={`board${armed ? " armed" : ""}`}>
         {/* Ausgewähltes Atom: kleiner „Fertig“-Knopf in der Ecke – nichts verrutscht, kein Text */}
         {armed && (
-          <button type="button" className="armed-done" onClick={() => setArmed(null)} aria-label={`${elementName(armed)} ablegen beenden`}>
-            <b>{armed}</b> Fertig
+          <button type="button" className="armed-done" onClick={() => setArmed(null)} aria-label={tr(`${elementName(armed)} ablegen beenden`, `Stop placing ${elementName(armed)}`)}>
+            <b>{armed}</b> {tr("Fertig", "Done")}
           </button>
         )}
         <LewisSvg svgRef={svgRef} mol={mol} cols={COLS} rows={ROWS} grid highlightCell={hl}
           bondOptions={bondOptions(mol)} onBond={onBond} onAddBond={(a, b) => { buzz(); onChange(addBond(mol, a, b)); }}
           onAtomDown={(id, e) => startDrag(e, mol.atoms.find(a => a.id === id)!.el, id)} onCell={onCell}
           cellsFocusable={!!armed} onAtomKey={onAtomKey} lines={lines} rings={octet} />
-        {!mol.atoms.length && !armed && <p className="board-empty">Atom hierher ziehen</p>}
+        {!mol.atoms.length && !armed && <p className="board-empty">{tr("Atom hierher ziehen", "Drag an atom here")}</p>}
       </div>
       {drag && <div className="atom-ghost" style={{ transform: `translate(${drag.x}px, ${drag.y}px)` }}>{drag.el}</div>}
     </div>

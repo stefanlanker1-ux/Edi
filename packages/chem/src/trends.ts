@@ -1,6 +1,7 @@
 // Periodische Eigenschaften für die Trend-Ansicht im PSE.
 // Kovalenzradien (pm, Cordero et al. 2008; Mn, Fe, Co: low-spin) und erste Ionisierungsenergien (eV, NIST).
 
+import { tr } from "@lern/i18n";
 import { BY_Z } from "./elements.ts";
 
 // Index = Z − 1
@@ -22,12 +23,12 @@ const IONIZATION = [
 export type TrendKey = "en" | "radius" | "ie";
 
 export const TRENDS: Record<TrendKey, { label: string; short: string; unit: string; rule: string; value: (Z: number) => number | null; digits: number }> = {
-  en: { label: "Elektronegativität", short: "EN", unit: "", digits: 2, value: Z => BY_Z[Z]?.en ?? null,
-    rule: "nimmt im PSE nach **rechts oben** zu – Fluor zieht Elektronen am stärksten an." },
-  radius: { label: "Atomradius", short: "Radius", unit: "pm", digits: 0, value: Z => RADIUS[Z - 1] ?? null,
-    rule: "nimmt nach **links unten** zu – mehr Schalen machen das Atom größer, mehr Protonen ziehen die Hülle zusammen." },
-  ie: { label: "Ionisierungsenergie", short: "IE", unit: "eV", digits: 1, value: Z => IONIZATION[Z - 1] ?? null,
-    rule: "nimmt nach **rechts oben** zu – Edelgase geben ihre Elektronen am schwersten ab." },
+  en: { label: tr("Elektronegativität", "Electronegativity"), short: "EN", unit: "", digits: 2, value: Z => BY_Z[Z]?.en ?? null,
+    rule: tr("nimmt im PSE nach **rechts oben** zu – Fluor zieht Elektronen am stärksten an.", "increases towards the **top right** – fluorine attracts electrons most strongly.") },
+  radius: { label: tr("Atomradius", "Atomic radius"), short: tr("Radius", "Radius"), unit: "pm", digits: 0, value: Z => RADIUS[Z - 1] ?? null,
+    rule: tr("nimmt nach **links unten** zu – mehr Schalen machen das Atom größer, mehr Protonen ziehen die Hülle zusammen.", "increases towards the **bottom left** – more shells make the atom larger, more protons pull the shells inwards.") },
+  ie: { label: tr("Ionisierungsenergie", "Ionisation energy"), short: "IE", unit: "eV", digits: 1, value: Z => IONIZATION[Z - 1] ?? null,
+    rule: tr("nimmt nach **rechts oben** zu – Edelgase geben ihre Elektronen am schwersten ab.", "increases towards the **top right** – noble gases give up electrons least easily.") },
 };
 
 /** Wert als Anteil 0…1 zwischen Minimum und Maximum der gegebenen Elemente (für die Farbskala) */

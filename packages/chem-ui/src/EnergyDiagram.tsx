@@ -1,6 +1,7 @@
 // Energieniveau-Schema (Kästchenschreibweise). Zeilen nach Energie (oben = höchste), nach n eingerückt.
 
 import { MADELUNG, L_NAMES, hundBoxes, type Occupied } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 const ARROW = ["", "↑", "↑↓"];
 
@@ -18,7 +19,7 @@ export function EnergyDiagram({ cfg, color = true, boxes, lastIndex, onBox }: {
   const rows = MADELUNG.slice(0, last + 1).reverse();
   return (
     <div className="energy">
-      <div className="en-axis" aria-hidden="true"><span>Energie</span></div>
+      <div className="en-axis" aria-hidden="true"><span>{tr("Energie", "Energy")}</span></div>
       <div className="en-grid">
         {rows.map(o => {
           const vals = boxes ? boxes[o.key] : hundBoxes(o.l, counts[o.key] ?? 0);
@@ -27,7 +28,7 @@ export function EnergyDiagram({ cfg, color = true, boxes, lastIndex, onBox }: {
               <span className="en-lbl">{o.key}</span>
               <span className={`en-boxes${color ? ` orb-${L_NAMES[o.l]}` : ""}`}>
                 {vals.map((b, k) => onBox
-                  ? <button key={k} type="button" className="en-box" onClick={() => onBox(o.key, k)} aria-label={`${o.key} Kästchen ${k + 1}: ${b} Elektronen`}>{ARROW[b]}</button>
+                  ? <button key={k} type="button" className="en-box" onClick={() => onBox(o.key, k)} aria-label={tr(`${o.key} Kästchen ${k + 1}: ${b} Elektronen`, `${o.key} box ${k + 1}: ${b} electrons`)}>{ARROW[b]}</button>
                   : <span key={k} className="en-box">{ARROW[b]}</span>)}
               </span>
             </div>

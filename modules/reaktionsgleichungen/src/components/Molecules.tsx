@@ -6,6 +6,7 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { isMolecular, type Equation } from "@lern/chem";
 import { Kalotte, KalotteShades, kalotteBox, kalotteElements } from "@lern/chem-ui";
+import { tr } from "@lern/i18n";
 
 /** Teilchenbild nur, wenn alle Stoffe der Gleichung Moleküle sind */
 export const hasModel = (eq: Equation) => [...eq.left, ...eq.right].every(isMolecular);
@@ -60,7 +61,7 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
   return (
     <div className="ms-wrap" ref={wrap}>
       <svg className="ms" viewBox={across ? `0 0 ${2 * W + AR} ${H}` : `0 0 ${W} ${2 * H + AR}`} role="img" preserveAspectRatio="xMidYMid meet"
-        aria-label={`Links ${eq.left.map((f, k) => `${coeffs[k]} × ${f}`).join(", ")}; rechts ${eq.right.map((f, k) => `${coeffs[n + k]} × ${f}`).join(", ")}`}>
+        aria-label={`${tr("Links", "Left")} ${eq.left.map((f, k) => `${coeffs[k]} × ${f}`).join(", ")}; ${tr("rechts", "right")} ${eq.right.map((f, k) => `${coeffs[n + k]} × ${f}`).join(", ")}`}>
         <KalotteShades gid={gid} els={kalotteElements(all)} />
         {frame(0, 0)}
         {frame(ox, oy)}

@@ -13,6 +13,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@lern/i18n": "*",
     "@lern/chem": "*",
     "@lern/chem-ui": "*",
     "@lern/quiz": "*",

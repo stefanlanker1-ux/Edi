@@ -4,6 +4,7 @@ import { Fragment, useState } from "react";
 import { Button, buzz } from "@lern/ui";
 import { speciesName, toSubscript, type Equation } from "@lern/chem";
 import { SubstanceDetail, SubstanceSheet } from "@lern/chem-ui";
+import { tr } from "@lern/i18n";
 
 /** Wortgleichung, jeder Stoffname ist ein Knopf zur Stoff-Info */
 export function NameLine({ eq, className = "rg-names" }: { eq: Equation; className?: string }) {
@@ -28,7 +29,7 @@ export function SubstanceList({ fs }: { fs: string[] }) {
   if (open) return (
     <div className="sub-detail">
       <div className="sub-detail-head">
-        <Button variant="quiet" icon="back" onClick={() => { buzz(); setOpen(null); }}>Alle Stoffe</Button>
+        <Button variant="quiet" icon="back" onClick={() => { buzz(); setOpen(null); }}>{tr("Alle Stoffe", "All substances")}</Button>
         <h3>{speciesName(open)}</h3>
       </div>
       <SubstanceDetail key={open} f={open} />

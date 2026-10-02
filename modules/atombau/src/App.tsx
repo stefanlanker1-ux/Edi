@@ -4,10 +4,11 @@ import { BuildView } from "./views/BuildView.tsx";
 import { ExploreView } from "./views/ExploreView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
 import { guideFor } from "./guide.tsx";
+import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "build", label: "Bauen", icon: "atom" },
-  { id: "pse", label: "Periodensystem", short: "PSE", icon: "grid" },
+  { id: "build", label: tr("Bauen", "Build"), icon: "atom" },
+  { id: "pse", label: tr("Periodensystem", "Periodic table"), short: tr("PSE", "PT"), icon: "grid" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
 ];
 
@@ -27,7 +28,7 @@ export function App() {
   const { tab, setTab, stufe, setStufe } = useApp();
 
   return (
-    <LernApp name="Atombau" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["atombau-v3", "atombau-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
+    <LernApp name={tr("Atombau", "Atomic Structure")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["atombau-v3", "atombau-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
       {tab === "build" && <BuildView />}
       {tab === "pse" && <ExploreView />}
       {tab === "quiz" && <QuizView />}

@@ -76,12 +76,12 @@ export function Stepper({ label, value, onChange, min = 0, max = 999, tone, edit
     <div className={cx("ui-stepper", compact && !stack && "compact", stack && "stack", tone && `tone-${tone}`)}>
       <label htmlFor={id} className="ui-stepper-label">{tone && <i className="ui-dot" />}{label}</label>
       <div className="ui-stepper-ctl">
-        <button type="button" onClick={() => set(value - 1)} disabled={value <= min} aria-label="weniger"><Icon name="minus" /></button>
+        <button type="button" onClick={() => set(value - 1)} disabled={value <= min} aria-label={tr("weniger", "less")}><Icon name="minus" /></button>
         {editable
           ? <input id={id} type="number" inputMode="numeric" value={value} min={min} max={max}
               onChange={e => set(Number(e.target.value) || 0)} onFocus={e => e.target.select()} />
           : <output id={id}>{value}</output>}
-        <button type="button" onClick={() => set(value + 1)} disabled={value >= max} aria-label="mehr"><Icon name="plus" /></button>
+        <button type="button" onClick={() => set(value + 1)} disabled={value >= max} aria-label={tr("mehr", "more")}><Icon name="plus" /></button>
       </div>
     </div>
   );
@@ -97,7 +97,7 @@ export function Chip({ children, active, className }: { children: ReactNode; act
 
 export function Stars({ value, size = 18 }: { value: number; size?: number }) {
   return (
-    <span className="ui-stars" aria-label={`${value} von 3 Sternen`}>
+    <span className="ui-stars" aria-label={tr(`${value} von 3 Sternen`, `${value} of 3 stars`)}>
       {[1, 2, 3].map(i => <span key={i} className={cx("ui-star", i <= value && "on")}><Icon name="star" size={size} /></span>)}
     </span>
   );
@@ -116,7 +116,7 @@ export function ResultBar({ results }: { results: (boolean | null)[] }) {
   const right = results.filter(r => r === true).length;
   const wrong = results.filter(r => r === false).length;
   return (
-    <div className="ui-result-bar" role="img" aria-label={`${right} richtig, ${wrong} falsch, ${results.length - right - wrong} offen`}>
+    <div className="ui-result-bar" role="img" aria-label={tr(`${right} richtig, ${wrong} falsch, ${results.length - right - wrong} offen`, `${right} correct, ${wrong} wrong, ${results.length - right - wrong} open`)}>
       {results.map((r, i) => <i key={i} className={r === true ? "ok" : r === false ? "bad" : undefined} />)}
     </div>
   );

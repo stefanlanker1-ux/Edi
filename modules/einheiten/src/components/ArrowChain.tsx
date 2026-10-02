@@ -5,7 +5,8 @@
 import { Fragment, useRef } from "react";
 import { useWidth } from "@lern/ui";
 import { ATOM, chainFor, div, mul, unitSi, fmt, q, type Q } from "@lern/units";
-import { numText } from "../format.tsx";
+import { DIV, numText } from "../format.tsx";
+import { tr } from "@lern/i18n";
 
 const nf = (v: Q) => fmt(v).text;
 /** „dm³ = l“: Hohlmaß als zweiter Name */
@@ -65,7 +66,7 @@ export function ArrowChain({ from, to, value, os = false, showValues = true, cap
       <g key={`${lower ? "d" : "u"}${i}`} className={`ac-arrow${on ? " on" : ""}`}>
         <path d={`M${sx} ${y0} Q${(sx + ex) / 2} ${yc} ${ex} ${y0}`} pathLength={1} />
         <polygon points={head} />
-        <text x={x(i) + W / 2} y={lower ? yU + 44 : yU - 44} dy={lower ? ".9em" : "-.2em"} className="ac-fac">{lower ? "·" : ":"} {nf(fac(i))}</text>
+        <text x={x(i) + W / 2} y={lower ? yU + 44 : yU - 44} dy={lower ? ".9em" : "-.2em"} className="ac-fac">{lower ? "·" : DIV} {nf(fac(i))}</text>
       </g>
     );
   };
@@ -73,7 +74,7 @@ export function ArrowChain({ from, to, value, os = false, showValues = true, cap
   return (
     <figure className="viz ac" ref={box}>
       <svg viewBox={`0 0 ${Wt} ${H}`} width={Wt} height={H} role="img"
-        aria-label={`Pfeilkette ${units.join(", ")}: ${ch.from} nach ${ch.to} ${down ? "mal" : "geteilt durch"} ${nf(total)}`}>
+        aria-label={tr(`Pfeilkette ${units.join(", ")}: ${ch.from} nach ${ch.to} ${down ? "mal" : "geteilt durch"} ${nf(total)}`, `Arrow chain ${units.join(", ")}: ${ch.from} to ${ch.to} ${down ? "times" : "divided by"} ${nf(total)}`)}>
         {units.slice(0, -1).map((_, i) => <Fragment key={i}>{arrow(i, false)}{arrow(i, true)}</Fragment>)}
         {units.map((u, i) => {
           const role = i === a ? " from" : i === b ? " to" : i > lo && i < hi ? " path" : "";
@@ -94,8 +95,8 @@ export function ArrowChain({ from, to, value, os = false, showValues = true, cap
       {caption && lo !== hi && (
         <figcaption>
           <b>{from} → {to}</b>
-          {path.length > 1 && <> {down ? "· " : ": "}{path.map(nf).join(down ? " · " : " : ")} =</>}
-          {" "}<b className="fx">{down ? "·" : ":"} {nf(total)}</b>
+          {path.length > 1 && <> {down ? "· " : `${DIV} `}{path.map(nf).join(down ? " · " : ` ${DIV} `)} =</>}
+          {" "}<b className="fx">{down ? "·" : DIV} {nf(total)}</b>
           {ch.notes.length > 0 && <> <span className="muted">({ch.notes.join(", ")})</span></>}
         </figcaption>
       )}

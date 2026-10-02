@@ -1,6 +1,7 @@
 // Elektronenpaarbindung: Moleküle als Atome auf einem Raster mit Bindungen zwischen Nachbarn.
 // Berechnet Lewis-Darstellung (freie Elektronen, Paare), Oktett, Formel, Name, Geometrie (EPA-Modell) und Polarität.
 
+import { num, tr } from "@lern/i18n";
 import { ELEMENTS } from "./elements.ts";
 
 export const VALENCE: Record<string, number> = { H: 1, C: 4, N: 5, O: 6, F: 7, Cl: 7, Br: 7, I: 7, S: 6, P: 5 };
@@ -137,9 +138,13 @@ export const REAL_ANGLES: Record<string, number> = {
 };
 /** Winkel mit Komma, z. B. „104,5°“; der Tetraederwinkel wird als 109,5° geschrieben */
 export const formatAngle = (deg: number) =>
-  `${(Math.round(deg * 10) / 10).toLocaleString("de-AT", { maximumFractionDigits: 1 })}°`;
+  `${(Math.round(deg * 10) / 10).toLocaleString(tr("de-AT", "en-GB"), { maximumFractionDigits: 1 })}°`;
 
 export type Geometry = "linear" | "gewinkelt" | "trigonal-planar" | "trigonal-pyramidal" | "tetraedrisch";
+/** Name der Molekülform zum Anzeigen (Schlüssel bleibt deutsch) */
+export const geometryName = (g: Geometry) => tr(
+  { linear: "linear", gewinkelt: "gewinkelt", "trigonal-planar": "trigonal-planar", "trigonal-pyramidal": "trigonal-pyramidal", tetraedrisch: "tetraedrisch" },
+  { linear: "linear", gewinkelt: "bent", "trigonal-planar": "trigonal planar", "trigonal-pyramidal": "trigonal pyramidal", tetraedrisch: "tetrahedral" })[g];
 export interface Shape { center: number; geometry: Geometry; angle: string; pairs: number; neighbors: number }
 
 /** Geometrie um ein Zentralatom nach dem Elektronenpaarabstoßungs-Modell (EPA/VSEPR) */
@@ -154,12 +159,12 @@ export function shapeAt(m: Molecule, id: number): Shape | null {
   const real = REAL_ANGLES[`${a}:${nbEls.join(",")}`];
   let geometry: Geometry, angle: string;
   if (steric === 4) {
-    if (n === 4) { geometry = "tetraedrisch"; angle = "109,5°"; }
-    else if (n === 3) { geometry = "trigonal-pyramidal"; angle = real ? formatAngle(real) : a === "N" ? "ca. 107°" : "kleiner als 109,5°"; }
-    else { geometry = "gewinkelt"; angle = real ? formatAngle(real) : a === "O" ? "ca. 104,5°" : "kleiner als 109,5°"; }
+    if (n === 4) { geometry = "tetraedrisch"; angle = num("109,5°"); }
+    else if (n === 3) { geometry = "trigonal-pyramidal"; angle = real ? formatAngle(real) : a === "N" ? tr("ca. 107°", "approx. 107°") : tr("kleiner als 109,5°", "less than 109.5°"); }
+    else { geometry = "gewinkelt"; angle = real ? formatAngle(real) : a === "O" ? tr("ca. 104,5°", "approx. 104.5°") : tr("kleiner als 109,5°", "less than 109.5°"); }
   } else if (steric === 3) {
     if (n === 3) { geometry = "trigonal-planar"; angle = "120°"; }
-    else { geometry = "gewinkelt"; angle = "etwas kleiner als 120°"; }
+    else { geometry = "gewinkelt"; angle = tr("etwas kleiner als 120°", "slightly less than 120°"); }
   } else { geometry = "linear"; angle = "180°"; }
   return { center: id, geometry, angle, pairs: p, neighbors: n };
 }
@@ -217,29 +222,29 @@ export interface KnownMolecule {
 }
 
 export const KNOWN: KnownMolecule[] = [
-  { id: "H2", name: "Wasserstoff", formula: "H2", atoms: [["H", 0, 0], ["H", 1, 0]], bonds: [[0, 1, 1]] },
-  { id: "Cl2", name: "Chlor", formula: "Cl2", atoms: [["Cl", 0, 0], ["Cl", 1, 0]], bonds: [[0, 1, 1]] },
-  { id: "F2", name: "Fluor", formula: "F2", atoms: [["F", 0, 0], ["F", 1, 0]], bonds: [[0, 1, 1]] },
-  { id: "O2", name: "Sauerstoff", formula: "O2", atoms: [["O", 0, 0], ["O", 1, 0]], bonds: [[0, 1, 2]] },
-  { id: "N2", name: "Stickstoff", formula: "N2", atoms: [["N", 0, 0], ["N", 1, 0]], bonds: [[0, 1, 3]] },
-  { id: "HCl", name: "Chlorwasserstoff", formula: "HCl", atoms: [["H", 0, 0], ["Cl", 1, 0]], bonds: [[0, 1, 1]] },
-  { id: "HF", name: "Fluorwasserstoff", formula: "HF", atoms: [["H", 0, 0], ["F", 1, 0]], bonds: [[0, 1, 1]] },
-  { id: "H2O", name: "Wasser", formula: "H2O", atoms: [["O", 1, 0], ["H", 0, 0], ["H", 1, 1]], bonds: [[0, 1, 1], [0, 2, 1]] },
-  { id: "NH3", name: "Ammoniak", formula: "NH3", atoms: [["N", 1, 1], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]] },
-  { id: "CH4", name: "Methan", formula: "CH4", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] },
-  { id: "CO2", name: "Kohlendioxid", formula: "CO2", atoms: [["O", 0, 0], ["C", 1, 0], ["O", 2, 0]], bonds: [[0, 1, 2], [1, 2, 2]] },
-  { id: "CCl4", name: "Tetrachlormethan", formula: "CCl4", atoms: [["C", 1, 1], ["Cl", 1, 0], ["Cl", 0, 1], ["Cl", 2, 1], ["Cl", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] },
-  { id: "H2S", name: "Schwefelwasserstoff", formula: "H2S", atoms: [["S", 1, 0], ["H", 0, 0], ["H", 1, 1]], bonds: [[0, 1, 1], [0, 2, 1]], os: true },
-  { id: "PH3", name: "Phosphan", formula: "PH3", atoms: [["P", 1, 1], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]], os: true },
-  { id: "C2H6", name: "Ethan", formula: "C2H6", atoms: [["C", 1, 1], ["C", 2, 1], ["H", 0, 1], ["H", 1, 0], ["H", 1, 2], ["H", 3, 1], ["H", 2, 0], ["H", 2, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1]], os: true },
-  { id: "C2H4", name: "Ethen", formula: "C2H4", atoms: [["C", 1, 0], ["C", 2, 0], ["H", 0, 0], ["H", 1, 1], ["H", 3, 0], ["H", 2, 1]], bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]], os: true },
-  { id: "C2H2", name: "Ethin", formula: "C2H2", atoms: [["H", 0, 0], ["C", 1, 0], ["C", 2, 0], ["H", 3, 0]], bonds: [[0, 1, 1], [1, 2, 3], [2, 3, 1]], os: true },
-  { id: "HCN", name: "Cyanwasserstoff (Blausäure)", formula: "HCN", atoms: [["H", 0, 0], ["C", 1, 0], ["N", 2, 0]], bonds: [[0, 1, 1], [1, 2, 3]], os: true },
-  { id: "CH2O", name: "Methanal (Formaldehyd)", formula: "CH2O", atoms: [["O", 1, 0], ["C", 1, 1], ["H", 0, 1], ["H", 2, 1]], bonds: [[0, 1, 2], [1, 2, 1], [1, 3, 1]], os: true },
-  { id: "CH3OH", name: "Methanol", formula: "CH3OH", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 1, 2], ["O", 2, 1], ["H", 3, 1]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [4, 5, 1]], os: true },
-  { id: "CH3Cl", name: "Chlormethan", formula: "CH3Cl", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 1, 2], ["Cl", 2, 1]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]], os: true },
-  { id: "H2O2", name: "Wasserstoffperoxid", formula: "H2O2", atoms: [["H", 0, 0], ["O", 1, 0], ["O", 2, 0], ["H", 3, 0]], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 1]], os: true },
-  { id: "C2H5OH", name: "Ethanol", formula: "C2H5OH", atoms: [["C", 1, 1], ["C", 2, 1], ["O", 3, 1], ["H", 4, 1], ["H", 0, 1], ["H", 1, 0], ["H", 1, 2], ["H", 2, 0], ["H", 2, 2]], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [0, 4, 1], [0, 5, 1], [0, 6, 1], [1, 7, 1], [1, 8, 1]], os: true },
+  { id: "H2", name: tr("Wasserstoff", "Hydrogen"), formula: "H2", atoms: [["H", 0, 0], ["H", 1, 0]], bonds: [[0, 1, 1]] },
+  { id: "Cl2", name: tr("Chlor", "Chlorine"), formula: "Cl2", atoms: [["Cl", 0, 0], ["Cl", 1, 0]], bonds: [[0, 1, 1]] },
+  { id: "F2", name: tr("Fluor", "Fluorine"), formula: "F2", atoms: [["F", 0, 0], ["F", 1, 0]], bonds: [[0, 1, 1]] },
+  { id: "O2", name: tr("Sauerstoff", "Oxygen"), formula: "O2", atoms: [["O", 0, 0], ["O", 1, 0]], bonds: [[0, 1, 2]] },
+  { id: "N2", name: tr("Stickstoff", "Nitrogen"), formula: "N2", atoms: [["N", 0, 0], ["N", 1, 0]], bonds: [[0, 1, 3]] },
+  { id: "HCl", name: tr("Chlorwasserstoff", "Hydrogen chloride"), formula: "HCl", atoms: [["H", 0, 0], ["Cl", 1, 0]], bonds: [[0, 1, 1]] },
+  { id: "HF", name: tr("Fluorwasserstoff", "Hydrogen fluoride"), formula: "HF", atoms: [["H", 0, 0], ["F", 1, 0]], bonds: [[0, 1, 1]] },
+  { id: "H2O", name: tr("Wasser", "Water"), formula: "H2O", atoms: [["O", 1, 0], ["H", 0, 0], ["H", 1, 1]], bonds: [[0, 1, 1], [0, 2, 1]] },
+  { id: "NH3", name: tr("Ammoniak", "Ammonia"), formula: "NH3", atoms: [["N", 1, 1], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]] },
+  { id: "CH4", name: tr("Methan", "Methane"), formula: "CH4", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] },
+  { id: "CO2", name: tr("Kohlendioxid", "Carbon dioxide"), formula: "CO2", atoms: [["O", 0, 0], ["C", 1, 0], ["O", 2, 0]], bonds: [[0, 1, 2], [1, 2, 2]] },
+  { id: "CCl4", name: tr("Tetrachlormethan", "Tetrachloromethane"), formula: "CCl4", atoms: [["C", 1, 1], ["Cl", 1, 0], ["Cl", 0, 1], ["Cl", 2, 1], ["Cl", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]] },
+  { id: "H2S", name: tr("Schwefelwasserstoff", "Hydrogen sulfide"), formula: "H2S", atoms: [["S", 1, 0], ["H", 0, 0], ["H", 1, 1]], bonds: [[0, 1, 1], [0, 2, 1]], os: true },
+  { id: "PH3", name: tr("Phosphan", "Phosphane"), formula: "PH3", atoms: [["P", 1, 1], ["H", 0, 1], ["H", 2, 1], ["H", 1, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1]], os: true },
+  { id: "C2H6", name: tr("Ethan", "Ethane"), formula: "C2H6", atoms: [["C", 1, 1], ["C", 2, 1], ["H", 0, 1], ["H", 1, 0], ["H", 1, 2], ["H", 3, 1], ["H", 2, 0], ["H", 2, 2]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1]], os: true },
+  { id: "C2H4", name: tr("Ethen", "Ethene"), formula: "C2H4", atoms: [["C", 1, 0], ["C", 2, 0], ["H", 0, 0], ["H", 1, 1], ["H", 3, 0], ["H", 2, 1]], bonds: [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]], os: true },
+  { id: "C2H2", name: tr("Ethin", "Ethyne"), formula: "C2H2", atoms: [["H", 0, 0], ["C", 1, 0], ["C", 2, 0], ["H", 3, 0]], bonds: [[0, 1, 1], [1, 2, 3], [2, 3, 1]], os: true },
+  { id: "HCN", name: tr("Cyanwasserstoff (Blausäure)", "Hydrogen cyanide"), formula: "HCN", atoms: [["H", 0, 0], ["C", 1, 0], ["N", 2, 0]], bonds: [[0, 1, 1], [1, 2, 3]], os: true },
+  { id: "CH2O", name: tr("Methanal (Formaldehyd)", "Methanal (formaldehyde)"), formula: "CH2O", atoms: [["O", 1, 0], ["C", 1, 1], ["H", 0, 1], ["H", 2, 1]], bonds: [[0, 1, 2], [1, 2, 1], [1, 3, 1]], os: true },
+  { id: "CH3OH", name: tr("Methanol", "Methanol"), formula: "CH3OH", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 1, 2], ["O", 2, 1], ["H", 3, 1]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [4, 5, 1]], os: true },
+  { id: "CH3Cl", name: tr("Chlormethan", "Chloromethane"), formula: "CH3Cl", atoms: [["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 1, 2], ["Cl", 2, 1]], bonds: [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]], os: true },
+  { id: "H2O2", name: tr("Wasserstoffperoxid", "Hydrogen peroxide"), formula: "H2O2", atoms: [["H", 0, 0], ["O", 1, 0], ["O", 2, 0], ["H", 3, 0]], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 1]], os: true },
+  { id: "C2H5OH", name: tr("Ethanol", "Ethanol"), formula: "C2H5OH", atoms: [["C", 1, 1], ["C", 2, 1], ["O", 3, 1], ["H", 4, 1], ["H", 0, 1], ["H", 1, 0], ["H", 1, 2], ["H", 2, 0], ["H", 2, 2]], bonds: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [0, 4, 1], [0, 5, 1], [0, 6, 1], [1, 7, 1], [1, 8, 1]], os: true },
 ];
 
 /** Bekanntes Molekül als Rastermolekül (optional verschoben) */
@@ -256,7 +261,7 @@ const KNOWN_KEYS = new Map(KNOWN.map(k => [canonicalKey(toMolecule(k)), k]));
 export const identify = (m: Molecule) => KNOWN_KEYS.get(canonicalKey(m)) ?? null;
 export const KNOWN_BY_ID: Record<string, KnownMolecule> = Object.fromEntries(KNOWN.map(k => [k.id, k]));
 
-export const bondName = (order: number) => (order === 1 ? "Einfachbindung" : order === 2 ? "Zweifachbindung" : "Dreifachbindung");
+export const bondName = (order: number) => (order === 1 ? tr("Einfachbindung", "Single bond") : order === 2 ? tr("Zweifachbindung", "Double bond") : tr("Dreifachbindung", "Triple bond"));
 
 const SIDE_ANGLE: Record<Side, number> = { right: 0, down: 90, left: 180, up: 270 };
 

@@ -1,8 +1,9 @@
 // Fehlvorstellungen (Stolpersteine) zu Reinstoffen, Gemischen und zum Teilchenmodell – Schlüssel für diagnostische
 // Distraktoren und Fallen. Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Stoffen); hier nur der Name
 // für Landkarte und Auswertung.
+import { tr } from "@lern/i18n";
 
-export const MISS: Record<string, string> = {
+const MISS_DE: Record<string, string> = {
   // Teilchen und Stoffe zählen
   "atome-gezaehlt": "Atome statt Teilchen gezählt",
   "stoffe-statt-teilchen": "Stoffe statt Teilchen gezählt",
@@ -37,3 +38,35 @@ export const MISS: Record<string, string> = {
   "oel-mischt": "Öl und Wasser bleiben gemischt",
   "oel-unten": "Öl für schwerer als Wasser gehalten",
 };
+const MISS_EN: Record<string, string> = {
+  "atome-gezaehlt": "Counted atoms instead of particles",
+  "stoffe-statt-teilchen": "Counted substances instead of particles",
+  "teilchen-statt-stoffe": "Counted particles instead of substances",
+  "atomsorten-statt-stoffe": "Counted kinds of atom instead of substances",
+  "stoffe-statt-atomsorten": "Counted substances instead of kinds of atom",
+  "sorten-uebersehen": "Different kinds of particle overlooked",
+  "verbindung-gemisch": "Compound taken for a mixture",
+  "verbindung-element": "Compound taken for an element",
+  "element-verbindung": "Element taken for a compound",
+  "gemisch-verbindung": "Mixture of elements taken for a compound",
+  "nur-elemente-rein": "Mixture of elements taken for a pure substance",
+  "klar-reinstoff": "Clear mixture taken for a pure substance",
+  "geloest-heterogen": "Solution taken for heterogeneous",
+  "sieht-einheitlich": "Finely dispersed mixture taken for homogeneous",
+  "entmischt-homogen": "Separated mixture taken for homogeneous",
+  "zustand-verwechselt": "States in the mixture confused",
+  "legierung-verbindung": "Alloy taken for a compound",
+  "alltag-rein": "Everyday “pure” taken for pure substance",
+  "verschwindet": "Dissolved substance disappears",
+  "loesen-schmelzen": "Dissolving confused with melting",
+  "teilchen-veraendert": "Particles change when mixing",
+  "geloest-unten": "Mixed substance collects at the bottom",
+  "masse-aendert": "Mass changes on dissolving",
+  "luft-dazwischen": "Something assumed between the particles",
+  "teilchen-ruhen": "Particles at rest without stirring",
+  "teilchen-wie-stoff": "Properties of the substance given to particles",
+  "modell-echt": "Model colours taken as real",
+  "oel-mischt": "Oil and water stay mixed",
+  "oel-unten": "Oil thought heavier than water",
+};
+export const MISS = tr(MISS_DE, MISS_EN);

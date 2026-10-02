@@ -12,6 +12,7 @@ import { MoleculeScene, hasModel } from "../components/Molecules.tsx";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, reactionOf, speciesOf, type Task } from "./tasks.ts";
 import { SubstanceList } from "../components/Substance.tsx";
 import { explainFor } from "./explain.tsx";
+import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "reaktionsgleichungen-quiz", levelId, makeRound });
 
@@ -28,7 +29,7 @@ function BalanceAnswer({ task, answered, submit }: { task: Extract<Task, { kind:
       {!answered && (
         <Button variant="primary" icon="check" className="check-btn"
           onClick={() => submit({ ok: isBalanced(r, c) && gcdAll(c) === 1, values: Object.fromEntries(c.map((x, i) => [`c${i}`, x])) })}>
-          Prüfen
+          {tr("Prüfen", "Check")}
         </Button>
       )}
     </div>
@@ -72,7 +73,7 @@ export function QuizView() {
       tools={t => {
         const fs = speciesOf(t);
         return [
-          ...(fs.length ? [{ id: "stoffe", label: "Stoffe", icon: "molecule" as const, content: <SubstanceList key={fs.join()} fs={fs} /> }] : []),
+          ...(fs.length ? [{ id: "stoffe", label: tr("Stoffe", "Substances"), icon: "molecule" as const, content: <SubstanceList key={fs.join()} fs={fs} /> }] : []),
           pseTool({ stufe, mark: elementsIn(t.kind === "balance" ? equationText(reactionOf(t)) : (("eq" in t && t.eq) || "") + " " + t.prompt) }),
         ];
       }}

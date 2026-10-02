@@ -5,13 +5,14 @@
 
 import { div, pow10, eq, type Q } from "./rational.ts";
 import { unitSi } from "./units.ts";
+import { tr } from "@lern/i18n";
 
 export interface Prefix { p: string; name: string; exp: number }
 export const PREFIXES: Prefix[] = [
-  { p: "n", name: "Nano", exp: -9 }, { p: "µ", name: "Mikro", exp: -6 }, { p: "m", name: "Milli", exp: -3 },
-  { p: "c", name: "Zenti", exp: -2 }, { p: "d", name: "Dezi", exp: -1 }, { p: "", name: "", exp: 0 },
-  { p: "da", name: "Deka", exp: 1 }, { p: "h", name: "Hekto", exp: 2 }, { p: "k", name: "Kilo", exp: 3 },
-  { p: "M", name: "Mega", exp: 6 }, { p: "G", name: "Giga", exp: 9 },
+  { p: "n", name: tr("Nano", "nano"), exp: -9 }, { p: "µ", name: tr("Mikro", "micro"), exp: -6 }, { p: "m", name: tr("Milli", "milli"), exp: -3 },
+  { p: "c", name: tr("Zenti", "centi"), exp: -2 }, { p: "d", name: tr("Dezi", "deci"), exp: -1 }, { p: "", name: "", exp: 0 },
+  { p: "da", name: tr("Deka", "deca"), exp: 1 }, { p: "h", name: tr("Hekto", "hecto"), exp: 2 }, { p: "k", name: tr("Kilo", "kilo"), exp: 3 },
+  { p: "M", name: tr("Mega", "mega"), exp: 6 }, { p: "G", name: tr("Giga", "giga"), exp: 9 },
 ];
 /** Grundeinheiten, vor die eine Vorsilbe treten kann */
 const BASES = ["m", "g", "l", "s", "N", "Pa", "J", "W", "V", "A", "Ω", "Hz", "Wh", "mol", "bar", "Ah"];

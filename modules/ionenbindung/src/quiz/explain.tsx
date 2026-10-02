@@ -6,10 +6,11 @@ import type { LevelKey } from "@lern/quiz";
 import { IonWall } from "../components/IonWall.tsx";
 import { LEVELS, type Task } from "./tasks.ts";
 import type { Stufe } from "../store.ts";
+import { tr } from "@lern/i18n";
 
 interface Ex { points: string[]; c: string; a: string }
 
-const TEXT: Record<string, Ex> = {
+const TEXT_DE: Record<string, Ex> = {
   "us-1": { c: "Mg2+", a: "O2-", points: [
     "Metalle **geben** Außenelektronen **ab** → positive Ionen (Kationen). Nichtmetalle **nehmen** Elektronen **auf** → negative Ionen (Anionen).",
     "Die Ionen haben dann eine volle Außenschale wie ein Edelgas: Mg²⁺ wie Ne.",
@@ -42,6 +43,40 @@ const TEXT: Record<string, Ex> = {
     "Bei Nebengruppenmetallen die Ladung als römische Zahl angeben: FeSO₄ = Eisen(II)-sulfat.",
   ] },
 };
+const TEXT_EN: Record<string, Ex> = {
+  "us-1": { c: "Mg2+", a: "O2-", points: [
+    "Metals **lose** outer electrons → positive ions (cations). Non-metals **gain** electrons → negative ions (anions).",
+    "The ions then have a full outer shell like a noble gas: Mg²⁺ like Ne.",
+    "Main group I, II, III → charge 1+, 2+, 3+. Main group V, VI, VII → charge 3−, 2−, 1−.",
+  ] },
+  "us-2": { c: "Ca2+", a: "Cl-", points: [
+    "An ionic compound is **neutral** overall: the positive and negative charges balance.",
+    "Each tile is as wide as its charge. Take gold and green tiles until **both rows are the same length**.",
+    "The number of ions is the small number (subscript) in the formula – the 1 is not written.",
+    "A salt has no pairs or molecules: each ion is surrounded by many oppositely charged ions (**ionic lattice**).",
+  ] },
+  "us-3": { c: "Al3+", a: "O2-", points: [
+    "In the name the **metal** comes first, then the non-metal with the ending **-ide**: sodium + chlorine → sodium **chloride**.",
+    "Endings: fluorine → fluoride, chlorine → chloride, bromine → bromide, iodine → iodide, oxygen → oxide, sulfur → sulfide, nitrogen → nitride.",
+    "In the formula the metal comes first: aluminium oxide → Al₂O₃.",
+  ] },
+  "os-1": { c: "Fe3+", a: "O2-", points: [
+    "Main group ions have a noble gas configuration: Na⁺ like Ne, Cl⁻ like Ar.",
+    "Transition metals often form several ions – the **Roman numeral** gives the charge: iron(II) = Fe²⁺, iron(III) = Fe³⁺.",
+    "**Polyatomic ions** carry the charge as a whole: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
+  ] },
+  "os-2": { c: "Al3+", a: "SO42-", points: [
+    "As in Level I: balance charges until both rows are the same length (lowest common multiple).",
+    "If a polyatomic ion is needed more than once, it goes **in brackets**: Ca(OH)₂, Al₂(SO₄)₃ – not CaOH₂!",
+    "The numbers inside the ion (e.g. the 4 in SO₄) never change.",
+  ] },
+  "os-3": { c: "Fe2+", a: "SO42-", points: [
+    "Monatomic anions end in **-ide** (chloride, oxide, sulfide; F⁻, Cl⁻, Br⁻, I⁻ = **halide** ions). Polyatomic ones usually end in **-ate** (sulfate, nitrate, carbonate).",
+    "Careful: sulfide (S²⁻) ≠ sulfate (SO₄²⁻), nitride (N³⁻) ≠ nitrate (NO₃⁻).",
+    "For transition metals give the charge as a Roman numeral: FeSO₄ = iron(II) sulfate.",
+  ] },
+};
+const TEXT = tr(TEXT_DE, TEXT_EN);
 
 export function explainFor(stufe: Stufe, level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[stufe][level].id

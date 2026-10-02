@@ -4,6 +4,7 @@
 import { useState, type ReactNode } from "react";
 import { BY_Z, groupLabel } from "@lern/chem";
 import { BlockLegend, PeriodicTable } from "./PeriodicTable.tsx";
+import { tr } from "@lern/i18n";
 
 export function PseHelp({ stufe, mark = [], sub, facts, blocks }: {
   stufe: "us" | "os";
@@ -30,8 +31,8 @@ export function PseHelp({ stufe, mark = [], sub, facts, blocks }: {
           <b className="ph-name">{el.name}</b>
           <span>Z = {el.Z}</span>
           <span>{groupLabel(el.Z, stufe === "os")}</span>
-          <span>{el.period}. Periode</span>
-          <span>{el.mass.toLocaleString("de-AT")} u</span>
+          <span>{tr(`${el.period}. Periode`, `Period ${el.period}`)}</span>
+          <span>{el.mass.toLocaleString(tr("de-AT", "en-GB"))} u</span>
           {facts?.(el.Z)}
         </div>
       )}
@@ -50,7 +51,7 @@ export function pseTool({ stufe, mark = [], wide = stufe === "os", sub, facts, b
   // Unterstufen-PSE zeigt nur Z 1–20: kommt ein schwereres Element vor (Ba, Fe …), das ganze PSE zeigen
   const table = stufe === "us" && mark.some(z => z > 20) ? "os" : stufe;
   return {
-    id: "pse", label: "PSE", title: "Periodensystem", icon: "grid" as const, wide: wide || table === "os",
+    id: "pse", label: tr("PSE", "PT"), title: tr("Periodensystem", "Periodic table"), icon: "grid" as const, wide: wide || table === "os",
     // key: neue Markierung → Auswahl neu setzen
     content: <PseHelp key={mark.join(",")} stufe={table} mark={mark} sub={sub} facts={facts} blocks={blocks} />,
   };

@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { fmt, fmtSci, isTerminating, toNumber, eq, ONE, type Q, type Row, type Term } from "@lern/units";
+import { tr } from "@lern/i18n";
 
 /**
  * Zahl: endende Dezimalzahl; sonst „1/x“, wenn der Kehrwert endet (1/60, 1/3,6, 1/3600);
@@ -23,6 +24,9 @@ export const numText = (v: Q) => {
   if (v.n > 0n && v.n < v.d && isTerminating(inv)) return `1/${fmt(inv).text}`;
   return `≈ ${fmt(v).text}`;
 };
+
+/** Geteilt-Zeichen: „:“ (deutsch), „÷“ (englisch) */
+export const DIV = tr(":", "÷");
 
 /** Große/kleine Zahlen zusätzlich als Zehnerpotenz (Oberstufe) */
 export function sciNeeded(v: Q) {

@@ -10,14 +10,17 @@ import { VisualFor } from "../components/Visuals.tsx";
 import { LiveHelp, hasTable } from "../components/LiveHelp.tsx";
 import { Num, sci, sciNeeded, timeMixed } from "../format.tsx";
 import { scaleMode } from "../help.ts";
+import { tr, num } from "@lern/i18n";
 
 /** Beispiel je Größe (beim Wechsel der Größe) */
-export const EXAMPLES: Record<string, [string, string, string]> = {
+const EXAMPLES_RAW: Record<string, [string, string, string]> = {
   len: ["0,1", "m", "cm"], area: ["2,5", "m²", "dm²"], vol: ["1,5", "l", "ml"], mass: ["2,5", "kg", "g"], time: ["1,5", "h", "min"],
   speed: ["72", "km/h", "m/s"], density: ["2,7", "g/cm³", "kg/m³"], pressure: ["1013", "hPa", "bar"], force: ["2,5", "kN", "N"],
   energy: ["1", "kWh", "kJ"], power: ["150", "PS", "kW"], voltage: ["230", "V", "kV"], current: ["250", "mA", "A"],
   resistance: ["4,7", "kΩ", "Ω"], charge: ["3000", "mAh", "C"], freq: ["88,5", "MHz", "kHz"], conc: ["150", "mmol/l", "mol/l"], flow: ["12", "l/min", "m³/h"],
 };
+export const EXAMPLES: Record<string, [string, string, string]> =
+  Object.fromEntries(Object.entries(EXAMPLES_RAW).map(([k, [v, a, b]]) => [k, [num(v), a, b]]));
 
 export function ConvertView() {
   const { conv, setConv, stufe } = useApp();
@@ -32,22 +35,22 @@ export function ConvertView() {
 
   const same = !s || s.from === s.to;
   const tools: WorkbenchTool[] = same ? [] : [
-    ...(hasTable(s!, os, qt.table) ? [{ id: "table", label: "Stellenwerttafel", icon: "table" as const, wide: true, content: <LiveHelp s={s!} os={os} table={qt.table} part="table" /> }] : []),
-    { id: "board", label: "Tafel", icon: "board", wide: true, title: "Rechenweg", content: <ChalkBoard s={s!} os={os} /> },
-    ...(!os && ladderFor(s!.from, s!.to) ? [{ id: "viz", label: "Bild", icon: "cube" as const, content: <VisualFor s={s!} os={os} /> }] : []),
+    ...(hasTable(s!, os, qt.table) ? [{ id: "table", label: tr("Stellenwerttafel", "Place value chart"), icon: "table" as const, wide: true, content: <LiveHelp s={s!} os={os} table={qt.table} part="table" /> }] : []),
+    { id: "board", label: tr("Tafel", "Board"), icon: "board", wide: true, title: tr("Rechenweg", "Working"), content: <ChalkBoard s={s!} os={os} /> },
+    ...(!os && ladderFor(s!.from, s!.to) ? [{ id: "viz", label: tr("Bild", "Picture"), icon: "cube" as const, content: <VisualFor s={s!} os={os} /> }] : []),
   ];
 
   return (
-    <Workbench className="cv-wb" label="Rechenweg" tools={tools}
+    <Workbench className="cv-wb" label={tr("Rechenweg", "Working")} tools={tools}
       head={<QuantitySelect value={conv.qty} os={stufe === "os"} onChange={pickQty} />}
       stage={
         <div className="cv-stage">
           <div className="cv-line">
-            <input className="cv-num" value={conv.value} inputMode="decimal" autoComplete="off" spellCheck={false} aria-invalid={!v} aria-label="Zahl"
-              onChange={e => setConv({ value: e.target.value })} placeholder="3,45" />
-            <UnitSelect label="von" units={units} value={conv.from} onChange={u => { buzz(); setConv({ from: u }); }} />
-            <IconButton icon="swap" label="Einheiten tauschen" onClick={() => { buzz(); setConv({ from: conv.to, to: conv.from, value: s && isTerminating(s.result) ? fmt(s.result).text : conv.value }); }} />
-            <UnitSelect label="in" units={units} value={conv.to} onChange={u => { buzz(); setConv({ to: u }); }} />
+            <input className="cv-num" value={conv.value} inputMode="decimal" autoComplete="off" spellCheck={false} aria-invalid={!v} aria-label={tr("Zahl", "Number")}
+              onChange={e => setConv({ value: e.target.value })} placeholder={num("3,45")} />
+            <UnitSelect label={tr("von", "from")} units={units} value={conv.from} onChange={u => { buzz(); setConv({ from: u }); }} />
+            <IconButton icon="swap" label={tr("Einheiten tauschen", "Swap units")} onClick={() => { buzz(); setConv({ from: conv.to, to: conv.from, value: s && isTerminating(s.result) ? fmt(s.result).text : conv.value }); }} />
+            <UnitSelect label={tr("in", "to")} units={units} value={conv.to} onChange={u => { buzz(); setConv({ to: u }); }} />
           </div>
           {s && (
             <div className="cv-result" aria-live="polite">

@@ -12,6 +12,7 @@ import { IonLabel } from "../components/IonTile.tsx";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, ionsOf, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
+import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "ionenbindung-quiz", levelId, makeRound });
 
@@ -25,9 +26,9 @@ function BuildAnswer({ task, answered, submit }: { task: Extract<Task, { kind: "
       <IonWall cation={cation} anion={anion} nC={shown.nC} nA={shown.nA} showFormula={!!answered} showName={false} />
       {!answered && (
         <div className="wall-controls">
-          <Stepper compact tone="cation" label={<>Anzahl <IonLabel ion={cation} /></>} value={n.nC} min={1} max={6} onChange={v => setN({ ...n, nC: v })} />
-          <Stepper compact tone="anion" label={<>Anzahl <IonLabel ion={anion} /></>} value={n.nA} min={1} max={6} onChange={v => setN({ ...n, nA: v })} />
-          <Button variant="primary" icon="check" className="check-btn" onClick={() => submit({ ok: n.nC === r.nC && n.nA === r.nA, values: n })}>Prüfen</Button>
+          <Stepper compact tone="cation" label={<>{tr("Anzahl", "Number")} <IonLabel ion={cation} /></>} value={n.nC} min={1} max={6} onChange={v => setN({ ...n, nC: v })} />
+          <Stepper compact tone="anion" label={<>{tr("Anzahl", "Number")} <IonLabel ion={anion} /></>} value={n.nA} min={1} max={6} onChange={v => setN({ ...n, nA: v })} />
+          <Button variant="primary" icon="check" className="check-btn" onClick={() => submit({ ok: n.nC === r.nC && n.nA === r.nA, values: n })}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
     </div>
@@ -53,7 +54,7 @@ export function QuizView() {
       tools={t => [
         pseTool({ stufe, mark: elementsIn(t.prompt) }),
         // Ionentabelle wie in der Formelsammlung – nur Oberstufe (in der Unterstufe leitet man die Ladung aus dem PSE ab)
-        ...(stufe === "os" ? [{ id: "ions", label: "Ionen", icon: "table" as const, content: <IonTable text={t.prompt} os /> }] : []),
+        ...(stufe === "os" ? [{ id: "ions", label: tr("Ionen", "Ions"), icon: "table" as const, content: <IonTable text={t.prompt} os /> }] : []),
       ]}
     />
   );

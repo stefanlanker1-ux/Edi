@@ -10,11 +10,12 @@ import {
 import { useApp, maxZFor } from "../store.ts";
 import { ElementPicker } from "../components/ElementPicker.tsx";
 import { Bohr, type Particle, Nuclide, EnergyDiagram } from "@lern/chem-ui";
+import { tr } from "@lern/i18n";
 
 const PARTS: { key: "Z" | "N" | "E"; type: Particle; label: string }[] = [
-  { key: "Z", type: "proton", label: "Protonen" },
-  { key: "N", type: "neutron", label: "Neutronen" },
-  { key: "E", type: "electron", label: "Elektronen" },
+  { key: "Z", type: "proton", label: tr("Protonen", "Protons") },
+  { key: "N", type: "neutron", label: tr("Neutronen", "Neutrons") },
+  { key: "E", type: "electron", label: tr("Elektronen", "Electrons") },
 ];
 const KEY: Record<Particle, "Z" | "N" | "E"> = { proton: "Z", neutron: "N", electron: "E" };
 
@@ -43,7 +44,7 @@ export function BuildView() {
   const tags = statusTags(Z, N, E);
   const tools: WorkbenchTool[] = [
     {
-      id: "teilchen", label: "Teilchen", icon: "pm", content: (
+      id: "teilchen", label: tr("Teilchen", "Particles"), icon: "pm", content: (
         <>
           <div className="steppers">
             {PARTS.map(p => (
@@ -52,34 +53,34 @@ export function BuildView() {
             ))}
           </div>
           <div className="btn-row">
-            <Button onClick={() => setBuild({ E: Z })} disabled={!Z}>Neutral machen</Button>
-            <Button onClick={() => setBuild({ N: standardNeutrons(Z) })} disabled={!Z}>Häufigstes Isotop</Button>
-            <Button variant="quiet" icon="reset" onClick={() => setBuild({ Z: 0, N: 0, E: 0 })}>Leeren</Button>
+            <Button onClick={() => setBuild({ E: Z })} disabled={!Z}>{tr("Neutral machen", "Make neutral")}</Button>
+            <Button onClick={() => setBuild({ N: standardNeutrons(Z) })} disabled={!Z}>{tr("Häufigstes Isotop", "Most common isotope")}</Button>
+            <Button variant="quiet" icon="reset" onClick={() => setBuild({ Z: 0, N: 0, E: 0 })}>{tr("Leeren", "Clear")}</Button>
           </div>
         </>
       ),
     },
     {
-      id: "steckbrief", label: "Steckbrief", icon: "info", content: (
+      id: "steckbrief", label: tr("Steckbrief", "Profile"), icon: "info", content: (
         <dl className="facts">
-          <div><dt>Ordnungszahl Z</dt><dd>{Z}</dd></div>
-          <div><dt>Massenzahl A</dt><dd>{Z + N}</dd></div>
-          <div><dt>Ladung</dt><dd>{signed(q)}</dd></div>
-          {el && <div><dt>Periode · {os ? "Gruppe" : "Hauptgruppe"}</dt><dd>{el.period} · {os ? (el.group ?? "La–Lu") : (mainGroupNumber(Z) ? ROMAN[mainGroupNumber(Z)!] : `Gruppe ${el.group ?? "La–Lu"}`)}</dd></div>}
-          <div><dt>Schalen</dt><dd>{sh.length ? sh.map((c, i) => `${SHELL_NAMES[i]}${c}`).join(" ") : "–"}</dd></div>
-          {el && isStable(Z, N) === false && <div><dt>Stabile Isotope</dt><dd>{STABLE_N[Z].map(n => `${el.symbol}-${Z + n}`).join(", ")}</dd></div>}
+          <div><dt>{tr("Ordnungszahl Z", "Atomic number Z")}</dt><dd>{Z}</dd></div>
+          <div><dt>{tr("Massenzahl A", "Mass number A")}</dt><dd>{Z + N}</dd></div>
+          <div><dt>{tr("Ladung", "Charge")}</dt><dd>{signed(q)}</dd></div>
+          {el && <div><dt>{tr("Periode", "Period")} · {os ? tr("Gruppe", "Group") : tr("Hauptgruppe", "Main group")}</dt><dd>{el.period} · {os ? (el.group ?? "La–Lu") : (mainGroupNumber(Z) ? ROMAN[mainGroupNumber(Z)!] : `${tr("Gruppe", "Group")} ${el.group ?? "La–Lu"}`)}</dd></div>}
+          <div><dt>{tr("Schalen", "Shells")}</dt><dd>{sh.length ? sh.map((c, i) => `${SHELL_NAMES[i]}${c}`).join(" ") : "–"}</dd></div>
+          {el && isStable(Z, N) === false && <div><dt>{tr("Stabile Isotope", "Stable isotopes")}</dt><dd>{STABLE_N[Z].map(n => `${el.symbol}-${Z + n}`).join(", ")}</dd></div>}
         </dl>
       ),
     },
     ...(os && E > 0 ? [{
-      id: "konfig", label: "Konfiguration", icon: "layers" as const, content: (
+      id: "konfig", label: tr("Konfiguration", "Configuration"), icon: "layers" as const, content: (
         <>
-          <p className="cfg-line"><span className="cfg-k">Ausführlich</span><code>{configString(configuration(Z, E))}</code></p>
-          <p className="cfg-line"><span className="cfg-k">Kurz</span><code>{shortConfigString(Z, E)}</code></p>
-          {q > 0 && Z > 20 && <div className="ui-tags"><Tag>Kation: zuerst höchstes n abgeben</Tag></div>}
+          <p className="cfg-line"><span className="cfg-k">{tr("Ausführlich", "Full")}</span><code>{configString(configuration(Z, E))}</code></p>
+          <p className="cfg-line"><span className="cfg-k">{tr("Kurz", "Short")}</span><code>{shortConfigString(Z, E)}</code></p>
+          {q > 0 && Z > 20 && <div className="ui-tags"><Tag>{tr("Kation: zuerst höchstes n abgeben", "Cation: highest n is lost first")}</Tag></div>}
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={configuration(Z, E)} color={orbitalColors} /></FitDown>
           <Switch checked={orbitalColors} onChange={v => setOpt({ orbitalColors: v })}>
-            Nach Orbital färben (<b className="t-s">s</b> <b className="t-p">p</b> <b className="t-d">d</b> <b className="t-f">f</b>)
+            {tr("Nach Orbital färben", "Colour by orbital")} (<b className="t-s">s</b> <b className="t-p">p</b> <b className="t-d">d</b> <b className="t-f">f</b>)
           </Switch>
         </>
       ),
@@ -94,11 +95,11 @@ export function BuildView() {
           <div className="stage-id">
             <Nuclide Z={Z} N={N} E={E} size="lg" />
             <div className="stage-names">
-              <h2>{el ? (q ? ionName(Z, q) : el.name) : "Noch kein Element"}</h2>
+              <h2>{el ? (q ? ionName(Z, q) : el.name) : tr("Noch kein Element", "No element yet")}</h2>
               {el && <span className={`ui-badge cat-${el.category}`}>{CATEGORIES[el.category].label}</span>}
             </div>
           </div>
-          <IconButton icon="play" className={animate ? "pressed" : ""} aria-pressed={animate} label="Elektronen kreisen lassen" onClick={() => setOpt({ animate: !animate })} />
+          <IconButton icon="play" className={animate ? "pressed" : ""} aria-pressed={animate} label={tr("Elektronen kreisen lassen", "Let electrons orbit")} onClick={() => setOpt({ animate: !animate })} />
         </>}
         stage={
           <div ref={drag.stageRef} className={`stage${drag.over ? ` ${drag.over}` : ""}`}>
@@ -107,9 +108,9 @@ export function BuildView() {
         }
         status={tags.length > 0 ? tags : undefined}
         controls={
-          <div className="pools" aria-label="Teilchen-Vorrat: antippen oder ins Atom ziehen">
+          <div className="pools" aria-label={tr("Teilchen-Vorrat: antippen oder ins Atom ziehen", "Particle supply: tap or drag into the atom")}>
             {PARTS.map(p => (
-              <button key={p.type} type="button" className={`pool pool-${p.type}`} aria-label={`${p.label} hinzufügen`}
+              <button key={p.type} type="button" className={`pool pool-${p.type}`} aria-label={tr(`${p.label} hinzufügen`, `Add ${p.label.toLowerCase()}`)}
                 onPointerDown={e => drag.fromPool(p.type, e)} onClick={e => { if (e.detail === 0) add(p.type, 1); }}>
                 <span className="pool-dots">{Array.from({ length: 3 }, (_, i) => <i key={i} />)}</span>
                 <span className="pool-lbl">{p.label}</span>
@@ -118,7 +119,7 @@ export function BuildView() {
           </div>
         } />
 
-      <ElementPicker open={picker} stufe={stufe} selected={Z} title="Welches Atom möchtest du bauen?"
+      <ElementPicker open={picker} stufe={stufe} selected={Z} title={tr("Welches Atom möchtest du bauen?", "Which atom do you want to build?")}
         onPick={z => setBuild({ Z: z, N: standardNeutrons(z), E: z })} onClose={() => setPicker(false)} />
       {drag.ghost && <div className={`drag-ghost ${drag.ghost.type}`} style={{ transform: `translate(${drag.ghost.x}px, ${drag.ghost.y}px)` }} />}
     </>
@@ -131,12 +132,12 @@ function statusTags(Z: number, N: number, E: number) {
   if (!el) return [];
   const q = Z - E;
   const out = [
-    q === 0 ? <Tag key="q" tone="ok">✓ neutral</Tag> : <Tag key="q">{q > 0 ? "Kation" : "Anion"} {el.symbol}{chargeSup(q)}</Tag>,
+    q === 0 ? <Tag key="q" tone="ok">✓ neutral</Tag> : <Tag key="q">{q > 0 ? tr("Kation", "Cation") : "Anion"} {el.symbol}{chargeSup(q)}</Tag>,
   ];
-  if ([2, 10, 18, 36, 54, 86].includes(E)) out.push(<Tag key="n" tone="ok">✓ Edelgaskonfiguration</Tag>);
+  if ([2, 10, 18, 36, 54, 86].includes(E)) out.push(<Tag key="n" tone="ok">✓ {tr("Edelgaskonfiguration", "Noble gas configuration")}</Tag>);
   const stable = isStable(Z, N);
-  if (stable === true) out.push(<Tag key="s" tone="ok">✓ Kern stabil</Tag>);
-  else if (stable === false || el.radioactive) out.push(<Tag key="s" tone="bad">✗ radioaktiv</Tag>);
+  if (stable === true) out.push(<Tag key="s" tone="ok">✓ {tr("Kern stabil", "Stable nucleus")}</Tag>);
+  else if (stable === false || el.radioactive) out.push(<Tag key="s" tone="bad">✗ {tr("radioaktiv", "radioactive")}</Tag>);
   return out;
 }
 

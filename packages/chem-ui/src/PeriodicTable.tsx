@@ -4,6 +4,7 @@
 
 import { ELEMENTS, CATEGORIES, TRENDS, blockOf, mainGroupNumber, ROMAN, type Category, type TrendKey } from "@lern/chem";
 import type { ReactNode } from "react";
+import { tr } from "@lern/i18n";
 
 type Stufe = "us" | "os";
 
@@ -23,7 +24,7 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
   const list = us ? ELEMENTS.filter(e => e.Z <= 20) : ELEMENTS;
   const cols = us ? 8 : 18, periods = us ? 4 : 6;
   return (
-    <div className={`pse ${us ? "pse-us" : "pse-os"}${fit ? " fit" : ""}`} role="group" aria-label="Periodensystem">
+    <div className={`pse ${us ? "pse-us" : "pse-os"}${fit ? " fit" : ""}`} role="group" aria-label={tr("Periodensystem", "Periodic table")}>
       {Array.from({ length: cols }, (_, i) => (
         <div key={`h${i}`} className="pse-head" style={{ gridColumn: i + 2, gridRow: 1 }}>{us ? ROMAN[i + 1] : i + 1}</div>
       ))}
@@ -40,12 +41,12 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
         return (
           <button key={e.Z} type="button" className={`pse-cell ${trend ? "trend" : blocks ? `blk-${blockOf(e.Z)}` : `cat-${e.category}`}${t !== undefined && t !== null && t > 0.55 ? " on-dark" : ""}${st ? ` ${st}` : ""}`}
             style={{ gridColumn: col, gridRow: row, background: bg }} disabled={disabled} aria-pressed={st === "sel" || undefined}
-            aria-label={`${e.name}, Ordnungszahl ${e.Z}${trend ? `, ${TRENDS[trend.key].label} ${val ?? "unbekannt"}` : ""}`} onClick={() => onPick?.(e.Z)}>
+            aria-label={`${e.name}, ${tr("Ordnungszahl", "atomic number")} ${e.Z}${trend ? `, ${TRENDS[trend.key].label} ${val ?? tr("unbekannt", "unknown")}` : ""}`} onClick={() => onPick?.(e.Z)}>
             {/* Ordnungszahl unten links – wie im Atomsymbol (₆C); oben links stünde die Massenzahl */}
             <span className="pc-z">{e.Z}</span>
             <span className="pc-sym">{e.symbol}</span>
             {trend
-              ? <span className="pc-val">{val === null ? "–" : val.toLocaleString("de-AT", { maximumFractionDigits: TRENDS[trend.key].digits })}</span>
+              ? <span className="pc-val">{val === null ? "–" : val.toLocaleString(tr("de-AT", "en-GB"), { maximumFractionDigits: TRENDS[trend.key].digits })}</span>
               : sub ? <span className="pc-sub">{sub(e.Z)}</span> : names && <span className="pc-name">{e.name}</span>}
           </button>
         );
@@ -64,7 +65,7 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
 export function Legend({ stufe, active, onToggle }: { stufe: Stufe; active: Category | null; onToggle: (c: Category) => void }) {
   const used = new Set((stufe === "us" ? ELEMENTS.filter(e => e.Z <= 20) : ELEMENTS).map(e => e.category));
   return (
-    <div className="legend" role="group" aria-label="Kategorien hervorheben">
+    <div className="legend" role="group" aria-label={tr("Kategorien hervorheben", "Highlight categories")}>
       {(Object.keys(CATEGORIES) as Category[]).filter(k => used.has(k)).map(k => (
         <button key={k} type="button" className="lg-item" aria-pressed={active === k} onClick={() => onToggle(k)}>
           <i className={`cat-${k}`} />{CATEGORIES[k].label}
@@ -77,8 +78,8 @@ export function Legend({ stufe, active, onToggle }: { stufe: Stufe; active: Cate
 /** Farben der Blöcke (s, p, d, f) */
 export function BlockLegend() {
   return (
-    <div className="legend blk-legend" role="list" aria-label="Blöcke">
-      {(["s", "p", "d", "f"] as const).map(b => <span key={b} className="lg-item" role="listitem"><i className={`blk-${b}`} />{b}-Block</span>)}
+    <div className="legend blk-legend" role="list" aria-label={tr("Blöcke", "Blocks")}>
+      {(["s", "p", "d", "f"] as const).map(b => <span key={b} className="lg-item" role="listitem"><i className={`blk-${b}`} />{b}{tr("-Block", " block")}</span>)}
     </div>
   );
 }

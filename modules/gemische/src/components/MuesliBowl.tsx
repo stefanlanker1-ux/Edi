@@ -3,6 +3,7 @@
 // an ihre neuen Plätze (CSS-Übergang, ohne Bewegung sofort). Farben aus der Palette (--hue-*).
 
 import { MUESLI, type Part } from "../mixtures.ts";
+import { tr } from "@lern/i18n";
 
 /** Schale: Halbellipse unter dem Rand (Mitte 100 | 34, Halbachsen 90 und 82) */
 const CX = 100, TOP = 34, RX = 90, RY = 82, STEP = 13;
@@ -50,7 +51,7 @@ export function MuesliBowl({ mixed, shaking }: { mixed: number; shaking: boolean
   return (
     <div className="gm-muesli">
       <svg viewBox="0 0 200 124" role="img" preserveAspectRatio="xMidYMid meet"
-        aria-label={`Müsli in der Schale: ${MUESLI.parts.map(p => `${p.n} ${p.name}`).join(", ")}, ${mixed ? "gemischt" : "jede Sorte für sich"}`}>
+        aria-label={`${tr("Müsli in der Schale", "Muesli in the bowl")}: ${MUESLI.parts.map(p => `${p.n} ${p.name}`).join(", ")}, ${mixed ? tr("gemischt", "mixed") : tr("jede Sorte für sich", "each kind separate")}`}>
         <g className={shaking ? "gm-bowl shake" : "gm-bowl"}>
           {PIECES.map((id, i) => {
             const [x, y] = SLOTS[place[i]];

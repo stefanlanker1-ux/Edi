@@ -4,7 +4,7 @@ import { lazy, Suspense, useState } from "react";
 import { FitDown, Segmented, Switch, Sheet, Tag, Workbench, type WorkbenchTool } from "@lern/ui";
 import { Formula, pseTool } from "@lern/chem-ui";
 import {
-  BY_SYMBOL, KNOWN, electronsOf, isComplete, connected, identify, sumFormula, shapeAt, isPolar, isWeaklyPolar, polarBonds, elementName, bondName,
+  BY_SYMBOL, KNOWN, electronsOf, isComplete, connected, identify, sumFormula, shapeAt, isPolar, isWeaklyPolar, polarBonds, elementName, bondName, geometryName,
   target,
   type AngleMode,
 } from "@lern/chem";
@@ -13,6 +13,7 @@ import { empty, loadKnown } from "../edit.ts";
 import { Builder } from "../components/Builder.tsx";
 import { StructureSvg } from "../components/StructureSvg.tsx";
 import { WedgeSvg } from "../components/WedgeSvg.tsx";
+import { tr } from "@lern/i18n";
 
 export const US_ELEMENTS = ["H", "C", "N", "O", "F", "Cl"];
 export const OS_ELEMENTS = [...US_ELEMENTS, "S", "P", "Br", "I"];
@@ -41,21 +42,21 @@ export function BuildView() {
   const showWedge = wedge && done;
 
   const status = !mol.atoms.length ? null : done
-    ? <Tag tone="ok">✓ alle Edelgaskonfiguration</Tag>
+    ? <Tag tone="ok">✓ {tr("alle Edelgaskonfiguration", "all noble gas configuration")}</Tag>
     : (
       <>
-        {mol.atoms.length > 1 && !connected(mol) && <Tag tone="signal">nicht verbunden</Tag>}
+        {mol.atoms.length > 1 && !connected(mol) && <Tag tone="signal">{tr("nicht verbunden", "not connected")}</Tag>}
         {mol.atoms.length > 1 && missing.map(({ a, e }) => <Tag key={a.id} tone="signal">{a.el} {e.around}/{target(a.el)} e⁻</Tag>)}
       </>
     );
-  const polarity = isPolar(mol) ? "polar" : polarBonds(mol).length ? "unpolar (symmetrisch)" : isWeaklyPolar(mol) ? "schwach polar" : "unpolar";
+  const polarity = isPolar(mol) ? "polar" : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : isWeaklyPolar(mol) ? tr("schwach polar", "weakly polar") : tr("unpolar", "non-polar");
   const tools: WorkbenchTool[] = [
     {
-      id: "formel", label: "Formel", title: showWedge ? "Geometrische Strukturformel" : "Strukturformel", icon: "bond", content: (
+      id: "formel", label: tr("Formel", "Formula"), title: showWedge ? tr("Geometrische Strukturformel", "Wedge-dash formula") : tr("Strukturformel", "Structural formula"), icon: "bond", content: (
         <>
           {done && mol.atoms.length > 1 && (
-            <Segmented<"flat" | "wedge"> label="Darstellung" value={wedge ? "wedge" : "flat"} onChange={v => setWedge(v === "wedge")}
-              options={[{ value: "flat", label: "Strukturformel" }, { value: "wedge", label: "Geometrische Strukturformel", short: "geometrisch" }]} />
+            <Segmented<"flat" | "wedge"> label={tr("Darstellung", "View")} value={wedge ? "wedge" : "flat"} onChange={v => setWedge(v === "wedge")}
+              options={[{ value: "flat", label: tr("Strukturformel", "Structural formula") }, { value: "wedge", label: tr("Geometrische Strukturformel", "Wedge-dash formula"), short: tr("geometrisch", "3D") }]} />
           )}
           {mol.atoms.length
             ? <div className="struct-box">{showWedge
@@ -63,31 +64,31 @@ export function BuildView() {
               : <StructureSvg mol={mol} lonePairs={showLonePairs} deltas={os && done && showDeltas} />}</div>
             : <div className="struct-box empty" aria-hidden="true">–</div>}
           {showWedge && <WedgeLegend />}
-          <Switch checked={showLonePairs} onChange={setShowLonePairs}>Freie Elektronenpaare</Switch>
-          {os && <Switch checked={showDeltas} onChange={setShowDeltas}>{dipoleArrow ? "Teilladungen und Dipol" : "Teilladungen δ+ / δ−"}</Switch>}
+          <Switch checked={showLonePairs} onChange={setShowLonePairs}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>
+          {os && <Switch checked={showDeltas} onChange={setShowDeltas}>{dipoleArrow ? tr("Teilladungen und Dipol", "Partial charges and dipole") : tr("Teilladungen δ+ / δ−", "Partial charges δ+ / δ−")}</Switch>}
         </>
       ),
     },
     {
-      id: "molekuel", label: "Molekül", icon: "info", content: (
+      id: "molekuel", label: tr("Molekül", "Molecule"), icon: "info", content: (
         <>
           <dl className="facts">
-            <div><dt>Bindende Paare</dt><dd>{bondPairs}</dd></div>
-            <div><dt>Freie Paare</dt><dd>{lonePairs}</dd></div>
+            <div><dt>{tr("Bindende Paare", "Bonding pairs")}</dt><dd>{bondPairs}</dd></div>
+            <div><dt>{tr("Freie Paare", "Lone pairs")}</dt><dd>{lonePairs}</dd></div>
             {[...new Set(mol.bonds.map(b => b.order))].sort().map(o => (
-              <div key={o}><dt>{bondName(o)}en</dt><dd>{mol.bonds.filter(b => b.order === o).length}</dd></div>
+              <div key={o}><dt>{tr(`${bondName(o)}en`, `${bondName(o)}s`)}</dt><dd>{mol.bonds.filter(b => b.order === o).length}</dd></div>
             ))}
           </dl>
         </>
       ),
     },
     ...(os && done ? [{
-      id: "bau", label: "Bau", icon: "molecule" as const, content: (
+      id: "bau", label: tr("Bau", "Shape"), icon: "molecule" as const, content: (
         <>
           <ul className="geo-list">
             {center.map(sh => {
               const at = mol.atoms.find(x => x.id === sh!.center)!;
-              return <li key={sh!.center}><b>{at.el}</b><span>{sh!.geometry}</span><span>{sh!.angle}</span></li>;
+              return <li key={sh!.center}><b>{at.el}</b><span>{geometryName(sh!.geometry)}</span><span>{sh!.angle}</span></li>;
             })}
             {!center.length && <li><b>–</b><span>linear</span><span>180°</span></li>}
           </ul>
@@ -95,7 +96,7 @@ export function BuildView() {
             <Tag tone={isPolar(mol) ? "signal" : "plain"}>{polarity}</Tag>
             {[...new Set(polarBonds(mol).map(p => {
               const A = mol.atoms.find(x => x.id === p.plus)!, B = mol.atoms.find(x => x.id === p.minus)!;
-              return `${A.el}–${B.el} ΔEN ${p.delta.toLocaleString("de-AT")}`;
+              return `${A.el}–${B.el} ΔEN ${p.delta.toLocaleString(tr("de-AT", "en-GB"))}`;
             }))].map(t => <Tag key={t}>{t}</Tag>)}
           </div>
         </>
@@ -104,7 +105,7 @@ export function BuildView() {
     // 3D nur für bekannte Moleküle (Lage aus berechneten Daten, Kraftfeld MMFF94), nicht für frei gebaute
     { id: "3d", label: "3D", icon: "cube", disabled: !known, onClick: () => setShow3d(true) },
     {
-      id: "beispiel", label: "Beispiel", icon: "sample", title: "Beispiel laden", content: (
+      id: "beispiel", label: tr("Beispiel", "Example"), icon: "sample", title: tr("Beispiel laden", "Load example"), content: (
         <FitDown><div className="examples">
           {KNOWN.filter(k => os || !k.os).map(k => (
             <button key={k.id} type="button" className="ex-chip" onClick={() => { setMol(loadKnown(k.id)); setInfo(null); setTool(null); }}>
@@ -116,46 +117,46 @@ export function BuildView() {
     },
     // PSE: Elemente des gebauten Moleküls markiert (Valenzelektronen = Hauptgruppe)
     pseTool({ stufe: os ? "os" : "us", mark: [...new Set(mol.atoms.map(a => BY_SYMBOL[a.el]?.Z).filter((z): z is number => !!z))] }),
-    { id: "leeren", label: "Leeren", icon: "reset", disabled: !mol.atoms.length, onClick: () => { setMol(empty()); setInfo(null); } },
+    { id: "leeren", label: tr("Leeren", "Clear"), icon: "reset", disabled: !mol.atoms.length, onClick: () => { setMol(empty()); setInfo(null); } },
   ];
 
   return (
     <>
-      <Workbench className="eb-wb" side="left" label="Darstellungen" active={tool} onActive={setTool} tools={tools}
+      <Workbench className="eb-wb" side="left" label={tr("Darstellungen", "Views")} active={tool} onActive={setTool} tools={tools}
         head={
           <div className="res-head">
             {mol.atoms.length > 0
               ? <>
                   <Formula f={known?.formula ?? sumFormula(mol)} className="res-formula" />
-                  <span className="res-name">{known ? known.name : mol.atoms.length === 1 ? `${elementName(mol.atoms[0].el)}-Atom` : ""}</span>
+                  <span className="res-name">{known ? known.name : mol.atoms.length === 1 ? tr(`${elementName(mol.atoms[0].el)}-Atom`, `${elementName(mol.atoms[0].el)} atom`) : ""}</span>
                 </>
-              : <span className="res-name muted">Molekül bauen</span>}
+              : <span className="res-name muted">{tr("Molekül bauen", "Build a molecule")}</span>}
           </div>
         }
         stage={<Builder mol={mol} onChange={m => { setMol(m); setInfo(null); }} elements={os ? OS_ELEMENTS : US_ELEMENTS} onInfo={setInfo} lines={lines} octet={octet} />}
         controls={
           <div className="build-controls">
-            <Segmented<"dots" | "lines"> label="Elektronenpaare" value={lines ? "lines" : "dots"} onChange={v => setLines(v === "lines")}
-              options={[{ value: "dots", label: "Punkte" }, { value: "lines", label: "Striche" }]} />
-            <Switch checked={octet} onChange={setOctet}>Oktett</Switch>
+            <Segmented<"dots" | "lines"> label={tr("Elektronenpaare", "Electron pairs")} value={lines ? "lines" : "dots"} onChange={v => setLines(v === "lines")}
+              options={[{ value: "dots", label: tr("Punkte", "Dots") }, { value: "lines", label: tr("Striche", "Lines") }]} />
+            <Switch checked={octet} onChange={setOctet}>{tr("Oktett", "Octet")}</Switch>
           </div>
         }
         status={<>{status}{info && <Tag>{info}</Tag>}</>} />
 
-      <Sheet open={show3d} wide title={`3D-Ansicht: ${known?.name ?? "Molekül"}`} onClose={() => setShow3d(false)}>
+      <Sheet open={show3d} wide title={`${tr("3D-Ansicht", "3D view")}: ${known?.name ?? tr("Molekül", "Molecule")}`} onClose={() => setShow3d(false)}>
         {show3d && (
-          <Suspense fallback={<div className="m3d m3d-loading">3D-Ansicht wird geladen …</div>}>
+          <Suspense fallback={<div className="m3d m3d-loading">{tr("3D-Ansicht wird geladen …", "Loading 3D view …")}</div>}>
             <Molecule3D mol={mol} look={look3d} angleMode={mode3d} showAngles={angles3d} showLonePairs={lone3d} showDipole={os && showDeltas} dipoleArrow={dipoleArrow} />
           </Suspense>
         )}
         <div className="m3d-controls">
-          <Segmented<"ball" | "fill"> label="Modell" value={look3d} onChange={setLook3d}
-            options={[{ value: "ball", label: "Kugel-Stab" }, { value: "fill", label: "Kalotte" }]} />
-          <Segmented<AngleMode> label="Bindungswinkel" value={mode3d} onChange={setMode3d}
-            options={[{ value: "real", label: "Real (gemessen)", short: "Real" }, { value: "ideal", label: "Idealisiert (EPA)", short: "Idealisiert" }]} />
-          {look3d === "ball" && <Switch checked={angles3d} onChange={setAngles3d}>Bindungswinkel</Switch>}
-          {look3d === "ball" && <Switch checked={lone3d} onChange={setLone3d}>Freie Elektronenpaare</Switch>}
-          {os && <Switch checked={showDeltas} onChange={setShowDeltas}>{dipoleArrow ? "Teilladungen und Dipol" : "Teilladungen"}</Switch>}
+          <Segmented<"ball" | "fill"> label={tr("Modell", "Model")} value={look3d} onChange={setLook3d}
+            options={[{ value: "ball", label: tr("Kugel-Stab", "Ball and stick") }, { value: "fill", label: tr("Kalotte", "Space-filling") }]} />
+          <Segmented<AngleMode> label={tr("Bindungswinkel", "Bond angles")} value={mode3d} onChange={setMode3d}
+            options={[{ value: "real", label: tr("Real (gemessen)", "Real (measured)"), short: "Real" }, { value: "ideal", label: tr("Idealisiert (EPA)", "Idealised (VSEPR)"), short: tr("Idealisiert", "Idealised") }]} />
+          {look3d === "ball" && <Switch checked={angles3d} onChange={setAngles3d}>{tr("Bindungswinkel", "Bond angles")}</Switch>}
+          {look3d === "ball" && <Switch checked={lone3d} onChange={setLone3d}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>}
+          {os && <Switch checked={showDeltas} onChange={setShowDeltas}>{dipoleArrow ? tr("Teilladungen und Dipol", "Partial charges and dipole") : tr("Teilladungen", "Partial charges")}</Switch>}
         </div>
       </Sheet>
 
@@ -167,9 +168,9 @@ export function BuildView() {
 function WedgeLegend() {
   return (
     <ul className="wedge-legend">
-      <li><svg viewBox="0 0 40 14" aria-hidden="true"><line x1="3" y1="7" x2="37" y2="7" className="lg-line" /></svg>in der Papierebene</li>
-      <li><svg viewBox="0 0 40 14" aria-hidden="true"><polygon points="3,7 37,1.5 37,12.5" className="lg-wedge" /></svg>Keil: zeigt nach vorn (zu dir)</li>
-      <li><svg viewBox="0 0 40 14" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map(i => { const x = 5 + i * 6.2, h = 1 + i * 1.1; return <line key={i} x1={x} x2={x} y1={7 - h} y2={7 + h} className="lg-line thin" />; })}</svg>strichliert: zeigt nach hinten</li>
+      <li><svg viewBox="0 0 40 14" aria-hidden="true"><line x1="3" y1="7" x2="37" y2="7" className="lg-line" /></svg>{tr("in der Papierebene", "in the plane of the paper")}</li>
+      <li><svg viewBox="0 0 40 14" aria-hidden="true"><polygon points="3,7 37,1.5 37,12.5" className="lg-wedge" /></svg>{tr("Keil: zeigt nach vorn (zu dir)", "Wedge: points forwards (towards you)")}</li>
+      <li><svg viewBox="0 0 40 14" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map(i => { const x = 5 + i * 6.2, h = 1 + i * 1.1; return <line key={i} x1={x} x2={x} y1={7 - h} y2={7 + h} className="lg-line thin" />; })}</svg>{tr("strichliert: zeigt nach hinten", "Dashed: points backwards")}</li>
     </ul>
   );
 }

@@ -11,6 +11,7 @@
     "./3d": "./src/Molecule3D.tsx"
   },
   "dependencies": {
+    "@lern/i18n": "*",
     "@lern/chem": "*",
     "@lern/ui": "*",
     "three": "^0.186.1"

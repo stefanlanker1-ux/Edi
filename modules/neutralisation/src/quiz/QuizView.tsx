@@ -11,6 +11,7 @@ import { AcidTable } from "../components/Pickers.tsx";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, unitsOf, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
+import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "neutralisation-quiz", levelId, makeRound });
 
@@ -26,7 +27,7 @@ function BuildAnswer({ task, answered, submit }: { task: Extract<Task, { kind: "
         <div className="nw-controls">
           <Stepper compact tone="base" label={<Formula f={base.formula} />} value={c.nB} min={1} max={6} onChange={v => setC({ ...c, nB: v })} />
           <Stepper compact tone="acid" label={<Formula f={acid.formula} />} value={c.nA} min={1} max={6} onChange={v => setC({ ...c, nA: v })} />
-          <Button variant="primary" icon="check" className="check-btn" onClick={() => submit({ ok: c.nB === n.nBase && c.nA === n.nAcid, values: c })}>Prüfen</Button>
+          <Button variant="primary" icon="check" className="check-btn" onClick={() => submit({ ok: c.nB === n.nBase && c.nA === n.nAcid, values: c })}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
     </div>
@@ -57,7 +58,7 @@ export function QuizView() {
       explain={(level, task) => explainFor(stufe, level, task)}
       tools={t => [
         pseTool({ stufe, mark: marksOf(t) }),
-        ...(os && TABLE_OK.has(t.type ?? "") ? [{ id: "tab", label: "Säuren", icon: "table" as const, wide: true,
+        ...(os && TABLE_OK.has(t.type ?? "") ? [{ id: "tab", label: tr("Säuren", "Acids"), icon: "table" as const, wide: true,
           content: <AcidTable os mark={PROTIC_ACIDS.filter(a => t.f?.includes(a.formula)).map(a => a.id)} /> }] : []),
       ]}
     />

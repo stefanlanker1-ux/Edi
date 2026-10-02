@@ -5,11 +5,12 @@
 //   NaOH + H₃PO₄ → NaH₂PO₄ + H₂O
 // Reine Logik ohne UI; Formeln in ASCII ("Ba(OH)2"), Anzeige über toSubscript bzw. <Formula>.
 
+import { tr } from "@lern/i18n";
 import { ION_BY_ID, compoundName, formula as saltFormula, ionText, lcm, toSubscript, type Ion } from "./ions.ts";
 import type { Equation } from "./reactions.ts";
 
 /** Acetat-Ion für Essigsäure (nur hier gebraucht, nicht im Ionen-Baukasten) */
-export const ACETATE: Ion = { id: "CH3COO-", formula: "CH3COO", charge: -1, part: "acetat", name: "Acetat-Ion", os: true };
+export const ACETATE: Ion = { id: "CH3COO-", formula: "CH3COO", charge: -1, part: tr("acetat", "acetate"), name: tr("Acetat-Ion", "Acetate ion"), os: true };
 
 /** Säure mit ihren Säurerest-Ionen (Tabelle: einprotonig, zweiprotonig, dreiprotonig) */
 export interface ProticAcid {
@@ -46,29 +47,30 @@ export interface Hydroxide {
 
 const ionId = (formula: string, charge: number) => `${formula}${Math.abs(charge) > 1 ? Math.abs(charge) : ""}${charge > 0 ? "+" : "-"}`;
 /** Säurerest-Ion: vorhandenes Ion aus ions.ts (gleiche Farbe/Name wie in der Ionenbindung) oder neu */
-const rest = (formula: string, charge: number, part: string, name: string): Ion =>
-  ION_BY_ID[ionId(formula, charge)] ?? (formula === ACETATE.formula ? ACETATE : { id: ionId(formula, charge), formula, charge, part, name, os: true });
+const rest = (formula: string, charge: number, part: string, name: string, en: string): Ion =>
+  ION_BY_ID[ionId(formula, charge)] ?? (formula === ACETATE.formula ? ACETATE
+    : { id: ionId(formula, charge), formula, charge, part: tr(part, en), name: tr(name, en[0].toUpperCase() + en.slice(1) + " ion"), os: true });
 
 export const PROTIC_ACIDS: ProticAcid[] = [
   // einprotonige Säuren
-  { id: "hcl", name: "Chlorwasserstoff", alt: "Hydrogenchlorid", aq: "Salzsäure", formula: "HCl", protons: 1, rests: [rest("Cl", -1, "chlorid", "Chlorid-Ion")] },
-  { id: "hclo4", name: "Perchlorsäure", formula: "HClO4", protons: 1, rests: [rest("ClO4", -1, "perchlorat", "Perchlorat-Ion")] },
-  { id: "hcooh", name: "Ameisensäure", formula: "HCOOH", protons: 1, rests: [rest("HCOO", -1, "formiat", "Formiat-Ion")] },
-  { id: "hbr", name: "Bromwasserstoff", alt: "Hydrogenbromid", aq: "Bromwasserstoffsäure", formula: "HBr", protons: 1, rests: [rest("Br", -1, "bromid", "Bromid-Ion")] },
-  { id: "hno3", name: "Salpetersäure", formula: "HNO3", protons: 1, rests: [rest("NO3", -1, "nitrat", "Nitrat-Ion")] },
-  { id: "ch3cooh", name: "Essigsäure", formula: "CH3COOH", protons: 1, rests: [ACETATE] },
+  { id: "hcl", name: tr("Chlorwasserstoff", "Hydrogen chloride"), alt: tr("Hydrogenchlorid", "Hydrogen chloride"), aq: tr("Salzsäure", "Hydrochloric acid"), formula: "HCl", protons: 1, rests: [rest("Cl", -1, "chlorid", "Chlorid-Ion", "chloride")] },
+  { id: "hclo4", name: tr("Perchlorsäure", "Perchloric acid"), formula: "HClO4", protons: 1, rests: [rest("ClO4", -1, "perchlorat", "Perchlorat-Ion", "perchlorate")] },
+  { id: "hcooh", name: tr("Ameisensäure", "Formic acid"), formula: "HCOOH", protons: 1, rests: [rest("HCOO", -1, "formiat", "Formiat-Ion", "formate")] },
+  { id: "hbr", name: tr("Bromwasserstoff", "Hydrogen bromide"), alt: tr("Hydrogenbromid", "Hydrogen bromide"), aq: tr("Bromwasserstoffsäure", "Hydrobromic acid"), formula: "HBr", protons: 1, rests: [rest("Br", -1, "bromid", "Bromid-Ion", "bromide")] },
+  { id: "hno3", name: tr("Salpetersäure", "Nitric acid"), formula: "HNO3", protons: 1, rests: [rest("NO3", -1, "nitrat", "Nitrat-Ion", "nitrate")] },
+  { id: "ch3cooh", name: tr("Essigsäure", "Acetic acid"), formula: "CH3COOH", protons: 1, rests: [ACETATE] },
   // zweiprotonige Säuren
-  { id: "h2s", name: "Schwefelwasserstoff", formula: "H2S", protons: 2,
-    rests: [rest("HS", -1, "hydrogensulfid", "Hydrogensulfid-Ion"), rest("S", -2, "sulfid", "Sulfid-Ion")] },
-  { id: "h2so3", name: "Schweflige Säure", formula: "H2SO3", protons: 2,
-    rests: [rest("HSO3", -1, "hydrogensulfit", "Hydrogensulfit-Ion"), rest("SO3", -2, "sulfit", "Sulfit-Ion")] },
-  { id: "h2so4", name: "Schwefelsäure", formula: "H2SO4", protons: 2,
-    rests: [rest("HSO4", -1, "hydrogensulfat", "Hydrogensulfat-Ion"), rest("SO4", -2, "sulfat", "Sulfat-Ion")] },
-  { id: "h2co3", name: "Kohlensäure", formula: "H2CO3", protons: 2,
-    rests: [rest("HCO3", -1, "hydrogencarbonat", "Hydrogencarbonat-Ion"), rest("CO3", -2, "carbonat", "Carbonat-Ion")] },
+  { id: "h2s", name: tr("Schwefelwasserstoff", "Hydrogen sulfide"), formula: "H2S", protons: 2,
+    rests: [rest("HS", -1, "hydrogensulfid", "Hydrogensulfid-Ion", "hydrogen sulfide"), rest("S", -2, "sulfid", "Sulfid-Ion", "sulfide")] },
+  { id: "h2so3", name: tr("Schweflige Säure", "Sulfurous acid"), formula: "H2SO3", protons: 2,
+    rests: [rest("HSO3", -1, "hydrogensulfit", "Hydrogensulfit-Ion", "hydrogen sulfite"), rest("SO3", -2, "sulfit", "Sulfit-Ion", "sulfite")] },
+  { id: "h2so4", name: tr("Schwefelsäure", "Sulfuric acid"), formula: "H2SO4", protons: 2,
+    rests: [rest("HSO4", -1, "hydrogensulfat", "Hydrogensulfat-Ion", "hydrogen sulfate"), rest("SO4", -2, "sulfat", "Sulfat-Ion", "sulfate")] },
+  { id: "h2co3", name: tr("Kohlensäure", "Carbonic acid"), formula: "H2CO3", protons: 2,
+    rests: [rest("HCO3", -1, "hydrogencarbonat", "Hydrogencarbonat-Ion", "hydrogen carbonate"), rest("CO3", -2, "carbonat", "Carbonat-Ion", "carbonate")] },
   // dreiprotonige Säure
-  { id: "h3po4", name: "Phosphorsäure", formula: "H3PO4", protons: 3,
-    rests: [rest("H2PO4", -1, "dihydrogenphosphat", "Dihydrogenphosphat-Ion"), rest("HPO4", -2, "hydrogenphosphat", "Hydrogenphosphat-Ion"), rest("PO4", -3, "phosphat", "Phosphat-Ion")] },
+  { id: "h3po4", name: tr("Phosphorsäure", "Phosphoric acid"), formula: "H3PO4", protons: 3,
+    rests: [rest("H2PO4", -1, "dihydrogenphosphat", "Dihydrogenphosphat-Ion", "dihydrogen phosphate"), rest("HPO4", -2, "hydrogenphosphat", "Hydrogenphosphat-Ion", "hydrogen phosphate"), rest("PO4", -3, "phosphat", "Phosphat-Ion", "phosphate")] },
 ];
 
 const OH = ION_BY_ID["OH-"];
@@ -76,13 +78,13 @@ const hyd = (id: string, cation: string, name: string, lauge?: string, os?: bool
   ({ id, formula: saltFormula(ION_BY_ID[cation], OH), name, lauge, cation: ION_BY_ID[cation], ...(os ? { os } : {}), ...(poor ? { poor } : {}) });
 
 export const HYDROXIDES: Hydroxide[] = [
-  hyd("lioh", "Li+", "Lithiumhydroxid"),
-  hyd("naoh", "Na+", "Natriumhydroxid", "Natronlauge"),
-  hyd("koh", "K+", "Kaliumhydroxid", "Kalilauge"),
-  hyd("mgoh2", "Mg2+", "Magnesiumhydroxid", undefined, false, true),
-  hyd("caoh2", "Ca2+", "Calciumhydroxid", "Kalkwasser"),
-  hyd("baoh2", "Ba2+", "Bariumhydroxid", "Barytwasser"),
-  hyd("aloh3", "Al3+", "Aluminiumhydroxid", undefined, true, true),
+  hyd("lioh", "Li+", tr("Lithiumhydroxid", "Lithium hydroxide")),
+  hyd("naoh", "Na+", tr("Natriumhydroxid", "Sodium hydroxide"), tr("Natronlauge", "Sodium hydroxide solution")),
+  hyd("koh", "K+", tr("Kaliumhydroxid", "Potassium hydroxide"), tr("Kalilauge", "Potassium hydroxide solution")),
+  hyd("mgoh2", "Mg2+", tr("Magnesiumhydroxid", "Magnesium hydroxide"), undefined, false, true),
+  hyd("caoh2", "Ca2+", tr("Calciumhydroxid", "Calcium hydroxide"), tr("Kalkwasser", "Limewater")),
+  hyd("baoh2", "Ba2+", tr("Bariumhydroxid", "Barium hydroxide"), tr("Barytwasser", "Baryta water")),
+  hyd("aloh3", "Al3+", tr("Aluminiumhydroxid", "Aluminium hydroxide"), undefined, true, true),
 ];
 
 export const PROTIC_BY_ID: Record<string, ProticAcid> = Object.fromEntries(PROTIC_ACIDS.map(a => [a.id, a]));
@@ -92,7 +94,7 @@ export const hydroxidesFor = (os: boolean) => HYDROXIDES.filter(b => os || !b.os
 /** Säurerest nach Abgabe von `step` H⁺ (Standard: alle) */
 export const restOf = (a: ProticAcid, step = a.protons): Ion => a.rests[Math.min(Math.max(step, 1), a.protons) - 1];
 /** „einprotonig“, „zweiprotonig“, „dreiprotonig“ */
-export const proticWord = (n: number) => ["einprotonig", "zweiprotonig", "dreiprotonig"][n - 1];
+export const proticWord = (n: number) => tr(["einprotonig", "zweiprotonig", "dreiprotonig"], ["monoprotic", "diprotic", "triprotic"])[n - 1];
 
 /**
  * Salze, die es in Wasser nicht gibt (sie zersetzen sich / reagieren mit Wasser): Aluminium mit den Säureresten schwacher Säuren
@@ -140,6 +142,6 @@ export const hydroxideDissociation = (b: Hydroxide) => `${toSubscript(b.formula)
 /** H₃PO₄ → 3 H⁺ + PO₄³⁻ bzw. schrittweise H₃PO₄ → H⁺ + H₂PO₄⁻ */
 export const protolysis = (a: ProticAcid, step = a.protons) => `${toSubscript(a.formula)} → ${coeff(step)}H⁺ + ${ionText(restOf(a, step))}`;
 /** Name des Säurerests ohne „-Ion“: „Dihydrogenphosphat“ */
-export const restName = (r: Ion) => r.name.replace(/-Ion$/, "");
+export const restName = (r: Ion) => r.name.replace(/-Ion$| ion$/, "");
 /** „Natronlauge + Salzsäure → Natriumchlorid + Wasser“ */
-export const neutralWords = (n: NeutralEq) => `${n.base.lauge ?? n.base.name} + ${n.acid.aq ?? n.acid.name} → ${n.saltName} + Wasser`;
+export const neutralWords = (n: NeutralEq) => `${n.base.lauge ?? n.base.name} + ${n.acid.aq ?? n.acid.name} → ${n.saltName} + ${tr("Wasser", "Water")}`;

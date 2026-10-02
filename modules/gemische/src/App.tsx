@@ -3,9 +3,10 @@ import { useApp, type Tab } from "./store.ts";
 import { MixView } from "./views/MixView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
 import { GUIDE } from "./guide.tsx";
+import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "probieren", label: "Probieren", icon: "beaker" },
+  { id: "probieren", label: tr("Probieren", "Explore"), icon: "beaker" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
 ];
 
@@ -27,7 +28,7 @@ const Logo = () => (
 export function App() {
   const { tab, setTab } = useApp();
   return (
-    <LernApp name="Gemische" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["gemische-v1", "gemische-quiz"]} guide={GUIDE}>
+    <LernApp name={tr("Gemische", "Mixtures")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["gemische-v1", "gemische-quiz"]} guide={GUIDE}>
       {tab === "probieren" && <MixView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

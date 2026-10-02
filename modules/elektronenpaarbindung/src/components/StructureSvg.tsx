@@ -4,6 +4,7 @@
 import { useMemo } from "react";
 import { polarBonds, type Molecule } from "@lern/chem";
 import { strichLayout } from "../strich.ts";
+import { tr } from "@lern/i18n";
 
 const U = 70;
 const GAP = 17; // Abstand der Striche vom Atomsymbol (zweibuchstabige Symbole in waagrechter Richtung etwas mehr)
@@ -20,7 +21,7 @@ export function StructureSvg({ mol, lonePairs = true, deltas = false }: { mol: M
   const sign = new Map<number, string>();
   if (deltas) for (const p of polarBonds(mol)) { sign.set(p.plus, "δ+"); sign.set(p.minus, "δ−"); }
   return (
-    <svg className="structure" viewBox={vb} role="img" aria-label="Strukturformel">
+    <svg className="structure" viewBox={vb} role="img" aria-label={tr("Strukturformel", "Structural formula")}>
       {mol.bonds.map(b => {
         const p = at.get(b.a)!, q = at.get(b.b)!;
         const L = Math.hypot(q.x - p.x, q.y - p.y) || 1;

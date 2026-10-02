@@ -6,7 +6,7 @@
 // Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Arten (Gemischarten-Tabelle), Beispiele.
 
 import { useId, useRef, useState } from "react";
-import { Button, Icon, IconButton, Tag, Workbench, buzz, useReducedMotion } from "@lern/ui";
+import { Button, buzz, Icon, IconButton, Tag, tr, useReducedMotion, Workbench } from "@lern/ui";
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, EXAMPLE_COUNT, MIX_LABEL, MUESLI, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
@@ -35,7 +35,7 @@ export function Legend({ els }: { els: string[] }) {
       <ul className="gm-legend">
         {els.map(el => <li key={el}><MiniParticle f={el} size={30} /><span>{elementName(el)} <b>({el})</b></span></li>)}
       </ul>
-      <p className="gm-small">Farben nur im Modell</p>
+      <p className="gm-small">{tr("Farben nur im Modell", "Colours only in the model")}</p>
     </div>
   );
 }
@@ -49,18 +49,18 @@ function Substances({ ex, onPick }: { ex: Example; onPick: (f: string) => void }
       {fs.length ? fs.map(f => (
         <button key={f} type="button" className="gm-sub" onClick={() => { buzz(); onPick(f); }}>
           <MiniParticle f={f} size={36} />
-          <span><b>{nameOf(f)}</b><small>{toSubscript(f)} · {n[f]} Teilchen</small></span>
+          <span><b>{nameOf(f)}</b><small>{toSubscript(f)} · {n[f]} {tr("Teilchen", "particles")}</small></span>
         </button>
       )) : <p className="gm-none">–</p>}
     </div>
   );
   return (
     <div className="gm-subs">
-      <p className="gm-cap">Reinstoffe</p>
-      <div className="gm-cols">{col("Verbindungen", a.verbindungen)}{col("Elemente", a.elemente)}</div>
+      <p className="gm-cap">{tr("Reinstoffe", "Pure substances")}</p>
+      <div className="gm-cols">{col(tr("Verbindungen", "Compounds"), a.verbindungen)}{col(tr("Elemente", "Elements"), a.elemente)}</div>
       {ex.forms && (
         <div className="gm-forms">
-          <p className="gm-cap">Entsteht in kleiner Menge (Reaktion mit Wasser)</p>
+          <p className="gm-cap">{tr("Entsteht in kleiner Menge (Reaktion mit Wasser)", "Forms in small amounts (reaction with water)")}</p>
           {ex.forms.map(f => (
             <button key={f} type="button" className="gm-sub" onClick={() => { buzz(); onPick(f); }}>
               <MiniParticle f={f} size={36} />
@@ -75,8 +75,8 @@ function Substances({ ex, onPick }: { ex: Example; onPick: (f: string) => void }
 
 function Counts({ ex }: { ex: Example }) {
   const a = analyse(ex.items);
-  const rows: [string, number][] = [["Teilchen", a.teilchen], ["Stoffe", a.stoffe.length], ["davon Verbindungen", a.verbindungen.length],
-    ["davon Elemente", a.elemente.length], ["Atomsorten", a.atomsorten.length]];
+  const rows: [string, number][] = [[tr("Teilchen", "Particles"), a.teilchen], [tr("Stoffe", "Substances"), a.stoffe.length], [tr("davon Verbindungen", "of which compounds"), a.verbindungen.length],
+    [tr("davon Elemente", "of which elements"), a.elemente.length], [tr("Atomsorten", "Kinds of atoms"), a.atomsorten.length]];
   return (
     <dl className="gm-counts">
       {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
@@ -102,17 +102,17 @@ function Einteilung({ current, onPick }: { current: number; onPick: (i: number) 
   const rein = kind === "element" || kind === "verbindung";
   return (
     <div className="gm-tree">
-      <div className="gm-node root">Stoffe</div>
+      <div className="gm-node root">{tr("Stoffe", "Substances")}</div>
       <div className="gm-branches">
         <div className={`gm-branch${rein ? " on" : ""}`}>
-          <div className="gm-node">Reinstoffe</div>
-          {leaf("element", "Elemente")}
-          {leaf("verbindung", "Verbindungen")}
+          <div className="gm-node">{tr("Reinstoffe", "Pure substances")}</div>
+          {leaf("element", tr("Elemente", "Elements"))}
+          {leaf("verbindung", tr("Verbindungen", "Compounds"))}
         </div>
         <div className={`gm-branch${!rein ? " on" : ""}`}>
-          <div className="gm-node">Gemische</div>
-          {leaf("homogen", "homogen")}
-          {leaf("heterogen", "heterogen")}
+          <div className="gm-node">{tr("Gemische", "Mixtures")}</div>
+          {leaf("homogen", tr("homogen", "homogeneous"))}
+          {leaf("heterogen", tr("heterogen", "heterogeneous"))}
         </div>
       </div>
     </div>
@@ -121,15 +121,16 @@ function Einteilung({ current, onPick }: { current: number; onPick: (i: number) 
 
 type Z = "fest" | "flüssig" | "Gas";
 const ZS: Z[] = ["fest", "flüssig", "Gas"];
+const Z_NAME: Record<Z, string> = tr({ fest: "fest", flüssig: "flüssig", Gas: "Gas" }, { fest: "solid", flüssig: "liquid", Gas: "gas" });
 /** Arten von Gemischen: verteilter Stoff (Zeile) in Hauptstoff (Spalte); homogen und heterogen mit Alltagsbeispiel */
 const ARTEN: Partial<Record<`${Z}|${Z}`, [string, string, boolean][]>> = {
-  "fest|fest": [["Gemenge", "Müsli", false], ["Legierung", "Messing", true]],
-  "fest|flüssig": [["Suspension", "Sand in Wasser", false], ["Lösung", "Zuckerwasser", true]],
-  "fest|Gas": [["Rauch", "Ruß in Luft", false]],
-  "flüssig|flüssig": [["Emulsion", "Milch", false], ["Lösung", "Alkohol in Wasser", true]],
-  "flüssig|Gas": [["Nebel", "Wolke", false]],
-  "Gas|flüssig": [["Schaum", "Schlagsahne", false], ["Lösung", "Sprudelwasser", true]],
-  "Gas|Gas": [["Gasgemisch", "Luft", true]],
+  "fest|fest": [[tr("Gemenge", "Coarse mixture"), tr("Müsli", "muesli"), false], [tr("Legierung", "Alloy"), tr("Messing", "brass"), true]],
+  "fest|flüssig": [["Suspension", tr("Sand in Wasser", "sand in water"), false], [tr("Lösung", "Solution"), tr("Zuckerwasser", "sugar water"), true]],
+  "fest|Gas": [[tr("Rauch", "Smoke"), tr("Ruß in Luft", "soot in air"), false]],
+  "flüssig|flüssig": [["Emulsion", tr("Milch", "milk"), false], [tr("Lösung", "Solution"), tr("Alkohol in Wasser", "alcohol in water"), true]],
+  "flüssig|Gas": [[tr("Nebel", "Fog"), tr("Wolke", "cloud"), false]],
+  "Gas|flüssig": [[tr("Schaum", "Foam"), tr("Schlagsahne", "whipped cream"), false], [tr("Lösung", "Solution"), tr("Sprudelwasser", "sparkling water"), true]],
+  "Gas|Gas": [[tr("Gasgemisch", "Gas mixture"), tr("Luft", "air"), true]],
 };
 /** Zelle des Beispiels in der Tabelle: [verteilter Stoff, Hauptstoff] */
 const CELL: Record<string, `${Z}|${Z}`> = {
@@ -141,15 +142,15 @@ function Arten({ ex }: { ex: Pick<Example, "id" | "type"> }) {
   const cell = CELL[ex.id];
   return (
     <div className="gm-arten">
-      <p className="gm-cap">verteilter Stoff in Hauptstoff</p>
+      <p className="gm-cap">{tr("verteilter Stoff in Hauptstoff", "dispersed substance in main substance")}</p>
       <dl>
         {ZS.flatMap(r => ZS.map(c => `${r}|${c}` as const)).filter(k => ARTEN[k]).map(k => {
-          const [r, c] = k.split("|");
+          const [r, c] = k.split("|") as [Z, Z];
           return (
             <div key={k} className={k === cell ? "on" : undefined}>
-              <dt>{r} in {c}</dt>
+              <dt>{Z_NAME[r]} in {Z_NAME[c]}</dt>
               <dd>{ARTEN[k]!.map(([n, e, hom], i) => (
-                <span key={n} className={`gm-art${ex.type === n && k === cell ? " cur" : ""}`}>{i > 0 && " · "}<b>{n}</b> ({e}{hom ? ", homogen" : ""})</span>
+                <span key={n} className={`gm-art${ex.type === n && k === cell ? " cur" : ""}`}>{i > 0 && " · "}<b>{n}</b> ({e}{hom ? tr(", homogen", ", homogeneous") : ""})</span>
               ))}</dd>
             </div>
           );
@@ -195,32 +196,34 @@ function readInfo(w: World, ex: Example): Info {
     walls: w.walls.length, melt: w.melt > 0, busy: w.stir > 0 || w.shake > 0 || w.melt > 0 || w.wallEnd !== undefined, mixed, doneAt: w.doneAt, t: w.t,
   };
 }
+const DISS = () => tr("gelöst", "dissolved"), MIXED = () => tr("gemischt", "mixed"), MIXING = () => tr("mischt sich", "mixing");
+const SEP = () => tr("getrennt", "separate"), HET = () => tr("heterogen", "heterogeneous");
 const secs = (steps: number) => `${Math.max(1, Math.round(steps / 60))} s`;
 
 /** Hauptknopf je Beispiel: sagt, was passiert */
 function actionOf(ex: Example, i?: Info): { label: string; icon: "shake" | "fire" | "up" } {
   // Sprudel: erst schütteln (CO₂ löst sich), im Gleichgewicht öffnen, dann wieder schütteln (CO₂ entweicht)
-  if (ex.before === "gasraum" && i && !i.opened && i.doneAt !== undefined) return { label: "Öffnen", icon: "up" };
-  if (ex.state === "fest") return { label: "Schmelzen", icon: "fire" };
-  if (ex.state !== "fluessig") return ex.before ? { label: ex.items.length > 2 ? "Wände weg" : "Wand weg", icon: "up" } : { label: "Schütteln", icon: "shake" };
-  return ex.before === "kristall" || ex.before === "schicht" ? { label: "Umrühren", icon: "shake" } : { label: "Schütteln", icon: "shake" };
+  if (ex.before === "gasraum" && i && !i.opened && i.doneAt !== undefined) return { label: tr("Öffnen", "Open"), icon: "up" };
+  if (ex.state === "fest") return { label: tr("Schmelzen", "Melt"), icon: "fire" };
+  if (ex.state !== "fluessig") return ex.before ? { label: ex.items.length > 2 ? tr("Wände weg", "Remove walls") : tr("Wand weg", "Remove wall"), icon: "up" } : { label: tr("Schütteln", "Shake"), icon: "shake" };
+  return ex.before === "kristall" || ex.before === "schicht" ? { label: tr("Umrühren", "Stir"), icon: "shake" } : { label: tr("Schütteln", "Shake"), icon: "shake" };
 }
 
 /** Statuszeile: höchstens zwei kurze Kennzeichen (bleibt einzeilig, damit sich das Bild nie verschiebt) */
 function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
   const k = ex.solute ? ex.items.find(([f]) => f === ex.solute)![1] : 0;
   const time = (verb: string) => (done !== undefined ? `${verb} in ${secs(done)}` : verb);
-  if (ex.before === "kristall") return i.bound ? ["löst sich", `${k - i.bound} / ${k} gelöst`] : ["Lösung", time("gelöst")];
+  if (ex.before === "kristall") return i.bound ? [tr("löst sich", "dissolving"), `${k - i.bound} / ${k} ${DISS()}`] : [tr("Lösung", "Solution"), time(DISS())];
   // geschlossene Flasche: CO₂ löst sich bzw. perlt aus, bis so viel gelöst ist, wie bei dieser Temperatur geht (kalt mehr, warm weniger)
   if (ex.before === "gasraum") {
     // offen: CO₂ entweicht, bis keins mehr gelöst ist (abgestanden)
-    if (i.opened) return [i.aq ? "offen · perlt aus" : "abgestanden", `${i.aq} / ${k} gelöst`];
-    return [i.gas > i.eq + 1 ? "löst sich" : i.gas < i.eq - 1 ? "perlt aus" : "Gleichgewicht", `${i.aq} / ${k} gelöst`];
+    if (i.opened) return [i.aq ? tr("offen · perlt aus", "open · fizzing out") : tr("abgestanden", "flat"), `${i.aq} / ${k} ${DISS()}`];
+    return [i.gas > i.eq + 1 ? tr("löst sich", "dissolving") : i.gas < i.eq - 1 ? tr("perlt aus", "fizzing out") : tr("Gleichgewicht", "Equilibrium"), `${i.aq} / ${k} ${DISS()}`];
   }
-  if (ex.before === "schicht") return i.mixed ? ["Lösung", time("gemischt")] : ["mischt sich"];
-  if (ex.floats?.length) return [i.sep ? "2 Schichten" : "Emulsion", "heterogen"];
-  if (ex.state === "fest") return i.walls ? ["getrennt"] : i.melt ? ["geschmolzen"] : [ex.type ?? "Legierung", "homogen"];
-  if (ex.before) return i.walls ? ["getrennt"] : i.mixed ? [ex.type ?? "Gasgemisch", time("gemischt")] : ["mischt sich"];
+  if (ex.before === "schicht") return i.mixed ? [tr("Lösung", "Solution"), time(MIXED())] : [MIXING()];
+  if (ex.floats?.length) return [i.sep ? tr("2 Schichten", "2 layers") : "Emulsion", HET()];
+  if (ex.state === "fest") return i.walls ? [SEP()] : i.melt ? [tr("geschmolzen", "molten")] : [ex.type ?? tr("Legierung", "Alloy"), tr("homogen", "homogeneous")];
+  if (ex.before) return i.walls ? [SEP()] : i.mixed ? [ex.type ?? tr("Gasgemisch", "Gas mixture"), time(MIXED())] : [MIXING()];
   return MIX_LABEL[mixKind(ex)];
 }
 
@@ -307,15 +310,15 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
         controls={
           <div className="gm-controls">
             <div className="gm-row">
-              <IconButton icon="back" label="Voriges Beispiel" onClick={() => goTo(index - 1)} />
+              <IconButton icon="back" label={tr("Voriges Beispiel", "Previous example")} onClick={() => goTo(index - 1)} />
               <Button variant="primary" icon={action.icon} onClick={act} disabled={!canAct}>{action.label}</Button>
-              <IconButton icon="arrow" label="Nächstes Beispiel" onClick={() => goTo(index + 1)} />
+              <IconButton icon="arrow" label={tr("Nächstes Beispiel", "Next example")} onClick={() => goTo(index + 1)} />
             </div>
             <div className="gm-row">
-              {ex.before && <IconButton icon="reset" label="Von vorn" onClick={again} />}
+              {ex.before && <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={again} />}
               <label className="gm-temp">
                 <Icon name="fire" size={18} />
-                <input type="range" min={0} max={100} step={10} value={temp} aria-label="Temperatur"
+                <input type="range" min={0} max={100} step={10} value={temp} aria-label={tr("Temperatur", "Temperature")}
                   onChange={e => { setTemp(Number(e.target.value)); if (reduced) setVersion(v => v + 1); }} />
                 <output>{temp} °C</output>
               </label>
@@ -323,12 +326,12 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
           </div>
         }
         tools={[
-          { id: "stoffe", label: "Stoffe", icon: "molecule", content: <Substances ex={ex} onPick={f => setPick(f)} /> },
-          { id: "zaehlen", label: "Zählen", icon: "table", content: <Counts ex={ex} /> },
-          { id: "farben", label: "Farben", icon: "atom", content: <Legend els={a.atomsorten} /> },
-          { id: "einteilung", label: "Einteilung", icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
-          { id: "arten", label: "Arten", icon: "beaker", title: "Arten von Gemischen", content: <Arten ex={ex} /> },
-          { id: "beispiele", label: "Beispiele", icon: "grid", content: <ExampleList current={index} onPick={i => goTo(i)} /> },
+          { id: "stoffe", label: tr("Stoffe", "Substances"), icon: "molecule", content: <Substances ex={ex} onPick={f => setPick(f)} /> },
+          { id: "zaehlen", label: tr("Zählen", "Count"), icon: "table", content: <Counts ex={ex} /> },
+          { id: "farben", label: tr("Farben", "Colours"), icon: "atom", content: <Legend els={a.atomsorten} /> },
+          { id: "einteilung", label: tr("Einteilung", "Classification"), icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
+          { id: "arten", label: tr("Arten", "Types"), icon: "beaker", title: tr("Arten von Gemischen", "Types of mixtures"), content: <Arten ex={ex} /> },
+          { id: "beispiele", label: tr("Beispiele", "Examples"), icon: "grid", content: <ExampleList current={index} onPick={i => goTo(i)} /> },
         ]} />
       <SubstanceSheet f={pick} onClose={() => setPick(null)} />
     </>
@@ -361,32 +364,32 @@ function Muesli({ index }: { index: number }) {
         </div>
       }
       stage={<MuesliBowl mixed={mixed} shaking={shaking} />}
-      status={<div className="gm-status">{(mixed ? [MUESLI.type, "heterogen"] : ["getrennt"]).map(l => <Tag key={l}>{l}</Tag>)}</div>}
+      status={<div className="gm-status">{(mixed ? [MUESLI.type, HET()] : [SEP()]).map(l => <Tag key={l}>{l}</Tag>)}</div>}
       controls={
         <div className="gm-controls">
           <div className="gm-row">
-            <IconButton icon="back" label="Voriges Beispiel" onClick={() => goTo(index - 1)} />
-            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}>{mixed ? "Auslesen" : "Mischen"}</Button>
-            <IconButton icon="arrow" label="Nächstes Beispiel" onClick={() => goTo(index + 1)} />
+            <IconButton icon="back" label={tr("Voriges Beispiel", "Previous example")} onClick={() => goTo(index - 1)} />
+            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}>{mixed ? tr("Auslesen", "Sort out") : tr("Mischen", "Mix")}</Button>
+            <IconButton icon="arrow" label={tr("Nächstes Beispiel", "Next example")} onClick={() => goTo(index + 1)} />
           </div>
         </div>
       }
       tools={[
-        { id: "stoffe", label: "Zutaten", icon: "molecule", content: (
+        { id: "stoffe", label: tr("Zutaten", "Ingredients"), icon: "molecule", content: (
           <div className="gm-subs">
-            <ul className="gm-parts">{parts.map(p => <li key={p.id}><b>{p.name}</b><span>{p.n} Stück</span></li>)}</ul>
-            <p className="gm-small">Jeder Bestandteil besteht selbst aus vielen Stoffen.</p>
+            <ul className="gm-parts">{parts.map(p => <li key={p.id}><b>{p.name}</b><span>{p.n} {tr("Stück", p.n === 1 ? "piece" : "pieces")}</span></li>)}</ul>
+            <p className="gm-small">{tr("Jeder Bestandteil besteht selbst aus vielen Stoffen.", "Each component is itself made of many substances.")}</p>
           </div>
         ) },
-        { id: "zaehlen", label: "Zählen", icon: "table", content: (
+        { id: "zaehlen", label: tr("Zählen", "Count"), icon: "table", content: (
           <dl className="gm-counts">
-            <div><dt>Bestandteile</dt><dd>{parts.length}</dd></div>
-            <div><dt>Stücke</dt><dd>{parts.reduce((s, p) => s + p.n, 0)}</dd></div>
+            <div><dt>{tr("Bestandteile", "Components")}</dt><dd>{parts.length}</dd></div>
+            <div><dt>{tr("Stücke", "Pieces")}</dt><dd>{parts.reduce((s, p) => s + p.n, 0)}</dd></div>
           </dl>
         ) },
-        { id: "einteilung", label: "Einteilung", icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
-        { id: "arten", label: "Arten", icon: "beaker", title: "Arten von Gemischen", content: <Arten ex={MUESLI} /> },
-        { id: "beispiele", label: "Beispiele", icon: "grid", content: <ExampleList current={index} onPick={i => goTo(i)} /> },
+        { id: "einteilung", label: tr("Einteilung", "Classification"), icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
+        { id: "arten", label: tr("Arten", "Types"), icon: "beaker", title: tr("Arten von Gemischen", "Types of mixtures"), content: <Arten ex={MUESLI} /> },
+        { id: "beispiele", label: tr("Beispiele", "Examples"), icon: "grid", content: <ExampleList current={index} onPick={i => goTo(i)} /> },
       ]} />
   );
 }

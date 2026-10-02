@@ -3,7 +3,8 @@
 // liegen in beiden Kreisen – so sieht man, dass sie zu beiden Atomen zählen. Jedes bindende Paar ist eine Reihe aus zwei Punkten
 // entlang der Bindung (Dreifachbindung = drei Reihen), wie die Striche der Strichformel.
 
-import { electronsOf, loneLayout, bondKey, target, type Molecule } from "@lern/chem";
+import { bondName, electronsOf, loneLayout, bondKey, target, type Molecule } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 export const U = 100; // Rasterzelle in SVG-Einheiten
 const cx = (x: number) => x * U + U / 2;
@@ -68,14 +69,14 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, rings = show
   const interactive = !!(onCell || onBond || onAtomKey);
   return (
     <svg ref={svgRef} className="lewis" viewBox={vb} role={interactive ? "group" : "img"}
-      aria-label={`Lewis-Formel mit ${mol.atoms.length} Atomen und ${mol.bonds.length} Bindungen`}>
+      aria-label={tr(`Lewis-Formel mit ${mol.atoms.length} Atomen und ${mol.bonds.length} Bindungen`, `Lewis formula with ${mol.atoms.length} atoms and ${mol.bonds.length} bonds`)}>
       {grid && Array.from({ length: cols * rows }, (_, i) => {
         const x = i % cols, y = Math.floor(i / cols);
         const hl = highlightCell && highlightCell[0] === x && highlightCell[1] === y;
         const focus = !!onCell && cellsFocusable && !used.has(`${x},${y}`);
         return <rect key={i} x={x * U + 6} y={y * U + 6} width={U - 12} height={U - 12} rx={4}
           className={`cell${hl ? " hl" : ""}`} onClick={onCell ? () => onCell(x, y) : undefined}
-          {...(focus ? { tabIndex: 0, role: "button", "aria-label": `Feld ${y + 1}-${x + 1}`, onKeyDown: onKey(() => onCell!(x, y)) } : {})} />;
+          {...(focus ? { tabIndex: 0, role: "button", "aria-label": tr(`Feld ${y + 1}-${x + 1}`, `Cell ${y + 1}-${x + 1}`), onKeyDown: onKey(() => onCell!(x, y)) } : {})} />;
       })}
 
       {/* Bindende Elektronenpaare im gemeinsamen Oval */}
@@ -89,7 +90,7 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, rings = show
         return (
           <g key={bondKey(b.a, b.b)} className={`bond${onBond ? " tappable" : ""}`} onClick={onBond ? () => onBond(b.a, b.b) : undefined}
             tabIndex={onBond ? 0 : undefined} onKeyDown={onBond ? onKey(() => onBond(b.a, b.b)) : undefined}
-            role={onBond ? "button" : undefined} aria-label={onBond ? `${b.order}-fach-Bindung ${p.el}–${q.el}, tippen zum Ändern` : undefined}>
+            role={onBond ? "button" : undefined} aria-label={onBond ? tr(`${b.order}-fach-Bindung ${p.el}–${q.el}, tippen zum Ändern`, `${bondName(b.order)} ${p.el}–${q.el}, tap to change`) : undefined}>
             <rect x={mx - (horiz ? len : th) / 2} y={my - (horiz ? th : len) / 2} width={horiz ? len : th} height={horiz ? th : len} rx={th / 2} className="pair-oval" />
             {offs.map((o, i) => lines
               ? (horiz ? <line key={i} x1={mx - 16} x2={mx + 16} y1={my + o} y2={my + o} className="e-line" />
@@ -106,7 +107,7 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, rings = show
         const p = byId.get(a)!, q = byId.get(b)!;
         const mx = (cx(p.x) + cx(q.x)) / 2, my = (cx(p.y) + cx(q.y)) / 2;
         return (
-          <g key={`+${a}-${b}`} className="bond-add" onClick={() => onAddBond?.(a, b)} role="button" tabIndex={0} onKeyDown={onKey(() => onAddBond?.(a, b))} aria-label={`Bindung ${p.el}–${q.el} bilden`}>
+          <g key={`+${a}-${b}`} className="bond-add" onClick={() => onAddBond?.(a, b)} role="button" tabIndex={0} onKeyDown={onKey(() => onAddBond?.(a, b))} aria-label={tr(`Bindung ${p.el}–${q.el} bilden`, `Form bond ${p.el}–${q.el}`)}>
             <circle cx={mx} cy={my} r={15} /><path d={`M${mx - 7} ${my}h14M${mx} ${my - 7}v14`} />
           </g>
         );
@@ -119,7 +120,7 @@ export function LewisSvg({ mol, cols, rows, crop, showOctet = true, rings = show
         const e = electronsOf(mol, a.id);
         return (
           <g key={a.id} data-el={a.el} className={`atom${onAtomDown ? " grab" : ""}`} onPointerDown={onAtomDown ? ev => onAtomDown(a.id, ev) : undefined}
-            {...(onAtomKey ? { tabIndex: 0, role: "button", "aria-label": `${a.el} – Pfeiltasten verschieben, Entf entfernen`,
+            {...(onAtomKey ? { tabIndex: 0, role: "button", "aria-label": tr(`${a.el} – Pfeiltasten verschieben, Entf entfernen`, `${a.el} – arrow keys move, Delete removes`),
               onKeyDown: (ev: React.KeyboardEvent) => { if (/^(Arrow|Delete|Backspace)/.test(ev.key)) { ev.preventDefault(); onAtomKey(a.id, ev.key); } } } : {})}>
             <circle cx={x} cy={y} r={26} className="atom-bg" />
             <text x={x} y={y} className="sym" dy=".35em">{a.el}</text>

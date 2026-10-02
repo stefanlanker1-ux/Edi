@@ -5,6 +5,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { Sheet, buzz } from "@lern/ui";
 import { toSubscript, type Equation as Eq } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 /** Größte wählbare Zahl: bis 12, bei kniffligen Gleichungen (Niveau 4) bis 30 */
 export const maxCoef = (r: { niveau: number }) => (r.niveau >= 4 ? 30 : 12);
@@ -54,7 +55,7 @@ export function EquationRow({ eq, coeffs, onChange, max = 12 }: { eq: Eq; coeffs
   return (
     <>
       <div className="eq-fit" ref={box}>
-        <div className={`eq-row${onChange ? " edit" : ""}`} ref={line} role="group" aria-label="Gleichung">
+        <div className={`eq-row${onChange ? " edit" : ""}`} ref={line} role="group" aria-label={tr("Gleichung", "Equation")}>
           {all.map((f, k) => {
             const op = k === n ? <span className="eq-op eq-arrow" aria-hidden="true">→</span> : k > 0 ? <span className="eq-op" aria-hidden="true">+</span> : null;
             const body = <>{(onChange || coeffs[k] !== 1) && <span className={`eq-num${coeffs[k] === 1 ? " one" : ""}`}>{coeffs[k]}</span>}<span className="eq-formula">{toSubscript(f)}</span></>;
@@ -62,7 +63,7 @@ export function EquationRow({ eq, coeffs, onChange, max = 12 }: { eq: Eq; coeffs
               <span key={k} className="eq-part">
                 {op}
                 {onChange
-                  ? <button type="button" className="eq-term" aria-label={`${coeffs[k]} ${toSubscript(f)} – Zahl ändern`} onClick={() => { buzz(); setOpen(k); }}>{body}</button>
+                  ? <button type="button" className="eq-term" aria-label={tr(`${coeffs[k]} ${toSubscript(f)} – Zahl ändern`, `${coeffs[k]} ${toSubscript(f)} – change number`)} onClick={() => { buzz(); setOpen(k); }}>{body}</button>
                   : <span className="eq-term">{body}</span>}
               </span>
             );
@@ -70,7 +71,7 @@ export function EquationRow({ eq, coeffs, onChange, max = 12 }: { eq: Eq; coeffs
         </div>
       </div>
       {onChange && (
-        <Sheet open={open !== null} title={open !== null ? `Wie viele ${toSubscript(all[open])}?` : ""} onClose={() => setOpen(null)}>
+        <Sheet open={open !== null} title={open !== null ? tr(`Wie viele ${toSubscript(all[open])}?`, `How many ${toSubscript(all[open])}?`) : ""} onClose={() => setOpen(null)}>
           <div className="eq-pick" role="radiogroup">
             {Array.from({ length: max }, (_, i) => i + 1).map(v => (
               <button key={v} type="button" role="radio" aria-checked={open !== null && coeffs[open] === v}

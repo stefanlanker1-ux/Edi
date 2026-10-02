@@ -1,3 +1,4 @@
+import { getLang, tr } from "@lern/i18n";
 // Exakte Bruchzahlen (BigInt) – damit 0,1 · 100 genau 10 ergibt und 1 : 3,6 als Bruch erhalten bleibt.
 // Anzeige immer deutsch: Dezimalkomma, Tausender mit schmalem Leerzeichen (10 000), 4-stellige Zahlen ohne (3450).
 
@@ -89,6 +90,8 @@ export function parseAnswer(input: string, unit?: string): Q[] {
   const v = parseQ(s);
   if (v) out.push(v);
   if (/^-?\d{1,3}\.\d{3}$/.test(s)) { const t = parseQ(s.replace(".", "")); if (t) out.push(t); }
+  // Englisch: „48,000“ kann Tausenderkomma sein
+  if (getLang() === "en" && /^-?\d{1,3}(,\d{3})+$/.test(s)) { const t = parseQ(s.replace(/,/g, "")); if (t) out.push(t); }
   return out;
 }
 
@@ -140,7 +143,7 @@ export function fmt(a: Q, opts: FormatOptions = {}): { text: string; approx: boo
   }
   const intS = group ? groupInt(parts.int) : parts.int;
   const fracS = group ? groupFrac(parts.frac) : parts.frac;
-  return { text: (parts.neg ? "−" : "") + intS + (fracS ? "," + fracS : ""), approx };
+  return { text: (parts.neg ? "−" : "") + intS + (fracS ? tr(",", ".") + fracS : ""), approx };
 }
 /** Kurzform: Text mit „≈“-Präfix bei gerundeten Werten wird vom Aufrufer gesetzt */
 export const fmtText = (a: Q, opts?: FormatOptions) => fmt(a, opts).text;

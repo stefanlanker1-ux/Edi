@@ -1,5 +1,6 @@
 // Elektronenkonfiguration, Schalen, Ionen und Schreibweisen – reine Funktionen ohne UI.
 
+import { getLang, tr } from "@lern/i18n";
 import { BY_Z, BY_SYMBOL, ELEMENTS } from "./elements.ts";
 
 export const L_NAMES = ["s", "p", "d", "f"] as const;
@@ -187,15 +188,21 @@ export const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
  */
 export function groupLabel(Z: number, os: boolean): string {
   const g = BY_Z[Z]?.group, mg = mainGroupNumber(Z);
-  if (g == null) return "Lanthanoide";
+  if (g == null) return tr("Lanthanoide", "Lanthanoids");
+  if (getLang() === "en") return !os && mg ? `Main group ${ROMAN[mg]}` : `Group ${g}`;
   return !os && mg ? `${ROMAN[mg]}. Hauptgruppe` : `Gruppe ${g}`;
 }
 
 /** Namensstamm einatomiger Anionen: Cl → Chlorid, O → Oxid, N → Nitrid … */
-export const ANION_STEM: Record<string, string> = {
+const ANION_STEM_DE: Record<string, string> = {
   H: "Hydrid", B: "Borid", C: "Carbid", N: "Nitrid", O: "Oxid", F: "Fluorid", Si: "Silicid", P: "Phosphid", S: "Sulfid",
   Cl: "Chlorid", As: "Arsenid", Se: "Selenid", Br: "Bromid", Te: "Tellurid", I: "Iodid", At: "Astatid",
 };
+const ANION_STEM_EN: Record<string, string> = {
+  H: "Hydride", B: "Boride", C: "Carbide", N: "Nitride", O: "Oxide", F: "Fluoride", Si: "Silicide", P: "Phosphide", S: "Sulfide",
+  Cl: "Chloride", As: "Arsenide", Se: "Selenide", Br: "Bromide", Te: "Telluride", I: "Iodide", At: "Astatide",
+};
+export const ANION_STEM: Record<string, string> = tr(ANION_STEM_DE, ANION_STEM_EN);
 /**
  * Name eines einatomigen Ions: Natrium-Ion, Chlorid-Ion, Eisen(III)-Ion.
  * Metalle mit mehreren üblichen Ladungen bekommen die römische Zahl.
@@ -203,6 +210,11 @@ export const ANION_STEM: Record<string, string> = {
 export function ionName(Z: number, charge: number): string {
   const el = BY_Z[Z];
   if (!el) return "";
+  if (getLang() === "en") {
+    if (charge < 0) return ANION_STEM[el.symbol] ? `${ANION_STEM[el.symbol]} ion` : `${el.name} anion`;
+    if (charge > 0 && commonCharges(Z).length > 1 && ROMAN[charge]) return `${el.name}(${ROMAN[charge]}) ion`;
+    return `${el.name} ion`;
+  }
   if (charge < 0) return ANION_STEM[el.symbol] ? `${ANION_STEM[el.symbol]}-Ion` : `${el.name}-Anion`;
   if (charge > 0 && commonCharges(Z).length > 1 && ROMAN[charge]) return `${el.name}(${ROMAN[charge]})-Ion`;
   return `${el.name}-Ion`;

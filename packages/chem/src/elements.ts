@@ -1,4 +1,6 @@
-// Elementdaten Z = 1–86 (Wasserstoff bis Radon) inkl. Lanthanoide.
+// Elementdaten Z = 1–86 (Wasserstoff bis Radon) inkl. Lanthanoide. Namen deutsch oder englisch (Sprache der Oberfläche).
+
+import { tr } from "@lern/i18n";
 
 export type Category =
   | "alkali" | "earth" | "transition" | "lanthanoid" | "metal"
@@ -66,6 +68,9 @@ const RAW: [number, string, string, number, number | null][] = [
   [85,"At","Astat",210,2.20],         [86,"Rn","Radon",222,2.20],
 ];
 
+/** englische Namen je Ordnungszahl */
+const EN_NAMES = ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium", "Scandium", "Titanium", "Vanadium", "Chromium", "Manganese", "Iron", "Cobalt", "Nickel", "Copper", "Zinc", "Gallium", "Germanium", "Arsenic", "Selenium", "Bromine", "Krypton", "Rubidium", "Strontium", "Yttrium", "Zirconium", "Niobium", "Molybdenum", "Technetium", "Ruthenium", "Rhodium", "Palladium", "Silver", "Cadmium", "Indium", "Tin", "Antimony", "Tellurium", "Iodine", "Xenon", "Caesium", "Barium", "Lanthanum", "Cerium", "Praseodymium", "Neodymium", "Promethium", "Samarium", "Europium", "Gadolinium", "Terbium", "Dysprosium", "Holmium", "Erbium", "Thulium", "Ytterbium", "Lutetium", "Hafnium", "Tantalum", "Tungsten", "Rhenium", "Osmium", "Iridium", "Platinum", "Gold", "Mercury", "Thallium", "Lead", "Bismuth", "Polonium", "Astatine", "Radon"];
+
 // Elemente ohne stabiles Isotop
 const RADIOACTIVE = new Set([43, 61, 84, 85, 86]);
 
@@ -106,26 +111,27 @@ function categoryOf(Z: number, group: number | null): Category {
 }
 
 export const CATEGORIES: Record<Category, { label: string; kind: "Metall" | "Halbmetall" | "Nichtmetall" }> = {
-  alkali: { label: "Alkalimetalle", kind: "Metall" },
-  earth: { label: "Erdalkalimetalle", kind: "Metall" },
-  transition: { label: "Übergangsmetalle", kind: "Metall" },
-  lanthanoid: { label: "Lanthanoide", kind: "Metall" },
-  metal: { label: "Weitere Metalle", kind: "Metall" },
-  metalloid: { label: "Halbmetalle", kind: "Halbmetall" },
-  nonmetal: { label: "Nichtmetalle", kind: "Nichtmetall" },
-  halogen: { label: "Halogene", kind: "Nichtmetall" },
-  noble: { label: "Edelgase", kind: "Nichtmetall" },
+  alkali: { label: tr("Alkalimetalle", "Alkali metals"), kind: "Metall" },
+  earth: { label: tr("Erdalkalimetalle", "Alkaline earth metals"), kind: "Metall" },
+  transition: { label: tr("Übergangsmetalle", "Transition metals"), kind: "Metall" },
+  lanthanoid: { label: tr("Lanthanoide", "Lanthanoids"), kind: "Metall" },
+  metal: { label: tr("Weitere Metalle", "Other metals"), kind: "Metall" },
+  metalloid: { label: tr("Halbmetalle", "Metalloids"), kind: "Halbmetall" },
+  nonmetal: { label: tr("Nichtmetalle", "Non-metals"), kind: "Nichtmetall" },
+  halogen: { label: tr("Halogene", "Halogens"), kind: "Nichtmetall" },
+  noble: { label: tr("Edelgase", "Noble gases"), kind: "Nichtmetall" },
 };
 
 export const GROUP_NAMES: Record<number, string> = {
-  1: "Alkalimetalle", 2: "Erdalkalimetalle", 13: "Borgruppe", 14: "Kohlenstoffgruppe",
-  15: "Stickstoffgruppe", 16: "Chalkogene", 17: "Halogene", 18: "Edelgase",
+  1: tr("Alkalimetalle", "Alkali metals"), 2: tr("Erdalkalimetalle", "Alkaline earth metals"), 13: tr("Borgruppe", "Boron group"),
+  14: tr("Kohlenstoffgruppe", "Carbon group"), 15: tr("Stickstoffgruppe", "Nitrogen group"), 16: tr("Chalkogene", "Chalcogens"),
+  17: tr("Halogene", "Halogens"), 18: tr("Edelgase", "Noble gases"),
 };
 
 export const ELEMENTS: Element[] = RAW.map(([Z, symbol, name, mass, en]) => {
   const period = periodOf(Z);
   const group = groupOf(Z);
-  return { Z, symbol, name, mass, en, period, group, category: categoryOf(Z, group), radioactive: RADIOACTIVE.has(Z) };
+  return { Z, symbol, name: tr(name, EN_NAMES[Z - 1]), mass, en, period, group, category: categoryOf(Z, group), radioactive: RADIOACTIVE.has(Z) };
 });
 
 export const BY_Z: Record<number, Element> = Object.fromEntries(ELEMENTS.map(e => [e.Z, e]));
@@ -166,6 +172,10 @@ export function isStable(Z: number, N: number): boolean | null {
 }
 
 /** Suche nach Name, Symbol oder Ordnungszahl */
+/** Art zum Anzeigen (Metall, Halbmetall, Nichtmetall) in der Sprache der Oberfläche */
+export const kindLabel = (k: "Metall" | "Halbmetall" | "Nichtmetall") =>
+  tr({ Metall: "Metall", Halbmetall: "Halbmetall", Nichtmetall: "Nichtmetall" }, { Metall: "Metal", Halbmetall: "Metalloid", Nichtmetall: "Non-metal" })[k];
+
 export function searchElements(query: string, maxZ = MAX_Z): Element[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];

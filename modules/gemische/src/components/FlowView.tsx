@@ -7,6 +7,7 @@ import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react"
 import { atomRadius } from "@lern/chem";
 import { kalotteBox, shapeOf } from "@lern/chem-ui";
 import { DRAW, MELT, boundaryY, liquidLevel, separatedFlow, sizeOf, stepFlow, type World } from "../flow.ts";
+import { tr } from "@lern/i18n";
 
 type Layout = { mv: number; ox: number; oy: number; zx: number; zy: number; R: number; side: boolean };
 type Mol = { atoms: [string, number, number][]; ext: number };
@@ -400,7 +401,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   };
 
   return (
-    <div className="gm-flow" ref={wrap} tabIndex={0} role="img" aria-label={`${label}. Lupe mit den Pfeiltasten verschieben.`} onKeyDown={key}>
+    <div className="gm-flow" ref={wrap} tabIndex={0} role="img" aria-label={`${label}. ${tr("Lupe mit den Pfeiltasten verschieben.", "Move the magnifier with the arrow keys.")}`} onKeyDown={key}>
       <canvas ref={canvas} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { up(); picked.current = null; }} onClick={click} />
     </div>
   );

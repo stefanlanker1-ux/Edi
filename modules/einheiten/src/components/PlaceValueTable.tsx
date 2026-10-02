@@ -4,6 +4,7 @@
 import { useLayoutEffect, useRef } from "react";
 import { useNarrow } from "@lern/ui";
 import { placeValue, fmt, type PvColumn, type Q } from "@lern/units";
+import { tr } from "@lern/i18n";
 
 /** Passt die Tafel trotz enger Spalten nicht (km² → mm²: 14 Spalten), wird sie als Ganzes verkleinert – nie quer scrollen, keine Stelle verstecken */
 function useFitWidth() {
@@ -77,7 +78,7 @@ export function PlaceValueTable({ value, from, to, units, showResult = true, lab
   const fromE = full.fromE - lo, toE = full.toE - lo;
   return (
     <div className="pv-wrap scroll-x" ref={fitRef}>
-      <table className="pv" aria-label={`Stellenwerttafel: ${label ?? `${fmt(value).text} ${from} in ${to}`}`}>
+      <table className="pv" aria-label={`${tr("Stellenwerttafel", "Place value chart")}: ${label ?? `${fmt(value).text} ${from} ${tr("in", "to")} ${to}`}`}>
         <Head cols={cols} from={from} to={to} />
         <tbody>
           <tr>
@@ -86,8 +87,8 @@ export function PlaceValueTable({ value, from, to, units, showResult = true, lab
               return (
                 <td key={i} className={`pv-c${cellClass(cols, i)}${show ? ` ${cell.kind}` : ""}`}>
                   {show ? cell.digit : ""}
-                  {i === fromE && <span className="pv-dot from" role="img" aria-label="Komma vorher" />}
-                  {showResult && i === toE && <span className={`pv-dot to${toE === fromE ? " both" : ""}`} role="img" aria-label="Komma nachher" />}
+                  {i === fromE && <span className="pv-dot from" role="img" aria-label={tr("Komma vorher", "Decimal point before")} />}
+                  {showResult && i === toE && <span className={`pv-dot to${toE === fromE ? " both" : ""}`} role="img" aria-label={tr("Komma nachher", "Decimal point after")} />}
                 </td>
               );
             })}
@@ -95,7 +96,7 @@ export function PlaceValueTable({ value, from, to, units, showResult = true, lab
         </tbody>
       </table>
       {showResult && full.fits && <p className="pv-res-line">{fmt(value).text} {from} = <b>{fmt(full.result).text} {to}</b></p>}
-      {!full.fits && <p className="muted small">Passt nicht in die Tafel.</p>}
+      {!full.fits && <p className="muted small">{tr("Passt nicht in die Tafel.", "Does not fit in the chart.")}</p>}
     </div>
   );
 }
@@ -104,9 +105,9 @@ export function PlaceValueTable({ value, from, to, units, showResult = true, lab
 export function PvLegend() {
   return (
     <p className="pv-legend">
-      <span><i className="pv-dot from" /> Komma vorher</span>
-      <span><i className="pv-dot to" /> Komma nachher</span>
-      <span><b className="added-sample">0</b> ergänzte Null</span>
+      <span><i className="pv-dot from" /> {tr("Komma vorher", "Decimal point before")}</span>
+      <span><i className="pv-dot to" /> {tr("Komma nachher", "Decimal point after")}</span>
+      <span><b className="added-sample">0</b> {tr("ergänzte Null", "added zero")}</span>
     </p>
   );
 }

@@ -17,6 +17,7 @@ import { PowerScale } from "../components/PowerScale.tsx";
 import { DimChain, dimOf } from "../components/DimChain.tsx";
 import { SubstFlow } from "../components/Visuals.tsx";
 import { scaleMode } from "../help.ts";
+import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "einheiten-quiz", levelId, makeRound });
 type InputTask = Extract<Task, { kind: "input" }>;
@@ -24,7 +25,7 @@ type InputTask = Extract<Task, { kind: "input" }>;
 function InputAnswer({ task, answered, submit }: { task: InputTask; answered: Answered | null; submit: Submit }) {
   const [val, setVal] = useState("");
   const [err, setErr] = useState(false);
-  const shown = answered?.values?.v !== undefined ? fmt(parseQ(String(answered.values.v).replace(".", ","))!).text : val;
+  const shown = answered?.values?.v !== undefined ? fmt(parseQ(String(answered.values.v))!).text : val;
   const check = () => {
     const ok = checkInput(task, val);
     if (ok === null) { setErr(true); return; }
@@ -34,13 +35,13 @@ function InputAnswer({ task, answered, submit }: { task: InputTask; answered: An
     <form className={`answer-input${answered ? (answered.ok ? " ok" : " bad") : ""}`} onSubmit={e => { e.preventDefault(); if (!answered) check(); }}>
       <label className="ai-row">
         <span className="ai-lhs">{task.value} {task.from} =</span>
-        <input value={shown} disabled={!!answered} inputMode="decimal" autoComplete="off" placeholder="?" aria-label={`Ergebnis in ${task.to}`}
+        <input value={shown} disabled={!!answered} inputMode="decimal" autoComplete="off" placeholder="?" aria-label={tr(`Ergebnis in ${task.to}`, `Result in ${task.to}`)}
           onChange={e => { setVal(e.target.value); setErr(false); }} />
         <span className="ai-unit">{task.to}</span>
-        {answered && <b className="ai-mark" aria-label={answered.ok ? "richtig" : "falsch"}>{answered.ok ? "✓" : "✗"}</b>}
+        {answered && <b className="ai-mark" aria-label={answered.ok ? tr("richtig", "correct") : tr("falsch", "wrong")}>{answered.ok ? "✓" : "✗"}</b>}
       </label>
-      {err && <p className="ai-err">Bitte eine Zahl eingeben – mit Komma, z. B. 0,25 (oder 2,5·10^-4).</p>}
-      {!answered && <Button variant="primary" icon="check" type="submit" className="check-btn">Prüfen</Button>}
+      {err && <p className="ai-err">{tr("Bitte eine Zahl eingeben – mit Komma, z. B. 0,25 (oder 2,5·10^-4).", "Please enter a number, e.g. 0.25 (or 2.5·10^-4).")}</p>}
+      {!answered && <Button variant="primary" icon="check" type="submit" className="check-btn">{tr("Prüfen", "Check")}</Button>}
     </form>
   );
 }
@@ -83,12 +84,12 @@ function toolsFor(t: Task, os: boolean): QuizTool[] {
   if (!c || c.from === c.to) return [];
   const out: QuizTool[] = [];
   // Oberstufe mit Vorsilben: nur die Skala mit Zehnerpotenzen (keine Pfeile, keine Stellenwerttafel)
-  if (scaleMode(os, c.from, c.to)) return [{ id: "scale", label: "Skala", icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> }];
-  if (dimOf(c.from, c.to)) out.push({ id: "arrows", label: "Pfeile", icon: "ruler", wide: true, content: <DimChain from={c.from} to={c.to} /> });
-  else if (chainFor(c.from, c.to)) out.push({ id: "arrows", label: "Pfeile", icon: "ruler", wide: true, content: <ArrowChain from={c.from} to={c.to} showValues={false} caption={false} /> });
+  if (scaleMode(os, c.from, c.to)) return [{ id: "scale", label: tr("Skala", "Scale"), icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> }];
+  if (dimOf(c.from, c.to)) out.push({ id: "arrows", label: tr("Pfeile", "Arrows"), icon: "ruler", wide: true, content: <DimChain from={c.from} to={c.to} /> });
+  else if (chainFor(c.from, c.to)) out.push({ id: "arrows", label: tr("Pfeile", "Arrows"), icon: "ruler", wide: true, content: <ArrowChain from={c.from} to={c.to} showValues={false} caption={false} /> });
   const table = t.kind === "input" ? tableFor(c.from, c.to) : undefined;
-  if (table) out.push({ id: "table", label: "Stellen", icon: "table", wide: true, content: <PlaceValueTable value={parseQ(c.value)!} from={c.from} to={c.to} units={table} showResult={false} label={`${c.value} ${c.from} → ${c.to}`} /> });
-  if (!out.length) out.push({ id: "subst", label: "Einsetzen", icon: "board", wide: true, content: <SubstFlow s={solve("1", c.from, c.to)} /> });
+  if (table) out.push({ id: "table", label: tr("Stellen", "Places"), icon: "table", wide: true, content: <PlaceValueTable value={parseQ(c.value)!} from={c.from} to={c.to} units={table} showResult={false} label={`${c.value} ${c.from} → ${c.to}`} /> });
+  if (!out.length) out.push({ id: "subst", label: tr("Einsetzen", "Substitute"), icon: "board", wide: true, content: <SubstFlow s={solve("1", c.from, c.to)} /> });
   return out;
 }
 

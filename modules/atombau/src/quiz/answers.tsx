@@ -8,6 +8,7 @@ import type { Answered, Submit } from "@lern/quiz";
 import type { Task } from "./tasks.ts";
 import { PeriodicTable } from "@lern/chem-ui";
 import { EnergyDiagram, Bohr, Nuclide } from "@lern/chem-ui";
+import { tr } from "@lern/i18n";
 
 export function solutionText(t: Task): string {
   switch (t.kind) {
@@ -15,7 +16,8 @@ export function solutionText(t: Task): string {
     case "pse": return `${BY_Z[t.answer].name} (${BY_Z[t.answer].symbol})`;
     case "numbers": return t.fields.map(f => `${f.label}: ${f.select ? signed(f.answer) : f.answer}`).join(" · ");
     case "shells": return t.target.map((c, i) => `${SHELL_NAMES[i]} = ${c}`).join(", ");
-    case "build": return `${t.target.Z} ${t.target.Z === 1 ? "Proton" : "Protonen"}, ${t.target.N} ${t.target.N === 1 ? "Neutron" : "Neutronen"}, ${t.target.E} ${t.target.E === 1 ? "Elektron" : "Elektronen"}`;
+    case "build": return tr(`${t.target.Z} ${t.target.Z === 1 ? "Proton" : "Protonen"}, ${t.target.N} ${t.target.N === 1 ? "Neutron" : "Neutronen"}, ${t.target.E} ${t.target.E === 1 ? "Elektron" : "Elektronen"}`,
+      `${t.target.Z} ${t.target.Z === 1 ? "proton" : "protons"}, ${t.target.N} ${t.target.N === 1 ? "neutron" : "neutrons"}, ${t.target.E} ${t.target.E === 1 ? "electron" : "electrons"}`);
     case "boxes": return configString(configuration(t.Z));
   }
 }
@@ -58,7 +60,7 @@ function NumbersAnswer({ task, answered, submit }: P<"numbers">) {
           const st = answered ? (Number(shown[f.id]) === f.answer && shown[f.id] !== "" ? " right" : " wrong") : "";
           return (
             <label key={f.id} className="num-field">
-              <span>{f.label}{st && <b className={`mark${st}`} aria-label={st === " right" ? "richtig" : "falsch"}>{st === " right" ? " ✓" : " ✗"}</b>}</span>
+              <span>{f.label}{st && <b className={`mark${st}`} aria-label={st === " right" ? tr("richtig", "correct") : tr("falsch", "wrong")}>{st === " right" ? " ✓" : " ✗"}</b>}</span>
               {f.select
                 ? <select className={st} value={shown[f.id]} disabled={!!answered} onChange={e => setVals({ ...vals, [f.id]: e.target.value })}>
                     {f.select.map(v => <option key={v} value={v}>{v === 0 ? "0 (neutral)" : signed(v)}</option>)}
@@ -69,7 +71,7 @@ function NumbersAnswer({ task, answered, submit }: P<"numbers">) {
           );
         })}
       </div>
-      {!answered && <Button variant="primary" icon="check" type="submit" className="check-btn">Prüfen</Button>}
+      {!answered && <Button variant="primary" icon="check" type="submit" className="check-btn">{tr("Prüfen", "Check")}</Button>}
     </form>
   );
 }
@@ -87,10 +89,10 @@ function ShellsAnswer({ task, answered, submit }: P<"shells">) {
       <div className="ab-atom-box"><div className="ab-atom"><Bohr Z={Z} N={standardNeutrons(Z)} E={0} shellCounts={shown} labels /></div></div>
       <div className="ab-controls">
         {shown.map((c, i) => (
-          <Stepper key={i} stack label={`${SHELL_NAMES[i]}-Schale`} value={c} min={0} max={32}
+          <Stepper key={i} stack label={tr(`${SHELL_NAMES[i]}-Schale`, `${SHELL_NAMES[i]} shell`)} value={c} min={0} max={32}
             onChange={v => { if (!answered) { buzz(); setCounts(counts.map((x, k) => (k === i ? v : x))); } }} />
         ))}
-        {!answered && <Button variant="primary" icon="check" onClick={check} className="check-btn">Prüfen</Button>}
+        {!answered && <Button variant="primary" icon="check" onClick={check} className="check-btn">{tr("Prüfen", "Check")}</Button>}
       </div>
     </div>
   );
@@ -109,10 +111,10 @@ function BuildAnswer({ task, answered, submit }: P<"build">) {
         {answered && BY_Z[shown.Z] && <div className="ab-nuc"><Nuclide Z={shown.Z} N={shown.N} E={shown.E} size="sm" /></div>}
       </div></div>
       <div className="ab-controls">
-        <Stepper stack tone="proton" label="Protonen" value={shown.Z} max={30} onChange={v => set("Z", v)} />
-        <Stepper stack tone="neutron" label="Neutronen" value={shown.N} max={40} onChange={v => set("N", v)} />
-        <Stepper stack tone="electron" label="Elektronen" value={shown.E} max={40} onChange={v => set("E", v)} />
-        {!answered && <Button variant="primary" icon="check" onClick={check} className="check-btn">Prüfen</Button>}
+        <Stepper stack tone="proton" label={tr("Protonen", "Protons")} value={shown.Z} max={30} onChange={v => set("Z", v)} />
+        <Stepper stack tone="neutron" label={tr("Neutronen", "Neutrons")} value={shown.N} max={40} onChange={v => set("N", v)} />
+        <Stepper stack tone="electron" label={tr("Elektronen", "Electrons")} value={shown.E} max={40} onChange={v => set("E", v)} />
+        {!answered && <Button variant="primary" icon="check" onClick={check} className="check-btn">{tr("Prüfen", "Check")}</Button>}
       </div>
     </div>
   );
@@ -140,8 +142,8 @@ function BoxesAnswer({ task, answered, submit }: P<"boxes">) {
     <div className="answer-boxes">
       <div className="answer-fill"><Fit><EnergyDiagram cfg={[]} boxes={shown} lastIndex={task.lastIndex} onBox={onBox} /></Fit></div>
       <div className="box-foot">
-        <span>Eingetragen: <b>{n}</b> von {task.Z} Elektronen</span>
-        {!answered && <Button variant="primary" icon="check" onClick={check}>Prüfen</Button>}
+        <span>{tr("Eingetragen", "Entered")}: <b>{n}</b> {tr("von", "of")} {task.Z} {tr("Elektronen", "electrons")}</span>
+        {!answered && <Button variant="primary" icon="check" onClick={check}>{tr("Prüfen", "Check")}</Button>}
       </div>
     </div>
   );

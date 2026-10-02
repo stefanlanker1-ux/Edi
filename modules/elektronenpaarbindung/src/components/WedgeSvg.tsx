@@ -3,6 +3,7 @@
 
 import { useMemo } from "react";
 import { polarBonds, wedgeLayout, type Molecule } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 const BOND = 70; // mittlere Bindung in Pixel (wie ein Rasterschritt der Strichformel)
 const GAP = 16; // Abstand der Striche vom Atomsymbol
@@ -20,7 +21,7 @@ export function WedgeSvg({ mol, lonePairs = true, deltas = false }: { mol: Molec
   if (deltas) for (const p of polarBonds(mol)) { sign.set(p.plus, "δ+"); sign.set(p.minus, "δ−"); }
 
   return (
-    <svg className="structure wedge" viewBox={vb} role="img" aria-label="Geometrische Strukturformel">
+    <svg className="structure wedge" viewBox={vb} role="img" aria-label={tr("Geometrische Strukturformel", "Wedge-dash formula")}>
       {w.bonds.map(b => {
         const p = at.get(b.from)!, q = at.get(b.to)!;
         const L = Math.hypot(q.x - p.x, q.y - p.y) || 1;

@@ -3,6 +3,7 @@
 
 import { useLayoutEffect, useRef } from "react";
 import { quantitiesFor, unitName, QUANTITY } from "@lern/units";
+import { tr } from "@lern/i18n";
 
 export function QuantitySelect({ value, os, onChange }: { value: string; os: boolean; onChange: (id: string) => void }) {
   const list = quantitiesFor(os);
@@ -12,11 +13,11 @@ export function QuantitySelect({ value, os, onChange }: { value: string; os: boo
   return (
     <div className="qty-row">
     <label className="sel sel-qty">
-      <select value={value} onChange={e => onChange(e.target.value)} aria-label="Größe">
+      <select value={value} onChange={e => onChange(e.target.value)} aria-label={tr("Größe", "Quantity")}>
         {comp.length
           ? <>
-              <optgroup label="Grundgrößen">{base.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>
-              <optgroup label="Zusammengesetzt">{comp.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>
+              <optgroup label={tr("Grundgrößen", "Base quantities")}>{base.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>
+              <optgroup label={tr("Zusammengesetzt", "Derived")}>{comp.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}</optgroup>
             </>
           : base.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
       </select>

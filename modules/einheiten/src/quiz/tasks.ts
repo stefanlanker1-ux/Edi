@@ -9,6 +9,7 @@
 
 import { solve, parseQ, parseAnswer, fmt, isTerminating, eq, mul, div, q, pow10, toNumber, unitSi, unitName, QUANTITIES, type Q, type Solution } from "@lern/units";
 import { buildRound, dis, mc, pick, rnd, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
+import { tr, num } from "@lern/i18n";
 
 export interface Conv { value: string; from: string; to: string }
 export type Task =
@@ -16,11 +17,13 @@ export type Task =
   | (BaseTask & { kind: "input"; value: string; from: string; to: string; round?: number; table?: string[] });
 
 const T = (v: Q) => fmt(v).text;
+/** Geteilt-Zeichen: „:“ (deutsch), „÷“ (englisch) */
+const DIV = tr(":", "÷");
 /** Zahl mit höchstens `maxDec` Nachkommastellen und kurzer Ziffernfolge? */
 function tidy(v: Q, maxDec = 6, maxDigits = 9) {
   if (!isTerminating(v)) return false;
   const s = fmt(v, { group: false }).text.replace("−", "");
-  const [i, f = ""] = s.split(",");
+  const [i, f = ""] = s.split(/[,.]/);
   return f.length <= maxDec && (i.replace(/^0+/, "") + f).replace(/^0+/, "").length <= maxDigits;
 }
 
@@ -32,7 +35,7 @@ const NUMS = ["1,5", "2,5", "3", "4", "7", "12", "15", "25", "36", "75", "120", 
 /** Eingabe-Aufgabe erzeugen, deren Ergebnis „schön“ ist (endet, nicht zu lang) */
 function inputTask(from: string, to: string, opts: { values?: string[]; maxDec?: number; table?: string[] } = {}): Task {
   for (let tries = 0; tries < 60; tries++) {
-    const value = pick(opts.values ?? NUMS);
+    const value = num(pick(opts.values ?? NUMS));
     const s = solve(value, from, to);
     if (!tidy(s.result, opts.maxDec ?? 6)) continue;
     return makeInput(value, from, to, s, undefined, opts.table);
@@ -63,18 +66,21 @@ const compoundUnit = (u: string) => /[/·]/.test(u) || NAMED.includes(u);
 function makeInput(value: string, from: string, to: string, s: Solution, round?: number, table?: string[]): Task {
   if (round !== undefined && tidy(s.result, round)) round = undefined; // exaktes Ergebnis: nicht runden
   const res = round !== undefined ? `≈ ${fmt(s.result, { digits: round }).text}` : T(s.result);
-  const how = s.divisor ? `${value} : ${T(s.divisor)}` : `${value} · ${T(s.rel.F)}`;
+  const how = s.divisor ? `${value} ${DIV} ${T(s.divisor)}` : `${value} · ${T(s.rel.F)}`;
   const rel = `1 ${from} = ${isTerminating(s.rel.F) ? T(s.rel.F) : s.divisor ? `1/${T(s.divisor)}` : `≈ ${T(s.rel.F)}`} ${to}`;
   const comp = compoundUnit(from) || compoundUnit(to);
   const same = eq(s.rel.F, q(1));
   return {
     kind: "input", value, from, to, ...(round !== undefined ? { round } : {}), ...(table ? { table } : {}),
-    prompt: `Rechne um: **${value} ${from}** = ? **${to}**${round !== undefined ? ` (auf ${round} Dezimalstellen runden)` : ""}`,
+    prompt: tr(`Rechne um: **${value} ${from}** = ? **${to}**${round !== undefined ? ` (auf ${round} Dezimalstellen runden)` : ""}`,
+      `Convert: **${value} ${from}** = ? **${to}**${round !== undefined ? ` (round to ${round} decimal places)` : ""}`),
     hint: comp
-      ? `Ersetze jede Einheit durch ihren Wert in der neuen Einheit: 1 ${from} = ? ${to}`
-      : same ? `${from} und ${to} sind gleich groß. Wie viele ${to} sind 1 ${from}?`
-      : s.bigger ? `Große → kleine Einheit: Die Zahl wird größer. Wie viele ${to} sind 1 ${from}?` : `Kleine → große Einheit: Die Zahl wird kleiner. Wie viele ${from} sind 1 ${to}?`,
-    explain: `${comp ? rowsText(s) : rel} → ${how} = **${res} ${to}**.${s.shift ? ` Komma um ${Math.abs(s.shift)} ${Math.abs(s.shift) === 1 ? "Stelle" : "Stellen"} nach ${s.shift > 0 ? "rechts" : "links"}.` : ""}`,
+      ? tr(`Ersetze jede Einheit durch ihren Wert in der neuen Einheit: 1 ${from} = ? ${to}`, `Replace each unit by its value in the new unit: 1 ${from} = ? ${to}`)
+      : same ? tr(`${from} und ${to} sind gleich groß. Wie viele ${to} sind 1 ${from}?`, `${from} and ${to} are the same size. How many ${to} are 1 ${from}?`)
+      : s.bigger ? tr(`Große → kleine Einheit: Die Zahl wird größer. Wie viele ${to} sind 1 ${from}?`, `Large → small unit: the number gets bigger. How many ${to} are 1 ${from}?`)
+      : tr(`Kleine → große Einheit: Die Zahl wird kleiner. Wie viele ${from} sind 1 ${to}?`, `Small → large unit: the number gets smaller. How many ${from} are 1 ${to}?`),
+    explain: `${comp ? rowsText(s) : rel} → ${how} = **${res} ${to}**.${s.shift ? tr(` Komma um ${Math.abs(s.shift)} ${Math.abs(s.shift) === 1 ? "Stelle" : "Stellen"} nach ${s.shift > 0 ? "rechts" : "links"}.`,
+      ` Move the decimal point ${Math.abs(s.shift)} ${Math.abs(s.shift) === 1 ? "place" : "places"} to the ${s.shift > 0 ? "right" : "left"}.`) : ""}`,
   };
 }
 
@@ -107,17 +113,19 @@ function factorTask(units: string[], steps = 3, dim?: 2 | 3): Task {
   const k = Math.round(Math.log10(toNumber(F)));
   const st = dim ?? 1;
   const wrong = [
-    dis(T(pow10(-k)), `Das ist die Gegenrichtung: 1 ${b} = ${T(pow10(-k))} ${a}. Von der großen zur kleinen Einheit wird die Zahl größer.`),
-    ...(dim ? [dis(T(pow10(k / dim)), `So viel wäre es bei Längen. ${dim === 2 ? "Fläche = Länge · Länge" : "Volumen = Länge · Länge · Länge"}: jede Stufe ${dim === 2 ? "zweimal" : "dreimal"} · 10.`)] : []),
-    ...(dim === 3 ? [dis(T(pow10((k * 2) / 3)), "So viel wäre es bei Flächen (· 10 · 10). Volumen: jede Stufe dreimal · 10.")] : []),
-    dis(T(pow10(k + st)), `Eine Stufe zu viel: Zähle die Stufen von ${a} nach ${b} auf der Pfeilkette.`),
-    ...(k - st > 0 ? [dis(T(pow10(k - st)), `Eine Stufe zu wenig: Zähle die Stufen von ${a} nach ${b} auf der Pfeilkette.`)] : []),
+    dis(T(pow10(-k)), tr(`Das ist die Gegenrichtung: 1 ${b} = ${T(pow10(-k))} ${a}. Von der großen zur kleinen Einheit wird die Zahl größer.`,
+      `That is the other direction: 1 ${b} = ${T(pow10(-k))} ${a}. From the large to the small unit the number gets bigger.`)),
+    ...(dim ? [dis(T(pow10(k / dim)), tr(`So viel wäre es bei Längen. ${dim === 2 ? "Fläche = Länge · Länge" : "Volumen = Länge · Länge · Länge"}: jede Stufe ${dim === 2 ? "zweimal" : "dreimal"} · 10.`,
+      `That would be right for lengths. ${dim === 2 ? "Area = length · length" : "Volume = length · length · length"}: each step · 10 ${dim === 2 ? "twice" : "three times"}.`))] : []),
+    ...(dim === 3 ? [dis(T(pow10((k * 2) / 3)), tr("So viel wäre es bei Flächen (· 10 · 10). Volumen: jede Stufe dreimal · 10.", "That would be right for areas (· 10 · 10). Volume: each step · 10 three times."))] : []),
+    dis(T(pow10(k + st)), tr(`Eine Stufe zu viel: Zähle die Stufen von ${a} nach ${b} auf der Pfeilkette.`, `One step too many: count the steps from ${a} to ${b} on the arrow chain.`)),
+    ...(k - st > 0 ? [dis(T(pow10(k - st)), tr(`Eine Stufe zu wenig: Zähle die Stufen von ${a} nach ${b} auf der Pfeilkette.`, `One step too few: count the steps from ${a} to ${b} on the arrow chain.`))] : []),
   ];
   return {
     ...mc(T(F), wrong),
     conv: { value: "1", from: a, to: b },
-    prompt: `Setze die **Umrechnungszahl** ein: 1 ${a} = ? ${b}`,
-    hint: dim === 2 ? "Flächen: jede Stufe · 10 · 10 = · 100." : dim === 3 ? "Volumen: jede Stufe · 10 · 10 · 10 = · 1000." : "Zähle die Stufen auf der Pfeilkette.",
+    prompt: tr(`Setze die **Umrechnungszahl** ein: 1 ${a} = ? ${b}`, `Fill in the **conversion factor**: 1 ${a} = ? ${b}`),
+    hint: dim === 2 ? tr("Flächen: jede Stufe · 10 · 10 = · 100.", "Areas: each step · 10 · 10 = · 100.") : dim === 3 ? tr("Volumen: jede Stufe · 10 · 10 · 10 = · 1000.", "Volumes: each step · 10 · 10 · 10 = · 1000.") : tr("Zähle die Stufen auf der Pfeilkette.", "Count the steps on the arrow chain."),
     explain: `${solve("1", a, b).rel.rows.map(r => (r.unit ? `${T(r.coef)} ${r.unit}` : "")).filter(Boolean).join(" = ")} → **1 ${a} = ${T(F)} ${b}**.`,
   };
 }
@@ -127,20 +135,22 @@ function ruleTask(units: string[]): Task {
   const [a, b] = pair(units, 2);
   const s = solve("1", a, b);
   const k = s.bigger ? s.rel.F : div(q(1), s.rel.F);
-  const op = s.bigger ? "·" : ":", other = s.bigger ? ":" : "·";
+  const op = s.bigger ? "·" : DIV, other = s.bigger ? DIV : "·";
   const right = `${op} ${T(k)}`;
   const kk = [div(k, q(10)), mul(k, q(10))].filter(x => toNumber(x) >= 10);
-  const value = pick(["3,4", "250", "0,6", "12", "7,5"]);
+  const value = num(pick(["3,4", "250", "0,6", "12", "7,5"]));
   return {
     ...mc(right, [
-      dis(`${other} ${T(k)}`, s.bigger ? `${a} ist die größere Einheit – in ${b} braucht man mehr davon: Die Zahl wird größer, also mal.` : `${a} ist die kleinere Einheit – in ${b} braucht man weniger davon: Die Zahl wird kleiner, also geteilt.`),
-      ...kk.map(x => dis(`${op} ${T(x)}`, `Die Richtung stimmt – zähle die Stufen von ${a} nach ${b} noch einmal.`)),
+      dis(`${other} ${T(k)}`, s.bigger
+        ? tr(`${a} ist die größere Einheit – in ${b} braucht man mehr davon: Die Zahl wird größer, also mal.`, `${a} is the larger unit – you need more ${b}: the number gets bigger, so multiply.`)
+        : tr(`${a} ist die kleinere Einheit – in ${b} braucht man weniger davon: Die Zahl wird kleiner, also geteilt.`, `${a} is the smaller unit – you need fewer ${b}: the number gets smaller, so divide.`)),
+      ...kk.map(x => dis(`${op} ${T(x)}`, tr(`Die Richtung stimmt – zähle die Stufen von ${a} nach ${b} noch einmal.`, `The direction is right – count the steps from ${a} to ${b} again.`))),
       ...kk.map(x => `${other} ${T(x)}`),
     ]),
     conv: { value, from: a, to: b },
-    prompt: `Du rechnest **${value} ${a}** in **${b}** um. Wie rechnest du?`,
-    hint: "Große → kleine Einheit: mal. Kleine → große Einheit: geteilt. Zähle die Stufen auf der Pfeilkette.",
-    explain: `1 ${s.bigger ? a : b} = ${T(k)} ${s.bigger ? b : a} → von ${a} nach ${b} **${right}**.`,
+    prompt: tr(`Du rechnest **${value} ${a}** in **${b}** um. Wie rechnest du?`, `You convert **${value} ${a}** to **${b}**. What do you do?`),
+    hint: tr("Große → kleine Einheit: mal. Kleine → große Einheit: geteilt. Zähle die Stufen auf der Pfeilkette.", "Large → small unit: multiply. Small → large unit: divide. Count the steps on the arrow chain."),
+    explain: `1 ${s.bigger ? a : b} = ${T(k)} ${s.bigger ? b : a} → ${tr("von", "from")} ${a} ${tr("nach", "to")} ${b} **${right}**.`,
   };
 }
 
@@ -160,21 +170,23 @@ function compareTask(units: string[], maxDec = 3, dim: 1 | 2 | 3 = 1): Task {
     if (!tidy(vb, maxDec)) continue;
     const A = `${T(va)} ${a}`, B = `${T(vb)} ${b}`;
     const cmp = toNumber(vb) - toNumber(inB);
-    const right = cmp === 0 ? "gleich viel" : cmp < 0 ? A : B;
+    const same = tr("gleich viel", "the same");
+    const right = cmp === 0 ? same : cmp < 0 ? A : B;
     const conv = `${A} = ${T(inB)} ${b}`;
     const trapWhy = dim > 1
-      ? `${T(wrongF)} wäre die Umrechnungszahl bei Längen. ${dim === 2 ? "Fläche" : "Volumen"}: 1 ${a} = ${T(F)} ${b}, also ${conv}.`
-      : `1 ${a} = ${T(F)} ${b}, nicht ${T(wrongF)} ${b}. Also ${conv}.`;
+      ? tr(`${T(wrongF)} wäre die Umrechnungszahl bei Längen. ${dim === 2 ? "Fläche" : "Volumen"}: 1 ${a} = ${T(F)} ${b}, also ${conv}.`,
+        `${T(wrongF)} would be the factor for lengths. ${dim === 2 ? "Area" : "Volume"}: 1 ${a} = ${T(F)} ${b}, so ${conv}.`)
+      : tr(`1 ${a} = ${T(F)} ${b}, nicht ${T(wrongF)} ${b}. Also ${conv}.`, `1 ${a} = ${T(F)} ${b}, not ${T(wrongF)} ${b}. So ${conv}.`);
     return {
       ...mc(right, [
-        right !== "gleich viel" ? dis("gleich viel", mode === 3 ? trapWhy : `${conv} – das ist nicht dasselbe wie ${B}.`) : null,
-        right !== A ? dis(A, `${conv} – das ist ${cmp === 0 ? "genau gleich viel wie" : "weniger als"} ${B}.`) : null,
-        right !== B ? dis(B, `${conv} – das ist ${cmp === 0 ? "genau gleich viel wie" : "mehr als"} ${B}.`) : null,
+        right !== same ? dis(same, mode === 3 ? trapWhy : tr(`${conv} – das ist nicht dasselbe wie ${B}.`, `${conv} – that is not the same as ${B}.`)) : null,
+        right !== A ? dis(A, tr(`${conv} – das ist ${cmp === 0 ? "genau gleich viel wie" : "weniger als"} ${B}.`, `${conv} – that is ${cmp === 0 ? "exactly the same as" : "less than"} ${B}.`)) : null,
+        right !== B ? dis(B, tr(`${conv} – das ist ${cmp === 0 ? "genau gleich viel wie" : "mehr als"} ${B}.`, `${conv} – that is ${cmp === 0 ? "exactly the same as" : "more than"} ${B}.`)) : null,
       ]),
       conv: { value: T(va), from: a, to: b },
-      prompt: `Was ist mehr: **${A}** oder **${B}**?`,
-      hint: "Rechne zuerst beides in dieselbe Einheit um.",
-      explain: `${conv}. Verglichen mit ${B} → **${right}**.`,
+      prompt: tr(`Was ist mehr: **${A}** oder **${B}**?`, `Which is more: **${A}** or **${B}**?`),
+      hint: tr("Rechne zuerst beides in dieselbe Einheit um.", "First convert both to the same unit."),
+      explain: tr(`${conv}. Verglichen mit ${B} → **${right}**.`, `${conv}. Compared with ${B} → **${right}**.`),
     };
   }
 }
@@ -187,43 +199,44 @@ function timeCompare(): Task {
   const mode = pick([0, 1, 2, 3]);
   const vb = mode === 0 ? inB : mode === 1 ? trap : mode === 2 ? mul(inB, q(9, 10)) : mul(inB, q(11, 10));
   if (!isTerminating(vb) || !tidy(vb, 1)) return timeCompare();
-  const A = `${va} ${a}`, B = `${T(vb)} ${b}`;
+  const A = `${num(va)} ${a}`, B = `${T(vb)} ${b}`;
   const cmp = toNumber(vb) - toNumber(inB);
-  const right = cmp === 0 ? "gleich lang" : cmp < 0 ? A : B;
-  const conv = `${A} = ${va} · ${F} ${b} = ${T(inB)} ${b}`;
+  const same = tr("gleich lang", "the same");
+  const right = cmp === 0 ? same : cmp < 0 ? A : B;
+  const conv = `${A} = ${num(va)} · ${F} ${b} = ${T(inB)} ${b}`;
   return {
     ...mc(right, [
-      right !== "gleich lang" ? dis("gleich lang", mode === 1 ? `1 ${a} hat ${F} ${b}, nicht 100. ${conv}.` : `${conv} – nicht dasselbe wie ${B}.`) : null,
-      right !== A ? dis(A, `${conv} – ${cmp === 0 ? "genau gleich lang wie" : "kürzer als"} ${B}.`) : null,
-      right !== B ? dis(B, `${conv} – ${cmp === 0 ? "genau gleich lang wie" : "länger als"} ${B}.`) : null,
+      right !== same ? dis(same, mode === 1 ? tr(`1 ${a} hat ${F} ${b}, nicht 100. ${conv}.`, `1 ${a} has ${F} ${b}, not 100. ${conv}.`) : tr(`${conv} – nicht dasselbe wie ${B}.`, `${conv} – not the same as ${B}.`)) : null,
+      right !== A ? dis(A, tr(`${conv} – ${cmp === 0 ? "genau gleich lang wie" : "kürzer als"} ${B}.`, `${conv} – ${cmp === 0 ? "exactly as long as" : "shorter than"} ${B}.`)) : null,
+      right !== B ? dis(B, tr(`${conv} – ${cmp === 0 ? "genau gleich lang wie" : "länger als"} ${B}.`, `${conv} – ${cmp === 0 ? "exactly as long as" : "longer than"} ${B}.`)) : null,
     ]),
     conv: { value: va, from: a, to: b },
-    prompt: `Was dauert länger: **${A}** oder **${B}**?`,
-    hint: `Zeit rechnet nicht in Zehnern: 1 ${a} = ${F} ${b}.`,
-    explain: `${conv}. Verglichen mit ${B} → **${right}**.`,
+    prompt: tr(`Was dauert länger: **${A}** oder **${B}**?`, `Which takes longer: **${A}** or **${B}**?`),
+    hint: tr(`Zeit rechnet nicht in Zehnern: 1 ${a} = ${F} ${b}.`, `Time does not work in tens: 1 ${a} = ${F} ${b}.`),
+    explain: tr(`${conv}. Verglichen mit ${B} → **${right}**.`, `${conv}. Compared with ${B} → **${right}**.`),
   };
 }
 
 /** Zeit: Umrechnungszahl (1 h = ? min) – falsche Antworten: Zehnerschritte, Zwischenstufe, Gegenrichtung */
 function timeFactor(): Task {
   const [a, b, right, wrongs] = pick([
-    ["h", "min", "60", [dis("100", "Zeit rechnet nicht in Zehnern: 1 h = 60 min."), dis("3600", "Das wären Sekunden: 1 h = 3600 s."), dis("24", "24 gehört zum Tag: 1 d = 24 h.")]],
-    ["min", "s", "60", [dis("100", "Zeit rechnet nicht in Zehnern: 1 min = 60 s."), dis("3600", "So viele Sekunden hat eine Stunde."), dis("1000", "Hier gibt es keine Vorsilbe – 1 min = 60 s.")]],
-    ["h", "s", "3600", [dis("60", "1 h = 60 min, und jede Minute hat 60 s: 60 · 60 = 3600."), dis("100", "Zeit rechnet nicht in Zehnern: 60 · 60 = 3600."), dis("360", "Eine Null zu wenig: 60 · 60 = 3600.")]],
-    ["d", "h", "24", [dis("60", "60 gehört zu Minuten und Sekunden. Ein Tag hat 24 h."), dis("12", "12 Stunden sind ein halber Tag."), dis("100", "Zeit rechnet nicht in Zehnern: 1 d = 24 h.")]],
-    ["d", "min", "1440", [dis("24", "Das sind Stunden: 1 d = 24 h = 24 · 60 min."), dis("2400", "1 h hat 60 min, nicht 100: 24 · 60 = 1440."), dis("1400", "Genau rechnen: 24 · 60 = 1440.")]],
+    ["h", "min", "60", [dis("100", tr("Zeit rechnet nicht in Zehnern: 1 h = 60 min.", "Time does not work in tens: 1 h = 60 min.")), dis("3600", tr("Das wären Sekunden: 1 h = 3600 s.", "That would be seconds: 1 h = 3600 s.")), dis("24", tr("24 gehört zum Tag: 1 d = 24 h.", "24 belongs to the day: 1 d = 24 h."))]],
+    ["min", "s", "60", [dis("100", tr("Zeit rechnet nicht in Zehnern: 1 min = 60 s.", "Time does not work in tens: 1 min = 60 s.")), dis("3600", tr("So viele Sekunden hat eine Stunde.", "That is how many seconds an hour has.")), dis("1000", tr("Hier gibt es keine Vorsilbe – 1 min = 60 s.", "There is no prefix here – 1 min = 60 s."))]],
+    ["h", "s", "3600", [dis("60", tr("1 h = 60 min, und jede Minute hat 60 s: 60 · 60 = 3600.", "1 h = 60 min, and each minute has 60 s: 60 · 60 = 3600.")), dis("100", tr("Zeit rechnet nicht in Zehnern: 60 · 60 = 3600.", "Time does not work in tens: 60 · 60 = 3600.")), dis("360", tr("Eine Null zu wenig: 60 · 60 = 3600.", "One zero too few: 60 · 60 = 3600."))]],
+    ["d", "h", "24", [dis("60", tr("60 gehört zu Minuten und Sekunden. Ein Tag hat 24 h.", "60 belongs to minutes and seconds. A day has 24 h.")), dis("12", tr("12 Stunden sind ein halber Tag.", "12 hours are half a day.")), dis("100", tr("Zeit rechnet nicht in Zehnern: 1 d = 24 h.", "Time does not work in tens: 1 d = 24 h."))]],
+    ["d", "min", "1440", [dis("24", tr("Das sind Stunden: 1 d = 24 h = 24 · 60 min.", "Those are hours: 1 d = 24 h = 24 · 60 min.")), dis("2400", tr("1 h hat 60 min, nicht 100: 24 · 60 = 1440.", "1 h has 60 min, not 100: 24 · 60 = 1440.")), dis("1400", tr("Genau rechnen: 24 · 60 = 1440.", "Calculate carefully: 24 · 60 = 1440."))]],
   ] as [string, string, string, ReturnType<typeof dis>[]][]);
   return {
     ...mc(right, wrongs),
     conv: { value: "1", from: a, to: b },
-    prompt: `Setze die **Umrechnungszahl** ein: 1 ${a} = ? ${b}`,
-    hint: "Denk an die Uhr: Zeit rechnet in 60er- und 24er-Schritten, nicht in Zehnern.",
+    prompt: tr(`Setze die **Umrechnungszahl** ein: 1 ${a} = ? ${b}`, `Fill in the **conversion factor**: 1 ${a} = ? ${b}`),
+    hint: tr("Denk an die Uhr: Zeit rechnet in 60er- und 24er-Schritten, nicht in Zehnern.", "Think of a clock: time works in steps of 60 and 24, not in tens."),
     explain: `${rowsText(solve("1", a, b))} → **1 ${a} = ${right} ${b}**.`,
   };
 }
 
 /** Größenvorstellung: Welche Einheit passt? */
-const ESTIMATES: [string, string, string[]][] = [
+const ESTIMATES_DE: [string, string, string[]][] = [
   ["Ein Klassenzimmer hat etwa 60 __ Bodenfläche.", "m²", ["cm²", "km²", "dm²"]],
   ["Ein Handy-Bildschirm hat etwa 90 __.", "cm²", ["m²", "mm²", "a"]],
   ["Ein Fußballfeld hat etwa 70 __.", "a", ["m²", "km²", "cm²"]],
@@ -237,14 +250,29 @@ const ESTIMATES: [string, string, string[]][] = [
   ["Eine Milchpackung fasst 1 __.", "dm³", ["cm³", "m³", "mm³"]],
   ["Ein Sandkorn hat etwa 1 __ Volumen.", "mm³", ["cm³", "dm³", "m³"]],
 ];
+const ESTIMATES_EN: [string, string, string[]][] = [
+  ["A classroom has a floor area of about 60 __.", "m²", ["cm²", "km²", "dm²"]],
+  ["A phone screen has about 90 __.", "cm²", ["m²", "mm²", "a"]],
+  ["A football pitch has about 70 __.", "a", ["m²", "km²", "cm²"]],
+  ["A large city has an area of about 400 __.", "km²", ["ha", "m²", "a"]],
+  ["A postage stamp has about 6 __.", "cm²", ["mm²", "dm²", "m²"]],
+  ["A farm has about 20 __ of fields.", "ha", ["m²", "km²", "cm²"]],
+  ["A glass of water holds about 250 __.", "ml", ["l", "hl", "m³"]],
+  ["A full bathtub holds about 150 __.", "l", ["ml", "hl", "cm³"]],
+  ["A sugar cube has a volume of about 2 __.", "cm³", ["dm³", "m³", "mm³"]],
+  ["A swimming pool holds about 400 __ of water.", "m³", ["dm³", "l", "cm³"]],
+  ["A milk carton holds 1 __.", "dm³", ["cm³", "m³", "mm³"]],
+  ["A grain of sand has a volume of about 1 __.", "mm³", ["cm³", "dm³", "m³"]],
+];
+const ESTIMATES = tr(ESTIMATES_DE, ESTIMATES_EN);
 function estimateTask(filter: string[]): Task {
   const [text, right, wrongs] = pick(ESTIMATES.filter(e => filter.includes(e[1])));
   return {
     ...mc(right, wrongs),
-    prompt: `Welche Einheit passt? ${text.replace("__", "▢")}`,
+    prompt: `${tr("Welche Einheit passt?", "Which unit fits?")} ${text.replace("__", "▢")}`,
     hint: /²|\ba\b|ha/.test(right)
-      ? "Stell dir die Fläche vor. 1 cm² ≈ Fingernagel, 1 m² ≈ Tischplatte, 1 a ≈ Klassenzimmer mal 2."
-      : "Stell dir das Volumen vor. 1 cm³ ≈ Würfelzucker, 1 dm³ = 1 Liter, 1 m³ = 1000 Liter.",
+      ? tr("Stell dir die Fläche vor. 1 cm² ≈ Fingernagel, 1 m² ≈ Tischplatte, 1 a ≈ Klassenzimmer mal 2.", "Picture the area. 1 cm² ≈ fingernail, 1 m² ≈ table top, 1 a ≈ two classrooms.")
+      : tr("Stell dir das Volumen vor. 1 cm³ ≈ Würfelzucker, 1 dm³ = 1 Liter, 1 m³ = 1000 Liter.", "Picture the volume. 1 cm³ ≈ sugar cube, 1 dm³ = 1 litre, 1 m³ = 1000 litres."),
     explain: `${text.replace("__", `**${right}**`)} (${unitName(right)})`,
   };
 }
@@ -259,7 +287,7 @@ const LITER: [string, string][] = [["l", "dm³"], ["ml", "cm³"], ["l", "cm³"],
 function timeTask(): Task {
   const [a, b] = pick([["h", "min"], ["min", "s"], ["d", "h"], ["min", "h"], ["s", "min"], ["h", "d"], ["h", "s"], ["s", "h"]] as [string, string][]);
   const big = toNumber(div(unitSi(a), unitSi(b))) > 1;
-  const values = big ? ["1,5", "2", "3", "0,5", "0,25", "2,5", "4", "0,75", "1,2", "0,1"] : ["90", "30", "150", "45", "180", "210", "6", "12", "36", "72", "120", "7200", "900"];
+  const values = big ? ["1,5", "2", "3", "0,5", "0,25", "2,5", "4", "0,75", "1,2", "0,1"].map(num) : ["90", "30", "150", "45", "180", "210", "6", "12", "36", "72", "120", "7200", "900"];
   return inputTask(a, b, { values });
 }
 /** Werte, die es im Alltag gibt (in SI-Einheiten): keine Dichte von 250 g/cm³ */
@@ -299,21 +327,21 @@ const NAMED_PAIRS: [string, string][] = [["hPa", "bar"], ["bar", "Pa"], ["N/cm²
 
 function factorComp(): Task {
   const [a, b, right, wrongs] = pick([
-    ["km/h", "m/s", "1/3,6", [dis("3,6", "Das ist 1 m/s in km/h – die Gegenrichtung."), dis("1000", "1 km = 1000 m, aber 1 h hat auch 3600 s: 1000 m / 3600 s."), "0,36"]],
-    ["m/s", "km/h", "3,6", [dis("1/3,6", "Das ist 1 km/h in m/s – die Gegenrichtung."), dis("1000", "1 m = 0,001 km und 1 s = 1/3600 h: 0,001 km / (1/3600 h)."), "36"]],
-    ["g/cm³", "kg/m³", "1000", [dis("1", "1 g/cm³ = 1 kg/dm³ – gefragt ist aber kg/m³."), dis("0,001", "Gegenrichtung: 1 kg/m³ = 0,001 g/cm³."), "100"]],
-    ["kWh", "kJ", "3600", [dis("1000", "kW bleibt kW – nur h wird zu s: 1 h = 3600 s."), dis("60", "1 h = 60 min, gefragt sind aber Sekunden: 3600 s."), "360"]],
-    ["bar", "hPa", "1000", [dis("100", "1 bar = 100 000 Pa und 1 hPa = 100 Pa."), dis("100 000", "Das wären Pa: 1 bar = 100 000 Pa."), "10"]],
-    ["Ah", "C", "3600", [dis("60", "1 C = 1 A · s und 1 h = 3600 s."), dis("1000", "Hier gibt es keine Vorsilbe – 1 h = 3600 s."), "3,6"]],
-    ["l/min", "l/h", "60", [dis("1/60", "Gegenrichtung: 1 l/h = 1/60 l/min."), dis("3600", "1 h = 60 min (nicht Sekunden)."), "100"]],
-    ["m³/h", "l/h", "1000", [dis("100", "1 m³ = 1000 dm³ = 1000 l."), dis("0,001", "Gegenrichtung: 1 l = 0,001 m³."), "10"]],
+    ["km/h", "m/s", num("1/3,6"), [dis(num("3,6"), tr("Das ist 1 m/s in km/h – die Gegenrichtung.", "That is 1 m/s in km/h – the other direction.")), dis("1000", tr("1 km = 1000 m, aber 1 h hat auch 3600 s: 1000 m / 3600 s.", "1 km = 1000 m, but 1 h also has 3600 s: 1000 m / 3600 s.")), num("0,36")]],
+    ["m/s", "km/h", num("3,6"), [dis(num("1/3,6"), tr("Das ist 1 km/h in m/s – die Gegenrichtung.", "That is 1 km/h in m/s – the other direction.")), dis("1000", tr("1 m = 0,001 km und 1 s = 1/3600 h: 0,001 km / (1/3600 h).", "1 m = 0.001 km and 1 s = 1/3600 h: 0.001 km / (1/3600 h).")), "36"]],
+    ["g/cm³", "kg/m³", "1000", [dis("1", tr("1 g/cm³ = 1 kg/dm³ – gefragt ist aber kg/m³.", "1 g/cm³ = 1 kg/dm³ – but the question asks for kg/m³.")), dis(num("0,001"), tr("Gegenrichtung: 1 kg/m³ = 0,001 g/cm³.", "Other direction: 1 kg/m³ = 0.001 g/cm³.")), "100"]],
+    ["kWh", "kJ", "3600", [dis("1000", tr("kW bleibt kW – nur h wird zu s: 1 h = 3600 s.", "kW stays kW – only h becomes s: 1 h = 3600 s.")), dis("60", tr("1 h = 60 min, gefragt sind aber Sekunden: 3600 s.", "1 h = 60 min, but the question asks for seconds: 3600 s.")), "360"]],
+    ["bar", "hPa", "1000", [dis("100", tr("1 bar = 100 000 Pa und 1 hPa = 100 Pa.", "1 bar = 100 000 Pa and 1 hPa = 100 Pa.")), dis("100 000", tr("Das wären Pa: 1 bar = 100 000 Pa.", "That would be Pa: 1 bar = 100 000 Pa.")), "10"]],
+    ["Ah", "C", "3600", [dis("60", tr("1 C = 1 A · s und 1 h = 3600 s.", "1 C = 1 A · s and 1 h = 3600 s.")), dis("1000", tr("Hier gibt es keine Vorsilbe – 1 h = 3600 s.", "There is no prefix here – 1 h = 3600 s.")), num("3,6")]],
+    ["l/min", "l/h", "60", [dis("1/60", tr("Gegenrichtung: 1 l/h = 1/60 l/min.", "Other direction: 1 l/h = 1/60 l/min.")), dis("3600", tr("1 h = 60 min (nicht Sekunden).", "1 h = 60 min (not seconds).")), "100"]],
+    ["m³/h", "l/h", "1000", [dis("100", tr("1 m³ = 1000 dm³ = 1000 l.", "1 m³ = 1000 dm³ = 1000 l.")), dis(num("0,001"), tr("Gegenrichtung: 1 l = 0,001 m³.", "Other direction: 1 l = 0.001 m³.")), "10"]],
   ] as [string, string, string, (string | ReturnType<typeof dis>)[]][]);
   return {
     ...mc(right, wrongs),
     conv: { value: "1", from: a, to: b },
-    prompt: `Umrechnungszahl: 1 ${a} = ? ${b}`,
-    hint: "Ersetze jede Einheit durch ihren Wert in der neuen Einheit.",
-    explain: `Einsetzen: ${rowsText(solve("1", a, b))} → **1 ${a} = ${right} ${b}**.`,
+    prompt: tr(`Umrechnungszahl: 1 ${a} = ? ${b}`, `Conversion factor: 1 ${a} = ? ${b}`),
+    hint: tr("Ersetze jede Einheit durch ihren Wert in der neuen Einheit.", "Replace each unit by its value in the new unit."),
+    explain: `${tr("Einsetzen", "Substitute")}: ${rowsText(solve("1", a, b))} → **1 ${a} = ${right} ${b}**.`,
   };
 }
 
@@ -339,34 +367,41 @@ const GENS: Record<string, () => Task> = {
 /** Reihenfolge in Niveau 5 der Oberstufe: vom Leichten zum Schweren */
 const STAGE: Record<string, number> = { c_time: 0, c_num: 1, c_den: 2, c_factor: 3, c_both: 3, c_named: 4 };
 
-export const TYPE_NAMES: Record<string, string> = {
+export const TYPE_NAMES: Record<string, string> = tr({
   z_len: "Längen · Zehnerschritte", z_mass: "Massen · Zehnerschritte", z_lit: "Liter · Zehnerschritte", z_pre: "Vorsilben · Zehnerschritte", z_factor: "Umrechnungszahlen",
   k_len: "Längen umrechnen", k_mass: "Massen umrechnen", k_lit: "Liter umrechnen", k_pre: "Vorsilben umrechnen", k_rule: "Mal oder geteilt?", k_compare: "Vergleichen",
   f_p10: "Flächen · Zehnerschritte", f_num: "Flächen umrechnen", f_factor: "Umrechnungszahlen (Fläche)", f_ha: "Hektar und Ar", f_compare: "Flächen vergleichen", f_est: "Größenvorstellung (Fläche)",
   v_p10: "Volumen · Zehnerschritte", v_num: "Volumen umrechnen", v_factor: "Umrechnungszahlen (Volumen)", v_liter: "Liter und dm³", v_compare: "Volumen vergleichen", v_est: "Größenvorstellung (Volumen)",
   c_time: "Zeit umrechnen", t_factor: "Umrechnungszahlen (Zeit)", t_compare: "Zeiten vergleichen",
   c_num: "Zähler umrechnen", c_den: "Nenner umrechnen", c_both: "Zähler und Nenner", c_named: "Druck, Energie, Ladung", c_factor: "Umrechnungszahlen (zusammengesetzt)",
-};
+}, {
+  z_len: "Lengths · steps of ten", z_mass: "Masses · steps of ten", z_lit: "Litres · steps of ten", z_pre: "Prefixes · steps of ten", z_factor: "Conversion factors",
+  k_len: "Converting lengths", k_mass: "Converting masses", k_lit: "Converting litres", k_pre: "Converting prefixes", k_rule: "Multiply or divide?", k_compare: "Comparing",
+  f_p10: "Areas · steps of ten", f_num: "Converting areas", f_factor: "Conversion factors (area)", f_ha: "Hectares and ares", f_compare: "Comparing areas", f_est: "Sense of size (area)",
+  v_p10: "Volumes · steps of ten", v_num: "Converting volumes", v_factor: "Conversion factors (volume)", v_liter: "Litres and dm³", v_compare: "Comparing volumes", v_est: "Sense of size (volume)",
+  c_time: "Converting time", t_factor: "Conversion factors (time)", t_compare: "Comparing times",
+  c_num: "Converting the numerator", c_den: "Converting the denominator", c_both: "Numerator and denominator", c_named: "Pressure, energy, charge", c_factor: "Conversion factors (derived)",
+});
 
 export type Stufe = "us" | "os";
 interface Level extends QuizLevel { types: string[] }
 const BASE = (pre: boolean): Level[] => [
-  { id: "n1", name: "Zehnerschritte", desc: "1 m = 100 cm · 0,01 kg = 10 g", types: ["z_len", "z_mass", "z_lit", ...(pre ? ["z_pre"] : []), "z_factor"] },
-  { id: "n2", name: "Beliebige Zahlen", desc: "1,5 g = 0,0015 kg · 3,45 m = 345 cm", types: ["k_len", "k_mass", "k_lit", ...(pre ? ["k_pre"] : []), "k_rule", "k_compare"] },
-  { id: "n3", name: "Flächen", desc: "m² → dm²: · 10 · 10 = · 100", types: ["f_p10", "f_num", "f_factor", "f_ha", "f_compare", "f_est"] },
-  { id: "n4", name: "Volumen", desc: "m³ → dm³: · 10 · 10 · 10 · 1 l = 1 dm³", types: ["v_p10", "v_num", "v_factor", "v_liter", "v_compare", "v_est"] },
+  { id: "n1", name: tr("Zehnerschritte", "Steps of ten"), desc: num("1 m = 100 cm · 0,01 kg = 10 g"), types: ["z_len", "z_mass", "z_lit", ...(pre ? ["z_pre"] : []), "z_factor"] },
+  { id: "n2", name: tr("Beliebige Zahlen", "Any numbers"), desc: tr("1,5 g = 0,0015 kg · 3,45 m = 345 cm", "1.5 g = 0.0015 kg · 3.45 m = 345 cm"), types: ["k_len", "k_mass", "k_lit", ...(pre ? ["k_pre"] : []), "k_rule", "k_compare"] },
+  { id: "n3", name: tr("Flächen", "Areas"), desc: "m² → dm²: · 10 · 10 = · 100", types: ["f_p10", "f_num", "f_factor", "f_ha", "f_compare", "f_est"] },
+  { id: "n4", name: tr("Volumen", "Volumes"), desc: "m³ → dm³: · 10 · 10 · 10 · 1 l = 1 dm³", types: ["v_p10", "v_num", "v_factor", "v_liter", "v_compare", "v_est"] },
 ];
 /** Unterstufe: ohne seltene Vorsilben, Niveau 5 = Zeit. Oberstufe: alles, Niveau 5 = zusammengesetzte Einheiten. */
 export const LEVELS: Record<Stufe, Level[]> = {
-  us: [...BASE(false), { id: "n5", name: "Zeit", desc: "1 h = 60 min · 1 d = 24 h · 1,5 h = 90 min", types: ["c_time", "t_factor", "t_compare"] }],
+  us: [...BASE(false), { id: "n5", name: tr("Zeit", "Time"), desc: num("1 h = 60 min · 1 d = 24 h · 1,5 h = 90 min"), types: ["c_time", "t_factor", "t_compare"] }],
   os: [...BASE(true).map(l => ({ ...l, id: `os-${l.id}` })),
-    { id: "os-n5", name: "Zusammengesetzt", desc: "h → s · km/h → m/s · g/cm³ → kg/m³ · bar", types: ["c_time", "c_num", "c_den", "c_both", "c_named", "c_factor"] }],
+    { id: "os-n5", name: tr("Zusammengesetzt", "Derived units"), desc: "h → s · km/h → m/s · g/cm³ → kg/m³ · bar", types: ["c_time", "c_num", "c_den", "c_both", "c_named", "c_factor"] }],
 };
 
 const lv = (stufe: string) => LEVELS[stufe === "os" ? "os" : "us"];
 export const levelId = (stufe: string, level: LevelKey) => (typeof level === "number" ? lv(stufe)[level].id : `${stufe}-${level}`);
 export const levelName = (stufe: string, level: LevelKey) =>
-  level === "mix" ? "Alles gemischt" : level === "weak" ? "Schwächen üben" : level === "due" ? "Heute fällig" : lv(stufe)[level].name;
+  level === "mix" ? tr("Alles gemischt", "Everything mixed") : level === "weak" ? tr("Schwächen üben", "Practise weak spots") : level === "due" ? tr("Heute fällig", "Due today") : lv(stufe)[level].name;
 
 export function makeRound(stufe: string, level: LevelKey, stats?: TypeStats, due: string[] = []): Task[] {
   const levels = lv(stufe);

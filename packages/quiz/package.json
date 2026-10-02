@@ -10,6 +10,7 @@
     "./styles.css": "./src/styles.css"
   },
   "dependencies": {
+    "@lern/i18n": "*",
     "@lern/ui": "*"
   },
   "peerDependencies": {

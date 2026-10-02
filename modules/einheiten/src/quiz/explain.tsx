@@ -7,9 +7,10 @@ import { LEVELS, tableFor, type Stufe, type Task } from "./tasks.ts";
 import { LiveHelp } from "../components/LiveHelp.tsx";
 import { DimChain } from "../components/DimChain.tsx";
 import { scaleMode } from "../help.ts";
+import { tr } from "@lern/i18n";
 
 // Nur das Nötigste als Formel – das Bild erklärt den Rest.
-const TEXT: Record<string, { points: string[]; ex: [string, string, string] }> = {
+const TEXT_DE: Record<string, { points: string[]; ex: [string, string, string] }> = {
   n1: { ex: ["1", "m", "mm"], points: [
     "Große → kleine Einheit: **mal**, kleine → große: **geteilt**",
     "· 10: Komma **eine Stelle nach rechts** · : 10: eine Stelle nach links",
@@ -40,9 +41,41 @@ const TEXT: Record<string, { points: string[]; ex: [string, string, string] }> =
     "1 g/cm³ = **1000 kg/m³** · 1 bar = 1000 hPa · 1 kWh = 3600 kJ",
   ] },
 };
+const TEXT_EN: typeof TEXT_DE = {
+  n1: { ex: ["1", "m", "mm"], points: [
+    "Large → small unit: **multiply**, small → large: **divide**",
+    "· 10: decimal point **one place right** · ÷ 10: one place left",
+    "km → m **· 1000** · m → dm → cm → mm **· 10** each · t → kg → g → mg **· 1000** each",
+  ] },
+  n2: { ex: ["1.5", "g", "kg"], points: [
+    "Same as steps of ten: find the conversion factor, then **move the decimal point**",
+    "1.5 g ÷ 1000 = **0.0015 kg** – fill missing places with 0",
+  ] },
+  n3: { ex: ["2.5", "m²", "cm²"], points: [
+    "Area = length · length: 1 m² = 10 dm · 10 dm = **100 dm²**",
+    "Each step **· 10 · 10 = · 100** – decimal point **two** places",
+    "1 a = 10 m · 10 m = 100 m² · 1 ha = 100 m · 100 m = 10 000 m²",
+  ] },
+  n4: { ex: ["3", "dm³", "cm³"], points: [
+    "Volume = length · length · length: 1 dm³ = 10 cm · 10 cm · 10 cm = **1000 cm³**",
+    "Each step **· 10 · 10 · 10 = · 1000** – decimal point **three** places",
+    "1 l = 1 dm³ · 1 ml = 1 cm³",
+  ] },
+  t5: { ex: ["1.5", "h", "min"], points: [
+    "1 d = **24 h** · 1 h = **60 min** · 1 min = **60 s**",
+    "Time does **not work in tens**: 1.5 h = 1.5 · 60 min = **90 min**, not 150 min",
+    "0.5 h = 30 min · 0.25 h = 15 min",
+  ] },
+  n5: { ex: ["72", "km/h", "m/s"], points: [
+    "1 h = 60 min = 3600 s",
+    "**Replace each unit separately**: 1 km/h = 1000 m / 3600 s = **1/3.6 m/s**",
+    "1 g/cm³ = **1000 kg/m³** · 1 bar = 1000 hPa · 1 kWh = 3600 kJ",
+  ] },
+};
+const TEXT = tr(TEXT_DE, TEXT_EN);
 
 /** Oberstufe: Vorsilben als Zehnerpotenzen auf der Skala statt Pfeilkette */
-const OS_TEXT: Record<string, string[]> = {
+const OS_TEXT_DE: Record<string, string[]> = {
   n1: [
     "Vorsilben sind Zehnerpotenzen: k = 10³, d = 10⁻¹, c = 10⁻², m = 10⁻³, µ = 10⁻⁶",
     "Umrechnungszahl = 10^(Hochzahl vorher − Hochzahl nachher): mm → m: 10^(−3 − 0) = **10⁻³**",
@@ -62,6 +95,27 @@ const OS_TEXT: Record<string, string[]> = {
     "1 l = 1 dm³ · 1 ml = 1 cm³",
   ],
 };
+const OS_TEXT_EN: typeof OS_TEXT_DE = {
+  n1: [
+    "Prefixes are powers of ten: k = 10³, d = 10⁻¹, c = 10⁻², m = 10⁻³, µ = 10⁻⁶",
+    "Conversion factor = 10^(exponent before − exponent after): mm → m: 10^(−3 − 0) = **10⁻³**",
+    "1 m = 10³ mm · 1 kg = 10³ g",
+  ],
+  n2: [
+    "Same as steps of ten: conversion factor as a power of ten, then **multiply**",
+    "1.5 g = 1.5 · 10⁻³ kg = **0.0015 kg**",
+  ],
+  n3: [
+    "Area: exponent of the prefix **times 2** – 1 m² = (10² cm)² = **10⁴ cm²**",
+    "2.5 m² = 2.5 · 10⁴ cm² = 25 000 cm²",
+    "1 a = 100 m² · 1 ha = 10 000 m² (learn without a prefix)",
+  ],
+  n4: [
+    "Volume: exponent of the prefix **times 3** – 1 dm³ = (10 cm)³ = **10³ cm³**",
+    "1 l = 1 dm³ · 1 ml = 1 cm³",
+  ],
+};
+const OS_TEXT = tr(OS_TEXT_DE, OS_TEXT_EN);
 
 export function explainFor(stufe: Stufe, level: LevelKey, task?: Task) {
   const levels = LEVELS[stufe];

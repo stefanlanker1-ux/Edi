@@ -12,6 +12,7 @@ import { empty, COLS, ROWS, loadKnown } from "../edit.ts";
 import { LEVELS, TYPE_NAMES, KNOWN_BY_ID, levelId, levelName, makeRound, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
+import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "elektronenpaar-quiz", levelId, makeRound });
 
@@ -22,13 +23,13 @@ function BuildAnswer({ task, answered, submit }: { task: Extract<Task, { kind: "
   return (
     <div className="answer-mol">
       <Builder mol={mol} onChange={setMol} elements={task.elements} />
-      {mol.atoms.length > 1 && !done && <div className="ui-tags"><Tag tone="signal">noch nicht fertig</Tag></div>}
+      {mol.atoms.length > 1 && !done && <div className="ui-tags"><Tag tone="signal">{tr("noch nicht fertig", "not finished yet")}</Tag></div>}
       <Button variant="primary" icon="check" className="check-btn" disabled={mol.atoms.length < 2}
         onClick={() => submit({
           ok: done && identify(mol)?.id === task.molecule,
           // für die Fallen (traps) der Aufgabe: Atomzahl falsch? Mehrfachbindungen gesetzt? alle Oktette voll?
           values: { atomsOff: mol.atoms.length === KNOWN_BY_ID[task.molecule].atoms.length ? 0 : 1, multi: mol.bonds.filter(b => b.order > 1).length, complete: done ? 1 : 0 },
-        })}>Prüfen</Button>
+        })}>{tr("Prüfen", "Check")}</Button>
     </div>
   );
 }
@@ -53,7 +54,7 @@ export function QuizView() {
       explain={(level, task) => explainFor(stufe, level, task)}
       tools={t => {
         const mark = atomsOf(t);
-        return [{ id: "atome", label: "Atome", icon: "atom", wide: stufe === "os", content: (
+        return [{ id: "atome", label: tr("Atome", "Atoms"), icon: "atom", wide: stufe === "os", content: (
           <div className="atoms-help">
             {mark.length > 0 && (
               <ul className="ah-list">

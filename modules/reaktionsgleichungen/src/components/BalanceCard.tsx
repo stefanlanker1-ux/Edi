@@ -6,10 +6,11 @@ import { Button, Tag, Workbench, buzz, ding } from "@lern/ui";
 import { isBalanced, unbalancedElements, type Reaction } from "@lern/chem";
 import { EquationRow, maxCoef } from "./Equation.tsx";
 import { MoleculeScene, hasModel } from "./Molecules.tsx";
+import { tr } from "@lern/i18n";
 
 const gcdAll = (xs: number[]) => xs.reduce((g, x) => { while (x) [g, x] = [x, g % x]; return g; }, 0);
 
-export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = "Weiter", onSolved, onSolution }: {
+export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr("Weiter", "Next"), onSolved, onSolution }: {
   r: Reaction; coeffs: number[]; onChange: (k: number, v: number) => void;
   head: ReactNode;
   onNext?: () => void; nextLabel?: string;
@@ -34,8 +35,8 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = "We
       stage={hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : null}
       status={shown ? <>
         {!balanced && unbalancedElements(r, coeffs).map(el => <Tag key={el} tone="signal">≠ {el}</Tag>)}
-        {balanced && !ok && <Tag tone="signal">kürzen : {g}</Tag>}
-        {ok && <Tag tone="ok">✓ ausgeglichen</Tag>}
+        {balanced && !ok && <Tag tone="signal">{tr("kürzen :", "simplify ÷")} {g}</Tag>}
+        {ok && <Tag tone="ok">✓ {tr("ausgeglichen", "balanced")}</Tag>}
       </> : undefined}
       controls={
         <div className="rg-controls">
@@ -43,8 +44,8 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = "We
           <div className="rg-actions">
             {shown && ok && onNext
               ? <Button variant="primary" iconRight="arrow" onClick={() => { buzz(); onNext(); }}>{nextLabel}</Button>
-              : <Button variant="primary" icon="check" onClick={check} disabled={shown}>Prüfen</Button>}
-            {onSolution && !ok && tries >= 2 && <Button onClick={() => { buzz(); onSolution(); }}>Lösung</Button>}
+              : <Button variant="primary" icon="check" onClick={check} disabled={shown}>{tr("Prüfen", "Check")}</Button>}
+            {onSolution && !ok && tries >= 2 && <Button onClick={() => { buzz(); onSolution(); }}>{tr("Lösung", "Solution")}</Button>}
           </div>
         </div>
       } />

@@ -1,6 +1,7 @@
 // Reaktionsgleichungen: Formeln zerlegen, Atome zählen, Koeffizienten ausgleichen (kleinste ganze Zahlen).
 // Reine Logik ohne UI; Formeln in ASCII (H2O, Ca(OH)2), Anzeige über toSubscript.
 
+import { tr } from "@lern/i18n";
 import { toSubscript } from "./ions.ts";
 import { BY_SYMBOL } from "./elements.ts";
 
@@ -127,7 +128,7 @@ export function equationText(eq: Equation, coeffs?: (number | null)[]): string {
 
 // ── Stoffnamen und Reaktionen der Unterstufe ─────────────────────────────────
 
-export const SPECIES_NAMES: Record<string, string> = {
+const SPECIES_DE: Record<string, string> = {
   H2: "Wasserstoff", O2: "Sauerstoff", N2: "Stickstoff", Cl2: "Chlor", H2O: "Wasser", H2O2: "Wasserstoffperoxid",
   Mg: "Magnesium", MgO: "Magnesiumoxid", Fe: "Eisen", Fe2O3: "Eisen(III)-oxid", FeS: "Eisensulfid", S: "Schwefel",
   Na: "Natrium", NaCl: "Natriumchlorid", C: "Kohlenstoff", CO2: "Kohlendioxid", H2CO3: "Kohlensäure", CO: "Kohlenmonoxid", CH4: "Methan",
@@ -154,10 +155,37 @@ export const SPECIES_NAMES: Record<string, string> = {
   O3: "Ozon", He: "Helium", Ne: "Neon", Ar: "Argon", C12H26: "Dodecan (Öl)", C12H22O11: "Saccharose (Zucker)",
 };
 
+const SPECIES_EN: Record<string, string> = {
+  H2: "Hydrogen", O2: "Oxygen", N2: "Nitrogen", Cl2: "Chlorine", H2O: "Water", H2O2: "Hydrogen peroxide",
+  Mg: "Magnesium", MgO: "Magnesium oxide", Fe: "Iron", Fe2O3: "Iron(III) oxide", FeS: "Iron sulfide", S: "Sulfur",
+  Na: "Sodium", NaCl: "Sodium chloride", C: "Carbon", CO2: "Carbon dioxide", H2CO3: "Carbonic acid", CO: "Carbon monoxide", CH4: "Methane",
+  NH3: "Ammonia", Al: "Aluminium", Al2O3: "Aluminium oxide", AlCl3: "Aluminium chloride", Cu: "Copper", CuO: "Copper oxide",
+  CaCO3: "Calcium carbonate (limestone)", CaO: "Calcium oxide", Zn: "Zinc", HCl: "Hydrogen chloride (hydrochloric acid)", ZnCl2: "Zinc chloride",
+  MgCl2: "Magnesium chloride", K: "Potassium", KOH: "Potassium hydroxide", NaOH: "Sodium hydroxide", SO2: "Sulfur dioxide",
+  H2S: "Hydrogen sulfide", C3H8: "Propane", C2H6: "Ethane", HgO: "Mercury oxide", Hg: "Mercury", P: "Phosphorus",
+  P2O5: "Phosphorus pentoxide", Ca: "Calcium", "Ca(OH)2": "Calcium hydroxide", Ag2O: "Silver oxide", Ag: "Silver", Li: "Lithium",
+  LiOH: "Lithium hydroxide", ZnO: "Zinc oxide", ZnS: "Zinc sulfide", CuS: "Copper sulfide", SO3: "Sulfur trioxide", NO: "Nitrogen monoxide",
+  N2O: "Laughing gas",
+  Na2O: "Sodium oxide", C2H5OH: "Ethanol (alcohol)", C5H12: "Pentane", C4H10: "Butane", C2H2: "Ethyne (acetylene)", C6H12O6: "Glucose",
+  Fe3O4: "Iron(II,III) oxide (magnetite)", FeCl3: "Iron(III) chloride",
+  BaCl2: "Barium chloride", Na2SO4: "Sodium sulfate", BaSO4: "Barium sulfate", AgNO3: "Silver nitrate", AgCl: "Silver chloride", NaNO3: "Sodium nitrate",
+  CuSO4: "Copper(II) sulfate", FeSO4: "Iron(II) sulfate", H2SO4: "Sulfuric acid", CaCl2: "Calcium chloride", KClO3: "Potassium chlorate", KCl: "Potassium chloride",
+  NaHCO3: "Sodium hydrogen carbonate (baking soda)", Na2CO3: "Sodium carbonate (soda)", "Pb(NO3)2": "Lead(II) nitrate", KI: "Potassium iodide", PbI2: "Lead(II) iodide",
+  KNO3: "Potassium nitrate", H3PO4: "Phosphoric acid", Na3PO4: "Sodium phosphate", HNO3: "Nitric acid", "Ca(NO3)2": "Calcium nitrate",
+  NO2: "Nitrogen dioxide", NaClO: "Sodium hypochlorite", P4: "Phosphorus (white)", P4O10: "Tetraphosphorus decaoxide",
+  "Al2(SO4)3": "Aluminium sulfate", "Ca3(PO4)2": "Calcium phosphate", CaSO4: "Calcium sulfate (gypsum)", CH3OH: "Methanol", MnO2: "Manganese(IV) oxide",
+  MnCl2: "Manganese(II) chloride", "Cu(NO3)2": "Copper(II) nitrate", KMnO4: "Potassium permanganate", FeS2: "Iron(II) disulfide (pyrite)", C8H18: "Octane (petrol)",
+  K2Cr2O7: "Potassium dichromate", CrCl3: "Chromium(III) chloride",
+  O3: "Ozone", He: "Helium", Ne: "Neon", Ar: "Argon", C12H26: "Dodecane (oil)", C12H22O11: "Sucrose (sugar)",
+};
+export const SPECIES_NAMES: Record<string, string> = tr(SPECIES_DE, SPECIES_EN);
+
 export const speciesName = (f: string) => SPECIES_NAMES[f] ?? toSubscript(f);
 
 export type ReactionKind = "synthese" | "analyse" | "umsetzung";
-export const KIND_NAMES: Record<ReactionKind, string> = { synthese: "Synthese (Verbinden)", analyse: "Analyse (Zerlegen)", umsetzung: "Umsetzung (Austausch)" };
+export const KIND_NAMES: Record<ReactionKind, string> = tr(
+  { synthese: "Synthese (Verbinden)", analyse: "Analyse (Zerlegen)", umsetzung: "Umsetzung (Austausch)" },
+  { synthese: "Synthesis (combining)", analyse: "Decomposition (splitting)", umsetzung: "Exchange (swapping)" });
 
 export type Niveau = 1 | 2 | 3 | 4;
 export const NIVEAUS: Niveau[] = [1, 2, 3, 4];
@@ -174,10 +202,37 @@ export interface Reaction extends Equation {
   coeffs: number[];
 }
 
+const TITLE_EN: Record<string, string> = {
+  knallgas: "Oxyhydrogen reaction", mgo: "Magnesium burns", nacl: "Sodium and chlorine", co2: "Charcoal burns", so2: "Sulfur burns",
+  fes: "Iron and sulfur", cuo: "Copper turns black", hcl: "Hydrogen and chlorine", zns: "Zinc and sulfur", caco3: "Burning limestone",
+  hgo: "Splitting mercury oxide", wasser: "Splitting water (electrolysis)", "zn-hcl": "Zinc in hydrochloric acid", "mg-hcl": "Magnesium in hydrochloric acid",
+  "cuo-h2": "Copper oxide and hydrogen", neutral: "Neutralisation",
+  fe2o3: "Iron rusts", al2o3: "Aluminium burns", alcl3: "Aluminium and chlorine", nh3: "Ammonia synthesis", p2o5: "Phosphorus burns",
+  na2o: "Sodium in air", h2o2: "Hydrogen peroxide decomposes", ag2o: "Splitting silver oxide", "na-h2o": "Sodium in water", "k-h2o": "Potassium in water",
+  "ca-h2o": "Calcium in water", methan: "Methane burns", "mg-co2": "Magnesium burns in CO₂",
+  fecl3: "Iron in chlorine", magnetit: "Iron burns (magnetite)", fotosynthese: "Photosynthesis", propan: "Propane burns", pentan: "Pentane burns",
+  ethanol: "Alcohol burns", zellatmung: "Cellular respiration", h2s: "Hydrogen sulfide burns", hochofen: "Blast furnace", thermit: "Thermite reaction",
+  "fe2o3-h2": "Iron oxide and hydrogen",
+  ethan: "Ethane burns", butan: "Butane burns (lighter)", ethin: "Ethyne burns (welding torch)", "al-hcl": "Aluminium in hydrochloric acid",
+  "nh3-o2": "Ammonia burns", "fe2o3-c": "Iron oxide and carbon",
+  baso4: "Test for sulfate", agcl: "Test for chloride", kalkwasser: "Test for CO₂ (limewater)", "fe-cuso4": "Iron nail in copper sulfate",
+  "so3-h2o": "Making sulfuric acid", kontakt: "Contact process", "caco3-hcl": "Limestone in hydrochloric acid",
+  "h2so4-naoh": "Sulfuric acid and sodium hydroxide", "caoh2-hcl": "Milk of lime and hydrochloric acid", "soda-hcl": "Soda in hydrochloric acid",
+  "agno3-cacl2": "Silver nitrate and calcium chloride",
+  kclo3: "Potassium chlorate decomposes", natron: "Baking soda in baking", gaerung: "Alcoholic fermentation", pbi2: "Golden rain (lead iodide)",
+  "h3po4-naoh": "Phosphoric acid and sodium hydroxide", "ca-hno3": "Milk of lime and nitric acid", no2: "Nitrogen monoxide in air",
+  p4: "White phosphorus burns", chlorbleiche: "Chlorine bleach",
+  "al-cuso4": "Aluminium in copper sulfate", ca3po4: "Calcium phosphate precipitates", superphosphat: "Phosphoric acid from phosphate",
+  "fe2o3-hcl": "Rust in hydrochloric acid", ostwald: "Ostwald process", "no2-h2o": "Making nitric acid", methanol: "Methanol burns",
+  braunstein: "Chlorine from manganese dioxide", "cu-hno3-konz": "Copper in conc. nitric acid",
+  "cu-hno3": "Copper in dilute nitric acid", "ag-hno3": "Silver in nitric acid", pyrit: "Roasting pyrite", octan: "Petrol burns (octane)",
+  chlorat: "Chlorine in hot potassium hydroxide", permanganat: "Chlorine from permanganate", dichromat: "Chlorine from dichromate",
+};
+
 const R = (stufe: "us" | "os", niveau: Niveau) => (id: string, title: string, kind: ReactionKind, left: string[], right: string[]): Reaction => {
   const coeffs = balance({ left, right });
   if (!coeffs) throw new Error(`Gleichung nicht ausgleichbar: ${id}`);
-  return { id, title, kind, stufe, niveau, left, right, coeffs };
+  return { id, title: tr(title, TITLE_EN[id] ?? title), kind, stufe, niveau, left, right, coeffs };
 };
 const U1 = R("us", 1), U2 = R("us", 2), U3 = R("us", 3), U4 = R("us", 4);
 const O1 = R("os", 1), O2 = R("os", 2), O3 = R("os", 3), O4 = R("os", 4);

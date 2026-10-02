@@ -10,6 +10,7 @@ import { name, KIND_INFO, type Kind, type NameOk, type NameOptions } from "../ch
 import { STEM } from "../chem/rings.ts";
 import type { Mol } from "../chem/mol.ts";
 import { flipBond } from "../chem/stereo.ts";
+import { tr } from "@lern/i18n";
 
 type Extra = { mol?: Mol; mols?: Record<string, Mol> };
 export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer: number });
@@ -486,7 +487,7 @@ export const LEVELS: Level[] = [
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `og-${level}`);
 export const levelName = (level: LevelKey) =>
-  level === "mix" ? "Alles gemischt" : level === "weak" ? "Schwächen üben" : level === "due" ? "Heute fällig" : LEVELS[level].name;
+  level === "mix" ? tr("Alles gemischt", "Everything mixed") : level === "weak" ? tr("Schwächen üben", "Practise weak spots") : level === "due" ? tr("Heute fällig", "Due today") : LEVELS[level].name;
 
 /** Aufgaben in fester Reihenfolge, keine Frage doppelt */
 function ordered(seq: string[]): Task[] {

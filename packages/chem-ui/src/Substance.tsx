@@ -4,6 +4,7 @@
 import { lazy, Suspense, useState } from "react";
 import { Segmented, Sheet, Tag, buzz } from "@lern/ui";
 import { BY_SYMBOL, CATEGORIES, CATIONS, ANIONS, MOL3D, chainView, flatView, formula, ionText, isMolecular, parseFormula, speciesName, toSubscript, type Ion } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 const Molecule3D = lazy(() => import("./Molecule3D.tsx"));
 
@@ -66,7 +67,7 @@ export function StructureFormula({ f }: { f: string }) {
   const w = Math.max(...xs) - x0 + pad, h = Math.max(...ys) - y0 + pad;
   const R = .24; // Abstand der Striche vom Atomsymbol
   return (
-    <svg className="sub-struct" viewBox={`${x0} ${y0} ${w} ${h}`} role="img" aria-label={`Strukturformel von ${speciesName(f)}`}
+    <svg className="sub-struct" viewBox={`${x0} ${y0} ${w} ${h}`} role="img" aria-label={tr(`Strukturformel von ${speciesName(f)}`, `Structural formula of ${speciesName(f)}`)}
       style={{ width: `min(100%, ${w * 64}px)` }}>
       {l.bonds.map(([i, j, order], n) => {
         const [, ax, ay] = l.atoms[i], [, bx, by] = l.atoms[j];
@@ -85,14 +86,16 @@ export function StructureFormula({ f }: { f: string }) {
 
 // ── Blatt ───────────────────────────────────────────────────────────────────
 
-const KIND: Record<SubstanceKind, string | null> = { molekuel: "Moleküle", ionen: "Ionen", metall: "Metallgitter", atome: "einzelne Atome", element: null };
+const KIND: Record<SubstanceKind, string | null> = tr(
+  { molekuel: "Moleküle", ionen: "Ionen", metall: "Metallgitter", atome: "einzelne Atome", element: null },
+  { molekuel: "Molecules", ionen: "Ions", metall: "Metal lattice", atome: "Single atoms", element: null });
 
 function Facts({ s }: { s: SubstanceInfo }) {
   return (
     <div className="sub-facts">
       <p className="sub-formula">{toSubscript(s.f)}</p>
       <div className="ui-tags">
-        <Tag>{s.klass === "element" ? "Element" : "Verbindung"}</Tag>
+        <Tag>{s.klass === "element" ? tr("Element", "Element") : tr("Verbindung", "Compound")}</Tag>
         {KIND[s.kind] && <Tag>{KIND[s.kind]}</Tag>}
         {s.kind === "molekuel" && s.parts.map(([el, n]) => <Tag key={el}>{n} {el}</Tag>)}
         {s.kind === "ionen" && s.ions && s.ions.map(ion => <Tag key={ion.id}>{ionText(ion)}</Tag>)}
@@ -111,11 +114,11 @@ export function SubstanceDetail({ f }: { f: string }) {
     <div className={`sub-body${view === "3d" ? " is-3d" : ""}`}>
       <Facts s={s} />
       {has3d && view === "3d"
-        ? <Suspense fallback={<div className="m3d m3d-loading">3D-Modell wird geladen …</div>}><Molecule3D data={MOL3D[f]} showAngles={false} /></Suspense>
+        ? <Suspense fallback={<div className="m3d m3d-loading">{tr("3D-Modell wird geladen …", "Loading 3D model …")}</div>}><Molecule3D data={MOL3D[f]} showAngles={false} /></Suspense>
         : hasStruct && <div className="sub-struct-box"><StructureFormula f={f} /></div>}
       {has3d && hasStruct && (
-        <Segmented<"struct" | "3d"> label="Darstellung" value={view} onChange={v => { buzz(); setView(v); }}
-          options={[{ value: "struct", label: "Strukturformel" }, { value: "3d", label: "3D-Modell" }]} />
+        <Segmented<"struct" | "3d"> label={tr("Darstellung", "View")} value={view} onChange={v => { buzz(); setView(v); }}
+          options={[{ value: "struct", label: tr("Strukturformel", "Structural formula") }, { value: "3d", label: tr("3D-Modell", "3D model") }]} />
       )}
     </div>
   );

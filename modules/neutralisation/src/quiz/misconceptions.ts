@@ -1,7 +1,8 @@
 // Fehlvorstellungen (Stolpersteine) zur Neutralisation – Schlüssel für diagnostische Distraktoren und Fallen im Baukasten.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Stoffen); hier nur der Name für Landkarte und Auswertung.
+import { tr } from "@lern/i18n";
 
-export const MISS: Record<string, string> = {
+const MISS_DE: Record<string, string> = {
   "index-als-ladung": "Index als Ladung gelesen (H₂⁺ statt 2 H⁺)",
   "ohne-ladung": "Beim Zerfall neutrale Atome statt Ionen",
   "rest-ladung-eins": "Säurerest immer 1−",
@@ -36,3 +37,39 @@ export const MISS: Record<string, string> = {
   "koeff-vertauscht": "Koeffizienten von Lauge und Säure vertauscht",
   "nicht-gekuerzt": "Verhältnis nicht gekürzt",
 };
+const MISS_EN: Record<string, string> = {
+  "index-als-ladung": "Subscript read as charge (H₂⁺ instead of 2 H⁺)",
+  "ohne-ladung": "Neutral atoms instead of ions on dissociation",
+  "rest-ladung-eins": "Acid anion always 1−",
+  "ein-proton": "Every acid gives off only 1 H⁺",
+  "atome-statt-h": "All atoms counted instead of the H atoms",
+  "rest-verwechselt": "Acid anion of a similar acid",
+  "rest-ladung-vorzeichen": "Acid anion positively charged",
+  "rest-ladung-sauerstoff": "Charge taken from the number of O atoms",
+  "alle-h-sauer": "All H atoms counted as acidic",
+  "endung-id-at-it": "Endings -ide / -ite / -ate confused",
+  "rest-aus-saeurename": "Anion name made from the acid name",
+  "saeurename-statt-rest": "Acid name instead of acid anion",
+  "hydrogen-verzaehlt": "Hydrogen / dihydrogen miscounted",
+  "stufe-ignoriert": "Partial release of H⁺ overlooked",
+  "oh-zusammengefasst": "OH⁻ ions combined into OH₂",
+  "oh-zerlegt": "OH⁻ split into O and H",
+  "lauge-gibt-h": "Alkali gives off H⁺",
+  "kation-ladung": "Charge of the metal ion miscounted",
+  "ein-wasser": "Always only 1 H₂O",
+  "wasser-summe": "Water = sum of formula units",
+  "eine-formeleinheit": "Only one formula unit counted",
+  "ladung-statt-anzahl": "H⁺ or OH⁻ per formula unit instead of number of formula units",
+  "index-aus-formel": "Subscript taken from the acid or hydroxide into the salt",
+  "wasser-atome": "H₂O from H atoms instead of H⁺ + OH⁻",
+  "wasser-vergessen": "Water forgotten as a product",
+  "salz-1zu1": "Salt always 1 : 1",
+  "indizes-vertauscht": "Subscripts swapped in the salt",
+  "klammer-vergessen": "Brackets around polyatomic ion forgotten",
+  "h-im-salz": "H of the acid left in the salt",
+  "edukt-statt-salz": "Hydroxide chosen instead of salt",
+  "koeff-1zu1": "Always 1 alkali + 1 acid",
+  "koeff-vertauscht": "Coefficients of alkali and acid swapped",
+  "nicht-gekuerzt": "Ratio not simplified",
+};
+export const MISS = tr(MISS_DE, MISS_EN);

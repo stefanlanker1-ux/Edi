@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { configuration, SHELL_NAMES, L_NAMES } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 export type Particle = "proton" | "neutron" | "electron";
 
@@ -62,7 +63,7 @@ export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, c
 
   return (
     <svg className={`bohr${animate ? " spin" : ""}`} viewBox="-100 -100 200 200" role="img"
-      aria-label={`Bohrsches Atommodell: ${Z} Protonen, ${N} Neutronen, ${E} Elektronen`}>
+      aria-label={tr(`Bohrsches Atommodell: ${Z} Protonen, ${N} Neutronen, ${E} Elektronen`, `Bohr model: ${Z} protons, ${N} neutrons, ${E} electrons`)}>
       <defs>
         <radialGradient id={`${uid}-p`} cx="35%" cy="30%" r="75%"><stop offset="0" stopColor="var(--proton-hi)" /><stop offset="1" stopColor="var(--proton)" /></radialGradient>
         <radialGradient id={`${uid}-n`} cx="35%" cy="30%" r="75%"><stop offset="0" stopColor="var(--neutron-hi)" /><stop offset="1" stopColor="var(--neutron)" /></radialGradient>

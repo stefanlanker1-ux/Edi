@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { QUANTITY, unitsFor } from "@lern/units";
+import { num } from "@lern/i18n";
 
 export type Tab = "convert" | "quiz";
 export type Stufe = "us" | "os";
@@ -21,7 +22,7 @@ interface State {
   setBoard: (b: boolean) => void;
 }
 
-export const START: Conv = { qty: "len", value: "0,1", from: "m", to: "cm" };
+export const START: Conv = { qty: "len", value: num("0,1"), from: "m", to: "cm" };
 
 /** Gibt es Größe und Einheiten (in der Stufe) noch? Sonst auf den Start zurücksetzen */
 export function valid(c: Conv, stufe: Stufe = "os"): boolean {

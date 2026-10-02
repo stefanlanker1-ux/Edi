@@ -7,10 +7,11 @@ import {
   PROTIC_ACIDS, hydroxidesFor, hydroxideDissociation, protolysis, proticWord, restName, parseFormula, type Hydroxide, type ProticAcid,
 } from "@lern/chem";
 import { IonLabel, catTile, hTile, ohTile, restTile } from "./NeutralWall.tsx";
+import { tr } from "@lern/i18n";
 
 export function BasePicker({ value, os, onPick }: { value: string; os: boolean; onPick: (id: string) => void }) {
   return (
-    <div className="ip-list" role="radiogroup" aria-label="Metallhydroxid">
+    <div className="ip-list" role="radiogroup" aria-label={tr("Metallhydroxid", "Metal hydroxide")}>
       {hydroxidesFor(os).map(b => (
         <button key={b.id} type="button" role="radio" aria-checked={b.id === value} className={`ip-chip base${b.id === value ? " on" : ""}`} onClick={() => onPick(b.id)}>
           <b><Formula f={b.formula} /></b><span>{b.lauge ?? b.name}</span>
@@ -20,7 +21,7 @@ export function BasePicker({ value, os, onPick }: { value: string; os: boolean; 
   );
 }
 
-const GROUPS: [number, string][] = [[1, "Einprotonig"], [2, "Zweiprotonig"], [3, "Dreiprotonig"]];
+const GROUPS: [number, string][] = [[1, tr("Einprotonig", "Monoprotic")], [2, tr("Zweiprotonig", "Diprotic")], [3, tr("Dreiprotonig", "Triprotic")]];
 
 /**
  * Säuretabelle. Mit `onPick` ist jede Zeile wählbar (Säure), in der Oberstufe zusätzlich jeder Säurerest
@@ -49,7 +50,7 @@ export function AcidTable({ os, acid, step, onPick, mark = [] }: {
                       const cell = <><b><IonLabel ion={r} /></b><span>{restName(r)}</span></>;
                       const sel = on && step === k;
                       return onPick && os
-                        ? <button key={r.id} type="button" className={`at-rest${sel ? " on" : ""}`} aria-pressed={sel} aria-label={`${a.name}, ${k} H⁺ abgegeben: ${restName(r)}`} onClick={() => onPick(a.id, k)}>{cell}</button>
+                        ? <button key={r.id} type="button" className={`at-rest${sel ? " on" : ""}`} aria-pressed={sel} aria-label={tr(`${a.name}, ${k} H⁺ abgegeben: ${restName(r)}`, `${a.name}, ${k} H⁺ given off: ${restName(r)}`)} onClick={() => onPick(a.id, k)}>{cell}</button>
                         : <span key={r.id} className={`at-rest${sel && os ? " on" : ""}`}>{cell}</span>;
                     })}
                   </span>
@@ -79,10 +80,10 @@ export function UnitSheet({ which, base, acid, step, os, onClose }: {
           </div>
           <p className="us-eq">{hydroxideDissociation(base)}</p>
           <div className="ui-tags us-tags">
-            {base.lauge && <Tag>in Wasser: {base.lauge}</Tag>}
-            {base.poor && <Tag>in Wasser kaum löslich</Tag>}
-            <Tag tone="signal">{base.cation.charge} OH⁻ je <Formula f={base.formula} /></Tag>
-            <Tag>Ladung <IonLabel ion={base.cation} /> = Zahl der OH⁻</Tag>
+            {base.lauge && <Tag>{tr("in Wasser", "in water")}: {base.lauge}</Tag>}
+            {base.poor && <Tag>{tr("in Wasser kaum löslich", "barely soluble in water")}</Tag>}
+            <Tag tone="signal">{base.cation.charge} OH⁻ {tr("je", "per")} <Formula f={base.formula} /></Tag>
+            <Tag>{tr("Ladung", "Charge")} <IonLabel ion={base.cation} /> = {tr("Zahl der OH⁻", "number of OH⁻")}</Tag>
           </div>
         </div>
       )}
@@ -101,8 +102,8 @@ export function UnitSheet({ which, base, acid, step, os, onClose }: {
           </ul>
           <div className="ui-tags us-tags">
             <Tag tone="signal">{proticWord(acid.protons)}</Tag>
-            <Tag>{acid.protons} H⁺ abgebbar{hAtoms > acid.protons && ` (von ${hAtoms} H)`}</Tag>
-            <Tag>Säurerest: {restName(acid.rests[acid.protons - 1])}</Tag>
+            <Tag>{tr(`${acid.protons} H⁺ abgebbar`, `${acid.protons} H⁺ can be given off`)}{hAtoms > acid.protons && tr(` (von ${hAtoms} H)`, ` (of ${hAtoms} H)`)}</Tag>
+            <Tag>{tr("Säurerest", "Acid anion")}: {restName(acid.rests[acid.protons - 1])}</Tag>
           </div>
         </div>
       )}

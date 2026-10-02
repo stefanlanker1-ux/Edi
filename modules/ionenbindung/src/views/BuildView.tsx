@@ -9,6 +9,7 @@ import { useApp } from "../store.ts";
 import { IonWall } from "../components/IonWall.tsx";
 import { IonLabel } from "../components/IonTile.tsx";
 import { IonSheet } from "../components/IonSheet.tsx";
+import { tr } from "@lern/i18n";
 
 function IonPicker({ label, list, value, onPick }: { label: string; list: Ion[]; value: string; onPick: (id: string) => void }) {
   return (
@@ -37,13 +38,13 @@ export function BuildView() {
 
   return (
     <>
-      <Workbench className="ib-wb" label="Ionen wählen" active={tool} onActive={setTool}
+      <Workbench className="ib-wb" label={tr("Ionen wählen", "Choose ions")} active={tool} onActive={setTool}
         stage={<Fit min={0.55}><IonWall cation={cation} anion={anion} nC={nC} nA={nA} onTile={setSheet} /></Fit>}
         status={<>
           {!balanced && <Tag tone="signal">{pos < neg ? `+ ${cation.name}` : `+ ${anion.name}`}</Tag>}
-          {balanced && !simplest && <Tag tone="signal">kürzen auf {r.nC} : {r.nA}</Tag>}
+          {balanced && !simplest && <Tag tone="signal">{tr("kürzen auf", "simplify to")} {r.nC} : {r.nA}</Tag>}
           {simplest && <Tag tone="ok">✓ neutral</Tag>}
-          {simplest && !isKnownCompound(cation, anion) && <Tag tone="bad">✗ gibt es nicht (nicht beständig)</Tag>}
+          {simplest && !isKnownCompound(cation, anion) && <Tag tone="bad">✗ {tr("gibt es nicht (nicht beständig)", "does not exist (not stable)")}</Tag>}
         </>}
         controls={
           <div className="wall-controls">
@@ -52,13 +53,13 @@ export function BuildView() {
           </div>
         }
         tools={[
-          { id: "c", label: <>Kation <IonLabel ion={cation} /></>, title: "Kation", icon: "cation",
-            content: <IonPicker label="Kation (positiv)" list={ionsFor(CATIONS, os)} value={cId} onPick={id => { choose({ cation: id }); setTool(null); }} /> },
+          { id: "c", label: <>{tr("Kation", "Cation")} <IonLabel ion={cation} /></>, title: tr("Kation", "Cation"), icon: "cation",
+            content: <IonPicker label={tr("Kation (positiv)", "Cation (positive)")} list={ionsFor(CATIONS, os)} value={cId} onPick={id => { choose({ cation: id }); setTool(null); }} /> },
           { id: "a", label: <>Anion <IonLabel ion={anion} /></>, title: "Anion", icon: "anion",
-            content: <IonPicker label="Anion (negativ)" list={ionsFor(ANIONS, os)} value={aId} onPick={id => { choose({ anion: id }); setTool(null); }} /> },
+            content: <IonPicker label={tr("Anion (negativ)", "Anion (negative)")} list={ionsFor(ANIONS, os)} value={aId} onPick={id => { choose({ anion: id }); setTool(null); }} /> },
           pseTool({ stufe, mark: formulaElements(cation.formula, anion.formula) }),
-          { id: "ok", label: "Aus\u00ADgleichen", icon: "check", disabled: simplest, onClick: () => set({ nC: r.nC, nA: r.nA }) },
-          { id: "reset", label: "Zurück", icon: "reset", onClick: () => set({ nC: 1, nA: 1 }) },
+          { id: "ok", label: tr("Aus\u00ADgleichen", "Balance"), icon: "check", disabled: simplest, onClick: () => set({ nC: r.nC, nA: r.nA }) },
+          { id: "reset", label: tr("Zurück", "Reset"), icon: "reset", onClick: () => set({ nC: 1, nA: 1 }) },
         ]} />
       <IonSheet ion={sheet} onClose={() => setSheet(null)} />
     </>

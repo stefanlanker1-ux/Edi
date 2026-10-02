@@ -3,7 +3,9 @@
 
 import { useRef, type CSSProperties } from "react";
 import { useWidth } from "@lern/ui";
+import { DIV } from "../format.tsx";
 import { ATOM, PREFIXES, prefixStep, unitAt, supExp, mul, pow10, fmt, fmtSci, toNumber, type Q } from "@lern/units";
+import { tr } from "@lern/i18n";
 
 const Pow = ({ k }: { k: number }) => <>10<sup>{k < 0 ? `−${-k}` : k}</sup></>;
 const paren = (k: number) => (k < 0 ? `(−${-k})` : String(k));
@@ -32,7 +34,7 @@ export function PowerScale({ from, to, value, showResult = true, showFactor = tr
 
   return (
     <figure className="viz ps" ref={box}>
-      <div className={`ps-grid${names ? "" : " tight"}`} style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }} role="table" aria-label="Vorsilben und Zehnerpotenzen">
+      <div className={`ps-grid${names ? "" : " tight"}`} style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }} role="table" aria-label={tr("Vorsilben und Zehnerpotenzen", "Prefixes and powers of ten")}>
         {PREFIXES.map((p, i) => {
           const u = unitAt(p, base, power);
           const known = !!ATOM[u.replace(/[²³]$/, "")] || !!ATOM[u];
@@ -63,7 +65,7 @@ export function PowerScale({ from, to, value, showResult = true, showFactor = tr
         {st.diff === 0 ? <div>· 1</div> : showFactor ? (
           <>
             <div>
-              <b>{unitAt(st.from.prefix, base, 1)}</b> → <b>{unitAt(st.to.prefix, base, 1)}</b>: <Pow k={st.from.prefix.exp} /> : <Pow k={st.to.prefix.exp} /> = 10<sup>{st.from.prefix.exp} − {paren(st.to.prefix.exp)}</sup> = <b className="fx"><Pow k={st.diff} /></b>
+              <b>{unitAt(st.from.prefix, base, 1)}</b> → <b>{unitAt(st.to.prefix, base, 1)}</b>: <Pow k={st.from.prefix.exp} /> {DIV} <Pow k={st.to.prefix.exp} /> = 10<sup>{st.from.prefix.exp} − {paren(st.to.prefix.exp)}</sup> = <b className="fx"><Pow k={st.diff} /></b>
             </div>
             {power > 1 && <div>{base}{power === 2 ? "²" : "³"}: (<Pow k={st.diff} />)<sup>{power}</sup> = <b className="fx"><Pow k={st.exp} /></b></div>}
             {showResult && value && res && (

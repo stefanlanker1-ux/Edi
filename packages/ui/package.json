@@ -17,6 +17,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "@lern/i18n": "*",
     "inter-ui": "^4.1.1"
   }
 }

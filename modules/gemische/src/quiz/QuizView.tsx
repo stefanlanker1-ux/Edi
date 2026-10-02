@@ -9,6 +9,7 @@ import { nameOf } from "../mixtures.ts";
 import { LEVELS, TYPE_NAMES, describe, levelId, levelName, makeRound, type Pic, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
+import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "gemische-quiz", levelId, makeRound, fixedOrder: true });
 
@@ -18,14 +19,14 @@ export const QUIZ_ATOMS = ["H", "C", "N", "O", "S", "He", "Ne", "Ar", "Cu", "Zn"
 /** Teilchenbild einer Aufgabe – gleiche Anordnung auch nach dem Neuladen */
 export function PicBeaker({ p, className }: { p: Pic; className?: string }) {
   const sim = initial({ items: p.mix, state: p.state, floats: p.floats, before: p.before, solute: p.solute }, seedOf(JSON.stringify(p)), p.arrange ?? "nachher");
-  return <Beaker sim={sim} className={className} label={`Teilchenbild: ${p.mix.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`} />;
+  return <Beaker sim={sim} className={className} label={`${tr("Teilchenbild", "Particle picture")}: ${p.mix.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`} />;
 }
 
 export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe="us"
-      title="Quiz · Gemische"
+      title={tr("Quiz · Gemische", "Quiz · Mixtures")}
       useQuiz={useQuiz}
       levels={LEVELS}
       levelName={levelName}
@@ -39,7 +40,7 @@ export function QuizView() {
       renderAnswer={(t, a, submit) => (t.kind === "num" ? <NumberAnswer key={t.prompt + JSON.stringify(t.pic)} answer={t.answer} answered={a} submit={submit} max={99} /> : null)}
       solution={t => (t.kind === "num" ? String(t.answer) : null)}
       explain={(level, task) => explainFor(level, task)}
-      tools={t => (t.pic || t.pics ? [{ id: "farben", label: "Farben", icon: "atom" as const, content: <Legend els={QUIZ_ATOMS} /> }] : [])}
+      tools={t => (t.pic || t.pics ? [{ id: "farben", label: tr("Farben", "Colours"), icon: "atom" as const, content: <Legend els={QUIZ_ATOMS} /> }] : [])}
     />
   );
 }

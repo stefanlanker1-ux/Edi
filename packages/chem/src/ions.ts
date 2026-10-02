@@ -1,5 +1,6 @@
 // Ionen und Ionenverbindungen: Ladungsausgleich, Formeln, Namen.
 
+import { getLang, tr } from "@lern/i18n";
 import { BY_Z } from "./elements.ts";
 import { chargeSup } from "./config.ts";
 
@@ -20,45 +21,47 @@ export interface Ion {
 }
 
 const ionId = (formula: string, charge: number) => `${formula}${Math.abs(charge) > 1 ? Math.abs(charge) : ""}${charge > 0 ? "+" : "-"}`;
-const mono = (Z: number, charge: number, part: string, name: string, os = false): Ion =>
-  ({ id: ionId(BY_Z[Z].symbol, charge), formula: BY_Z[Z].symbol, charge, Z, part, name, os });
-const poly = (formula: string, charge: number, part: string, name: string): Ion =>
-  ({ id: ionId(formula, charge), formula, charge, part, name, os: true });
+// Englisch: Kation „Sodium“, Anion „chloride“, Ion „Sodium ion“ / „Chloride ion“
+const enName = (en: string) => en[0].toUpperCase() + en.slice(1) + " ion";
+const mono = (Z: number, charge: number, part: string, name: string, en: string, os = false): Ion =>
+  ({ id: ionId(BY_Z[Z].symbol, charge), formula: BY_Z[Z].symbol, charge, Z, part: tr(part, en), name: tr(name, enName(en)), os });
+const poly = (formula: string, charge: number, part: string, name: string, en: string): Ion =>
+  ({ id: ionId(formula, charge), formula, charge, part: tr(part, en), name: tr(name, enName(en)), os: true });
 
 export const CATIONS: Ion[] = [
-  mono(3, 1, "Lithium", "Lithium-Ion"),
-  mono(11, 1, "Natrium", "Natrium-Ion"),
-  mono(19, 1, "Kalium", "Kalium-Ion"),
-  mono(12, 2, "Magnesium", "Magnesium-Ion"),
-  mono(20, 2, "Calcium", "Calcium-Ion"),
-  mono(56, 2, "Barium", "Barium-Ion"),
-  mono(13, 3, "Aluminium", "Aluminium-Ion"),
-  mono(47, 1, "Silber", "Silber-Ion", true),
-  mono(30, 2, "Zink", "Zink-Ion", true),
-  mono(29, 1, "Kupfer(I)", "Kupfer(I)-Ion", true),
-  mono(29, 2, "Kupfer(II)", "Kupfer(II)-Ion", true),
-  mono(26, 2, "Eisen(II)", "Eisen(II)-Ion", true),
-  mono(26, 3, "Eisen(III)", "Eisen(III)-Ion", true),
-  mono(82, 2, "Blei(II)", "Blei(II)-Ion", true),
-  poly("NH4", 1, "Ammonium", "Ammonium-Ion"),
+  mono(3, 1, "Lithium", "Lithium-Ion", "Lithium"),
+  mono(11, 1, "Natrium", "Natrium-Ion", "Sodium"),
+  mono(19, 1, "Kalium", "Kalium-Ion", "Potassium"),
+  mono(12, 2, "Magnesium", "Magnesium-Ion", "Magnesium"),
+  mono(20, 2, "Calcium", "Calcium-Ion", "Calcium"),
+  mono(56, 2, "Barium", "Barium-Ion", "Barium"),
+  mono(13, 3, "Aluminium", "Aluminium-Ion", "Aluminium"),
+  mono(47, 1, "Silber", "Silber-Ion", "Silver", true),
+  mono(30, 2, "Zink", "Zink-Ion", "Zinc", true),
+  mono(29, 1, "Kupfer(I)", "Kupfer(I)-Ion", "Copper(I)", true),
+  mono(29, 2, "Kupfer(II)", "Kupfer(II)-Ion", "Copper(II)", true),
+  mono(26, 2, "Eisen(II)", "Eisen(II)-Ion", "Iron(II)", true),
+  mono(26, 3, "Eisen(III)", "Eisen(III)-Ion", "Iron(III)", true),
+  mono(82, 2, "Blei(II)", "Blei(II)-Ion", "Lead(II)", true),
+  poly("NH4", 1, "Ammonium", "Ammonium-Ion", "Ammonium"),
 ];
 
 export const ANIONS: Ion[] = [
-  mono(9, -1, "fluorid", "Fluorid-Ion"),
-  mono(17, -1, "chlorid", "Chlorid-Ion"),
-  mono(35, -1, "bromid", "Bromid-Ion"),
-  mono(53, -1, "iodid", "Iodid-Ion"),
-  mono(8, -2, "oxid", "Oxid-Ion"),
-  mono(16, -2, "sulfid", "Sulfid-Ion"),
-  mono(7, -3, "nitrid", "Nitrid-Ion"),
-  poly("OH", -1, "hydroxid", "Hydroxid-Ion"),
-  poly("NO2", -1, "nitrit", "Nitrit-Ion"),
-  poly("NO3", -1, "nitrat", "Nitrat-Ion"),
-  poly("HCO3", -1, "hydrogencarbonat", "Hydrogencarbonat-Ion"),
-  poly("SO3", -2, "sulfit", "Sulfit-Ion"),
-  poly("SO4", -2, "sulfat", "Sulfat-Ion"),
-  poly("CO3", -2, "carbonat", "Carbonat-Ion"),
-  poly("PO4", -3, "phosphat", "Phosphat-Ion"),
+  mono(9, -1, "fluorid", "Fluorid-Ion", "fluoride"),
+  mono(17, -1, "chlorid", "Chlorid-Ion", "chloride"),
+  mono(35, -1, "bromid", "Bromid-Ion", "bromide"),
+  mono(53, -1, "iodid", "Iodid-Ion", "iodide"),
+  mono(8, -2, "oxid", "Oxid-Ion", "oxide"),
+  mono(16, -2, "sulfid", "Sulfid-Ion", "sulfide"),
+  mono(7, -3, "nitrid", "Nitrid-Ion", "nitride"),
+  poly("OH", -1, "hydroxid", "Hydroxid-Ion", "hydroxide"),
+  poly("NO2", -1, "nitrit", "Nitrit-Ion", "nitrite"),
+  poly("NO3", -1, "nitrat", "Nitrat-Ion", "nitrate"),
+  poly("HCO3", -1, "hydrogencarbonat", "Hydrogencarbonat-Ion", "hydrogen carbonate"),
+  poly("SO3", -2, "sulfit", "Sulfit-Ion", "sulfite"),
+  poly("SO4", -2, "sulfat", "Sulfat-Ion", "sulfate"),
+  poly("CO3", -2, "carbonat", "Carbonat-Ion", "carbonate"),
+  poly("PO4", -3, "phosphat", "Phosphat-Ion", "phosphate"),
 ];
 
 export const ION_BY_ID: Record<string, Ion> = Object.fromEntries([...CATIONS, ...ANIONS].map(i => [i.id, i]));
@@ -116,6 +119,7 @@ export const chargeFull = (charge: number) => `${Math.abs(charge)}${charge > 0 ?
 
 /** Name der Verbindung, z. B. „Calciumchlorid“, „Eisen(III)-oxid“ */
 export function compoundName(cation: Ion, anion: Ion): string {
+  if (getLang() === "en") return `${cation.part} ${anion.part}`;
   return cation.part.endsWith(")") ? `${cation.part}-${anion.part}` : cation.part + anion.part;
 }
 

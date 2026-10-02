@@ -6,8 +6,9 @@ import { Beaker } from "../components/Beaker.tsx";
 import { initial, seedOf, type Arrange } from "../mixing.ts";
 import { EXAMPLES, small } from "../mixtures.ts";
 import { LEVELS, type Task } from "./tasks.ts";
+import { tr } from "@lern/i18n";
 
-const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
+const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = tr({
   basics: { ex: "modell", arr: ["nachher"], points: [
     "Ein **Teilchen** ist ein Molekül oder ein einzelnes Atom. Gleiche Teilchen bilden einen **Stoff**.",
     "**Reinstoff:** nur eine Teilchensorte. **Gemisch:** mehrere Teilchensorten.",
@@ -23,9 +24,25 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = {
     "Teilchen bewegen sich **ständig**. Darum mischen sich Gase und Lösungen von selbst.",
     "Zwischen den Teilchen ist **nichts**. Farben im Modell dienen nur zur Unterscheidung.",
   ] },
-};
+}, {
+  basics: { ex: "modell", arr: ["nachher"], points: [
+    "A **particle** is a molecule or a single atom. Identical particles form a **substance**.",
+    "**Pure substance:** only one kind of particle. **Mixture:** several kinds of particles.",
+    "**Element:** only **one** kind of atom (He, Cu, O₂). **Compound:** several kinds of atoms bonded in the particle (H₂O, CO₂).",
+  ] },
+  everyday: { ex: "oel", arr: ["nachher"], points: [
+    "**Homogeneous:** the same everywhere, no boundary visible – solution (s/l), alloy (s/s), gas mixture (g/g).",
+    "**Heterogeneous:** pieces, droplets or layers can be seen – emulsion (l/l), suspension (s/l), coarse mixture (s/s).",
+    "“Pure” on a package means: nothing added. A **pure substance** is only **one** substance.",
+  ] },
+  solving: { ex: "zucker", arr: ["vorher", "nachher"], points: [
+    "When dissolving, the particles spread out. They do not disappear, the **mass stays the same**.",
+    "Particles move **all the time**. That is why gases and solutions mix by themselves.",
+    "Between the particles there is **nothing**. Colours in the model only tell them apart.",
+  ] },
+});
 const TOPIC: Record<string, string> = { "gm-n1": "basics", "gm-n2": "basics", "gm-n3": "everyday", "gm-n4": "everyday", "gm-n5": "solving", "gm-n6": "solving" };
-const CUE = "In diesem Niveau hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.";
+const CUE = tr("In diesem Niveau hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.", "At this stage the **hint** helps with exactly this task. Tapping the hint costs no points.");
 
 export function explainFor(level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[level].id : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;
@@ -39,7 +56,7 @@ export function explainFor(level: LevelKey, task?: Task) {
         {e.arr.map((a, i) => (
           <span key={a} className="gm-ex-step">
             {i > 0 && <span className="gm-ex-arrow" aria-hidden="true">→</span>}
-            <Beaker sim={initial({ ...ex, items: small(ex.items) }, seedOf(ex.id), a)} label={`${ex.title}${e.arr.length > 1 ? ` ${a}` : ""}`} />
+            <Beaker sim={initial({ ...ex, items: small(ex.items) }, seedOf(ex.id), a)} label={`${ex.title}${e.arr.length > 1 ? ` ${a === "vorher" ? tr("vorher", "before") : tr("nachher", "after")}` : ""}`} />
           </span>
         ))}
       </figure>

@@ -1,7 +1,8 @@
 // Fehlvorstellungen (Stolpersteine) zum Atombau – Schlüssel für diagnostische Distraktoren und Fallen in Eingabe-Aufgaben.
 // Die Rückmeldungstexte stehen bei den Aufgaben (mit den konkreten Zahlen); hier nur der Name für Landkarte und Auswertung.
+import { tr } from "@lern/i18n";
 
-export const MISS: Record<string, string> = {
+const MISS_DE: Record<string, string> = {
   "massenzahl-elektronen": "Massenzahl mit Elektronenzahl verwechselt",
   "massenzahl-ordnungszahl": "Massenzahl und Ordnungszahl verwechselt",
   "massenzahl-neutronen": "Massenzahl mit Neutronenzahl verwechselt",
@@ -40,3 +41,43 @@ export const MISS: Record<string, string> = {
   "block-letzte-geschrieben": "Block nach der zuletzt geschriebenen statt zuletzt befüllten Unterschale",
   "edelgaskern-vergessen": "Edelgaskern beim Zählen vergessen",
 };
+const MISS_EN: Record<string, string> = {
+  "massenzahl-elektronen": "Mass number confused with electron count",
+  "massenzahl-ordnungszahl": "Mass number and atomic number confused",
+  "massenzahl-neutronen": "Mass number confused with neutron count",
+  "elektronen-mitgezaehlt": "Electrons counted in the mass number",
+  "neutronen-massenzahl": "Neutrons = mass number (protons not subtracted)",
+  "neutronen-protonen": "Assumed neutrons = protons",
+  "ion-ladung-ignoriert": "Charge of the ion ignored",
+  "ladung-vorzeichen": "Sign of the charge reversed",
+  "ladung-neutral": "Charged particle taken as neutral",
+  "aussen-periode": "Outer electrons confused with period",
+  "aussen-ordnungszahl": "Outer electrons confused with atomic number",
+  "aussen-fehlend": "Counted missing instead of existing outer electrons",
+  "schalen-gruppe": "Number of shells confused with main group",
+  "schalen-je-8": "Every shell counted with 8 electrons",
+  "leere-schale-gezaehlt": "Empty shell counted",
+  "nur-aussenschale": "Only the outer shell counted",
+  "k-schale-ueberfuellt": "K shell with more than 2 electrons",
+  "l-schale-ueberfuellt": "L shell with more than 8 electrons",
+  "ion-gegenteil": "Metal as anion / non-metal as cation",
+  "auffuellen-statt-abgeben": "Metal gains instead of losing electrons",
+  "abgeben-statt-aufnehmen": "Non-metal loses instead of gaining electrons",
+  "isotop-element": "Isotopes taken as different elements",
+  "isotop-elektronen": "Isotopes: electrons instead of neutrons",
+  "isotop-neutronen-gleich": "Isotopes: assumed same neutron count",
+  "isotop-massenzahl-gleich": "Isotopes: assumed same mass number",
+  "3d-vor-4s": "3d filled before 4s (energy instead of n)",
+  "edelgaskern-falsch": "Wrong noble gas as core",
+  "elektronen-verzaehlt": "Electrons miscounted",
+  "hund-alle-einzeln": "Hund's rule: all counted as unpaired",
+  "hund-alle-gepaart": "Hund's rule: all counted as paired",
+  "ion-3d-zuerst": "Cation: 3d instead of 4s electrons removed",
+  "periode-n": "Period ≠ highest principal quantum number",
+  "hauptgruppe-vs-gruppe": "Main group and group number confused",
+  "protonen-massenzahl": "Proton number confused with mass number",
+  "schalen-statt-elektronen": "Counted shells instead of electrons",
+  "block-letzte-geschrieben": "Block from the subshell written last instead of filled last",
+  "edelgaskern-vergessen": "Noble gas core forgotten when counting",
+};
+export const MISS = tr(MISS_DE, MISS_EN);

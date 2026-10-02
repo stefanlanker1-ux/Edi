@@ -4,6 +4,8 @@
 
 import { useRef } from "react";
 import { useWidth } from "@lern/ui";
+import { DIV } from "../format.tsx";
+import { tr } from "@lern/i18n";
 
 const AREA = ["km²", "ha", "a", "m²", "dm²", "cm²", "mm²"];
 const AREA_LEN = ["km", "100 m", "10 m", "m", "dm", "cm", "mm"];
@@ -48,11 +50,11 @@ export function DimChain({ from, to }: { from: string; to: string }) {
   return (
     <figure className="viz ac dc" ref={box}>
       <svg viewBox={`0 0 ${W * n} ${H}`} width={W * n} height={H} role="img"
-        aria-label={`${p === 2 ? "Flächen" : "Volumen"}: jede Stufe ${down ? "mal" : "geteilt durch"} ${parts}`}>
+        aria-label={tr(`${p === 2 ? "Flächen" : "Volumen"}: jede Stufe ${down ? "mal" : "geteilt durch"} ${parts}`, `${p === 2 ? "Area" : "Volume"}: each step ${down ? "times" : "divided by"} ${parts}`)}>
         {lcols.map((u, i) => (
           <g key={`l${i}`} className={`dc-len${i >= lo && i <= hi ? " path" : ""}`}>
             <text x={x(i)} y={yL} dy=".35em">{u}</text>
-            {i < n - 1 && <text x={x(i) + W / 2} y={yL + 16} dy=".35em" className="dc-lf">{down ? "·" : ":"} 10</text>}
+            {i < n - 1 && <text x={x(i) + W / 2} y={yL + 16} dy=".35em" className="dc-lf">{down ? "·" : DIV} 10</text>}
           </g>
         ))}
         {lcols.map((_, i) => <line key={`v${i}`} x1={x(i)} x2={x(i)} y1={yL + 10} y2={yU - 18} className="dc-tie" />)}
@@ -64,7 +66,7 @@ export function DimChain({ from, to }: { from: string; to: string }) {
             <g key={`a${i}`} className={`ac-arrow${on(i) ? " on" : ""}`}>
               <path d={`M${sx} ${y0} Q${(sx + ex) / 2} ${yc} ${ex} ${y0}`} pathLength={1} />
               <polygon points={down ? `${ex},${y0} ${ex - 8},${y0 + 1} ${ex - 3},${y0 + 7}` : `${ex},${y0} ${ex + 8},${y0 + 1} ${ex + 3},${y0 + 7}`} />
-              <text x={x(i) + W / 2} y={yc + 4} dy=".9em" className="ac-fac">{down ? "·" : ":"} {step}</text>
+              <text x={x(i) + W / 2} y={yc + 4} dy=".9em" className="ac-fac">{down ? "·" : DIV} {step}</text>
               {on(i) && <text x={x(i) + W / 2} y={yc + 22} dy=".9em" className="dc-parts">{parts}</text>}
             </g>
           );
@@ -81,7 +83,7 @@ export function DimChain({ from, to }: { from: string; to: string }) {
           );
         })}
       </svg>
-      <figcaption>{p === 2 ? "Fläche = Länge · Länge: jede Stufe zweimal · 10" : "Volumen = Länge · Länge · Länge: jede Stufe dreimal · 10"}</figcaption>
+      <figcaption>{p === 2 ? tr("Fläche = Länge · Länge: jede Stufe zweimal · 10", "Area = length · length: each step · 10 twice") : tr("Volumen = Länge · Länge · Länge: jede Stufe dreimal · 10", "Volume = length · length · length: each step · 10 three times")}</figcaption>
     </figure>
   );
 }

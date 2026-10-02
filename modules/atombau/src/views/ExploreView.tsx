@@ -6,12 +6,13 @@ import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, use
 import {
   BY_Z, CATEGORIES, GROUP_NAMES, searchElements, standardNeutrons, configuration, configString, shortConfigString,
   shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons,
-  ELEMENTS, TRENDS, trendScale, type Category, type TrendKey, mainGroupNumber, ROMAN,
+  ELEMENTS, TRENDS, trendScale, kindLabel, type Category, type TrendKey, mainGroupNumber, ROMAN,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { PeriodicTable, Legend, BlockLegend } from "@lern/chem-ui";
 import { SearchBox } from "../components/ElementPicker.tsx";
 import { Bohr, Nuclide, EnergyDiagram } from "@lern/chem-ui";
+import { tr } from "@lern/i18n";
 
 export function ExploreView() {
   const { stufe, selectedZ, select } = useApp();
@@ -31,12 +32,12 @@ export function ExploreView() {
   const colors = (
     <>
       {stufe === "os" && (
-        <Segmented<"cat" | "blk" | TrendKey> label="Färben nach" value={color} onChange={setColor}
-          options={[{ value: "cat", label: "Kategorien", short: "Art" }, { value: "blk", label: "Blöcke", short: "Block" }, ...(Object.keys(TRENDS) as TrendKey[]).map(k => ({ value: k, label: TRENDS[k].label, short: TRENDS[k].short }))]} />
+        <Segmented<"cat" | "blk" | TrendKey> label={tr("Färben nach", "Colour by")} value={color} onChange={setColor}
+          options={[{ value: "cat", label: tr("Kategorien", "Categories"), short: tr("Art", "Type") }, { value: "blk", label: tr("Blöcke", "Blocks"), short: "Block" }, ...(Object.keys(TRENDS) as TrendKey[]).map(k => ({ value: k, label: TRENDS[k].label, short: TRENDS[k].short }))]} />
       )}
       {trend
         ? <div className="trend-legend">
-            <div className="tl-scale"><span>niedrig</span><i /><span>hoch</span></div>
+            <div className="tl-scale"><span>{tr("niedrig", "low")}</span><i /><span>{tr("hoch", "high")}</span></div>
             <p><b>{TRENDS[trend.key].label}{TRENDS[trend.key].unit && ` (${TRENDS[trend.key].unit})`}</b></p>
           </div>
         : blocks ? <BlockLegend /> : <Legend stufe={stufe} active={cat} onToggle={c => setCat(cat === c ? null : c)} />}
@@ -45,7 +46,7 @@ export function ExploreView() {
 
   return (
     <Workbench className="explore-wb" active={tool} onActive={setTool}
-      head={<SearchBox value={q} onChange={setQ} placeholder="Element suchen …" onEnter={() => { const h = searchElements(q, maxZFor(stufe))[0]; if (h) pick(h.Z); }} />}
+      head={<SearchBox value={q} onChange={setQ} placeholder={tr("Element suchen …", "Search element …")} onEnter={() => { const h = searchElements(q, maxZFor(stufe))[0]; if (h) pick(h.Z); }} />}
       stage={
         <div className="pse-fit">
           <PeriodicTable fit stufe={stufe} onPick={pick} trend={trend} blocks={blocks} cellState={z => {
@@ -58,8 +59,8 @@ export function ExploreView() {
       }
       status={trend ? <Tag>{TRENDS[trend.key].label}</Tag> : blocks ? <Tag>s · p · d · f</Tag> : cat ? <Tag>{CATEGORIES[cat].label}</Tag> : undefined}
       tools={[
-        { id: "element", label: BY_Z[Z].name, icon: "atom", title: "Steckbrief", content: <ElementDetail Z={Z} onAction={() => setTool(null)} /> },
-        { id: "farben", label: "Farben", icon: "grid", content: colors },
+        { id: "element", label: BY_Z[Z].name, icon: "atom", title: tr("Steckbrief", "Profile"), content: <ElementDetail Z={Z} onAction={() => setTool(null)} /> },
+        { id: "farben", label: tr("Farben", "Colours"), icon: "grid", content: colors },
       ]} />
   );
 }
@@ -67,6 +68,7 @@ export function ExploreView() {
 export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => void }) {
   const { stufe, animate, orbitalColors, buildElement } = useApp();
   const reduced = useReducedMotion();
+  const LOC = tr("de-AT", "en-GB");
   const os = stufe === "os";
   const el = BY_Z[Z];
   const N = standardNeutrons(Z);
@@ -75,24 +77,24 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   const val = valenceElectrons(Z);
   const ion = typicalIonCharge(Z);
   const rows: [string, string | number][] = [
-    ["Ordnungszahl", Z],
-    ["Atommasse", `${el.mass.toLocaleString("de-AT")} u`],
+    [tr("Ordnungszahl", "Atomic number"), Z],
+    [tr("Atommasse", "Atomic mass"), `${el.mass.toLocaleString(LOC)} u`],
     ["p⁺ · n · e⁻", `${Z} · ${N} · ${Z}`],
-    ["Periode", `${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`],
+    [tr("Periode", "Period"), tr(`${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`, `${el.period} (${sh.length} shell${sh.length > 1 ? "s" : ""})`)],
     os || mainGroupNumber(Z) === null
-      ? ["Gruppe", el.group === null ? "Lanthanoide" : `${el.group}${GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`]
-      : ["Hauptgruppe", `${ROMAN[mainGroupNumber(Z)!]}${el.group && GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`],
-    ["Art", CATEGORIES[el.category].kind],
+      ? [tr("Gruppe", "Group"), el.group === null ? tr("Lanthanoide", "Lanthanoids") : `${el.group}${GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`]
+      : [tr("Hauptgruppe", "Main group"), `${ROMAN[mainGroupNumber(Z)!]}${el.group && GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`],
+    [tr("Art", "Type"), kindLabel(CATEGORIES[el.category].kind)],
   ];
-  if (val !== null) rows.push(["Außenelektronen", val]);
+  if (val !== null) rows.push([tr("Außenelektronen", "Outer electrons"), val]);
   if (os) {
-    rows.push(["Block", `${blockOf(Z)}-Block`]);
-    rows.push(["Elektronegativität", el.en === null ? "–" : el.en.toLocaleString("de-AT")]);
-    rows.push(["Ungepaarte e⁻", unpairedElectrons(cfg)]);
-    rows.push(["Atomradius", `${TRENDS.radius.value(Z)} pm`]);
-    rows.push(["Ionisierungsenergie", `${TRENDS.ie.value(Z)!.toLocaleString("de-AT")} eV`]);
+    rows.push(["Block", `${blockOf(Z)}${tr("-Block", " block")}`]);
+    rows.push([tr("Elektronegativität", "Electronegativity"), el.en === null ? "–" : el.en.toLocaleString(LOC)]);
+    rows.push([tr("Ungepaarte e⁻", "Unpaired e⁻"), unpairedElectrons(cfg)]);
+    rows.push([tr("Atomradius", "Atomic radius"), `${TRENDS.radius.value(Z)} pm`]);
+    rows.push([tr("Ionisierungsenergie", "Ionisation energy"), `${TRENDS.ie.value(Z)!.toLocaleString(LOC)} eV`]);
   }
-  if (el.radioactive) rows.push(["Besonderheit", "radioaktiv"]);
+  if (el.radioactive) rows.push([tr("Besonderheit", "Note"), tr("radioaktiv", "radioactive")]);
   const go = (charge = 0) => { buildElement(Z, charge); onAction?.(); };
 
   const key = rows.slice(0, 4);
@@ -109,13 +111,13 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
     </FitDown>
   );
   const tabs = [
-    { id: "info", label: "Überblick", content: overview },
-    { id: "daten", label: "Daten", content: <FitDown min={0.6}><dl className="d-facts">{rows.slice(4).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl></FitDown> },
+    { id: "info", label: tr("Überblick", "Overview"), content: overview },
+    { id: "daten", label: tr("Daten", "Data"), content: <FitDown min={0.6}><dl className="d-facts">{rows.slice(4).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl></FitDown> },
     ...(os ? [{
-      id: "cfg", label: "Konfig.", content: (
+      id: "cfg", label: tr("Konfig.", "Config."), content: (
         <>
-          <p className="cfg-line"><span className="cfg-k">Ausführlich</span><code>{configString(cfg)}</code></p>
-          <p className="cfg-line"><span className="cfg-k">Kurz</span><code>{shortConfigString(Z)}</code></p>
+          <p className="cfg-line"><span className="cfg-k">{tr("Ausführlich", "Full")}</span><code>{configString(cfg)}</code></p>
+          <p className="cfg-line"><span className="cfg-k">{tr("Kurz", "Short")}</span><code>{shortConfigString(Z)}</code></p>
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={cfg} /></FitDown>
         </>
       ),
@@ -126,12 +128,12 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
           <div className="d-ion">
             <Nuclide Z={Z} N={N} E={Z - ion} size="lg" />
             <div className="ui-tags">
-              <Tag>{ion > 0 ? `gibt ${ion} e⁻ ab` : `nimmt ${-ion} e⁻ auf`}</Tag>
-              <Tag tone="ok">✓ Edelgaskonfiguration</Tag>
+              <Tag>{ion > 0 ? tr(`gibt ${ion} e⁻ ab`, `loses ${ion} e⁻`) : tr(`nimmt ${-ion} e⁻ auf`, `gains ${-ion} e⁻`)}</Tag>
+              <Tag tone="ok">✓ {tr("Edelgaskonfiguration", "Noble gas configuration")}</Tag>
               {os && <Tag><code>{shortConfigString(Z, Z - ion)}</code></Tag>}
             </div>
           </div>
-          <Button onClick={() => go(ion)}>Ion {el.symbol}{chargeSup(ion)} bauen</Button>
+          <Button onClick={() => go(ion)}>{tr("Ion", "Build ion")} {el.symbol}{chargeSup(ion)}{tr(" bauen", "")}</Button>
         </>
       ),
     }] : []),
@@ -142,9 +144,9 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
       <div className={`d-head cat-${el.category}`}>
         <div className="d-sym"><span className="d-z">{Z}</span><span className="d-s">{el.symbol}</span></div>
         <div className="d-title"><h2 className="d-name">{el.name}</h2><span className="ui-badge">{CATEGORIES[el.category].label}</span></div>
-        <Button variant="primary" icon="atom" onClick={() => go()}>Bauen</Button>
+        <Button variant="primary" icon="atom" onClick={() => go()}>{tr("Bauen", "Build")}</Button>
       </div>
-      <Panel className="flat" tabs={tabs} label="Steckbrief" />
+      <Panel className="flat" tabs={tabs} label={tr("Steckbrief", "Profile")} />
     </div>
   );
 }

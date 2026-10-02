@@ -6,10 +6,11 @@ import type { LevelKey } from "@lern/quiz";
 import { NeutralWall } from "../components/NeutralWall.tsx";
 import { LEVELS, type Task } from "./tasks.ts";
 import type { Stufe } from "../store.ts";
+import { tr } from "@lern/i18n";
 
 interface Ex { points: string[]; b: string; a: string; step?: number; products?: boolean }
 
-const TEXT: Record<string, Ex> = {
+const TEXT_DE: Record<string, Ex> = {
   "us-1": { b: "naoh", a: "h2so4", points: [
     "Säuren geben in Wasser **H⁺-Ionen** ab. Übrig bleibt der **Säurerest** – ein negatives Ion.",
     "So viele H⁺ weggehen, so viele Minus trägt der Rest: H₂SO₄ → 2 H⁺ + SO₄²⁻.",
@@ -41,6 +42,39 @@ const TEXT: Record<string, Ex> = {
     "Ca(OH)₂ + 2 H₂CO₃ → Ca(HCO₃)₂ + 2 H₂O (Calciumhydrogencarbonat).",
   ] },
 };
+const TEXT_EN: Record<string, Ex> = {
+  "us-1": { b: "naoh", a: "h2so4", points: [
+    "In water, acids give off **H⁺ ions**. What remains is the **acid anion** – a negative ion.",
+    "As many H⁺ as leave, that many minus charges the anion carries: H₂SO₄ → 2 H⁺ + SO₄²⁻.",
+    "Names: chloride, bromide, sulfide (no O) · nitrate, sulfate, carbonate, phosphate · sulfite (one O fewer) · acetate, formate.",
+  ] },
+  "us-2": { b: "caoh2", a: "hcl", points: [
+    "Metal hydroxides consist of metal ions and **OH⁻ ions**: Ca(OH)₂ → Ca²⁺ + 2 OH⁻. Dissolved in water they are **alkalis**.",
+    "In neutralisation every **H⁺ + OH⁻ becomes H₂O**.",
+    "Take alkali and acid until the **OH⁻ row and the H⁺ row are the same length**.",
+  ] },
+  "us-3": { b: "baoh2", a: "h3po4", products: true, points: [
+    "Alkali + acid → **salt + water**. The salt consists of the metal ion of the alkali and the acid anion.",
+    "Salt formula as in ionic bonding: balance charges, polyatomic ions in brackets when needed more than once: Ba₃(PO₄)₂.",
+    "Name: metal + acid anion – barium phosphate, sodium sulfate, calcium chloride.",
+  ] },
+  "os-1": { b: "naoh", a: "h3po4", step: 1, points: [
+    "Polyprotic acids give off their H⁺ **step by step**: H₃PO₄ → H₂PO₄⁻ → HPO₄²⁻ → PO₄³⁻.",
+    "If H stays in the ion: **hydrogen** (HCO₃⁻, HPO₄²⁻), with two H **dihydrogen** (H₂PO₄⁻).",
+    "Acetic and formic acid are **monoprotic**: only the H of the COOH group is acidic.",
+  ] },
+  "os-2": { b: "caoh2", a: "h3po4", points: [
+    "Number of H₂O = number of OH⁻ = number of H⁺ = LCM of the metal ion's charge and the H⁺ given off.",
+    "3 Ca(OH)₂ + 2 H₃PO₄ → Ca₃(PO₄)₂ + 6 H₂O.",
+    "If the acid gives off only some of its H⁺, a **hydrogen salt** forms: NaOH + H₃PO₄ → NaH₂PO₄ + H₂O.",
+  ] },
+  "os-3": { b: "caoh2", a: "h2co3", step: 1, products: true, points: [
+    "The salt from metal ion and acid anion – balance charges, brackets for polyatomic ions.",
+    "Careful: sulfide S²⁻ ≠ sulfite SO₃²⁻ ≠ sulfate SO₄²⁻; carbonate ≠ hydrogen carbonate.",
+    "Ca(OH)₂ + 2 H₂CO₃ → Ca(HCO₃)₂ + 2 H₂O (calcium hydrogen carbonate).",
+  ] },
+};
+const TEXT = tr(TEXT_DE, TEXT_EN);
 
 export function explainFor(stufe: Stufe, level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[stufe][level].id

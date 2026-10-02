@@ -4,10 +4,11 @@ import { Icon } from "@lern/ui";
 import { formula, ratio, chargeFull, compoundName, type Ion } from "@lern/chem";
 import { Formula } from "@lern/chem-ui";
 import { IonTile } from "./IonTile.tsx";
+import { tr } from "@lern/i18n";
 
 export function balanceText(cation: Ion, anion: Ion, nC: number, nA: number) {
   const pos = nC * cation.charge, neg = nA * -anion.charge;
-  return `${nC} · (${chargeFull(cation.charge)}) = ${pos}+ ${pos === neg ? "und" : "aber"} ${nA} · (${chargeFull(anion.charge)}) = ${neg}−`;
+  return `${nC} · (${chargeFull(cation.charge)}) = ${pos}+ ${pos === neg ? tr("und", "and") : tr("aber", "but")} ${nA} · (${chargeFull(anion.charge)}) = ${neg}−`;
 }
 
 export function IonWall({ cation, anion, nC, nA, onTile, showFormula = true, showName = true }: {
@@ -23,11 +24,11 @@ export function IonWall({ cation, anion, nC, nA, onTile, showFormula = true, sho
       <div className="iw-stack" style={{ "--cols": cols } as React.CSSProperties}>
         <div className="iw-row" aria-label={`${nC} × ${cation.name}`}>
           {Array.from({ length: nC }, (_, i) => <IonTile key={i} ion={cation} onClick={onTile && (() => onTile(cation))} />)}
-          {neg > pos && <span className="iw-gap" style={{ gridColumn: `span ${neg - pos}` }} role="img" aria-label={`es fehlen ${neg - pos} positive Ladungen`} />}
+          {neg > pos && <span className="iw-gap" style={{ gridColumn: `span ${neg - pos}` }} role="img" aria-label={tr(`es fehlen ${neg - pos} positive Ladungen`, `${neg - pos} positive charges missing`)} />}
         </div>
         <div className="iw-row" aria-label={`${nA} × ${anion.name}`}>
           {Array.from({ length: nA }, (_, i) => <IonTile key={i} ion={anion} onClick={onTile && (() => onTile(anion))} />)}
-          {pos > neg && <span className="iw-gap" style={{ gridColumn: `span ${pos - neg}` }} role="img" aria-label={`es fehlen ${pos - neg} negative Ladungen`} />}
+          {pos > neg && <span className="iw-gap" style={{ gridColumn: `span ${pos - neg}` }} role="img" aria-label={tr(`es fehlen ${pos - neg} negative Ladungen`, `${pos - neg} negative charges missing`)} />}
         </div>
       </div>
       {showFormula && (

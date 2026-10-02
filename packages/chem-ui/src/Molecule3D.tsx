@@ -8,6 +8,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
 import { embed3D, embedMol3D, dipoleVector, polarBonds, en, type AngleMode, type Mol3D, type Molecule, type Vec } from "@lern/chem";
+import { tr } from "@lern/i18n";
 
 // Farbfamilien nach CPK, Werte aus der gemeinsamen Palette (tokens.css --hue-*; three.js braucht feste Zahlen)
 const CPK: Record<string, number> = { H: 0xf4f4f0, C: 0x3a3a3a, N: 0x4a78bf, O: 0xdd5444, F: 0xa9c46a, Cl: 0x7fb55a, Br: 0xa2503f, I: 0x83569e, S: 0xedc242, P: 0xea9146 };
@@ -193,7 +194,7 @@ export default function Molecule3D({ mol, data, showAngles = true, showLonePairs
         let side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 0, 1));
         if (side.lengthSq() < 1e-6) side = new THREE.Vector3().crossVectors(dir, new THREE.Vector3(0, 1, 0));
         side.normalize();
-        const l = label("Dipol", "dipole");
+        const l = label(tr("Dipol", "Dipole"), "dipole");
         l.position.copy(tip).addScaledVector(side, 0.45);
         group.add(l);
       }
@@ -275,5 +276,5 @@ export default function Molecule3D({ mol, data, showAngles = true, showLonePairs
     };
   }, [key, mol, data, showAngles, showLonePairs, showDipole, dipoleArrow, autoRotate, angleMode, look]);
 
-  return <div ref={host} className="m3d" role="img" aria-label="3D-Modell des Moleküls – ziehen zum Drehen, zoomen mit Mausrad oder zwei Fingern, Atom antippen zeigt das Symbol" />;
+  return <div ref={host} className="m3d" role="img" aria-label={tr("3D-Modell des Moleküls – ziehen zum Drehen, zoomen mit Mausrad oder zwei Fingern, Atom antippen zeigt das Symbol", "3D model of the molecule – drag to rotate, zoom with mouse wheel or two fingers, tap an atom to show its symbol")} />;
 }
