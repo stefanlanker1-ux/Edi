@@ -1,8 +1,10 @@
-// Geführte Erklärung je App („Erklärung“ links in der Kopfzeile): 10–15 Schritte, jeder verlangt eine Handlung –
+// Geführte Erklärung je App („Erklärung“ links in der Kopfzeile): kleine Schritte, jeder verlangt eine Handlung –
 // eine Auswahl antippen, eine Zahl eintippen oder etwas im Bild antippen (mit den Bausteinen der App).
 // Vier Fehlversuche → die Lösung wird markiert, der Schüler tippt sie selbst an. Richtig → kurze Bestätigung,
 // die als grüne Zeile über dem nächsten Schritt stehen bleibt (kein Extra-Klick auf „Weiter“).
 // Ganzer Bildschirm, nie scrollen: Bild füllt den Platz (container-type: size, Zeichnungen mit cqw/cqh oder Fit).
+// Längere Erklärungen in Kapiteln (`part`): Kapitelname im Kopf, Fortschrittsbalken in Abschnitten.
+// `hold`: nach der richtigen Antwort bleibt der Schritt stehen (z. B. Animation ansehen), weiter mit „Weiter“.
 
 import { num, tr } from "./i18n.ts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -41,6 +43,10 @@ export interface GuideStep {
   ok: string;
   /** Hinweis, wenn nach vier Versuchen die Lösung markiert wird */
   show?: string;
+  /** Kapitel beginnt mit diesem Schritt (Name im Kopf der Erklärung) */
+  part?: string;
+  /** nach der richtigen Antwort stehen bleiben (Bild zeigt z. B. eine Animation), weiter mit „Weiter“ */
+  hold?: boolean;
 }
 
 export interface GuideDef {
@@ -116,7 +122,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
     if (solved || done) return;
     if (isRight(step, a)) {
       setSolved(true); setMsg(null); ding(true); buzz();
-      timer.current = window.setTimeout(() => { setOkLine(step.ok); setI(k => k + 1); reset(); }, 750);
+      if (!step.hold) timer.current = window.setTimeout(() => { setOkLine(step.ok); setI(k => k + 1); reset(); }, 750);
       return;
     }
     ding(false); buzz(); setShake(s => s + 1);
@@ -130,6 +136,12 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
       : feedback(step, why, t));
   };
   const ctx: GuideCtx = { pick: id => answer(id), show, solved };
+  /** nach „hold“: Bestätigung steht schon beim Schritt, deshalb nicht noch einmal über dem nächsten */
+  const next = () => { setOkLine(null); setI(k => k + 1); reset(); };
+  // Kapitel: Anfang je Kapitel und das aktuelle
+  const starts = def.steps.map((s, k) => (s.part || k === 0 ? k : -1)).filter(k => k >= 0);
+  const parts = def.steps.some(s => s.part) ? starts.map((k, j) => ({ name: def.steps[k].part ?? "", from: k, to: starts[j + 1] ?? n })) : [];
+  const part = parts.filter(p => p.from <= Math.min(i, n - 1)).pop();
   const solText = typeof step.answer === "number" ? num(step.answer) : step.answer;
 
   return (
@@ -138,10 +150,14 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
         <div className="ui-guide-in">
           <header className="ui-guide-head">
             <span className="ui-guide-badge"><Icon name="play" size={16} /><span>{tr("Erklärung", "Explanation")}</span></span>
-            <h2>{def.title}</h2>
+            <h2 title={def.title}>{part?.name && !done ? <><span className="ui-guide-part">{tr(`Teil ${parts.indexOf(part) + 1}`, `Part ${parts.indexOf(part) + 1}`)}</span> {part.name}</> : def.title}</h2>
             <span className="ui-guide-count" aria-label={tr(`Schritt ${Math.min(i + 1, n)} von ${n}`, `Step ${Math.min(i + 1, n)} of ${n}`)}>{done ? tr("fertig", "done") : `${i + 1} / ${n}`}</span>
             <IconButton icon="close" label={tr("Erklärung schließen", "Close explanation")} onClick={onClose} />
-            <span className="ui-guide-bar" aria-hidden="true"><i style={{ width: `${(Math.min(i, n) / n) * 100}%` }} /></span>
+            {parts.length > 1
+              ? <span className="ui-guide-bar parts" aria-hidden="true">{parts.map(p => (
+                <span key={p.from} style={{ flex: p.to - p.from }}><i style={{ width: `${(Math.max(0, Math.min(i, p.to) - p.from) / (p.to - p.from)) * 100}%` }} /></span>
+              ))}</span>
+              : <span className="ui-guide-bar" aria-hidden="true"><i style={{ width: `${(Math.min(i, n) / n) * 100}%` }} /></span>}
           </header>
           {done ? (
             <div className="ui-guide-end">
@@ -186,8 +202,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                   </form>
                 )}
                 <p className={`ui-guide-msg${solved ? " right" : show ? " sol" : msg ? " wrong" : ""}`} aria-live="polite">
-                  {solved ? <><Icon name="check" size={18} />{tr("Richtig!", "Correct!")}</> : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
+                  {solved ? <><Icon name="check" size={18} />{step.hold ? <span><RichText text={step.ok} /></span> : tr("Richtig!", "Correct!")}</>
+                    : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
                 </p>
+                {step.hold && solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
               </div>
             </div>
           )}

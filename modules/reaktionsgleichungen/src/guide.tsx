@@ -1,10 +1,12 @@
 // Geführte Erklärung Reaktionsgleichungen: Teilchenbild der App (Kalotten) und die einzeilige Gleichung.
 // Atome zählen, Koeffizient an die richtige Stelle setzen (Stoff antippen), ausgleichen, Wortgleichung, Klammern, kürzen.
+// Level I in Kapiteln: erst vorhersagen, dann den Übergang Edukte → Produkte als Animation ansehen bzw. selbst mit dem Regler steuern.
 
 import type { GuideCtx, GuideDef, GuideStep } from "@lern/ui";
 import { toSubscript, type Equation } from "@lern/chem";
 import { FitLine } from "./components/Equation.tsx";
 import { MoleculeScene } from "./components/Molecules.tsx";
+import { ReactionMorph } from "./components/Morph.tsx";
 import { tr } from "@lern/i18n";
 
 const KNALLGAS: Equation = { left: ["H2", "O2"], right: ["H2O"] };
@@ -46,56 +48,177 @@ function Pick({ c, eq, k, answer }: { c: GuideCtx; eq: Equation; k: number[]; an
   );
 }
 
+/** eine Formel groß, mit Koeffizient davor */
+const Formula = ({ f, k }: { f: string; k: number }) => <div className="rg-g rg-g-only"><FitLine text={`${k > 1 ? `${k} ` : ""}${toSubscript(f)}`} base={30} /></div>;
+
 const eqOf = (l: string[], r: string[]): Equation => ({ left: l, right: r });
 
-const US: GuideStep[] = [
+/** Animation Edukte → Produkte; vor der Vorhersage nur das Bild der Edukte (ohne Regler), danach spielt sie ab */
+const Watch = ({ c, eq, k, predict }: { c: GuideCtx; eq: Equation; k: number[]; predict?: boolean }) => (
+  <div className="rg-g">
+    <div className="rg-g-scene"><ReactionMorph key={c.solved ? 1 : 0} eq={eq} coeffs={k} controls={!predict || c.solved} autoplay={c.solved} /></div>
+    <FitLine text={text(eq, k)} />
+  </div>
+);
+
+/** selbst abspielen oder den Regler zu den Produkten ziehen (Ziel „end“) */
+const Drive = ({ c, eq, k }: { c: GuideCtx; eq: Equation; k: number[] }) => (
+  <div className="rg-g">
+    <div className="rg-g-scene"><ReactionMorph eq={eq} coeffs={k} onEnd={() => c.pick("end")} /></div>
+    <FitLine text={text(eq, k)} />
+  </div>
+);
+
+const KNALLGAS_OK = [2, 1, 2];
+const AMMONIAK: Equation = { left: ["N2", "H2"], right: ["NH3"] }, AMMONIAK_OK = [1, 3, 2];
+const METHAN: Equation = { left: ["CH4", "O2"], right: ["CO2", "H2O"] }, METHAN_OK = [1, 2, 1, 2];
+const BOXES = () => [{ at: ".ms-box", text: tr("Edukte", "Reactants"), nth: 0, point: "top" as const, side: "above" as const }, { at: ".ms-box", text: tr("Produkte", "Products"), nth: -1, point: "top" as const, side: "above" as const }];
+
+const YES = () => tr("Sie werden neu verbunden.", "They are joined in a new way."), GONE = () => tr("Einige verschwinden.", "Some disappear."), NEW = () => tr("Neue Atome entstehen.", "New atoms form.");
+
+const US = (): GuideStep[] => [
+  // ── Kapitel 1: Was passiert bei einer Reaktion? ──
   {
-    say: tr("**Gesetz der Massenerhaltung:** Bei einer Reaktion werden Atome nur **neu verbunden**. Keines geht verloren, keines kommt dazu. Die Stoffe vorher heißen **Edukte**, nachher **Produkte**.", "**Conservation of mass:** in a reaction atoms are only **rearranged**. None is lost, none is added. The substances before are called **reactants**, after **products**."),
-    ask: tr("Zähle die **roten** O-Atome bei den **Edukten**. Wie viele sind es?", "Count the **red** O atoms in the **reactants**. How many are there?"), answer: 2, num: {},
+    part: tr("Was passiert?", "What happens?"),
+    say: tr("Wasserstoff und Sauerstoff reagieren zu Wasser. Links siehst du die Teilchen **vorher**.", "Hydrogen and oxygen react to form water. On the left you see the particles **before**."),
+    ask: tr("Was passiert mit den Atomen bei der Reaktion? Sag es vorher!", "What happens to the atoms in the reaction? Predict it!"), answer: YES(), options: [YES(), GONE(), NEW()],
+    visual: c => <Watch c={c} eq={KNALLGAS} k={KNALLGAS_OK} predict />,
+    why: { [GONE()]: tr("Atome können nicht verschwinden. Schau gleich genau hin.", "Atoms cannot disappear. Watch closely in a moment."), [NEW()]: tr("Bei einer Reaktion entstehen keine neuen Atome.", "No new atoms form in a reaction.") },
+    hold: true,
+    ok: tr("Schau zu: Die Atome lösen sich und finden **neue Partner**.", "Watch: the atoms separate and find **new partners**."),
+  },
+  {
+    say: tr("Jetzt bist du dran.", "Now it's your turn."),
+    ask: tr("Ziehe den Regler langsam von den **Edukten** zu den **Produkten**.", "Slowly drag the slider from the **reactants** to the **products**."), answer: "end",
+    visual: c => <Drive c={c} eq={KNALLGAS} k={KNALLGAS_OK} />,
+    tip: tr("Ziehe den Regler unter dem Bild ganz nach rechts – oder tippe auf Abspielen.", "Drag the slider below the picture all the way right – or tap Play."),
+    ok: tr("Bindungen brechen, Atome ordnen sich neu, neue Bindungen entstehen.", "Bonds break, atoms regroup, new bonds form."),
+  },
+  {
+    say: tr("Die Stoffe vorher heißen **Edukte**, die Stoffe nachher **Produkte**.", "The substances before are called **reactants**, the substances after **products**."),
+    ask: tr("Zähle die weißen **H-Atome** bei den **Edukten**.", "Count the white **H atoms** in the **reactants**."), answer: 4, num: {},
+    visual: () => <Scene eq={KNALLGAS} k={KNALLGAS_OK} />,
+    why: { "2": tr("Ein H₂ hat 2 H-Atome – es sind aber zwei H₂-Moleküle.", "One H₂ has 2 H atoms – but there are two H₂ molecules."), "6": tr("Zähle nur bei den Edukten, links.", "Count only in the reactants, on the left.") },
+    tip: tr("Zähle die kleinen weißen Kugeln im linken Kasten.", "Count the small white balls in the left box."),
+    labels: BOXES(),
+    ok: tr("Edukte: 4 H-Atome.", "Reactants: 4 H atoms."),
+  },
+  {
+    ask: tr("Und wie viele H-Atome sind bei den **Produkten**?", "And how many H atoms are in the **products**?"), answer: 4, num: {},
+    visual: () => <Scene eq={KNALLGAS} k={KNALLGAS_OK} />,
+    why: { "2": tr("Jedes Wasser-Molekül hat 2 H – und es sind zwei Moleküle.", "Each water molecule has 2 H – and there are two molecules.") },
+    tip: tr("Zähle die weißen Kugeln im rechten Kasten.", "Count the white balls in the right box."),
+    labels: BOXES(),
+    ok: tr("Vorher 4 H, nachher 4 H – gleich viele.", "4 H before, 4 H after – the same number."),
+  },
+  {
+    say: tr("Das gilt immer: **Gesetz der Erhaltung der Masse**. Atome werden nur neu verbunden.", "This always holds: **conservation of mass**. Atoms are only joined in a new way."),
+    ask: tr("Welche Aussage stimmt für **jede** Reaktion?", "Which statement is true for **every** reaction?"),
+    answer: tr("Links und rechts gleich viele Atome jeder Sorte", "The same number of atoms of each kind on both sides"),
+    options: [tr("Links und rechts gleich viele Atome jeder Sorte", "The same number of atoms of each kind on both sides"), tr("Links und rechts gleich viele Moleküle", "The same number of molecules on both sides"), tr("Rechts immer mehr Atome", "Always more atoms on the right")],
+    why: { [tr("Links und rechts gleich viele Moleküle", "The same number of molecules on both sides")]: tr("Vorher 3 Moleküle, nachher 2 – die Atome zählen.", "3 molecules before, 2 after – the atoms are what count."), [tr("Rechts immer mehr Atome", "Always more atoms on the right")]: tr("Es entstehen keine neuen Atome.", "No new atoms form.") },
+    ok: tr("Atome bleiben erhalten – Moleküle nicht.", "Atoms are conserved – molecules are not."),
+  },
+  // ── Kapitel 2: Zahlen in Formeln lesen ──
+  {
+    part: tr("Formeln lesen", "Reading formulas"),
+    say: tr("Die **kleine** Zahl hinter einem Atom sagt, wie oft es im Molekül vorkommt.", "The **small** number after an atom tells how often it occurs in the molecule."),
+    ask: tr("Wie viele H-Atome hat **ein** Molekül **H₂O**?", "How many H atoms does **one** **H₂O** molecule have?"), answer: 2, num: {},
+    visual: () => <Formula f="H2O" k={1} />,
+    why: { "1": tr("Die kleine 2 gehört zum H: H₂.", "The small 2 belongs to H: H₂."), "3": tr("3 sind alle Atome (2 H + 1 O).", "3 is all atoms (2 H + 1 O).") },
+    tip: tr("Schau auf die kleine Zahl direkt hinter dem H.", "Look at the small number right after the H."),
+    ok: tr("H₂O: 2 H und 1 O (die 1 schreibt man nicht).", "H₂O: 2 H and 1 O (the 1 is not written)."),
+  },
+  {
+    say: tr("Die **große** Zahl davor heißt **Koeffizient**. Sie sagt, wie viele Moleküle es sind.", "The **large** number in front is the **coefficient**. It tells how many molecules there are."),
+    ask: tr("Wie viele Wasser-**Moleküle** sind **3 H₂O**?", "How many water **molecules** are **3 H₂O**?"), answer: 3, num: {},
+    visual: () => <Formula f="H2O" k={3} />,
+    why: { "2": tr("Die kleine 2 gehört zum H. Die große Zahl zählt Moleküle.", "The small 2 belongs to H. The large number counts molecules."), "9": tr("Gefragt sind Moleküle, nicht Atome.", "The question asks for molecules, not atoms.") },
+    tip: tr("Schau auf die große Zahl vor der Formel.", "Look at the large number in front of the formula."),
+    ok: tr("3 H₂O = drei Wasser-Moleküle.", "3 H₂O = three water molecules."),
+  },
+  {
+    ask: tr("Wie viele **H-Atome** stecken in **3 H₂O**?", "How many **H atoms** are in **3 H₂O**?"), answer: 6, num: {},
+    visual: () => <Formula f="H2O" k={3} />,
+    why: { "5": tr("Nicht addieren: 3 Moleküle mit je 2 H.", "Don't add: 3 molecules with 2 H each."), "2": tr("2 H hat **ein** Molekül – es sind drei.", "**One** molecule has 2 H – there are three."), "3": tr("3 ist die Zahl der Moleküle.", "3 is the number of molecules.") },
+    tip: tr("Koeffizient mal kleine Zahl.", "Coefficient times small number."),
+    ok: tr("3 · 2 = 6 H-Atome.", "3 · 2 = 6 H atoms."),
+  },
+  {
+    ask: tr("Wie viele H-Atome stecken in **3 C₃H₈**?", "How many H atoms are in **3 C₃H₈**?"), answer: 24, num: {},
+    visual: () => <Formula f="C3H8" k={3} />,
+    why: { "8": tr("Die 3 davor gilt für jedes Atom: 3 · 8.", "The 3 in front applies to every atom: 3 · 8."), "11": tr("Nicht addieren: 3 Moleküle mit je 8 H.", "Don't add: 3 molecules with 8 H each."), "9": tr("9 sind die C-Atome (3 · 3).", "9 are the C atoms (3 · 3).") },
+    tip: tr("Zahl davor mal kleine Zahl hinter dem H.", "Number in front times the small number after H."),
+    ok: tr("Koeffizient · Index: 3 · 8 = 24 H-Atome.", "Coefficient · subscript: 3 · 8 = 24 H atoms."),
+  },
+  // ── Kapitel 3: Ausgleichen – vorgemacht ──
+  {
+    part: tr("Ausgleichen", "Balancing"),
+    say: tr("Jetzt fehlen die Zahlen. Wir gleichen gemeinsam aus.", "Now the numbers are missing. Let's balance together."),
+    ask: tr("Zähle die **roten** O-Atome bei den **Edukten**.", "Count the **red** O atoms in the **reactants**."), answer: 2, num: {},
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 1]} />,
     why: { "1": tr("Ein O₂-Molekül hat 2 O-Atome.", "An O₂ molecule has 2 O atoms."), "3": tr("Zähle nur bei den Edukten.", "Count only in the reactants.") },
-    tip: tr("Ein O₂-Molekül besteht aus zwei roten Kugeln. Zähle nur bei den Edukten.", "An O₂ molecule consists of two red balls. Count only in the reactants."),
-    labels: [{"at": ".ms-box", "text": tr("Edukte", "Reactants"), "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": tr("Produkte", "Products"), "nth": -1, "point": "top", "side": "above"}, {"at": ".ms-edukte [data-el=\"O\"]", "text": tr("O-Atom", "O atom"), "side": "left"}],
+    tip: tr("Ein O₂-Molekül besteht aus zwei roten Kugeln.", "An O₂ molecule consists of two red balls."),
+    labels: BOXES(),
     ok: tr("Edukte: 2 O-Atome.", "Reactants: 2 O atoms."),
   },
   {
     ask: tr("Und bei den **Produkten**?", "And in the **products**?"), answer: 1, num: {},
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 1]} />,
     why: { "2": tr("Bei den Produkten ist nur ein H₂O mit einem O-Atom.", "The products have only one H₂O with one O atom.") },
-    tip: tr("Zähle die roten Kugeln bei den Produkten.", "Count the red balls in the products."),
-    labels: [{"at": ".ms-box", "text": tr("Edukte", "Reactants"), "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": tr("Produkte", "Products"), "nth": -1, "point": "top", "side": "above"}],
-    ok: tr("Edukte 2 O, Produkte 1 O: Die Gleichung ist **nicht ausgeglichen**.", "Reactants 2 O, products 1 O: the equation is **not balanced**."),
+    tip: tr("Zähle die roten Kugeln im rechten Kasten.", "Count the red balls in the right box."),
+    labels: BOXES(),
+    ok: tr("2 O gegen 1 O: noch **nicht ausgeglichen**.", "2 O against 1 O: **not balanced** yet."),
   },
   {
-    say: tr("Die Formeln darf man **nie** ändern – H₂O bleibt H₂O. Man setzt **Zahlen davor** (Koeffizienten): 2 H₂O sind zwei Wasser-Moleküle.", "You may **never** change the formulas – H₂O stays H₂O. You put **numbers in front** (coefficients): 2 H₂O are two water molecules."),
-    ask: tr("Vor welchen Stoff muss eine **2**, damit auch die Produkte 2 O-Atome haben? Tippe ihn an.", "Which substance needs a **2** in front so that the products also have 2 O atoms? Tap it."), answer: "2",
+    ask: tr("Darf man H₂O einfach in **H₂O₂** ändern?", "May you simply change H₂O to **H₂O₂**?"),
+    answer: tr("Nein – das wäre ein anderer Stoff", "No – that would be a different substance"),
+    options: [tr("Nein – das wäre ein anderer Stoff", "No – that would be a different substance"), tr("Ja – dann stimmt O", "Yes – then O matches")],
+    visual: () => <Line eq={KNALLGAS} k={[1, 1, 1]} />,
+    why: { [tr("Ja – dann stimmt O", "Yes – then O matches")]: tr("H₂O₂ ist Wasserstoffperoxid, nicht Wasser. Formeln bleiben, wie sie sind.", "H₂O₂ is hydrogen peroxide, not water. Formulas stay as they are.") },
+    ok: tr("Formeln nie ändern – nur **Koeffizienten** davor setzen.", "Never change formulas – only put **coefficients** in front."),
+  },
+  {
+    ask: tr("Vor welchen Stoff muss eine **2**, damit rechts 2 O-Atome stehen? Tippe ihn an.", "Which substance needs a **2** so that there are 2 O atoms on the right? Tap it."), answer: "2",
     visual: c => <Pick c={c} eq={KNALLGAS} k={[1, 1, 1]} answer={2} />,
-    why: { "0": tr("Vor H₂ ändert sich die Zahl der O-Atome nicht.", "In front of H₂ the number of O atoms does not change."), "1": tr("Bei den Edukten stimmt O schon. Bei den Produkten fehlt ein O.", "O is already right in the reactants. One O is missing in the products.") },
-    tip: tr("Suche bei den Produkten den Stoff, der O-Atome enthält.", "Find the substance among the products that contains O atoms."),
-    labels: [{"at": ".ms-box", "text": tr("Edukte", "Reactants"), "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": tr("Produkte", "Products"), "nth": -1, "point": "top", "side": "above"}],
-    ok: tr("2 H₂O: Produkte jetzt mit 2 O – aber auch 4 H.", "2 H₂O: products now with 2 O – but also 4 H."),
+    why: { "0": tr("Vor H₂ ändert sich die Zahl der O-Atome nicht.", "In front of H₂ the number of O atoms does not change."), "1": tr("Links stimmt O schon. Rechts fehlt ein O.", "O is already right on the left. One O is missing on the right.") },
+    tip: tr("Suche rechts den Stoff, der O-Atome enthält.", "Find the substance on the right that contains O atoms."),
+    labels: BOXES(),
+    ok: tr("2 H₂O: rechts jetzt 2 O – aber auch 4 H.", "2 H₂O: now 2 O on the right – but also 4 H."),
   },
   {
-    ask: tr("Die Produkte haben jetzt **4 H**. Welche Zahl gehört vor **H₂**?", "The products now have **4 H**. Which number goes in front of **H₂**?"), answer: 2, num: {},
+    ask: tr("Rechts sind jetzt **4 H**. Welche Zahl gehört vor **H₂**?", "There are now **4 H** on the right. Which number goes in front of **H₂**?"), answer: 2, num: {},
     visual: () => <Scene eq={KNALLGAS} k={[1, 1, 2]} />,
-    why: { "4": tr("Ein H₂ hat schon 2 H-Atome: 2 · 2 = 4.", "One H₂ already has 2 H atoms: 2 · 2 = 4."), "1": tr("Die Edukte hätten dann nur 2 H.", "Then the reactants would only have 2 H.") },
-    tip: tr("Die Edukte brauchen so viele H-Atome wie die Produkte. Jedes H₂ hat zwei.", "The reactants need as many H atoms as the products. Each H₂ has two."),
-    labels: [{"at": ".ms-box", "text": tr("Edukte", "Reactants"), "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": tr("Produkte", "Products"), "nth": -1, "point": "top", "side": "above"}, {"at": ".ms-edukte [data-el=\"H\"]", "text": tr("H-Atom", "H atom"), "side": "left"}],
-    ok: tr("2 H₂: Edukte 4 H, Produkte 4 H.", "2 H₂: reactants 4 H, products 4 H."),
+    why: { "4": tr("Ein H₂ hat schon 2 H-Atome: 2 · 2 = 4.", "One H₂ already has 2 H atoms: 2 · 2 = 4."), "1": tr("Links wären dann nur 2 H.", "Then there would only be 2 H on the left.") },
+    tip: tr("Links brauchst du so viele H wie rechts. Jedes H₂ bringt zwei.", "You need as many H on the left as on the right. Each H₂ brings two."),
+    labels: BOXES(),
+    ok: tr("2 H₂: links 4 H, rechts 4 H.", "2 H₂: 4 H on the left, 4 H on the right."),
   },
   {
-    ask: tr("Ist die Gleichung jetzt ausgeglichen?", "Is the equation balanced now?"), answer: tr("Ja – H und O stimmen", "Yes – H and O match"), options: [tr("Ja – H und O stimmen", "Yes – H and O match"), tr("Nein – H stimmt nicht", "No – H does not match"), tr("Nein – O stimmt nicht", "No – O does not match")],
-    visual: () => <Scene eq={KNALLGAS} k={[2, 1, 2]} />,
-    why: { [tr("Nein – H stimmt nicht", "No – H does not match")]: tr("Edukte 2 · 2 = 4 H, Produkte 2 · 2 = 4 H.", "Reactants 2 · 2 = 4 H, products 2 · 2 = 4 H."), [tr("Nein – O stimmt nicht", "No – O does not match")]: tr("Edukte 2 O, Produkte 2 · 1 = 2 O.", "Reactants 2 O, products 2 · 1 = 2 O.") },
-    labels: [{"at": ".ms-box", "text": tr("Edukte", "Reactants"), "nth": 0, "point": "top", "side": "above"}, {"at": ".ms-box", "text": tr("Produkte", "Products"), "nth": -1, "point": "top", "side": "above"}],
-    ok: tr("**2 H₂ + O₂ → 2 H₂O** – Edukte und Produkte haben gleich viele Atome jeder Sorte.", "**2 H₂ + O₂ → 2 H₂O** – reactants and products have the same number of atoms of each kind."),
+    ask: tr("Ist **2 H₂ + O₂ → 2 H₂O** jetzt ausgeglichen?", "Is **2 H₂ + O₂ → 2 H₂O** balanced now?"), answer: tr("Ja – H und O stimmen", "Yes – H and O match"),
+    options: [tr("Ja – H und O stimmen", "Yes – H and O match"), tr("Nein – H stimmt nicht", "No – H does not match"), tr("Nein – O stimmt nicht", "No – O does not match")],
+    visual: c => <Watch c={c} eq={KNALLGAS} k={KNALLGAS_OK} predict />,
+    why: { [tr("Nein – H stimmt nicht", "No – H does not match")]: tr("Links 2 · 2 = 4 H, rechts 2 · 2 = 4 H.", "Left 2 · 2 = 4 H, right 2 · 2 = 4 H."), [tr("Nein – O stimmt nicht", "No – O does not match")]: tr("Links 2 O, rechts 2 · 1 = 2 O.", "Left 2 O, right 2 · 1 = 2 O.") },
+    hold: true,
+    ok: tr("Schau zu: Jedes Atom findet seinen Platz – keines bleibt übrig.", "Watch: every atom finds its place – none is left over."),
+  },
+  // ── Kapitel 4: Jetzt du ──
+  {
+    part: tr("Jetzt du", "Your turn"),
+    say: tr("Stickstoff und Wasserstoff reagieren zu Ammoniak: N₂ + ? H₂ → 2 NH₃.", "Nitrogen and hydrogen react to form ammonia: N₂ + ? H₂ → 2 NH₃."),
+    ask: tr("Wie viele **H-Atome** stehen rechts in **2 NH₃**?", "How many **H atoms** are on the right in **2 NH₃**?"), answer: 6, num: {},
+    visual: () => <Line eq={AMMONIAK} k={[1, null, 2]} />,
+    why: { "3": tr("3 H hat **ein** NH₃ – es sind zwei.", "**One** NH₃ has 3 H – there are two."), "5": tr("Nicht addieren: 2 · 3.", "Don't add: 2 · 3.") },
+    tip: tr("Koeffizient mal kleine Zahl hinter dem H.", "Coefficient times the small number after H."),
+    ok: tr("Rechts: 2 · 3 = 6 H.", "Right: 2 · 3 = 6 H."),
   },
   {
-    say: tr("Die Zahl **davor** gilt für das ganze Molekül, die **kleine** Zahl nur für das Atom davor.", "The number **in front** applies to the whole molecule, the **small** number only to the atom before it."),
-    ask: tr("Wie viele H-Atome stecken in **3 C₃H₈**?", "How many H atoms are there in **3 C₃H₈**?"), answer: 24, num: {},
-    why: { "8": tr("Die 3 davor gilt für jedes Atom: 3 · 8.", "The 3 in front applies to every atom: 3 · 8."), "11": tr("Nicht addieren: 3 Moleküle mit je 8 H.", "Don't add: 3 molecules with 8 H each."), "9": tr("9 sind die C-Atome (3 · 3).", "9 are the C atoms (3 · 3).") },
-    tip: tr("Zahl davor mal kleine Zahl hinter dem H.", "Number in front times the small number after H."),
-    ok: tr("Koeffizient · Index: 3 · 8 = 24 H-Atome.", "Coefficient · subscript: 3 · 8 = 24 H atoms."),
+    ask: tr("Welche Zahl gehört vor **H₂**?", "Which number goes in front of **H₂**?"), answer: 3, num: {},
+    visual: c => (c.solved ? <Watch c={c} eq={AMMONIAK} k={AMMONIAK_OK} /> : <Line eq={AMMONIAK} k={[1, null, 2]} />),
+    why: { "6": tr("6 H₂ wären 12 H-Atome. Jedes H₂ hat zwei.", "6 H₂ would be 12 H atoms. Each H₂ has two."), "2": tr("2 H₂ sind nur 4 H.", "2 H₂ are only 4 H.") },
+    tip: tr("Du brauchst links 6 H. Wie viele H₂ sind das?", "You need 6 H on the left. How many H₂ is that?"),
+    hold: true,
+    ok: tr("**N₂ + 3 H₂ → 2 NH₃** – schau zu, ob alles aufgeht.", "**N₂ + 3 H₂ → 2 NH₃** – watch whether everything works out."),
   },
   {
     ask: tr("Ist **Fe + 2 S → FeS** ausgeglichen?", "Is **Fe + 2 S → FeS** balanced?"), answer: tr("Nein – S stimmt nicht", "No – S does not match"), options: [tr("Ja", "Yes"), tr("Nein – S stimmt nicht", "No – S does not match"), tr("Nein – Fe stimmt nicht", "No – Fe does not match")],
@@ -110,16 +233,26 @@ const US: GuideStep[] = [
     tip: tr("Zähle die Mg-Atome rechts – die Zahl vor MgO gilt mit.", "Count the Mg atoms on the right – the number in front of MgO counts too."),
     ok: tr("**2 Mg** + CO₂ → 2 MgO + C.", "**2 Mg** + CO₂ → 2 MgO + C."),
   },
+  // ── Kapitel 5: Verbrennung und halbe Zahlen ──
   {
-    say: tr("Verbrennungen: erst C, dann H, **zuletzt O** ausgleichen.", "Combustion: balance C first, then H, **O last**."),
-    ask: tr("Welche Zahl gehört vor **O₂**?", "Which number goes in front of **O₂**?"), answer: 2, num: {},
-    visual: () => <Line eq={eqOf(["CH4", "O2"], ["CO2", "H2O"])} k={[1, null, 1, 2]} />,
-    why: { "4": tr("Rechts 4 O-Atome – das sind 2 O₂-Moleküle.", "4 O atoms on the right – that is 2 O₂ molecules."), "3": tr("Rechts: 2 O in CO₂ + 2 O in 2 H₂O = 4 O.", "Right: 2 O in CO₂ + 2 O in 2 H₂O = 4 O.") },
-    tip: tr("Zähle alle O-Atome rechts. Jedes O₂ bringt zwei davon.", "Count all O atoms on the right. Each O₂ brings two."),
-    ok: tr("CH₄ + 2 O₂ → CO₂ + 2 H₂O.", "CH₄ + 2 O₂ → CO₂ + 2 H₂O."),
+    part: tr("Verbrennung", "Combustion"),
+    say: tr("Verbrennungen: erst C, dann H, **zuletzt O** ausgleichen. Hier stimmen C und H schon.", "Combustion: balance C first, then H, **O last**. Here C and H already match."),
+    ask: tr("Wie viele **O-Atome** stehen rechts?", "How many **O atoms** are on the right?"), answer: 4, num: {},
+    visual: () => <Line eq={METHAN} k={[1, null, 1, 2]} />,
+    why: { "3": tr("CO₂ hat 2 O, und 2 H₂O haben 2 O.", "CO₂ has 2 O, and 2 H₂O have 2 O."), "2": tr("Zähle auch die O in 2 H₂O.", "Also count the O in 2 H₂O.") },
+    tip: tr("Zähle die O in CO₂ und in 2 H₂O, dann zusammenzählen.", "Count the O in CO₂ and in 2 H₂O, then add up."),
+    ok: tr("Rechts: 2 + 2 = 4 O-Atome.", "Right: 2 + 2 = 4 O atoms."),
   },
   {
-    say: tr("Links vom Pfeil stehen die **Edukte** (Ausgangsstoffe), rechts die **Produkte**.", "The **reactants** (starting substances) are on the left of the arrow, the **products** on the right."),
+    ask: tr("Welche Zahl gehört vor **O₂**?", "Which number goes in front of **O₂**?"), answer: 2, num: {},
+    visual: c => (c.solved ? <Watch c={c} eq={METHAN} k={METHAN_OK} /> : <Line eq={METHAN} k={[1, null, 1, 2]} />),
+    why: { "4": tr("4 O-Atome sind 2 O₂-Moleküle.", "4 O atoms are 2 O₂ molecules."), "1": tr("1 O₂ hat nur 2 O-Atome.", "1 O₂ has only 2 O atoms.") },
+    tip: tr("Jedes O₂ bringt zwei O-Atome.", "Each O₂ brings two O atoms."),
+    hold: true,
+    ok: tr("**CH₄ + 2 O₂ → CO₂ + 2 H₂O** – Methan verbrennt.", "**CH₄ + 2 O₂ → CO₂ + 2 H₂O** – methane burns."),
+  },
+  {
+    say: tr("Aus der **Wortgleichung** wird die Formelgleichung. Edukte links, Produkte rechts.", "The **word equation** becomes the formula equation. Reactants left, products right."),
     ask: tr("Welche Gleichung passt zu: **Stickstoff + Wasserstoff → Ammoniak**?", "Which equation matches: **nitrogen + hydrogen → ammonia**?"), answer: "N₂ + 3 H₂ → 2 NH₃",
     options: ["N₂ + 3 H₂ → 2 NH₃", "N + 3 H → NH₃", "N₂ + H₂ → NH₃", "2 NH₃ → N₂ + 3 H₂"],
     why: { "N + 3 H → NH₃": tr("Stickstoff und Wasserstoff kommen als Moleküle N₂ und H₂ vor.", "Nitrogen and hydrogen occur as the molecules N₂ and H₂."), "N₂ + H₂ → NH₃": tr("Nicht ausgeglichen: links 2 N, rechts 1 N.", "Not balanced: 2 N on the left, 1 N on the right."), "2 NH₃ → N₂ + 3 H₂": tr("Ammoniak ist das Produkt – es steht rechts.", "Ammonia is the product – it goes on the right.") },
@@ -142,8 +275,22 @@ const US: GuideStep[] = [
   },
 ];
 
-const OS: GuideStep[] = [
+const PROPAN: Equation = { left: ["C3H8", "O2"], right: ["CO2", "H2O"] }, PROPAN_OK = [1, 5, 3, 4];
+const ETHAN: Equation = { left: ["C2H6", "O2"], right: ["CO2", "H2O"] }, ETHAN_OK = [2, 7, 4, 6];
+const O5 = "5", O3 = "3", O10 = "10";
+
+const OS = (): GuideStep[] => [
   {
+    part: tr("Warum ausgleichen?", "Why balance?"),
+    say: tr("Propan verbrennt: C₃H₈ + ? O₂ → 3 CO₂ + 4 H₂O.", "Propane burns: C₃H₈ + ? O₂ → 3 CO₂ + 4 H₂O."),
+    ask: tr("Wie viele O₂ braucht ein Propan-Molekül? Schätze!", "How many O₂ does one propane molecule need? Estimate!"), answer: O5, options: [O3, O5, O10],
+    visual: c => <Watch c={c} eq={PROPAN} k={PROPAN_OK} predict />,
+    why: { [O3]: tr("Rechts sind 6 + 4 = 10 O-Atome. 3 O₂ haben nur 6.", "On the right there are 6 + 4 = 10 O atoms. 3 O₂ have only 6."), [O10]: tr("10 O-**Atome** – jedes O₂ bringt aber zwei.", "10 O **atoms** – but each O₂ brings two.") },
+    hold: true,
+    ok: tr("Schau zu: Alle 10 O-Atome finden einen Platz – genau 5 O₂.", "Watch: all 10 O atoms find a place – exactly 5 O₂."),
+  },
+  {
+    part: tr("Teilchen zählen", "Counting particles"),
     say: tr("Atome bleiben bei der Reaktion erhalten. Die Zahl davor gilt für das ganze Teilchen.", "Atoms are conserved in the reaction. The number in front applies to the whole particle."),
     ask: tr("Wie viele O-Atome stecken in **2 Fe₂O₃**?", "How many O atoms are there in **2 Fe₂O₃**?"), answer: 6, num: {},
     why: { "3": tr("Die 2 davor verdoppelt alles: 2 · 3.", "The 2 in front doubles everything: 2 · 3."), "5": tr("Nicht addieren: 2 Teilchen mit je 3 O.", "Don't add: 2 particles with 3 O each.") },
@@ -164,6 +311,7 @@ const OS: GuideStep[] = [
     ok: tr("3 · 3 = 9 Ca.", "3 · 3 = 9 Ca."),
   },
   {
+    part: tr("Ionen als Block", "Ions as a block"),
     say: tr("Mehratomige Ionen, die erhalten bleiben (SO₄, NO₃, PO₄), zählt man als **Block** – das spart Arbeit.", "Polyatomic ions that stay intact (SO₄, NO₃, PO₄) are counted as a **block** – that saves work."),
     ask: tr("Welche Zahl gehört vor **NaOH**?", "Which number goes in front of **NaOH**?"), answer: 2, num: {},
     visual: () => <Line eq={eqOf(["NaOH", "H2SO4"], ["Na2SO4", "H2O"])} k={[null, 1, 1, 2]} />,
@@ -199,12 +347,14 @@ const OS: GuideStep[] = [
     ok: tr("Edukte links: NO₂ und H₂O.", "Reactants on the left: NO₂ and H₂O."),
   },
   {
+    part: tr("Große Gleichungen", "Large equations"),
     say: tr("Verbrennung: erst C, dann H, zuletzt O. Ergibt sich eine halbe Zahl, **alles verdoppeln**.", "Combustion: first C, then H, O last. If a half number results, **double everything**."),
     ask: tr("Welche Zahl gehört vor **O₂**?", "Which number goes in front of **O₂**?"), answer: 7, num: {},
-    visual: () => <Line eq={eqOf(["C2H6", "O2"], ["CO2", "H2O"])} k={[2, null, 4, 6]} />,
+    visual: c => (c.solved ? <Watch c={c} eq={ETHAN} k={ETHAN_OK} /> : <Line eq={ETHAN} k={[2, null, 4, 6]} />),
+    hold: true,
     why: { "14": tr("14 sind die O-Atome rechts – das sind 7 O₂.", "14 are the O atoms on the right – that is 7 O₂."), "3.5": tr("Mit 2 C₂H₆ wird es ganzzahlig: 14 O-Atome = 7 O₂.", "With 2 C₂H₆ it becomes whole numbers: 14 O atoms = 7 O₂.") },
     tip: tr("Zähle die O-Atome rechts in 4 CO₂ und 6 H₂O, dann durch 2 teilen.", "Count the O atoms on the right in 4 CO₂ and 6 H₂O, then divide by 2."),
-    ok: tr("2 C₂H₆ + 7 O₂ → 4 CO₂ + 6 H₂O.", "2 C₂H₆ + 7 O₂ → 4 CO₂ + 6 H₂O."),
+    ok: tr("**2 C₂H₆ + 7 O₂ → 4 CO₂ + 6 H₂O** – schau zu, wie alles aufgeht.", "**2 C₂H₆ + 7 O₂ → 4 CO₂ + 6 H₂O** – watch everything work out."),
   },
   {
     say: tr("Große Gleichungen: Element für Element, **H und O zuletzt**, mit H gegenprüfen.", "Large equations: element by element, **H and O last**, check with H."),
@@ -230,14 +380,14 @@ const OS: GuideStep[] = [
 
 export function guideFor(stufe: "us" | "os"): GuideDef {
   return stufe === "us"
-    ? { title: tr("Reaktionsgleichungen", "Chemical Equations"), steps: US, outro: [
+    ? { title: tr("Reaktionsgleichungen", "Chemical Equations"), steps: US(), outro: [
       tr("Massenerhaltung: links und rechts gleich viele Atome von jeder Sorte.", "Conservation of mass: the same number of atoms of each kind on the left and right."),
       tr("Formeln nie ändern – nur **Zahlen davor** setzen.", "Never change formulas – only put **numbers in front**."),
       tr("Zahl davor × kleine Zahl = Atome (3 C₃H₈ → 24 H).", "Number in front × small number = atoms (3 C₃H₈ → 24 H)."),
       tr("Verbrennung: C, H, zuletzt O. Halbe Zahl → alles verdoppeln.", "Combustion: C, H, O last. Half number → double everything."),
       tr("Edukte links, Produkte rechts; Wortgleichung → Formelgleichung.", "Reactants left, products right; word equation → formula equation."),
     ] }
-    : { title: tr("Reaktionsgleichungen", "Chemical Equations"), steps: OS, outro: [
+    : { title: tr("Reaktionsgleichungen", "Chemical Equations"), steps: OS(), outro: [
       tr("Klammern: Zahl dahinter gilt für die ganze Gruppe (Ca(NO₃)₂ → 6 O).", "Brackets: the number after applies to the whole group (Ca(NO₃)₂ → 6 O)."),
       tr("Mehratomige Ionen als Block ausgleichen (Salze, Säuren, Fällung).", "Balance polyatomic ions as a block (salts, acids, precipitation)."),
       tr("Verbrennung und große Gleichungen: H und O zuletzt, mit H prüfen.", "Combustion and large equations: H and O last, check with H."),

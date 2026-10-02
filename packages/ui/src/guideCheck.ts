@@ -1,4 +1,4 @@
-// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–15 Schritte, jede Antwort lösbar,
+// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–30 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
 // Rückmeldungen passen zu möglichen Antworten, kurze Sätze.
 
 import type { GuideDef } from "./Guide.tsx";
@@ -12,7 +12,11 @@ export function longGuideSentences(text: string, max = 22): string[] {
 export function checkGuide(def: GuideDef): string[] {
   const out: string[] = [];
   const n = def.steps.length;
-  if (n < 10 || n > 15) out.push(`${def.title}: ${n} Schritte (erlaubt 10–15)`);
+  if (n < 10 || n > 30) out.push(`${def.title}: ${n} Schritte (erlaubt 10–30)`);
+  // längere Erklärungen in Kapiteln, jedes überschaubar (höchstens 8 Schritte)
+  const starts = def.steps.map((s, i) => (s.part || i === 0 ? i : -1)).filter(i => i >= 0);
+  if (n > 15 && !def.steps[0].part) out.push(`${def.title}: über 15 Schritte – Kapitel (part) nötig, ab dem ersten Schritt`);
+  if (def.steps[0].part || n > 15) starts.forEach((s, j) => { const len = (starts[j + 1] ?? n) - s; if (len > 8) out.push(`${def.title}: Kapitel „${def.steps[s].part}“ hat ${len} Schritte (höchstens 8)`); });
   if (!def.outro.length) out.push(`${def.title}: keine Zusammenfassung`);
   def.steps.forEach((s, i) => {
     const at = `${def.title} Schritt ${i + 1}`;
@@ -40,6 +44,7 @@ export function checkGuide(def: GuideDef): string[] {
     for (const l of s.labels ?? []) if (!l.afterSolved && (l.text === sol || (typeof s.answer === "number"
       ? new RegExp(`(^|[^0-9,\\p{L}])${sol}([^0-9,\\p{L}]|$)`, "u").test(l.text) : sol.length > 2 && l.text.includes(sol)))) out.push(`${at}: Beschriftung „${l.text}“ verrät die Lösung`);
     if (!s.ok) out.push(`${at}: Bestätigung fehlt`);
+    if (s.hold && !s.visual) out.push(`${at}: Anschauen (hold) ohne Bild`);
     for (const t of [s.say ?? "", s.ask, s.ok, s.show ?? "", s.tip ?? "", ...Object.values(s.why ?? {}), ...(s.labels ?? []).map(l => l.text)]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
   });
   return out;

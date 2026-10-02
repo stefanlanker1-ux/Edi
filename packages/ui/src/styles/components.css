@@ -359,3 +359,7 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 .ui-lang { width: auto; min-width: 44px; padding: 0 6px; gap: 3px; display: inline-flex; font-weight: 800; font-size: .78rem; letter-spacing: .02em; }
 .ui-lang span { color: var(--muted); font-weight: 600; }
 .ui-lang span.on { color: var(--text); font-weight: 850; }
+.ui-guide-part { font-weight: 650; color: var(--signal); margin-right: 2px; }
+.ui-guide-bar.parts { display: flex; gap: 4px; background: none; }
+.ui-guide-bar.parts > span { display: block; height: 100%; background: var(--border); }
+.ui-guide-next { justify-self: start; animation: ui-guide-in .3s ease; }
