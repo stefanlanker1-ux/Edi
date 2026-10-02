@@ -66,6 +66,8 @@ export interface MolSvgProps {
   numbers?: boolean;
   /** Atome der Hauptgruppe – markiert */
   group?: number[];
+  /** „Farbe“: Farbe je Atom (Teil des Namens) – ersetzt Hinterlegung und Markierung */
+  tint?: Map<number, string>;
   label: string;
   className?: string;
   /** Mindestgröße des Ausschnitts in Bindungslängen (kleine Moleküle nicht riesig) */
@@ -92,7 +94,7 @@ export function viewBoxOf(mol: Mol, view: View, minW = 4, minH = 3): [number, nu
   return [x0 * U, y0 * U, (x1 - x0) * U, (y1 - y0) * U];
 }
 
-export function MolSvg({ mol, view, parent, parentRing, numbers, group, label, className, minW, minH, viewBox, children, svgRef, ...ptr }: MolSvgProps) {
+export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, label, className, minW, minH, viewBox, children, svgRef, ...ptr }: MolSvgProps) {
   const g = graph(mol);
   const pos = new Map(mol.atoms.map(a => [a.id, { x: a.x * U, y: a.y * U }]));
   const lewis = view === "lewis";
@@ -157,13 +159,18 @@ export function MolSvg({ mol, view, parent, parentRing, numbers, group, label, c
 
   return (
     <svg ref={svgRef} className={`mol-svg${className ? " " + className : ""}`} viewBox={vb.join(" ")} role="img" aria-label={label} {...ptr}>
-      {band}
-      {group?.map(id => { const p = pos.get(id)!; return p && <circle key={id} className="mol-group" cx={p.x} cy={p.y} r={0.34 * U} />; })}
+      {!tint && band}
+      {tint && mol.bonds.filter(b => tint.get(b.a) && tint.get(b.a) === tint.get(b.b)).map((b, i) => {
+        const p = pos.get(b.a)!, q = pos.get(b.b)!;
+        return <line key={`t${i}`} className={`mol-tint h-${tint.get(b.a)}`} x1={p.x} y1={p.y} x2={q.x} y2={q.y} />;
+      })}
+      {tint && [...tint].map(([id, h]) => { const p = pos.get(id); return p && <circle key={`tc${id}`} className={`mol-tint-dot h-${h}`} cx={p.x} cy={p.y} r={0.34 * U} />; })}
+      {!tint && group?.map(id => { const p = pos.get(id)!; return p && <circle key={id} className="mol-group" cx={p.x} cy={p.y} r={0.34 * U} />; })}
       {bonds}
       {decos.map((d, i) => {
         const p = pos.get(d.atom)!, c = Math.cos(d.angle * RAD), s = Math.sin(d.angle * RAD);
         if (d.kind === "H") return (
-          <g key={i} className="mol-h">
+          <g key={i} className={`mol-h${tint?.get(d.atom) ? ` h-${tint.get(d.atom)}` : ""}`}>
             <line x1={p.x + c * R} y1={p.y + s * R} x2={p.x + c * 0.47 * U} y2={p.y + s * 0.47 * U} />
             <text x={p.x + c * 0.66 * U} y={p.y + s * 0.66 * U} dominantBaseline="central" textAnchor="middle">H</text>
           </g>
@@ -187,7 +194,7 @@ export function MolSvg({ mol, view, parent, parentRing, numbers, group, label, c
           if (a.el === "C" && !ang.length) { label = `CH${sub2(h)}`; anchor = "middle"; dx = 0; }
         }
         return (
-          <g key={a.id} className={`mol-atom ${EL_CLASS[a.el] ?? ""}`} data-a={a.id}>
+          <g key={a.id} className={`mol-atom ${EL_CLASS[a.el] ?? ""}${tint?.get(a.id) ? ` h-${tint.get(a.id)}` : ""}`} data-a={a.id}>
             <circle className="mol-atom-bg" cx={p.x} cy={p.y} r={R} />
             <text x={p.x + dx} y={p.y} dominantBaseline="central" textAnchor={anchor}>{label}</text>
           </g>

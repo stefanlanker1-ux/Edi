@@ -4,7 +4,8 @@
 import { useMemo, useState } from "react";
 import { Button, RichText, Segmented, Sheet, Tag, Workbench, type WorkbenchTool } from "@lern/ui";
 import { ELEMENTS, elLabel, type El } from "../chem/mol.ts";
-import { name, KIND_INFO, RANK } from "../chem/naming.ts";
+import { name, KIND_INFO, RANK, type NameOk } from "../chem/naming.ts";
+import { coloring } from "../components/colors.ts";
 import { EXAMPLES, exampleMol } from "../chem/examples.ts";
 import type { RingKind } from "../chem/edit.ts";
 import { Editor } from "../components/Editor.tsx";
@@ -62,15 +63,21 @@ function Palette() {
   );
 }
 
+/** Name mit gefärbten Teilen – dieselben Farben wie in der Formel */
+function ColorName({ res }: { res: NameOk }) {
+  const { hueOf } = coloring(res);
+  return <>{res.parts.map((p, i) => (p.key ? <span key={i} className={`og-c h-${hueOf[p.key]}`}>{p.text}</span> : <span key={i}>{p.text}</span>))}</>;
+}
+
 function NameBar({ res }: { res: ReturnType<typeof name> }) {
-  const { mol, shown, show } = useApp();
+  const { mol, shown, show, color } = useApp();
   if (!mol.atoms.length) return <div className="og-name empty" aria-hidden="true" />;
   if (!shown) return <div className="og-name"><Button variant="primary" icon="text" onClick={() => show(true)}>Benennen</Button></div>;
   if (!res.ok) return <div className="og-name" role="status"><Tag tone="signal">{res.reason}</Tag></div>;
   const sub = res.formula.replace(/\d+/g, d => d.replace(/\d/g, c => "₀₁₂₃₄₅₆₇₈₉"[+c]));
   return (
     <div className="og-name" role="status" aria-live="polite">
-      <p className="og-iupac">{res.name}</p>
+      <p className="og-iupac">{color ? <ColorName res={res} /> : res.name}</p>
       <p className="og-meta">
         {res.alt.slice(0, 2).map(a => <span key={a} className="og-alt">{a}</span>)}
         <span className="og-formula">{sub}</span>

@@ -172,3 +172,18 @@ describe("Zufallsmoleküle", () => {
     expect(Date.now() - t0).toBeLessThan(8000);
   });
 });
+
+describe("Name in Teilen (Farben)", () => {
+  test("Teile ergeben den Namen, jede Kennung hat Atome", () => {
+    for (const s of ["OC(=O)C(C)C(=O)C(O)C(C)CC", "CC(C)CC", "CCCC(=O)OCC", "CC(=O)OC1=CC=CC=C1C(=O)O", "CCNCC", "OC1=CC=CC=C1", "CC(C)C(C)C(C)(CC)C(=O)CCC(N)C(N)C"]) {
+      const r = nm(s);
+      expect(r.parts.map(p => p.text).join("")).toBe(r.name);
+      for (const p of r.parts) if (p.key) expect(r.groupsByKey[p.key]?.length, `${s} ${p.key}`).toBeGreaterThan(0);
+    }
+    const r = nm("OC(=O)C(C)C(=O)C(O)C(C)CC");
+    expect(r.parts.filter(p => p.key).map(p => [p.text, p.key])).toEqual([
+      ["4-Hydroxy", "hydroxy"], ["2,5-dimethyl", "methyl"], ["3-oxo", "oxo"], ["heptan", "parent"], ["säure", "principal"],
+    ]);
+    expect(r.groupsByKey.methyl).toHaveLength(2);
+  });
+});

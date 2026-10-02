@@ -21,6 +21,9 @@ interface State {
   view: View;
   /** Name sichtbar (nach „Benennen“, bis „Neu“) */
   shown: boolean;
+  /** „Farbe“: Teile des Namens und der Formel gleich gefärbt */
+  color: boolean;
+  setColor: (v: boolean) => void;
   setTab: (t: Tab) => void;
   setMol: (m: Mol) => void;
   undo: () => void;
@@ -43,6 +46,8 @@ export const useApp = create<State>()(persist(set => ({
   mode: "add",
   view: "lewis",
   shown: false,
+  color: false,
+  setColor: color => set({ color }),
   setTab: tab => set({ tab }),
   setMol: mol => set(s => ({ mol, past: [...s.past, s.mol].slice(-MAX_PAST) })),
   undo: () => set(s => (s.past.length ? { mol: s.past[s.past.length - 1], past: s.past.slice(0, -1) } : {})),
@@ -56,7 +61,7 @@ export const useApp = create<State>()(persist(set => ({
   name: "organik-v1",
   version: 1,
   storage: createJSONStorage(() => localStorage),
-  partialize: s => ({ mol: s.mol, pen: s.pen, extra: s.extra, view: s.view, shown: s.shown }),
+  partialize: s => ({ mol: s.mol, pen: s.pen, extra: s.extra, view: s.view, shown: s.shown, color: s.color }),
   merge: (saved, current) => {
     const m = { ...current, ...(saved as Partial<State>) };
     if (!m.mol || !Array.isArray(m.mol.atoms) || !Array.isArray(m.mol.bonds)) m.mol = { atoms: [], bonds: [] };

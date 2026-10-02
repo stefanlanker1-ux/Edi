@@ -128,7 +128,19 @@ export function detect(g: Graph, ri: RingInfo): { groups: Group[]; nitrileC: Set
 // ── Substituenten ────────────────────────────────────────────────────────────
 
 export interface Sub { name: string; complex: boolean }
-interface Prefix { name: string; complex: boolean; loc: string; key: string }
+interface Prefix { name: string; complex: boolean; loc: string; key: string; atoms?: number[] }
+/** Teil des Namens mit Kennung für die Farbe: Vorsilbe (Name der Vorsilbe), parent (Stamm), principal (Endung), alkyl (Ester) */
+export interface NamePart { text: string; key?: string }
+
+/** Atome eines Substituenten: alles hinter x, ohne über `from` zurückzugehen */
+function subtree(g: Graph, x: number, from: number): number[] {
+  const seen = new Set([x, from]), out = [x], stack = [x];
+  while (stack.length) {
+    const v = stack.pop()!;
+    for (const n of g.nb.get(v)!) if (!seen.has(n.to)) { seen.add(n.to); out.push(n.to); stack.push(n.to); }
+  }
+  return out;
+}
 
 const sortKey = (name: string) => name.replace(/[\d,'′\-()[\]{}\s]/g, "").toLowerCase();
 const mkPrefix = (s: Sub, loc: string): Prefix => ({ ...s, loc, key: sortKey(s.name) });
@@ -345,22 +357,28 @@ function unsat(stem: string, en: number[], yn: number[], omit: boolean): string 
 
 /** Vorsilben zusammensetzen: gleiche zusammenfassen (di, tri; bis bei zusammengesetzten), alphabetisch ordnen */
 function assemblePrefixes(ps: Prefix[], omit: boolean, f: Flags): string {
+  return prefixParts(ps, omit, f).map(p => p.text).join("");
+}
+
+/** Vorsilben als Teile mit Kennung (für die Farben); Bindestriche zwischen den Vorsilben ohne Kennung */
+function prefixParts(ps: Prefix[], omit: boolean, f: Flags): NamePart[] {
   const by = new Map<string, Prefix[]>();
   for (const p of ps) by.set(p.name, [...(by.get(p.name) ?? []), p]);
   const locOrder = (a: string, b: string) => (/^\d/.test(a) ? 1 : 0) - (/^\d/.test(b) ? 1 : 0) || locNum(a) - locNum(b) || a.localeCompare(b);
   let groups = [...by.values()].map(g => g.sort((a, b) => locOrder(a.loc, b.loc)));
   if (f.noMult) groups = ps.map(p => [p]);
   groups.sort((a, b) => (f.noAlpha ? locOrder(a[0].loc, b[0].loc) || a[0].key.localeCompare(b[0].key) : a[0].key.localeCompare(b[0].key) || locOrder(a[0].loc, b[0].loc)));
-  const parts = groups.map(g => {
+  const out: NamePart[] = [];
+  for (const g of groups) {
     const n = g.length, s = g[0];
     const mult = n > 1 ? (s.complex ? MULT_X[n] : MULT[n]) : "";
     const locs = g.map(p => p.loc);
     const keep = !omit || locs.some(l => !/^\d/.test(l));
     const shown = keep ? locs.filter(l => !omit || !/^\d/.test(l)) : [];
-    return (shown.length ? shown.join(",") + "-" : "") + mult + (s.complex ? paren(s.name) : s.name);
-  });
-  let out = "";
-  for (const p of parts) out += (out && /^[\dN]/.test(p) ? "-" : "") + p;
+    const text = (shown.length ? shown.join(",") + "-" : "") + mult + (s.complex ? paren(s.name) : s.name);
+    if (out.length && /^[\dN]/.test(text)) out.push({ text: "-" });
+    out.push({ text, key: s.name });
+  }
   return out;
 }
 
@@ -426,7 +444,7 @@ function makeOption(ctx: Ctx, id: string, kind: "chain" | "ring", seq: number[],
       if (set.has(nb.to) || nb.to === gr.c) continue;
       const z = nb.to;
       const s = dblO(g, z) !== undefined && !ctx.ri.ringOf.has(z) ? acyl(ctx, z, gr.n) : sub(ctx, z, gr.n, 1);
-      nPrefixes.push(mkPrefix(s, loc));
+      nPrefixes.push({ ...mkPrefix(s, loc), atoms: subtree(g, z, gr.n) });
     }
   }
   let en: number[] = [], yn: number[] = [];
@@ -440,7 +458,7 @@ function makeOption(ctx: Ctx, id: string, kind: "chain" | "ring", seq: number[],
   seq.forEach((a, i) => {
     for (const nb of g.nb.get(a)!) {
       if (set.has(nb.to) || suffixAtoms.has(nb.to)) continue;
-      prefixes.push(mkPrefix(sub(ctx, nb.to, a, nb.order), String(i + 1)));
+      prefixes.push({ ...mkPrefix(sub(ctx, nb.to, a, nb.order), String(i + 1)), atoms: subtree(g, nb.to, a) });
     }
   });
   const mult = [...en, ...yn].sort((a, b) => a - b);
@@ -506,29 +524,41 @@ function chainUnsat(g: Graph, seq: number[]): { en: number; yn: number } {
 // ── Name zusammensetzen ─────────────────────────────────────────────────────
 
 /** Name des Stammsystems mit Endung, ohne Vorsilben; `omit` = Nummern weglassen (eindeutig ohne) */
-function optionName(_ctx: Ctx, o: Option, K: Kind | undefined, f: Flags): string {
+function optionName(ctx: Ctx, o: Option, K: Kind | undefined, f: Flags): string {
+  return optionParts(ctx, o, K, f).map(p => p.text).join("");
+}
+
+/** Name in Teilen: Vorsilben (je Name), Stamm (parent), Endung mit Nummern (principal) */
+function optionParts(_ctx: Ctx, o: Option, K: Kind | undefined, f: Flags): NamePart[] {
   const omit = omitLocants(o);
   const n = o.counted.length;
   const kind = n ? K : undefined;
   const plocs = o.pLocs.join(",");
-  let base: string;
-  if (o.kind === "ring" && o.ring!.kind === "benzen" && kind && n === 1 && BENZ_RETAINED[kind]) base = BENZ_RETAINED[kind]!;
-  else {
-    let stem: string;
-    // zwei C: die Mehrfachbindung kann nur zwischen C1 und C2 liegen (1,2-Dichlorethen)
-    if (o.kind === "chain") stem = unsat(STEM[o.seq.length], o.en, o.yn, omit || o.seq.length === 2);
-    else if (o.ring!.kind === "carbo") stem = unsat(o.ring!.base, o.en, o.yn, omit);
-    else stem = o.ring!.base;
-    let suffix = "";
-    if (kind) {
-      const mult = n > 1 ? MULT[n] : "";
-      if (o.mode === "att" && C_TYPE.has(kind)) suffix = (omit ? "" : `-${plocs}-`) + mult + ATT[kind];
-      else if (C_TYPE.has(kind)) suffix = mult + SUF[kind];
-      else suffix = (omit ? "" : `-${plocs}-`) + mult + SUF[kind];
-    }
-    base = stem + suffix;
+  const pre = prefixParts(o.prefixes, omit, f);
+  if (o.kind === "ring" && o.ring!.kind === "benzen" && kind && n === 1 && BENZ_RETAINED[kind]) return [...pre, { text: BENZ_RETAINED[kind]!, key: "principal" }];
+  let stem: string;
+  // zwei C: die Mehrfachbindung kann nur zwischen C1 und C2 liegen (1,2-Dichlorethen)
+  if (o.kind === "chain") stem = unsat(STEM[o.seq.length], o.en, o.yn, omit || o.seq.length === 2);
+  else if (o.ring!.kind === "carbo") stem = unsat(o.ring!.base, o.en, o.yn, omit);
+  else stem = o.ring!.base;
+  let suffix = "";
+  if (kind) {
+    const mult = n > 1 ? MULT[n] : "";
+    if (o.mode === "att" && C_TYPE.has(kind)) suffix = (omit ? "" : `-${plocs}-`) + mult + ATT[kind];
+    else if (C_TYPE.has(kind)) suffix = mult + SUF[kind];
+    else suffix = (omit ? "" : `-${plocs}-`) + mult + SUF[kind];
   }
-  return assemblePrefixes(o.prefixes, omit, f) + base;
+  return [...pre, { text: stem, key: "parent" }, ...(suffix ? [{ text: suffix, key: "principal" }] : [])];
+}
+
+/** ersten Kleinbuchstaben des Namens groß schreiben – über Teile hinweg */
+function capParts(parts: NamePart[]): NamePart[] {
+  let done = false;
+  return parts.map(p => {
+    if (done || !/[a-zäöü]/.test(p.text)) return p;
+    done = true;
+    return { ...p, text: cap(p.text) };
+  });
 }
 
 /** Nummern weglassen, wenn der Name auch ohne eindeutig ist (Ethanol, Propen, Methylcyclohexan, Phenol) */
@@ -568,6 +598,10 @@ export interface NameOk {
   ester?: { acid: string; alkyl: string; alkylAtoms: number[] };
   /** Lösungsweg in kurzen Schritten (**fett**) */
   steps: string[];
+  /** Name in Teilen mit Kennung (für gleiche Farben in Name und Formel) */
+  parts: NamePart[];
+  /** Atome je Kennung: parent, principal, alkyl, je Vorsilbe */
+  groupsByKey: Record<string, number[]>;
 }
 export interface NameFail { ok: false; reason: string; formula: string }
 export type NameResult = NameOk | NameFail;
@@ -606,17 +640,25 @@ export function name(mol: Mol, opt: NameOptions = {}): NameResult {
   const opts = options(ctx, all, K, KG);
   const o = choose(opts, opt.pick);
   if (!o) return { ok: false, reason: "Keine andere Möglichkeit", formula: f };
-  const raw = optionName(ctx, o, K, opt);
-  const nm = cap(raw);
+  const parts = capParts(optionParts(ctx, o, K, opt));
+  const nm = parts.map(p => p.text).join("");
   const res: NameOk = {
     ok: true, name: nm, alt: altNames(nm, ctx, o, K), formula: f, classes: classes(ctx), principal: o.counted.length ? K : undefined,
     parent: { atoms: o.seq, kind: o.kind, ring: o.ring?.kind, size: o.seq.length },
     principalAtoms: o.counted.flatMap(x => (C_TYPE.has(x.kind) ? [x.c, ...x.atoms] : x.kind === "on" ? [x.c, ...x.atoms] : x.atoms)),
     prefixes: groupedPrefixes(o.prefixes, omitLocants(o)),
-    steps: [],
+    steps: [], parts, groupsByKey: {},
   };
+  res.groupsByKey = keyAtoms(o, res.principalAtoms);
   res.steps = steps(ctx, o, K, res);
   return res;
+}
+
+/** Atome je Teil des Namens */
+function keyAtoms(o: Option, principal: number[]): Record<string, number[]> {
+  const out: Record<string, number[]> = { parent: [...o.seq], principal: [...principal] };
+  for (const p of o.prefixes) out[p.name] = [...(out[p.name] ?? []), ...(p.atoms ?? [])];
+  return out;
 }
 
 function choose(opts: Option[], pick?: "reverse" | "otherChain"): Option | undefined {
@@ -663,7 +705,8 @@ function esterName(ctx: Ctx, mol: Mol, opt: NameOptions): NameResult {
   const opts = options(ctx, acid, "saeure", KG);
   const o = choose(opts, opt.pick);
   if (!o) return { ok: false, reason: "Keine andere Möglichkeit", formula: f };
-  const acidName = optionName(ctx, o, "saeure", opt);
+  const acidParts = optionParts(ctx, o, "saeure", opt);
+  const acidName = acidParts.map(p => p.text).join("");
   const alkyls = chosen.map(e => sub(ctx, e.r!, e.s!, 1));
   const alkylPart = multiplied(alkyls);
   const nm = cap(acidName) + alkylPart + "ester";
@@ -680,7 +723,10 @@ function esterName(ctx: Ctx, mol: Mol, opt: NameOptions): NameResult {
     prefixes: groupedPrefixes(o.prefixes, omitLocants(o)),
     ester: { acid: cap(acidName), alkyl: cap(alkylPart), alkylAtoms },
     steps: [],
+    parts: capParts([...acidParts, { text: alkylPart, key: "alkyl" }, { text: "ester", key: "principal" }]),
+    groupsByKey: {},
   };
+  res.groupsByKey = { ...keyAtoms(o, res.principalAtoms), alkyl: alkylAtoms };
   res.steps = steps(ctx, o, "ester", res);
   return res;
 }

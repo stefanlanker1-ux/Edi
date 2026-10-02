@@ -116,7 +116,7 @@
 .mode-swap .og-hit-atom { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 3; }
 
 /* Meldung auf der Zeichenfläche, Ordnen, Ziel beim Ziehen */
-.og-msg { position: absolute; left: 50%; top: 8px; transform: translate(-50%, -6px); margin: 0; max-width: calc(100% - 72px); padding: 6px 12px;
+.og-msg { position: absolute; left: 50%; top: 58px; transform: translate(-50%, -6px); margin: 0; max-width: calc(100% - 72px); padding: 6px 12px;
   border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); font-size: .88rem; font-weight: 650; text-align: center;
   opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s; }
 .og-msg.on { opacity: 1; transform: translate(-50%, 0); }
@@ -124,3 +124,36 @@
 .og-msg.bad::before { content: "✗ "; color: var(--signal); }
 .og-tidy { position: absolute; right: 6px; top: 6px; }
 .og-preview .og-target { fill: color-mix(in srgb, var(--ok) 14%, transparent); stroke: var(--ok); stroke-width: 2.5; stroke-dasharray: none; }
+
+/* Farbe: gleiche Farbe für Teil des Namens und Atome der Formel (Palette aus tokens.css) */
+.mol-tint.h-red { stroke: var(--hue-red-soft); }
+.mol-tint-dot.h-red, .og-c.h-red, .og-color-dots .h-red { fill: var(--hue-red-soft); background: var(--hue-red-soft); }
+.mol-atom.h-red text, .mol-h.h-red text, .og-c.h-red { fill: var(--hue-red-deep); color: var(--hue-red-deep); }
+.mol-tint.h-yellow { stroke: var(--hue-yellow-soft); }
+.mol-tint-dot.h-yellow, .og-c.h-yellow, .og-color-dots .h-yellow { fill: var(--hue-yellow-soft); background: var(--hue-yellow-soft); }
+.mol-atom.h-yellow text, .mol-h.h-yellow text, .og-c.h-yellow { fill: var(--hue-yellow-deep); color: var(--hue-yellow-deep); }
+.mol-tint.h-blue { stroke: var(--hue-blue-soft); }
+.mol-tint-dot.h-blue, .og-c.h-blue, .og-color-dots .h-blue { fill: var(--hue-blue-soft); background: var(--hue-blue-soft); }
+.mol-atom.h-blue text, .mol-h.h-blue text, .og-c.h-blue { fill: var(--hue-blue-deep); color: var(--hue-blue-deep); }
+.mol-tint.h-green { stroke: var(--hue-green-soft); }
+.mol-tint-dot.h-green, .og-c.h-green, .og-color-dots .h-green { fill: var(--hue-green-soft); background: var(--hue-green-soft); }
+.mol-atom.h-green text, .mol-h.h-green text, .og-c.h-green { fill: var(--hue-green-deep); color: var(--hue-green-deep); }
+.mol-tint.h-violet { stroke: var(--hue-violet-soft); }
+.mol-tint-dot.h-violet, .og-c.h-violet, .og-color-dots .h-violet { fill: var(--hue-violet-soft); background: var(--hue-violet-soft); }
+.mol-atom.h-violet text, .mol-h.h-violet text, .og-c.h-violet { fill: var(--hue-violet-deep); color: var(--hue-violet-deep); }
+.mol-tint.h-teal { stroke: var(--hue-teal-soft); }
+.mol-tint-dot.h-teal, .og-c.h-teal, .og-color-dots .h-teal { fill: var(--hue-teal-soft); background: var(--hue-teal-soft); }
+.mol-atom.h-teal text, .mol-h.h-teal text, .og-c.h-teal { fill: var(--hue-teal-deep); color: var(--hue-teal-deep); }
+.mol-tint.h-orange { stroke: var(--hue-orange-soft); }
+.mol-tint-dot.h-orange, .og-c.h-orange, .og-color-dots .h-orange { fill: var(--hue-orange-soft); background: var(--hue-orange-soft); }
+.mol-atom.h-orange text, .mol-h.h-orange text, .og-c.h-orange { fill: var(--hue-orange-deep); color: var(--hue-orange-deep); }
+.mol-tint.h-grey { stroke: var(--hue-grey-soft); }
+.mol-tint-dot.h-grey, .og-c.h-grey, .og-color-dots .h-grey { fill: var(--hue-grey-soft); background: var(--hue-grey-soft); }
+.mol-atom.h-grey text, .mol-h.h-grey text, .og-c.h-grey { fill: var(--hue-grey-deep); color: var(--hue-grey-deep); }
+.mol-tint { stroke-width: 22; stroke-linecap: round; }
+.og-c { border-radius: 3px; padding: 0 1px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.og-color { position: absolute; left: 6px; top: 6px; min-height: 44px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px;
+  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font: inherit; font-weight: 700; font-size: .9rem; box-shadow: var(--key-edge); }
+.og-color.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.og-color-dots { display: inline-flex; gap: 2px; }
+.og-color-dots i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--rule); }

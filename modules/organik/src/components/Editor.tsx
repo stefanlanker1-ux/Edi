@@ -13,6 +13,7 @@ import { ELEMENTS, elLabel, type El, type Mol } from "../chem/mol.ts";
 import type { NameResult } from "../chem/naming.ts";
 import { useApp, type Pen } from "../store.ts";
 import { decorations, MolSvg, U } from "./MolSvg.tsx";
+import { coloring } from "./colors.ts";
 
 /** Ausschnitt der Zeichenfläche: Mitte (in Bindungslängen) und Maßstab (px je Bindung) */
 interface Cam { cx: number; cy: number; s: number }
@@ -38,7 +39,7 @@ const RAD = Math.PI / 180;
 interface Drag { from: number; x: number; y: number; moved: boolean; id: number }
 
 export function Editor({ res }: { res: NameResult }) {
-  const { mol, setMol, pen, mode, view, shown } = useApp();
+  const { mol, setMol, pen, mode, view, shown, color, setColor } = useApp();
   const svg = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const downOn = useRef<Element | null>(null);
@@ -176,6 +177,7 @@ export function Editor({ res }: { res: NameResult }) {
 
   const key = (fn: () => void) => (e: React.KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fn(); } };
   const ok = shown && res.ok ? res : null;
+  const tint = ok && color ? coloring(ok).atomHue : undefined;
   const preview = drag?.moved && mode === "add" && isEl(pen) ? target(drag) : null;
   const moving = drag?.moved && mode === "swap" ? { x: Math.round(drag.x * 4) / 4, y: Math.round(drag.y * 4) / 4 } : null;
   const from = drag ? mol.atoms.find(a => a.id === drag.from) : undefined;
@@ -185,7 +187,7 @@ export function Editor({ res }: { res: NameResult }) {
     <div className={`og-editor mode-${mode}`} ref={box}>
       <MolSvg mol={mol} view={view} svgRef={svg} viewBox={viewBox} label={ok ? `Strukturformel: ${ok.name}` : `Zeichnung mit ${mol.atoms.length} Atomen`}
         parent={ok?.parent.atoms} parentRing={ok?.parent.kind === "ring"} numbers={!!ok && ok.parent.size > 1}
-        group={ok?.principalAtoms} minW={6} minH={4.2}
+        group={ok?.principalAtoms} tint={tint} minW={6} minH={4.2}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => setDrag(null)}>
         <g className="og-hits">
           {fresh.map(id => { const a = mol.atoms.find(x => x.id === id)!; return <circle key={`new${id}`} className="og-new" cx={a.x * U} cy={a.y * U} r={0.42 * U} aria-hidden="true" />; })}
@@ -231,6 +233,11 @@ export function Editor({ res }: { res: NameResult }) {
       </MolSvg>
       <p className={`og-msg${msg ? " on" : ""}${msg?.bad ? " bad" : ""}`} role="status" aria-live="polite">{msg?.text}</p>
       {mol.atoms.length >= 3 && <IconButton icon="grid" label="Ordnen" className="og-tidy" onClick={tidy} />}
+      {ok && (
+        <button type="button" className={`og-color${color ? " on" : ""}`} aria-pressed={color} onClick={() => setColor(!color)}>
+          <span className="og-color-dots" aria-hidden="true"><i className="h-blue" /><i className="h-red" /><i className="h-green" /></span>Farbe
+        </button>
+      )}
     </div>
   );
 }
