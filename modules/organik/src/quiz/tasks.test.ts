@@ -10,7 +10,7 @@ describe("Aufgaben", () => {
     for (const t of many(id)) {
       expect(t.prompt.length).toBeGreaterThan(5);
       if (t.kind === "mc") {
-        expect(t.options.length).toBeGreaterThanOrEqual(3);
+        expect(t.options.length).toBeGreaterThanOrEqual(id === "ez" ? 2 : 3);
         expect(new Set(t.options).size).toBe(t.options.length);
         for (const [i, k] of Object.entries(t.miss ?? {})) {
           expect(MISS[k], k).toBeTruthy();

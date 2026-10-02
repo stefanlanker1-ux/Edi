@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { parseSmiles } from "./smiles.ts";
 import { name, type NameOk } from "./naming.ts";
+import { smilesMol } from "./smiles.ts";
+import { flipBond, keepStereo } from "./stereo.ts";
+import { layout } from "./layout.ts";
 import { formula, freeValence, type El, type Mol, type Order } from "./mol.ts";
 
 const nm = (s: string) => {
@@ -185,5 +188,83 @@ describe("Name in Teilen (Farben)", () => {
       ["4-Hydroxy", "hydroxy"], ["2,5-dimethyl", "methyl"], ["3-oxo", "oxo"], ["heptan", "parent"], ["säure", "principal"],
     ]);
     expect(r.groupsByKey.methyl).toHaveLength(2);
+  });
+});
+
+describe("E/Z-Isomerie", () => {
+  const ez = (s: string) => { const r = name(smilesMol(s)); if (!r.ok) throw new Error(r.reason); return r; };
+  test.each([
+    ["C/C=C/C", "(E)-But-2-en", "trans-But-2-en"],
+    ["C/C=C\\C", "(Z)-But-2-en", "cis-But-2-en"],
+    ["Cl/C=C/Cl", "(E)-1,2-Dichlorethen", "trans-1,2-Dichlorethen"],
+    ["OC(=O)/C=C\\C(=O)O", "(Z)-But-2-endisäure", "Maleinsäure"],
+    ["OC(=O)/C=C/C(=O)O", "(E)-But-2-endisäure", "Fumarsäure"],
+    ["C/C=C/C(=O)O", "(E)-But-2-ensäure", "Crotonsäure"],
+    ["C/C=C/C=C/C", "(2E,4E)-Hexa-2,4-dien", undefined],
+    ["C/C=C\\C=C\\C", "(2Z,4E)-Hexa-2,4-dien", undefined],
+    ["CC/C(C)=C/C", "(E)-3-Methylpent-2-en", undefined],
+    ["Cl/C(Br)=C/C", "(Z)-1-Brom-1-chlorprop-1-en", undefined],
+    ["CC(C)=C/CC/C(C)=C/C=O", "(E)-3,7-Dimethylocta-2,6-dienal", "Geranial (Citral A)"],
+    ["C/C=C/C1CCCCC1", "[(E)-Prop-1-enyl]cyclohexan", undefined],
+    ["OC(=O)/C=C/C1=CC=CC=C1", "(E)-3-Phenylprop-2-ensäure", "Zimtsäure"],
+  ])("%s → %s", (s, n, alt) => {
+    const r = ez(s);
+    expect(r.name).toBe(n);
+    if (alt) expect(r.alt).toContain(alt);
+  });
+  test("kein E/Z ohne zwei verschiedene Gruppen an beiden C", () => {
+    expect(ez("C=CC").name).toBe("Propen");
+    expect(ez("CC(C)=CC").name).toBe("2-Methylbut-2-en");
+    expect(ez("CC=C1CCCCC1").name).toBe("Ethylidencyclohexan");
+    expect(ez("CC(C)=CCCC(C)CC=O").name).toBe("3,7-Dimethyloct-6-enal");
+  });
+  test("ohne Lage (alle Atome an derselben Stelle) kein E/Z", () => {
+    expect(nm("CC=CC").name).toBe("But-2-en");
+  });
+  test("Spiegeln an der Doppelbindung tauscht E und Z", () => {
+    const m = smilesMol("C/C=C/CC");
+    const b = m.bonds.find(x => x.order === 2)!;
+    expect(name(m).ok && (name(m) as NameOk).name).toBe("(E)-Pent-2-en");
+    const f = flipBond(m, b.a, b.b)!;
+    expect((name(f) as NameOk).name).toBe("(Z)-Pent-2-en");
+    // Neu zeichnen (Ordnen) behält E/Z
+    expect((name(keepStereo(f, layout(f))) as NameOk).name).toBe("(Z)-Pent-2-en");
+  });
+  test("Lösungsweg erklärt E/Z", () => {
+    expect(ez("C/C=C\\C").steps.join(" ")).toMatch(/derselben.*\*\*Z\*\*/);
+    expect(ez("Cl/C(Br)=C/C").steps.join(" ")).toMatch(/Br vor Cl/);
+  });
+  test("CIP: Nachbarn entscheiden bei gleichem erstem Atom (CH₂OH vor CH(CH₃)₂)", () => {
+    // an C2: CH2OH und CH(CH3)2; an C3: CH3 und H; CH2OH und CH3 auf derselben Seite → Z
+    const r = ez("OC/C(C(C)C)=C\\C");
+    expect(r.name).toMatch(/^\(Z\)-/);
+  });
+});
+
+describe("Regeln aus der automatischen Prüfung (OPSIN, RDKit)", () => {
+  const nz = (s: string) => { const r = name(smilesMol(s)); if (!r.ok) throw new Error(`${s}: ${r.reason}`); return r; };
+  test.each([
+    // Ringe: N vor O vor S, Heterocyclus vor Carbocyclus
+    ["C(C1CN1)C1=CC=CS1", "2-[(Thiophen-2-yl)methyl]aziridin"],
+    ["C1COC1C1CCCCS1", "2-(Thian-2-yl)oxetan"],
+    // gleich lange Ketten: kleinere Nummer der Hauptgruppe vor mehr Vorsilben
+    ["CCCCNC(C)(C)CC", "N-(1,1-Dimethylpropyl)butan-1-amin"],
+    // ohne Nummern: Klammern um Vorsilben, die selbst Substituenten tragen können
+    ["ClCOC", "Chlor(methoxy)methan"], ["CCN(C)CC(=O)O", "2-[Ethyl(methyl)amino]ethansäure"], ["ClC(F)(Br)OC", "Bromchlorfluor(methoxy)methan"],
+    // N, N′, N″ …
+    ["NCC(N)CC(NC)N(C)C", "N,N,N′-Trimethylbutan-1,1,3,4-tetraamin"],
+    // verschiedene Alkylreste: Nummern, die kleinere für den alphabetisch ersten Rest
+    ["CCOC(=O)CCC(=O)OC", "Butandisäure-1-ethyl-4-methylester"],
+    // Ring-N als Anknüpfung
+    ["OCN1CCCCC1", "(Piperidin-1-yl)methanol"], ["OC(=O)C1=CC=C(C=C1)N1CCCC1", "4-(Pyrrolidin-1-yl)benzoesäure"],
+    // E/Z im Ring ab 8 Atomen; gleiche Buchstaben: kleinere Nummer zuerst
+    ["C1=C\\CCCCCC/1", "(Z)-Cycloocten"], ["C=CCC1(/C=C\\C)CO1", "2-[(Z)-Prop-1-enyl]-2-(prop-2-enyl)oxiran"],
+    // zwei gleichwertige Säureteile: gleicher Name bei jeder Reihenfolge der Atome
+    ["CC(=O)OCC(C)OC(C)=O", "Ethansäure[2-(acetyloxy)-1-methylethyl]ester"], ["CC(=O)OC(C)COC(C)=O", "Ethansäure[2-(acetyloxy)-1-methylethyl]ester"],
+  ])("%s → %s", (s, n) => expect(nz(s).name).toBe(n));
+  test("ältere Schreibweise mit Vervielfachung, Keten nicht benennbar", () => {
+    expect(nz("C=CC=C").alt).toContain("1,3-Butadien");
+    expect(nz("C1=C\\CCCCCC/1").alt).toContain("cis-Cycloocten");
+    expect(name(smilesMol("O=C=C1CC1")).ok).toBe(false);
   });
 });

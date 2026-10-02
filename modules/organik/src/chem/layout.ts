@@ -70,6 +70,28 @@ export function layout(mol: Mol): Mol {
     }
   };
 
+  /** an einem C der Doppelbindung: keine gerade Linie und nicht beide Gruppen auf derselben Seite – sonst ist E/Z nicht ablesbar */
+  const sp2Pen = (at: number, deg: number) => {
+    const nb = g.nb.get(at)!, dbl = nb.filter(n => n.order === 2);
+    if (dbl.length !== 1 || nb.some(n => n.order === 3)) return 0;
+    const p = pos.get(at)!, dirOf = (q: { x: number; y: number }) => Math.atan2(q.y - p.y, q.x - p.x) / RAD;
+    let pen = 0;
+    for (const n of nb) {
+      const q = pos.get(n.to);
+      // Winkel zwischen der neuen und einer vorhandenen Bindung (0 … 180°): fast 180° = gerade Linie
+      if (q && Math.abs(((deg - dirOf(q) + 540) % 360) - 180) > 165) pen += 5;
+    }
+    const w = pos.get(dbl[0].to);
+    if (w) {
+      const ax = dirOf(w), side = (a: number) => Math.sign(Math.round(Math.sin((a - ax) * RAD) * 1000));
+      for (const n of nb) {
+        const q = pos.get(n.to);
+        if (q && n.to !== dbl[0].to && side(deg) !== 0 && side(dirOf(q)) === side(deg)) pen += 5;
+      }
+    }
+    return pen;
+  };
+
   const place = (v: number, from: number, angle: number, turn = 1) => {
     if (pos.has(v)) return;
     const pf = pos.get(from)!;
@@ -77,7 +99,7 @@ export function layout(mol: Mol): Mol {
     let a = angle, best = Infinity;
     for (const d of [0, 30, -30, 60, -60, 90, -90]) {
       const t = angle + d, q = { x: pf.x + Math.cos(t * RAD), y: pf.y + Math.sin(t * RAD) };
-      const pen = crowd(q, [from]) + Math.abs(d) / 400;
+      const pen = crowd(q, [from]) + Math.abs(d) / 400 + sp2Pen(from, t);
       if (pen < best - 1e-9) { best = pen; a = t; }
     }
     pos.set(v, { x: pf.x + Math.cos(a * RAD), y: pf.y + Math.sin(a * RAD) });
@@ -85,9 +107,15 @@ export function layout(mol: Mol): Mol {
     grow(v, from, a, turn);
   };
 
-  const grow = (v: number, _from: number, angleIn: number, turn: number) => {
+  const grow = (v: number, from: number, angleIn: number, turn: number) => {
     const kids = g.nb.get(v)!.filter(n => !pos.has(n.to)).sort((x, y) => depth(y.to, v) - depth(x.to, v));
     if (!kids.length) return;
+    // Startatom ohne Vorgänger: Nachbarn gleichmäßig rundum (drei Nachbarn im Abstand von 120°)
+    if (from < 0 && kids.length > 1) {
+      const step = 360 / Math.max(kids.length, 3);
+      kids.forEach((k, i) => place(k.to, v, angleIn + 60 + i * step, i % 2 ? 1 : -1));
+      return;
+    }
     const linear = g.nb.get(v)!.some(n => n.order === 3) || g.nb.get(v)!.filter(n => n.order === 2).length === 2;
     if (linear && kids.length === 1) { place(kids[0].to, v, angleIn, turn); return; }
     const t = -turn;

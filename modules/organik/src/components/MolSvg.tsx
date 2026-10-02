@@ -68,6 +68,8 @@ export interface MolSvgProps {
   group?: number[];
   /** „Farbe“: Farbe je Atom (Teil des Namens) – ersetzt Hinterlegung und Markierung */
   tint?: Map<number, string>;
+  /** E/Z: Achse der Doppelbindung gestrichelt, vorrangige Gruppe an jedem C mit „1“ */
+  ez?: { a: number; b: number; pa: number; pb: number; desc: "E" | "Z" | null }[];
   label: string;
   className?: string;
   /** Mindestgröße des Ausschnitts in Bindungslängen (kleine Moleküle nicht riesig) */
@@ -94,7 +96,7 @@ export function viewBoxOf(mol: Mol, view: View, minW = 4, minH = 3): [number, nu
   return [x0 * U, y0 * U, (x1 - x0) * U, (y1 - y0) * U];
 }
 
-export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, label, className, minW, minH, viewBox, children, svgRef, ...ptr }: MolSvgProps) {
+export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, ez, label, className, minW, minH, viewBox, children, svgRef, ...ptr }: MolSvgProps) {
   const g = graph(mol);
   const pos = new Map(mol.atoms.map(a => [a.id, { x: a.x * U, y: a.y * U }]));
   const lewis = view === "lewis";
@@ -197,6 +199,25 @@ export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, la
           <g key={a.id} className={`mol-atom ${EL_CLASS[a.el] ?? ""}${tint?.get(a.id) ? ` h-${tint.get(a.id)}` : ""}`} data-a={a.id}>
             <circle className="mol-atom-bg" cx={p.x} cy={p.y} r={R} />
             <text x={p.x + dx} y={p.y} dominantBaseline="central" textAnchor={anchor}>{label}</text>
+          </g>
+        );
+      })}
+      {ez?.map((z, i) => {
+        const A = pos.get(z.a), B = pos.get(z.b);
+        if (!A || !B) return null;
+        const dx = B.x - A.x, dy = B.y - A.y, l = Math.hypot(dx, dy) || 1, ux = dx / l, uy = dy / l, ext = 1.1 * U;
+        // vorrangige Gruppe: Bindung vom C der Doppelbindung zu ihr rot nachgezogen
+        const mark = (p: number, at: { x: number; y: number }) => {
+          const P = pos.get(p);
+          if (!P) return null;
+          const vx = P.x - at.x, vy = P.y - at.y, vl = Math.hypot(vx, vy) || 1, cut = 0.24 * U;
+          return <line className="mol-ez-prio" x1={at.x + (vx / vl) * cut} y1={at.y + (vy / vl) * cut} x2={P.x - (vx / vl) * cut} y2={P.y - (vy / vl) * cut} />;
+        };
+        return (
+          <g key={`ez${i}`} className="mol-ez" aria-hidden="true">
+            <line className="mol-ez-axis" x1={A.x - ux * ext} y1={A.y - uy * ext} x2={B.x + ux * ext} y2={B.y + uy * ext} />
+            {mark(z.pa, A)}{mark(z.pb, B)}
+            <text className="mol-ez-desc" x={B.x + ux * (ext + 0.22 * U)} y={B.y + uy * (ext + 0.22 * U)} dominantBaseline="central" textAnchor="middle">{z.desc}</text>
           </g>
         );
       })}

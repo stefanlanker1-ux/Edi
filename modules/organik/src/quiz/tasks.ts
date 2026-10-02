@@ -9,6 +9,7 @@ import { parseSmiles } from "../chem/smiles.ts";
 import { name, KIND_INFO, type Kind, type NameOk, type NameOptions } from "../chem/naming.ts";
 import { STEM } from "../chem/rings.ts";
 import type { Mol } from "../chem/mol.ts";
+import { flipBond } from "../chem/stereo.ts";
 
 type Extra = { mol?: Mol; mols?: Record<string, Mol> };
 export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer: number });
@@ -147,10 +148,16 @@ function alkan(): Task {
 /** Alken oder Alkin benennen */
 function alken(): Task {
   let u: ReturnType<typeof unsaturated>, m: Mol, r: NameOk;
-  do { u = unsaturated(); m = mol(u.s); r = ok(m)!; } while (!r);
+  do { u = unsaturated(); m = maybeFlip(mol(u.s)); r = ok(m)!; } while (!r);
   const extra: Distractor[] = [];
-  const swap = r.name.replace(u.triple ? /in(?=$|-)/ : /en(?=$|-)/, u.triple ? "en" : "in");
-  if (swap !== r.name) extra.push(d(swap, "en-in", u.triple ? "Dreifachbindung → **-in**. Doppelbindung wäre -en." : "Doppelbindung → **-en**. Dreifachbindung wäre -in."));
+  // E/Z vertauscht (nur wenn die Doppelbindung E/Z hat)
+  const st = r.stereo.find(x => x.desc);
+  const flipped = st && ok(flipBond(m, st.a, st.b) ?? m);
+  if (st && flipped && flipped.name !== r.name) extra.push(d(flipped.name, "ez", st.desc === "Z"
+    ? "Die vorrangigen Gruppen liegen auf derselben Seite → **Z**." : "Die vorrangigen Gruppen liegen auf verschiedenen Seiten → **E**."));
+  const base = r.name.replace(/^\((?:\d*[EZ],?)+\)-/, "");
+  const swap = base.replace(u.triple ? /in(?=$|-)/ : /en(?=$|-)/, u.triple ? "en" : "in");
+  if (swap !== base) extra.push(d(cap(swap), "en-in", u.triple ? "Dreifachbindung → **-in**. Doppelbindung wäre -en." : "Doppelbindung → **-en**. Dreifachbindung wäre -in."));
   const sat = ok(mol(u.s.replace(/[=#]/, "")));
   if (sat) extra.push(d(sat.name, "mehrfach-vergessen", `${sat.name} hätte nur Einfachbindungen. Hier ist eine ${u.triple ? "Dreifach" : "Doppel"}bindung.`));
   return {
@@ -160,6 +167,40 @@ function alken(): Task {
     hint: "Die Mehrfachbindung bekommt die kleinste Nummer. Die Zahl steht vor -en bzw. -in.",
     explain: r.steps.slice(-3).join(" "),
   };
+}
+
+/** zufällig an der ersten Doppelbindung spiegeln – damit E und Z vorkommen */
+function maybeFlip(m: Mol): Mol {
+  const b = m.bonds.find(x => x.order === 2);
+  return b && Math.random() < 0.5 ? flipBond(m, b.a, b.b) ?? m : m;
+}
+
+/** Gruppen an einer Doppelbindung: links a, b – rechts c, e ("" = H) */
+const EZ_LEFT = ["C", "CC", "Cl", "Br", "CO", "C(C)C"];
+const EZ_SECOND = ["", "", "C", "Cl", "F"];
+
+/** E oder Z? */
+function ez(): Task {
+  for (;;) {
+    const [a, b] = [pick(EZ_LEFT), pick(EZ_SECOND)], [c, e] = [pick(EZ_LEFT), pick(EZ_SECOND)];
+    if (a === b || c === e) continue;
+    const m = maybeFlip(mol(`${a}C${b ? `(${b})` : ""}=C${e ? `(${e})` : ""}${c}`));
+    const r = ok(m);
+    const st = r?.stereo[0];
+    if (!r || !st?.desc || r.stereo.length !== 1) continue;
+    const other = st.desc === "E" ? "Z" : "E";
+    const sameH = st.qa === -1 && st.qb === -1;
+    return {
+      ...mc(st.desc, [d(other, "ez", st.desc === "Z"
+        ? "Die vorrangigen Gruppen liegen auf **derselben** Seite der Doppelbindung → Z."
+        : "Die vorrangigen Gruppen liegen auf **verschiedenen** Seiten der Doppelbindung → E.")], 2,
+        `Genau: ${r.name}${sameH ? ` (${st.desc === "Z" ? "cis" : "trans"})` : ""}.`),
+      mol: m,
+      prompt: "Ist diese Doppelbindung **E** oder **Z**?",
+      hint: "An jedem C der Doppelbindung: Gruppe mit größerer Ordnungszahl. Gleiche Seite = Z.",
+      explain: r.steps.find(x => /Doppelbindung C\d+:/.test(x)) ?? r.steps.slice(-1).join(" "),
+    };
+  }
 }
 
 /** An welchem C beginnt die Doppelbindung? */
@@ -426,10 +467,10 @@ function mutate(m: Mol): { m: Mol; miss: string } | undefined {
 
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
-const GENS: Record<string, () => Task> = { stamm, kette, alkan, alken, lage, klasse, endung, gruppen, ester, prio, mehrere, struktur };
+const GENS: Record<string, () => Task> = { stamm, kette, alkan, alken, lage, ez, klasse, endung, gruppen, ester, prio, mehrere, struktur };
 
 export const TYPE_NAMES: Record<string, string> = {
-  stamm: "Stammnamen", kette: "Längste Kette", alkan: "Verzweigte Alkane", alken: "Alkene und Alkine", lage: "Lage der Mehrfachbindung",
+  stamm: "Stammnamen", kette: "Längste Kette", alkan: "Verzweigte Alkane", alken: "Alkene und Alkine", lage: "Lage der Mehrfachbindung", ez: "E/Z-Isomerie",
   klasse: "Stoffklassen", endung: "Endungen", gruppen: "Eine funktionelle Gruppe", ester: "Ester", prio: "Rangfolge der Gruppen",
   mehrere: "Mehrere Gruppen", struktur: "Name → Formel",
 };
@@ -438,7 +479,7 @@ interface Level extends QuizLevel { types: string[]; seq: string[] }
 const level = (n: number, name: string, desc: string, seq: string[]): Level => ({ id: `og-n${n}`, name, desc, seq, types: [...new Set(seq)] });
 export const LEVELS: Level[] = [
   level(1, "Alkane", "Stammnamen, längste Kette, Äste mit Nummern", ["stamm", "stamm", "kette", "kette", "alkan", "kette", "alkan", "stamm", "alkan", "alkan"]),
-  level(2, "Doppel- und Dreifachbindung", "-en und -in, Nummer der Mehrfachbindung", ["alken", "lage", "alken", "lage", "alken", "alkan", "alken", "lage", "alken", "alken"]),
+  level(2, "Doppel- und Dreifachbindung", "-en und -in, Nummer der Mehrfachbindung, E/Z", ["alken", "lage", "ez", "alken", "lage", "ez", "alken", "alkan", "ez", "alken"]),
   level(3, "Funktionelle Gruppen", "Stoffklassen, Endungen, Alkohole bis Ester", ["klasse", "endung", "klasse", "gruppen", "endung", "gruppen", "klasse", "ester", "gruppen", "ester"]),
   level(4, "Mehrere Gruppen", "Rangfolge, Vorsilben, vom Namen zur Formel", ["prio", "mehrere", "prio", "struktur", "mehrere", "prio", "struktur", "mehrere", "struktur", "mehrere"]),
 ];

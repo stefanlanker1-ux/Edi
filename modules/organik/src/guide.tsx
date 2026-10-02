@@ -3,6 +3,7 @@
 
 import { Fit, type GuideCtx, type GuideDef, type GuideStep } from "@lern/ui";
 import { exampleMol } from "./chem/examples.ts";
+import { smilesMol } from "./chem/smiles.ts";
 import { MolSvg, U } from "./components/MolSvg.tsx";
 import type { Mol } from "./chem/mol.ts";
 
@@ -16,7 +17,8 @@ const BENT: Mol = (() => {
 
 /** Lewis-Formel; mit `target` sind die Atome antippbar (Ziel = Atomnummer in der Kurzschreibweise) */
 function Pic({ s, c, target }: { s: string; c?: GuideCtx; target?: number }) {
-  const m = s === "bent" ? BENT : exampleMol(s);
+  // mit / oder \ in der Kurzschreibweise: E/Z wie angegeben gezeichnet
+  const m = s === "bent" ? BENT : /[/\\]/.test(s) ? smilesMol(s) : exampleMol(s);
   return (
     <Fit className="og-g" min={0.3}>
       <MolSvg mol={m} view="lewis" label="Strukturformel" minW={4} minH={2.6} className="og-g-svg">
@@ -104,6 +106,13 @@ const STEPS: GuideStep[] = [
       Pentan: "-an heißt: nur Einfachbindungen. Hier ist eine Doppelbindung.",
     },
     ok: "Doppelbindung ab C2 → **Pent-2-en**.",
+  },
+  {
+    say: "An C=C gibt es zwei Formen. Die vorrangigen Gruppen liegen auf **derselben** Seite (**Z**) oder **gegenüber** (**E**).",
+    ask: "Ist diese Doppelbindung **E** oder **Z**?", answer: "Z", options: ["Z", "E"],
+    visual: () => <Pic s={"C/C=C\\C"} />,
+    why: { E: "Beide CH₃ liegen auf derselben Seite der Doppelbindung. Das ist Z (zusammen)." },
+    ok: "Beide CH₃ auf einer Seite → **(Z)-But-2-en** (cis).",
   },
   {
     say: "**Funktionelle Gruppen** geben die Endung. Die Hydroxygruppe –OH macht einen **Alkohol**: Endung -ol.",

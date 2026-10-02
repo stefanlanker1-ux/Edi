@@ -7,6 +7,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { buzz, IconButton } from "@lern/ui";
 import { layout } from "../chem/layout.ts";
+import { flipBond, keepStereo, stereoBonds } from "../chem/stereo.ts";
 import { freeValence, graph, usedValence, VALENCE } from "../chem/mol.ts";
 import { addRing, append, appendAt, atomAt, connect, cycleBond, move, removeAtom, removeBond, replace, start, type RingKind } from "../chem/edit.ts";
 import { ELEMENTS, elLabel, type El, type Mol } from "../chem/mol.ts";
@@ -113,13 +114,25 @@ export function Editor({ res }: { res: NameResult }) {
     const busy = atomAt(mol, a.x + Math.cos(deg * RAD), a.y + Math.sin(deg * RAD), 0.5) !== undefined;
     apply(append(mol, id, pen, busy ? angle : deg), id);
   };
-  const tapBond = (a: number, b: number) => (mode === "erase" ? apply(removeBond(mol, a, b))
-    : apply(cycleBond(mol, a, b), null, "Mehr Bindungen gehen hier nicht – beide Atome sind voll"));
+  const tapBond = (a: number, b: number) => {
+    if (mode === "erase") return apply(removeBond(mol, a, b));
+    // Tauschen an einer C=C-Doppelbindung mit E/Z: eine Seite spiegeln (E ↔ Z)
+    if (mode === "swap") {
+      const st = stereoBonds(mol).find(x => (x.a === a && x.b === b) || (x.a === b && x.b === a));
+      if (st) {
+        const f = flipBond(mol, a, b);
+        if (f) { apply(f); return say(st.desc ? `${st.desc} → ${st.desc === "E" ? "Z" : "E"}` : "Gespiegelt", false); }
+      }
+      return refuse(null, "Tauschen an Bindungen: nur C=C mit E/Z");
+    }
+    apply(cycleBond(mol, a, b), null, "Mehr Bindungen gehen hier nicht – beide Atome sind voll");
+  };
   const tapEmpty = () => {
     if (!mol.atoms.length) return apply(isEl(pen) ? start(pen) : addRing(mol, null, pen as RingKind));
     say(mode === "erase" ? "Atom oder Bindung antippen" : mode === "swap" ? "Atom antippen = tauschen, ziehen = verschieben" : "Atom antippen oder davon wegziehen", false);
   };
-  const tidy = () => { cam.current = null; apply(layout(mol)); };
+  // neu zeichnen im Zickzack – E/Z bleibt erhalten
+  const tidy = () => { cam.current = null; apply(keepStereo(mol, layout(mol))); };
 
   /** Ziel beim Ziehen: Atom unter dem Finger oder neue Stelle (30°-Schritte, Bindungslänge 1) */
   const target = (d: Drag) => {
@@ -187,7 +200,7 @@ export function Editor({ res }: { res: NameResult }) {
     <div className={`og-editor mode-${mode}`} ref={box}>
       <MolSvg mol={mol} view={view} svgRef={svg} viewBox={viewBox} label={ok ? `Strukturformel: ${ok.name}` : `Zeichnung mit ${mol.atoms.length} Atomen`}
         parent={ok?.parent.atoms} parentRing={ok?.parent.kind === "ring"} numbers={!!ok && ok.parent.size > 1}
-        group={ok?.principalAtoms} tint={tint} minW={6} minH={4.2}
+        group={ok?.principalAtoms} tint={tint} ez={ok?.stereo.filter(x => x.desc)} minW={6} minH={4.2}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={() => setDrag(null)}>
         <g className="og-hits">
           {fresh.map(id => { const a = mol.atoms.find(x => x.id === id)!; return <circle key={`new${id}`} className="og-new" cx={a.x * U} cy={a.y * U} r={0.42 * U} aria-hidden="true" />; })}

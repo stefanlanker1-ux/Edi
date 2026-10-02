@@ -134,6 +134,7 @@ export function Groups() {
           <tr><td>–</td><td><b>Nitro</b> <span className="og-muted">–NO₂</span></td><td>–</td><td>Nitro-</td></tr>
         </tbody>
       </table>
+      <p className="og-rule"><b>E/Z</b> an C=C: an jedem C die Gruppe mit größerer Ordnungszahl. Gleiche Seite = <b>Z</b>, verschiedene Seiten = <b>E</b>.</p>
     </div>
   );
 }

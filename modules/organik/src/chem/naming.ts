@@ -3,14 +3,15 @@
 // Ablauf: funktionelle Gruppen erkennen → Hauptgruppe (höchste Priorität) → Stammsystem wählen (Kette oder Ring) →
 // nummerieren → Vorsilben (Substituenten) benennen, alphabetisch ordnen → Name zusammensetzen.
 //
-// Stammsystem (in dieser Reihenfolge): meiste Hauptgruppen · Ring vor Kette · längste Kette · meiste Mehrfachbindungen ·
-// meiste Doppelbindungen · meiste Substituenten. Nummerierung: kleinste Nummern für Hauptgruppe, dann Mehrfachbindungen,
-// dann Doppelbindungen, dann alle Vorsilben, dann die alphabetisch erste Vorsilbe.
+// Stammsystem und Nummern (IUPAC 2013, in dieser Reihenfolge): meiste Hauptgruppen · Ring vor Kette · Ring mit N vor O vor S vor
+// Carbocyclus, größerer Ring · längste Kette · meiste Mehrfachbindungen · meiste Doppelbindungen · kleinste Nummern für Hauptgruppen,
+// dann Mehrfachbindungen, dann Doppelbindungen · meiste Vorsilben · kleinste Nummern aller Vorsilben · der alphabetisch ersten · Z vor E.
 // Mehr als zwei Carbonsäuregruppen an einer Kette: „-carbonsäure“ (Kohlenstoff der Gruppe gehört nicht zur Kette).
 // Substituenten werden rekursiv benannt (Methyl, (1-Methylethyl), Acetyloxy, Phenyl …). Ester: „Butansäureethylester“.
 
 import { formula, graph, hCount, components, HALOGENS, type El, type Graph, type Mol } from "./mol.ts";
 import { findRings, STEM, type Ring, type RingInfo } from "./rings.ts";
+import { stereoBonds, type Stereo } from "./stereo.ts";
 
 export type Kind = "saeure" | "ester" | "amid" | "nitril" | "al" | "on" | "ol" | "thiol" | "amin";
 /** Priorität der Hauptgruppen (höchste zuerst) */
@@ -57,7 +58,29 @@ interface Ctx {
   /** Kohlenstoff einer Nitrilgruppe (nur als Hauptgruppe Teil der Kette, sonst „Cyano“) */
   nitrileC: Set<number>;
   memo: Map<string, Sub>;
+  /** Doppelbindungen mit E/Z-Isomerie (aus der Zeichnung) */
+  stereo: Stereo[];
 }
+
+// ── E/Z ─────────────────────────────────────────────────────────────────────
+
+interface EZ { loc: number; desc: "E" | "Z"; s: Stereo }
+
+/** E/Z-Angaben der Doppelbindungen, die zu diesen Atomen (Kette/Ring in Nummernfolge) gehören; `skip` = Bindung zum Stammsystem */
+function ezOf(ctx: Ctx, seq: number[], skip?: [number, number]): EZ[] {
+  const at = new Map(seq.map((a, i) => [a, i + 1]));
+  const out: EZ[] = [];
+  for (const s of ctx.stereo) {
+    if (!s.desc) continue;
+    if (skip && ((s.a === skip[0] && s.b === skip[1]) || (s.a === skip[1] && s.b === skip[0]))) continue;
+    const la = at.get(s.a), lb = at.get(s.b);
+    if (la === undefined && lb === undefined) continue;
+    out.push({ loc: la !== undefined && lb !== undefined ? (Math.abs(la - lb) > 1 ? Math.max(la, lb) : Math.min(la, lb)) : (la ?? lb)!, desc: s.desc, s });
+  }
+  return out.sort((x, y) => x.loc - y.loc);
+}
+/** (E)- bei einer Doppelbindung, (2E,4Z)- bei mehreren */
+const ezText = (list: EZ[]) => (!list.length ? "" : list.length === 1 ? `(${list[0].desc})-` : `(${list.map(x => `${x.loc}${x.desc}`).join(",")})-`);
 
 const dblO = (g: Graph, c: number) => g.nb.get(c)!.find(n => n.order === 2 && g.el.get(n.to) === "O")?.to;
 
@@ -86,6 +109,7 @@ export function detect(g: Graph, ri: RingInfo): { groups: Group[]; nitrileC: Set
     }
     if (nbs.some(n => n.order === 2 && (g.el.get(n.to) === "N" || g.el.get(n.to) === "S") && !ri.ringOf.get(n.to)?.aromatic)) { fail("C=N- oder C=S-Doppelbindung"); continue; }
     if (o === undefined) continue;
+    if (nbs.some(n => n.order >= 2 && n.to !== o)) { fail("Keten (C=C=O)"); continue; }
     used.add(o);
     if (ri.ringOf.has(c)) { groups.push({ kind: "on", c, atoms: [o] }); continue; }
     const others = nbs.filter(n => n.to !== o);
@@ -128,7 +152,7 @@ export function detect(g: Graph, ri: RingInfo): { groups: Group[]; nitrileC: Set
 // ── Substituenten ────────────────────────────────────────────────────────────
 
 export interface Sub { name: string; complex: boolean }
-interface Prefix { name: string; complex: boolean; loc: string; key: string; atoms?: number[] }
+interface Prefix { name: string; complex: boolean; loc: string; key: string; atoms?: number[]; at?: number }
 /** Teil des Namens mit Kennung für die Farbe: Vorsilbe (Name der Vorsilbe), parent (Stamm), principal (Endung), alkyl (Ester) */
 export interface NamePart { text: string; key?: string }
 
@@ -142,8 +166,24 @@ function subtree(g: Graph, x: number, from: number): number[] {
   return out;
 }
 
-const sortKey = (name: string) => name.replace(/[\d,'′\-()[\]{}\s]/g, "").toLowerCase();
+/** Schlüssel für die alphabetische Ordnung: ohne Nummern, Klammern, Bindestriche und ohne E/Z-Angaben */
+const sortKey = (name: string) => name.replace(/\((?:\d*[EZ],?)+\)-/g, "").replace(/[\d,'′″\-()[\]{}\s]/g, "").toLowerCase();
+/** alphabetisch; bei gleichen Buchstaben entscheiden die Nummern im Namen (1-Methylbutyl vor 2-Methylbutyl), dann Z vor E */
+function alphaCmp(a: string, b: string): number {
+  const c = sortKey(a).localeCompare(sortKey(b));
+  if (c) return c;
+  const plain = (n: string) => n.replace(/\((?:\d*[EZ],?)+\)-/g, "");
+  const nums = (n: string) => (plain(n).match(/\d+/g) ?? []).map(Number);
+  const na = nums(a), nb = nums(b);
+  for (let i = 0; i < Math.min(na.length, nb.length); i++) if (na[i] !== nb[i]) return na[i] - nb[i];
+  if (na.length !== nb.length) return na.length - nb.length;
+  const ez = (n: string) => (n.match(/\((?:\d*[EZ],?)+\)/g) ?? []).join("").replace(/[^EZ]/g, "").replace(/Z/g, "0").replace(/E/g, "1");
+  return ez(a).localeCompare(ez(b));
+}
 const mkPrefix = (s: Sub, loc: string): Prefix => ({ ...s, loc, key: sortKey(s.name) });
+/** Vorsilben, die selbst Substituenten tragen können (Methoxy, Ethyl, Amino …) – ohne Nummern dahinter in Klammern: Chlor(methoxy)methyl */
+const TERMINAL = new Set(["fluor", "chlor", "brom", "iod", "nitro", "oxo", "hydroxy", "cyano", "carboxy", "formyl"]);
+const substitutable = (name: string) => !TERMINAL.has(name);
 
 /** Substituent am Stammsystem: Atom x, gebunden an `from` mit Bindungsordnung `order` */
 function sub(ctx: Ctx, x: number, from: number, order: number): Sub {
@@ -162,8 +202,18 @@ function oxy(r: Sub): Sub {
   if (/(meth|eth|prop|but)yl$/.test(r.name) && r.complex) return { name: r.name.replace(/yl$/, "oxy"), complex: true };
   return { name: wrap(r) + "oxy", complex: true };
 }
-/** Klammern um zusammengesetzte Namen: (Methylamino), bei Klammern im Inneren eckig: [(Brommethyl)sulfanyl] */
-const paren = (n: string) => (/\[/.test(n) ? `{${n}}` : /\(/.test(n) ? `[${n}]` : `(${n})`);
+/** Klammern um zusammengesetzte Namen: (Methylamino), außen jeweils die nächste Art: ( ) → [ ] → { } → ( ) … */
+function paren(n: string): string {
+  const next: Record<string, [string, string]> = { "": ["(", ")"], "(": ["[", "]"], "[": ["{", "}"], "{": ["(", ")"] };
+  const rank = (c: string) => "([{".indexOf(c) + 1;
+  let depth = 0, top = "";
+  for (const c of n) {
+    if ("([{".includes(c)) { if (depth === 0 && rank(c) > rank(top || " ")) top = c; depth++; }
+    else if (")]}".includes(c)) depth--;
+  }
+  const [o, cl] = next[top];
+  return o + n + cl;
+}
 const wrap = (s: Sub) => (s.complex ? paren(s.name) : s.name);
 
 function subRaw(ctx: Ctx, x: number, from: number, order: number): Sub {
@@ -173,6 +223,8 @@ function subRaw(ctx: Ctx, x: number, from: number, order: number): Sub {
   if (order === 2 && e === "O") return { name: "oxo", complex: false };
   if (e === "NO2") return { name: "nitro", complex: false };
   if (HALO_NAME[e]) return { name: HALO_NAME[e]!, complex: false };
+  // Ringatom (auch das N von Piperidin, Pyrrolidin …): Ring als Substituent (Piperidin-1-yl)
+  if (ri.ringOf.has(x)) return ringSub(ctx, x, from, order);
   if (e === "O") {
     if (!rest.length) return { name: "hydroxy", complex: false };
     const y = rest[0].to;
@@ -187,21 +239,24 @@ function subRaw(ctx: Ctx, x: number, from: number, order: number): Sub {
   if (e === "N") {
     if (!rest.length) return { name: "amino", complex: false };
     const parts = rest.map(n => (dblO(g, n.to) !== undefined && !ri.ringOf.has(n.to) ? acyl(ctx, n.to, x) : sub(ctx, n.to, x, 1)));
-    return { name: multiplied(parts) + "amino", complex: true };
+    return { name: multiplied(parts, true) + "amino", complex: true };
   }
   // Kohlenstoff
-  if (ri.ringOf.has(x)) return ringSub(ctx, x, from, order);
   if (rest.some(n => n.order === 3 && g.el.get(n.to) === "N")) return { name: "cyano", complex: false };
   if (order === 1 && dblO(g, x) !== undefined) return acyl(ctx, x, from);
   return chainSub(ctx, x, from, order, "yl");
 }
 
-/** gleiche Teile zusammenfassen und alphabetisch: Methyl + Methyl → dimethyl, Ethyl + Methyl → ethylmethyl */
-function multiplied(parts: Sub[]): string {
+/** gleiche Teile zusammenfassen und alphabetisch: Methyl + Methyl → dimethyl, Ethyl + Methyl → ethylmethyl;
+ *  `sep`: ab der zweiten Gruppe Vorsilben, die selbst Substituenten tragen können, in Klammern (ethyl(methyl)amino) */
+function multiplied(parts: Sub[], sep = false): string {
   const by = new Map<string, Sub[]>();
   for (const p of parts) by.set(p.name, [...(by.get(p.name) ?? []), p]);
-  return [...by.values()].sort((a, b) => sortKey(a[0].name).localeCompare(sortKey(b[0].name)))
-    .map(ps => (ps.length > 1 ? (ps[0].complex ? MULT_X[ps.length] : MULT[ps.length]) : "") + wrap(ps[0])).join("");
+  return [...by.values()].sort((a, b) => alphaCmp(a[0].name, b[0].name))
+    .map((ps, i) => {
+      const body = (ps.length > 1 ? (ps[0].complex ? MULT_X[ps.length] : MULT[ps.length]) : "") + wrap(ps[0]);
+      return sep && i > 0 && !ps[0].complex && substitutable(ps[0].name) ? `(${body})` : body;
+    }).join("");
 }
 
 /** Acylrest am C=O (y), gebunden an `from`: Formyl, Acetyl, Propanoyl, Benzoyl, Carboxy, Methoxycarbonyl, Carbamoyl */
@@ -219,7 +274,7 @@ function acyl(ctx: Ctx, y: number, from: number): Sub {
   if (ez === "N") {
     const r = g.nb.get(z)!.filter(n => n.to !== y);
     if (!r.length) return { name: "carbamoyl", complex: false };
-    return { name: multiplied(r.map(n => sub(ctx, n.to, z, 1))) + "carbamoyl", complex: true };
+    return { name: multiplied(r.map(n => sub(ctx, n.to, z, 1)), true) + "carbamoyl", complex: true };
   }
   if (ri.ringOf.has(z)) {
     const rs = ringSub(ctx, z, y, 1);
@@ -247,7 +302,7 @@ function cmpKey(a: KeyPart[], b: KeyPart[]): number {
 }
 const locNum = (l: string) => (/^\d+$/.test(l) ? Number(l) : 0);
 const prefixLocs = (ps: Prefix[]) => ps.filter(p => /^\d/.test(p.loc)).map(p => locNum(p.loc)).sort((a, b) => a - b);
-const alphaLocs = (ps: Prefix[]) => [...ps].filter(p => /^\d/.test(p.loc)).sort((a, b) => a.key.localeCompare(b.key) || locNum(a.loc) - locNum(b.loc)).map(p => locNum(p.loc));
+const alphaLocs = (ps: Prefix[]) => [...ps].filter(p => /^\d/.test(p.loc)).sort((a, b) => alphaCmp(a.name, b.name) || locNum(a.loc) - locNum(b.loc)).map(p => locNum(p.loc));
 
 /** Kette als Substituent: beginnt bei x (Nummer 1), Endung yl / yliden / oyl */
 function chainSub(ctx: Ctx, x: number, from: number, order: number, end: "yl" | "oyl"): Sub {
@@ -284,8 +339,8 @@ function chainSub(ctx: Ctx, x: number, from: number, order: number, end: "yl" | 
     if (end === "oyl") core = p.length === 2 && !en.length && !yn.length && !prefixes.length ? "acetyl" : unsat(stem, en, yn, p.length <= 2) + "oyl";
     else if (!en.length && !yn.length) core = stem + (order === 2 ? "yliden" : order === 3 ? "ylidin" : "yl");
     else core = unsat(stem, en, yn, p.length <= 2) + (order === 2 ? "yliden" : "yl");
-    const name = pre + core;
-    const key: KeyPart[] = [-p.length, -(en.length + yn.length), -en.length, -prefixes.length, [...en, ...yn].sort((a, b) => a - b), en, prefixLocs(prefixes), alphaLocs(prefixes), name];
+    const name = ezText(ezOf(ctx, p, [x, from])) + pre + core;
+    const key: KeyPart[] = [-p.length, -(en.length + yn.length), -en.length, [...en, ...yn].sort((a, b) => a - b), en, -prefixes.length, prefixLocs(prefixes), alphaLocs(prefixes), name];
     if (!best || cmpKey(key, best.key) < 0) best = { key, name, complex: prefixes.length > 0 || /\d/.test(name) };
   }
   return { name: best!.name, complex: best!.complex };
@@ -314,7 +369,7 @@ function ringSub(ctx: Ctx, x: number, from: number, order: number): Sub {
     if (ring.kind === "benzen") core = "phenyl";
     else if (ring.kind === "carbo") core = (en.length || yn.length ? unsat(ring.base, en, yn, false) : ring.base) + yl;
     else core = `${ring.base}-${at}-${yl}`;
-    const name = pre + core;
+    const name = ezText(ezOf(ctx, seq, [x, from])) + pre + core;
     const key: KeyPart[] = [at, [...en, ...yn].sort((a, b) => a - b), en, prefixLocs(prefixes), alphaLocs(prefixes), name];
     if (!best || cmpKey(key, best.key) < 0) best = { key, name, complex: prefixes.length > 0 || /\d/.test(name) };
   }
@@ -367,7 +422,7 @@ function prefixParts(ps: Prefix[], omit: boolean, f: Flags): NamePart[] {
   const locOrder = (a: string, b: string) => (/^\d/.test(a) ? 1 : 0) - (/^\d/.test(b) ? 1 : 0) || locNum(a) - locNum(b) || a.localeCompare(b);
   let groups = [...by.values()].map(g => g.sort((a, b) => locOrder(a.loc, b.loc)));
   if (f.noMult) groups = ps.map(p => [p]);
-  groups.sort((a, b) => (f.noAlpha ? locOrder(a[0].loc, b[0].loc) || a[0].key.localeCompare(b[0].key) : a[0].key.localeCompare(b[0].key) || locOrder(a[0].loc, b[0].loc)));
+  groups.sort((a, b) => (f.noAlpha ? locOrder(a[0].loc, b[0].loc) || alphaCmp(a[0].name, b[0].name) : alphaCmp(a[0].name, b[0].name) || locOrder(a[0].loc, b[0].loc)));
   const out: NamePart[] = [];
   for (const g of groups) {
     const n = g.length, s = g[0];
@@ -375,7 +430,10 @@ function prefixParts(ps: Prefix[], omit: boolean, f: Flags): NamePart[] {
     const locs = g.map(p => p.loc);
     const keep = !omit || locs.some(l => !/^\d/.test(l));
     const shown = keep ? locs.filter(l => !omit || !/^\d/.test(l)) : [];
-    const text = (shown.length ? shown.join(",") + "-" : "") + mult + (s.complex ? paren(s.name) : s.name);
+    let body = mult + (s.complex ? paren(s.name) : s.name);
+    // ohne Nummer hinter einer anderen Vorsilbe: eindeutig nur mit Klammern (Chlor(methoxy)methan, nicht Chlormethoxymethan)
+    if (!shown.length && out.length && !s.complex && substitutable(s.name)) body = `(${body})`;
+    const text = (shown.length ? shown.join(",") + "-" : "") + body;
     if (out.length && /^[\dN]/.test(text)) out.push({ text: "-" });
     out.push({ text, key: s.name });
   }
@@ -436,15 +494,17 @@ function makeOption(ctx: Ctx, id: string, kind: "chain" | "ring", seq: number[],
   pLocs.sort((a, b) => a - b);
   // Substituenten am Stickstoff von Amin/Amid: Nummer N (N′ am zweiten Stickstoff, nach der Nummer des C)
   const nSubs = (gr: Group) => (gr.n === undefined ? 0 : g.nb.get(gr.n)!.length);
-  counted.sort((a, b) => at.get(a)! - at.get(b)! || nSubs(b) - nSubs(a));
+  const nNames = (gr: Group) => (gr.n === undefined ? [] : g.nb.get(gr.n)!.filter(nb => !set.has(nb.to) && nb.to !== gr.c).map(nb => sub(ctx, nb.to, gr.n!, 1).name).sort(alphaCmp));
+  const firstName = (gr: Group) => nNames(gr)[0] ?? "~";
+  counted.sort((a, b) => at.get(a)! - at.get(b)! || nSubs(b) - nSubs(a) || alphaCmp(firstName(a), firstName(b)));
   for (const gr of counted) {
     if (gr.n === undefined) continue;
-    const loc = nIdx++ ? "N′" : "N";
+    const loc = ["N", "N′", "N″", "N‴"][nIdx++] ?? "N‴";
     for (const nb of g.nb.get(gr.n)!) {
       if (set.has(nb.to) || nb.to === gr.c) continue;
       const z = nb.to;
       const s = dblO(g, z) !== undefined && !ctx.ri.ringOf.has(z) ? acyl(ctx, z, gr.n) : sub(ctx, z, gr.n, 1);
-      nPrefixes.push({ ...mkPrefix(s, loc), atoms: subtree(g, z, gr.n) });
+      nPrefixes.push({ ...mkPrefix(s, loc), atoms: subtree(g, z, gr.n), at: gr.n });
     }
   }
   let en: number[] = [], yn: number[] = [];
@@ -458,11 +518,13 @@ function makeOption(ctx: Ctx, id: string, kind: "chain" | "ring", seq: number[],
   seq.forEach((a, i) => {
     for (const nb of g.nb.get(a)!) {
       if (set.has(nb.to) || suffixAtoms.has(nb.to)) continue;
-      prefixes.push({ ...mkPrefix(sub(ctx, nb.to, a, nb.order), String(i + 1)), atoms: subtree(g, nb.to, a) });
+      prefixes.push({ ...mkPrefix(sub(ctx, nb.to, a, nb.order), String(i + 1)), atoms: subtree(g, nb.to, a), at: a });
     }
   });
   const mult = [...en, ...yn].sort((a, b) => a - b);
-  const key: KeyPart[] = [-counted.length, ...structural, -prefixes.length, pLocs, mult, en, prefixLocs(prefixes), alphaLocs(prefixes)];
+  // zuletzt: bei Wahl bekommt Z die kleinere Nummer (vor E)
+  const zLocs = ezOf(ctx, seq).filter(x => x.desc === "Z").map(x => x.loc);
+  const key: KeyPart[] = [-counted.length, ...structural, pLocs, mult, en, -prefixes.length, prefixLocs(prefixes), alphaLocs(prefixes), zLocs];
   return { id, kind, ring, seq, mode, counted, pLocs, en, yn, prefixes, suffixAtoms, key };
 }
 
@@ -476,7 +538,10 @@ function options(ctx: Ctx, allowed: Set<number>, K: Kind | undefined, KG: Group[
     const doubles = ring.aromatic ? 3 : 0;
     for (const seq of numberings(ring)) {
       const { en, yn } = ringUnsat(g, ring, seq);
-      const structural: KeyPart[] = [0, ring.kind === "hetero" ? 0 : 1, -ring.atoms.length, -(en.length + yn.length + doubles)];
+      // Heterocyclus mit N vor O vor S vor Carbocyclus, dann der größere Ring, dann mehr Mehrfachbindungen
+      const het = ring.hetero === undefined ? undefined : g.el.get(ring.hetero);
+      const cls = het === "N" ? 0 : het === "O" ? 1 : het === "S" ? 2 : 3;
+      const structural: KeyPart[] = [0, cls, -ring.atoms.length, -(en.length + yn.length + doubles)];
       out.push(makeOption(ctx, "r" + ring.atoms.join(","), "ring", seq, "att", KG, ring, structural));
     }
   }
@@ -529,12 +594,13 @@ function optionName(ctx: Ctx, o: Option, K: Kind | undefined, f: Flags): string 
 }
 
 /** Name in Teilen: Vorsilben (je Name), Stamm (parent), Endung mit Nummern (principal) */
-function optionParts(_ctx: Ctx, o: Option, K: Kind | undefined, f: Flags): NamePart[] {
+function optionParts(ctx: Ctx, o: Option, K: Kind | undefined, f: Flags): NamePart[] {
   const omit = omitLocants(o);
   const n = o.counted.length;
   const kind = n ? K : undefined;
   const plocs = o.pLocs.join(",");
-  const pre = prefixParts(o.prefixes, omit, f);
+  const ez = ezText(ezOf(ctx, o.seq));
+  const pre: NamePart[] = [...(ez ? [{ text: ez, key: "stereo" }] : []), ...prefixParts(o.prefixes, omit, f)];
   if (o.kind === "ring" && o.ring!.kind === "benzen" && kind && n === 1 && BENZ_RETAINED[kind]) return [...pre, { text: BENZ_RETAINED[kind]!, key: "principal" }];
   let stem: string;
   // zwei C: die Mehrfachbindung kann nur zwischen C1 und C2 liegen (1,2-Dichlorethen)
@@ -594,15 +660,21 @@ export interface NameOk {
   principalAtoms: number[];
   /** Vorsilben je Name mit Nummern (Reihenfolge wie im Namen) */
   prefixes: { name: string; locs: string[] }[];
-  /** Ester: Name des Alkylteils und seine Atome */
-  ester?: { acid: string; alkyl: string; alkylAtoms: number[] };
+  /** Ester: Name des Alkylteils (zusammengefasst und einzeln) und seine Atome */
+  ester?: { acid: string; alkyl: string; alkyls: Sub[]; alkylLocs: number[]; alkylAtoms: number[] };
   /** Lösungsweg in kurzen Schritten (**fett**) */
   steps: string[];
   /** Name in Teilen mit Kennung (für gleiche Farben in Name und Formel) */
   parts: NamePart[];
   /** Atome je Kennung: parent, principal, alkyl, je Vorsilbe */
   groupsByKey: Record<string, number[]>;
+  /** Doppelbindungen mit E/Z im Stammsystem (desc null: aus der Zeichnung nicht erkennbar) */
+  stereo: StereoAt[];
+  /** Vorsilben mit Atom am Stammsystem (at) und erstem Atom des Substituenten (first) – für Prüfungen */
+  subs: { at: number; first: number; name: string; loc: string }[];
 }
+/** Doppelbindung mit E/Z und ihren Nummern im Stammsystem (la/lb fehlt, wenn das Atom außerhalb liegt) */
+export type StereoAt = Stereo & { loc: number; la?: number; lb?: number };
 export interface NameFail { ok: false; reason: string; formula: string }
 export type NameResult = NameOk | NameFail;
 
@@ -611,7 +683,8 @@ function prepare(mol: Mol): { ctx: Ctx; bad?: string } {
   const g = graph(mol);
   const ri = findRings(g);
   const d = detect(g, ri);
-  const ctx: Ctx = { g, ri, groups: d.groups, nitrileC: d.nitrileC, memo: new Map() };
+  const ctx: Ctx = { g, ri, groups: d.groups, nitrileC: d.nitrileC, memo: new Map(), stereo: [] };
+  if (!d.bad && !ri.unsupported) ctx.stereo = stereoBonds(mol, g);
   let bad = d.bad ?? ri.unsupported;
   if (!mol.atoms.length) bad = "Noch nichts gezeichnet";
   else if (components(mol).length > 1) bad = "Mehrere getrennte Teile – verbinde sie";
@@ -647,18 +720,44 @@ export function name(mol: Mol, opt: NameOptions = {}): NameResult {
     parent: { atoms: o.seq, kind: o.kind, ring: o.ring?.kind, size: o.seq.length },
     principalAtoms: o.counted.flatMap(x => (C_TYPE.has(x.kind) ? [x.c, ...x.atoms] : x.kind === "on" ? [x.c, ...x.atoms] : x.atoms)),
     prefixes: groupedPrefixes(o.prefixes, omitLocants(o)),
-    steps: [], parts, groupsByKey: {},
+    steps: [], parts, groupsByKey: {}, stereo: parentStereo(ctx, o.seq), subs: subsOf(o),
   };
   res.groupsByKey = keyAtoms(o, res.principalAtoms);
+  res.alt = withCisTrans(res, ctx);
   res.steps = steps(ctx, o, K, res);
   return res;
 }
+
+/** Vorsilben mit Anknüpfung (Atom am Stammsystem, erstes Atom des Substituenten) */
+const subsOf = (o: Option) => o.prefixes.map(p => ({ at: p.at ?? -1, first: p.atoms?.[0] ?? -1, name: p.name, loc: p.loc }));
 
 /** Atome je Teil des Namens */
 function keyAtoms(o: Option, principal: number[]): Record<string, number[]> {
   const out: Record<string, number[]> = { parent: [...o.seq], principal: [...principal] };
   for (const p of o.prefixes) out[p.name] = [...(out[p.name] ?? []), ...(p.atoms ?? [])];
   return out;
+}
+
+/** Doppelbindungen mit E/Z am Stammsystem – auch die nicht erkennbaren (für Hinweis und Bild) */
+function parentStereo(ctx: Ctx, seq: number[]): StereoAt[] {
+  const at = new Map(seq.map((a, i) => [a, i + 1]));
+  return ctx.stereo.filter(s => at.has(s.a) || at.has(s.b))
+    .map(s => {
+      const la = at.get(s.a), lb = at.get(s.b);
+      const loc = la !== undefined && lb !== undefined ? (Math.abs(la - lb) > 1 ? Math.max(la, lb) : Math.min(la, lb)) : (la ?? lb)!;
+      return { ...s, la, lb, loc };
+    })
+    .sort((x, y) => x.loc - y.loc);
+}
+
+/** cis/trans zusätzlich, wenn eine Doppelbindung je ein H an beiden C hat (dann ist Z = cis, E = trans) */
+function withCisTrans(r: NameOk, ctx: Ctx): string[] {
+  const one = /^\(([EZ])\)-(.*)$/.exec(r.name);
+  const all = ctx.stereo.filter(s => s.desc);
+  if (!one || all.length !== 1 || r.stereo.length !== 1) return r.alt;
+  const s = r.stereo[0];
+  if (s.qa !== -1 || s.qb !== -1) return r.alt;
+  return [...r.alt, `${one[1] === "Z" ? "cis" : "trans"}-${one[2]}`];
 }
 
 function choose(opts: Option[], pick?: "reverse" | "otherChain"): Option | undefined {
@@ -670,7 +769,7 @@ function choose(opts: Option[], pick?: "reverse" | "otherChain"): Option | undef
 
 function groupedPrefixes(ps: Prefix[], omit: boolean): { name: string; locs: string[] }[] {
   const by = new Map<string, string[]>();
-  for (const p of [...ps].sort((a, b) => a.key.localeCompare(b.key))) by.set(p.name, [...(by.get(p.name) ?? []), omit && /^\d/.test(p.loc) ? "" : p.loc]);
+  for (const p of [...ps].sort((a, b) => alphaCmp(a.name, b.name))) by.set(p.name, [...(by.get(p.name) ?? []), omit && /^\d/.test(p.loc) ? "" : p.loc]);
   return [...by].map(([name, locs]) => ({ name, locs: locs.filter(Boolean) }));
 }
 
@@ -680,8 +779,6 @@ function esterName(ctx: Ctx, mol: Mol, opt: NameOptions): NameResult {
   const { g } = ctx;
   const f = formula(mol);
   const esters = ctx.groups.filter(x => x.kind === "ester");
-  // Säureteil: Bindungen O–R aller Ester trennen, Teil mit den meisten Ester-C wählen
-  const cut = new Set(esters.map(e => `${e.s}-${e.r}`));
   const compOf = (start: number, cuts: Set<string>) => {
     const seen = new Set([start]), stack = [start];
     while (stack.length) {
@@ -690,45 +787,77 @@ function esterName(ctx: Ctx, mol: Mol, opt: NameOptions): NameResult {
     }
     return seen;
   };
-  let acid: Set<number> | undefined, chosen: Group[] = [];
+  // Säureteil: Bindungen O–R aller Ester trennen, Teil mit den meisten Ester-C, dann mit den meisten C.
+  // Gleichstand (z. B. zwei Acetate an einem Diol): bestes Stammsystem, dann der alphabetisch erste Name – unabhängig von der Reihenfolge der Atome.
+  const cut = new Set(esters.map(e => `${e.s}-${e.r}`));
+  const cands = new Map<string, { chosen: Group[]; nC: number }>();
   for (const e of esters) {
     const comp = compOf(e.c, cut);
-    const cs = esters.filter(x => comp.has(x.c));
-    const nC = [...comp].filter(a => g.el.get(a) === "C").length;
-    if (!acid || cs.length > chosen.length || (cs.length === chosen.length && nC > [...acid].filter(a => g.el.get(a) === "C").length)) { acid = comp; chosen = cs; }
+    const chosen = esters.filter(x => comp.has(x.c));
+    const k = chosen.map(x => x.c).sort((a, b) => a - b).join();
+    if (!cands.has(k)) cands.set(k, { chosen, nC: [...comp].filter(a => g.el.get(a) === "C").length });
   }
+  const all = [...cands.values()];
+  const most = Math.max(...all.map(c => c.chosen.length));
+  const mostC = Math.max(...all.filter(c => c.chosen.length === most).map(c => c.nC));
+  const tied = all.filter(c => c.chosen.length === most && c.nC === mostC).map(c => build(ctx, f, c.chosen, compOf, {}));
+  const nameOf = (r: NameResult) => (r.ok ? r.name : "~");
+  tied.sort((a, b) => cmpKey(a.key, b.key) || nameOf(a.res).localeCompare(nameOf(b.res)));
+  if (!opt.pick && !opt.noAlpha && !opt.noMult) return tied[0].res;
+  return build(ctx, f, tied[0].chosen, compOf, opt).res;
+}
+
+/** Ester aus den gewählten Gruppen benennen; key = Schlüssel des Stammsystems (für die Wahl zwischen gleichwertigen Säureteilen) */
+function build(ctx: Ctx, f: string, chosen: Group[], compOf: (s: number, c: Set<string>) => Set<number>, opt: NameOptions): { res: NameResult; key: KeyPart[]; chosen: Group[] } {
   // nur die gewählten Ester trennen – die anderen bleiben Vorsilben (Acetyloxy …)
   const cuts = new Set(chosen.map(e => `${e.s}-${e.r}`));
-  acid = compOf(chosen[0].c, cuts);
-  const KG: Group[] = chosen.map(e => ({ ...e, kind: "saeure" }));
+  const acid = compOf(chosen[0].c, cuts);
+  let KG: Group[] = chosen.map(e => ({ ...e, kind: "saeure" }));
   // im Säureteil zählen Ester-O als OH; Ketten nur innerhalb des Säureteils
   const opts = options(ctx, acid, "saeure", KG);
-  const o = choose(opts, opt.pick);
-  if (!o) return { ok: false, reason: "Keine andere Möglichkeit", formula: f };
+  // nur die Estergruppen am Stammsystem – andere stehen als Vorsilbe im Namen (4-Methoxy-4-oxobutyl)
+  const onParent = opts.length ? KG.map((k, i) => (opts[0].counted.includes(k) ? i : -1)).filter(i => i >= 0) : KG.map((_, i) => i);
+  chosen = onParent.map(i => chosen[i]);
+  KG = onParent.map(i => KG[i]);
+  const alkyls = chosen.map(e => sub(ctx, e.r!, e.s!, 1));
+  const mixed = new Set(alkyls.map(a => a.name)).size > 1;
+  const locOf = (o: Option, i: number) => { const a = anchorIn(ctx, KG[i], new Set(o.seq), o.mode); return a === undefined ? 0 : o.seq.indexOf(a) + 1; };
+  // verschiedene Alkylreste: Nummer der Säuregruppe davor; bei Wahl die kleinere Nummer für den alphabetisch ersten Rest
+  const alkylLocs = (o: Option) => alkyls.map((a, i) => ({ a, l: locOf(o, i) })).sort((x, y) => alphaCmp(x.a.name, y.a.name) || x.l - y.l).map(x => x.l);
+  let o = choose(opts, opt.pick);
+  if (o && mixed && !opt.pick) o = opts.filter(x => cmpKey(x.key, opts[0].key) === 0).sort((x, y) => cmpKey([alkylLocs(x)], [alkylLocs(y)]))[0];
+  if (!o) return { res: { ok: false, reason: "Keine andere Möglichkeit", formula: f }, key: [], chosen };
   const acidParts = optionParts(ctx, o, "saeure", opt);
   const acidName = acidParts.map(p => p.text).join("");
-  const alkyls = chosen.map(e => sub(ctx, e.r!, e.s!, 1));
-  const alkylPart = multiplied(alkyls);
-  const nm = cap(acidName) + alkylPart + "ester";
+  let alkylPart: string, alkylText: string;
+  const locs = alkyls.map((_, i) => locOf(o!, i));
+  if (mixed) {
+    const by = new Map<string, { s: Sub; locs: number[] }>();
+    alkyls.forEach((a, i) => { const e = by.get(a.name) ?? { s: a, locs: [] }; e.locs.push(locs[i]); by.set(a.name, e); });
+    alkylPart = [...by.values()].sort((x, y) => alphaCmp(x.s.name, y.s.name))
+      .map(x => `${x.locs.sort((a, b) => a - b).join(",")}-${x.locs.length > 1 ? (x.s.complex ? MULT_X : MULT)[x.locs.length] : ""}${wrap(x.s)}`).join("-");
+    alkylText = "-" + alkylPart;
+  } else alkylText = alkylPart = multiplied(alkyls);
+  const nm = cap(acidName) + alkylText + "ester";
   const anion = acidName.endsWith("benzoesäure") ? acidName.replace(/benzoesäure$/, "benzoat")
     : acidName.endsWith("carbonsäure") ? acidName.replace(/carbonsäure$/, "carboxylat") : acidName.replace(/säure$/, "oat");
   const alt = [cap(alkylPart + anion)];
   const triv = TRIVIAL_ACID[cap(acidName)];
-  if (triv) { alt.push(triv.acid + alkylPart + "ester"); alt.push(cap(alkylPart + triv.anion)); }
-  const alkylAtoms = chosen.flatMap(e => [...compOf(e.r!, new Set([`${e.s}-${e.r}`]))].filter(a => !acid!.has(a)));
+  if (triv && !mixed) { alt.push(triv.acid + alkylPart + "ester"); alt.push(cap(alkylPart + triv.anion)); }
+  const alkylAtoms = chosen.flatMap(e => [...compOf(e.r!, new Set([`${e.s}-${e.r}`]))].filter(a => !acid.has(a)));
   const res: NameOk = {
     ok: true, name: nm, alt: [...new Set(alt.filter(a => a !== nm))], formula: f, classes: classes(ctx), principal: "ester",
     parent: { atoms: o.seq, kind: o.kind, ring: o.ring?.kind, size: o.seq.length },
     principalAtoms: chosen.flatMap(e => [e.c, ...e.atoms]),
     prefixes: groupedPrefixes(o.prefixes, omitLocants(o)),
-    ester: { acid: cap(acidName), alkyl: cap(alkylPart), alkylAtoms },
+    ester: { acid: cap(acidName), alkyl: cap(alkylPart), alkyls, alkylLocs: mixed ? locs : [], alkylAtoms },
     steps: [],
-    parts: capParts([...acidParts, { text: alkylPart, key: "alkyl" }, { text: "ester", key: "principal" }]),
-    groupsByKey: {},
+    parts: capParts([...acidParts, { text: alkylText, key: "alkyl" }, { text: "ester", key: "principal" }]),
+    groupsByKey: {}, stereo: parentStereo(ctx, o.seq), subs: subsOf(o),
   };
   res.groupsByKey = { ...keyAtoms(o, res.principalAtoms), alkyl: alkylAtoms };
   res.steps = steps(ctx, o, "ester", res);
-  return res;
+  return { res, key: o.key, chosen };
 }
 
 // ── Weitere Namen, Stoffklassen, Lösungsweg ──────────────────────────────────
@@ -752,6 +881,11 @@ export const TRIVIAL: Record<string, string[]> = {
   Butandisäure: ["Bernsteinsäure"], "2-Hydroxypropansäure": ["Milchsäure"], "2-Hydroxybutandisäure": ["Äpfelsäure"],
   "2,3-Dihydroxybutandisäure": ["Weinsäure"], "2-Hydroxypropan-1,2,3-tricarbonsäure": ["Citronensäure"],
   Propensäure: ["Acrylsäure"], "Prop-2-ensäure": ["Acrylsäure"], "2-Oxopropansäure": ["Brenztraubensäure"],
+  "(Z)-But-2-endisäure": ["Maleinsäure"], "(E)-But-2-endisäure": ["Fumarsäure"], "(E)-But-2-ensäure": ["Crotonsäure"],
+  "(Z)-But-2-ensäure": ["Isocrotonsäure"], "(Z)-Octadec-9-ensäure": ["Ölsäure"], "(E)-Octadec-9-ensäure": ["Elaidinsäure"],
+  "(E)-3-Phenylprop-2-ensäure": ["Zimtsäure"], "(2E,4E)-Hexa-2,4-diensäure": ["Sorbinsäure"],
+  "(E)-3,7-Dimethylocta-2,6-dienal": ["Geranial (Citral A)"], "(Z)-3,7-Dimethylocta-2,6-dienal": ["Neral (Citral B)"],
+  "(E)-3,7-Dimethylocta-2,6-dien-1-ol": ["Geraniol"], "(Z)-3,7-Dimethylocta-2,6-dien-1-ol": ["Nerol"],
   Methylbenzen: ["Toluol"], "1,2-Dimethylbenzen": ["o-Xylol"], "1,4-Dimethylbenzen": ["p-Xylol"], Ethenylbenzen: ["Styrol"],
   "2-Hydroxybenzoesäure": ["Salicylsäure"], "2-(Acetyloxy)benzoesäure": ["Acetylsalicylsäure", "Aspirin"],
   "2-Methyl-1,3,5-trinitrobenzen": ["2,4,6-Trinitrotoluol", "TNT"], "2,4,6-Trinitrophenol": ["Pikrinsäure"],
@@ -777,7 +911,7 @@ function altNames(nm: string, ctx: Ctx, o: Option, K: Kind | undefined): string[
   const m = ring ? null : /^([A-Z][a-zäöü]*?)(an|en|in)-([\d,]+)-(di|tri|tetra)?(ol|on|amin|thiol)$/.exec(nm);
   if (m) alt.push(`${m[3]}-${m[1]}${m[2]}${m[4] ?? ""}${m[5]}`);
   const e = ring ? null : /^([A-Z][a-z]*?)-([\d,]+)-(di|tri)?(en|in)$/.exec(nm);
-  if (e) alt.push(`${e[2]}-${e[1]}${e[3] ? "a" + e[3] : ""}${e[4]}`);
+  if (e) alt.push(`${e[2]}-${e[1]}${e[3] ? (e[1].endsWith("a") ? "" : "a") + e[3] : ""}${e[4]}`);
   // Schulnamen: Ether (Diethylether), Amine (Ethylamin)
   const sch = schoolName(ctx, o, K);
   if (sch) alt.push(sch);
@@ -801,6 +935,8 @@ function schoolName(ctx: Ctx, o: Option, K: Kind | undefined): string | undefine
     const nn = o.counted[0].n!;
     const parts = g.nb.get(nn)!.map(n => sub(ctx, n.to, nn, 1));
     if (!parts.every(plain)) return;
+    // verschiedene Reste mit Ring wären mehrdeutig (Cyclohexylmethylamin = auch Cyclohexylmethyl-amin)
+    if (new Set(parts.map(x => x.name)).size > 1 && g.nb.get(nn)!.some(n => ctx.ri.ringOf.has(n.to))) return;
     return cap(multiplied(parts) + "amin");
   }
 }
@@ -865,6 +1001,7 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
   if (o.seq.length > 1 && what.length) out.push(`Nummerieren: so, dass ${what[0] === "Hauptgruppe" ? "die **Hauptgruppe**" : what[0] === "Mehrfachbindung" ? "die **Mehrfachbindung**" : "die **Seitenketten**"} die kleinste Nummer bekommt.`);
   if (n && o.kind === "chain" && o.mode === "incl" && K && C_TYPE.has(K)) out.push(`Das C der ${info!.label}gruppe ist **C1** – die Nummer steht nicht im Namen.`);
   if (o.en.length) out.push(`Doppelbindung bei C${nums(o.en)} → **-en**.`);
+  for (const st of r.stereo) out.push(ezStep(ctx, st));
   if (o.yn.length) out.push(`Dreifachbindung bei C${nums(o.yn)} → **-in**.`);
   if (r.prefixes.length) {
     const list = r.prefixes.map(p => `**${cap(`${p.locs.length ? p.locs.join(",") + "-" : ""}${p.locs.length > 1 ? MULT[p.locs.length] : ""}${p.name}`)}**`);
@@ -873,6 +1010,42 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
   }
   if (r.ester) out.push(`Säure-Teil **${r.ester.acid}**, Alkyl-Teil **${r.ester.alkyl}** → **${r.name}**.`);
   else out.push(`Name: **${r.name}**`);
+  return out;
+}
+
+const SUBN = "₀₁₂₃₄₅₆₇₈₉";
+/** Kurzform einer Gruppe für den Lösungsweg: CH₃, Cl, OH, NO₂ … (−1 = H) */
+function groupLabel(g: Graph, a: number): string {
+  if (a < 0) return "H";
+  const e = g.el.get(a)!, h = hCount(g, a);
+  if (e === "NO2") return "NO₂";
+  return e + (h ? "H" + (h > 1 ? SUBN[h] : "") : "");
+}
+
+/** Sätze zu E/Z einer Doppelbindung: welche Gruppe Vorrang hat und wo sie liegt (kurze Sätze) */
+function ezStep(ctx: Ctx, st: StereoAt): string {
+  const { g } = ctx;
+  const z = (a: number) => (a < 0 ? 1 : g.el.get(a) === "NO2" ? 7 : ({ C: 6, N: 7, O: 8, F: 9, S: 16, Cl: 17, Br: 35, I: 53 } as Record<string, number>)[g.el.get(a)!]);
+  const rank = (p: number, q: number) => `${groupLabel(g, p)} vor ${groupLabel(g, q)}${z(p) === z(q) ? " – gleiches Atom, die Nachbarn entscheiden" : ""}`;
+  const at = st.loc;
+  // in Nummernfolge: erst das C mit der kleineren Nummer
+  const sides = [{ l: st.la, p: st.pa, q: st.qa }, { l: st.lb, p: st.pb, q: st.qb }].sort((x, y) => (x.l ?? 99) - (y.l ?? 99));
+  const one = (x: { l?: number; p: number; q: number }) => `${x.l ? `An C${x.l}` : "Am anderen C"}: ${rank(x.p, x.q)}.`;
+  const head = `Doppelbindung C${at}: Vorrang hat die größere Ordnungszahl. ${one(sides[0])} ${one(sides[1])}`;
+  if (!st.desc) return `${head} E/Z ist aus der Zeichnung nicht ablesbar – Gruppen schräg zeichnen.`;
+  return `${head} ${st.desc === "Z" ? "Beide auf **derselben** Seite → **Z** (zusammen)." : "Auf **verschiedenen** Seiten → **E** (entgegen)."}`;
+}
+
+/** nur für Prüfungen: Name jedes möglichen Substituenten (Atom am Stammsystem `at`, erstes Atom `first`), alle Bindungen außerhalb von Ringen */
+export function substituentNames(mol: Mol): { at: number; first: number; name: string }[] {
+  const { ctx, bad } = prepare(mol);
+  if (bad) return [];
+  const out: { at: number; first: number; name: string }[] = [];
+  for (const b of mol.bonds) {
+    const ra = ctx.ri.ringOf.get(b.a);
+    if (ra && ra === ctx.ri.ringOf.get(b.b)) continue;
+    for (const [at, first] of [[b.a, b.b], [b.b, b.a]]) out.push({ at, first, name: sub(ctx, first, at, b.order).name });
+  }
   return out;
 }
 

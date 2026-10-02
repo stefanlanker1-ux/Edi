@@ -157,3 +157,9 @@
 .og-color.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 .og-color-dots { display: inline-flex; gap: 2px; }
 .og-color-dots i { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--rule); }
+
+/* E/Z: Achse der Doppelbindung, vorrangige Gruppen (1) und Ergebnis */
+.mol-ez-axis { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
+.mol-ez-prio { stroke: var(--signal); stroke-width: 6; stroke-linecap: round; opacity: .55; }
+.mol-ez-desc { font-size: 16px; font-weight: 800; fill: var(--signal); }
+.og-rule { margin: 10px 0 0; font-size: .9rem; }

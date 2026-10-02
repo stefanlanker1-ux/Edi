@@ -2,7 +2,7 @@
 
 import { RichText } from "@lern/ui";
 import type { LevelKey } from "@lern/quiz";
-import { exampleMol } from "../chem/examples.ts";
+import { smilesMol } from "../chem/smiles.ts";
 import { name } from "../chem/naming.ts";
 import { MolSvg } from "../components/MolSvg.tsx";
 import { useApp } from "../store.ts";
@@ -14,9 +14,10 @@ const TEXT: Record<string, { points: string[]; ex: string }> = {
     "**Längste Kette** suchen – sie muss nicht gerade gezeichnet sein.",
     "So nummerieren, dass die **Äste kleine Nummern** haben. Äste alphabetisch, gleiche mit di, tri.",
   ] },
-  "og-n2": { ex: "CC(C)=CC", points: [
+  "og-n2": { ex: "C/C=C\\CC", points: [
     "Doppelbindung → **-en**, Dreifachbindung → **-in**.",
     "Die Mehrfachbindung bekommt die **kleinste Nummer**. Sie steht vor der Endung: But-2-en.",
+    "**E/Z:** An jedem C der Doppelbindung hat die Gruppe mit größerer Ordnungszahl Vorrang. Gleiche Seite = **Z**, verschiedene = **E**.",
   ] },
   "og-n3": { ex: "CCC(C)=O", points: [
     "**-ol** Alkohol (–OH), **-al** Aldehyd (–CHO), **-on** Keton (C=O in der Kette), **-säure** Carbonsäure (–COOH), **-amin** Amin (–NH₂).",
@@ -32,11 +33,11 @@ const TEXT: Record<string, { points: string[]; ex: string }> = {
 
 function Example({ smiles }: { smiles: string }) {
   const { view } = useApp();
-  const m = exampleMol(smiles), r = name(m);
+  const m = smilesMol(smiles), r = name(m);
   return (
     <figure className="ex-example og-ex-fig">
       <MolSvg mol={m} view={view} label={r.ok ? r.name : "Beispiel"} parent={r.ok ? r.parent.atoms : undefined} parentRing={r.ok && r.parent.kind === "ring"}
-        numbers={r.ok} group={r.ok ? r.principalAtoms : undefined} minW={4} minH={2.4} />
+        numbers={r.ok} group={r.ok ? r.principalAtoms : undefined} ez={r.ok ? r.stereo.filter(x => x.desc) : undefined} minW={4} minH={2.4} />
       {r.ok && <figcaption>{r.name}</figcaption>}
     </figure>
   );

@@ -267,12 +267,30 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   (Trivialname, Benzol-Schreibweise, ältere Schreibweise 2-Propanol, Diethylether, Ethylamin, Ethylbutanoat), Summenformel nach Hill und Stoffklassen. Kein 3D.
 - Logik in `src/chem/`: `mol.ts` (Graph ohne H, Wertigkeit, NO₂ als Baustein mit einer Bindung), `rings.ts` (nur Einzelringe: Cycloalkane, Benzen,
   Heterocyclen mit einem O/S/N: Oxolan, Thiolan, Pyrrolidin, Oxan, Thian, Piperidin, Furan, Thiophen, Pyrrol, Pyridin …; kondensierte Ringe → Meldung),
-  `naming.ts` (Hauptgruppe nach Rang Säure > Ester > Amid > Nitril > Aldehyd > Keton > Alkohol > Thiol > Amin; Stammsystem: meiste Hauptgruppen, Ring vor Kette,
-  längste Kette, Mehrfachbindungen; Nummern: Hauptgruppe, Mehrfachbindung, -en, Vorsilben, alphabetisch erste; Vorsilben rekursiv: (1-Methylethyl), Acetyloxy,
-  (Dimethylamino), Methoxycarbonyl; > 2 COOH an einer Kette → -carbonsäure; Ester „Säure + Alkyl + ester“; Nummern weglassen nur, wenn eindeutig: Ethanol, Propen,
-  Methylcyclohexan, Butansäure). Varianten für das Quiz über `NameOptions` (andere Seite, kürzere Kette, nicht alphabetisch, ohne di/tri, andere Hauptgruppe).
-  `layout.ts` (Zickzack 120°, Ringe als Vielecke, Start am fernsten C), `edit.ts` (Anhängen, Ziehen, Ring schließen, Bindung 1→2→3, Tauschen, Löschen), `smiles.ts` (Kurzschreibweise nur für Beispiele/Tests).
+  `naming.ts` (Hauptgruppe nach Rang Säure > Ester > Amid > Nitril > Aldehyd > Keton > Alkohol > Thiol > Amin; Stammsystem nach IUPAC 2013: meiste Hauptgruppen,
+  Ring vor Kette, Ring mit N vor O vor S vor Carbocyclus, größerer Ring, längste Kette (C der Gruppe in der Kette vor „-carbonsäure“), meiste Mehrfach-, dann Doppelbindungen;
+  Nummern: Hauptgruppe, Mehrfachbindungen, Doppelbindungen, dann meiste Vorsilben, Vorsilben, alphabetisch erste, Z vor E; gleiche Buchstaben: kleinere Nummern zuerst
+  (1-Methylbutyl vor 2-Methylbutyl). Vorsilben rekursiv: (1-Methylethyl), Acetyloxy, (Dimethylamino), Methoxycarbonyl, Piperidin-1-yl; Klammern außen ( ) → [ ] → { } → ( );
+  ohne Nummern steht eine Vorsilbe, die selbst Substituenten tragen kann, hinter einer anderen in Klammern (Chlor(methoxy)methan, [Ethyl(methyl)amino]);
+  N, N′, N″ an mehreren Aminen; > 2 COOH an einer Kette → -carbonsäure; Ester „Säure + Alkyl + ester“, verschiedene Alkylreste mit Nummern (Butandisäure-1-ethyl-4-methylester),
+  gleichwertige Säureteile (Diacetat eines Diols): bestes Stammsystem, dann alphabetisch; Nummern weglassen nur, wenn eindeutig: Ethanol, Propen, Methylcyclohexan, Butansäure;
+  Keten C=C=O → Meldung). Varianten für das Quiz über `NameOptions` (andere Seite, kürzere Kette, nicht alphabetisch, ohne di/tri, andere Hauptgruppe).
+  `layout.ts` (Zickzack 120°, Ringe als Vielecke, Start am fernsten C; an C=C nie eine gerade Linie und nie beide Gruppen auf derselben Seite, sonst wäre E/Z nicht ablesbar),
+  `edit.ts` (Anhängen, Ziehen, Ring schließen, Bindung 1→2→3, Tauschen, Löschen), `smiles.ts` (Kurzschreibweise für Beispiele/Tests, E/Z mit / und \).
   Der Test prüft u. a. alle Beispiele, Namen unabhängig von der Atomreihenfolge (Zufallsmoleküle) und die Laufzeit.
+- E/Z (`stereo.ts`): Rangfolge der Gruppen an jedem C der Doppelbindung nach CIP (Ordnungszahl, Sphäre für Sphäre, Mehrfachbindungen und Ringschlüsse als Duplikate),
+  Seite aus der Zeichnung (höherrangige Gruppen gleiche Seite = Z, verschiedene = E; gerade gezeichnet → nicht ablesbar, Hinweis im Lösungsweg). Kein E/Z bei zwei gleichen
+  Gruppen an einem C, bei kumulierten Doppelbindungen und im Ring unter 8 Atomen. Im Namen (E)- bzw. (2E,4Z)-, auch in Vorsilben ([(E)-Prop-1-enyl]); Z bekommt bei Wahl
+  die kleinere Nummer; cis/trans als weiterer Name, wenn an beiden C ein H sitzt; Trivialnamen (Maleinsäure, Fumarsäure, Ölsäure, Geraniol …).
+  Zeichnen: Tauschen an einer C=C spiegelt eine Seite (E ↔ Z, `flipBond`), „Ordnen“ behält E/Z (`keepStereo`); im Bild Achse, Vorrang-Bindungen und Buchstabe (E/Z).
+- Prüfung der Benennung (`src/chem/check/`, `scripts/organik-oracle.py`): Generator mit festem Startwert (`generate.ts`: alle Alkane bis C10, jede Mehrfachbindung,
+  jede Gruppe an jeder Stelle, Kombinationen, große verzweigte Gerüste, Ringe und Heterocyclen, Ester/Amide/Amine/Ether, E/Z-Fälle, Trivialnamen, Zufallsmoleküle;
+  rund 17 500 Moleküle) → Export (`export.test.ts`, nur mit `ORACLE_OUT`) → Python: englischer Name (`english.ts`) an OPSIN, Struktur muss der gezeichneten gleichen
+  (RDKit, E/Z aus dem Molfile `molfile.ts`), auch für weitere Namen; eigene Umsetzung der Regeln für Stammsystem und Nummern (die Wahl der App muss die beste sein),
+  alphabetische Reihenfolge, Summenformel, Zahl der E/Z-Angaben, Eindeutigkeit (gleiche Struktur ↔ gleicher Name); im Export zusätzlich gleicher Name bei anderer
+  Atomreihenfolge und nach neuem Zeichnen. Aufruf im Hauptordner: `python3 scripts/organik-oracle.py [--seed N]` (Voraussetzungen: RDKit, Java 11+; OPSIN-Jar über
+  `--opsin`/`OPSIN_JAR`, sonst aus dem PyPI-Paket py2opsin). Geprüfte Namen als Korpus `korpus.tsv` (`--corpus`), den `npm test` nachrechnet; nach gewollten
+  Änderungen den Korpus neu schreiben.
 - Zeichnen: Atom antippen = Stift anhängen, in der Lewis-Formel ein H antippen = Stift genau dort anhängen, vom Atom ziehen = neue Bindung, im Modus Tauschen ziehen = Atom verschieben; Meldung oben sagt, warum etwas nicht geht (Wertigkeit voll …), Erfolg vibriert kurz; Knopf „Ordnen“ zeichnet neu im Zickzack; in 30°-Schritten, auf ein Atom ziehen = Ring schließen; Stifte C O N S + zuletzt gewählter
   (Mehr: F Cl Br I NO₂, Benzolring, Sechs-, Fünfring); Modus Anfügen | Tauschen | Löschen (Löschen/Tauschen: Atome gestrichelt markiert). Fester Maßstab (Bindung ≈ 56 px, Tippziele ≥ 48 px), das Bild verschiebt bzw. verkleinert sich nur,
   wenn die Zeichnung nicht passt; Bindung/H zählen nur, wenn der Finger auf demselben Ziel aufsetzt und loslässt. Lewis-Formel (alle H, freie Elektronenpaare als Striche) oder Gerüstformel.

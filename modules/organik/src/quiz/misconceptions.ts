@@ -10,6 +10,7 @@ export const MISS: Record<string, string> = {
   "multi": "Gleiche Reste nicht mit di, tri zusammengefasst",
   "mehrfach-vergessen": "Doppel- oder Dreifachbindung übersehen",
   "en-in": "-en und -in verwechselt",
+  "ez": "E und Z verwechselt",
   "endung": "Endung der Gruppe verwechselt",
   "c-gruppe": "C der Gruppe nicht mitgezählt",
   "prio": "Rangfolge der Gruppen verwechselt",
