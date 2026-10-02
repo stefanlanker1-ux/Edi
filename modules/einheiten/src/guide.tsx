@@ -21,6 +21,7 @@ const Scale = ({ from, to, v }: { from: string; to: string; v?: string }) => <Bo
 
 const US: GuideStep[] = [
   {
+    part: tr("Längen", "Lengths"),
     say: tr("Längen in Nachbarschritten: km → m: · 1000, m → dm → cm → mm: je · 10. Die Pfeilkette zeigt den Weg.", "Lengths in neighbouring steps: km → m: · 1000, m → dm → cm → mm: · 10 each. The arrow chain shows the way."),
     ask: tr("Setze die **Umrechnungszahl** ein: 1 m = ? cm", "Fill in the **conversion factor**: 1 m = ? cm"), answer: 100, num: { unit: "cm" },
     visual: () => <Chain from="m" to="cm" />,
@@ -44,6 +45,7 @@ const US: GuideStep[] = [
     ok: tr("Ein Schritt nach rechts: Komma eine Stelle weiter – 7,5 cm = 75 mm.", "One step to the right: decimal point one place on – 7.5 cm = 75 mm."),
   },
   {
+    part: tr("Masse und Hohlmaße", "Mass and capacity"),
     say: tr("Massen: t → kg: · 1000, kg → dag: · 100, dag → g: · 10.", "Masses: t → kg: · 1000, kg → dag: · 100, dag → g: · 10."),
     ask: tr("0,3 kg = ? dag", "0.3 kg = ? dag"), answer: 30, num: { unit: "dag" },
     visual: () => <Table from="kg" to="dag" v="0.3" />,
@@ -66,7 +68,16 @@ const US: GuideStep[] = [
     ok: tr("1,2 cm = 12 mm > 10,8 mm.", "1.2 cm = 12 mm > 10.8 mm."),
   },
   {
-    say: tr("**Fläche** = Länge · Länge. 1 dm = 10 cm, also 1 dm² = 10 · 10 = **100 cm²**. Flächen-Nachbarn: **· 100**.", "**Area** = length · length. 1 dm = 10 cm, so 1 dm² = 10 · 10 = **100 cm²**. Area neighbours: **· 100**."),
+    part: tr("Fläche und Volumen", "Area and volume"),
+    say: tr("Ein Quadrat mit 1 dm Seitenlänge hat **1 dm²**. 1 dm = 10 cm.", "A square with sides of 1 dm has **1 dm²**. 1 dm = 10 cm."),
+    ask: tr("Wie viele **cm²**-Kästchen passen in **1 dm²**? Schätze!", "How many **cm²** squares fit into **1 dm²**? Estimate!"), answer: "100", options: ["10", "100", "1000"],
+    visual: c => <Box><AreaGrid big="dm²" small="cm²" guess={!c.solved} /></Box>,
+    why: { "10": tr("10 Kästchen füllen nur die erste Reihe. Es gibt 10 Reihen.", "10 squares only fill the first row. There are 10 rows."), "1000": tr("1000 kleine Würfel passen in einen Würfel – beim Quadrat sind es 10 · 10.", "1000 small cubes fit in a cube – a square holds 10 · 10.") },
+    ok: tr("10 Reihen mit je 10 Kästchen: 1 dm² = **100 cm²**.", "10 rows of 10 squares: 1 dm² = **100 cm²**."),
+    hold: true,
+  },
+  {
+    say: tr("**Fläche** = Länge · Länge. Darum sind Flächen-Nachbarn **· 100** voneinander entfernt.", "**Area** = length · length. So area neighbours are **· 100** apart."),
     ask: "1 m² = ? dm²", answer: 100, num: { unit: "dm²" },
     visual: () => <Box><AreaGrid big="dm²" small="cm²" /></Box>,
     why: { "10": tr("Ein Quadrat 10 × 10 hat 100 kleine Quadrate.", "A 10 × 10 square has 100 small squares."), "1000": tr("1000 ist der Schritt bei Volumen.", "1000 is the step for volumes.") },
@@ -103,6 +114,7 @@ const US: GuideStep[] = [
     ok: tr("Etwa 2 cm × 3 cm = 6 cm².", "About 2 cm × 3 cm = 6 cm²."),
   },
   {
+    part: tr("Zeit", "Time"),
     say: tr("Zeit geht **nicht** in Zehnerschritten: 1 h = **60** min, 1 min = 60 s, 1 d = 24 h.", "Time does **not** go in steps of ten: 1 h = **60** min, 1 min = 60 s, 1 d = 24 h."),
     ask: tr("1,5 h = ? min", "1.5 h = ? min"), answer: 90, num: { unit: "min" },
     visual: () => <Box><Clock big="h" small="min" /></Box>,
@@ -119,6 +131,7 @@ const US: GuideStep[] = [
 
 const OS: GuideStep[] = [
   {
+    part: tr("Vorsilben", "Prefixes"),
     say: tr("**Vorsilben** sind Zehnerpotenzen: G 10⁹, M 10⁶, k 10³, d 10⁻¹, c 10⁻², m 10⁻³, µ 10⁻⁶, n 10⁻⁹.", "**Prefixes** are powers of ten: G 10⁹, M 10⁶, k 10³, d 10⁻¹, c 10⁻², m 10⁻³, µ 10⁻⁶, n 10⁻⁹."),
     ask: tr("Welche Zehnerpotenz steht für **m** (Milli)?", "Which power of ten stands for **m** (milli)?"), answer: "10⁻³", options: ["10⁻³", "10³", "10⁻⁶", "10⁻²"],
     visual: () => <Scale from="mm" to="m" />,
@@ -147,6 +160,7 @@ const OS: GuideStep[] = [
     ok: tr("0,01 · 10³ = 10 kΩ.", "0.01 · 10³ = 10 kΩ."),
   },
   {
+    part: tr("Flächen und Volumen", "Areas and volumes"),
     say: tr("Bei **Flächen** zählt die Hochzahl doppelt, bei **Volumen** dreifach: 1 mm² = (10⁻³)² m² = 10⁻⁶ m².", "For **areas** the exponent counts twice, for **volumes** three times: 1 mm² = (10⁻³)² m² = 10⁻⁶ m²."),
     ask: tr("1 cm² = ? m²", "1 cm² = ? m²"), answer: "10⁻⁴ m²", options: ["10⁻⁴ m²", "10⁻² m²", "10⁻⁶ m²", "10² m²"],
     why: { "10⁻² m²": tr("Bei m² doppelt: (10⁻²)² = 10⁻⁴.", "For m² twice: (10⁻²)² = 10⁻⁴."), "10⁻⁶ m²": tr("10⁻⁶ wäre mm².", "10⁻⁶ would be mm²."), "10² m²": tr("cm² ist kleiner als m².", "cm² is smaller than m².") },
@@ -165,6 +179,7 @@ const OS: GuideStep[] = [
     ok: tr("2,5 l = 2500 cm³ = 2500 ml.", "2.5 l = 2500 cm³ = 2500 ml."),
   },
   {
+    part: tr("Zeit und zusammengesetzte Einheiten", "Time and derived units"),
     say: tr("Zeit: 1 h = 60 min = 3600 s, 1 d = 24 h.", "Time: 1 h = 60 min = 3600 s, 1 d = 24 h."),
     ask: tr("1 h = ? s", "1 h = ? s"), answer: 3600, num: { unit: "s" },
     why: { "60": tr("60 sind die Minuten. Jede Minute hat 60 s.", "60 are the minutes. Each minute has 60 s."), "100": tr("Zeit hat keine Zehnerschritte.", "Time has no steps of ten.") },

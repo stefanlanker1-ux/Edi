@@ -3,7 +3,7 @@
 
 import { Fit, type GuideCtx, type GuideDef, type GuideStep } from "@lern/ui";
 import { ION_BY_ID } from "@lern/chem";
-import { PeriodicTable } from "@lern/chem-ui";
+import { Bohr, PeriodicTable } from "@lern/chem-ui";
 import { IonWall } from "./components/IonWall.tsx";
 import { IonLabel } from "./components/IonTile.tsx";
 import { tr } from "@lern/i18n";
@@ -44,7 +44,29 @@ const missing = (cat: string, an: string, nC: number, nA: number, answer: "C" | 
   ok,
 });
 
-const US: GuideStep[] = [
+/** Natrium und Chlor im Schalenmodell; nach der richtigen Vorhersage wandert ein Elektron von Na zu Cl (Na⁺, Cl⁻) */
+function Transfer({ c }: { c: GuideCtx }) {
+  const done = c.solved;
+  return (
+    <div className="ib-g-tr">
+      <figure><Fit min={0.3}><Bohr Z={11} N={12} E={done ? 10 : 11} labels={false} /></Fit><figcaption>{done ? "Na⁺" : "Na"}</figcaption></figure>
+      <span className={`ib-g-e${done ? " go" : ""}`} aria-hidden="true">e⁻ →</span>
+      <figure><Fit min={0.3}><Bohr Z={17} N={18} E={done ? 18 : 17} labels={false} /></Fit><figcaption>{done ? "Cl⁻" : "Cl"}</figcaption></figure>
+    </div>
+  );
+}
+const NA_GIVES = () => tr("Na gibt 1 Elektron an Cl ab.", "Na gives 1 electron to Cl."), CL_GIVES = () => tr("Cl gibt 7 Elektronen an Na ab.", "Cl gives 7 electrons to Na."), SHARE = () => tr("Beide teilen sich ein Elektronenpaar.", "Both share an electron pair.");
+
+const US = (): GuideStep[] => [
+  {
+    part: tr("Vom Atom zum Ion", "From atom to ion"),
+    say: tr("Natrium hat **1** Außenelektron, Chlor hat **7**. Beide möchten **8** außen haben.", "Sodium has **1** outer electron, chlorine has **7**. Both would like **8** on the outside."),
+    ask: tr("Was passiert, wenn sie reagieren? Sag es vorher!", "What happens when they react? Predict it!"), answer: NA_GIVES(), options: [NA_GIVES(), CL_GIVES(), SHARE()],
+    visual: c => <Transfer c={c} />,
+    why: { [CL_GIVES()]: tr("7 Elektronen abzugeben ist viel schwerer als 1.", "Giving away 7 electrons is much harder than 1."), [SHARE()]: tr("Teilen tun Nichtmetalle. Ein Metall gibt Elektronen ganz ab.", "Non-metals share. A metal gives electrons away completely.") },
+    hold: true,
+    ok: tr("Schau zu: Ein Elektron wandert. Na wird **Na⁺**, Cl wird **Cl⁻**.", "Watch: one electron moves. Na becomes **Na⁺**, Cl becomes **Cl⁻**."),
+  },
   {
     say: tr("**Metalle** geben Außenelektronen ab → positive Ionen (**Kationen**). Die Ladung = Hauptgruppe (I, II, III).", "**Metals** lose outer electrons → positive ions (**cations**). The charge = main group (I, II, III)."),
     ask: tr("Welches Ion bildet **Magnesium** (II. Hauptgruppe)?", "Which ion does **magnesium** (main group II) form?"), answer: "Mg²⁺", options: ["Mg²⁺", "Mg²⁻", "Mg⁺", "Mg⁶⁻"],
@@ -70,6 +92,7 @@ const US: GuideStep[] = [
     tr("Eine Ionenverbindung ist **neutral**: Plus und Minus gleichen sich aus. In der Ionenwand ist die **Breite = Ladung**.", "An ionic compound is **neutral**: plus and minus balance. In the ion wall **width = charge**."),
     tr("1 · 2+ = 2+ und 2 · 1− = 2−: ausgeglichen.", "1 · 2+ = 2+ and 2 · 1− = 2−: balanced.")),
   {
+    part: tr("Formeln", "Formulas"),
     say: tr("Die Anzahlen werden zu **tiefgestellten Zahlen** hinter dem Symbol. Eine 1 schreibt man nicht.", "The numbers become **subscripts** after the symbol. A 1 is not written."),
     ask: tr("Welche Formel hat diese Verbindung?", "What is the formula of this compound?"), answer: "CaCl₂", options: ["CaCl₂", "Ca₂Cl", "CaCl", "Ca₂Cl₂"],
     visual: c => <Wall c={c} cat="Ca2+" an="Cl-" nC={1} nA={2} />,
@@ -94,6 +117,7 @@ const US: GuideStep[] = [
     ok: tr("2 K⁺ gleichen 1 S²⁻ aus → **K₂S**.", "2 K⁺ balance 1 S²⁻ → **K₂S**."),
   },
   {
+    part: tr("Namen", "Names"),
     say: tr("Name: Metall + Wortstamm des Nichtmetalls + **-id**: Chlor → Chlor**id**, Sauerstoff → **Oxid**, Schwefel → **Sulfid**, Stickstoff → **Nitrid**.", "Name: metal + stem of the non-metal + **-ide**: chlorine → chlor**ide**, oxygen → **oxide**, sulfur → **sulfide**, nitrogen → **nitride**."),
     ask: tr("Wie heißt **MgO**?", "What is **MgO** called?"), answer: tr("Magnesiumoxid", "Magnesium oxide"), options: [tr("Magnesiumoxid", "Magnesium oxide"), tr("Magnesiumsauerstoff", "Magnesium oxygen"), tr("Magnesiumsulfid", "Magnesium sulfide")],
     why: { [tr("Magnesiumsauerstoff", "Magnesium oxygen")]: tr("Das Anion heißt nach dem Wortstamm mit -id: Oxid.", "The anion is named from the stem with -ide: oxide."), [tr("Magnesiumsulfid", "Magnesium sulfide")]: tr("Sulfid kommt von Schwefel (S). O ist Sauerstoff.", "Sulfide comes from sulfur (S). O is oxygen.") },
@@ -121,6 +145,7 @@ const US: GuideStep[] = [
 
 const OS: GuideStep[] = [
   {
+    part: tr("Ionen", "Ions"),
     say: tr("Hauptgruppen-Ionen erreichen Edelgaskonfiguration: Gruppe 1, 2, 13 → 1+, 2+, 3+; Gruppe 15, 16, 17 → 3−, 2−, 1−.", "Main group ions reach a noble gas configuration: groups 1, 2, 13 → 1+, 2+, 3+; groups 15, 16, 17 → 3−, 2−, 1−."),
     ask: tr("Welches Ion bildet **Barium** (Gruppe 2)?", "Which ion does **barium** (group 2) form?"), answer: "Ba²⁺", options: ["Ba²⁺", "Ba⁺", "Ba²⁻", "Ba⁶⁻"],
     why: { "Ba⁺": tr("Gruppe 2: zwei Außenelektronen gehen weg.", "Group 2: two outer electrons go."), "Ba²⁻": tr("Metalle geben Elektronen ab.", "Metals lose electrons."), "Ba⁶⁻": tr("6 aufnehmen ist viel mehr als 2 abgeben.", "Gaining 6 is much more than losing 2.") },
@@ -136,6 +161,7 @@ const OS: GuideStep[] = [
     tr("Mit mehratomigen Ionen gleicht man genauso aus – der ganze Block zählt als ein Baustein.", "Polyatomic ions are balanced the same way – the whole block counts as one tile."),
     tr("1 · 2+ = 2+ und 2 · 1− = 2−.", "1 · 2+ = 2+ and 2 · 1− = 2−.")),
   {
+    part: tr("Klammern", "Brackets"),
     say: tr("Braucht man einen mehratomigen Block mehrmals, kommt er in **Klammern**, die Anzahl dahinter.", "If a polyatomic block is needed more than once, it goes in **brackets** with the number after it."),
     ask: tr("Welche Formel hat **Calciumhydroxid**?", "What is the formula of **calcium hydroxide**?"), answer: "Ca(OH)₂", options: ["Ca(OH)₂", "CaOH₂", "CaOH", "Ca₂OH"],
     visual: c => <Wall c={c} cat="Ca2+" an="OH-" nC={1} nA={2} />,
@@ -158,6 +184,7 @@ const OS: GuideStep[] = [
     ok: tr("Anzahlen tiefgestellt, Block in Klammern: **Al₂(SO₄)₃**.", "Numbers as subscripts, block in brackets: **Al₂(SO₄)₃**."),
   },
   {
+    part: tr("Nebengruppen und Namen", "Transition metals and names"),
     say: tr("Nebengruppen-Metalle bilden verschiedene Ionen. Die Ladung steht als **römische Zahl** im Namen: Eisen(III) = Fe³⁺.", "Transition metals form different ions. The charge is given as a **Roman numeral** in the name: iron(III) = Fe³⁺."),
     ask: tr("Welche Formel hat **Eisen(III)-chlorid**?", "What is the formula of **iron(III) chloride**?"), answer: "FeCl₃", options: ["FeCl₃", "FeCl₂", "Fe₃Cl", "FeCl"],
     why: { "FeCl₂": tr("FeCl₂ wäre Eisen(II)-chlorid.", "FeCl₂ would be iron(II) chloride."), "Fe₃Cl": tr("Die III ist die Ladung von Fe, nicht die Anzahl der Fe-Ionen.", "The III is the charge of Fe, not the number of Fe ions."), FeCl: tr("Fe³⁺ braucht drei Cl⁻.", "Fe³⁺ needs three Cl⁻.") },
@@ -191,7 +218,7 @@ const OS: GuideStep[] = [
 
 export function guideFor(stufe: "us" | "os"): GuideDef {
   return stufe === "us"
-    ? { title: tr("Ionenbindung", "Ionic Bonds"), steps: US, outro: [
+    ? { title: tr("Ionenbindung", "Ionic Bonds"), steps: US(), outro: [
       tr("Metalle geben Elektronen ab (Kationen, + Hauptgruppe), Nichtmetalle nehmen auf (Anionen, 8 − Hauptgruppe).", "Metals lose electrons (cations, + main group), non-metals gain them (anions, 8 − main group)."),
       tr("Plus und Minus gleichen sich aus: beide Reihen der Ionenwand **gleich lang**.", "Plus and minus balance: both rows of the ion wall **the same length**."),
       tr("Formel: Anzahlen tiefgestellt, kleinstes Verhältnis, 1 weglassen.", "Formula: numbers as subscripts, smallest ratio, leave out 1."),

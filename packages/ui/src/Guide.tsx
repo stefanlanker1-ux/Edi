@@ -7,7 +7,7 @@
 // `hold`: nach der richtigen Antwort bleibt der Schritt stehen (z. B. Animation ansehen), weiter mit „Weiter“.
 
 import { num, tr } from "./i18n.ts";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "./components.tsx";
 import { Icon } from "./icons.tsx";
 import { RichText } from "./RichText.tsx";
@@ -173,7 +173,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
             <div className={`ui-guide-body${step.visual ? "" : " no-visual"}`}>
               {step.visual && (
                 <div className={`ui-guide-visual${solved ? " solved" : ""}${show ? " show" : ""}`}>
-                  {step.visual(ctx)}
+                  {/* je Schritt neu aufbauen: Bilder gleiten nicht aus dem vorigen Schritt herüber (Beschriftungen messen sonst mitten im Übergang) */}
+                  <Fragment key={`v${i}`}>{step.visual(ctx)}</Fragment>
                   {step.labels && <Callouts key={i} items={step.labels} solved={solved} />}
                 </div>
               )}

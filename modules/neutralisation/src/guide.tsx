@@ -7,11 +7,11 @@ import { NeutralWall } from "./components/NeutralWall.tsx";
 import { tr } from "@lern/i18n";
 
 /** Neutralisationswand; mit `target` darunter zwei Knöpfe „+ Lauge“ (Ziel "B") und „+ Säure“ (Ziel "A") */
-function Wall({ c, base, acid, step, nB, nA, target }: { c: GuideCtx; base: string; acid: string; step?: number; nB: number; nA: number; target?: "A" | "B" }) {
+function Wall({ c, base, acid, step, nB, nA, target, react }: { c: GuideCtx; base: string; acid: string; step?: number; nB: number; nA: number; target?: "A" | "B"; react?: boolean }) {
   const b = HYDROXIDE_BY_ID[base], a = PROTIC_BY_ID[acid];
   return (
     <div className="nt-g">
-      <Fit className="nt-g-wall" min={0.3}><NeutralWall base={b} acid={a} step={step ?? a.protons} nB={nB} nA={nA} showResult={false} /></Fit>
+      <Fit className="nt-g-wall" min={0.3}><NeutralWall base={b} acid={a} step={step ?? a.protons} nB={nB} nA={nA} showResult={false} products={react} /></Fit>
       {target && (
         <div className="nt-g-add">
           {([["B", b.formula, "base"], ["A", a.formula, "acid"]] as const).map(([id, f, cls]) => (
@@ -36,6 +36,7 @@ const missing = (base: string, acid: string, nB: number, nA: number, answer: "A"
 
 const US: GuideStep[] = [
   {
+    part: tr("Säuren", "Acids"),
     say: tr("**Säuren** geben in Wasser **H⁺-Ionen** ab. Übrig bleibt der **Säurerest** – er ist negativ geladen.", "In water, **acids** give off **H⁺ ions**. What remains is the **acid anion** – it is negatively charged."),
     ask: tr("Welche Ionen entstehen aus **HCl** in Wasser?", "Which ions form from **HCl** in water?"), answer: "H⁺ + Cl⁻", options: ["H⁺ + Cl⁻", "H⁻ + Cl⁺", "H₂ + Cl₂", tr("HCl bleibt ganz", "HCl stays whole")],
     why: { "H⁻ + Cl⁺": tr("Die Säure gibt ein **positives** H⁺ ab – der Rest wird negativ.", "The acid gives off a **positive** H⁺ – the anion becomes negative."), "H₂ + Cl₂": tr("Es entstehen Ionen, keine Gase.", "Ions form, not gases."), [tr("HCl bleibt ganz", "HCl stays whole")]: tr("In Wasser gibt HCl sein H⁺ ab.", "In water HCl gives off its H⁺.") },
@@ -48,16 +49,33 @@ const US: GuideStep[] = [
     ok: tr("H₂SO₄ → 2 H⁺ + SO₄²⁻ (Sulfat).", "H₂SO₄ → 2 H⁺ + SO₄²⁻ (sulfate)."),
   },
   {
-    say: tr("Namen der Säurereste: Cl⁻ **Chlorid**, NO₃⁻ **Nitrat**, SO₄²⁻ **Sulfat**, SO₃²⁻ **Sulfit**, CO₃²⁻ **Carbonat**, PO₄³⁻ **Phosphat**, CH₃COO⁻ **Acetat**.", "Names of acid anions: Cl⁻ **chloride**, NO₃⁻ **nitrate**, SO₄²⁻ **sulfate**, SO₃²⁻ **sulfite**, CO₃²⁻ **carbonate**, PO₄³⁻ **phosphate**, CH₃COO⁻ **acetate**."),
+    say: tr("Säurereste **ohne** Sauerstoff enden auf **-id**, **mit** Sauerstoff meist auf **-at**.", "Acid anions **without** oxygen end in **-ide**, **with** oxygen mostly in **-ate**."),
+    ask: tr("Wie heißt **Cl⁻**, der Säurerest der Salzsäure?", "What is **Cl⁻**, the acid anion of hydrochloric acid, called?"), answer: tr("Chlorid", "chloride"),
+    options: [tr("Chlorid", "chloride"), tr("Chlorat", "chlorate"), tr("Chlor", "chlorine")],
+    why: { [tr("Chlorat", "chlorate")]: tr("-at nur mit Sauerstoff. Cl⁻ hat keinen.", "-ate only with oxygen. Cl⁻ has none."), [tr("Chlor", "chlorine")]: tr("Chlor ist das Element Cl₂. Das Ion heißt anders.", "Chlorine is the element Cl₂. The ion has a different name.") },
+    ok: tr("Cl⁻ = Chlorid (ohne O → -id).", "Cl⁻ = chloride (no O → -ide)."),
+  },
+  {
+    say: tr("Weitere Namen: NO₃⁻ **Nitrat**, SO₄²⁻ **Sulfat**, SO₃²⁻ **Sulfit**, CO₃²⁻ **Carbonat**, PO₄³⁻ **Phosphat**, CH₃COO⁻ **Acetat**.", "Names of acid anions: Cl⁻ **chloride**, NO₃⁻ **nitrate**, SO₄²⁻ **sulfate**, SO₃²⁻ **sulfite**, CO₃²⁻ **carbonate**, PO₄³⁻ **phosphate**, CH₃COO⁻ **acetate**."),
     ask: tr("Wie heißt der Säurerest von **H₃PO₄**, wenn alle 3 H⁺ abgegeben sind?", "What is the acid anion of **H₃PO₄** called when all 3 H⁺ have been given off?"), answer: tr("Phosphat", "phosphate"), options: [tr("Phosphat", "phosphate"), tr("Phosphid", "phosphide"), tr("Phosphit", "phosphite"), tr("Sulfat", "sulfate")],
     why: { [tr("Phosphid", "phosphide")]: tr("-id hat nur ein einzelnes P³⁻ ohne Sauerstoff.", "-ide is only a single P³⁻ without oxygen."), [tr("Phosphit", "phosphite")]: tr("PO₄ heißt Phosphat.", "PO₄ is called phosphate."), [tr("Sulfat", "sulfate")]: tr("Sulfat ist SO₄ (Schwefel).", "Sulfate is SO₄ (sulfur).") },
     ok: tr("PO₄³⁻ = Phosphat.", "PO₄³⁻ = phosphate."),
   },
   {
+    part: tr("Laugen und Wasser", "Alkalis and water"),
     say: tr("**Laugen** enthalten **Hydroxid-Ionen OH⁻**.", "**Alkalis** contain **hydroxide ions OH⁻**."),
     ask: tr("Aus welchen Ionen besteht **Ca(OH)₂**?", "Which ions does **Ca(OH)₂** consist of?"), answer: "Ca²⁺ + 2 OH⁻", options: ["Ca²⁺ + 2 OH⁻", "Ca⁺ + OH⁻", "Ca²⁺ + O²⁻ + H₂", tr("CaO + H₂O", "CaO + H₂O")],
     why: { "Ca⁺ + OH⁻": tr("Calcium bildet Ca²⁺ – dazu passen zwei OH⁻.", "Calcium forms Ca²⁺ – two OH⁻ go with it."), "Ca²⁺ + O²⁻ + H₂": tr("OH⁻ bleibt als Hydroxid-Ion zusammen.", "OH⁻ stays together as a hydroxide ion."), [tr("CaO + H₂O", "CaO + H₂O")]: tr("Gefragt sind die Ionen.", "The question asks for the ions.") },
     ok: tr("Ca(OH)₂ → Ca²⁺ + 2 OH⁻.", "Ca(OH)₂ → Ca²⁺ + 2 OH⁻."),
+  },
+  {
+    say: tr("Natronlauge NaOH trifft auf Salzsäure HCl.", "Sodium hydroxide NaOH meets hydrochloric acid HCl."),
+    ask: tr("Was entsteht, wenn ein **H⁺** auf ein **OH⁻** trifft? Sag es vorher!", "What forms when an **H⁺** meets an **OH⁻**? Predict it!"), answer: tr("Wasser H₂O", "water H₂O"),
+    options: [tr("Wasser H₂O", "water H₂O"), tr("Wasserstoff H₂", "hydrogen H₂"), tr("Sauerstoff O₂", "oxygen O₂")],
+    visual: c => <Wall c={c} base="naoh" acid="hcl" nB={1} nA={1} react={c.solved} />,
+    why: { [tr("Wasserstoff H₂", "hydrogen H₂")]: tr("H₂ braucht zwei H. Hier treffen ein H⁺ und ein OH⁻ zusammen.", "H₂ needs two H. Here one H⁺ and one OH⁻ meet."), [tr("Sauerstoff O₂", "oxygen O₂")]: tr("O₂ braucht zwei O. Zähle die Atome in H⁺ + OH⁻.", "O₂ needs two O. Count the atoms in H⁺ + OH⁻.") },
+    hold: true,
+    ok: tr("Schau: H⁺ + OH⁻ → H₂O. Na⁺ und Cl⁻ bilden das Salz NaCl.", "Look: H⁺ + OH⁻ → H₂O. Na⁺ and Cl⁻ form the salt NaCl."),
   },
   {
     say: tr("**Neutralisation**: H⁺ + OH⁻ → H₂O. In der Wand verbinden die Striche je ein OH⁻ mit einem H⁺ zu Wasser.", "**Neutralisation**: H⁺ + OH⁻ → H₂O. In the wall each line joins one OH⁻ with one H⁺ to make water."),
@@ -80,6 +98,7 @@ const US: GuideStep[] = [
     ok: tr("2 OH⁻ + 2 H⁺ → 2 H₂O.", "2 OH⁻ + 2 H⁺ → 2 H₂O."),
   },
   {
+    part: tr("Salz und Gleichung", "Salt and equation"),
     say: tr("Übrig bleiben Metall-Ion und Säurerest. Zusammen bilden sie das **Salz**.", "Metal ion and acid anion remain. Together they form the **salt**."),
     ask: tr("Welches Salz entsteht aus Ca(OH)₂ und HCl?", "Which salt forms from Ca(OH)₂ and HCl?"), answer: "CaCl₂", options: ["CaCl₂", "CaCl", "CaH₂", "Ca(OH)Cl"],
     visual: c => <Wall c={c} base="caoh2" acid="hcl" nB={1} nA={2} />,
@@ -116,6 +135,7 @@ const US: GuideStep[] = [
 
 const OS: GuideStep[] = [
   {
+    part: tr("Mehrprotonige Säuren", "Polyprotic acids"),
     say: tr("**einprotonig**: HCl, HNO₃, CH₃COOH · **zweiprotonig**: H₂SO₄, H₂CO₃, H₂S · **dreiprotonig**: H₃PO₄. Bei der Essigsäure ist nur das H der COOH-Gruppe abgebbar.", "**monoprotic**: HCl, HNO₃, CH₃COOH · **diprotic**: H₂SO₄, H₂CO₃, H₂S · **triprotic**: H₃PO₄. In acetic acid only the H of the COOH group can be given off."),
     ask: tr("Wie viele H⁺ kann **CH₃COOH** höchstens abgeben?", "How many H⁺ can **CH₃COOH** give off at most?"), answer: 1, num: {},
     why: { "4": tr("Die H-Atome am C werden nicht abgegeben – nur das H der COOH-Gruppe.", "The H atoms on C are not given off – only the H of the COOH group.") },
@@ -140,6 +160,7 @@ const OS: GuideStep[] = [
     ok: tr("HCO₃⁻ = Hydrogencarbonat.", "HCO₃⁻ = hydrogen carbonate."),
   },
   {
+    part: tr("Ausgleichen", "Balancing"),
     say: tr("Neutralisation: H⁺ + OH⁻ → H₂O. Die OH⁻-Reihe und die H⁺-Reihe müssen gleich lang sein.", "Neutralisation: H⁺ + OH⁻ → H₂O. The OH⁻ row and the H⁺ row must be the same length."),
     ask: tr("**2 Al(OH)₃** bringen 6 OH⁻. Wie viele **H₂SO₄** braucht man?", "**2 Al(OH)₃** bring 6 OH⁻. How many **H₂SO₄** do you need?"), answer: 3, num: {},
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={1} />,
@@ -159,6 +180,7 @@ const OS: GuideStep[] = [
     tr("Gibt die Säure **nicht alle** H⁺ ab, entsteht ein **Hydrogensalz**. Hier gibt jedes H₂CO₃ nur **1 H⁺** ab.", "If the acid does **not** give off **all** H⁺, a **hydrogen salt** forms. Here each H₂CO₃ gives off only **1 H⁺**."),
     "Ca(OH)₂ + 2 H₂CO₃ → Ca(HCO₃)₂ + 2 H₂O.", 1),
   {
+    part: tr("Salze benennen", "Naming salts"),
     ask: tr("Wie heißt **Ca(HCO₃)₂**?", "What is **Ca(HCO₃)₂** called?"), answer: tr("Calciumhydrogencarbonat", "Calcium hydrogen carbonate"), options: [tr("Calciumhydrogencarbonat", "Calcium hydrogen carbonate"), tr("Calciumcarbonat", "Calcium carbonate"), tr("Calciumdihydrogencarbonat", "Calcium dihydrogen carbonate")],
     visual: c => <Wall c={c} base="caoh2" acid="h2co3" step={1} nB={1} nA={2} />,
     why: { [tr("Calciumcarbonat", "Calcium carbonate")]: tr("Im Rest steckt noch ein H: HCO₃⁻.", "The anion still contains one H: HCO₃⁻."), [tr("Calciumdihydrogencarbonat", "Calcium dihydrogen carbonate")]: tr("HCO₃⁻ hat nur 1 H.", "HCO₃⁻ has only 1 H.") },

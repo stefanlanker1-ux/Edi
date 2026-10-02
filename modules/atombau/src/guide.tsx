@@ -56,6 +56,7 @@ const Center = ({ children }: { children: ReactNode }) => <div className="ab-g-c
 
 const US: GuideStep[] = [
   {
+    part: tr("Kern und Hülle", "Nucleus and shell"),
     say: tr("Jedes Atom hat einen **Kern** aus Protonen (rot) und Neutronen (grau). Um den Kern bewegen sich **Elektronen** (blau).", "Every atom has a **nucleus** of protons (red) and neutrons (grey). **Electrons** (blue) move around the nucleus."),
     ask: tr("Tippe auf ein **Elektron**.", "Tap an **electron**."), answer: "electron",
     visual: c => <BohrPick c={c} Z={6} N={6} E={6} target="electron" />,
@@ -99,6 +100,7 @@ const US: GuideStep[] = [
     ok: tr("Massenzahl = Protonen + Neutronen = 7 + 7 = 14 (Stickstoff-14).", "Mass number = protons + neutrons = 7 + 7 = 14 (nitrogen-14)."),
   },
   {
+    part: tr("Schalen", "Shells"),
     say: tr("Die Elektronen sitzen auf **Schalen**: in die 1. Schale passen **2**, in die 2. Schale **8**, dann geht es auf der 3. weiter.", "The electrons sit on **shells**: the 1st shell holds **2**, the 2nd shell **8**, then the 3rd shell continues."),
     ask: tr("Fluor hat 9 Elektronen. 2 sind auf der 1. Schale. Wie viele kommen auf die **2. Schale**?", "Fluorine has 9 electrons. 2 are on the 1st shell. How many go on the **2nd shell**?"), answer: 7, num: {},
     visual: () => <BohrOnly Z={9} N={10} E={9} shells={[2, 0]} />,
@@ -132,10 +134,12 @@ const US: GuideStep[] = [
     ok: tr("II. Hauptgruppe → 2 Außenelektronen.", "Main group II → 2 outer electrons."),
   },
   {
+    part: tr("Ionen", "Ions"),
     say: tr("Bei Reaktionen geben Atome Außenelektronen ab oder nehmen welche auf. Danach ist die äußerste Schale **voll** wie bei einem Edelgas (**Edelgaszustand**).", "In reactions atoms lose or gain outer electrons. Afterwards the outer shell is **full** like in a noble gas (**noble gas configuration**)."),
     ask: tr("Natrium hat 1 Außenelektron. Was passiert bei einer Reaktion?", "Sodium has 1 outer electron. What happens in a reaction?"), answer: tr("Es gibt 1 Elektron ab.", "It loses 1 electron."),
     options: [tr("Es gibt 1 Elektron ab.", "It loses 1 electron."), tr("Es nimmt 7 Elektronen auf.", "It gains 7 electrons.")],
-    visual: () => <BohrOnly Z={11} N={12} E={11} />,
+    visual: c => <BohrOnly Z={11} N={12} E={c.solved ? 10 : 11} />,
+    hold: true,
     why: { [tr("Es nimmt 7 Elektronen auf.", "It gains 7 electrons.")]: tr("Metalle wie Natrium geben ihre wenigen Außenelektronen ab – 1 statt 7 Elektronen umzuordnen.", "Metals like sodium lose their few outer electrons – moving 1 electron instead of 7.") },
     ok: tr("Natrium gibt 1 Elektron ab. Dann ist die volle 2. Schale (8) außen.", "Sodium loses 1 electron. Then the full 2nd shell (8) is on the outside."),
   },
@@ -156,6 +160,7 @@ const US: GuideStep[] = [
     ok: tr("Chlorid-Ion **Cl⁻**: ein Elektron mehr als Protonen.", "Chloride ion **Cl⁻**: one electron more than protons."),
   },
   {
+    part: tr("Isotope", "Isotopes"),
     say: tr("Atome eines Elements haben immer gleich viele Protonen, aber manchmal verschieden viele **Neutronen**: **Isotope**. Die Zahl im Namen ist die Massenzahl.", "Atoms of one element always have the same number of protons but sometimes different numbers of **neutrons**: **isotopes**. The number in the name is the mass number."),
     ask: tr("Chlor hat 17 Protonen. Wie viele Neutronen hat **Chlor-37**?", "Chlorine has 17 protons. How many neutrons does **chlorine-37** have?"), answer: 20, num: {},
     visual: () => <Center><Nuclide Z={17} N={20} E={17} size="xl" /></Center>,
@@ -175,6 +180,7 @@ const US: GuideStep[] = [
 
 const OS: GuideStep[] = [
   {
+    part: tr("Atomsymbol", "Nuclide symbol"),
     say: tr("Atomsymbol: oben links die **Massenzahl** (Protonen + Neutronen), unten links die **Ordnungszahl** (Protonen).", "Nuclide symbol: **mass number** (protons + neutrons) at the top left, **atomic number** (protons) at the bottom left."),
     ask: tr("Wie viele **Neutronen** hat dieses Atom?", "How many **neutrons** does this atom have?"), answer: 20, num: {},
     visual: () => <Center><Nuclide Z={17} N={20} E={17} size="xl" /></Center>,
@@ -200,6 +206,7 @@ const OS: GuideStep[] = [
     ok: tr("4. Zeile, 16. Spalte: Selen (Z = 34).", "Row 4, column 16: selenium (Z = 34)."),
   },
   {
+    part: tr("Unterschalen", "Subshells"),
     say: tr("Elektronen füllen **Unterschalen** nach steigender Energie: 1s 2s 2p 3s 3p **4s 3d** 4p … Eine s-Unterschale fasst 2, p 6, d 10 Elektronen.", "Electrons fill **subshells** by increasing energy: 1s 2s 2p 3s 3p **4s 3d** 4p. An s subshell holds 2, p 6, d 10 electrons."),
     ask: tr("Wie viele Elektronen passen in eine **p**-Unterschale?", "How many electrons fit into a **p** subshell?"), answer: "6", options: ["2", "6", "10", "8"],
     visual: () => <Fit className="ab-g-fit" min={0.2}><EnergyDiagram cfg={configuration(18)} /></Fit>,
@@ -226,6 +233,7 @@ const OS: GuideStep[] = [
     ok: tr("[Ar] = die 18 Elektronen von Argon, dazu 4s¹.", "[Ar] = the 18 electrons of argon, plus 4s¹."),
   },
   {
+    part: tr("Kästchen und Blöcke", "Boxes and blocks"),
     say: tr("**Hund'sche Regel**: Gleichwertige Kästchen werden erst **einzeln** besetzt, dann gepaart. Im Bild: Kohlenstoff mit 2p².", "**Hund's rule**: boxes of equal energy are first filled **singly**, then paired. In the picture: carbon with 2p²."),
     ask: tr("Stickstoff hat **3 Elektronen** in 2p. Welches Schema stimmt?", "Nitrogen has **3 electrons** in 2p. Which diagram is right?"), answer: "↑ ↑ ↑", options: ["↑ ↑ ↑", "↑↓ ↑ _", "↑↓ ↑↓ ↑"],
     visual: () => <Fit className="ab-g-fit" min={0.2}><EnergyDiagram cfg={configuration(6)} /></Fit>,
@@ -247,6 +255,7 @@ const OS: GuideStep[] = [
     ok: tr("Eisen: [Ar] 4s² 3d⁶ – zuletzt wird 3d gefüllt.", "Iron: [Ar] 4s² 3d⁶ – 3d is filled last."),
   },
   {
+    part: tr("Ionen", "Ions"),
     say: tr("Hauptgruppen-Atome bilden Ionen mit **Edelgaskonfiguration**: Gruppe 1, 2, 13 geben 1, 2, 3 Elektronen ab; Gruppe 15, 16, 17 nehmen 3, 2, 1 auf.", "Main group atoms form ions with a **noble gas configuration**: groups 1, 2, 13 lose 1, 2, 3 electrons; groups 15, 16, 17 gain 3, 2, 1."),
     ask: tr("Welches Ion bildet **Aluminium** (Gruppe 13)?", "Which ion does **aluminium** (group 13) form?"), answer: "Al³⁺", options: ["Al³⁺", "Al³⁻", "Al⁺", "Al⁵⁻"],
     why: { "Al³⁻": tr("Aluminium ist ein Metall – es gibt seine 3 Außenelektronen ab.", "Aluminium is a metal – it loses its 3 outer electrons."), "Al⁺": tr("Alle 3 Außenelektronen gehen weg.", "All 3 outer electrons go."), "Al⁵⁻": tr("5 aufnehmen ist viel mehr als 3 abgeben.", "Gaining 5 is much more than losing 3.") },

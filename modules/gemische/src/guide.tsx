@@ -28,12 +28,25 @@ function Picture({ p, c, target }: { p: Pic; c?: GuideCtx; target?: string }) {
   );
 }
 
+/** Vorher-Bild; nach der richtigen Vorhersage gleiten die Teilchen langsam in die Lage „nachher“ (gleiche Teilchen, CSS-Übergang) */
+function Glide({ p, c }: { p: Pic; c: GuideCtx }) {
+  const sim = initial({ items: p.mix, state: p.state, floats: p.floats, before: p.before, solute: p.solute }, seedOf(JSON.stringify(p)), c.solved ? "nachher" : "vorher");
+  const label = `${tr("Teilchenbild", "Particle picture")}: ${p.mix.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`;
+  return <div className="gm-g gm-slow"><Fit className="gm-g-pic" min={0.2}><Beaker sim={sim} label={label} /></Fit></div>;
+}
+
+const LOESEN: Pic = { mix: [["H2O", 17], ["C12H22O11", 3]], state: "fluessig", before: "kristall", solute: "C12H22O11" };
+const GASE: Pic = { mix: [["Ar", 9], ["CO2", 4]], state: "gas", before: "getrennt" };
+const SPREAD = () => tr("Sie verteilen sich im Wasser.", "They spread through the water."), VANISH = () => tr("Sie verschwinden.", "They disappear."), SINK = () => tr("Sie bleiben unten liegen.", "They stay at the bottom.");
+const MIXES = () => tr("Die Gase mischen sich von selbst.", "The gases mix by themselves."), SHAKE = () => tr("Nichts – man müsste schütteln.", "Nothing – you would have to shake."), HEAVY = () => tr("CO₂ bleibt links, Argon rechts.", "CO₂ stays left, argon right.");
+
 const MIX: Pic = { mix: [["H2O", 4], ["He", 3]], state: "modell" };
 const SORTEN: Pic = { mix: [["H2O", 3], ["CO2", 2], ["CO", 2], ["CH4", 1]], state: "modell" };
 const ZUCKER: Pic = { mix: [["H2O", 17], ["C12H22O11", 3]], state: "fluessig", solute: "C12H22O11", arrange: "nachher" };
 
 const STEPS: GuideStep[] = [
   {
+    part: tr("Teilchen und Stoffe", "Particles and substances"),
     say: tr("Im Teilchenmodell ist jedes Molekül und jedes einzelne Atom **ein Teilchen**.", "In the particle model every molecule and every single atom is **one particle**."),
     ask: tr("Wie viele **Teilchen** sind im Bild?", "How many **particles** are in the picture?"), answer: 7, num: {},
     visual: () => <Picture p={MIX} />,
@@ -58,6 +71,7 @@ const STEPS: GuideStep[] = [
     ok: tr("Zwei Stoffe → Gemisch.", "Two substances → mixture."),
   },
   {
+    part: tr("Element und Verbindung", "Element and compound"),
     say: tr("**Element**: Teilchen aus nur **einer** Atomsorte. **Verbindung**: mehrere Atomsorten fest in einem Teilchen.", "**Element**: particles of only **one** kind of atom. **Compound**: several kinds of atoms firmly in one particle."),
     ask: tr("Tippe auf ein Teilchen, das zu einem **Element** gehört.", "Tap a particle that belongs to an **element**."), answer: "Ne",
     visual: c => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} c={c} target="Ne" />,
@@ -89,6 +103,7 @@ const STEPS: GuideStep[] = [
     ok: tr("Kupfer: nur Cu-Atome → Element.", "Copper: only Cu atoms → element."),
   },
   {
+    part: tr("Gemische", "Mixtures"),
     say: tr("**Homogen**: überall gleich, keine Grenze zu sehen. **Heterogen**: Teile, Tröpfchen oder Schichten sind zu erkennen.", "**Homogeneous**: the same everywhere, no boundary visible. **Heterogeneous**: pieces, droplets or layers can be seen."),
     ask: tr("Was ist **Zuckerwasser**?", "What is **sugar water**?"), answer: tr("homogenes Gemisch", "homogeneous mixture"), options: [tr("homogenes Gemisch", "homogeneous mixture"), tr("heterogenes Gemisch", "heterogeneous mixture"), tr("Reinstoff", "Pure substance")],
     visual: () => <Picture p={ZUCKER} />,
@@ -120,6 +135,15 @@ const STEPS: GuideStep[] = [
     ok: tr("Ein Gemisch – auch wenn nichts dazugegeben wurde.", "A mixture – even if nothing was added."),
   },
   {
+    part: tr("Lösen und Mischen", "Dissolving and mixing"),
+    say: tr("Ein Zuckerkristall liegt im Wasser. Niemand rührt um.", "A sugar crystal lies in water. Nobody stirs."),
+    ask: tr("Was passiert mit den **Zuckerteilchen**? Sag es vorher!", "What happens to the **sugar particles**? Predict it!"), answer: SPREAD(), options: [SPREAD(), VANISH(), SINK()],
+    visual: c => <Glide p={LOESEN} c={c} />,
+    why: { [VANISH()]: tr("Teilchen können nicht verschwinden. Schau gleich hin.", "Particles cannot disappear. Watch in a moment."), [SINK()]: tr("Die Teilchen bewegen sich ständig – auch nach oben.", "The particles move all the time – upwards too.") },
+    hold: true,
+    ok: tr("Schau zu: Der Kristall löst sich, die Teilchen verteilen sich überall.", "Watch: the crystal dissolves, the particles spread everywhere."),
+  },
+  {
     say: tr("Beim Lösen verteilen sich die Teilchen zwischen den Wasserteilchen. Sie **verschwinden nicht** und bleiben gleich groß.", "When dissolving, the particles spread out between the water particles. They **do not disappear** and stay the same size."),
     ask: tr("In **200 g** Wasser lösen sich **20 g** Zucker. Wie schwer ist das Zuckerwasser?", "**20 g** of sugar dissolve in **200 g** of water. How heavy is the sugar water?"), answer: 220, num: { unit: "g" },
     visual: () => <Picture p={ZUCKER} />,
@@ -127,6 +151,14 @@ const STEPS: GuideStep[] = [
     tip: tr("Zähle die Masse von Wasser und Zucker zusammen.", "Add the masses of water and sugar together."),
     labels: [{"at": "[data-f=\"C12H22O11\"]", "text": tr("Zucker-Molekül", "Sugar molecule"), "side": "left"}, {"at": "[data-f=\"H2O\"]", "text": tr("Wasser-Molekül", "Water molecule"), "side": "right"}],
     ok: tr("200 g + 20 g = 220 g – alle Teilchen sind noch da.", "200 g + 20 g = 220 g – all particles are still there."),
+  },
+  {
+    say: tr("Links Kohlendioxid, rechts Argon. Die Trennwand wird entfernt.", "Carbon dioxide on the left, argon on the right. The divider is removed."),
+    ask: tr("Was passiert? Sag es vorher!", "What happens? Predict it!"), answer: MIXES(), options: [MIXES(), SHAKE(), HEAVY()],
+    visual: c => <Glide p={GASE} c={c} />,
+    why: { [SHAKE()]: tr("Gasteilchen fliegen ständig umher – auch ohne Schütteln.", "Gas particles fly around all the time – even without shaking."), [HEAVY()]: tr("Die Teilchen bewegen sich und verteilen sich im ganzen Gefäß.", "The particles move and spread through the whole container.") },
+    hold: true,
+    ok: tr("Schau zu: Die Gase mischen sich von selbst.", "Watch: the gases mix by themselves."),
   },
   {
     say: tr("Teilchen bewegen sich **ständig** – darum mischen sich Gase und Lösungen von selbst.", "Particles move **all the time** – that is why gases and solutions mix by themselves."),

@@ -26,8 +26,11 @@ function Lewis({ m, c, tap, octet = true, note }: { m: Molecule; c?: GuideCtx; t
 /** Die Lewis-Formel zeigt Bindungen und Paare in der Ebene – Winkel und Form sind räumlich anders */
 const FLAT = tr("Lewis-Formel flach gezeichnet – die Winkel im Bild sind nicht die echten.", "Lewis formula drawn flat – the angles in the picture are not the real ones.");
 
-const US: GuideStep[] = [
+const PAIR = () => tr("Sie bilden ein gemeinsames Elektronenpaar.", "They form a shared electron pair."), GIVE = () => tr("Ein H gibt sein Elektron ab.", "One H gives away its electron."), PUSH = () => tr("Sie stoßen sich ab.", "They repel each other.");
+
+const US = (): GuideStep[] => [
   {
+    part: tr("Außenelektronen", "Outer electrons"),
     say: tr("Die Punkte zeigen die **Außenelektronen**. Zwei Punkte nebeneinander sind ein **Paar**, ein Punkt mit Ring ist ein **einzelnes** Elektron.", "The dots show the **outer electrons**. Two dots side by side are a **pair**, a dot with a ring is a **single** electron."),
     ask: tr("Wie viele **einzelne** Elektronen hat ein Sauerstoff-Atom?", "How many **single** electrons does an oxygen atom have?"), answer: 2, num: {},
     visual: () => <Lewis m={mol([["O", 0, 0]])} />,
@@ -44,6 +47,15 @@ const US: GuideStep[] = [
     tip: tr("Jedes einzelne Elektron (mit Ring) ergibt eine Bindung.", "Each single electron (with a ring) gives one bond."),
     labels: [{"at": ".lone.one", "text": tr("einzelnes Elektron", "single electron")}],
     ok: tr("Stickstoff hat 3 einzelne Elektronen → 3 Bindungen.", "Nitrogen has 3 single electrons → 3 bonds."),
+  },
+  {
+    part: tr("Bindungen", "Bonds"),
+    say: tr("Zwei H-Atome mit je **einem** einzelnen Elektron kommen sich nahe.", "Two H atoms, each with **one** single electron, come close."),
+    ask: tr("Was passiert? Sag es vorher!", "What happens? Predict it!"), answer: PAIR(), options: [PAIR(), GIVE(), PUSH()],
+    visual: c => <Lewis m={c.solved ? known("H2") : mol([["H", 0, 0], ["H", 2, 0]])} />,
+    why: { [GIVE()]: tr("Beide ziehen gleich stark – keiner gibt ab. Sie teilen.", "Both pull equally hard – neither gives away. They share."), [PUSH()]: tr("Die einzelnen Elektronen können sich zu einem Paar verbinden.", "The single electrons can join into a pair.") },
+    hold: true,
+    ok: tr("Aus zwei einzelnen Elektronen wird ein **gemeinsames Paar**: H–H.", "Two single electrons become a **shared pair**: H–H."),
   },
   {
     say: tr("Zwei einzelne Elektronen bilden ein **gemeinsames Paar** – die Bindung (graues Oval). Es gehört **beiden** Atomen.", "Two single electrons form a **shared pair** – the bond (grey oval). It belongs to **both** atoms."),
@@ -73,6 +85,7 @@ const US: GuideStep[] = [
     ok: tr("Wasser: O hat 2 freie und 2 bindende Paare.", "Water: O has 2 lone and 2 bonding pairs."),
   },
   {
+    part: tr("Mehrfachbindungen", "Multiple bonds"),
     say: tr("Haben nach einer Bindung **beide** Atome noch einzelne Elektronen, binden sie noch einmal: **Zweifachbindung**.", "If **both** atoms still have single electrons after one bond, they bond again: **double bond**."),
     ask: tr("Tippe auf das graue **Bindungs-Oval**, um die Bindung zu verstärken.", "Tap the grey **bond oval** to strengthen the bond."), answer: "bond",
     visual: c => <Lewis m={mol([["O", 0, 0], ["O", 1, 0]], [[0, 1, 1]])} c={c} tap />,
@@ -98,6 +111,7 @@ const US: GuideStep[] = [
     ok: tr("Jedes N: 3 bindende + 1 freies Paar = 8 Elektronen.", "Each N: 3 bonding + 1 lone pair = 8 electrons."),
   },
   {
+    part: tr("Moleküle und Namen", "Molecules and names"),
     say: tr("Kohlenstoff hat 4 einzelne Elektronen – er geht **4** Bindungen ein.", "Carbon has 4 single electrons – it forms **4** bonds."),
     ask: tr("Welche Formel hat **Methan** (C mit H)?", "What is the formula of **methane** (C with H)?"), answer: "CH₄", options: ["CH₄", "CH₂", "CH₃", "C₄H"],
     visual: () => <Lewis m={mol([["C", 0, 0]])} />,
@@ -129,6 +143,7 @@ const US: GuideStep[] = [
 
 const OS: GuideStep[] = [
   {
+    part: tr("Bindungen", "Bonds"),
     say: tr("Punkte = Außenelektronen. Jedes **einzelne** Elektron (mit Ring) kann eine Bindung eingehen.", "Dots = outer electrons. Every **single** electron (with a ring) can form a bond."),
     ask: tr("Wie viele Bindungen geht ein **Kohlenstoff**-Atom ein?", "How many bonds does a **carbon** atom form?"), answer: 4, num: {},
     visual: () => <Lewis m={mol([["C", 0, 0]])} />,
@@ -152,6 +167,7 @@ const OS: GuideStep[] = [
     ok: tr("H–C≡N: C hat 4 Bindungen, N hat 3 – beide haben ein Oktett.", "H–C≡N: C has 4 bonds, N has 3 – both have an octet."),
   },
   {
+    part: tr("Molekülform", "Molecular shape"),
     say: tr("**EPA-Modell**: Elektronenpaare um ein Zentralatom stoßen sich ab und gehen möglichst weit auseinander. **Freie Paare zählen mit**, eine Mehrfachbindung zählt wie **ein** Paar.", "**VSEPR model**: electron pairs around a central atom repel each other and spread as far apart as possible. **Lone pairs count too**, a multiple bond counts as **one** pair."),
     ask: tr("Wie viele Elektronenpaare hat das N-Atom in **NH₃** (bindend + frei)?", "How many electron pairs does the N atom in **NH₃** have (bonding + lone)?"), answer: 4, num: {},
     visual: () => <Lewis m={known("NH3")} />,
@@ -188,6 +204,7 @@ const OS: GuideStep[] = [
     ok: tr("3 Bereiche → trigonal-planar, ca. 120°.", "3 regions → trigonal planar, approx. 120°."),
   },
   {
+    part: tr("Polarität", "Polarity"),
     say: tr("Die **Elektronegativität** (EN) gibt an, wie stark ein Atom die Bindungselektronen anzieht. ΔEN ≥ 0,4: **polare** Bindung.", "**Electronegativity** (EN) tells you how strongly an atom attracts the bonding electrons. ΔEN ≥ 0.4: **polar** bond."),
     ask: tr("Welche Bindung ist **am stärksten polar**?", "Which bond is **the most polar**?"), answer: "H–F", options: ["H–F", "H–Cl", "C–H", "Cl–Cl"],
     why: { "H–Cl": tr("Polar, aber F hat die größere EN (4,0) als Cl (3,2).", "Polar, but F has a higher EN (4.0) than Cl (3.2)."), "C–H": tr("ΔEN = 2,55 − 2,20 ≈ 0,35 – unter 0,4, also unpolar.", "ΔEN = 2.55 − 2.20 ≈ 0.35 – below 0.4, so non-polar."), "Cl–Cl": tr("Gleiche Atome: ΔEN = 0, unpolar.", "Identical atoms: ΔEN = 0, non-polar.") },
@@ -222,7 +239,7 @@ const OS: GuideStep[] = [
 
 export function guideFor(stufe: "us" | "os"): GuideDef {
   return stufe === "us"
-    ? { title: tr("Elektronenpaarbindung", "Covalent Bonds"), steps: US, outro: [
+    ? { title: tr("Elektronenpaarbindung", "Covalent Bonds"), steps: US(), outro: [
       tr("Einzelne Außenelektronen = mögliche Bindungen: H 1, O 2, N 3, C 4.", "Single outer electrons = possible bonds: H 1, O 2, N 3, C 4."),
       tr("Ein gemeinsames Paar = eine Bindung; es zählt für **beide** Atome.", "One shared pair = one bond; it counts for **both** atoms."),
       tr("Im Molekül **Oktett** (8), bei H **Duett** (2). Freie Paare zählen mit.", "In a molecule an **octet** (8), for H a **duet** (2). Lone pairs count too."),

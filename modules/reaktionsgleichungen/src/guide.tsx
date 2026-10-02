@@ -114,9 +114,9 @@ const US = (): GuideStep[] => [
   {
     say: tr("Das gilt immer: **Gesetz der Erhaltung der Masse**. Atome werden nur neu verbunden.", "This always holds: **conservation of mass**. Atoms are only joined in a new way."),
     ask: tr("Welche Aussage stimmt für **jede** Reaktion?", "Which statement is true for **every** reaction?"),
-    answer: tr("Links und rechts gleich viele Atome jeder Sorte", "The same number of atoms of each kind on both sides"),
-    options: [tr("Links und rechts gleich viele Atome jeder Sorte", "The same number of atoms of each kind on both sides"), tr("Links und rechts gleich viele Moleküle", "The same number of molecules on both sides"), tr("Rechts immer mehr Atome", "Always more atoms on the right")],
-    why: { [tr("Links und rechts gleich viele Moleküle", "The same number of molecules on both sides")]: tr("Vorher 3 Moleküle, nachher 2 – die Atome zählen.", "3 molecules before, 2 after – the atoms are what count."), [tr("Rechts immer mehr Atome", "Always more atoms on the right")]: tr("Es entstehen keine neuen Atome.", "No new atoms form.") },
+    answer: tr("Gleich viele Atome je Sorte", "Same number of each atom"),
+    options: [tr("Gleich viele Atome je Sorte", "Same number of each atom"), tr("Gleich viele Moleküle", "Same number of molecules"), tr("Rechts mehr Atome", "More atoms on the right")],
+    why: { [tr("Gleich viele Moleküle", "Same number of molecules")]: tr("Vorher 3 Moleküle, nachher 2 – die Atome zählen.", "3 molecules before, 2 after – the atoms are what count."), [tr("Rechts mehr Atome", "More atoms on the right")]: tr("Es entstehen keine neuen Atome.", "No new atoms form.") },
     ok: tr("Atome bleiben erhalten – Moleküle nicht.", "Atoms are conserved – molecules are not."),
   },
   // ── Kapitel 2: Zahlen in Formeln lesen ──

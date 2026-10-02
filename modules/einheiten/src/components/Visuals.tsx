@@ -63,17 +63,18 @@ export function Ruler({ big, small, k, tone = "ruler" }: { big: string; small: s
 
 // ── Fläche: 10 × 10-Raster ──────────────────────────────────────────────────
 const SIDE: Record<string, string> = { "km²": "1 km", ha: "100 m", a: "10 m", "m²": "1 m", "dm²": "1 dm", "cm²": "1 cm", "mm²": "1 mm", "m³": "1 m", "dm³": "1 dm", "cm³": "1 cm", "mm³": "1 mm" };
-export function AreaGrid({ big, small }: { big: string; small: string }) {
+/** `guess`: nur das große Quadrat mit einem kleinen Kästchen (zum Schätzen, bevor das Raster erscheint) */
+export function AreaGrid({ big, small, guess = false }: { big: string; small: string; guess?: boolean }) {
   const X = 44, Y = 34, S = 170, c = S / 10;
   return (
     <figure className="viz viz-area">
-      <svg viewBox="0 0 340 236" role="img" aria-label={`1 ${big} = 100 ${small}`}>
+      <svg viewBox="0 0 340 236" role="img" aria-label={`1 ${big} = ${guess ? "?" : 100} ${small}`}>
         <text x={X + S / 2} y={20} className="ar-lab">10 · {SIDE[small]} = {SIDE[big]}</text>
         <text x={X - 12} y={Y + S / 2} className="ar-lab" transform={`rotate(-90 ${X - 12} ${Y + S / 2})`}>{SIDE[big]}</text>
         <rect x={X} y={Y} width={S} height={S} className="ar-sq" />
-        <rect x={X} y={Y} width={S} height={c} className="ar-row" />
+        {!guess && <rect x={X} y={Y} width={S} height={c} className="ar-row" />}
         <rect x={X} y={Y} width={c} height={c} className="ar-cell" />
-        {Array.from({ length: 9 }, (_, i) => (
+        {!guess && Array.from({ length: 9 }, (_, i) => (
           <Fragment key={i}>
             <line x1={X + (i + 1) * c} x2={X + (i + 1) * c} y1={Y} y2={Y + S} className="ar-line" />
             <line x1={X} x2={X + S} y1={Y + (i + 1) * c} y2={Y + (i + 1) * c} className="ar-line" />
@@ -81,13 +82,15 @@ export function AreaGrid({ big, small }: { big: string; small: string }) {
         ))}
         <path d={`M${X + S + 6} ${Y + c / 2} h14`} className="ar-arrow" />
         <text x={X + S + 24} y={Y + c / 2 + 4} className="ar-note strong">1 {small}</text>
-        <text x={X + S + 24} y={Y + c + 12} className="ar-note">{tr("1 Reihe", "1 row")}: 10 {small}</text>
-        <path d={`M${X + S + 6} ${Y} v${S} h-4 M${X + S + 6} ${Y} h-4`} className="ar-brace" />
-        <text x={X + S + 24} y={Y + S - 8} className="ar-note">{tr("10 Reihen:", "10 rows:")}</text>
-        <text x={X + S + 24} y={Y + S + 8} className="ar-note strong">100 {small}</text>
-        <text x={X + S / 2} y={Y + S + 26} className="ar-cap">1 {big} = 100 {small}</text>
+        {!guess && <>
+          <text x={X + S + 24} y={Y + c + 12} className="ar-note">{tr("1 Reihe", "1 row")}: 10 {small}</text>
+          <path d={`M${X + S + 6} ${Y} v${S} h-4 M${X + S + 6} ${Y} h-4`} className="ar-brace" />
+          <text x={X + S + 24} y={Y + S - 8} className="ar-note">{tr("10 Reihen:", "10 rows:")}</text>
+          <text x={X + S + 24} y={Y + S + 8} className="ar-note strong">100 {small}</text>
+        </>}
+        <text x={X + S / 2} y={Y + S + 26} className="ar-cap">1 {big} = {guess ? "?" : 100} {small}</text>
       </svg>
-      <figcaption>{SIDE[big]} · {SIDE[big]} = 10 · {SIDE[small]} · 10 · {SIDE[small]} → <b className="fx">· 100</b></figcaption>
+      <figcaption>{SIDE[big]} · {SIDE[big]} = 10 · {SIDE[small]} · 10 · {SIDE[small]} → <b className="fx">{guess ? "?" : "· 100"}</b></figcaption>
     </figure>
   );
 }

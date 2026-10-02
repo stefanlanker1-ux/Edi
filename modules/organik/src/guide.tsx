@@ -16,13 +16,17 @@ const BENT: Mol = (() => {
   return { atoms: pts.map(([x, y], id) => ({ id, el: "C" as const, x, y })), bonds: bonds.map(([a, b]) => ({ a, b, order: 1 as const })) };
 })();
 
-/** Lewis-Formel; mit `target` sind die Atome antippbar (Ziel = Atomnummer in der Kurzschreibweise) */
-function Pic({ s, c, target }: { s: string; c?: GuideCtx; target?: number }) {
+/** Hauptkette von BENT ab C1 (Nummerierung vom Ende, das dem Methyl-Ast näher ist) */
+const CHAIN = [6, 5, 1, 2, 3, 4];
+
+/** Lewis-Formel; mit `target` sind die Atome antippbar (Ziel = Atomnummer in der Kurzschreibweise);
+ *  `chain` hinterlegt die Hauptkette, `numbers` schreibt die Nummern dazu */
+function Pic({ s, c, target, chain, numbers }: { s: string; c?: GuideCtx; target?: number; chain?: number[]; numbers?: boolean }) {
   // mit / oder \ in der Kurzschreibweise: E/Z wie angegeben gezeichnet
   const m = s === "bent" ? BENT : /[/\\]/.test(s) ? smilesMol(s) : exampleMol(s);
   return (
     <Fit className="og-g" min={0.3}>
-      <MolSvg mol={m} view="lewis" label={tr("Strukturformel", "Structural formula")} minW={4} minH={2.6} className="og-g-svg">
+      <MolSvg mol={m} view="lewis" parent={chain} numbers={numbers} label={tr("Strukturformel", "Structural formula")} minW={4} minH={2.6} className="og-g-svg">
         {target !== undefined && c && m.atoms.map(a => (
           <circle key={a.id} className={`og-g-hit${c.show && a.id === target ? " g-sol" : ""}`} cx={a.x * U} cy={a.y * U} r={0.38 * U}
             role="button" tabIndex={0} aria-label={`Atom ${a.el}`} onClick={() => c.pick(String(a.id))}
@@ -35,6 +39,7 @@ function Pic({ s, c, target }: { s: string; c?: GuideCtx; target?: number }) {
 
 const STEPS: GuideStep[] = [
   {
+    part: tr("Alkane", "Alkanes"),
     say: tr("Der Name beginnt mit dem **Stamm**. Er sagt, wie viele C-Atome die Kette hat.", "The name starts with the **stem**. It tells how many C atoms the chain has."),
     ask: tr("Wie viele **C-Atome** hat die Kette?", "How many **C atoms** does the chain have?"), answer: 4, num: {},
     visual: () => <Pic s="CCCC" />,
@@ -51,9 +56,11 @@ const STEPS: GuideStep[] = [
     ok: tr("4 C → **But** + **an** = Butan.", "4 C → **but** + **ane** = butane."),
   },
   {
+    part: tr("Äste und Nummern", "Branches and numbers"),
     say: tr("Die **Hauptkette** ist die längste Kette. Sie darf um die Ecke gehen.", "The **main chain** is the longest chain. It may go round a corner."),
     ask: tr("Wie viele C hat die **längste** Kette?", "How many C does the **longest** chain have?"), answer: 6, num: {},
-    visual: () => <Pic s="bent" />,
+    visual: c => <Pic s="bent" chain={c.solved ? CHAIN : undefined} />,
+    hold: true,
     why: { "5": tr("So viele C liegen in einer Reihe. Über den Ast geht es länger.", "That many C lie in a row. Going through the branch is longer."), "7": tr("7 sind alle C. Ein C bleibt als Ast übrig.", "7 is the number of all C. One C is left over as a branch.") },
     tip: tr("Starte an jedem Kettenende und zähle bis zum anderen Ende.", "Start at each chain end and count to the other end."),
     ok: tr("Die längste Kette hat 6 C → **Hexan**.", "The longest chain has 6 C → **hexane**."),
@@ -61,7 +68,7 @@ const STEPS: GuideStep[] = [
   {
     say: tr("Was nicht zur Hauptkette gehört, ist ein **Ast**. Ein C als Ast heißt **Methyl**.", "Whatever is not part of the main chain is a **branch**. One C as a branch is called **methyl**."),
     ask: tr("Tippe auf das C der Hauptkette, an dem der **Methyl-Ast** hängt.", "Tap the C of the main chain where the **methyl branch** is attached."), answer: "1",
-    visual: c => <Pic s="bent" c={c} target={1} />,
+    visual: c => <Pic s="bent" c={c} target={1} chain={CHAIN} />,
     why: { "0": tr("Das ist der Ast selbst. Gesucht ist das C, an dem er hängt.", "That is the branch itself. Look for the C it is attached to.") },
     tip: tr("Suche das C mit drei C-Nachbarn.", "Look for the C with three C neighbours."),
     show: tr("Markiert: das C mit drei C-Nachbarn.", "Marked: the C with three C neighbours."),
@@ -69,8 +76,17 @@ const STEPS: GuideStep[] = [
   },
   {
     say: tr("Nummeriert wird vom Ende, das dem Ast **näher** ist. Die Nummer soll klein sein.", "Number from the end that is **closer** to the branch. The number should be low."),
+    ask: tr("Tippe auf das C, an dem du mit **1** beginnst.", "Tap the C where you start with **1**."), answer: "6",
+    visual: c => <Pic s="bent" c={c} target={6} chain={CHAIN} />,
+    why: { "4": tr("Von diesem Ende ist der Ast weiter weg.", "From this end the branch is further away.") },
+    tip: tr("Zähle von beiden Enden der Hauptkette bis zum Ast. Nimm das kürzere.", "Count from both ends of the main chain to the branch. Take the shorter one."),
+    show: tr("Markiert: das Ende nahe am Ast.", "Marked: the end close to the branch."),
+    ok: tr("Hier beginnt die Nummerierung: C1.", "Numbering starts here: C1."),
+  },
+  {
     ask: tr("Welche **Nummer** bekommt das C mit dem Ast?", "Which **number** does the C with the branch get?"), answer: 3, num: {},
-    visual: () => <Pic s="bent" />,
+    visual: c => <Pic s="bent" chain={CHAIN} numbers={c.solved} />,
+    hold: true,
     why: { "4": tr("Das ist von der anderen Seite gezählt. Von hier aus wird die Nummer kleiner.", "That is counted from the other end. From this end the number is lower.") },
     tip: tr("Zähle vom näheren Ende der Hauptkette bis zum Ast.", "Count from the nearer end of the main chain to the branch."),
     ok: tr("Der Ast sitzt an C3.", "The branch is on C3."),
@@ -98,6 +114,7 @@ const STEPS: GuideStep[] = [
     ok: tr("Zwei Methyl-Äste an C2 und C3 → **2,3-Dimethylbutan**.", "Two methyl branches on C2 and C3 → **2,3-dimethylbutane**."),
   },
   {
+    part: tr("Mehrfachbindungen", "Multiple bonds"),
     say: tr("Doppelbindung → **-en**, Dreifachbindung → **-in**. Sie bekommt die kleinste Nummer.", "Double bond → **-ene**, triple bond → **-yne**. It gets the lowest number."),
     ask: tr("Wie heißt das Molekül?", "What is the name of the molecule?"), answer: tr("Pent-2-en", "pent-2-ene"), options: [tr("Pent-2-en", "pent-2-ene"), tr("Pent-3-en", "pent-3-ene"), tr("Pent-2-in", "pent-2-yne"), tr("Pentan", "pentane")],
     visual: () => <Pic s="CC=CCC" />,
@@ -116,6 +133,7 @@ const STEPS: GuideStep[] = [
     ok: tr("Beide CH₃ auf einer Seite → **(Z)-But-2-en** (cis).", "Both CH₃ on one side → **(Z)-but-2-ene** (cis)."),
   },
   {
+    part: tr("Funktionelle Gruppen", "Functional groups"),
     say: tr("**Funktionelle Gruppen** geben die Endung. Die Hydroxygruppe –OH macht einen **Alkohol**: Endung -ol.", "**Functional groups** give the ending. The hydroxy group –OH makes an **alcohol**: ending -ol."),
     ask: tr("Tippe auf das **O-Atom** der OH-Gruppe.", "Tap the **O atom** of the OH group."), answer: "2",
     visual: c => <Pic s="CC(O)C" c={c} target={2} />,
