@@ -10,15 +10,20 @@ const mol = (atoms: [string, number, number][], bonds: [number, number, number][
   ({ atoms: atoms.map(([el, x, y], i) => ({ id: i + 1, el, x, y })), bonds: bonds.map(([a, b, order]) => ({ a: a + 1, b: b + 1, order })) });
 const known = (id: string) => toMolecule(KNOWN_BY_ID[id]);
 
-/** Lewis-Formel, eingepasst; mit `tap` ist die (einzige) Bindung antippbar (Ziel "bond") */
-function Lewis({ m, c, tap, octet = true }: { m: Molecule; c?: GuideCtx; tap?: boolean; octet?: boolean }) {
+/** Lewis-Formel, eingepasst; mit `tap` ist die (einzige) Bindung antippbar (Ziel "bond");
+ *  `note` steht unter der Zeichnung (z. B. dass die Lewis-Formel flach ist, das Molekül aber räumlich) */
+function Lewis({ m, c, tap, octet = true, note }: { m: Molecule; c?: GuideCtx; tap?: boolean; octet?: boolean; note?: string }) {
   const w = Math.max(...m.atoms.map(a => a.x)) + 1, h = Math.max(...m.atoms.map(a => a.y)) + 1;
   return (
-    <div className={`epb-g${tap && c?.show ? " show" : ""}`}>
+    <div className={`epb-g${tap && c?.show ? " show" : ""}${note ? " noted" : ""}`}>
       <LewisSvg mol={m} cols={w} rows={h} crop showOctet={octet} onBond={tap && c ? () => c.pick("bond") : undefined} />
+      {note && <p className="epb-g-note">{note}</p>}
     </div>
   );
 }
+
+/** Die Lewis-Formel zeigt Bindungen und Paare in der Ebene – Winkel und Form sind räumlich anders */
+const FLAT = "Lewis-Formel flach gezeichnet – die Winkel im Bild sind nicht die echten.";
 
 const US: GuideStep[] = [
   {
@@ -163,7 +168,7 @@ const OS: GuideStep[] = [
   {
     say: "Freie Paare brauchen mehr Platz und drücken die Bindungen zusammen: unter 109,5°.",
     ask: "Welchen **Bindungswinkel** hat Wasser (2 bindende, 2 freie Paare)?", answer: "104,5°", options: ["104,5°", "109,5°", "120°", "180°"],
-    visual: () => <Lewis m={known("H2O")} />,
+    visual: () => <Lewis m={known("H2O")} note={FLAT} />,
     why: { "109,5°": "109,5° ist der Tetraederwinkel. Die zwei freien Paare drücken stärker.", "120°": "120° gilt für 3 Paare (trigonal-planar).", "180°": "Wasser ist gewinkelt, nie linear." },
     labels: [{"at": ".lone.pair", "text": "freies Paar"}, {"at": ".bond", "text": "bindendes Paar"}],
     ok: "H₂O: gewinkelt, 104,5°.",
@@ -177,7 +182,7 @@ const OS: GuideStep[] = [
   },
   {
     ask: "Welchen Bindungswinkel ergibt das EPA-Modell für **Methanal** (H₂C=O)?", answer: "120°", options: ["120°", "109,5°", "180°", "90°"],
-    visual: () => <Lewis m={known("CH2O")} />,
+    visual: () => <Lewis m={known("CH2O")} note={FLAT} />,
     why: { "109,5°": "C hat nur 3 Bereiche (2 × C–H, 1 × C=O).", "180°": "Das wären nur 2 Bereiche.", "90°": "Die Bereiche gehen so weit wie möglich auseinander." },
     ok: "3 Bereiche → trigonal-planar, ca. 120°.",
   },
@@ -208,7 +213,7 @@ const OS: GuideStep[] = [
   },
   {
     ask: "Ist **Tetrachlormethan** (CCl₄) polar oder unpolar?", answer: "unpolar", options: ["polar", "unpolar"],
-    visual: () => <Lewis m={known("CCl4")} />,
+    visual: () => <Lewis m={known("CCl4")} note="Lewis-Formel flach gezeichnet – räumlich ist CCl₄ ein Tetraeder." />,
     why: { polar: "Jede C–Cl-Bindung ist polar, aber der Tetraeder ist symmetrisch – sie heben sich auf." },
     ok: "CCl₄: symmetrischer Tetraeder → unpolar.",
   },

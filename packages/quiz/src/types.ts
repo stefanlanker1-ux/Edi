@@ -219,9 +219,15 @@ export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly
     }
     return [best, bestAge];
   };
+  let searched = false;
   return first.map(slot => {
     let [best, a] = pick(slot.type);
-    // Typ erschöpft (nur schon gestellte Fragen) → neue Frage eines anderen Typs dieses Levels (außer bei fester Reihenfolge)
+    // nur schon gestellte Fragen dieses Typs gezogen: einmal je Runde gezielt weitersuchen – der Zufall kann neue übersehen haben
+    if (a >= 0 && !searched) {
+      searched = true;
+      for (let i = 0; i < extra * 3 && a >= 0; i++) { cands.push(...make()); [best, a] = pick(slot.type); }
+    }
+    // Typ wirklich erschöpft → neue Frage eines anderen Typs dieses Levels (außer bei fester Reihenfolge)
     if (a >= 0 && !keepType) { const [other, b] = pick(null); if (other && b < 0) best = other; }
     best ??= slot;
     used.add(taskKey(best));
