@@ -5,8 +5,21 @@ import { Icon, type IconName } from "./icons.tsx";
 import { setSound, useSound } from "./feedback.ts";
 import { setReadable, useReadable } from "./readable.ts";
 import { Rescue } from "./Rescue.tsx";
+import { setLang, tr, useLang } from "./i18n.ts";
 
 export interface ShellTab<T extends string> { id: T; label: string; short?: string; icon: IconName }
+
+/** Sprache umschalten (DE/EN, die aktive hervorgehoben) – in der Übersicht und in jeder Kopfzeile */
+export function LangButton() {
+  const lang = useLang();
+  const other = lang === "de" ? "en" : "de";
+  return (
+    <button type="button" className="ui-icon-btn ui-lang" lang={other} onClick={() => setLang(other)}
+      aria-label={other === "en" ? "Switch to English" : "Auf Deutsch umschalten"} title={other === "en" ? "Switch to English" : "Auf Deutsch umschalten"}>
+      <span className={lang === "de" ? "on" : undefined}>DE</span><span className={lang === "en" ? "on" : undefined}>EN</span>
+    </button>
+  );
+}
 
 export function AppShell<T extends string>({ name, logo, homeHref, tabs, active, onTab, actions, lead, storage, children }: {
   name: string; logo?: ReactNode;
@@ -19,6 +32,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
 }) {
   const sound = useSound();
   const readable = useReadable();
+  const lang = useLang();
   const nav = (cls: string) => tabs.map(t => (
     <button key={t.id} type="button" className={`${cls}${t.id === active ? " active" : ""}`} aria-current={t.id === active ? "page" : undefined} onClick={() => onTab(t.id)}>
       <Icon name={t.icon} size={cls === "ui-bn-tab" ? 24 : 20} />
@@ -28,27 +42,28 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
   ));
   return (
     <>
-      <a className="ui-skip" href="#main">Zum Inhalt springen</a>
+      <a className="ui-skip" href="#main">{tr("Zum Inhalt springen", "Skip to content")}</a>
       <header className="ui-topbar">
         {homeHref
-          ? <a className="ui-brand" href={homeHref} title="Zur Übersicht">{logo}<h1 className="ui-brand-name">{name}</h1></a>
+          ? <a className="ui-brand" href={homeHref} title={tr("Zur Übersicht", "All apps")}>{logo}<h1 className="ui-brand-name">{name}</h1></a>
           : <div className="ui-brand">{logo}<h1 className="ui-brand-name">{name}</h1></div>}
         {lead && <div className="ui-lead">{lead}</div>}
-        <nav className="ui-top-tabs" aria-label="Bereiche">{nav("ui-top-tab")}</nav>
+        <nav className="ui-top-tabs" aria-label={tr("Bereiche", "Sections")}>{nav("ui-top-tab")}</nav>
         <div className="ui-top-actions">
           {actions}
-          <button type="button" className={`ui-icon-btn${readable ? " pressed" : ""}`} aria-pressed={readable} aria-label={readable ? "Lesbar ausschalten" : "Lesbar: mehr Abstand"}
-            title={readable ? "Lesbar ausschalten" : "Lesbar: mehr Abstand zwischen Buchstaben, Wörtern und Zeilen"} onClick={() => setReadable(!readable)}>
+          <LangButton />
+          <button type="button" className={`ui-icon-btn${readable ? " pressed" : ""}`} aria-pressed={readable} aria-label={readable ? tr("Lesbar ausschalten", "Readable mode off") : tr("Lesbar: mehr Abstand", "Readable: more spacing")}
+            title={readable ? tr("Lesbar ausschalten", "Readable mode off") : tr("Lesbar: mehr Abstand zwischen Buchstaben, Wörtern und Zeilen", "Readable: more space between letters, words and lines")} onClick={() => setReadable(!readable)}>
             <Icon name="text" />
           </button>
-          <button type="button" className={`ui-icon-btn${sound ? " pressed" : ""}`} aria-pressed={sound} aria-label={sound ? "Klang ausschalten" : "Klang einschalten"}
-            title={sound ? "Klang ausschalten" : "Klang einschalten"} onClick={() => setSound(!sound)}>
+          <button type="button" className={`ui-icon-btn${sound ? " pressed" : ""}`} aria-pressed={sound} aria-label={sound ? tr("Klang ausschalten", "Sound off") : tr("Klang einschalten", "Sound on")}
+            title={sound ? tr("Klang ausschalten", "Sound off") : tr("Klang einschalten", "Sound on")} onClick={() => setSound(!sound)}>
             <Icon name={sound ? "sound" : "mute"} />
           </button>
         </div>
       </header>
-      <main id="main" className="ui-main"><Rescue key={active} storage={storage}>{children}</Rescue></main>
-      <nav className="ui-bottom-nav" aria-label="Bereiche">{lead && <div className="ui-bn-lead">{lead}</div>}{nav("ui-bn-tab")}</nav>
+      <main id="main" className="ui-main"><Rescue key={`${active}-${lang}`} storage={storage}>{children}</Rescue></main>
+      <nav className="ui-bottom-nav" aria-label={tr("Bereiche", "Sections")}>{lead && <div className="ui-bn-lead">{lead}</div>}{nav("ui-bn-tab")}</nav>
     </>
   );
 }

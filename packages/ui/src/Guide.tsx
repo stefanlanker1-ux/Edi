@@ -4,6 +4,7 @@
 // die als grüne Zeile über dem nächsten Schritt stehen bleibt (kein Extra-Klick auf „Weiter“).
 // Ganzer Bildschirm, nie scrollen: Bild füllt den Platz (container-type: size, Zeichnungen mit cqw/cqh oder Fit).
 
+import { num, tr } from "./i18n.ts";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "./components.tsx";
 import { Icon } from "./icons.tsx";
@@ -62,12 +63,12 @@ export function isRight(step: GuideStep, a: string | number): boolean {
 
 /** Rückmeldung nach einem Fehlversuch: erst die passende Begründung (sonst der Tipp), ab dem zweiten Versuch der Tipp dazu */
 export function feedback(step: GuideStep, why: string | undefined, tries: number): string {
-  const parts = [why ?? step.tip ?? "Noch nicht."];
-  if (why && step.tip && tries >= 2) parts.push(`Tipp: ${step.tip}`);
-  return `${parts.join(" ")} Versuch ${tries} von ${GUIDE_TRIES}.`;
+  const parts = [why ?? step.tip ?? tr("Noch nicht.", "Not yet.")];
+  if (why && step.tip && tries >= 2) parts.push(`${tr("Tipp", "Tip")}: ${step.tip}`);
+  return `${parts.join(" ")} ${tr(`Versuch ${tries} von ${GUIDE_TRIES}.`, `Try ${tries} of ${GUIDE_TRIES}.`)}`;
 }
 
-export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }: {
+export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   def: GuideDef; open: boolean; onClose: () => void;
   /** letzter Knopf: z. B. zum Quiz wechseln */
   onFinish: () => void; finishLabel?: string;
@@ -125,31 +126,31 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
     if (t >= GUIDE_TRIES) setVal("");
     const why = step.why?.[typeof step.answer === "number" ? String(parseNum(String(a))) : String(a)];
     setMsg(t >= GUIDE_TRIES
-      ? step.show ?? `So geht's: ${typeof step.answer === "number" ? `tippe **${String(step.answer).replace(".", ",")}** ein` : "tippe auf das Markierte"}.`
+      ? step.show ?? tr(`So geht's: ${typeof step.answer === "number" ? `tippe **${num(step.answer)}** ein` : "tippe auf das Markierte"}.`, `Here's how: ${typeof step.answer === "number" ? `type **${num(step.answer)}**` : "tap the marked answer"}.`)
       : feedback(step, why, t));
   };
   const ctx: GuideCtx = { pick: id => answer(id), show, solved };
-  const solText = typeof step.answer === "number" ? String(step.answer).replace(".", ",") : step.answer;
+  const solText = typeof step.answer === "number" ? num(step.answer) : step.answer;
 
   return (
-    <dialog ref={ref} className="ui-guide" onClose={onClose} aria-label={`Erklärung: ${def.title}`}>
+    <dialog ref={ref} className="ui-guide" onClose={onClose} aria-label={`${tr("Erklärung", "Explanation")}: ${def.title}`}>
       {open && (
         <div className="ui-guide-in">
           <header className="ui-guide-head">
-            <span className="ui-guide-badge"><Icon name="play" size={16} /><span>Erklärung</span></span>
+            <span className="ui-guide-badge"><Icon name="play" size={16} /><span>{tr("Erklärung", "Explanation")}</span></span>
             <h2>{def.title}</h2>
-            <span className="ui-guide-count" aria-label={`Schritt ${Math.min(i + 1, n)} von ${n}`}>{done ? "fertig" : `${i + 1} / ${n}`}</span>
-            <IconButton icon="close" label="Erklärung schließen" onClick={onClose} />
+            <span className="ui-guide-count" aria-label={tr(`Schritt ${Math.min(i + 1, n)} von ${n}`, `Step ${Math.min(i + 1, n)} of ${n}`)}>{done ? tr("fertig", "done") : `${i + 1} / ${n}`}</span>
+            <IconButton icon="close" label={tr("Erklärung schließen", "Close explanation")} onClick={onClose} />
             <span className="ui-guide-bar" aria-hidden="true"><i style={{ width: `${(Math.min(i, n) / n) * 100}%` }} /></span>
           </header>
           {done ? (
             <div className="ui-guide-end">
               {okLine && <p className="ui-guide-ok"><Icon name="check" size={18} /><span><RichText text={okLine} /></span></p>}
-              <h3>Das kannst du jetzt</h3>
+              <h3>{tr("Das kannst du jetzt", "Now you can")}</h3>
               <ul>{def.outro.map((o, k) => <li key={k}><RichText text={o} /></li>)}</ul>
               <div className="ui-guide-end-btns">
-                <Button variant="quiet" icon="reset" onClick={() => { setI(0); reset(); setOkLine(null); }}>Noch einmal</Button>
-                <Button variant="primary" size="lg" iconRight="arrow" onClick={onFinish}>{finishLabel}</Button>
+                <Button variant="quiet" icon="reset" onClick={() => { setI(0); reset(); setOkLine(null); }}>{tr("Noch einmal", "Once more")}</Button>
+                <Button variant="primary" size="lg" iconRight="arrow" onClick={onFinish}>{finishLabel ?? tr("Zum Quiz", "To the quiz")}</Button>
               </div>
             </div>
           ) : (
@@ -178,14 +179,14 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
                 )}
                 {step.num && (
                   <form className="ui-guide-num" key={`n${i}`} onSubmit={e => { e.preventDefault(); if (val.trim()) answer(val); }}>
-                    <input inputMode="decimal" autoComplete="off" aria-label="Zahl" value={val} placeholder={show ? solText : "?"}
+                    <input inputMode="decimal" autoComplete="off" aria-label={tr("Zahl", "Number")} value={val} placeholder={show ? solText : "?"}
                       className={show ? "sol" : solved ? "right" : undefined} onChange={e => setVal(e.target.value)} />
                     {step.num.unit && <span className="ui-guide-unit">{step.num.unit}</span>}
-                    <Button variant="primary" icon="check" type="submit" disabled={!val.trim() || solved}>Prüfen</Button>
+                    <Button variant="primary" icon="check" type="submit" disabled={!val.trim() || solved}>{tr("Prüfen", "Check")}</Button>
                   </form>
                 )}
                 <p className={`ui-guide-msg${solved ? " right" : show ? " sol" : msg ? " wrong" : ""}`} aria-live="polite">
-                  {solved ? <><Icon name="check" size={18} />Richtig!</> : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
+                  {solved ? <><Icon name="check" size={18} />{tr("Richtig!", "Correct!")}</> : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
                 </p>
               </div>
             </div>
@@ -199,9 +200,9 @@ export function Guide({ def, open, onClose, onFinish, finishLabel = "Zum Quiz" }
 /** Knopf „Erklärung“ in der Kopfzeile: hervorgehoben, bis die Erklärung einmal ganz durchlaufen ist */
 export function GuideButton({ onClick, fresh }: { onClick: () => void; fresh: boolean }) {
   return (
-    <button type="button" className={`ui-guide-btn${fresh ? " fresh" : ""}`} onClick={onClick} title="Schritt für Schritt erklärt – zum Mitmachen">
+    <button type="button" className={`ui-guide-btn${fresh ? " fresh" : ""}`} onClick={onClick} title={tr("Schritt für Schritt erklärt – zum Mitmachen", "Explained step by step – try it yourself")}>
       <span className="ui-guide-btn-ic" aria-hidden="true"><Icon name="play" size={14} /></span>
-      <span>Erklärung</span>
+      <span>{tr("Erklärung", "Explanation")}</span>
     </button>
   );
 }

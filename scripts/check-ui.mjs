@@ -42,7 +42,9 @@ async function check(page, app, vp, view) {
         if (e.classList.contains("pse-cell") || (b.width <= 1 && b.height <= 1)) continue; // PSE ganz sichtbar = bewusste Ausnahme; versteckte Inputs
         // Tippfläche kann durch Padding/Pseudo größer sein: prüfe min-* im Stil
         const mw = parseFloat(cs.minWidth) || 0, mh = parseFloat(cs.minHeight) || 0;
-        if (Math.max(b.width, mw) < 43.5 || Math.max(b.height, mh) < 43.5)
+        // SVG-Linie als Tippziel (Bindung): die dicke Strichbreite gehört zur Fläche
+        const sw = e.tagName === "line" ? (parseFloat(cs.strokeWidth) || 0) * (e.getScreenCTM()?.a ?? 1) : 0;
+        if (Math.max(b.width + sw, mw) < 43.5 || Math.max(b.height + sw, mh) < 43.5)
           small.push(`${e.tagName.toLowerCase()}${e.className ? "." + String(e.className).split(" ")[0] : ""}“${(e.getAttribute("aria-label") || e.textContent || "").trim().slice(0, 20)}” ${Math.round(b.width)}×${Math.round(b.height)}`);
       }
     }

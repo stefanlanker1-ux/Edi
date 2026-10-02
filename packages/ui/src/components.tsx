@@ -1,5 +1,6 @@
 // Grundbausteine: Button, Card, Switch, Segmented, Stepper, Badge, Chip, Stars, ProgressBar, ResultBar.
 
+import { tr } from "./i18n.ts";
 import { useId, useState, type ButtonHTMLAttributes, type ReactNode, type Ref } from "react";
 import { Icon, type IconName } from "./icons.tsx";
 
@@ -127,7 +128,7 @@ export function Note({ icon = "bulb", tone = "info", children }: { icon?: IconNa
 
 /** Eine Karte mit Registern: immer nur ein Bereich sichtbar (statt vieler Karten untereinander). */
 export interface PanelTab { id: string; label: ReactNode; content: ReactNode }
-export function Panel({ tabs, value, onChange, className, label = "Bereiche" }: {
+export function Panel({ tabs, value, onChange, className, label }: {
   tabs: PanelTab[]; value?: string; onChange?: (id: string) => void; className?: string; label?: string;
 }) {
   const [own, setOwn] = useState(tabs[0]?.id);
@@ -138,7 +139,7 @@ export function Panel({ tabs, value, onChange, className, label = "Bereiche" }: 
   return (
     <section className={cx("ui-card ui-panel", className)}>
       {tabs.length > 1 && (
-        <div className="ui-panel-tabs" role="tablist" aria-label={label}>
+        <div className="ui-panel-tabs" role="tablist" aria-label={label ?? tr("Bereiche", "Sections")}>
           {tabs.map(t => (
             <button key={t.id} type="button" role="tab" aria-selected={t.id === active.id} className={cx("ui-panel-tab", t.id === active.id && "active")} onClick={() => pick(t.id)}>{t.label}</button>
           ))}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@lern/ui";
+import { tr } from "@lern/ui";
 import type { Answered, Submit } from "./types.ts";
 
 /** Zahl als Eingabe: ganze Zahl (Standard) oder Dezimalzahl mit Komma oder Punkt, optional mit Einheit dahinter.
@@ -29,10 +30,10 @@ export function NumberAnswer({ answer, answered, submit, unit, decimal = false, 
       submit({ ok: equal(n, answer), values: { n } });
     }}>
       {decimal
-        ? <input type="text" inputMode="decimal" value={shown} disabled={!!answered} aria-label={unit ? `Antwort in ${unit}` : "Antwort"} onChange={e => setV(e.target.value)} autoFocus />
-        : <input type="number" inputMode="numeric" min={0} max={max} value={shown} disabled={!!answered} aria-label="Antwort" onChange={e => setV(e.target.value)} autoFocus />}
+        ? <input type="text" inputMode="decimal" value={shown} disabled={!!answered} aria-label={unit ? tr(`Antwort in ${unit}`, `Answer in ${unit}`) : tr("Antwort", "Answer")} onChange={e => setV(e.target.value)} autoFocus />
+        : <input type="number" inputMode="numeric" min={0} max={max} value={shown} disabled={!!answered} aria-label={tr("Antwort", "Answer")} onChange={e => setV(e.target.value)} autoFocus />}
       {unit && <span className="num-unit">{unit}</span>}
-      {!answered && <Button variant="primary" icon="check" type="submit" disabled={!ready}>Prüfen</Button>}
+      {!answered && <Button variant="primary" icon="check" type="submit" disabled={!ready}>{tr("Prüfen", "Check")}</Button>}
     </form>
   );
 }

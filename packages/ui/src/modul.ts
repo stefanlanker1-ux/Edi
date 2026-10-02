@@ -11,6 +11,9 @@ export interface LernModule {
   name: string;
   /** ein Satz für die Übersicht (Tooltip, Vorlesen) */
   desc: string;
+  /** Name und Satz auf Englisch */
+  nameEn: string;
+  descEn: string;
   /** localStorage-Schlüssel des Moduls – nie umbenennen ohne Übernahme des alten Stands */
   storage: string[];
   /** Bild auf der Kachel der Übersicht (klein, wird sofort geladen) */

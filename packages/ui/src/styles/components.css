@@ -354,3 +354,8 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 .ui-callout { position: absolute; display: flex; align-items: center; justify-content: center; box-sizing: border-box;
   padding: 0 6px; background: var(--surface); border: 1px solid var(--text); border-radius: var(--radius-sm);
   font-size: 13px; font-weight: 600; line-height: 1; white-space: nowrap; color: var(--text); letter-spacing: 0; word-spacing: 0; }
+
+/* Sprache DE/EN: beide Kürzel, die aktive kräftig */
+.ui-lang { width: auto; min-width: 44px; padding: 0 6px; gap: 3px; display: inline-flex; font-weight: 800; font-size: .78rem; letter-spacing: .02em; }
+.ui-lang span { color: var(--muted); font-weight: 600; }
+.ui-lang span.on { color: var(--text); font-weight: 850; }

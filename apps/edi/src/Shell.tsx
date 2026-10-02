@@ -3,9 +3,9 @@
 // als <html data-modul="…"> am Dokument – nur dann gelten seine Stile (scripts/modul-scope.ts).
 
 import { Component, Suspense, lazy, useLayoutEffect, useSyncExternalStore, type ComponentType, type LazyExoticComponent, type ReactNode } from "react";
-import { HomeLink, type LernModule } from "@lern/ui";
+import { HomeLink, tr, useLang, type LernModule } from "@lern/ui";
 import { MODULES, moduleById } from "./modules.ts";
-import { Overview } from "./Overview.tsx";
+import { Overview, modName } from "./Overview.tsx";
 
 const subscribe = (cb: () => void) => { addEventListener("hashchange", cb); return () => removeEventListener("hashchange", cb); };
 const getHash = () => location.hash;
@@ -40,16 +40,17 @@ export function preloadModules() {
 
 function ModuleView({ m }: { m: LernModule }) {
   const View = viewOf(m);
+  const lang = useLang();
   useLayoutEffect(() => {
     const html = document.documentElement;
     html.dataset.modul = m.id;
-    document.title = `${m.name} – Edi`;
+    document.title = `${modName(m)} – Edi`;
     scrollTo(0, 0);
     return () => { delete html.dataset.modul; };
-  }, [m]);
+  }, [m, lang]);
   return (
     <HomeLink.Provider value="#/">
-      <LoadError name={m.name}>
+      <LoadError name={modName(m)}>
         <Suspense fallback={<div className="edi-loading" aria-busy="true" />}>
           <View />
         </Suspense>
@@ -67,10 +68,10 @@ class LoadError extends Component<{ name: string; children: ReactNode }, { faile
     return (
       <div className="edi-error" role="alert">
         <h1>{this.props.name}</h1>
-        <p>Konnte nicht geladen werden.</p>
+        <p>{tr("Konnte nicht geladen werden.", "Could not be loaded.")}</p>
         <div className="edi-error-actions">
-          <button type="button" className="ui-btn ui-btn-primary" onClick={() => location.reload()}>Neu laden</button>
-          <a className="ui-btn ui-btn-soft" href="#/">Übersicht</a>
+          <button type="button" className="ui-btn ui-btn-primary" onClick={() => location.reload()}>{tr("Neu laden", "Reload")}</button>
+          <a className="ui-btn ui-btn-soft" href="#/">{tr("Übersicht", "All apps")}</a>
         </div>
       </div>
     );

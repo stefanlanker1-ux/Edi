@@ -7,7 +7,7 @@
   padding: max(20px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
   display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 14px;
 }
-.ov-head { display: grid; gap: 4px; border-bottom: 4px solid var(--rule); padding-bottom: 12px; }
+.ov-head { position: relative; display: grid; gap: 4px; border-bottom: 4px solid var(--rule); padding-bottom: 12px; }
 .ov-kicker { margin: 0; color: var(--signal); font-size: .78rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
 .ov-head h1 { font-size: clamp(2rem, min(11vw, 7svh), 5.5rem); font-weight: 900; letter-spacing: -.055em; line-height: .9; }
 
@@ -54,3 +54,5 @@
 .edi-error h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -.03em; border-bottom: 4px solid var(--rule); padding-bottom: 8px; }
 .edi-error p { margin: 0; color: var(--muted); }
 .edi-error-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Sprache oben rechts in der Übersicht */
+.ov-lang { position: absolute; top: 0; right: 0; }

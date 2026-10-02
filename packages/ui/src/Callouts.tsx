@@ -3,6 +3,7 @@
 // neu gemessen (auch nach dem Einpassen per Fit). Bezugsrahmen ist das umgebende Element (position: relative).
 // Die Beschriftung lässt Tippen durch (pointer-events: none).
 
+import { tr } from "./i18n.ts";
 import { useLayoutEffect, useRef, useState } from "react";
 
 export interface Callout {
@@ -135,7 +136,7 @@ export function Callouts({ items, solved = false }: { items: Callout[]; solved?:
   if (!shown.length) return null;
   return (
     <div className="ui-callouts" ref={self}>
-      <p className="sr-only">Beschriftung: {shown.map(c => c.text).join(", ")}</p>
+      <p className="sr-only">{tr("Beschriftung", "Labels")}: {shown.map(c => c.text).join(", ")}</p>
       <svg className="ui-callouts-lines" aria-hidden="true">
         {placed.map((p, i) => {
           // Spitze kurz vor dem Ziel, damit sie das Teil nicht verdeckt

@@ -6,6 +6,7 @@
 // Den Link zur Übersicht liefert die App-Hülle über den Kontext HomeLink (modul.ts).
 // Farbschema und Beamer werden bewusst nicht gespeichert: die App startet hell und ohne Beamer-Modus.
 
+import { tr, useLang } from "./i18n.ts";
 import { StrictMode, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { AppShell, type ShellTab } from "./AppShell.tsx";
@@ -70,6 +71,7 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   children: ReactNode;
 }) {
   const { theme, beamer } = useDisplay();
+  const lang = useLang();
   const homeHref = useContext(HomeLink);
   useEffect(() => applyTheme(theme), [theme]);
   useEffect(() => { document.documentElement.toggleAttribute("data-beamer", beamer); }, [beamer]);
@@ -98,13 +100,13 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
         {stufe && <Segmented<S> label="Level" value={stufe.value} onChange={stufe.onChange} options={stufe.options ?? (US_OS as StufeSwitch<S>["options"] & object)} />}
         {actions}
         <IconButton icon="screen" className={`only-wide${beamer ? " pressed" : ""}`} aria-pressed={beamer}
-          label={beamer ? "Beamer-Modus beenden" : "Beamer-Modus: größere Schrift, stärkere Kontraste"} onClick={() => setDisplay({ beamer: !beamer })} />
-        <IconButton icon={theme === "light" ? "moon" : "sun"} label={theme === "light" ? "Dunkles Farbschema" : "Helles Farbschema"}
+          label={beamer ? tr("Beamer-Modus beenden", "Projector mode off") : tr("Beamer-Modus: größere Schrift, stärkere Kontraste", "Projector mode: larger text, stronger contrast")} onClick={() => setDisplay({ beamer: !beamer })} />
+        <IconButton icon={theme === "light" ? "moon" : "sun"} label={theme === "light" ? tr("Dunkles Farbschema", "Dark theme") : tr("Helles Farbschema", "Light theme")}
           onClick={() => setDisplay({ theme: theme === "light" ? "dark" : "light" })} />
       </>}>
       {children}
-      {guide && <Guide key={`${guide.title}|${stufeValue ?? ""}`} def={guide} open={guideOpen} onClose={() => setGuideOpen(false)} onFinish={finish}
-        finishLabel={quizTab ? "Zum Quiz" : "Fertig"} />}
+      {guide && <Guide key={`${guide.title}|${stufeValue ?? ""}|${lang}`} def={guide} open={guideOpen} onClose={() => setGuideOpen(false)} onFinish={finish}
+        finishLabel={quizTab ? tr("Zum Quiz", "To the quiz") : tr("Fertig", "Done")} />}
     </AppShell>
   );
 }

@@ -15,3 +15,4 @@ export * from "./modul.ts";
 export * from "./Guide.tsx";
 export * from "./Callouts.tsx";
 export * from "./guideCheck.ts";
+export * from "./i18n.ts";

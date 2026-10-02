@@ -4,6 +4,7 @@
 
 import { Component, type ReactNode } from "react";
 import { Button } from "./components.tsx";
+import { tr } from "./i18n.ts";
 
 const TRIED = "lern-rescue";
 
@@ -36,10 +37,10 @@ export class Rescue extends Component<{ storage?: string[]; children: ReactNode 
     if (!this.state.failed) return this.props.children;
     return (
       <div className="ui-rescue ui-card" role="alert">
-        <h2>Hier hakt etwas.</h2>
+        <h2>{tr("Hier hakt etwas.", "Something went wrong.")}</h2>
         <div className="ui-rescue-btns">
-          <Button onClick={() => this.setState({ failed: false })}>Nochmal</Button>
-          <Button variant="primary" onClick={this.restart}>Neu starten</Button>
+          <Button onClick={() => this.setState({ failed: false })}>{tr("Nochmal", "Try again")}</Button>
+          <Button variant="primary" onClick={this.restart}>{tr("Neu starten", "Restart")}</Button>
         </div>
       </div>
     );

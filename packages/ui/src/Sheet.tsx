@@ -1,5 +1,6 @@
 // Modaler Dialog – auf schmalen Bildschirmen als Bottom-Sheet.
 
+import { tr } from "./i18n.ts";
 import { useEffect, useRef, type ReactNode } from "react";
 import { IconButton } from "./components.tsx";
 
@@ -31,7 +32,7 @@ export function Sheet({ open, title, onClose, wide, children }: { open: boolean;
         <div className="ui-sheet-inner">
           <header className="ui-sheet-head">
             <h2>{title}</h2>
-            <IconButton icon="close" label="Schließen" onClick={onClose} />
+            <IconButton icon="close" label={tr("Schließen", "Close")} onClick={onClose} />
           </header>
           <div className="ui-sheet-body">{children}</div>
         </div>
