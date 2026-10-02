@@ -1,6 +1,6 @@
 # Reaktionsgleichungen
 
-Reaktionsgleichungen ausgleichen für die Unterstufe: Die Atombilanz zeigt je Element ein Kästchen pro Atom links (gefüllt) und rechts (umrandet).
+Reaktionsgleichungen ausgleichen (Level I und II): Die Atombilanz zeigt je Element ein Kästchen pro Atom links (gefüllt) und rechts (umrandet).
 Mit den Zählern unter der Gleichung setzt man die Koeffizienten, bis jede Zeile ✓ zeigt – mit kleinsten ganzen Zahlen.
 
 - **Ausgleichen:** 31 typische Reaktionen (Synthese, Analyse, Umsetzung), Stoffnamen, „So geht's“, Auflösen und Zurücksetzen

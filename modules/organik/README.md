@@ -1,4 +1,4 @@
-# Benennung
+# Nomenklatur
 
 Organische Verbindungen zeichnen und benennen – Name nach IUPAC (mit E/Z) und Lösungsweg.
 

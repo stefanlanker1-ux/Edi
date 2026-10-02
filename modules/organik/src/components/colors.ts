@@ -1,15 +1,15 @@
 // Farben für „Farbe“: jeder Teil des Namens (Stamm, Endung, jede Vorsilbe) hat eine Farbe aus der Palette –
-// dieselbe im Namen und in der Formel. Stamm gelb (wie die hinterlegte Hauptkette), Hauptgruppe rot, Vorsilben der Reihe nach.
+// dieselbe im Namen (kräftige Schrift) und in der Formel. Stamm blau, Hauptgruppe rot, Vorsilben der Reihe nach.
 
 import type { NameOk } from "../chem/naming.ts";
 
 export type Hue = "red" | "yellow" | "blue" | "green" | "violet" | "teal" | "orange" | "grey";
-const PREFIX_HUES: Hue[] = ["blue", "green", "violet", "teal", "orange", "grey"];
+const PREFIX_HUES: Hue[] = ["green", "violet", "teal", "orange", "yellow", "grey"];
 
 export interface Coloring { hueOf: Record<string, Hue>; atomHue: Map<number, Hue> }
 
 export function coloring(r: NameOk): Coloring {
-  const hueOf: Record<string, Hue> = { parent: "yellow", principal: "red", alkyl: "teal" };
+  const hueOf: Record<string, Hue> = { parent: "blue", principal: "red", alkyl: "orange" };
   let i = 0;
   for (const p of r.parts) if (p.key && !hueOf[p.key]) hueOf[p.key] = PREFIX_HUES[i++ % PREFIX_HUES.length];
   // Vorrang: Hauptgruppe vor Vorsilben vor Stamm (das C der COOH-Gruppe gehört zur Kette und zur Gruppe)

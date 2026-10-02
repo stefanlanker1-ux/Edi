@@ -5,7 +5,7 @@ import { Card } from "./card.tsx";
 
 export const modul: LernModule = {
   id: "organik",
-  name: "Benennung",
+  name: "Nomenklatur",
   desc: "Organische Verbindungen zeichnen und benennen: Hauptkette, funktionelle Gruppen, Nummerierung – Name nach IUPAC mit Lösungsweg.",
   storage: ["organik-v1", "organik-quiz"],
   Card,

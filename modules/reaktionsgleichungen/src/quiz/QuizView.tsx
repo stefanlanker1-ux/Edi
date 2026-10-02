@@ -41,7 +41,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe={stufe}
-      title={`Quiz · ${os ? "Oberstufe" : "Unterstufe"}`}
+      title={`Quiz · ${os ? "Level II" : "Level I"}`}
       useQuiz={useQuiz}
       levels={LEVELS[stufe]}
       levelName={l => levelName(stufe, l)}

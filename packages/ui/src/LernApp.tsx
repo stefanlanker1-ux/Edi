@@ -47,11 +47,11 @@ export function useDisplay(): Display {
 export interface StufeSwitch<S extends string> {
   value: S;
   onChange: (s: S) => void;
-  /** Standard: Unterstufe / Oberstufe */
+  /** Standard: Level I / Level II */
   options?: { value: S; label: string; short?: string }[];
 }
 
-const US_OS = [{ value: "us", label: "Unterstufe", short: "US" }, { value: "os", label: "Oberstufe", short: "OS" }];
+const US_OS = [{ value: "us", label: "Level I", short: "I" }, { value: "os", label: "Level II", short: "II" }];
 
 export function LernApp<T extends string, S extends string = "us" | "os">({ name, logo, tabs, tab, onTab, storage, stufe, actions, guide, children }: {
   name: string;
@@ -95,7 +95,7 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
       lead={guide && <GuideButton fresh={fresh} onClick={() => setGuideOpen(true)} />}
       onTab={t => { onTab(t); window.scrollTo({ top: 0 }); }}
       actions={<>
-        {stufe && <Segmented<S> label="Schulstufe" value={stufe.value} onChange={stufe.onChange} options={stufe.options ?? (US_OS as StufeSwitch<S>["options"] & object)} />}
+        {stufe && <Segmented<S> label="Level" value={stufe.value} onChange={stufe.onChange} options={stufe.options ?? (US_OS as StufeSwitch<S>["options"] & object)} />}
         {actions}
         <IconButton icon="screen" className={`only-wide${beamer ? " pressed" : ""}`} aria-pressed={beamer}
           label={beamer ? "Beamer-Modus beenden" : "Beamer-Modus: größere Schrift, stärkere Kontraste"} onClick={() => setDisplay({ beamer: !beamer })} />

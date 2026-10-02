@@ -1,10 +1,15 @@
-// App-State der Benennung. Gespeichert (organik-v1): Zeichnung, Stift, Ansicht, ob der Name gezeigt wird.
+// App-State der Nomenklatur. Gespeichert (organik-v1): Zeichnung, Stift, Ansicht, ob der Name gezeigt wird, Farbe.
+// Start: Gerüstformel mit Farbe und einem Beispiel (2-Methyl-3-oxohexansäure), Name sichtbar.
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import type { El, Mol } from "./chem/mol.ts";
 import type { RingKind } from "./chem/edit.ts";
 import type { View } from "./components/MolSvg.tsx";
+import { exampleMol } from "./chem/examples.ts";
+
+/** Startbeispiel: 2-Methyl-3-oxohexansäure */
+export const START = "OC(=O)C(C)C(=O)CCC";
 
 export type Tab = "zeichnen" | "quiz";
 export type Pen = El | RingKind;
@@ -39,14 +44,14 @@ const MAX_PAST = 60;
 
 export const useApp = create<State>()(persist(set => ({
   tab: "zeichnen",
-  mol: { atoms: [], bonds: [] },
+  mol: exampleMol(START),
   past: [],
   pen: "C",
   extra: "Cl",
   mode: "add",
-  view: "lewis",
-  shown: false,
-  color: false,
+  view: "skelett",
+  shown: true,
+  color: true,
   setColor: color => set({ color }),
   setTab: tab => set({ tab }),
   setMol: mol => set(s => ({ mol, past: [...s.past, s.mol].slice(-MAX_PAST) })),
@@ -59,13 +64,22 @@ export const useApp = create<State>()(persist(set => ({
   show: shown => set({ shown }),
 }), {
   name: "organik-v1",
-  version: 1,
+  version: 2,
+  // ältere Stände: einmal auf den neuen Start (Gerüst, Farbe); leere Zeichnung → Beispiel
+  migrate: (saved, v) => {
+    const st = (saved ?? {}) as Partial<State>;
+    if (v < 2) {
+      const empty = !st.mol?.atoms?.length;
+      return { ...st, view: "skelett", color: true, ...(empty ? { mol: exampleMol(START), shown: true } : {}) };
+    }
+    return st;
+  },
   storage: createJSONStorage(() => localStorage),
   partialize: s => ({ mol: s.mol, pen: s.pen, extra: s.extra, view: s.view, shown: s.shown, color: s.color }),
   merge: (saved, current) => {
     const m = { ...current, ...(saved as Partial<State>) };
     if (!m.mol || !Array.isArray(m.mol.atoms) || !Array.isArray(m.mol.bonds)) m.mol = { atoms: [], bonds: [] };
-    if (m.view !== "lewis" && m.view !== "skelett") m.view = "lewis";
+    if (m.view !== "lewis" && m.view !== "skelett") m.view = "skelett";
     return m;
   },
 }));

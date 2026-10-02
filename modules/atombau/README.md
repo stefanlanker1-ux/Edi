@@ -1,6 +1,6 @@
 # Atombau
 
-Atome bauen, Periodensystem entdecken, Wissen im Quiz testen – für Unter- und Oberstufe.
+Atome bauen, Periodensystem entdecken, Wissen im Quiz testen – für Level I und Level II.
 
 ## Entwickeln
 Modul der App Edi (`apps/edi`), Adresse `#/atombau`.

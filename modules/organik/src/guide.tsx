@@ -174,7 +174,7 @@ const STEPS: GuideStep[] = [
 ];
 
 export const GUIDE: GuideDef = {
-  title: "Benennung",
+  title: "Nomenklatur",
   steps: STEPS,
   outro: [
     "Stamm nach der Zahl der C in der **längsten Kette**.",

@@ -23,7 +23,7 @@ const Logo = () => (
 export function App() {
   const { tab, setTab } = useApp();
   return (
-    <LernApp name="Benennung" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["organik-v1", "organik-quiz"]} guide={GUIDE}>
+    <LernApp name="Nomenklatur" logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["organik-v1", "organik-quiz"]} guide={GUIDE}>
       {tab === "zeichnen" && <DrawView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

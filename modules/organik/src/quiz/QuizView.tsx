@@ -56,7 +56,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe="us"
-      title="Quiz · Benennung"
+      title="Quiz · Nomenklatur"
       useQuiz={useQuiz}
       levels={LEVELS}
       levelName={levelName}

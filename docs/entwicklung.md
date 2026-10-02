@@ -262,7 +262,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): protolyse, protonen (OS), restName, restLadung, hydroxid, bauen (Bausteine, Fallen 1 : 1 / vertauscht / nicht gekürzt),
   wasser, koeffizient (OS), salz, salzName, gleichung. Namensfallen nur mit Ionen, die es gibt (-id/-it/-at, Hydrogen-Formen nur beim Schwefel, Formiat ↔ Acetat). Säuretabelle als Hilfsmittel nur Oberstufe und nur bei Aufgaben, die nicht nach Namen/Ladung der Säurereste fragen.
 
-## Benennung (`modules/organik`)
+## Nomenklatur (`modules/organik`)
 - Organische Verbindungen frei zeichnen, der Name folgt nach IUPAC (deutsche Schreibweise: Benzen, Oct, Ethansäure, Butansäureethylester), mit weiteren Namen
   (Trivialname, Benzol-Schreibweise, ältere Schreibweise 2-Propanol, Diethylether, Ethylamin, Ethylbutanoat), Summenformel nach Hill und Stoffklassen. Kein 3D.
 - Logik in `src/chem/`: `mol.ts` (Graph ohne H, Wertigkeit, NO₂ als Baustein mit einer Bindung), `rings.ts` (nur Einzelringe: Cycloalkane, Benzen,
@@ -294,9 +294,11 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Zeichnen: Atom antippen = Stift anhängen, in der Lewis-Formel ein H antippen = Stift genau dort anhängen, vom Atom ziehen = neue Bindung, im Modus Tauschen ziehen = Atom verschieben; Meldung oben sagt, warum etwas nicht geht (Wertigkeit voll …), Erfolg vibriert kurz; Knopf „Ordnen“ zeichnet neu im Zickzack; in 30°-Schritten, auf ein Atom ziehen = Ring schließen; Stifte C O N S + zuletzt gewählter
   (Mehr: F Cl Br I NO₂, Benzolring, Sechs-, Fünfring); Modus Anfügen | Tauschen | Löschen (Löschen/Tauschen: Atome gestrichelt markiert). Fester Maßstab (Bindung ≈ 56 px, Tippziele ≥ 48 px), das Bild verschiebt bzw. verkleinert sich nur,
   wenn die Zeichnung nicht passt; Bindung/H zählen nur, wenn der Finger auf demselben Ziel aufsetzt und loslässt. Lewis-Formel (alle H, freie Elektronenpaare als Striche) oder Gerüstformel.
-  Name erst nach „Benennen“, danach live; Knopf „Farbe“ (gespeichert): jeder Teil des Namens hat eine Farbe – Stamm gelb, Hauptgruppe rot, jede Vorsilbe
+  Name erst nach „Benennen“, danach live; Knopf „Farbe“ (gespeichert): jeder Teil des Namens hat eine Farbe – Stamm blau, Hauptgruppe rot, jede Vorsilbe
   (Methyl, Ethyl, Hydroxy, Oxo …) und der Alkylteil des Esters eigene –, dieselbe Farbe im Namen und an den Atomen der Formel (`NamePart`/`groupsByKey` aus naming.ts, `components/colors.ts`); Hauptkette hinterlegt, Nummern rot, Hauptgruppe markiert. Werkzeuge: Beispiele (nach Stoffklasse) | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht | Zurück | Neu.
-  Gespeichert (`organik-v1`): Zeichnung, Stift, Ansicht, Name sichtbar.
+  Start: Gerüstformel, Farbe an, Beispiel 2-Methyl-3-oxohexansäure mit Name (`START` im Store; ältere Stände einmal umgestellt).
+  Name in Farbe = farbige, kräftige Schrift (keine hinterlegte Fläche); Stamm blau, Hauptgruppe rot, Vorsilben grün/violett/grünblau …
+  Gespeichert (`organik-v1`): Zeichnung, Stift, Ansicht, Name sichtbar, Farbe.
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): stamm, kette (Zahl), alkan, alken, lage (Zahl), klasse, endung, gruppen, ester, prio, mehrere, struktur (Name → Formel,
   Antworten als Gerüstformel). Falsche Namen kommen aus der Benennung selbst. Hilfsmittel: Groß (Formel bildschirmfüllend), Regeln (Stämme nicht bei stamm, Rangfolge nicht bei klasse/endung/prio).
 

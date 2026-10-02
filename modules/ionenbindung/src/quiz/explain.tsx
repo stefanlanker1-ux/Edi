@@ -32,7 +32,7 @@ const TEXT: Record<string, Ex> = {
     "**Mehratomige Ionen** tragen die Ladung als Ganzes: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
   ] },
   "os-2": { c: "Al3+", a: "SO42-", points: [
-    "Wie in der Unterstufe: Ladungen ausgleichen, bis beide Reihen gleich lang sind (kleinstes gemeinsames Vielfaches).",
+    "Wie in Level I: Ladungen ausgleichen, bis beide Reihen gleich lang sind (kleinstes gemeinsames Vielfaches).",
     "Braucht man ein mehratomiges Ion mehrmals, kommt es **in Klammern**: Ca(OH)₂, Al₂(SO₄)₃ – nicht CaOH₂!",
     "Die Zahlen im Ion (z. B. die 4 in SO₄) ändern sich nie.",
   ] },
