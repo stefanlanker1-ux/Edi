@@ -56,7 +56,7 @@
 .d-head { display: flex; align-items: center; gap: 12px; border-radius: var(--radius-md); padding: 10px; }
 .d-title { flex: 1; min-width: 0; }
 .d-sym { display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--surface) 65%, transparent); position: relative; flex: none; }
-.d-z { position: absolute; top: 5px; left: 9px; font-size: .75rem; font-weight: 700; }
+.d-z { position: absolute; bottom: 5px; left: 7px; font-size: .75rem; font-weight: 700; }
 .d-s { font-size: 1.6rem; font-weight: 750; }
 .d-name { font-size: 1.2rem; font-weight: 750; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .d-head .ui-badge { background: color-mix(in srgb, var(--surface) 70%, transparent); }

@@ -41,6 +41,7 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
           <button key={e.Z} type="button" className={`pse-cell ${trend ? "trend" : blocks ? `blk-${blockOf(e.Z)}` : `cat-${e.category}`}${t !== undefined && t !== null && t > 0.55 ? " on-dark" : ""}${st ? ` ${st}` : ""}`}
             style={{ gridColumn: col, gridRow: row, background: bg }} disabled={disabled} aria-pressed={st === "sel" || undefined}
             aria-label={`${e.name}, Ordnungszahl ${e.Z}${trend ? `, ${TRENDS[trend.key].label} ${val ?? "unbekannt"}` : ""}`} onClick={() => onPick?.(e.Z)}>
+            {/* Ordnungszahl unten links – wie im Atomsymbol (₆C); oben links stünde die Massenzahl */}
             <span className="pc-z">{e.Z}</span>
             <span className="pc-sym">{e.symbol}</span>
             {trend

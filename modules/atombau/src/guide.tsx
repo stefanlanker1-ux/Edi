@@ -73,10 +73,10 @@ const US: GuideStep[] = [
     ok: "6 Protonen – damit ist es Kohlenstoff.",
   },
   {
-    say: "Im Periodensystem steht über jedem Element die **Ordnungszahl** = Zahl der Protonen.",
+    say: "Im Periodensystem steht **unten links** vor jedem Symbol die **Ordnungszahl** = Zahl der Protonen.",
     ask: "Tippe das Element mit **6 Protonen** an.", answer: "6",
     visual: c => <Pse c={c} stufe="us" answer={6} />,
-    tip: "Die kleine Zahl oben links in jedem Feld ist die Ordnungszahl.",
+    tip: "Die kleine Zahl unten links vor dem Symbol ist die Ordnungszahl.",
     ok: "Ordnungszahl = Protonenzahl: 6 → Kohlenstoff (C).",
   },
   {
@@ -192,7 +192,7 @@ const OS: GuideStep[] = [
     ok: "16 − (−2) = 18 Elektronen: das Sulfid-Ion S²⁻.",
   },
   {
-    say: "Langperiodensystem: **Gruppen 1–18**, **Perioden 1–6**. Die Ordnungszahl steht über jedem Element.",
+    say: "Langperiodensystem: **Gruppen 1–18** (Spalten), **Perioden 1–6** (Zeilen).",
     ask: "Tippe auf das Element in der **4. Periode** und **Gruppe 16**.", answer: "34",
     visual: c => <Pse c={c} stufe="os" answer={34} />,
     tip: "Perioden sind die Zeilen (links nummeriert), Gruppen die Spalten (oben nummeriert).",
