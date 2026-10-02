@@ -35,6 +35,29 @@ function Glide({ p, c }: { p: Pic; c: GuideCtx }) {
   return <div className="gm-g gm-slow"><Fit className="gm-g-pic" min={0.2}><Beaker sim={sim} label={label} /></Fit></div>;
 }
 
+/** Milch: im Glas einheitlich weiß, unter dem Mikroskop Fetttröpfchen in Wasser (Emulsion) */
+function Milk() {
+  // Tröpfchen fest verteilt (verschiedene Größen, keine Überlappung)
+  const drops: [number, number, number][] = [[214, 62, 9], [246, 84, 13], [278, 58, 7], [205, 104, 11], [238, 124, 8], [272, 110, 10], [300, 92, 8], [226, 158, 10], [262, 150, 12], [296, 140, 7], [192, 136, 7], [252, 186, 8], [284, 176, 9]];
+  return (
+    <div className="gm-g">
+      <Fit className="gm-g-pic" min={0.3}>
+        <svg className="gm-milk" viewBox="0 0 340 236" role="img" aria-label={tr("Milch im Glas und unter dem Mikroskop: Fetttröpfchen in Wasser", "Milk in a glass and under the microscope: fat droplets in water")}>
+          <path d="M24 38 L34 196 Q36 206 46 206 L94 206 Q104 206 106 196 L116 38" className="gm-milk-glass" />
+          <path d="M28 70 L34 196 Q36 206 46 206 L94 206 Q104 206 106 196 L112 70 Z" className="gm-milk-liq" />
+          <text x={70} y={228} className="gm-milk-cap">{tr("Glas", "Glass")}</text>
+          <circle cx={70} cy={130} r={16} className="gm-milk-zoom" />
+          <path d="M86 126 L176 96 M86 136 L176 170" className="gm-milk-ray" />
+          <circle cx={248} cy={120} r={84} className="gm-milk-water" />
+          {drops.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} className="gm-milk-fat" />)}
+          <circle cx={248} cy={120} r={84} className="gm-milk-lens" />
+          <text x={248} y={228} className="gm-milk-cap">{tr("Mikroskop", "Microscope")}</text>
+        </svg>
+      </Fit>
+    </div>
+  );
+}
+
 const LOESEN: Pic = { mix: [["H2O", 17], ["C12H22O11", 3]], state: "fluessig", before: "kristall", solute: "C12H22O11" };
 const GASE: Pic = { mix: [["Ar", 9], ["CO2", 4]], state: "gas", before: "getrennt" };
 const SPREAD = () => tr("Sie verteilen sich im Wasser.", "They spread through the water."), VANISH = () => tr("Sie verschwinden.", "They disappear."), SINK = () => tr("Sie bleiben unten liegen.", "They stay at the bottom.");
@@ -113,6 +136,8 @@ const STEPS: GuideStep[] = [
   },
   {
     ask: tr("Was ist **Milch**?", "What is **milk**?"), answer: tr("heterogenes Gemisch", "heterogeneous mixture"), options: [tr("homogenes Gemisch", "homogeneous mixture"), tr("heterogenes Gemisch", "heterogeneous mixture"), tr("Reinstoff", "Pure substance")],
+    visual: () => <Milk />,
+    labels: [{ at: ".gm-milk-fat", text: tr("Fetttröpfchen", "Fat droplet"), side: "right" }],
     why: { [tr("homogenes Gemisch", "homogeneous mixture")]: tr("Milch sieht einheitlich aus – unter dem Mikroskop sieht man Fetttröpfchen.", "Milk looks uniform – under the microscope you can see fat droplets."), [tr("Reinstoff", "Pure substance")]: tr("Milch enthält Wasser, Fett, Eiweiß und mehr.", "Milk contains water, fat, protein and more.") },
     ok: tr("Fetttröpfchen in Wasser → heterogen (Emulsion).", "Fat droplets in water → heterogeneous (emulsion)."),
   },
