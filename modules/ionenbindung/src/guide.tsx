@@ -38,7 +38,8 @@ const missing = (cat: string, an: string, nC: number, nA: number, answer: "C" | 
   visual: c => <Wall c={c} cat={cat} an={an} nC={nC} nA={nA} target={answer} />,
   why: { [answer === "C" ? "A" : "C"]: "Dann wird die andere Reihe noch länger. Vergleiche die Breiten." },
   tip: "Vergleiche die Breiten: Bei der kürzeren Reihe fehlt ein Baustein.",
-  labels: [{ at: ".ion-tile.cation", text: "Kation", side: "left", point: "left" }, { at: ".ion-tile.anion", text: "Anion", side: "left", point: "left" }],
+  // Begriffe nur bei schmaler Wand – bei breiter Wand lägen sie auf den Bausteinen
+  labels: nC + nA <= 2 ? [{ at: ".ion-tile.cation", text: "Kation", side: "left", point: "left" }, { at: ".ion-tile.anion", text: "Anion", side: "left", point: "left" }] : undefined,
   ok,
 });
 
@@ -103,7 +104,7 @@ const US: GuideStep[] = [
     ok: "Na₂S = Natriumsulfid (2 Na⁺ für 1 S²⁻).",
   },
   {
-    ask: "Welche Formel hat **Calciumbromid**?", answer: "CaBr₂", options: ["CaBr₂", "CaBr", "Ca₂Br", "CaBr₃"],
+    ask: "Welche Formel hat **Calciumbromid**? Brom steht wie Chlor in der VII. Hauptgruppe.", answer: "CaBr₂", options: ["CaBr₂", "CaBr", "Ca₂Br", "CaBr₃"],
     visual: () => <Pse mark={20} />,
     why: { CaBr: "Ca²⁺ braucht zwei Br⁻.", "Ca₂Br": "Es braucht mehr Bromid-Ionen, nicht mehr Calcium-Ionen.", "CaBr₃": "Ca²⁺ hat nur 2+ – zwei Br⁻ reichen." },
     ok: "Ca²⁺ + 2 Br⁻ → **CaBr₂**.",

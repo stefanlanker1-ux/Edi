@@ -139,6 +139,7 @@ const STEPS: GuideStep[] = [
     say: "Die Farben im Modell sind nur zur Unterscheidung.",
     ask: "Kupfer ist rotbraun. Welche Farbe hat ein **einzelnes Kupferatom**?", answer: "Keine – Farbe hat erst der Stoff",
     options: ["Keine – Farbe hat erst der Stoff", "Rotbraun wie Kupfer", "Orange wie im Modell"],
+    visual: () => <Picture p={{ mix: [["Cu", 8]], state: "fest" }} />,
     why: { "Rotbraun wie Kupfer": "Die Farbe entsteht erst durch sehr viele Atome.", "Orange wie im Modell": "Modellfarben unterscheiden nur die Atomsorten." },
     ok: "Farbe, fest, flüssig – das sind Eigenschaften des Stoffs, nicht eines Teilchens.",
   },

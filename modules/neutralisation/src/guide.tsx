@@ -64,7 +64,7 @@ const US: GuideStep[] = [
     visual: c => <Wall c={c} base="naoh" acid="hcl" nB={1} nA={1} />,
     why: { "2": "Ein OH⁻ und ein H⁺ ergeben ein H₂O." },
     tip: "Jeder Verbindungsstrich zwischen OH⁻ und H⁺ ist ein H₂O.",
-    labels: [{"at": ".nt-oh", "text": "OH⁻ der Lauge", "point": "left", "side": "left"}, {"at": ".nt-h", "text": "H⁺ der Säure", "point": "left", "side": "left"}, {"at": ".nw-link.on", "text": "H⁺ + OH⁻ → H₂O", "side": "right"}],
+    labels: [{"at": ".nt-oh", "text": "OH⁻ der Lauge", "point": "left", "side": "left"}, {"at": ".nt-h", "text": "H⁺ der Säure", "point": "left", "side": "left"}, {"at": ".nw-link.on", "text": "H₂O", "side": "right"}],
     ok: "NaOH + HCl → NaCl + H₂O.",
   },
   missing("caoh2", "hcl", 1, 1, "A",
@@ -75,7 +75,7 @@ const US: GuideStep[] = [
     visual: c => <Wall c={c} base="caoh2" acid="hcl" nB={1} nA={2} />,
     why: { "1": "Es gibt 2 Paare aus OH⁻ und H⁺.", "3": "Zähle die Verbindungsstriche: OH⁻ + H⁺." },
     tip: "Zähle die Verbindungsstriche: jeder ist ein H₂O.",
-    labels: [{"at": ".nw-link.on", "text": "H⁺ + OH⁻ → H₂O", "side": "right"}],
+    labels: [{"at": ".nw-link.on", "text": "H₂O", "side": "right"}],
     ok: "2 OH⁻ + 2 H⁺ → 2 H₂O.",
   },
   {
@@ -144,7 +144,7 @@ const OS: GuideStep[] = [
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={1} />,
     why: { "6": "Jedes H₂SO₄ bringt 2 H⁺: 6 : 2.", "2": "2 H₂SO₄ sind nur 4 H⁺." },
     tip: "Wie viele H⁺ bringt ein H₂SO₄? Teile die OH⁻ durch diese Zahl.",
-    labels: [{"at": ".nt-oh", "text": "OH⁻ der Lauge", "point": "left", "side": "left"}, {"at": ".nt-h", "text": "H⁺ der Säure", "point": "bottom", "side": "bottom"}],
+    labels: [{"at": ".nt-oh", "text": "OH⁻ der Lauge", "point": "left", "side": "left"}, {"at": ".nt-h", "text": "H⁺ der Säure", "point": "right", "side": "right"}],
     ok: "2 Al(OH)₃ + 3 H₂SO₄ → Al₂(SO₄)₃ + 6 H₂O.",
   },
   {
@@ -152,7 +152,6 @@ const OS: GuideStep[] = [
     visual: c => <Wall c={c} base="aloh3" acid="h2so4" nB={2} nA={3} />,
     why: { "3": "Jedes Paar aus OH⁻ und H⁺ gibt ein H₂O: 6.", "5": "6 OH⁻ treffen auf 6 H⁺." },
     tip: "Jedes OH⁻ trifft ein H⁺ und bildet ein H₂O. Zähle die OH⁻.",
-    labels: [{"at": ".nw-link.on", "text": "H⁺ + OH⁻ → H₂O", "side": "right"}],
     ok: "Zahl der H₂O = Zahl der OH⁻ = Zahl der H⁺.",
   },
   missing("caoh2", "h2co3", 1, 1, "A",
@@ -187,7 +186,7 @@ const OS: GuideStep[] = [
     ok: "3 Ba²⁺ (6+) und 2 PO₄³⁻ (6−).",
   },
   {
-    ask: "Kalkwasser + Salpetersäure → **?** + Wasser. Wie heißt das Salz?", answer: "Calciumnitrat", options: ["Calciumnitrat", "Calciumnitrit", "Calciumnitrid"],
+    ask: "Kalkwasser Ca(OH)₂ + Salpetersäure HNO₃ → **?** + Wasser. Wie heißt das Salz?", answer: "Calciumnitrat", options: ["Calciumnitrat", "Calciumnitrit", "Calciumnitrid"],
     why: { Calciumnitrit: "Nitrit ist NO₂⁻. HNO₃ gibt Nitrat NO₃⁻.", Calciumnitrid: "Nitrid ist N³⁻ ohne Sauerstoff." },
     ok: "Ca(OH)₂ + 2 HNO₃ → Ca(NO₃)₂ + 2 H₂O.",
   },

@@ -90,7 +90,8 @@ export function placeCallouts(items: Callout[], host: HTMLElement): Placed[] {
     const pos = (p: Placed) => (vert ? p.y : p.x), size = (p: Placed) => (vert ? p.h : p.w);
     const set = (p: Placed, v: number) => { if (vert) p.y = v; else p.x = v; };
     const max = vert ? Hh - EDGE : W - EDGE;
-    g.sort((a, b) => pos(a) - pos(b));
+    // Reihenfolge der Ziele behalten: sonst kreuzen sich die Pfeile, wenn ein Begriff ausweichen musste
+    g.sort((a, b) => (vert ? a.ty - b.ty : a.tx - b.tx));
     for (let i = 0; i < g.length; i++) set(g[i], Math.max(pos(g[i]), i ? pos(g[i - 1]) + size(g[i - 1]) + GAP : EDGE));
     for (let i = g.length - 1; i >= 0; i--) set(g[i], Math.min(pos(g[i]), (i < g.length - 1 ? pos(g[i + 1]) - GAP : max) - size(g[i])));
     for (const p of g) set(p, Math.max(EDGE, pos(p)));
