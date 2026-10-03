@@ -6,3 +6,10 @@ dist-single/
 site/
 shots/
 
+
+# Signierschlüssel und Schlüssel-Infos nie ins Repo
+*.p12
+*.jks
+*.keystore
+*.aab
+SCHLUESSEL-INFO*
