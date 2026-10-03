@@ -21,7 +21,7 @@ export interface Callout {
   afterSolved?: boolean;
 }
 
-interface Placed { text: string; x: number; y: number; w: number; h: number; tx: number; ty: number; lx: number; ly: number }
+interface Placed { text: string; x: number; y: number; w: number; h: number; tx: number; ty: number; lx: number; ly: number; stop: number }
 
 const H = 24, GAP = 6, EDGE = 4, MIN_ARROW = 26, SHIFT = 44, ABOVE = 14;
 /** Schrift in Zeichnungen (SVG-Text, Atomsymbole, Ionen-Bausteine) – wird von Begriffen nicht verdeckt */
@@ -47,16 +47,17 @@ export function placeCallouts(items: Callout[], host: HTMLElement): Placed[] {
     const fy = pt === "top" ? 0 : pt === "bottom" ? 1 : pt === "ne" || pt === "nw" ? .5 - k : pt === "se" || pt === "sw" ? .5 + k : .5;
     const pts = all.map(el => {
       const r = el.getBoundingClientRect();
-      return r.width || r.height ? { tx: r.left - hr.left + r.width * fx, ty: r.top - hr.top + r.height * fy } : null;
+      // Pfeil auf die Mitte endet am Rand des Teils (sonst liegt die Spitze mitten im Atomsymbol)
+      return r.width || r.height ? { tx: r.left - hr.left + r.width * fx, ty: r.top - hr.top + r.height * fy, stop: pt === "center" ? Math.min(r.width, r.height) / 2 : 0 } : null;
     });
     let t = c.nth === undefined ? null : pts[c.nth < 0 ? pts.length + c.nth : c.nth];
     if (c.nth === undefined) {
       // ohne feste Nummer: das passende Teil, das der Seite des Begriffs am nächsten liegt (kurzer Pfeil, kreuzt wenig)
-      const score = (q: { tx: number; ty: number }) => c.side === "left" ? q.tx : c.side === "right" ? -q.tx : c.side === "top" ? q.ty : c.side === "bottom" ? -q.ty : 0;
+      const score = (q: { tx: number; ty: number; stop: number }) => c.side === "left" ? q.tx : c.side === "right" ? -q.tx : c.side === "top" ? q.ty : c.side === "bottom" ? -q.ty : 0;
       for (const q of pts) if (q && (!t || score(q) < score(t))) t = q;
     }
     if (!t) continue;
-    const { tx, ty } = t;
+    const { tx, ty, stop } = t;
     const side = c.side ?? (tx < W / 2 ? "left" : "right");
     const w = Math.min(widthOf(c.text), W - 2 * EDGE);
     let x = 0, y = 0;
@@ -82,7 +83,7 @@ export function placeCallouts(items: Callout[], host: HTMLElement): Placed[] {
     if (best !== undefined) { if (vert) y = by + best; else x = bx + best; }
     else if (vert) y = ty - H / 2 - SHIFT >= EDGE ? ty - H / 2 - SHIFT : ty - H / 2 + SHIFT;
     x = Math.min(Math.max(EDGE, x), W - w - EDGE);
-    out.push({ text: c.text, x, y, w, h: H, tx, ty, lx: 0, ly: 0, side });
+    out.push({ text: c.text, x, y, w, h: H, tx, ty, lx: 0, ly: 0, stop, side });
   }
   // Begriffe auf derselben Seite nicht übereinander: senkrecht (links/rechts) bzw. waagrecht (oben/unten) auseinanderschieben
   for (const side of ["left", "right", "top", "bottom"]) {
@@ -139,14 +140,14 @@ export function Callouts({ items, solved = false }: { items: Callout[]; solved?:
       <p className="sr-only">{tr("Beschriftung", "Labels")}: {shown.map(c => c.text).join(", ")}</p>
       <svg className="ui-callouts-lines" aria-hidden="true">
         {placed.map((p, i) => {
-          // Spitze kurz vor dem Ziel, damit sie das Teil nicht verdeckt
-          const dx = p.tx - p.lx, dy = p.ty - p.ly, d = Math.hypot(dx, dy) || 1, s = Math.max(0, d - 3) / d;
+          // Spitze kurz vor dem Rand des Ziels, damit sie das Teil nicht verdeckt (Pfeil bleibt mindestens 12 px lang)
+          const dx = p.tx - p.lx, dy = p.ty - p.ly, d = Math.hypot(dx, dy) || 1, s = Math.max(0, Math.max(Math.min(12, d), d - p.stop - 3)) / d;
           const ex = p.lx + dx * s, ey = p.ly + dy * s, ux = dx / d, uy = dy / d;
           return (
             <g key={i}>
               <line x1={p.lx} y1={p.ly} x2={ex} y2={ey} />
               <polygon points={`${ex},${ey} ${ex - ux * 8 - uy * 4},${ey - uy * 8 + ux * 4} ${ex - ux * 8 + uy * 4},${ey - uy * 8 - ux * 4}`} />
-              <circle cx={p.tx} cy={p.ty} r={2} />
+              {!p.stop && <circle cx={p.tx} cy={p.ty} r={2} />}
             </g>
           );
         })}
