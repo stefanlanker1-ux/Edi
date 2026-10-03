@@ -103,10 +103,18 @@ function teilchen(): Task {
     kind: "num", answer: a.teilchen, pic: m, traps,
     prompt: tr("Wie viele **Teilchen** sind im Bild?", "How many **particles** are in the picture?"),
     hint: tr("Ein Teilchen ist ein Molekül oder ein einzelnes Atom. Zähle jedes Teilchen einmal.", "A particle is a molecule or a single atom. Count each particle once."),
-    tip: tr(`Zähle jede Sorte einzeln: ${list(m.mix.map(([f]) => F(f)))}. Dann zusammenzählen. Ein Molekül zählt als 1.`, `Count each kind separately: ${list(m.mix.map(([f]) => F(f)))}. Then add them up. A molecule counts as 1.`),
+    tip: tr(`Zähle jede Sorte einzeln: ${list(m.mix.map(([f]) => F(f)))}. Dann zusammenzählen.${a.atome > a.teilchen ? " Ein Molekül zählt als 1." : ""}`, `Count each kind separately: ${list(m.mix.map(([f]) => F(f)))}. Then add them up.${a.atome > a.teilchen ? " A molecule counts as 1." : ""}`),
     explain: `${m.mix.map(([f, n]) => `${n} × ${F(f)}`).join(" + ")} = **${a.teilchen} ${tr("Teilchen", a.teilchen === 1 ? "particle" : "particles")}**.`,
-    praise: tr("Jedes Molekül als ein Teilchen gezählt – genau so geht's.", "Each molecule counted as one particle – exactly right."),
+    praise: praiseFor(m.mix),
   };
+}
+
+/** Lob passend zum Bild: einzelne Atome (Edelgase, Metalle) heißen nicht Molekül */
+function praiseFor(mix: [string, number][]) {
+  const single = mix.map(([f]) => analyse([[f, 1]]).atome === 1);
+  if (single.every(Boolean)) return tr("Jedes Atom als ein Teilchen gezählt – genau so geht's.", "Each atom counted as one particle – exactly right.");
+  if (single.some(Boolean)) return tr("Jedes Molekül und jedes einzelne Atom als ein Teilchen gezählt – genau so geht's.", "Each molecule and each single atom counted as one particle – exactly right.");
+  return tr("Jedes Molekül als ein Teilchen gezählt – genau so geht's.", "Each molecule counted as one particle – exactly right.");
 }
 
 function stoffe(): Task {

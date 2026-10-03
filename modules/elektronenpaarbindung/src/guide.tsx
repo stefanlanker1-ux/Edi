@@ -54,7 +54,6 @@ const US = (): GuideStep[] => [
     ask: tr("Was passiert? Sag es vorher!", "What happens? Predict it!"), answer: PAIR(), options: [PAIR(), GIVE(), PUSH()],
     visual: c => <Lewis m={c.solved ? known("H2") : mol([["H", 0, 0], ["H", 2, 0]])} />,
     why: { [GIVE()]: tr("Beide ziehen gleich stark – keiner gibt ab. Sie teilen.", "Both pull equally hard – neither gives away. They share."), [PUSH()]: tr("Die einzelnen Elektronen können sich zu einem Paar verbinden.", "The single electrons can join into a pair.") },
-    hold: true,
     ok: tr("Aus zwei einzelnen Elektronen wird ein **gemeinsames Paar**: H–H.", "Two single electrons become a **shared pair**: H–H."),
   },
   {

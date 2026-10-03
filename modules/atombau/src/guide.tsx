@@ -139,7 +139,6 @@ const US: GuideStep[] = [
     ask: tr("Natrium hat 1 Außenelektron. Was passiert bei einer Reaktion?", "Sodium has 1 outer electron. What happens in a reaction?"), answer: tr("Es gibt 1 Elektron ab.", "It loses 1 electron."),
     options: [tr("Es gibt 1 Elektron ab.", "It loses 1 electron."), tr("Es nimmt 7 Elektronen auf.", "It gains 7 electrons.")],
     visual: c => <BohrOnly Z={11} N={12} E={c.solved ? 10 : 11} />,
-    hold: true,
     why: { [tr("Es nimmt 7 Elektronen auf.", "It gains 7 electrons.")]: tr("Metalle wie Natrium geben ihre wenigen Außenelektronen ab – 1 statt 7 Elektronen umzuordnen.", "Metals like sodium lose their few outer electrons – moving 1 electron instead of 7.") },
     ok: tr("Natrium gibt 1 Elektron ab. Dann ist die volle 2. Schale (8) außen.", "Sodium loses 1 electron. Then the full 2nd shell (8) is on the outside."),
   },

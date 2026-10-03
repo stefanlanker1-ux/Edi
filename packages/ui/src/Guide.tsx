@@ -1,10 +1,9 @@
 // Geführte Erklärung je App („Erklärung“ links in der Kopfzeile): kleine Schritte, jeder verlangt eine Handlung –
 // eine Auswahl antippen, eine Zahl eintippen oder etwas im Bild antippen (mit den Bausteinen der App).
-// Vier Fehlversuche → die Lösung wird markiert, der Schüler tippt sie selbst an. Richtig → kurze Bestätigung,
-// die als grüne Zeile über dem nächsten Schritt stehen bleibt (kein Extra-Klick auf „Weiter“).
+// Vier Fehlversuche → die Lösung wird markiert, der Schüler tippt sie selbst an. Richtig → der Schritt bleibt mit
+// der Bestätigung (und Beschriftungen nach der Lösung) stehen, weiter mit „Weiter“ – Zeit zum Lesen und Anschauen.
 // Ganzer Bildschirm, nie scrollen: Bild füllt den Platz (container-type: size, Zeichnungen mit cqw/cqh oder Fit).
 // Längere Erklärungen in Kapiteln (`part`): Kapitelname im Kopf, Fortschrittsbalken in Abschnitten.
-// `hold`: nach der richtigen Antwort bleibt der Schritt stehen (z. B. Animation ansehen), weiter mit „Weiter“.
 
 import { num, tr } from "./i18n.ts";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
@@ -39,14 +38,12 @@ export interface GuideStep {
   /** Denkanstoß zum Vorgehen, ohne die Lösung zu nennen: bei falschen Antworten ohne eigene Rückmeldung,
    *  ab dem zweiten Fehlversuch zusätzlich zur Rückmeldung */
   tip?: string;
-  /** Bestätigung nach der richtigen Antwort – steht über dem nächsten Schritt */
+  /** Bestätigung nach der richtigen Antwort */
   ok: string;
   /** Hinweis, wenn nach vier Versuchen die Lösung markiert wird */
   show?: string;
   /** Kapitel beginnt mit diesem Schritt (Name im Kopf der Erklärung) */
   part?: string;
-  /** nach der richtigen Antwort stehen bleiben (Bild zeigt z. B. eine Animation), weiter mit „Weiter“ */
-  hold?: boolean;
 }
 
 export interface GuideDef {
@@ -84,10 +81,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const [tries, setTries] = useState(0);
   const [solved, setSolved] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [okLine, setOkLine] = useState<string | null>(null);
   const [val, setVal] = useState("");
   const [shake, setShake] = useState(0);
-  const timer = useRef<number | undefined>(undefined);
   const n = def.steps.length, done = i >= n, step = def.steps[Math.min(i, n - 1)];
   const show = tries >= GUIDE_TRIES && !solved;
 
@@ -109,12 +104,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
     return () => { removeEventListener("popstate", onPop); if (!popped && history.state?.uiGuide) history.back(); };
   }, [open]);
   // jedes Öffnen beginnt vorn
-  // jedes Öffnen beginnt vorn; ein noch laufender Wechsel zum nächsten Schritt wird beim Schließen verworfen
-  useEffect(() => { clearTimeout(timer.current); if (open) { setI(0); reset(); setOkLine(null); } }, [open]);
+  useEffect(() => { if (open) { setI(0); reset(); } }, [open]);
   // Tastatur und Vorlesen: nach jedem Schritt steht der Fokus am neuen Text
   const textRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (open && i > 0) textRef.current?.focus({ preventScroll: true }); }, [i, open]);
-  useEffect(() => () => clearTimeout(timer.current), []);
 
   function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); }
 
@@ -122,7 +115,6 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
     if (solved || done) return;
     if (isRight(step, a)) {
       setSolved(true); setMsg(null); ding(true); buzz();
-      if (!step.hold) timer.current = window.setTimeout(() => { setOkLine(step.ok); setI(k => k + 1); reset(); }, 750);
       return;
     }
     ding(false); buzz(); setShake(s => s + 1);
@@ -136,8 +128,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
       : feedback(step, why, t));
   };
   const ctx: GuideCtx = { pick: id => answer(id), show, solved };
-  /** nach „hold“: Bestätigung steht schon beim Schritt, deshalb nicht noch einmal über dem nächsten */
-  const next = () => { setOkLine(null); setI(k => k + 1); reset(); };
+  const next = () => { setI(k => k + 1); reset(); };
   // Kapitel: Anfang je Kapitel und das aktuelle
   const starts = def.steps.map((s, k) => (s.part || k === 0 ? k : -1)).filter(k => k >= 0);
   const parts = def.steps.some(s => s.part) ? starts.map((k, j) => ({ name: def.steps[k].part ?? "", from: k, to: starts[j + 1] ?? n })) : [];
@@ -161,11 +152,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
           </header>
           {done ? (
             <div className="ui-guide-end">
-              {okLine && <p className="ui-guide-ok"><Icon name="check" size={18} /><span><RichText text={okLine} /></span></p>}
               <h3>{tr("Das kannst du jetzt", "Now you can")}</h3>
               <ul>{def.outro.map((o, k) => <li key={k}><RichText text={o} /></li>)}</ul>
               <div className="ui-guide-end-btns">
-                <Button variant="quiet" icon="reset" onClick={() => { setI(0); reset(); setOkLine(null); }}>{tr("Noch einmal", "Once more")}</Button>
+                <Button variant="quiet" icon="reset" onClick={() => { setI(0); reset(); }}>{tr("Noch einmal", "Once more")}</Button>
                 <Button variant="primary" size="lg" iconRight="arrow" onClick={onFinish}>{finishLabel ?? tr("Zum Quiz", "To the quiz")}</Button>
               </div>
             </div>
@@ -179,7 +169,6 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                 </div>
               )}
               <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
-                {okLine && <p className="ui-guide-ok" key={`ok${i}`}><Icon name="check" size={18} /><span><RichText text={okLine} /></span></p>}
                 {step.say && <p className="ui-guide-say"><RichText text={step.say} /></p>}
                 <p className="ui-guide-ask"><RichText text={step.ask} /></p>
                 {step.options && (
@@ -203,10 +192,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                   </form>
                 )}
                 <p className={`ui-guide-msg${solved ? " right" : show ? " sol" : msg ? " wrong" : ""}`} aria-live="polite">
-                  {solved ? <><Icon name="check" size={18} />{step.hold ? <span><RichText text={step.ok} /></span> : tr("Richtig!", "Correct!")}</>
+                  {solved ? <><Icon name="check" size={18} /><span><RichText text={step.ok} /></span></>
                     : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
                 </p>
-                {step.hold && solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
+                {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
               </div>
             </div>
           )}

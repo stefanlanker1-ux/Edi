@@ -165,7 +165,6 @@ const STEPS: GuideStep[] = [
     ask: tr("Was passiert mit den **Zuckerteilchen**? Sag es vorher!", "What happens to the **sugar particles**? Predict it!"), answer: SPREAD(), options: [SPREAD(), VANISH(), SINK()],
     visual: c => <Glide p={LOESEN} c={c} />,
     why: { [VANISH()]: tr("Teilchen können nicht verschwinden. Schau gleich hin.", "Particles cannot disappear. Watch in a moment."), [SINK()]: tr("Die Teilchen bewegen sich ständig – auch nach oben.", "The particles move all the time – upwards too.") },
-    hold: true,
     ok: tr("Schau zu: Der Kristall löst sich, die Teilchen verteilen sich überall.", "Watch: the crystal dissolves, the particles spread everywhere."),
   },
   {
@@ -182,7 +181,6 @@ const STEPS: GuideStep[] = [
     ask: tr("Was passiert? Sag es vorher!", "What happens? Predict it!"), answer: MIXES(), options: [MIXES(), SHAKE(), HEAVY()],
     visual: c => <Glide p={GASE} c={c} />,
     why: { [SHAKE()]: tr("Gasteilchen fliegen ständig umher – auch ohne Schütteln.", "Gas particles fly around all the time – even without shaking."), [HEAVY()]: tr("Die Teilchen bewegen sich und verteilen sich im ganzen Gefäß.", "The particles move and spread through the whole container.") },
-    hold: true,
     ok: tr("Schau zu: Die Gase mischen sich von selbst.", "Watch: the gases mix by themselves."),
   },
   {

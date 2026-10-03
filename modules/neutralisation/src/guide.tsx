@@ -74,7 +74,6 @@ const US: GuideStep[] = [
     options: [tr("Wasser H₂O", "water H₂O"), tr("Wasserstoff H₂", "hydrogen H₂"), tr("Sauerstoff O₂", "oxygen O₂")],
     visual: c => <Wall c={c} base="naoh" acid="hcl" nB={1} nA={1} react={c.solved} />,
     why: { [tr("Wasserstoff H₂", "hydrogen H₂")]: tr("H₂ braucht zwei H. Hier treffen ein H⁺ und ein OH⁻ zusammen.", "H₂ needs two H. Here one H⁺ and one OH⁻ meet."), [tr("Sauerstoff O₂", "oxygen O₂")]: tr("O₂ braucht zwei O. Zähle die Atome in H⁺ + OH⁻.", "O₂ needs two O. Count the atoms in H⁺ + OH⁻.") },
-    hold: true,
     ok: tr("Schau: H⁺ + OH⁻ → H₂O. Na⁺ und Cl⁻ bilden das Salz NaCl.", "Look: H⁺ + OH⁻ → H₂O. Na⁺ and Cl⁻ form the salt NaCl."),
   },
   {

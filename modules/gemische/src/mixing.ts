@@ -82,6 +82,23 @@ const shuffle = <T,>(a: T[], r: () => number) => {
   return b;
 };
 const jit = (r: () => number) => (r() * 2 - 1) * .6;
+/** Gas/Teilchenbild: Nachbarn, die sich durch die Verschiebung zu nahe kommen, zurück Richtung Zellmitte ziehen –
+ *  Mindestabstand eine Zelle, sonst sehen zwei Moleküle (z. B. Ethan) wie eines aus */
+function spread<P extends { cell: number; jx: number; jy: number }>(ps: P[], g: Grid, min = 1): P[] {
+  const out = ps.map(p => ({ ...p }));
+  for (let round = 0; round < 6; round++) {
+    let moved = false;
+    for (let i = 0; i < out.length; i++) for (let j = i + 1; j < out.length; j++) {
+      const a = out[i], b = out[j];
+      const dx = (b.cell % g.cols) + b.jx - (a.cell % g.cols) - a.jx, dy = rowOf(g, b.cell) + b.jy - rowOf(g, a.cell) - a.jy;
+      if (Math.hypot(dx, dy) >= min) continue;
+      a.jx *= .5; a.jy *= .5; b.jx *= .5; b.jy *= .5;
+      moved = true;
+    }
+    if (!moved) break;
+  }
+  return out;
+}
 const rowOf = (g: Grid, cell: number) => Math.floor(cell / g.cols);
 
 /** alle Zellen, von unten nach oben */
@@ -192,7 +209,8 @@ export function initial(spec: Spec, seed = 1, arrange: Arrange = "nachher"): Sim
   // fest: Gitter von unten gefüllt; Gas und Modell: zufällig verteilt
   const where = state === "fest" ? cells(grid).slice(0, n) : shuffle(cells(grid), r).slice(0, n);
   const order = shuffle(list, r);
-  return done(order.map((f, i) => mk(f, where[i], bond)));
+  const ps = order.map((f, i) => mk(f, where[i], bond));
+  return done(state === "fest" ? ps : spread(ps, grid));
 }
 
 /** Schütteln: alle Teilchen zufällig verteilen (Flüssigkeit bleibt unten, Trennwände fallen weg) */
@@ -200,7 +218,8 @@ export function shake(sim: Sim, r: () => number): Sim {
   const g = sim.grid;
   if (sim.state === "fest") return sim;
   const slots = sim.state === "fluessig" ? shuffle(liquidSlots(sim.ps.length, g, r), r) : shuffle(cells(g), r).slice(0, sim.ps.length);
-  return { ...sim, walls: [], ps: sim.ps.map((p, i) => ({ ...p, cell: slots[i], jx: jit(r), jy: jit(r), bound: false, gas: false })) };
+  const ps = sim.ps.map((p, i) => ({ ...p, cell: slots[i], jx: jit(r), jy: jit(r), bound: false, gas: false }));
+  return { ...sim, walls: [], ps: sim.state === "fluessig" ? ps : spread(ps, g) };
 }
 
 /** Mischen beginnt: Trennwände weg, Metall schmilzt */

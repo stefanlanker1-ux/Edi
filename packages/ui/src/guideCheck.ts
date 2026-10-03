@@ -44,7 +44,6 @@ export function checkGuide(def: GuideDef): string[] {
     for (const l of s.labels ?? []) if (!l.afterSolved && (l.text === sol || (typeof s.answer === "number"
       ? new RegExp(`(^|[^0-9,\\p{L}])${sol}([^0-9,\\p{L}]|$)`, "u").test(l.text) : sol.length > 2 && l.text.includes(sol)))) out.push(`${at}: Beschriftung „${l.text}“ verrät die Lösung`);
     if (!s.ok) out.push(`${at}: Bestätigung fehlt`);
-    if (s.hold && !s.visual) out.push(`${at}: Anschauen (hold) ohne Bild`);
     for (const t of [s.say ?? "", s.ask, s.ok, s.show ?? "", s.tip ?? "", ...Object.values(s.why ?? {}), ...(s.labels ?? []).map(l => l.text)]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
   });
   return out;

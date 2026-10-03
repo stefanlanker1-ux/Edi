@@ -60,7 +60,6 @@ const STEPS: GuideStep[] = [
     say: tr("Die **Hauptkette** ist die längste Kette. Sie darf um die Ecke gehen.", "The **main chain** is the longest chain. It may go round a corner."),
     ask: tr("Wie viele C hat die **längste** Kette?", "How many C does the **longest** chain have?"), answer: 6, num: {},
     visual: c => <Pic s="bent" chain={c.solved ? CHAIN : undefined} />,
-    hold: true,
     why: { "5": tr("So viele C liegen in einer Reihe. Über den Ast geht es länger.", "That many C lie in a row. Going through the branch is longer."), "7": tr("7 sind alle C. Ein C bleibt als Ast übrig.", "7 is the number of all C. One C is left over as a branch.") },
     tip: tr("Starte an jedem Kettenende und zähle bis zum anderen Ende.", "Start at each chain end and count to the other end."),
     ok: tr("Die längste Kette hat 6 C → **Hexan**.", "The longest chain has 6 C → **hexane**."),
@@ -86,7 +85,6 @@ const STEPS: GuideStep[] = [
   {
     ask: tr("Welche **Nummer** bekommt das C mit dem Ast?", "Which **number** does the C with the branch get?"), answer: 3, num: {},
     visual: c => <Pic s="bent" chain={CHAIN} numbers={c.solved} />,
-    hold: true,
     why: { "4": tr("Das ist von der anderen Seite gezählt. Von hier aus wird die Nummer kleiner.", "That is counted from the other end. From this end the number is lower.") },
     tip: tr("Zähle vom näheren Ende der Hauptkette bis zum Ast.", "Count from the nearer end of the main chain to the branch."),
     ok: tr("Der Ast sitzt an C3.", "The branch is on C3."),

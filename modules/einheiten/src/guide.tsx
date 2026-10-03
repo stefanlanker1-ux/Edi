@@ -74,7 +74,6 @@ const US: GuideStep[] = [
     visual: c => <Box><AreaGrid big="dm²" small="cm²" guess={!c.solved} /></Box>,
     why: { "10": tr("10 Kästchen füllen nur die erste Reihe. Es gibt 10 Reihen.", "10 squares only fill the first row. There are 10 rows."), "1000": tr("1000 kleine Würfel passen in einen Würfel – beim Quadrat sind es 10 · 10.", "1000 small cubes fit in a cube – a square holds 10 · 10.") },
     ok: tr("10 Reihen mit je 10 Kästchen: 1 dm² = **100 cm²**.", "10 rows of 10 squares: 1 dm² = **100 cm²**."),
-    hold: true,
   },
   {
     say: tr("**Fläche** = Länge · Länge. Darum sind Flächen-Nachbarn **· 100** voneinander entfernt.", "**Area** = length · length. So area neighbours are **· 100** apart."),

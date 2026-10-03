@@ -64,7 +64,6 @@ const US = (): GuideStep[] => [
     ask: tr("Was passiert, wenn sie reagieren? Sag es vorher!", "What happens when they react? Predict it!"), answer: NA_GIVES(), options: [NA_GIVES(), CL_GIVES(), SHARE()],
     visual: c => <Transfer c={c} />,
     why: { [CL_GIVES()]: tr("7 Elektronen abzugeben ist viel schwerer als 1.", "Giving away 7 electrons is much harder than 1."), [SHARE()]: tr("Teilen tun Nichtmetalle. Ein Metall gibt Elektronen ganz ab.", "Non-metals share. A metal gives electrons away completely.") },
-    hold: true,
     ok: tr("Schau zu: Ein Elektron wandert. Na wird **Na⁺**, Cl wird **Cl⁻**.", "Watch: one electron moves. Na becomes **Na⁺**, Cl becomes **Cl⁻**."),
   },
   {

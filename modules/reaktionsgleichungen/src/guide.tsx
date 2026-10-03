@@ -84,7 +84,6 @@ const US = (): GuideStep[] => [
     ask: tr("Was passiert mit den Atomen bei der Reaktion? Sag es vorher!", "What happens to the atoms in the reaction? Predict it!"), answer: YES(), options: [YES(), GONE(), NEW()],
     visual: c => <Watch c={c} eq={KNALLGAS} k={KNALLGAS_OK} predict />,
     why: { [GONE()]: tr("Atome können nicht verschwinden. Schau gleich genau hin.", "Atoms cannot disappear. Watch closely in a moment."), [NEW()]: tr("Bei einer Reaktion entstehen keine neuen Atome.", "No new atoms form in a reaction.") },
-    hold: true,
     ok: tr("Schau zu: Die Atome lösen sich und finden **neue Partner**.", "Watch: the atoms separate and find **new partners**."),
   },
   {
@@ -199,7 +198,6 @@ const US = (): GuideStep[] => [
     options: [tr("Ja – H und O stimmen", "Yes – H and O match"), tr("Nein – H stimmt nicht", "No – H does not match"), tr("Nein – O stimmt nicht", "No – O does not match")],
     visual: c => <Watch c={c} eq={KNALLGAS} k={KNALLGAS_OK} predict />,
     why: { [tr("Nein – H stimmt nicht", "No – H does not match")]: tr("Links 2 · 2 = 4 H, rechts 2 · 2 = 4 H.", "Left 2 · 2 = 4 H, right 2 · 2 = 4 H."), [tr("Nein – O stimmt nicht", "No – O does not match")]: tr("Links 2 O, rechts 2 · 1 = 2 O.", "Left 2 O, right 2 · 1 = 2 O.") },
-    hold: true,
     ok: tr("Schau zu: Jedes Atom findet seinen Platz – keines bleibt übrig.", "Watch: every atom finds its place – none is left over."),
   },
   // ── Kapitel 4: Jetzt du ──
@@ -217,7 +215,6 @@ const US = (): GuideStep[] => [
     visual: c => (c.solved ? <Watch c={c} eq={AMMONIAK} k={AMMONIAK_OK} /> : <Line eq={AMMONIAK} k={[1, null, 2]} />),
     why: { "6": tr("6 H₂ wären 12 H-Atome. Jedes H₂ hat zwei.", "6 H₂ would be 12 H atoms. Each H₂ has two."), "2": tr("2 H₂ sind nur 4 H.", "2 H₂ are only 4 H.") },
     tip: tr("Du brauchst links 6 H. Wie viele H₂ sind das?", "You need 6 H on the left. How many H₂ is that?"),
-    hold: true,
     ok: tr("**N₂ + 3 H₂ → 2 NH₃** – schau zu, ob alles aufgeht.", "**N₂ + 3 H₂ → 2 NH₃** – watch whether everything works out."),
   },
   {
@@ -248,7 +245,6 @@ const US = (): GuideStep[] => [
     visual: c => (c.solved ? <Watch c={c} eq={METHAN} k={METHAN_OK} /> : <Line eq={METHAN} k={[1, null, 1, 2]} />),
     why: { "4": tr("4 O-Atome sind 2 O₂-Moleküle.", "4 O atoms are 2 O₂ molecules."), "1": tr("1 O₂ hat nur 2 O-Atome.", "1 O₂ has only 2 O atoms.") },
     tip: tr("Jedes O₂ bringt zwei O-Atome.", "Each O₂ brings two O atoms."),
-    hold: true,
     ok: tr("**CH₄ + 2 O₂ → CO₂ + 2 H₂O** – Methan verbrennt.", "**CH₄ + 2 O₂ → CO₂ + 2 H₂O** – methane burns."),
   },
   {
@@ -286,7 +282,6 @@ const OS = (): GuideStep[] => [
     ask: tr("Wie viele O₂ braucht ein Propan-Molekül? Schätze!", "How many O₂ does one propane molecule need? Estimate!"), answer: O5, options: [O3, O5, O10],
     visual: c => <Watch c={c} eq={PROPAN} k={PROPAN_OK} predict />,
     why: { [O3]: tr("Rechts sind 6 + 4 = 10 O-Atome. 3 O₂ haben nur 6.", "On the right there are 6 + 4 = 10 O atoms. 3 O₂ have only 6."), [O10]: tr("10 O-**Atome** – jedes O₂ bringt aber zwei.", "10 O **atoms** – but each O₂ brings two.") },
-    hold: true,
     ok: tr("Schau zu: Alle 10 O-Atome finden einen Platz – genau 5 O₂.", "Watch: all 10 O atoms find a place – exactly 5 O₂."),
   },
   {
@@ -351,7 +346,6 @@ const OS = (): GuideStep[] => [
     say: tr("Verbrennung: erst C, dann H, zuletzt O. Ergibt sich eine halbe Zahl, **alles verdoppeln**.", "Combustion: first C, then H, O last. If a half number results, **double everything**."),
     ask: tr("Welche Zahl gehört vor **O₂**?", "Which number goes in front of **O₂**?"), answer: 7, num: {},
     visual: c => (c.solved ? <Watch c={c} eq={ETHAN} k={ETHAN_OK} /> : <Line eq={ETHAN} k={[2, null, 4, 6]} />),
-    hold: true,
     why: { "14": tr("14 sind die O-Atome rechts – das sind 7 O₂.", "14 are the O atoms on the right – that is 7 O₂."), "3.5": tr("Mit 2 C₂H₆ wird es ganzzahlig: 14 O-Atome = 7 O₂.", "With 2 C₂H₆ it becomes whole numbers: 14 O atoms = 7 O₂.") },
     tip: tr("Zähle die O-Atome rechts in 4 CO₂ und 6 H₂O, dann durch 2 teilen.", "Count the O atoms on the right in 4 CO₂ and 6 H₂O, then divide by 2."),
     ok: tr("**2 C₂H₆ + 7 O₂ → 4 CO₂ + 6 H₂O** – schau zu, wie alles aufgeht.", "**2 C₂H₆ + 7 O₂ → 4 CO₂ + 6 H₂O** – watch everything work out."),
