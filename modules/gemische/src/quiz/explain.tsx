@@ -14,9 +14,14 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = t
     "**Reinstoff:** nur eine Teilchensorte. **Gemisch:** mehrere Teilchensorten.",
     "**Element:** nur **eine** Atomsorte (He, Cu, O₂). **Verbindung:** mehrere Atomsorten fest im Teilchen (H₂O, CO₂).",
   ] },
-  everyday: { ex: "oel", arr: ["nachher"], points: [
-    "**Homogen:** überall gleich, keine Grenze zu sehen – Lösung (s/l), Legierung (s/s), Gasgemisch (g/g).",
-    "**Heterogen:** Teile, Tröpfchen oder Schichten sind zu erkennen – Emulsion (l/l), Suspension (s/l), Gemenge (s/s).",
+  homogen: { ex: "oel", arr: ["nachher"], points: [
+    "**Homogen:** überall gleich, keine Grenze zu sehen – auch nicht unter dem Mikroskop.",
+    "**Heterogen:** Teile, Tröpfchen oder Schichten sind zu erkennen.",
+    "**Klar** heißt nicht **rein**: Gelöstes sieht man nicht, es ist trotzdem ein Gemisch.",
+  ] },
+  everyday: { ex: "messing", arr: ["nachher"], points: [
+    "Homogen: **Lösung** (s/l), **Legierung** (s/s), **Gasgemisch** (g/g).",
+    "Heterogen: **Emulsion** (l/l), **Suspension** (s/l), **Gemenge** (s/s), **Rauch** (s/g), **Nebel** (l/g), **Schaum** (g/l).",
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
   solving: { ex: "zucker", arr: ["vorher", "nachher"], points: [
@@ -30,9 +35,14 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = t
     "**Pure substance:** only one kind of particle. **Mixture:** several kinds of particles.",
     "**Element:** only **one** kind of atom (He, Cu, O₂). **Compound:** several kinds of atoms bonded in the particle (H₂O, CO₂).",
   ] },
-  everyday: { ex: "oel", arr: ["nachher"], points: [
-    "**Homogeneous:** the same everywhere, no boundary visible – solution (s/l), alloy (s/s), gas mixture (g/g).",
-    "**Heterogeneous:** pieces, droplets or layers can be seen – emulsion (l/l), suspension (s/l), coarse mixture (s/s).",
+  homogen: { ex: "oel", arr: ["nachher"], points: [
+    "**Homogeneous:** the same everywhere, no boundary visible – not even under the microscope.",
+    "**Heterogeneous:** pieces, droplets or layers can be seen.",
+    "**Clear** does not mean **pure**: you cannot see what is dissolved, it is still a mixture.",
+  ] },
+  everyday: { ex: "messing", arr: ["nachher"], points: [
+    "Homogeneous: **solution** (s/l), **alloy** (s/s), **gas mixture** (g/g).",
+    "Heterogeneous: **emulsion** (l/l), **suspension** (s/l), **coarse mixture** (s/s), **smoke** (s/g), **fog** (l/g), **foam** (g/l).",
     "“Pure” on a package means: nothing added. A **pure substance** is only **one** substance.",
   ] },
   solving: { ex: "zucker", arr: ["vorher", "nachher"], points: [
@@ -41,7 +51,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[] }> = t
     "Between the particles there is **nothing**. Colours in the model only tell them apart.",
   ] },
 });
-const TOPIC: Record<string, string> = { "gm-n1": "basics", "gm-n2": "basics", "gm-n3": "everyday", "gm-n4": "everyday", "gm-n5": "solving", "gm-n6": "solving" };
+const TOPIC: Record<string, string> = { "gm-t1": "basics", "gm-t2": "homogen", "gm-t3": "everyday", "gm-t4": "solving" };
 const CUE = tr("In diesem Niveau hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.", "At this stage the **hint** helps with exactly this task. Tapping the hint costs no points.");
 
 export function explainFor(level: LevelKey, task?: Task) {

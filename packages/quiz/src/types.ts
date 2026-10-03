@@ -6,6 +6,8 @@ export interface BaseTask {
   kind: string;
   /** Frage, Tipp, Erklärung – **fett** und `Code` werden formatiert */
   prompt: string;
+  /** Lern-Level: kurzer Merksatz vor der Frage (baut auf der vorigen Aufgabe auf), klein über der Frage */
+  lead?: string;
   hint: string;
   explain: string;
   /** Aufgabentyp (für „Schwächen üben“), wird von der Runde gesetzt */

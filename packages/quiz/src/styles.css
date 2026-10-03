@@ -46,6 +46,7 @@
 .q-visual .ui-fit-inner { display: grid; justify-items: center; }
 .intro-body { flex: 1 1 0; min-height: 0; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); }
 .q-prompt { font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; flex: none; }
+.q-lead { margin: 0 0 -4px; font-size: .95rem; line-height: 1.4; color: var(--muted); flex: none; hyphens: auto; }
 .q-prompt code, .fb-exp code, .rv-e code { background: var(--surface-2); padding: 1px 6px; border-radius: var(--radius-sm); }
 .q-bohr { width: min(240px, 64vw); aspect-ratio: 1; }
 .mc-grid { display: grid; gap: 8px; }

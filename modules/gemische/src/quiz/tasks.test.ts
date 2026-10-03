@@ -8,7 +8,7 @@ const all = (level: number | "mix", rounds: number) => Array.from({ length: roun
 const picsOf = (t: Task): Pic[] => [...(t.pic ? [t.pic] : []), ...Object.values(t.pics ?? {})];
 
 test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
-  for (const level of [0, 1, 2, 3, 4, 5, "mix" as const]) {
+  for (const level of [0, 1, 2, 3, "mix" as const]) {
     for (const t of all(level, 120)) {
       assert.ok(t.prompt && t.hint && t.explain, "Texte fehlen");
       assert.ok(TYPE_NAMES[t.type!], t.type);
@@ -31,7 +31,7 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
       }
     }
   }
-  assert.strictEqual(LEVELS.length, 6);
+  assert.strictEqual(LEVELS.length, 4);
 });
 
 test("keine Moleküle aus nur einer Atomsorte (O₂, O₃, N₂ …) in Bildern und Texten", () => {
@@ -51,7 +51,7 @@ test("Zählaufgaben stimmen mit der Auswertung überein", () => {
 });
 
 test("Teilchen bleiben erhalten: Antwort = Teilchen des gelösten Stoffs im Bild vorher", () => {
-  for (const t of all(4, 200)) {
+  for (const t of all(3, 200)) {
     if (t.type !== "erhalten" || t.kind !== "num") continue;
     assert.strictEqual(t.pic!.arrange, "vorher");
     assert.strictEqual(t.answer, t.pic!.mix.find(([f]) => f !== "H2O")![1]);
@@ -76,7 +76,7 @@ test("Teilchenbilder einordnen: die richtige Antwort passt zur Art des Bildes", 
 });
 
 test("Masse beim Lösen: Wasser + gelöster Stoff", () => {
-  for (const t of all(4, 200)) {
+  for (const t of all(3, 200)) {
     if (t.type !== "masse" || t.kind !== "mc") continue;
     const [w, z] = [...t.prompt.matchAll(/\*\*(\d+) g\*\*/g)].map(m => Number(m[1]));
     assert.strictEqual(t.options[t.answer], `${w + z} g`);
@@ -124,28 +124,32 @@ test("keine zwei Atomsorten mit ähnlicher Farbe in einer Aufgabe (z. B. He und 
   for (const t of all("mix", 300)) assert.ok(distinctColors(t), `${t.type}: ${JSON.stringify(t.pic ?? t.pics)}`);
 }, 60_000);
 
-test("Niveaus: feste Reihenfolge, keine Frage doppelt, Tipp zugeschnitten nur in Niveau 1, 3, 5", () => {
+test("Niveaus 1–4: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt, Tipp zugeschnitten", () => {
+  assert.deepEqual(LEVELS.map(l => l.name), ["Elemente und Verbindungen", "Homogen und heterogen", "Gemische im Alltag", "Lösen und Mischen"]);
   for (let lv = 0; lv < LEVELS.length; lv++) {
     const L = LEVELS[lv];
     assert.strictEqual(L.seq.length, 10);
-    assert.deepEqual(LEVELS[lv % 2 ? lv - 1 : lv + 1].seq, L.seq, "Paar mit und ohne Tipp hat dieselben Aufgaben");
-    assert.strictEqual(L.cue, lv % 2 === 0);
+    assert.strictEqual(L.leads.length, 10);
+    assert.strictEqual(new Set(L.leads).size, 10, `${L.name}: Merksätze doppelt`);
     for (let r = 0; r < 60; r++) {
       const round = makeRound("us", lv);
       assert.deepEqual(round.map(t => t.type), L.seq);
+      assert.deepEqual(round.map(t => t.lead), L.leads);
       const keys = round.map(t => t.prompt + JSON.stringify(t.pic ?? t.pics ?? null));
       assert.strictEqual(new Set(keys).size, keys.length, `doppelt in ${L.name}`);
       for (const t of round) {
         assert.ok(!("tip" in t), "tip bleibt intern");
-        assert.strictEqual(!!t.hintCue, L.cue, `${t.type}: hintCue`);
+        assert.ok(t.hintCue, `${t.type}: hintCue`);
       }
     }
   }
-  // Tipp mit Hervorhebung unterscheidet sich vom allgemeinen Tipp
+  // Tipp mit Hervorhebung unterscheidet sich vom allgemeinen Tipp (Alles gemischt)
+  const plainAll = all("mix", 40);
   for (const id of new Set(LEVELS.flatMap(l => l.seq))) {
-    const cue = all(0, 1).concat(all(2, 1), all(4, 1)).find(t => t.type === id)!;
-    const plain = all(1, 1).concat(all(3, 1), all(5, 1)).find(t => t.type === id)!;
-    assert.ok(cue.hint && plain.hint && cue.hint !== plain.hint, id);
+    const cue = all(LEVELS.findIndex(l => l.seq.includes(id)), 1).find(t => t.type === id)!;
+    const plain = plainAll.find(t => t.type === id);
+    if (plain) assert.ok(cue.hint && plain.hint && cue.hint !== plain.hint, id);
   }
-  for (const t of all("mix", 20)) assert.ok(!t.hintCue && !("tip" in t));
+  // Alles gemischt: ohne Merksatz und ohne zugeschnittenen Tipp
+  for (const t of all("mix", 20)) assert.ok(!t.hintCue && !("tip" in t) && !t.lead);
 });

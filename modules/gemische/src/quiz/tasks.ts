@@ -467,8 +467,11 @@ const HOMOGEN_TIP: Record<string, string> = tr({
   "verbindung-gemisch": "How many different particles are there? A compound is one substance.",
 });
 
-function homogen(): Task {
-  const e = pick(EVERYDAY);
+/** Homogen oder heterogen – optional nur Beispiele einer Gruppe (mit Teilchenbild, „klar“, „sieht einheitlich aus“) */
+const homogenOf = (only?: (e: Everyday) => boolean) => () => homogen(only);
+function homogen(only?: (e: Everyday) => boolean): Task {
+  const pool = only ? EVERYDAY.filter(only) : EVERYDAY;
+  const e = pick(pool.length ? pool : EVERYDAY);
   const others = [HOMOGEN, HETEROGEN, REIN].filter(o => o !== e.ans && o !== e.trap?.[0]);
   return {
     ...mc(e.ans, [...(e.trap ? [d(e.trap[0], e.trap[1], e.trap[2])] : []), ...others], 3, e.why),
@@ -563,8 +566,11 @@ const ART_TIP: Record<string, string> = tr<Record<string, string>>({
   "Gas mixture": IN_GAS, Fog: IN_GAS, Smoke: IN_GAS, Alloy: NUR_FEST, "Coarse mixture": NUR_FEST,
 });
 
-function gemischart(): Task {
-  const g = pick(GEMISCHARTEN);
+/** Art des Gemischs – optional nur bestimmte Arten (in Flüssigkeit, Metalle/Gase/Feststoffe, in Gas) */
+const gemischartOf = (arts: string[]) => () => gemischart(arts);
+function gemischart(arts?: string[]): Task {
+  const pool = arts ? GEMISCHARTEN.filter(g => arts.includes(g.ans)) : GEMISCHARTEN;
+  const g = pick(pool.length ? pool : GEMISCHARTEN);
   return {
     ...mc(g.ans, [...g.traps.map(([t, k, w]) => d(t, k, w)), ...shuffle(ARTEN.filter(a => a !== g.ans))], 4, g.why),
     prompt: tr(`Welche Art von Gemisch ist **${g.name}**?`, `What type of mixture is **${g.name}**?`),
@@ -960,7 +966,9 @@ function nachher(): Task {
 
 const RAW: Record<string, () => Task> = {
   teilchen, stoffe, reinOderGemisch, reinGemisch, einordnen, bildArt, bildWahl, verbindungen, elemente, atomsorten,
-  homogen, gemischart, alltag, reinAlltag, wohin, erhalten, masse, zwischen, bewegung, farbe, nachher,
+  homogen: () => homogen(), gemischart: () => gemischart(), alltag, reinAlltag, wohin, erhalten, masse, zwischen, bewegung, farbe, nachher,
+  homogenBild: homogenOf(e => !!e.ex), homogenKlar: homogenOf(e => e.trap?.[1] === "klar-reinstoff"), homogenSieht: homogenOf(e => e.trap?.[1] === "sieht-einheitlich"),
+  artFluessig: gemischartOf(ARTEN.slice(0, 1).concat(ARTEN.slice(3, 5))), artFestGas: gemischartOf([ARTEN[1], ARTEN[2], ARTEN[5]]), artInGas: gemischartOf(ARTEN.slice(6, 9)),
 };
 /** neu würfeln, bis keine zwei Atomsorten ähnliche Farben haben */
 const GENS: Record<string, () => Task> = Object.fromEntries(Object.entries(RAW).map(([id, gen]) => [id, () => {
@@ -976,6 +984,8 @@ export const TYPE_NAMES: Record<string, string> = tr({
   homogen: "Homogen oder heterogen", gemischart: "Art des Gemischs", alltag: "Stoffe im Alltag", reinAlltag: "„Rein“ im Alltag",
   wohin: "Lösen im Teilchenmodell", erhalten: "Teilchen bleiben erhalten", masse: "Masse beim Lösen", zwischen: "Zwischen den Teilchen",
   bewegung: "Teilchen bewegen sich", farbe: "Teilchen und Stoff", nachher: "Nach dem Mischen",
+  homogenBild: "Homogen oder heterogen im Teilchenbild", homogenKlar: "Klar heißt nicht rein", homogenSieht: "Sieht einheitlich aus",
+  artFluessig: "Lösung, Emulsion, Suspension", artFestGas: "Legierung, Gasgemisch, Gemenge", artInGas: "Rauch, Nebel, Schaum",
 }, {
   teilchen: "Counting particles", stoffe: "Counting substances", reinOderGemisch: "Pure substance or mixture", reinGemisch: "Pure substance, element or compound",
   einordnen: "Element or compound", bildArt: "Classifying a particle picture", bildWahl: "Choosing a particle picture",
@@ -983,28 +993,121 @@ export const TYPE_NAMES: Record<string, string> = tr({
   homogen: "Homogeneous or heterogeneous", gemischart: "Type of mixture", alltag: "Substances in everyday life", reinAlltag: "“Pure” in everyday life",
   wohin: "Dissolving in the particle model", erhalten: "Particles are conserved", masse: "Mass when dissolving", zwischen: "Between the particles",
   bewegung: "Particles move", farbe: "Particle and substance", nachher: "After mixing",
+  homogenBild: "Homogeneous or heterogeneous in the particle picture", homogenKlar: "Clear does not mean pure", homogenSieht: "Looks uniform",
+  artFluessig: "Solution, emulsion, suspension", artFestGas: "Alloy, gas mixture, coarse mixture", artInGas: "Smoke, fog, foam",
 });
 
-/** `seq`: feste Reihenfolge der zehn Aufgaben (leicht → schwer), `cue`: Tipp auf die Aufgabe zugeschnitten und hervorgehoben */
-interface Level extends QuizLevel { types: string[]; seq: string[]; cue: boolean }
-const BASICS = ["teilchen", "stoffe", "atomsorten", "reinOderGemisch", "einordnen", "reinGemisch", "elemente", "verbindungen", "bildArt", "bildWahl"];
-const EVERYDAY_SEQ = ["alltag", "alltag", "homogen", "homogen", "homogen", "gemischart", "gemischart", "gemischart", "reinAlltag", "reinAlltag"];
-const SOLVING = ["wohin", "erhalten", "masse", "zwischen", "bewegung", "farbe", "nachher", "bewegung", "farbe", "nachher"];
-const level = (n: number, name: string, desc: string, seq: string[], cue: boolean): Level =>
-  ({ id: `gm-n${n}`, name, desc: cue ? `${tr("mit Tipp", "with hint")}: ${desc}` : desc, seq, cue, tip: cue, types: [...new Set(seq)] });
+/** `seq`: feste Reihenfolge der zehn Aufgaben (leicht → schwer, jede baut auf der vorigen auf), `leads`: Merksatz je Schritt */
+interface Level extends QuizLevel { types: string[]; seq: string[]; leads: string[]; cue: boolean }
+type Step = [type: string, lead: string];
+
+const STEPS_ELEMENTS: Step[] = tr([
+  ["teilchen", "Alles besteht aus winzigen **Teilchen**. Ein Teilchen ist ein **einzelnes Atom** oder ein **Molekül** aus mehreren Atomen."],
+  ["teilchen", "Ein Molekül zählt als **ein** Teilchen – egal, aus wie vielen Atomen es besteht."],
+  ["atomsorten", "Jede **Atomsorte** hat im Bild eine eigene Farbe (H weiß, C schwarz, O rot …). Gleiche Farbe = gleiche Atomsorte."],
+  ["einordnen", "Ein **Element** besteht aus nur **einer** Atomsorte. Eine **Verbindung** hat **mehrere** Atomsorten fest in einem Teilchen."],
+  ["einordnen", "Die Formel verrät es: Jeder **Großbuchstabe** ist eine Atomsorte. H₂O hat H und O – also eine Verbindung."],
+  ["stoffe", "Gleiche Teilchen bilden **einen Stoff**. Verschiedene Teilchen sind verschiedene Stoffe."],
+  ["elemente", "In einem Bild können mehrere Stoffe sein. Teilchen mit **einer** Farbe sind Elemente."],
+  ["verbindungen", "Teilchen mit **mehreren** Farben sind Verbindungen. Gleiche Teilchen zählen als **ein** Stoff."],
+  ["reinOderGemisch", "Nur **ein** Stoff = **Reinstoff**. **Mehrere** Stoffe = **Gemisch**."],
+  ["bildArt", "Alles zusammen: erst die Teilchensorten zählen (ein Stoff oder mehrere?), dann die Farben im Teilchen (Element oder Verbindung?)."],
+], [
+  ["teilchen", "Everything is made of tiny **particles**. A particle is a **single atom** or a **molecule** of several atoms."],
+  ["teilchen", "A molecule counts as **one** particle – no matter how many atoms it has."],
+  ["atomsorten", "Each **kind of atom** has its own colour in the picture (H white, C black, O red …). Same colour = same kind of atom."],
+  ["einordnen", "An **element** has only **one** kind of atom. A **compound** has **several** kinds of atoms bonded in one particle."],
+  ["einordnen", "The formula tells you: each **capital letter** is a kind of atom. H₂O has H and O – so it is a compound."],
+  ["stoffe", "Identical particles form **one substance**. Different particles are different substances."],
+  ["elemente", "A picture can contain several substances. Particles with **one** colour are elements."],
+  ["verbindungen", "Particles with **several** colours are compounds. Identical particles count as **one** substance."],
+  ["reinOderGemisch", "Only **one** substance = **pure substance**. **Several** substances = **mixture**."],
+  ["bildArt", "All together: first count the kinds of particles (one substance or several?), then the colours in a particle (element or compound?)."],
+]);
+const STEPS_HOMOGEN: Step[] = tr([
+  ["reinGemisch", "Rückblick: ein Stoff = **Reinstoff** (Element oder Verbindung), mehrere Stoffe = **Gemisch**. Jetzt geht es um Gemische."],
+  ["homogenBild", "Gemische gibt es in zwei Arten: **homogen** – überall gleich, keine Grenze zu sehen; **heterogen** – Teile, Tröpfchen oder Schichten sind zu erkennen."],
+  ["homogenBild", "Im Teilchenbild: homogen = die Teilchen sind **gleichmäßig** gemischt. Heterogen = es gibt **getrennte Bereiche**."],
+  ["homogenBild", "Gelöstes sieht man nicht mehr: Seine Teilchen sitzen überall zwischen den Wasserteilchen – das Gemisch ist homogen."],
+  ["homogenKlar", "Vorsicht: **klar** heißt nicht **rein**. Auch ein klares Getränk kann viele gelöste Stoffe enthalten."],
+  ["homogenKlar", "Gase mischen sich immer vollständig – ein **Gasgemisch** wie Luft ist homogen."],
+  ["homogenSieht", "Manches sieht einheitlich aus und ist doch **heterogen**: Unter dem Mikroskop sieht man Tröpfchen oder Körner."],
+  ["homogenSieht", "Frage dich: Würde man mit Lupe oder Mikroskop **Teile** erkennen? Dann ist es heterogen."],
+  ["homogen", "Alles zusammen: erst – ein Stoff oder mehrere? Dann – sieht man Grenzen oder nicht?"],
+  ["homogen", "Noch einmal: Reinstoff, homogenes oder heterogenes Gemisch?"],
+], [
+  ["reinGemisch", "Recap: one substance = **pure substance** (element or compound), several substances = **mixture**. Now it is about mixtures."],
+  ["homogenBild", "There are two kinds of mixtures: **homogeneous** – the same everywhere, no boundary visible; **heterogeneous** – pieces, droplets or layers can be seen."],
+  ["homogenBild", "In the particle picture: homogeneous = the particles are mixed **evenly**. Heterogeneous = there are **separate regions**."],
+  ["homogenBild", "You can no longer see what is dissolved: its particles sit everywhere between the water particles – the mixture is homogeneous."],
+  ["homogenKlar", "Careful: **clear** does not mean **pure**. Even a clear drink can contain many dissolved substances."],
+  ["homogenKlar", "Gases always mix completely – a **gas mixture** such as air is homogeneous."],
+  ["homogenSieht", "Some things look uniform and are still **heterogeneous**: under the microscope you see droplets or grains."],
+  ["homogenSieht", "Ask yourself: would you see **pieces** with a magnifier or microscope? Then it is heterogeneous."],
+  ["homogen", "All together: first – one substance or several? Then – can you see boundaries or not?"],
+  ["homogen", "Once more: pure substance, homogeneous or heterogeneous mixture?"],
+]);
+const STEPS_EVERYDAY: Step[] = tr([
+  ["alltag", "Im Alltag fehlt das Teilchenbild. Frage dich: Steckt **ein** Stoff darin oder **mehrere**?"],
+  ["alltag", "Ist es ein Stoff: Steht er als **Element** im Periodensystem – oder ist es eine **Verbindung** aus mehreren Atomsorten?"],
+  ["reinAlltag", "**„Rein“** auf einer Packung heißt: nichts dazugegeben. In der Chemie heißt **Reinstoff**: nur **ein** Stoff."],
+  ["reinAlltag", "Fast alles aus dem Supermarkt ist ein **Gemisch** – auch wenn „rein“ draufsteht."],
+  ["artFluessig", "Gemische haben Namen. In Flüssigkeiten: **Lösung** (gelöst, klar), **Emulsion** (Flüssigkeit in Flüssigkeit, Tröpfchen), **Suspension** (Feststoff in Flüssigkeit, Körner)."],
+  ["artFluessig", "Erst bestimmen: Was ist **wo** drin – fest, flüssig oder gasförmig? Dann den Namen wählen."],
+  ["artFestGas", "**Legierung**: Metalle gleichmäßig gemischt. **Gasgemisch**: Gase gemischt. **Gemenge**: Feststoffe, deren Körner man sieht."],
+  ["artInGas", "In Gas oder mit Gas: **Rauch** (fest in Gas), **Nebel** (flüssig in Gas), **Schaum** (Gas in Flüssigkeit)."],
+  ["gemischart", "Alles zusammen: Zustände bestimmen, dann den Namen des Gemischs."],
+  ["alltag", "Zum Schluss: Reinstoff oder Gemisch – Element oder Verbindung?"],
+], [
+  ["alltag", "In everyday life there is no particle picture. Ask yourself: is there **one** substance in it or **several**?"],
+  ["alltag", "If it is one substance: is it an **element** in the periodic table – or a **compound** of several kinds of atoms?"],
+  ["reinAlltag", "**“Pure”** on a package means: nothing added. In chemistry a **pure substance** means: only **one** substance."],
+  ["reinAlltag", "Almost everything from the supermarket is a **mixture** – even if it says “pure”."],
+  ["artFluessig", "Mixtures have names. In liquids: **solution** (dissolved, clear), **emulsion** (liquid in liquid, droplets), **suspension** (solid in liquid, grains)."],
+  ["artFluessig", "First decide: what is **in** what – solid, liquid or gas? Then choose the name."],
+  ["artFestGas", "**Alloy**: metals mixed evenly. **Gas mixture**: gases mixed. **Coarse mixture**: solids whose grains you can see."],
+  ["artInGas", "In gas or with gas: **smoke** (solid in gas), **fog** (liquid in gas), **foam** (gas in liquid)."],
+  ["gemischart", "All together: decide the states, then the name of the mixture."],
+  ["alltag", "Finally: pure substance or mixture – element or compound?"],
+]);
+const STEPS_SOLVING: Step[] = tr([
+  ["wohin", "Beim **Lösen** verschwindet ein Stoff nicht. Seine Teilchen verteilen sich zwischen den Wasserteilchen."],
+  ["erhalten", "Kein Teilchen geht verloren und keines kommt dazu – sie werden nur **verteilt**."],
+  ["masse", "Wenn alle Teilchen bleiben, bleibt auch die **Masse** gleich: Masse vorher = Masse nachher."],
+  ["zwischen", "Zwischen den Teilchen ist **nichts** – leerer Raum, auch keine Luft."],
+  ["bewegung", "Teilchen sind **ständig in Bewegung**. Darum mischen sich Stoffe auch ohne Rühren – nur langsamer."],
+  ["farbe", "Ein einzelnes Teilchen hat **keine Farbe**. Die Farben im Modell helfen nur beim Unterscheiden."],
+  ["nachher", "Wie sieht es **nachher** aus? Gelöste Teilchen sind gleichmäßig verteilt, nicht mischbare Stoffe trennen sich."],
+  ["bewegung", "Denk an die Bewegung: Was die Teilchen tun, erklärt, warum sich etwas von selbst mischt."],
+  ["farbe", "Eigenschaften wie Farbe oder Geschmack hat der **Stoff** – viele Teilchen zusammen, nicht ein einzelnes."],
+  ["nachher", "Zum Schluss: Alle Teilchen sind noch da – nur anders verteilt."],
+], [
+  ["wohin", "When **dissolving**, a substance does not disappear. Its particles spread out between the water particles."],
+  ["erhalten", "No particle is lost and none is added – they are only **spread out**."],
+  ["masse", "If all particles stay, the **mass** stays the same: mass before = mass after."],
+  ["zwischen", "Between the particles there is **nothing** – empty space, not even air."],
+  ["bewegung", "Particles are **always moving**. That is why substances mix even without stirring – just more slowly."],
+  ["farbe", "A single particle has **no colour**. The colours in the model only help to tell them apart."],
+  ["nachher", "What does it look like **afterwards**? Dissolved particles are evenly spread, substances that do not mix separate."],
+  ["bewegung", "Think of the movement: what the particles do explains why something mixes by itself."],
+  ["farbe", "Properties such as colour or taste belong to the **substance** – many particles together, not a single one."],
+  ["nachher", "Finally: all the particles are still there – just spread out differently."],
+]);
+const level = (n: number, name: string, desc: string, steps: Step[]): Level => {
+  const seq = steps.map(([t]) => t);
+  return { id: `gm-t${n}`, name, desc, seq, leads: steps.map(([, l]) => l), cue: true, tip: true, types: [...new Set(seq)] };
+};
 export const LEVELS: Level[] = [
-  level(1, tr("Teilchen und Stoffe", "Particles and substances"), tr("Teilchen, Stoffe, Atomsorten, Element, Verbindung", "Particles, substances, kinds of atoms, element, compound"), BASICS, true),
-  level(2, tr("Teilchen und Stoffe", "Particles and substances"), tr("wie Niveau 1, Tipp nur allgemein", "like stage 1, general hint only"), BASICS, false),
-  level(3, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("Homogen oder heterogen, Arten von Gemischen, „rein“", "Homogeneous or heterogeneous, types of mixtures, “pure”"), EVERYDAY_SEQ, true),
-  level(4, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("wie Niveau 3, Tipp nur allgemein", "like stage 3, general hint only"), EVERYDAY_SEQ, false),
-  level(5, tr("Lösen und Mischen", "Dissolving and mixing"), tr("Teilchen bleiben erhalten, bewegen sich, haben keine Farbe", "Particles are conserved, move, have no colour"), SOLVING, true),
-  level(6, tr("Lösen und Mischen", "Dissolving and mixing"), tr("wie Niveau 5, Tipp nur allgemein", "like stage 5, general hint only"), SOLVING, false),
+  level(1, tr("Elemente und Verbindungen", "Elements and compounds"), tr("Teilchen, Atomsorten, Element, Verbindung, Reinstoff und Gemisch", "Particles, kinds of atoms, element, compound, pure substance and mixture"), STEPS_ELEMENTS),
+  level(2, tr("Homogen und heterogen", "Homogeneous and heterogeneous"), tr("Gemische unterscheiden: überall gleich oder Teile zu sehen", "Telling mixtures apart: the same everywhere or pieces visible"), STEPS_HOMOGEN),
+  level(3, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("Stoffe aus dem Alltag, „rein“ auf Packungen, Arten von Gemischen", "Everyday substances, “pure” on packages, types of mixtures"), STEPS_EVERYDAY),
+  level(4, tr("Lösen und Mischen", "Dissolving and mixing"), tr("Teilchen bleiben erhalten, bewegen sich, haben keine Farbe", "Particles are conserved, move, have no colour"), STEPS_SOLVING),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `gm-${level}`);
 export const levelName = (level: LevelKey) =>
   level === "mix" ? tr("Alles gemischt", "Everything mixed") : level === "weak" ? tr("Schwächen üben", "Practise weak spots") : level === "due" ? tr("Heute fällig", "Due today")
-    : LEVELS[level].cue ? `${LEVELS[level].name} · ${tr("mit Tipp", "with hint")}` : LEVELS[level].name;
+    : LEVELS[level].name;
 
 /** Tipp festlegen: zugeschnitten und hervorgehoben (cue) oder allgemein */
 function withHint(t: Task, cue: boolean): Task {
@@ -1013,19 +1116,19 @@ function withHint(t: Task, cue: boolean): Task {
 }
 
 /** Aufgaben in fester Reihenfolge, keine Frage doppelt (gleicher Typ → anderes Beispiel) */
-function ordered(seq: string[], cue: boolean): Task[] {
+function ordered(seq: string[], cue: boolean, leads: string[] = []): Task[] {
   const seen = new Set<string>();
   const sig = (t: Task) => t.prompt + JSON.stringify(t.pic ?? t.pics ?? null);
-  return seq.map(id => {
+  return seq.map((id, i) => {
     let t = GENS[id]();
     for (let k = 0; k < 40 && seen.has(sig(t)); k++) t = GENS[id]();
     seen.add(sig(t));
-    return { ...withHint(t, cue), type: id };
+    return { ...withHint(t, cue), type: id, ...(leads[i] ? { lead: leads[i] } : {}) };
   });
 }
 
 export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, due: string[] = []): Task[] {
-  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].cue);
+  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].cue, LEVELS[level].leads);
   let ids = level === "mix" ? [...new Set(LEVELS.flatMap(l => l.types))]
     : level === "weak" ? weakTypes(stats, id => LEVELS.some(l => l.types.includes(id)))
     : level === "due" ? due.filter(id => GENS[id])
