@@ -24,8 +24,8 @@ export interface Callout {
 interface Placed { text: string; x: number; y: number; w: number; h: number; tx: number; ty: number; lx: number; ly: number; stop: number }
 
 const H = 24, GAP = 6, EDGE = 4, MIN_ARROW = 26, SHIFT = 44, ABOVE = 14;
-/** Schrift in Zeichnungen (SVG-Text, Atomsymbole, Ionen-Bausteine) – wird von Begriffen nicht verdeckt */
-const AVOID = "svg text, circle.e, .nu-a, .nu-z, .nu-sym, .nu-q, .ion-label, .ms-arrow, .iw-balance, .iw-formula, .nw-tag, .nw-balance";
+/** Schrift und Elektronen in Zeichnungen (SVG-Text, Atomsymbole, Ionen-Bausteine, Elektronen im Schalenmodell) – wird von Begriffen nicht verdeckt */
+const AVOID = "svg text, circle.e, circle.el, .nu-a, .nu-z, .nu-sym, .nu-q, .ion-label, .ms-arrow, .iw-balance, .iw-formula, .nw-tag, .nw-balance";
 /** Breite des Begriffs (13 px, halbfett) – geschätzt, damit vor dem ersten Zeichnen gerechnet werden kann */
 const widthOf = (t: string) => Math.ceil(t.length * 7.4 + 16);
 
