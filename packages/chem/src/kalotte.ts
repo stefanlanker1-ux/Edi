@@ -12,7 +12,7 @@ export type Atom3 = [el: string, x: number, y: number, z: number];
 
 /** Darstellungsradien (Å, ≈ 0,55 · Van-der-Waals bzw. Ionenradius) – H klein, Metalle groß */
 const RAD: Record<string, number> = {
-  H: .6, C: .92, N: .86, O: .84, F: .8, Cl: 1, S: 1.02, P: 1.02, I: 1.12, Br: 1.06,
+  H: .6, C: .92, N: .86, O: .84, F: .8, Cl: 1, S: 1.02, P: 1.02, I: 1.12, Br: 1.06, B: .95, Si: 1.1,
   He: .7, Ne: .8, Ar: 1.0,
   Li: .95, Na: 1.12, K: 1.3, Mg: 1, Ca: 1.18, Ba: 1.36, Al: .96, Fe: .95, Cu: .92, Zn: .93, Ag: 1.04, Hg: 1.06, Pb: 1.14, Mn: .95, Cr: .93,
 };

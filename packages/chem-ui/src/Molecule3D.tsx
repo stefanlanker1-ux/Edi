@@ -7,14 +7,14 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
-import { embed3D, embedMol3D, dipoleVector, polarBonds, en, type AngleMode, type Mol3D, type Molecule, type Vec } from "@lern/chem";
+import { embed3D, embedComputed, embedMol3D, dipoleVector, polarBonds, en, type AngleMode, type Mol3D, type Molecule, type Vec } from "@lern/chem";
 import { tr } from "@lern/i18n";
 
 // Farbfamilien nach CPK, Werte aus der gemeinsamen Palette (tokens.css --hue-*; three.js braucht feste Zahlen)
-const CPK: Record<string, number> = { H: 0xf4f4f0, C: 0x3a3a3a, N: 0x4a78bf, O: 0xdd5444, F: 0xa9c46a, Cl: 0x7fb55a, Br: 0xa2503f, I: 0x83569e, S: 0xedc242, P: 0xea9146 };
-const RADIUS: Record<string, number> = { H: 0.26, C: 0.38, N: 0.36, O: 0.35, F: 0.34, Cl: 0.46, Br: 0.5, I: 0.56, S: 0.46, P: 0.46 };
+const CPK: Record<string, number> = { H: 0xf4f4f0, C: 0x3a3a3a, N: 0x4a78bf, O: 0xdd5444, F: 0xa9c46a, Cl: 0x7fb55a, Br: 0xa2503f, I: 0x83569e, S: 0xedc242, P: 0xea9146, B: 0xe0a08f, Si: 0xc2b28c };
+const RADIUS: Record<string, number> = { H: 0.26, C: 0.38, N: 0.36, O: 0.35, F: 0.34, Cl: 0.46, Br: 0.5, I: 0.56, S: 0.46, P: 0.46, B: 0.4, Si: 0.5 };
 /** Van-der-Waals-Radien (Å) für das Kalottenmodell */
-const VDW: Record<string, number> = { H: 1.1, C: 1.7, N: 1.55, O: 1.52, F: 1.47, Cl: 1.75, Br: 1.85, I: 1.98, S: 1.8, P: 1.8 };
+const VDW: Record<string, number> = { H: 1.1, C: 1.7, N: 1.55, O: 1.52, F: 1.47, Cl: 1.75, Br: 1.85, I: 1.98, S: 1.8, P: 1.8, B: 1.92, Si: 2.1 };
 export type Look = "ball" | "fill";
 const v3 = (v: Vec) => new THREE.Vector3(v[0], v[1], v[2]);
 
@@ -38,6 +38,8 @@ export interface Molecule3DProps {
   mol?: Molecule;
   /** … oder fertige Lage aus den Daten (mol3d.ts), z. B. für Stoffe in Reaktionsgleichungen */
   data?: Mol3D;
+  /** berechnete Lage (Kraftfeld) zu `mol` – Winkel als Näherung beschriftet */
+  computed?: Mol3D;
   showAngles?: boolean;
   showLonePairs?: boolean;
   showDipole?: boolean;
@@ -50,7 +52,7 @@ export interface Molecule3DProps {
   look?: Look;
 }
 
-export default function Molecule3D({ mol, data, showAngles = true, showLonePairs = false, showDipole = false, dipoleArrow = true, autoRotate = true, angleMode = "real", look = "ball" }: Molecule3DProps) {
+export default function Molecule3D({ mol, data, computed, showAngles = true, showLonePairs = false, showDipole = false, dipoleArrow = true, autoRotate = true, angleMode = "real", look = "ball" }: Molecule3DProps) {
   const host = useRef<HTMLDivElement>(null);
   // Blickrichtung bleibt beim Umschalten (Winkel, Paare, Dipol, real/ideal) erhalten – nur ein neues Molekül setzt sie zurück
   const view = useRef<{ key: Molecule | Mol3D | undefined; look: Look; pos: THREE.Vector3; auto: boolean } | null>(null);
@@ -75,7 +77,7 @@ export default function Molecule3D({ mol, data, showAngles = true, showLonePairs
     sun.position.set(3, 5, 6);
     scene.add(sun);
 
-    const e = data ? embedMol3D(data) : embed3D(mol!, angleMode);
+    const e = data ? embedMol3D(data) : computed ? embedComputed(mol!, computed, angleMode) : embed3D(mol!, angleMode);
     const group = new THREE.Group();
     scene.add(group);
     const pos = new Map(e.atoms.map(a => [a.id, v3(a.pos)]));
@@ -274,7 +276,7 @@ export default function Molecule3D({ mol, data, showAngles = true, showLonePairs
       renderer.dispose();
       box.innerHTML = "";
     };
-  }, [key, mol, data, showAngles, showLonePairs, showDipole, dipoleArrow, autoRotate, angleMode, look]);
+  }, [key, mol, data, computed, showAngles, showLonePairs, showDipole, dipoleArrow, autoRotate, angleMode, look]);
 
   return <div ref={host} className="m3d" role="img" aria-label={tr("3D-Modell des Moleküls – ziehen zum Drehen, zoomen mit Mausrad oder zwei Fingern, Atom antippen zeigt das Symbol", "3D model of the molecule – drag to rotate, zoom with mouse wheel or two fingers, tap an atom to show its symbol")} />;
 }

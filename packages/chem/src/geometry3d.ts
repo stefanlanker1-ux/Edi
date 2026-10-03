@@ -6,7 +6,7 @@
 
 import { ELEMENTS } from "./elements.ts";
 import { TRENDS } from "./trends.ts";
-import { electronsOf, bondsOf, identify, REAL_ANGLES, formatAngle, type Molecule } from "./molecules.ts";
+import { electronsOf, bondsOf, canonicalKey, REAL_ANGLES, formatAngle, type Molecule } from "./molecules.ts";
 import { MOL3D, type Mol3D } from "./mol3d.ts";
 
 export type Vec = [number, number, number];
@@ -321,7 +321,7 @@ function embedEPA(m: Molecule, mode: AngleMode): Embedded3D {
 }
 
 /** Schwerpunkt in den Ursprung, Bindungswinkel je Zentralatom (exact: Lage aus gemessenen/berechneten Daten, ohne „ca.“) */
-function finish(m: Molecule, pos: Map<number, Vec>, lonePairs: Embedded3D["lonePairs"], ring: Set<string>, mode: AngleMode, exact: boolean): Embedded3D {
+function finish(m: Molecule, pos: Map<number, Vec>, lonePairs: Embedded3D["lonePairs"], ring: Set<string>, mode: AngleMode, exact: boolean, approx = false): Embedded3D {
   const nbs = (id: number) => bondsOf(m, id).map(b => ({ id: b.a === id ? b.b : b.a, order: b.order }));
   const el = (id: number) => m.atoms.find(a => a.id === id)!.el;
   const c = mul([...pos.values()].reduce(add, [0, 0, 0] as Vec), 1 / pos.size);
@@ -340,7 +340,7 @@ function finish(m: Molecule, pos: Map<number, Vec>, lonePairs: Embedded3D["loneP
     // Daten: Winkel mit gemessenem Tabellenwert genau so beschriften (106,95° im Modell = 107° gemessen)
     const measured = exact ? REAL_ANGLES[`${a.el}:${list.map(q => el(q.id)).sort().join(",")}`] : undefined;
     let label = measured !== undefined ? formatAngle(measured)
-      : inR.length >= 2 && !exact ? `≈ ${Math.round(deg)}°` : (info.estimate && !exact ? "ca. " : "") + formatAngle(deg);
+      : inR.length >= 2 && !exact ? `≈ ${Math.round(deg)}°` : (approx || (info.estimate && !exact) ? "ca. " : "") + formatAngle(deg);
     // gleiche Winkel (z. B. alle Ecken eines Rings) nur einmal beschriften, sonst überlagern sich die Zahlen
     const kind = `${a.el}:${[el(x.id), el(y.id)].sort()}`;
     if (angles.some(q => q.kind === kind && Math.abs(q.deg - deg) < 1.5)) label = "";
@@ -386,7 +386,7 @@ function matchAtoms(m: Molecule, d: Mol3D): Map<number, number> | null {
  * Bekanntes Molekül mit der Lage aus mol3d.ts (Kraftfeld MMFF94, gemessene Winkel wie H₂O 104,5° festgehalten).
  * Freie Paare: Richtungen aus dem EPA-Modell, je Atom so gedreht, dass seine Bindungen auf die echten fallen.
  */
-function embedData(m: Molecule, d: Mol3D, mode: AngleMode): Embedded3D | null {
+function embedData(m: Molecule, d: Mol3D, mode: AngleMode, approx = false): Embedded3D | null {
   const map = matchAtoms(m, d);
   if (!map) return null;
   const epa = embedEPA(m, mode);
@@ -409,7 +409,7 @@ function embedData(m: Molecule, d: Mol3D, mode: AngleMode): Embedded3D | null {
     return { atom: lp.atom, dir };
   });
   const ring = new Set(m.bonds.filter(b => inRing(m, b)).map(b => bondKeyOf(b.a, b.b)));
-  return finish(m, pos, lonePairs, ring, mode, true);
+  return finish(m, pos, lonePairs, ring, mode, !approx, approx);
 }
 
 /**
@@ -417,11 +417,33 @@ function embedData(m: Molecule, d: Mol3D, mode: AngleMode): Embedded3D | null {
  */
 export function embed3D(m: Molecule, mode: AngleMode = "real"): Embedded3D {
   if (mode === "real") {
-    const k = identify(m), d = k && MOL3D[k.formula];
+    const d = storedMol3D(m);
     const e = d && embedData(m, d, mode);
     if (e) return e;
   }
   return embedEPA(m, mode);
+}
+
+let STORED: Map<string, Mol3D[]> | null = null;
+const dataMolecule = (d: Mol3D): Molecule => ({
+  atoms: d.atoms.map(([el], i) => ({ id: i + 1, el, x: 0, y: 0 })),
+  bonds: d.bonds.map(([a, b, order]) => ({ a: a + 1, b: b + 1, order })),
+});
+/** Hinterlegte Struktur (gemessen bzw. aus mol3d.ts) zu einem gebauten Molekül – unabhängig von Lage und Reihenfolge, sonst null */
+export function storedMol3D(m: Molecule): Mol3D | null {
+  if (!STORED) {
+    STORED = new Map();
+    for (const d of Object.values(MOL3D)) {
+      const key = canonicalKey(dataMolecule(d));
+      STORED.set(key, [...(STORED.get(key) ?? []), d]);
+    }
+  }
+  return STORED.get(canonicalKey(m))?.find(d => matchAtoms(m, d)) ?? null;
+}
+
+/** Räumliche Lage aus berechneten Koordinaten (Kraftfeld, nur in der App): Winkel mit „ca.“, „idealisiert“ weiter nach EPA */
+export function embedComputed(m: Molecule, d: Mol3D, mode: AngleMode = "real"): Embedded3D {
+  return (mode === "real" && embedData(m, d, mode, true)) || embedEPA(m, mode);
 }
 
 /** Räumliche Lage direkt aus den Daten (mol3d.ts) – für Stoffe, die nicht auf dem Raster gebaut werden (Propan, Glucose …); ohne freie Paare und Winkel */

@@ -1,12 +1,12 @@
 // Moleküle bauen: Baufeld als Bühne, darunter (breit: links) ein Panel mit Formel | Molekül | Bau.
 
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { FitDown, Segmented, Switch, Sheet, Tag, Workbench, type WorkbenchTool } from "@lern/ui";
-import { Formula, pseTool } from "@lern/chem-ui";
+import { Formula, pseTool, computeMol3D, forceFieldAvailable, moleculeInput } from "@lern/chem-ui";
 import {
-  BY_SYMBOL, KNOWN, electronsOf, isComplete, connected, identify, sumFormula, shapeAt, isPolar, isWeaklyPolar, polarBonds, elementName, bondName, geometryName,
+  BY_SYMBOL, KNOWN, electronsOf, isComplete, connected, identify, storedMol3D, sumFormula, shapeAt, isPolar, isWeaklyPolar, polarBonds, elementName, bondName, geometryName,
   target,
-  type AngleMode,
+  type AngleMode, type Mol3D,
 } from "@lern/chem";
 import { useApp } from "../store.ts";
 import { empty, loadKnown } from "../edit.ts";
@@ -33,6 +33,24 @@ export function BuildView() {
   const os = stufe === "os";
   const done = isComplete(mol);
   const known = done ? identify(mol) : null;
+  // hinterlegte Struktur (gemessene Werte) – auch für Moleküle, die keine Beispiele sind (CHCl₃, N₂H₄ …)
+  const stored = useMemo(() => (done ? storedMol3D(mol) : null), [done, mol]);
+  // In der App: alle übrigen Moleküle mit dem Kraftfeld berechnen (im Web nur hinterlegte)
+  const canCompute = forceFieldAvailable && done && !stored && mol.atoms.length > 1 && connected(mol);
+  const [calc, setCalc] = useState<{ for: typeof mol; data: Mol3D | null } | "busy" | null>(null);
+  useEffect(() => {
+    if (!show3d || !canCompute) return;
+    if (calc !== "busy" && calc?.for === mol) return;
+    let live = true;
+    setCalc("busy");
+    // erst zeichnen lassen („wird berechnet“), dann rechnen
+    const t = window.setTimeout(() => computeMol3D(moleculeInput(mol)).then(data => { if (live) setCalc({ for: mol, data }); }, () => { if (live) setCalc({ for: mol, data: null }); }), 30);
+    return () => { live = false; window.clearTimeout(t); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show3d, canCompute, mol]);
+  const computed = calc && calc !== "busy" && calc.for === mol ? calc.data : null;
+  // Kraftfeld kennt das Molekül nicht (z. B. HCl): Lage nach dem EPA-Modell
+  const epaOnly = !stored && calc && calc !== "busy" && calc.for === mol && !calc.data;
   const center = mol.atoms.map(a => shapeAt(mol, a.id)).filter(Boolean);
   const missing = mol.atoms.map(a => ({ a, e: electronsOf(mol, a.id) })).filter(x => !x.e.complete);
   const bondPairs = mol.bonds.reduce((s, b) => s + b.order, 0);
@@ -102,8 +120,8 @@ export function BuildView() {
         </>
       ),
     }] : []),
-    // 3D nur für bekannte Moleküle (Lage aus berechneten Daten, Kraftfeld MMFF94), nicht für frei gebaute
-    { id: "3d", label: "3D", icon: "cube", disabled: !known, onClick: () => setShow3d(true) },
+    // 3D für bekannte Moleküle (gespeicherte Lage); in der App auch für frei gebaute (Kraftfeld, berechnet)
+    { id: "3d", label: "3D", icon: "cube", disabled: !stored && !canCompute, onClick: () => setShow3d(true) },
     {
       id: "beispiel", label: tr("Beispiel", "Example"), icon: "sample", title: tr("Beispiel laden", "Load example"), content: (
         <FitDown><div className="examples">
@@ -144,12 +162,15 @@ export function BuildView() {
         status={<>{status}{info && <Tag>{info}</Tag>}</>} />
 
       <Sheet open={show3d} wide title={`${tr("3D-Ansicht", "3D view")}: ${known?.name ?? tr("Molekül", "Molecule")}`} onClose={() => setShow3d(false)}>
-        {show3d && (
+        {show3d && (stored || computed || epaOnly) && (
           <Suspense fallback={<div className="m3d m3d-loading">{tr("3D-Ansicht wird geladen …", "Loading 3D view …")}</div>}>
-            <Molecule3D mol={mol} look={look3d} angleMode={mode3d} showAngles={angles3d} showLonePairs={lone3d} showDipole={os && showDeltas} dipoleArrow={dipoleArrow} />
+            <Molecule3D mol={mol} computed={stored ? undefined : computed ?? undefined} look={look3d} angleMode={mode3d} showAngles={angles3d} showLonePairs={lone3d} showDipole={os && showDeltas} dipoleArrow={dipoleArrow} />
           </Suspense>
         )}
+        {show3d && !stored && !computed && !epaOnly && <div className="m3d m3d-loading">{tr("Wird berechnet …", "Calculating …")}</div>}
         <div className="m3d-controls">
+          {!stored && computed && <Tag>{tr("berechnet (MMFF94)", "calculated (MMFF94)")}</Tag>}
+          {epaOnly && <Tag>{tr("EPA-Modell", "VSEPR model")}</Tag>}
           <Segmented<"ball" | "fill"> label={tr("Modell", "Model")} value={look3d} onChange={setLook3d}
             options={[{ value: "ball", label: tr("Kugel-Stab", "Ball and stick") }, { value: "fill", label: tr("Kalotte", "Space-filling") }]} />
           <Segmented<AngleMode> label={tr("Bindungswinkel", "Bond angles")} value={mode3d} onChange={setMode3d}

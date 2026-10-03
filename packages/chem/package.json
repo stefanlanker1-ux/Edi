@@ -6,7 +6,8 @@
   "type": "module",
   "description": "Chemie-Daten und -Logik: Elemente, Elektronenkonfiguration, Ionen (ohne UI)",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./mmff": "./src/mmff/index.ts"
   },
   "scripts": {
     "test": "vitest run",

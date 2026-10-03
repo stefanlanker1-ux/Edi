@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { KNOWN, KNOWN_BY_ID as K, toMolecule, en } from "../src/molecules.ts";
-import { embed3D, dipoleVector, angleDeg, type Vec } from "../src/geometry3d.ts";
+import { embed3D, storedMol3D, dipoleVector, angleDeg, type Vec } from "../src/geometry3d.ts";
 import { MOL3D } from "../src/mol3d.ts";
 
 const sub = (a: Vec, b: Vec): Vec => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
@@ -144,5 +144,39 @@ test("jedes bekannte Molekül hat 3D-Daten (MMFF94) und wird daraus aufgebaut", 
     }
     assert.ok(e.angles.every(a => !a.label.startsWith("ca.")), `${k.formula}: Winkel geschätzt`);
     assert.strictEqual(e.atoms.length, d.atoms.length);
+  }
+});
+
+test("hinterlegte Strukturen auch für Moleküle, die keine Beispiele sind (Nachschlagen über den Bindungsgraphen)", () => {
+  // CHCl₃ auf dem Raster, Atome in beliebiger Reihenfolge
+  const m = {
+    atoms: [{ id: 7, el: "Cl", x: 0, y: 1 }, { id: 2, el: "C", x: 1, y: 1 }, { id: 3, el: "H", x: 1, y: 0 }, { id: 4, el: "Cl", x: 2, y: 1 }, { id: 5, el: "Cl", x: 1, y: 2 }],
+    bonds: [{ a: 2, b: 7, order: 1 }, { a: 2, b: 3, order: 1 }, { a: 2, b: 4, order: 1 }, { a: 2, b: 5, order: 1 }],
+  };
+  assert.strictEqual(storedMol3D(m), MOL3D.CHCl3);
+  const e = embed3D(m);
+  assert.ok(e.angles.every(a => !a.label.startsWith("ca.")));
+  const P = (id: number) => e.atoms.find(a => a.id === id)!.pos;
+  assert.approximately(dist(P(2), P(7)), 1.758, 0.005);
+  // falsche Bindungsordnung → nicht hinterlegt
+  assert.strictEqual(storedMol3D({ ...m, bonds: m.bonds.map((b, i) => (i ? b : { ...b, order: 2 })) }), null);
+});
+
+test("gemessene Werte in den hinterlegten Strukturen", () => {
+  const d = (f: string, i: number, j: number) => { const A = MOL3D[f].atoms; return dist(A[i].slice(1) as Vec, A[j].slice(1) as Vec); };
+  const bond = (f: string, a: string, b: string) => MOL3D[f].bonds.filter(([i, j]) => [MOL3D[f].atoms[i][0], MOL3D[f].atoms[j][0]].sort().join() === [a, b].sort().join()).map(([i, j]) => d(f, i, j));
+  const cases: [string, string, string, number][] = [
+    ["H2O", "H", "O", .958], ["NH3", "H", "N", 1.012], ["CH4", "C", "H", 1.087], ["CO2", "C", "O", 1.160], ["SO2", "O", "S", 1.431],
+    ["C6H6", "C", "C", 1.397], ["C2H4", "C", "C", 1.339], ["C2H2", "C", "C", 1.203], ["HCN", "C", "N", 1.153], ["S8", "S", "S", 2.051],
+    ["SF6", "F", "S", 1.561], ["BF3", "B", "F", 1.307], ["P4", "P", "P", 2.21], ["Br2", "Br", "Br", 2.281], ["H2O2", "O", "O", 1.475],
+  ];
+  for (const [f, a, b, r] of cases) for (const x of bond(f, a, b)) assert.approximately(x, r, 0.01, `${f} ${a}–${b}`);
+  // Winkel: H₂O 104,5°, PCl₃ 100,3°, SO₂ 119,5°, S₈ 107,9°
+  const ang = (f: string, i: number, c: number, j: number) => angleDeg(sub(MOL3D[f].atoms[i].slice(1) as Vec, MOL3D[f].atoms[c].slice(1) as Vec), sub(MOL3D[f].atoms[j].slice(1) as Vec, MOL3D[f].atoms[c].slice(1) as Vec));
+  const center = (f: string, el: string) => MOL3D[f].atoms.findIndex(a => a[0] === el);
+  const nb = (f: string, c: number) => MOL3D[f].bonds.filter(b => b[0] === c || b[1] === c).map(b => (b[0] === c ? b[1] : b[0]));
+  for (const [f, el, deg] of [["H2O", "O", 104.5], ["PCl3", "P", 100.3], ["SO2", "S", 119.5], ["S8", "S", 107.9], ["NF3", "N", 102.2]] as const) {
+    const c = center(f, el), [i, j] = nb(f, c);
+    assert.approximately(ang(f, i, c, j), deg, 0.2, f);
   }
 });

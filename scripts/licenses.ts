@@ -41,6 +41,8 @@ export function collectLicenses(appDir: string, withWorkbox: boolean): Pkg[] {
     const pj = JSON.parse(readFileSync(join(dir, "package.json"), "utf8"));
     const own = name.startsWith("@lern/") || name.startsWith("@edi/");
     if (!own) seen.set(name, { name, version: pj.version, license: pj.license ?? "", text: licenseText(dir) });
+    // eigene Pakete mit übernommenem Fremdcode: Hinweise aus NOTICE.txt
+    else if (existsSync(join(dir, "NOTICE.txt"))) seen.set(name, { name, version: pj.version, license: "Hinweise", text: readFileSync(join(dir, "NOTICE.txt"), "utf8").trim() });
     for (const dep of Object.keys(pj.dependencies ?? {})) visit(dep, dir);
   };
   const app = JSON.parse(readFileSync(join(appDir, "package.json"), "utf8"));

@@ -2,7 +2,9 @@
 """3D-Koordinaten für alle Beispielmoleküle (Elektronenpaarbindung, Reaktionsgleichungen, Gemische).
 
 Verfahren: Konformere erzeugen (RDKit ETKDG), mit dem Kraftfeld MMFF94 optimieren,
-das energieärmste nehmen. Ergebnis: packages/chem/src/mol3d.ts (reine Daten, offline).
+das energieärmste nehmen; gemessene Bindungslängen und -winkel (MEASURED, REAL_ANGLES, DIATOMIC, FIXED)
+werden dabei festgehalten. Ergebnis: packages/chem/src/mol3d.ts (reine Daten, offline).
+In den Apps gilt: hinterlegte Struktur zuerst, alle übrigen Moleküle rechnet MMFF94 (nur Android/iOS).
 Neu erzeugen:  pip install rdkit && python3 scripts/mol3d.py
 """
 from pathlib import Path
@@ -23,6 +25,12 @@ SMILES = {
     # Gemische: Ozon, Öl (vereinfacht als Dodecan), Haushaltszucker (Saccharose)
     "O3": "[O-][O+]=O", "C12H26": "CCCCCCCCCCCC", "H2CO3": "OC(=O)O",
     "C12H22O11": "OC[C@H]1O[C@@](CO)(O[C@H]2O[C@H](CO)[C@@H](O)[C@H](O)[C@H]2O)[C@@H](O)[C@@H]1O",
+    # weitere Moleküle (Unter- und Oberstufe)
+    "Br2": "BrBr", "I2": "II", "HBr": "Br", "HI": "I", "CS2": "S=C=S", "NF3": "FN(F)F", "PCl3": "ClP(Cl)Cl",
+    "CHCl3": "ClC(Cl)Cl", "CH2Cl2": "ClCCl", "SiH4": "[SiH4]", "SiCl4": "Cl[Si](Cl)(Cl)Cl", "N2H4": "NN",
+    "BF3": "FB(F)F", "BCl3": "ClB(Cl)Cl", "PCl5": "ClP(Cl)(Cl)(Cl)Cl", "SF6": "FS(F)(F)(F)(F)F", "S8": "S1SSSSSSS1",
+    "C6H6": "c1ccccc1", "CH3CHO": "CC=O", "HCOOH": "OC=O", "CH3COOH": "CC(=O)O", "CH3COCH3": "CC(C)=O",
+    "CO(NH2)2": "NC(N)=O", "NH2CH2COOH": "NCC(=O)O",
 }
 
 # Gemessene Werte (wie REAL_ANGLES in molecules.ts): hier hält das Kraftfeld sie fest.
@@ -32,24 +40,77 @@ REAL_ANGLES = {
     "O:C,H": 108.9, "O:H,O": 94.8, "C:C,H,H": 117.4, "C:H,H,O": 116.5,
 }
 # Zweiatomige Moleküle: gemessene Bindungslängen in Å (MMFF kennt z. B. N≡N nicht richtig)
-DIATOMIC = {"H2": .741, "O2": 1.208, "N2": 1.098, "Cl2": 1.988, "F2": 1.412, "HCl": 1.275, "HF": .917, "CO": 1.128, "NO": 1.151}
+DIATOMIC = {"H2": .741, "O2": 1.208, "N2": 1.098, "Cl2": 1.988, "F2": 1.412, "HCl": 1.275, "HF": .917, "CO": 1.128, "NO": 1.151,
+            "Br2": 2.281, "I2": 2.666, "HBr": 1.414, "HI": 1.609}
+
+
+# Gemessene Bindungslängen (Å, Schlüssel „A-B“ alphabetisch nach Element) und Winkel (Schlüssel „Zentrum:A,B“ = alle Winkel A–Zentrum–B)
+# je Molekül; das Kraftfeld hält sie fest, alles Übrige (Verdrillungen, H-Lagen) ergibt sich aus MMFF94.
+MEASURED = {
+    "H2O": {"H-O": .958}, "H2S": {"H-S": 1.336}, "NH3": {"H-N": 1.012}, "PH3": {"H-P": 1.420}, "CH4": {"C-H": 1.087},
+    "NF3": {"F-N": 1.365, "N:F,F": 102.2}, "PCl3": {"Cl-P": 2.043, "P:Cl,Cl": 100.3}, "CCl4": {"C-Cl": 1.767}, "SiH4": {"H-Si": 1.480}, "SiCl4": {"Cl-Si": 2.019},
+    "CH3Cl": {"C-Cl": 1.785, "C-H": 1.090, "C:H,H": 110.5},
+    "CH2Cl2": {"C-Cl": 1.765, "C-H": 1.087, "C:Cl,Cl": 112.0, "C:H,H": 111.5},
+    "CHCl3": {"C-Cl": 1.758, "C-H": 1.080, "C:Cl,Cl": 111.3},
+    "HCN": {"C-H": 1.066, "C-N": 1.153},
+    "H2O2": {"O-O": 1.475, "H-O": .950},
+    "N2H4": {"N-N": 1.447, "H-N": 1.008, "N:H,H": 106.0, "N:H,N": 112.0},
+    "CH2O": {"C-O": 1.205, "C-H": 1.111},
+    "CH3OH": {"C-O": 1.427, "H-O": .956, "C-H": 1.094},
+    "C2H6": {"C-C": 1.535, "C-H": 1.094, "C:C,H": 111.2},
+    "C2H4": {"C-C": 1.339, "C-H": 1.086},
+    "C2H2": {"C-C": 1.203, "C-H": 1.063},
+    "C6H6": {"C-C": 1.397, "C-H": 1.084},
+    "C2H5OH": {"C-C": 1.512, "C-O": 1.431},
+    "CH3CHO": {"C-O": 1.210, "C-C": 1.501, "C:C,O": 123.9},
+    "HCOOH": {"C-O=2": 1.202, "C-O=1": 1.343, "H-O": .972, "C-H": 1.097, "C:O,O": 124.9, "O:C,H": 106.3},
+    "CH3COOH": {"C-O=2": 1.214, "C-O=1": 1.364, "C-C": 1.517},
+    "CH3COCH3": {"C-O": 1.213, "C-C": 1.520, "C:C,C": 116.7},
+    "H2SO4": {"O-S=2": 1.422, "O-S=1": 1.574, "H-O": .970, "S:O=2,O=2": 123.3, "S:O=1,O=1": 101.3},
+    "P4": {"P-P": 2.21},
+    "P4O10": {"O-P=1": 1.604, "O-P=2": 1.429, "O:P,P": 123.5},
+}
 
 
 # Gemessene Verdrillung (Diederwinkel) H–O–O–H im Wasserstoffperoxid
 DIHEDRAL = {"H2O2": 111.5}
 
 
-def real_constraints(m, ff):
+def real_constraints(m, ff, skip=frozenset()):
     for a in m.GetAtoms():
         nbs = [n for n in a.GetNeighbors()]
         if len(nbs) < 2:
             continue
         key = f"{a.GetSymbol()}:{','.join(sorted(n.GetSymbol() for n in nbs))}"
-        if key not in REAL_ANGLES:
+        if key not in REAL_ANGLES or any(k.split(":")[0] == a.GetSymbol() for k in skip):
             continue
         pairs = [(x, y) for i, x in enumerate(nbs) for y in nbs[i + 1:] if x.GetSymbol() == y.GetSymbol()] or [(nbs[0], nbs[1])]
         for x, y in pairs:
             ff.MMFFAddAngleConstraint(x.GetIdx(), a.GetIdx(), y.GetIdx(), False, REAL_ANGLES[key], REAL_ANGLES[key], 1e6)
+
+
+def measured_constraints(m, ff, meas):
+    """Bindungslängen und Winkel aus MEASURED festhalten (Schlüssel „A-B“ bzw. „A-B=Ordnung“, „Z:A,B“ bzw. „Z:A=1,B=2“)"""
+    def bkey(b, order=False):
+        k = "-".join(sorted([b.GetBeginAtom().GetSymbol(), b.GetEndAtom().GetSymbol()]))
+        return f"{k}={int(b.GetBondTypeAsDouble())}" if order else k
+    for b in m.GetBonds():
+        r = meas.get(bkey(b, True), meas.get(bkey(b)))
+        if r:
+            ff.MMFFAddDistanceConstraint(b.GetBeginAtomIdx(), b.GetEndAtomIdx(), False, r, r, 1e5)
+    for a in m.GetAtoms():
+        nbs = list(a.GetNeighbors())
+        for i, x in enumerate(nbs):
+            for y in nbs[i + 1:]:
+                def part(n, order):
+                    if not order:
+                        return n.GetSymbol()
+                    return f"{n.GetSymbol()}={int(m.GetBondBetweenAtoms(a.GetIdx(), n.GetIdx()).GetBondTypeAsDouble())}"
+                for order in (True, False):
+                    k = f"{a.GetSymbol()}:{','.join(sorted([part(x, order), part(y, order)]))}"
+                    if k in meas:
+                        ff.MMFFAddAngleConstraint(x.GetIdx(), a.GetIdx(), y.GetIdx(), False, meas[k], meas[k], 1e5)
+                        break
 
 
 def embed(smi: str, key: str):
@@ -73,7 +134,9 @@ def embed(smi: str, key: str):
         best = max(range(len(ids)), key=lambda i: (round(span(i), 1), -res[i][1]))
     if AllChem.MMFFHasAllMoleculeParams(m):
         ff = AllChem.MMFFGetMoleculeForceField(m, AllChem.MMFFGetMoleculeProperties(m), confId=ids[best])
-        real_constraints(m, ff)
+        meas = MEASURED.get(key, {})
+        real_constraints(m, ff, {k for k in meas if ":" in k})
+        measured_constraints(m, ff, meas)
         if key in DIHEDRAL:
             chain = [a.GetIdx() for a in m.GetAtoms() if a.GetSymbol() == "O"]
             h = [next(n.GetIdx() for n in m.GetAtomWithIdx(o).GetNeighbors() if n.GetSymbol() == "H") for o in chain]
@@ -108,6 +171,15 @@ def p2o5():
     return atoms, bonds
 
 
+def s8():
+    # S₈ als Krone: S–S 2,051 Å, S–S–S 107,9° (Diederwinkel ≈ 98° ergibt sich daraus)
+    d, t = 2.051, math.radians(107.9)
+    R = 2 * d * math.sin(t / 2) / (2 * math.sin(math.radians(45)))
+    h = math.sqrt(d * d - (2 * R * math.sin(math.radians(22.5))) ** 2) / 2
+    atoms = [("S", R * math.cos(math.radians(45 * k)), R * math.sin(math.radians(45 * k)), h if k % 2 else -h) for k in range(8)]
+    return atoms, [(k, (k + 1) % 8, 1) for k in range(8)]
+
+
 # Kleine anorganische Moleküle, für die MMFF keine passenden Werte hat: gemessene Struktur (NIST CCCBDB) direkt
 FIXED = {
     "CO2": (planar("C", [("O", 1.160, 0), ("O", 1.160, 180)]), [(0, 1, 2), (0, 2, 2)]),
@@ -119,6 +191,16 @@ FIXED = {
              + [("H", 1.406 + 0.964 * math.cos(math.radians(180 - 102.2)), 0.964 * math.sin(math.radians(180 - 102.2)), 0.0)],
              [(0, 1, 1), (0, 2, 2), (0, 3, 1), (1, 4, 1)]),
     "P2O5": p2o5(),
+    "CS2": (planar("C", [("S", 1.553, 0), ("S", 1.553, 180)]), [(0, 1, 2), (0, 2, 2)]),
+    "BF3": (planar("B", [("F", 1.307, 90), ("F", 1.307, 210), ("F", 1.307, 330)]), [(0, 1, 1), (0, 2, 1), (0, 3, 1)]),
+    "BCl3": (planar("B", [("Cl", 1.742, 90), ("Cl", 1.742, 210), ("Cl", 1.742, 330)]), [(0, 1, 1), (0, 2, 1), (0, 3, 1)]),
+    # PCl₅ trigonal-bipyramidal: axial 2,124 Å, äquatorial 2,023 Å
+    "PCl5": (planar("P", [("Cl", 2.023, 90), ("Cl", 2.023, 210), ("Cl", 2.023, 330)]) + [("Cl", 0.0, 0.0, 2.124), ("Cl", 0.0, 0.0, -2.124)],
+             [(0, i, 1) for i in range(1, 6)]),
+    # SF₆ oktaedrisch: 1,561 Å
+    "SF6": ([("S", 0.0, 0.0, 0.0)] + [("F", *(1.561 * s_ if j == ax else 0.0 for j in range(3))) for ax in range(3) for s_ in (1, -1)],
+            [(0, i, 1) for i in range(1, 7)]),
+    "S8": s8(),
     # Ozon gewinkelt: O–O 1,278 Å, 116,8°
     "O3": (planar("O", [("O", 1.278, 90 - 58.4), ("O", 1.278, 90 + 58.4)]), [(0, 1, 2), (0, 2, 1)]),
 }
@@ -174,7 +256,8 @@ for key, smi in SMILES.items():
         if key == "P4O10":
             flat = cage_flat(m)
         syms = [a.GetSymbol() for a in m.GetAtoms()]
-        blist = [(b.GetBeginAtomIdx(), b.GetEndAtomIdx(), int(b.GetBondTypeAsDouble())) for b in m.GetBonds()]
+        mk = Chem.Mol(m); Chem.Kekulize(mk, clearAromaticFlags=True)  # Benzol: abwechselnd Einfach- und Doppelbindungen
+        blist = [(b.GetBeginAtomIdx(), b.GetEndAtomIdx(), int(b.GetBondTypeAsDouble())) for b in mk.GetBonds()]
     # Hauptachsen: größte Ausdehnung → x, kleinste → z (ebene Moleküle liegen genau in der xy-Ebene)
     X = np.array(pos, dtype=float); X -= X.mean(axis=0)
     if len(X) > 1:
