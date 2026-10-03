@@ -97,8 +97,10 @@ function layout(cw: number, ch: number, W: number, H: number): Layout {
 /** Dauer eines Rechenschritts in ms (60 pro Sekunde) */
 const STEP = 1000 / 60;
 
-export function FlowView({ world, motion, version, label, onPick, onFrame, focus }: {
+export function FlowView({ world, motion, version, label, onPick, onFrame, focus, paused = false }: {
   world: World; motion: boolean; version: number; label: string;
+  /** angehalten, solange etwas darüber liegt (z. B. 3D-Modell im Stoff-Blatt) – spart Rechenzeit, die Bewegung geht danach weiter */
+  paused?: boolean;
   onPick?: (f: string) => void;
   /** nach jedem Zeitschritt (für Anzeige des Zustands) */
   onFrame?: () => void;
@@ -110,6 +112,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   const lens = useRef<[number, number]>(lensStart(world, focus));
   const lensTo = useRef<[number, number]>(lens.current);
   const lay = useRef<Layout | null>(null);
+  const pausedRef = useRef(paused);
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
   /** Ziehen: Abstand zwischen Finger und Mitte der Lupe bleibt gleich */
   const drag = useRef<[number, number] | null>(null);
   /** in der Lupe angetipptes Teilchen – Stoff-Info öffnet erst beim Loslassen */
@@ -333,8 +337,9 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
     // die Geschwindigkeit bleibt immer gleich. Gezeichnet wird eine geglättete Lage, so gleiten die Teilchen statt zu zittern.
     let last = -1, acc = 0;
     const loop = (now: number) => {
-      frame++;
       raf = requestAnimationFrame(loop);
+      if (pausedRef.current) { last = -1; return; }
+      frame++;
       const dt = last < 0 ? STEP : Math.min(100, now - last);
       last = now; acc += dt;
       let n = 0;

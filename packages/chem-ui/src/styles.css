@@ -190,6 +190,7 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
 /* 3D: Modell füllt den Platz des Blatts (Formel und Kennzeichen oben, Umschalter unten) */
 .sub-body.is-3d { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; }
 .sub-body.is-3d .m3d { height: 100%; }
+.sub-body > .ui-seg button { flex: 1; }
 /* Kästchenschema zum Selbst-Befüllen: Schema füllt den Platz, darunter Zähler und Konfiguration */
 .fill-scheme { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
 .fill-scheme-fit { flex: 1; min-height: 0; width: 100%; }

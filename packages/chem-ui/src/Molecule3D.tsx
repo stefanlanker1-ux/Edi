@@ -25,9 +25,12 @@ function label(text: string, cls: string) {
   return new CSS2DObject(el);
 }
 
+// ein gemeinsamer Zylinder (Radius 1, Höhe 1), je Stab nur skaliert – viel weniger Geometrie bei großen Molekülen (Zucker)
+const UNIT_CYL = new THREE.CylinderGeometry(1, 1, 1, 16);
 function cylinder(a: THREE.Vector3, b: THREE.Vector3, r: number, mat: THREE.Material) {
   const d = new THREE.Vector3().subVectors(b, a);
-  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 20), mat);
+  const m = new THREE.Mesh(UNIT_CYL, mat);
+  m.scale.set(r, d.length(), r);
   m.position.copy(a).addScaledVector(d, 0.5);
   m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.clone().normalize());
   return m;
@@ -63,7 +66,7 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
     const w = () => box.clientWidth, h = () => box.clientHeight;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(40, w() / h(), 0.1, 100);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: window.devicePixelRatio < 2, alpha: true }); // hochauflösende Handys: Kantenglättung unnötig, spart viel Rechenzeit
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w(), h());
     box.appendChild(renderer.domElement);
@@ -91,17 +94,21 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
       if (!mats.has(el)) mats.set(el, new THREE.MeshStandardMaterial({ color: CPK[el] ?? 0xaaaaaa, roughness: 0.5, metalness: 0.02 }));
       return mats.get(el)!;
     };
+    // Kugel je Element nur einmal; Symbole hängen erst beim Antippen in der Szene (jede Beschriftung kostet in jedem Bild)
+    const spheres = new Map<string, THREE.SphereGeometry>();
+    const sphereOf = (el: string) => {
+      if (!spheres.has(el)) spheres.set(el, new THREE.SphereGeometry(rOf(el), 32, 20));
+      return spheres.get(el)!;
+    };
     const atomMeshes: THREE.Mesh[] = [];
     for (const a of e.atoms) {
-      const mesh = new THREE.Mesh(new THREE.SphereGeometry(rOf(a.el), 40, 24), matOf(a.el));
+      const mesh = new THREE.Mesh(sphereOf(a.el), matOf(a.el));
       mesh.position.copy(pos.get(a.id)!);
       group.add(mesh);
       const l = label(a.el, a.el === "H" ? "sym light" : "sym");
       l.position.copy(pos.get(a.id)!);
-      l.visible = false;
       mesh.userData.label = l;
       atomMeshes.push(mesh);
-      group.add(l);
     }
     // Bindungen: je Hälfte in der Farbe ihres Atoms (Mehrfachbindungen als parallele Stäbe); im Kalottenmodell keine
     const elOf = new Map(e.atoms.map(a => [a.id, a.el]));
@@ -245,7 +252,7 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
       const r = box.getBoundingClientRect();
       ray.setFromCamera(new THREE.Vector2(((ev.clientX - r.left) / r.width) * 2 - 1, -((ev.clientY - r.top) / r.height) * 2 + 1), camera);
       const hit = ray.intersectObjects(atomMeshes)[0];
-      if (hit) { const l = hit.object.userData.label as CSS2DObject; l.visible = !l.visible; }
+      if (hit) { const l = hit.object.userData.label as CSS2DObject; if (l.parent) { group.remove(l); l.element.remove(); } else group.add(l); }
     };
     labels.domElement.addEventListener("pointerdown", onDown);
     labels.domElement.addEventListener("pointerup", onUp);
@@ -269,7 +276,7 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
       controls.dispose();
       scene.traverse(o => {
         if (o instanceof THREE.Mesh || o instanceof THREE.Line) {
-          o.geometry.dispose();
+          if (o.geometry !== UNIT_CYL) o.geometry.dispose();
           (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => m.dispose());
         }
       });

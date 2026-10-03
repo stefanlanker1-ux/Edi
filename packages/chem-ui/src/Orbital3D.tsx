@@ -36,7 +36,7 @@ export default function Orbital3D({ items, iso, axes = true, autoRotate = true, 
     const w = () => box.clientWidth || 1, h = () => box.clientHeight || 1;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, w() / h(), 0.01, 200);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: window.devicePixelRatio < 2, alpha: true }); // hochauflösende Handys: Kantenglättung unnötig, spart viel Rechenzeit
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(w(), h());
     box.appendChild(renderer.domElement);

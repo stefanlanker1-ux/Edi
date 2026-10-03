@@ -304,7 +304,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
             {ex.note && <p className="gm-note">{ex.note}</p>}
           </div>
         }
-        stage={<FlowView world={world} motion={!reduced} version={version} focus={focus} onFrame={onFrame} onPick={f => { buzz(); setPick(f); }}
+        stage={<FlowView world={world} motion={!reduced} paused={!!pick} version={version} focus={focus} onFrame={onFrame} onPick={f => { buzz(); setPick(f); }}
           label={`${ex.title}: ${ex.items.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`} />}
         status={<div className="gm-status">{statusOf(ex, info, done).map(l => <Tag key={l}>{l}</Tag>)}</div>}
         controls={
