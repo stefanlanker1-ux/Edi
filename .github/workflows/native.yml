@@ -1,0 +1,56 @@
+# Baut die Android- und die iOS-App (Capacitor) aus derselben Web-Version.
+# Android: Debug-APK als Download unter „Artifacts“. iOS: Build für den Simulator (ohne Signatur) als Prüfung.
+# Läuft bei jedem Push auf main oder manuell über "Run workflow".
+name: Android- und iOS-App bauen
+
+on:
+  push:
+    branches: [main]
+    paths: ["apps/**", "modules/**", "packages/**", "package.json", "package-lock.json", ".github/workflows/native.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build -w apps/edi
+      - run: npx cap sync android
+        working-directory: apps/edi
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: apps/edi/android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: edi-android-debug
+          path: apps/edi/android/app/build/outputs/apk/debug/*.apk
+
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w apps/edi
+      - run: npx cap sync ios
+        working-directory: apps/edi
+      - run: xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" CODE_SIGNING_ALLOWED=NO build
+        working-directory: apps/edi/ios/App

@@ -6,6 +6,3 @@ dist-single/
 site/
 shots/
 
-# native Projekte (Capacitor) werden bei Bedarf mit "npx cap add" erzeugt
-apps/*/android/
-apps/*/ios/

@@ -15,7 +15,9 @@ npm run dev            # http://localhost:5173
 
 ## Android- und iOS-App (Capacitor)
 Voraussetzungen: **Android Studio** (für Android) bzw. ein **Mac mit Xcode** (für iOS).
-Die nativen Projekte werden nicht mitversioniert; einmalig anlegen mit `npx cap add android` bzw. `npx cap add ios`.
+Die nativen Projekte liegen in `android/` und `ios/` (Web-Dateien werden beim Synchronisieren hineinkopiert, nicht mitversioniert).
+App-Icons und Startbild entstehen aus `assets/` mit `npx @capacitor/assets generate`.
+Der Workflow „Android- und iOS-App bauen“ baut bei jedem Push auf main eine Debug-APK (Download unter „Artifacts“) und prüft den iOS-Build für den Simulator.
 
 ```bash
 cd apps/edi
