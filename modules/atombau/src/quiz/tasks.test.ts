@@ -14,7 +14,8 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
           assert.deepEqual(JSON.parse(JSON.stringify(t)), t, "nicht JSON-fähig");
           // fachlich: keine negativen Teilchenzahlen, nur Ionen, die es gibt
           const v = t.visual ?? (t.kind === "build" ? { kind: "nuclide", ...t.target } : null);
-          if (v) {
+          if (v && v.kind === "fill") assert.ok(v.E > 0 && v.E <= 86, `Schema: ${JSON.stringify(v)}`);
+          else if (v) {
             assert.ok(v.N >= 0 && v.E >= 0, `negative Teilchenzahl: ${JSON.stringify(v)}`);
             const q = v.Z - v.E;
             if (q !== 0) assert.ok(commonCharges(v.Z).includes(q), `unübliches Ion Z=${v.Z} Ladung ${q}: ${t.prompt}`);

@@ -14,7 +14,9 @@ export type Stufe = "us" | "os";
 
 export type Visual =
   | { kind: "nuclide"; Z: number; N: number; E: number; blank?: boolean }
-  | { kind: "bohr"; Z: number; N: number; E: number; labels?: boolean };
+  | { kind: "bohr"; Z: number; N: number; E: number; labels?: boolean }
+  /** Kästchenschema zum Selbst-Befüllen neben Konfigurationsaufgaben */
+  | { kind: "fill"; Z: number; E: number };
 
 export interface NumberField { id: string; label: string; answer: number; select?: number[] }
 
@@ -412,6 +414,7 @@ export const configMC: Gen = pool => {
   return {
     ...mc(right, wrongs),
     prompt: tr(`Welche Elektronenkonfiguration hat **${el(Z).name}** (Z = ${Z})?`, `What is the electron configuration of **${el(Z).name}** (Z = ${Z})?`),
+    visual: { kind: "fill", Z, E: Z },
     hint: tr("Reihenfolge nach Energie: 1s 2s 2p 3s 3p 4s 3d 4p … – und die Summe der Hochzahlen muss Z ergeben.", "Order by energy: 1s 2s 2p 3s 3p 4s 3d 4p … – and the superscripts must add up to Z."),
     explain: tr(`${el(Z).name} hat ${Z} Elektronen: \`${right}\`. Unterschalen werden nach steigender Energie gefüllt (4s vor 3d).`, `${el(Z).name} has ${Z} electrons: \`${right}\`. Subshells are filled in order of increasing energy (4s before 3d).`),
   };
@@ -428,6 +431,7 @@ export const shortConfigMC: Gen = pool => {
       ...[Z + 1, Z - 1, Z + 2].map(z => d(shortConfigString(z), "elektronen-verzaehlt", tr(`Kern plus Hochzahlen müssen **${Z}** Elektronen ergeben.`, `Core plus superscripts must give **${Z}** electrons.`))),
     ]),
     prompt: tr(`Welche Kurzschreibweise (Edelgaskern) gehört zu **${el(Z).name}**?`, `Which short notation (noble gas core) belongs to **${el(Z).name}**?`),
+    visual: { kind: "fill", Z, E: Z },
     hint: tr("Nimm das Edelgas der vorherigen Periode als Kern und schreibe nur die restlichen Elektronen dazu.", "Use the noble gas of the previous period as the core. Then add the remaining electrons."),
     explain: tr(`${el(Z).name} (Z = ${Z}) steht in der ${el(Z).period}. Periode: \`${right}\`.`, `${el(Z).name} (Z = ${Z}) is in period ${el(Z).period}: \`${right}\`.`),
   };
@@ -497,6 +501,7 @@ export const ionConfigMC: Gen = () => {
       shortConfigString(Z, E - 1), shortConfigString(Z, E + 1),
     ]),
     prompt: tr(`Welche Elektronenkonfiguration hat das Ion **${el(Z).symbol}${chargeSup(q)}**?`, `What is the electron configuration of the ion **${el(Z).symbol}${chargeSup(q)}**?`),
+    visual: { kind: "fill", Z, E },
     hint: tm ? tr("Bei Übergangsmetall-Kationen werden zuerst die 4s-Elektronen abgegeben!", "Transition metal cations lose the 4s electrons first!") : tr(`Das Ion hat ${q > 0 ? "weniger" : "mehr"} Elektronen als das Atom.`, `The ion has ${q > 0 ? "fewer" : "more"} electrons than the atom.`),
     explain: tr(`${el(Z).symbol}${chargeSup(q)} hat ${E} Elektronen: \`${right}\`.`, `${el(Z).symbol}${chargeSup(q)} has ${E} electrons: \`${right}\`.`)
       + (tm ? tr(` Elektronen werden zuerst aus der äußersten Schale (4s) entfernt, nicht aus 3d – daher nicht \`${wrong1}\`.`, ` Electrons are removed from the outer shell (4s) first, not from 3d – so not \`${wrong1}\`.`) : ""),
