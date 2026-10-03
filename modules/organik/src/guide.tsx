@@ -45,7 +45,7 @@ const STEPS: GuideStep[] = [
     visual: () => <Pic s="CCCC" />,
     why: { "10": tr("10 sind die H-Atome. Gezählt werden nur die C.", "10 is the number of H atoms. Count only the C."), "14": tr("14 sind alle Atome. Gezählt werden nur die C.", "14 is the number of all atoms. Count only the C.") },
     tip: tr("Zähle nur die C-Atome, nicht die H.", "Count only the C atoms, not the H."),
-    labels: [{ at: ".mol-h", text: tr("H-Atom", "H atom"), side: "right" }],
+    labels: [{ at: ".mol-h text", text: tr("H-Atom", "H atom"), side: "right" }],
     ok: tr("4 C-Atome in einer Kette.", "4 C atoms in a chain."),
   },
   {
