@@ -18,6 +18,8 @@ interface Restraints {
   lower: { i: number; j: number; d: number }[];
   chiral: { c: number; a: number; b: number; e: number; v: number }[];
   planar: { c: number; a: number; b: number; e: number }[];
+  /** E/Z als 1-4-Abstände (auch in pair enthalten) */
+  ez: { i: number; j: number; d: number; k: number }[];
 }
 
 /** Abstand 1–4 bei gegebenem Diederwinkel (0 = cis, 180 = trans): b im Ursprung, c auf der x-Achse */
@@ -33,7 +35,7 @@ function restraints(T: Typed, ff: FF, st: Stereo): Restraints {
   const r0 = new Map<number, number>(), th0 = new Map<string, number>();
   for (const b of ff.bonds) r0.set(m.k(b.i, b.j), b.r0);
   for (const a of ff.angles) { th0.set(`${a.i},${a.j},${a.k}`, a.theta0); th0.set(`${a.k},${a.j},${a.i}`, a.theta0); }
-  const R: Restraints = { pair: [], lower: [], chiral: [], planar: [] };
+  const R: Restraints = { pair: [], lower: [], chiral: [], planar: [], ez: [] };
   const done = new Set<number>();
   const pairKey = (i: number, j: number) => (i < j ? i * 4096 + j : j * 4096 + i);
   for (const b of ff.bonds) { R.pair.push({ i: b.i, j: b.j, d: b.r0, k: 100 }); done.add(pairKey(b.i, b.j)); }
@@ -47,7 +49,9 @@ function restraints(T: Typed, ff: FF, st: Stereo): Restraints {
   for (const [a, b, c, d, cis] of st.d) {
     const r1 = r0.get(m.k(a, b))!, r2 = r0.get(m.k(b, c))!, r3 = r0.get(m.k(c, d))!;
     const t1 = th0.get(`${a},${b},${c}`) ?? 120, t2 = th0.get(`${b},${c},${d}`) ?? 120;
-    R.pair.push({ i: a, j: d, d: dist14(r1, r2, r3, t1, t2, cis ? 0 : 180), k: 30 });
+    const ez = { i: a, j: d, d: dist14(r1, r2, r3, t1, t2, cis ? 0 : 180), k: 30 };
+    R.pair.push(ez);
+    R.ez.push(ez);
     done.add(pairKey(a, d));
   }
   for (const [c, a, b, e, sign] of st.c) {
@@ -161,9 +165,16 @@ export function embed(T: Typed, ff: FF, st: Stereo = { c: [], d: [] }, tries = 3
   const R = restraints(T, ff, st);
   let best: Embedded | null = null, spare: Embedded | null = null;
   const rand = rng(seed);
-  const maxTries = tries * 4;
+  // erst mit festgehaltenem Stereo minimieren (sonst kippt z. B. eine N=N-Bindung über die Drehbarriere), dann frei
+  const hold = st.c.length || st.d.length ? errorFn({ pair: R.ez, lower: [], chiral: R.chiral, planar: [], ez: [] }, 3, 0) : null;
+  const relax = (x: Float64Array) => {
+    const x0 = hold ? bfgs(3 * n, x, (y, g) => energy(ff, y, g).total + hold(y, g), 500, 1e-3).x : x;
+    return minimize(ff, x0, 2000);
+  };
+  // Versuche mit falschem Stereo oder verhakter Lage zählen nicht: weiter, bis mindestens einer brauchbar ist (höchstens 30)
+  const maxTries = tries * 4, hardMax = Math.max(maxTries, 30);
   let ok = 0, t = 0;
-  for (; t < maxTries && ok < tries; t++) {
+  for (; ok < tries && (t < maxTries || (ok === 0 && t < hardMax)); t++) {
     const box = 2 + 1.5 * Math.cbrt(n);
     const x4 = new Float64Array(4 * n);
     for (let i = 0; i < x4.length; i++) x4[i] = (rand() - 0.5) * 2 * box;
@@ -173,7 +184,7 @@ export function embed(T: Typed, ff: FF, st: Stereo = { c: [], d: [] }, tries = 3
     for (let i = 0; i < n; i++) for (let q = 0; q < 3; q++) x3[3 * i + q] = r.x[4 * i + q];
     const r3 = bfgs(3 * n, x3, errorFn(R, 3, 0), 150, 1e-2);
     if (!stereoMatches(r3.x, st)) continue;
-    const mm = minimize(ff, r3.x, 2000);
+    const mm = relax(r3.x);
     const okStereo = stereoMatches(mm.x, st);
     if (!okStereo) continue;
     const e = energy(ff, mm.x).total;

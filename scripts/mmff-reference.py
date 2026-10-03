@@ -9,6 +9,8 @@ funktionelle Gruppen, Ionen, Stereozentren) und schreibt je Molekül eine JSON-Z
   x1/e1    nach Optimierung (RDKit, BFGS)
   st       Stereo aus x1: Zentren [Atom, Nachbarn…, Vorzeichen des Spatprodukts], Doppelbindungen [a, b, c, d, cis]
 Dazu alle Moleküle der App (mol3d.py) und der Organik-Beispiele.
+Aufruf: python3 scripts/mmff-reference.py ANZAHL datei.jsonl STARTWERT [random | graph | smiles.txt]
+  random  Bausteine (Standard), graph  komplett zufällige Graphen, smiles.txt  feste Liste (je Zeile ein SMILES)
 
   pip install rdkit
   python3 scripts/mmff-reference.py 100000 ziel.jsonl [Startwert]
@@ -100,6 +102,45 @@ def random_smiles(rng):
     tpl = fill(rng.choice(CORE), ring)
     budget = [rng.choice([1, 2, 3, 4, 5, 6, 8, 10])]
     return expand(rng, tpl, budget, ring)
+
+
+def graph_smiles(rng):
+    """komplett zufälliges Molekül: zufällige Atome (Häufigkeit wie in organischen Stoffen), zufälliger Baum,
+    zufällige Ringschlüsse und Bindungsordnungen, gelegentlich Ladungen – nur Valenzregeln, keine Bausteine"""
+    els = ["C"] * 12 + ["N"] * 3 + ["O"] * 3 + ["S", "P", "F", "Cl", "Br", "I", "Si"]
+    val = {"C": 4, "N": 3, "O": 2, "S": 2, "P": 3, "F": 1, "Cl": 1, "Br": 1, "I": 1, "Si": 4}
+    n = rng.randint(2, 30)
+    rw = Chem.RWMol()
+    free = []
+    for i in range(n):
+        el = rng.choice(els)
+        a = Chem.Atom(el)
+        if el == "N" and rng.random() < .08: a.SetFormalCharge(1)
+        if el == "O" and rng.random() < .05: a.SetFormalCharge(-1)
+        if el == "S" and rng.random() < .15: a.SetNoImplicit(False)
+        rw.AddAtom(a)
+        free.append(val[el] + a.GetFormalCharge() * (1 if el == "N" else 1))
+        if i:
+            cand = [j for j in range(i) if free[j] > 0]
+            if not cand or free[i] <= 0:
+                return None
+            j = rng.choice(cand)
+            o = rng.choices([1, 2, 3], [80, 16, 4])[0]
+            o = max(1, min(o, free[i], free[j]))
+            rw.AddBond(i, j, {1: Chem.BondType.SINGLE, 2: Chem.BondType.DOUBLE, 3: Chem.BondType.TRIPLE}[o])
+            free[i] -= o; free[j] -= o
+    for _ in range(rng.choice([0, 0, 1, 1, 2, 3])):
+        cand = [i for i in range(n) if free[i] > 0]
+        if len(cand) < 2:
+            break
+        i, j = rng.sample(cand, 2)
+        if rw.GetBondBetweenAtoms(i, j):
+            continue
+        rw.AddBond(i, j, Chem.BondType.SINGLE)
+        free[i] -= 1; free[j] -= 1
+    m = rw.GetMol()
+    Chem.SanitizeMol(m)
+    return Chem.MolToSmiles(m)
 
 
 def app_smiles():
@@ -222,13 +263,20 @@ def main():
     rng = random.Random(seed)
     seen = set()
     jobs = []
-    for smi in app_smiles():
-        jobs.append(smi)
+    # Quelle: „random“ (Bausteine, dazu die Moleküle der App), „graph“ (komplett zufällig) oder eine Datei mit SMILES (je Zeile, Reihenfolge bleibt)
+    mode = sys.argv[4] if len(sys.argv) > 4 else "random"
+    if mode not in ("random", "graph"):
+        jobs = [l.split()[0] for l in open(mode) if l.strip()]
+        n = min(n, len(jobs))
+    elif mode == "random":
+        jobs += app_smiles()
     # Kandidaten erzeugen (eindeutig nach kanonischem SMILES)
-    while len(jobs) < n * 1.6:
+    while mode in ("random", "graph") and len(jobs) < n * (1.6 if mode == "random" else 4):
         try:
-            smi = random_smiles(rng)
-        except ValueError:
+            smi = random_smiles(rng) if mode == "random" else graph_smiles(rng)
+        except Exception:
+            continue
+        if smi is None:
             continue
         m = Chem.MolFromSmiles(smi)
         if m is None:
