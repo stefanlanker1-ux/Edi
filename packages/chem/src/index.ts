@@ -9,3 +9,4 @@ export * from "./wedge.ts";
 export * from "./reactions.ts";
 export * from "./neutralization.ts";
 export * from "./kalotte.ts";
+export * from "./orbitals.ts";

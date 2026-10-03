@@ -8,7 +8,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./src/styles.css",
-    "./3d": "./src/Molecule3D.tsx"
+    "./3d": "./src/Molecule3D.tsx",
+    "./orbitals3d": "./src/Orbital3D.tsx"
   },
   "dependencies": {
     "@lern/i18n": "*",

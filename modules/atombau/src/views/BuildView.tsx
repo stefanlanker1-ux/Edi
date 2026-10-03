@@ -9,7 +9,7 @@ import {
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { ElementPicker } from "../components/ElementPicker.tsx";
-import { Bohr, type Particle, Nuclide, EnergyDiagram } from "@lern/chem-ui";
+import { Bohr, type Particle, Nuclide, EnergyDiagram, OrbitalAtom } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 
 const PARTS: { key: "Z" | "N" | "E"; type: Particle; label: string }[] = [
@@ -83,6 +83,12 @@ export function BuildView() {
             {tr("Nach Orbital färben", "Colour by orbital")} (<b className="t-s">s</b> <b className="t-p">p</b> <b className="t-d">d</b> <b className="t-f">f</b>)
           </Switch>
         </>
+      ),
+    }] : []),
+    // Orbitalmodell: das Atom in 3D (Wellenmechanik), nur Level II
+    ...(os && E > 0 && Z > 0 ? [{
+      id: "wellen", label: tr("Wellenmechanik", "Wave mechanics"), title: tr("Orbitalmodell", "Orbital model"), icon: "atom" as const, wide: true, content: (
+        <div className="orb-tool"><OrbitalAtom key={`${Z}-${E}`} Z={Z} E={E} /></div>
       ),
     }] : []),
     { id: "element", label: "Element", icon: "grid", onClick: () => setPicker(true) },

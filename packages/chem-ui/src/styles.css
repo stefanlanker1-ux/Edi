@@ -196,3 +196,14 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
 .fill-scheme-sum { margin: 6px 0 0; text-align: center; font-size: 15px; font-variant-numeric: tabular-nums; flex: none; }
 .fill-scheme-sum.full b { color: var(--ok); }
 .fill-scheme-sum.over b { color: var(--signal); }
+/* Orbitalmodell: Unterschalen als Schalter, 3D-Ansicht füllt den Rest */
+.orb-atom { display: flex; flex-direction: column; gap: 8px; width: 100%; height: 100%; min-height: 0; }
+.orb-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+.orb-chip { min-width: 44px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-weight: 700; font-size: 15px; }
+.orb-chip.on { border-color: currentColor; background: color-mix(in srgb, currentColor 10%, var(--surface)); }
+.orb-view { flex: 1; min-height: 160px; position: relative; }
+.orb-view .m3d { width: 100%; height: 100%; min-height: 0; position: absolute; inset: 0; }
+.orb-legend { margin: 0; font-size: 13px; color: var(--muted); flex: none; }
+.orb-axis { font-size: 12px; color: var(--muted); background: none; border: 0; }
+.orb-chip sub { font-size: 11px; }
+.orb-e { margin-left: 4px; font-size: 11px; letter-spacing: -2px; }
