@@ -7,9 +7,18 @@ import { tr } from "@lern/i18n";
 
 const Orbital3D = lazy(() => import("./Orbital3D.tsx"));
 
-export function OrbitalAtom({ Z, E = Z, initial }: { Z: number; E?: number; initial?: string[] }) {
-  const orbs = useMemo(() => occupiedOrbitals(Z, E), [Z, E]);
-  const iso = useMemo(() => (orbs.length ? atomIso(orbs) : 0), [orbs]);
+export function OrbitalAtom({ Z, E = Z, initial, only, spins = true }: {
+  Z: number; E?: number; initial?: string[];
+  /** nur diese Unterschalen anbieten, z. B. ["4s", "3d"] */
+  only?: string[];
+  /** Besetzung (↑, ↑↓) an den Schaltern zeigen */
+  spins?: boolean;
+}) {
+  const all = useMemo(() => occupiedOrbitals(Z, E), [Z, E]);
+  const onlyKey = only?.join(" ");
+  const orbs = useMemo(() => (onlyKey ? all.filter(o => onlyKey.split(" ").includes(`${o.n}${L_NAMES[o.l]}`)) : all), [all, onlyKey]);
+  // Grenzwert immer vom ganzen Atom, damit die Größen gleich bleiben
+  const iso = useMemo(() => (all.length ? atomIso(all) : 0), [all]);
   const keyOf = (o: { n: number; m: string }) => `${o.n}${o.m}`;
   const nMax = Math.max(0, ...orbs.map(o => o.n));
   // anfangs: äußerste Schale und nicht volle d-/f-Unterschalen
@@ -24,9 +33,9 @@ export function OrbitalAtom({ Z, E = Z, initial }: { Z: number; E?: number; init
           const k = keyOf(o), act = on.includes(k), lab = orbitalLabel(o);
           return (
             <button key={k} type="button" className={`orb-chip t-${L_NAMES[o.l]}${act ? " on" : ""}`} aria-pressed={act}
-              title={tr(`${o.electrons} Elektron${o.electrons > 1 ? "en" : ""}`, `${o.electrons} electron${o.electrons > 1 ? "s" : ""}`)}
+              title={spins ? tr(`${o.electrons} Elektron${o.electrons > 1 ? "en" : ""}`, `${o.electrons} electron${o.electrons > 1 ? "s" : ""}`) : undefined}
               onClick={() => setOn(act ? on.filter(x => x !== k) : [...on, k])}>
-              {lab.main}{lab.sub && <sub>{lab.sub}</sub>}<span className="orb-e" aria-hidden="true">{o.electrons === 2 ? "↑↓" : "↑"}</span>
+              {lab.main}{lab.sub && <sub>{lab.sub}</sub>}{spins && <span className="orb-e" aria-hidden="true">{o.electrons === 2 ? "↑↓" : "↑"}</span>}
             </button>
           );
         })}

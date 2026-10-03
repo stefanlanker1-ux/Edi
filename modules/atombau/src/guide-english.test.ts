@@ -1,4 +1,5 @@
 // Erklärung auf Englisch: lösbar wie auf Deutsch und ohne deutsche Buchstaben (ä, ö, ü, ß) oder Anführungszeichen.
+// Eigennamen behalten ihre Schreibweise (Schrödinger).
 import { test, expect } from "vitest";
 import { setLang } from "@lern/i18n";
 
@@ -17,5 +18,5 @@ test("Erklärung auf Englisch", async () => {
   for (const g of guides) { walk(g); expect(checkGuide(g as Parameters<typeof checkGuide>[0])).toEqual([]); }
   setLang("de", false);
   expect(texts.size).toBeGreaterThan(30);
-  expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s))).toEqual([]);
+  expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s.replaceAll("Schrödinger", "")))).toEqual([]);
 });

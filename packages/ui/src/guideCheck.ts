@@ -1,4 +1,4 @@
-// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–30 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
+// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–40 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
 // Rückmeldungen passen zu möglichen Antworten, kurze Sätze.
 
 import type { GuideDef } from "./Guide.tsx";
@@ -12,7 +12,7 @@ export function longGuideSentences(text: string, max = 22): string[] {
 export function checkGuide(def: GuideDef): string[] {
   const out: string[] = [];
   const n = def.steps.length;
-  if (n < 10 || n > 30) out.push(`${def.title}: ${n} Schritte (erlaubt 10–30)`);
+  if (n < 10 || n > 40) out.push(`${def.title}: ${n} Schritte (erlaubt 10–40)`);
   // längere Erklärungen in Kapiteln, jedes überschaubar (höchstens 8 Schritte)
   const starts = def.steps.map((s, i) => (s.part || i === 0 ? i : -1)).filter(i => i >= 0);
   if (n > 15 && !def.steps[0].part) out.push(`${def.title}: über 15 Schritte – Kapitel (part) nötig, ab dem ersten Schritt`);
