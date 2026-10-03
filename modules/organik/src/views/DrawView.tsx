@@ -3,8 +3,6 @@
 
 import { useMemo, useState } from "react";
 import { Button, RichText, Segmented, Sheet, Tag, tr, Workbench, type WorkbenchTool } from "@lern/ui";
-import { forceFieldAvailable, storedFor } from "@lern/chem-ui";
-import { ffInput } from "../chem/forcefield.ts";
 import { ELEMENTS, elLabel, type El } from "../chem/mol.ts";
 import { name, KIND_INFO, RANK, type NameOk } from "../chem/naming.ts";
 import { coloring } from "../components/colors.ts";
@@ -148,14 +146,13 @@ export function DrawView() {
   const res = useMemo(() => name(mol), [mol]);
   const [active, setActive] = useState<string | null>(null);
   const [show3d, setShow3d] = useState(false);
-  const stored = useMemo(() => (forceFieldAvailable || !mol.atoms.length ? null : storedFor(ffInput(mol))), [mol]);
   const tools: WorkbenchTool[] = [
     { id: "beispiele", label: tr("Beispiele", "Examples"), icon: "molecule", wide: true, content: <Examples onPick={() => setActive(null)} /> },
     { id: "weg", label: tr("Schritte", "Steps"), title: tr("Benennen Schritt für Schritt", "Naming step by step"), icon: "book", content: <Steps res={res} /> },
     { id: "gruppen", label: tr("Gruppen", "Groups"), title: tr("Funktionelle Gruppen nach Rang", "Functional groups by rank"), icon: "table", wide: true, content: <Groups /> },
     { id: "ansicht", label: view === "lewis" ? "Lewis" : tr("Gerüst", "Skeletal"), icon: "bond", onClick: () => setView(view === "lewis" ? "skelett" : "lewis") },
-    // räumliche Lage: hinterlegte Moleküle überall, alle übrigen mit dem Kraftfeld (nur in der App)
-    { id: "3d", label: "3D", icon: "cube", onClick: () => setShow3d(true), disabled: !mol.atoms.length || (!forceFieldAvailable && !stored) },
+    // räumliche Lage: hinterlegte Struktur, sonst mit dem Kraftfeld berechnet
+    { id: "3d", label: "3D", icon: "cube", onClick: () => setShow3d(true), disabled: !mol.atoms.length },
     { id: "zurueck", label: tr("Zurück", "Undo"), icon: "back", onClick: undo, disabled: !past.length },
     { id: "neu", label: tr("Neu", "New"), icon: "reset", onClick: clear, disabled: !mol.atoms.length },
   ];

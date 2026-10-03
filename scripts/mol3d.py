@@ -4,7 +4,7 @@
 Verfahren: Konformere erzeugen (RDKit ETKDG), mit dem Kraftfeld MMFF94 optimieren,
 das energieärmste nehmen; gemessene Bindungslängen und -winkel (MEASURED, REAL_ANGLES, DIATOMIC, FIXED)
 werden dabei festgehalten. Ergebnis: packages/chem/src/mol3d.ts (reine Daten, offline).
-In den Apps gilt: hinterlegte Struktur zuerst, alle übrigen Moleküle rechnet MMFF94 (nur Android/iOS).
+In den Apps gilt: hinterlegte Struktur zuerst, alle übrigen Moleküle rechnet MMFF94.
 Neu erzeugen:  pip install rdkit && python3 scripts/mol3d.py
 """
 from pathlib import Path

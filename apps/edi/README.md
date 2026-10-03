@@ -17,9 +17,9 @@ npm run dev            # http://localhost:5173
 Voraussetzungen: **Android Studio** (für Android) bzw. ein **Mac mit Xcode** (für iOS).
 Die nativen Projekte liegen in `android/` und `ios/` (Web-Dateien werden beim Synchronisieren hineinkopiert, nicht mitversioniert).
 App-Icons und Startbild entstehen aus `assets/` mit `npx @capacitor/assets generate`.
-Nur in der App (nicht im Web) ist das Kraftfeld MMFF94 zugeschaltet (`packages/chem/src/mmff`, Einstieg `@lern/chem/mmff`, wird erst bei Bedarf geladen):
+Kraftfeld MMFF94 (`packages/chem/src/mmff`, Einstieg `@lern/chem/mmff`, wird erst bei Bedarf geladen und rechnet im Hintergrund-Thread `packages/chem-ui/src/ff.worker.ts`):
 räumliche Lage frei gebauter Moleküle (Elektronenpaarbindung) und gezeichneter Moleküle (Organik), sofern keine gemessene Struktur hinterlegt ist
-(`packages/chem/src/mol3d.ts`, erzeugt von `scripts/mol3d.py`; diese gibt es überall, auch im Web). Prüfung gegen RDKit: `scripts/mmff-reference.py` und `packages/chem/test/mmff-reference.test.ts`.
+(`packages/chem/src/mol3d.ts`, erzeugt von `scripts/mol3d.py`). Web und App gleich. Prüfung gegen RDKit: `scripts/mmff-reference.py` und `packages/chem/test/mmff-reference.test.ts`.
 Der Workflow „Android- und iOS-App bauen“ baut bei jedem Push auf main eine Debug-APK (Download unter „Artifacts“) und prüft den iOS-Build für den Simulator.
 
 ```bash

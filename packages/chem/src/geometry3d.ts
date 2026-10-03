@@ -441,9 +441,9 @@ export function storedMol3D(m: Molecule): Mol3D | null {
   return STORED.get(canonicalKey(m))?.find(d => matchAtoms(m, d)) ?? null;
 }
 
-/** Räumliche Lage aus berechneten Koordinaten (Kraftfeld, nur in der App): Winkel mit „ca.“, „idealisiert“ weiter nach EPA */
+/** Räumliche Lage aus berechneten Koordinaten (Kraftfeld MMFF94), „idealisiert“ weiter nach EPA */
 export function embedComputed(m: Molecule, d: Mol3D, mode: AngleMode = "real"): Embedded3D {
-  return (mode === "real" && embedData(m, d, mode, true)) || embedEPA(m, mode);
+  return (mode === "real" && embedData(m, d, mode)) || embedEPA(m, mode);
 }
 
 /** Räumliche Lage direkt aus den Daten (mol3d.ts) – für Stoffe, die nicht auf dem Raster gebaut werden (Propan, Glucose …); ohne freie Paare und Winkel */

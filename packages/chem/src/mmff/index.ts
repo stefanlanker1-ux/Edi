@@ -1,4 +1,4 @@
-// Kraftfeld MMFF94 (nur in der App zugeschaltet): Atomtypen, Ladungen, Energie, Optimierung, 3D-Startgeometrie.
+// Kraftfeld MMFF94: Atomtypen, Ladungen, Energie, Optimierung, 3D-Startgeometrie.
 
 import { Mol, type MolInput } from "./mol.ts";
 import { typeMolecule, type Typed } from "./typer.ts";

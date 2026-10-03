@@ -35,7 +35,7 @@ export function BuildView() {
   const known = done ? identify(mol) : null;
   // hinterlegte Struktur (gemessene Werte) – auch für Moleküle, die keine Beispiele sind (CHCl₃, N₂H₄ …)
   const stored = useMemo(() => (done ? storedMol3D(mol) : null), [done, mol]);
-  // In der App: alle übrigen Moleküle mit dem Kraftfeld berechnen (im Web nur hinterlegte)
+  // alle übrigen Moleküle mit dem Kraftfeld berechnen
   const canCompute = forceFieldAvailable && done && !stored && mol.atoms.length > 1 && connected(mol);
   const [calc, setCalc] = useState<{ for: typeof mol; data: Mol3D | null } | "busy" | null>(null);
   useEffect(() => {
@@ -167,10 +167,8 @@ export function BuildView() {
             <Molecule3D mol={mol} computed={stored ? undefined : computed ?? undefined} look={look3d} angleMode={mode3d} showAngles={angles3d} showLonePairs={lone3d} showDipole={os && showDeltas} dipoleArrow={dipoleArrow} />
           </Suspense>
         )}
-        {show3d && !stored && !computed && !epaOnly && <div className="m3d m3d-loading">{tr("Wird berechnet …", "Calculating …")}</div>}
+        {show3d && !stored && !computed && !epaOnly && <div className="m3d m3d-loading">{tr("3D-Ansicht wird geladen …", "Loading 3D view …")}</div>}
         <div className="m3d-controls">
-          {!stored && computed && <Tag>{tr("berechnet (MMFF94)", "calculated (MMFF94)")}</Tag>}
-          {epaOnly && <Tag>{tr("EPA-Modell", "VSEPR model")}</Tag>}
           <Segmented<"ball" | "fill"> label={tr("Modell", "Model")} value={look3d} onChange={setLook3d}
             options={[{ value: "ball", label: tr("Kugel-Stab", "Ball and stick") }, { value: "fill", label: tr("Kalotte", "Space-filling") }]} />
           <Segmented<AngleMode> label={tr("Bindungswinkel", "Bond angles")} value={mode3d} onChange={setMode3d}

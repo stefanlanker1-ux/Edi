@@ -1,8 +1,8 @@
-// 3D-Ansicht des gezeichneten Moleküls: hinterlegte Struktur (gemessene Werte), sonst in der App mit dem Kraftfeld MMFF94 berechnet;
+// 3D-Ansicht des gezeichneten Moleküls: hinterlegte Struktur (gemessene Werte), sonst mit dem Kraftfeld MMFF94 berechnet;
 // Kugel-Stab oder Kalotte.
 
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Segmented, Sheet, Tag, tr } from "@lern/ui";
+import { Segmented, Sheet, tr } from "@lern/ui";
 import { computeMol3D, storedFor } from "@lern/chem-ui";
 import type { Mol3D } from "@lern/chem";
 import type { Mol } from "../chem/mol.ts";
@@ -29,10 +29,9 @@ export function View3D({ mol, title, onClose }: { mol: Mol; title: string; onClo
           <Molecule3D data={data} look={look} />
         </Suspense>
       ) : (
-        <div className="m3d m3d-loading">{data === "busy" ? tr("Wird berechnet …", "Calculating …") : tr("Keine Kraftfeld-Daten für dieses Molekül", "No force-field data for this molecule")}</div>
+        <div className="m3d m3d-loading">{data === "busy" ? tr("3D-Ansicht wird geladen …", "Loading 3D view …") : tr("Für dieses Molekül gibt es keine 3D-Ansicht", "No 3D view for this molecule")}</div>
       )}
       <div className="m3d-controls">
-        {!stored && data && data !== "busy" && <Tag>{tr("berechnet (MMFF94)", "calculated (MMFF94)")}</Tag>}
         <Segmented<"ball" | "fill"> label={tr("Modell", "Model")} value={look} onChange={setLook}
           options={[{ value: "ball", label: tr("Kugel-Stab", "Ball and stick") }, { value: "fill", label: tr("Kalotte", "Space-filling") }]} />
       </div>
