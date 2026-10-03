@@ -1,9 +1,9 @@
 // Geführte Erklärung Atombau (Knopf „Erklärung“): mit den Bausteinen der App – Bohrmodell, Periodensystem, Atomsymbol,
 // Kästchenschema. Jeder Schritt verlangt eine Handlung; deckt alle Aufgabentypen des Quiz der jeweiligen Stufe ab.
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Fit, type GuideCtx, type GuideDef, type GuideStep } from "@lern/ui";
-import { configuration } from "@lern/chem";
+import { MADELUNG, configuration, hundBoxes } from "@lern/chem";
 import { Bohr, EnergyDiagram, Nuclide, PeriodicTable, type Particle } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 
@@ -53,6 +53,32 @@ function Pse({ c, stufe, answer, mark, blocks }: { c: GuideCtx; stufe: "us" | "o
 }
 
 const Center = ({ children }: { children: ReactNode }) => <div className="ab-g-center">{children}</div>;
+
+const SUP = "⁰¹²³⁴⁵⁶⁷⁸⁹";
+const sup = (k: number) => String(k).split("").map(d => SUP[+d]).join("");
+
+/** Kästchenschema zum Selbst-Befüllen (Kästchen antippen: leer → ↑ → ↑↓); darunter Elektronenzahl und Konfiguration live.
+ *  Nach der Lösung (oder beim Zeigen) steht die richtige Füllung da. */
+function FillScheme({ c, Z, upTo }: { c: GuideCtx; Z: number; upTo: number }) {
+  const shells = MADELUNG.slice(0, upTo + 1);
+  const empty = () => Object.fromEntries(shells.map(o => [o.key, new Array<number>(2 * o.l + 1).fill(0)]));
+  const [boxes, setBoxes] = useState<Record<string, number[]>>(empty);
+  const right = Object.fromEntries(configuration(Z).map(o => [o.key, o.count]));
+  const shown = c.solved || c.show ? Object.fromEntries(shells.map(o => [o.key, hundBoxes(o.l, right[o.key] ?? 0)])) : boxes;
+  const total = shells.reduce((t, o) => t + shown[o.key].reduce((a, b) => a + b, 0), 0);
+  const text = shells.map(o => [o.key, shown[o.key].reduce((a, b) => a + b, 0)] as const).filter(([, k]) => k).map(([key, k]) => key + sup(k)).join(" ");
+  const tap = (key: string, i: number) => setBoxes(b => ({ ...b, [key]: b[key].map((v, k) => (k === i ? (v + 1) % 3 : v)) }));
+  return (
+    <div className="ab-g-fill">
+      <Fit className="ab-g-fit" min={0.2}>
+        <EnergyDiagram cfg={[]} lastIndex={upTo} boxes={shown} onBox={c.solved || c.show ? () => {} : tap} />
+      </Fit>
+      <p className={`ab-g-fill-sum${total === Z ? " full" : total > Z ? " over" : ""}`}>
+        <b>{total} / {Z}</b> {tr("Elektronen", "electrons")}{text && <> · <span>{text}</span></>}
+      </p>
+    </div>
+  );
+}
 
 const US: GuideStep[] = [
   {
@@ -213,7 +239,9 @@ const OS: GuideStep[] = [
     ok: tr("p: 3 Kästchen × 2 = 6 Elektronen.", "p: 3 boxes × 2 = 6 electrons."),
   },
   {
+    say: tr("Fülle das Schema selbst: Tippe die Kästchen von **unten nach oben** an (↑, dann ↑↓), bis **15** Elektronen drin sind.", "Fill the diagram yourself: tap the boxes from **bottom to top** (↑, then ↑↓) until **15** electrons are in."),
     ask: tr("Welche Elektronenkonfiguration hat **Phosphor** (Z = 15)?", "What is the electron configuration of **phosphorus** (Z = 15)?"), answer: "1s² 2s² 2p⁶ 3s² 3p³",
+    visual: c => <FillScheme c={c} Z={15} upTo={6} />,
     options: ["1s² 2s² 2p⁶ 3s² 3p³", "1s² 2s² 2p⁶ 3p⁵", "1s² 2s² 2p⁶ 3s² 3d³", "1s² 2s⁸ 3s⁵"],
     why: { "1s² 2s² 2p⁶ 3p⁵": tr("3s kommt vor 3p – es wird zuerst gefüllt.", "3s comes before 3p – it is filled first."), "1s² 2s² 2p⁶ 3s² 3d³": tr("Nach 3s folgt 3p, nicht 3d.", "After 3s comes 3p, not 3d."), "1s² 2s⁸ 3s⁵": tr("s fasst nur 2 Elektronen.", "s holds only 2 electrons.") },
     ok: tr("Hochzahlen zusammen: 2 + 2 + 6 + 2 + 3 = 15.", "Superscripts together: 2 + 2 + 6 + 2 + 3 = 15."),
