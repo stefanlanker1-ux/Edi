@@ -180,3 +180,15 @@ test("gemessene Werte in den hinterlegten Strukturen", () => {
     assert.approximately(ang(f, i, c, j), deg, 0.2, f);
   }
 });
+
+test("Drei- und Vierringe nach EPA: regelmäßig, keine überkreuzten Bindungen", () => {
+  const ring = (n: number, el: string) => ({ atoms: Array.from({ length: n }, (_, i) => ({ id: i + 1, el, x: i, y: 0 })), bonds: Array.from({ length: n }, (_, i) => ({ a: i + 1, b: (i + 1) % n + 1, order: 1 })) });
+  for (const [n, el] of [[3, "O"], [4, "O"], [4, "S"], [4, "C"]] as const) for (const mode of ["ideal", "real"] as const) {
+    const e = embed3D(ring(n, el), mode);
+    const P = (id: number) => e.atoms.find(a => a.id === id)!.pos;
+    const bl = Array.from({ length: n }, (_, i) => dist(P(i + 1), P((i + 1) % n + 1)));
+    // gegenüberliegende Atome im Vierring weiter auseinander als eine Bindung
+    if (n === 4) for (const [a, b] of [[1, 3], [2, 4]]) assert.ok(dist(P(a), P(b)) > 1.2 * Math.max(...bl), `${el}${n} ${mode}`);
+    for (const a of e.angles.filter(x => x.label)) assert.ok(Math.abs(parseFloat(a.label.replace(/[^0-9,]/g, "").replace(",", ".")) - (n === 3 ? 60 : 90)) < 3, `${el}${n} ${mode} ${a.label}`);
+  }
+});

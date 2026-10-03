@@ -137,6 +137,60 @@ function inRing(m: Molecule, bond: { a: number; b: number }) {
  * der beiden Nachbarn (mittel), nicht verbundene Atome halten Abstand. Wie im echten Ring (Ringspannung)
  * werden die Winkel dabei so gut wie möglich eingehalten.
  */
+/** kleinster Ring durch eine Bindung (Atome in Ringfolge) oder null */
+function ringThrough(m: Molecule, a: number, b: number, maxSize: number): number[] | null {
+  const prev = new Map<number, number>([[a, 0]]);
+  let front = [a];
+  for (let depth = 1; depth < maxSize && front.length; depth++) {
+    const next: number[] = [];
+    for (const x of front) for (const bd of bondsOf(m, x)) {
+      const y = bd.a === x ? bd.b : bd.a;
+      if ((x === a && y === b) || prev.has(y)) continue;
+      prev.set(y, x);
+      if (y === b) { const path = [b]; let z = b; while (z !== a) { z = prev.get(z)!; path.push(z); } return path; }
+      next.push(y);
+    }
+    front = next;
+  }
+  return null;
+}
+
+/**
+ * Drei- und Vierringe vor dem Ausgleich als regelmäßiges, ebenes Vieleck setzen: aus dem Baum entsteht sonst
+ * leicht eine überkreuzte Lage (zwei Atome auf derselben Seite), aus der der Ausgleich nicht mehr herausfindet.
+ */
+function smallRingsAsPolygons(m: Molecule, pos: Map<number, Vec>) {
+  const el = (id: number) => m.atoms.find(a => a.id === id)!.el;
+  const done = new Set<number>();
+  for (const bd of m.bonds) {
+    const r = ringThrough(m, bd.a, bd.b, 4);
+    if (!r || r.some(id => done.has(id))) continue;
+    r.forEach(id => done.add(id));
+    const n = r.length;
+    const L = r.reduce((s, id, i) => s + bondLength(el(id), el(r[(i + 1) % n]), 1), 0) / n;
+    const R = L / (2 * Math.sin(Math.PI / n));
+    const c = mul(r.reduce((s, id) => add(s, pos.get(id)!), [0, 0, 0] as Vec), 1 / n);
+    // Ebene durch die bisherigen Lagen, sonst xy
+    let u = sub(pos.get(r[0])!, c);
+    if (len(u) < 1e-3) u = [1, 0, 0];
+    u = norm(u);
+    let w = cross(u, sub(pos.get(r[1])!, c));
+    if (len(w) < 1e-3) w = len(cross(u, [0, 0, 1])) > 1e-3 ? [0, 0, 1] : [0, 1, 0];
+    const v = norm(cross(norm(w), u));
+    const before = new Map(r.map(id => [id, pos.get(id)!]));
+    r.forEach((id, i) => {
+      const t = (2 * Math.PI * i) / n;
+      pos.set(id, add(c, add(mul(u, R * Math.cos(t)), mul(v, R * Math.sin(t)))));
+    });
+    // Nachbarn außerhalb des Rings mitverschieben
+    for (const id of r) for (const b2 of bondsOf(m, id)) {
+      const o = b2.a === id ? b2.b : b2.a;
+      if (r.includes(o) || done.has(o)) continue;
+      pos.set(o, add(pos.get(o)!, sub(pos.get(id)!, before.get(id)!)));
+    }
+  }
+}
+
 function relax(m: Molecule, pos: Map<number, Vec>, mode: AngleMode) {
   const el = (id: number) => m.atoms.find(a => a.id === id)!.el;
   const cons: { i: number; j: number; d: number; k: number; push?: boolean }[] = [];
@@ -281,6 +335,7 @@ function embedEPA(m: Molecule, mode: AngleMode): Embedded3D {
   // Deshalb Bindungslängen und Winkel (als 1-3-Abstände) gemeinsam ausgleichen und freie Paare mitdrehen.
   const ring = new Set(m.bonds.filter(b => inRing(m, b)).map(b => bondKeyOf(b.a, b.b)));
   if (ring.size) {
+    smallRingsAsPolygons(m, pos);
     relax(m, pos, mode);
     for (const lp of lonePairs) {
       const old = dirsOf.get(lp.atom)!;
