@@ -505,7 +505,15 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || one) return;
-    const check = () => { if ([...el.querySelectorAll<HTMLElement>(".mc-btn")].some(b => b.scrollWidth > b.clientWidth + 1)) setNarrow(true); };
+    // ein einzelnes Wort, das nicht in seine Spalte passt, bräche mitten im Wort um („Thermoplas|t“) – dann ebenfalls einspaltig
+    const split = (b: HTMLElement) => {
+      const s = b.lastElementChild, n = s?.firstChild;
+      if (!s || !n || s.childNodes.length !== 1 || n.nodeType !== Node.TEXT_NODE || /\s/.test(n.textContent ?? "")) return false;
+      const r = document.createRange();
+      r.selectNodeContents(n);
+      return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size > 1;
+    };
+    const check = () => { if ([...el.querySelectorAll<HTMLElement>(".mc-btn")].some(b => b.scrollWidth > b.clientWidth + 1 || split(b))) setNarrow(true); };
     check();
     addEventListener("resize", check);
     return () => removeEventListener("resize", check);

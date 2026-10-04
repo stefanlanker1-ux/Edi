@@ -1,0 +1,447 @@
+// Experimentieren: am Anfang Polymerisation, Polykondensation oder Polyaddition wählen, dann den Ansatz bauen
+// (Monomer[e], bei der Polymerisation Starter bzw. Katalysator) und die Entstehung Schritt für Schritt auslösen –
+// in Atomen (Mechanismus mit Elektronen) oder als Kügelchen (Reaktor mit vielen Ketten).
+
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Button, Icon, IconButton, Segmented, Sheet, Switch, Tag, buzz, tr, useMediaQuery, useReducedMotion, Workbench } from "@lern/ui";
+import { ART_NAME, KIND_NAME, METHODS, STEPS, VINYLS, isVinyl, method, monoHue, monoLetter, monoName, monoStruct, stepMono, vinyl, type Art, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
+import { polymerise, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
+import { makeMech, nextAuto, replay, type Mech, type Recipe } from "../chem/mech/index.ts";
+import type { Clip } from "../chem/scene.ts";
+import type { Action, Bead } from "../chem/mech/types.ts";
+import { MechStage } from "../components/MechStage.tsx";
+import { BeadDot, BeadStrip } from "../components/Beads.tsx";
+import { MonomerSvg, UnitSvg } from "../components/Formula.tsx";
+import { ReactorView } from "../components/Reactor.tsx";
+import { PARTICLE, Reactor, type RBead, type RStats } from "../chem/reactor.ts";
+import { DEFAULT_RECIPES, useApp } from "../store.ts";
+
+const ARTS: Art[] = ["poly", "kond", "add"];
+const ART_SHORT: Record<Art, string> = tr({ poly: "Polymeri­sation", kond: "Polykonden­sation", add: "Poly­addition" }, { poly: "Polymeri­sation", kond: "Polycon­densation", add: "Poly­addition" });
+const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "+ Wasser", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "+ water", add: "no by-product" });
+
+// ── Kleine Bilder für die Auswahl am Anfang ──
+function ArtPic({ art }: { art: Art }) {
+  const b = (x: number, y: number, h: string, k: number) => <circle key={k} className={`pm-pic-b hue-${h}`} cx={x} cy={y} r={7} />;
+  return (
+    <svg className="pm-artpic" viewBox="0 0 120 54" aria-hidden="true">
+      {art === "poly" && <>
+        {[0, 1, 2].map(i => <g key={i}>{b(8 + i * 16, 14, "violet", i)}<path className="pm-pic-dbl" d={`M${4 + i * 16} 24h8M${4 + i * 16} 27h8`} /></g>)}
+        <path className="pm-pic-arrow" d="M52 20h12M60 16l4 4-4 4" />
+        <path className="pm-pic-l" d="M76 20h36" />
+        {[0, 1, 2, 3].map(i => b(76 + i * 12, 20, "violet", 10 + i))}
+      </>}
+      {art !== "poly" && <>
+        {b(10, 20, "red", 1)}{b(30, 20, "teal", 2)}
+        <path className="pm-pic-arrow" d="M44 20h12M52 16l4 4-4 4" />
+        <path className="pm-pic-l" d="M68 20h48" />
+        {[0, 1, 2, 3].map(i => b(68 + i * 16, 20, i % 2 ? "teal" : "red", 10 + i))}
+        {art === "kond" && <text className="pm-pic-t" x="118" y="44" textAnchor="end">+ H₂O</text>}
+      </>}
+    </svg>
+  );
+}
+
+function Chooser({ onPick }: { onPick: (a: Art) => void }) {
+  return (
+    <div className="pm-choose">
+      {ARTS.map(a => (
+        <button key={a} type="button" className="pm-choose-card" onClick={() => { buzz(); onPick(a); }}>
+          <ArtPic art={a} />
+          <b>{ART_NAME[a]}</b>
+          <span>{ART_TAG[a]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Auswahl-Blätter ──
+/** Halbstrukturformel; {…} = reagierender Teil, hinterlegt in der Farbe des Monomers */
+export function Struct({ text, hue }: { text: string; hue: string }) {
+  const parts = text.split(/(\{[^}]*\})/).filter(Boolean);
+  return <span className={`pm-struct hue-${hue}`}>{parts.map((t, i) => (t.startsWith("{") ? <b key={i}>{t.slice(1, -1)}</b> : <span key={i}>{t}</span>))}</span>;
+}
+
+function BeadIcon({ id, size = 18 }: { id: string; size?: number }) {
+  return <svg viewBox="-10 -10 20 20" className="pm-bead-ic" style={{ width: size, height: size }} aria-hidden="true"><BeadDot cx={0} cy={0} r={9} hue={monoHue(id)} letter={monoLetter(id)} /></svg>;
+}
+
+/** lange zusammengesetzte Namen an den Wortfugen trennbar machen (weiches Trennzeichen) */
+const hyph = (name: string) => name.replace(/([a-zäöü]{3})(säure|dichlorid|chlorid|diamin|diisocyanat|diglycidylether|methacrylat|nitril|acetat|diol)/g, "$1\u00AD$2");
+
+function MonoCard({ id, active, onClick }: { id: string; active: boolean; onClick: () => void }) {
+  return (
+    <button type="button" className={`pm-mono${active ? " on" : ""}`} aria-pressed={active} onClick={onClick}>
+      <span className="pm-mono-name"><BeadIcon id={id} /><span>{hyph(monoName(id))}</span></span>
+      <Struct text={monoStruct(id)} hue={monoHue(id)} />
+    </button>
+  );
+}
+
+function MethodCard({ id, active, onClick }: { id: MethodId; active: boolean; onClick: () => void }) {
+  const m = method(id);
+  return (
+    <button type="button" className={`pm-meth${active ? " on" : ""}`} aria-pressed={active} onClick={onClick}>
+      <b>{m.name}</b>
+      <span className="pm-meth-f">{m.formula}</span>
+      <span className="pm-meth-k">{KIND_NAME[m.kind]} · {m.role === "kat" ? tr("Katalysator", "catalyst") : tr("Initiator", "initiator")}</span>
+    </button>
+  );
+}
+
+function ProductCard({ recipe, mech }: { recipe: Recipe; mech: Mech }) {
+  const st = mech.status();
+  let product: Product | undefined, why = "", extra: ReactNode = null;
+  if (recipe.art === "poly") {
+    const out = polymerise([recipe.a, recipe.b].filter(Boolean) as VinylId[], recipe.method ?? "dbpo", !!recipe.seq);
+    product = out.product; why = out.why;
+  } else {
+    const out = stepReact(recipe.a as StepId, recipe.b as StepId | undefined);
+    product = out.product; why = out.why;
+    if (out.link) extra = <dl className="pm-facts"><div><dt>{tr("Verknüpfung", "Link")}</dt><dd>{LINK_NAME[out.link]}</dd></div>
+      <div><dt>{tr("Nebenprodukt", "By-product")}</dt><dd>{out.byp ? BYP_NAME[out.byp] : tr("keines", "none")}</dd></div></dl>;
+  }
+  const KL = tr({ thermo: "Thermoplast", elast: "Elastomer", duro: "Duroplast" }, { thermo: "Thermoplastic", elast: "Elastomer", duro: "Thermoset" });
+  const ST = tr({ linear: "lange, unverzweigte Ketten", verzweigt: "verzweigte Ketten", vernetzt: "Netz aus Ketten", klein: "nur kleine Moleküle" },
+    { linear: "long, unbranched chains", verzweigt: "branched chains", vernetzt: "network of chains", klein: "only small molecules" });
+  return (
+    <div className="pm-product">
+      {product ? <h3>{product.name}</h3> : <h3>{tr("Kein Polymer", "No polymer")}</h3>}
+      {recipe.art === "poly" && product && !product.copo && isVinyl(recipe.a) && <div className="pm-product-pic"><UnitSvg id={recipe.a} aspect={1.6} /></div>}
+      {product && <div className="pm-tags">
+        <Tag>{KL[product.klasse]}</Tag><Tag>{ST[product.struktur]}</Tag>
+        {product.code && <Tag>{tr("Recycling-Code", "Recycling code")} {product.code}</Tag>}
+      </div>}
+      {extra}
+      <p className="pm-why">{st.fail ?? why}</p>
+      {product?.uses && product.uses !== "–" && <p><b>{tr("Verwendung", "Uses")}:</b> {product.uses}</p>}
+      {product?.note && <p className="pm-small">{product.note}</p>}
+    </div>
+  );
+}
+
+/** Kurzinfo zu Teilchen im Reaktor (Antippen) */
+const PARTICLE_INFO = () => tr<Record<string, string>>(
+  {
+    dbpo: "Zerfällt beim Erwärmen in zwei Radikale; dabei entweicht CO₂.", aibn: "Zerfällt beim Erwärmen in zwei Radikale; dabei entweicht N₂.",
+    frag: "Radikal aus dem Starter – es sitzt danach am Anfang der Kette.", buli: "Startet eine Kette: Das Butyl-Anion lagert sich an das Monomer an.",
+    bf3: "Bildet mit Wasser eine Säure; ihr H⁺ startet die Kette.", h: "H⁺ (Proton): Es lagert sich an ein Monomer an und startet eine Kette.",
+    ti: "Titan mit einer freien Stelle: Dort lagert sich jedes Monomer an und wird zwischen Titan und Kette eingebaut.",
+    co2: "Gas aus dem zerfallenden Starter.", n2: "Gas aus dem zerfallenden Starter.",
+    h2o: "Nebenprodukt der Verknüpfung – es steigt auf und wird entfernt.", hcl: "Nebenprodukt der Verknüpfung – es steigt auf und wird entfernt.",
+    meoh: "Methanol gibt ein H⁺ an das Kettenende ab – die lebende Kette endet.",
+  },
+  {
+    dbpo: "Splits into two radicals when heated; CO₂ escapes.", aibn: "Splits into two radicals when heated; N₂ escapes.",
+    frag: "Radical from the initiator – it then sits at the start of the chain.", buli: "Starts a chain: the butyl anion adds to the monomer.",
+    bf3: "Forms an acid with water; its H⁺ starts the chain.", h: "H⁺ (proton): it adds to a monomer and starts a chain.",
+    ti: "Titanium with a free site: every monomer attaches there and is inserted between titanium and chain.",
+    co2: "Gas from the decomposing initiator.", n2: "Gas from the decomposing initiator.",
+    h2o: "By-product of the linking – it rises and is removed.", hcl: "By-product of the linking – it rises and is removed.",
+    meoh: "Methanol gives an H⁺ to the chain end – the living chain stops.",
+  },
+);
+
+/** Umsatz als Balken, Zahl der Ketten bzw. Moleküle, mittlere und größte Länge */
+function ReactorStats({ st, step }: { st: RStats; step: boolean }) {
+  const pct = Math.round(st.conv * 100);
+  const avg = st.avg >= 10 ? Math.round(st.avg) : Math.round(st.avg * 10) / 10;
+  return (
+    <div className="pm-rstats">
+      <span className="pm-rs-l">{tr("Umsatz", "Conversion")}</span>
+      <span className="pm-rs-bar" role="meter" aria-label={tr("Umsatz", "Conversion")} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%` }} /></span>
+      <b className="pm-rs-pct">{pct} %</b>
+      <span className="pm-rs-n">{st.chains} {step ? tr("Moleküle", "molecules") : tr("Ketten", "chains")}</span>
+      <span className="pm-rs-n">Ø {String(avg).replace(".", tr(",", "."))}</span>
+      <span className="pm-rs-n">max {st.max}</span>
+    </div>
+  );
+}
+
+function MonomerSheet({ id, onClose }: { id: string | null; onClose: () => void }) {
+  if (!id) return <Sheet open={false} title="" onClose={onClose}>{null}</Sheet>;
+  const v = isVinyl(id) ? vinyl(id) : null, s = !v ? stepMono(id as StepId) : null;
+  return (
+    <Sheet open={!!id} title={monoName(id)} onClose={onClose}>
+      <div className="pm-monoinfo">
+        <div className="pm-monoinfo-pic"><MonomerSvg id={id} aspect={1.6} /></div>
+        <p><b>{v?.alt ?? s?.alt}</b> · {(v?.formula ?? s!.formula).replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[+d])}</p>
+        {v && <>
+          <p className="pm-small">{tr("Baustein in der Kette:", "Repeat unit in the chain:")}</p>
+          <div className="pm-monoinfo-pic"><UnitSvg id={id} aspect={1.6} /></div>
+          <p>{tr(`Polymer: ${v.polymer} (${v.abbr})`, `Polymer: ${v.polymer.toLowerCase()} (${v.abbr})`)}</p>
+        </>}
+      </div>
+    </Sheet>
+  );
+}
+
+// ── Ansicht ──
+export function ExperimentView() {
+  const { art, setArt, recipes, setRecipe, view, setView, halos, lp, setHalos, setLp } = useApp();
+  const [tool, setTool] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
+  const [why, setWhy] = useState(false);
+  /** Abbruch: Auswahl der Abbruchart offen */
+  const [stopOpen, setStopOpen] = useState(false);
+  const reduced = useReducedMotion();
+  /** niedrige Handys: keine Ansatz-Zeile, die Werkzeugleiste zeigt die Auswahl */
+  const low = useMediaQuery("(max-height: 700px)");
+  const recipe = art ? recipes[art] : DEFAULT_RECIPES.poly;
+  const rkey = JSON.stringify(recipe);
+  // Ablauf: Mechanismus, ausgeführte Aktionen, laufender Clip
+  const mech = useRef<Mech>(makeMech(recipe));
+  const [acts, setActs] = useState<string[]>([]);
+  const [clip, setClip] = useState<Clip | null>(null);
+  const [clipKey, setClipKey] = useState(0);
+  const [auto, setAuto] = useState(false);
+  /** Stand des Mechanismus (jede Änderung zählt hoch) */
+  const [ver, force] = useState(0);
+  const lastClip = useRef<Clip | null>(null);
+  // Kügelchen-Ansicht: Reaktor (bleibt beim Wechsel der Ansicht erhalten)
+  const reactor = useRef<Reactor | null>(null);
+  const [rstats, setRstats] = useState<RStats | null>(null);
+  const [rwake, setRwake] = useState(0);
+  const [rpaused, setRpaused] = useState(false);
+  const [particle, setParticle] = useState<string | null>(null);
+
+  // neuer Ansatz → von vorn
+  useEffect(() => { mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); setRpaused(false); }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const rrun = (id: string) => {
+    buzz();
+    const R = reactor.current;
+    if (!R) return;
+    R.run(id);
+    setRstats(R.stats()); setRwake(w => w + 1); setRpaused(false);
+  };
+  const rreset = () => {
+    buzz();
+    const R = reactor.current;
+    if (R) reactor.current = new Reactor(recipe, R.W, R.H);
+    setRstats(reactor.current?.stats() ?? null); setRwake(w => w + 1); setRpaused(false);
+  };
+  const pickBead = (b: RBead) => { if (b.kind === "mono") setInfo(b.m); else setParticle(b.m); };
+
+  const run = (id: string) => {
+    buzz();
+    setStopOpen(false);
+    const c = mech.current.run(id);
+    lastClip.current = c;
+    setActs(a => [...a, id]);
+    setClip(c); setClipKey(k => k + 1);
+  };
+  const ended = () => {
+    setClip(null);
+    force(v => v + 1);
+  };
+  // Automatisch: nach jedem Ablauf den nächsten Schritt
+  useEffect(() => {
+    if (!auto || clip) return;
+    const next = nextAuto(mech.current, recipe);
+    if (!next) { setAuto(false); return; }
+    const t = setTimeout(() => run(next), reduced ? 0 : 350);
+    return () => clearTimeout(t);
+  }, [auto, clip, acts.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const back = () => {
+    buzz();
+    setStopOpen(false);
+    const a = acts.slice(0, -1);
+    mech.current = replay(recipe, a);
+    setActs(a); setClip(null); setAuto(false); force(v => v + 1);
+  };
+  const reset = () => { buzz(); setStopOpen(false); mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); };
+  const again = () => { if (lastClip.current) { setClip(lastClip.current); setClipKey(k => k + 1); } };
+
+  const snap = useMemo(() => mech.current.snap(), [ver]); // eslint-disable-line react-hooks/exhaustive-deps
+  const st = mech.current.status();
+  const actions = mech.current.actions();
+  const busy = !!clip;
+
+  const head = (
+    <div className="pm-head">
+      <Segmented label={tr("Art der Reaktion", "Type of reaction")} value={art ?? ("none" as Art)} onChange={v => { buzz(); setArt(v); setTool(null); }}
+        options={ARTS.map(a => ({ value: a, label: ART_SHORT[a] }))} />
+    </div>
+  );
+
+  if (!art) {
+    return <Workbench className="pm-wb" head={head} stage={<Chooser onPick={a => setArt(a)} />} tools={[]} />;
+  }
+
+  const label = tr(`${ART_NAME[art]} in Atomen`, `${ART_NAME[art]} in atoms`);
+  const stage = (
+    <div className="pm-stage">
+      <div className="pm-view">
+        <Segmented label={tr("Ansicht", "View")} value={view} onChange={v => { buzz(); setView(v); }}
+          options={[{ value: "atome", label: tr("Atome", "Atoms") }, { value: "kugeln", label: tr("Kügelchen", "Beads") }]} />
+      </div>
+      {view === "atome"
+        ? <>
+            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : 1} />
+            {st.beads.length > 0 && <BeadStrip beads={st.beads} active={st.active} onPick={(b: Bead) => b.mono && setInfo(b.mono)} />}
+          </>
+        : <>
+            <ReactorView recipe={recipe} rkey={rkey} store={reactor} wake={rwake} paused={rpaused} onStats={setRstats} onPick={pickBead} />
+            {rstats && <ReactorStats st={rstats} step={art !== "poly"} />}
+          </>}
+    </div>
+  );
+
+  // Kurzinfo als Kennzeichen (keine Sätze); Begründung nach einem Fehlschlag bzw. Besonderheit über „ⓘ“
+  const tags: ReactNode[] = [];
+  const done = st.phase === "ende" || st.phase === "aus";
+  const whyBtn = (bad: boolean) => (
+    <button key="w" type="button" className={`pm-why-btn${bad ? " bad" : ""}`} onClick={() => { buzz(); setWhy(true); }} aria-label={tr("Warum?", "Why?")}>
+      <Icon name="info" size={18} />
+    </button>
+  );
+  if (view === "kugeln" && rstats) {
+    const ev = rstats.phase === "bereit" ? tr("bereit", "ready") : rstats.event ?? (rstats.phase === "fertig" ? tr("fertig", "done") : tr("läuft", "running"));
+    tags.push(<Tag key="e" tone={rstats.phase === "aus" ? "bad" : "plain"}>{rstats.phase === "aus" ? `✗ ${ev}` : ev}</Tag>);
+    if (rstats.living) tags.push(<Tag key="l" tone="ok">{tr("lebend", "living")}</Tag>);
+    if (rstats.network) tags.push(<Tag key="v">{tr("vernetzt", "network")}</Tag>);
+    if (rstats.poisoned) tags.push(<Tag key="p" tone="bad">{tr(`${rstats.poisoned} × Ti vergiftet`, `${rstats.poisoned} × Ti poisoned`)}</Tag>);
+    if (rstats.byp) tags.push(<Tag key="b">+ {rstats.byp} {rstats.bypName}</Tag>);
+    if (rstats.released) tags.push(<Tag key="r">{tr(`${rstats.released} abgelöst`, `${rstats.released} released`)}</Tag>);
+    if (rstats.why) tags.push(whyBtn(rstats.phase === "aus"));
+  }
+  if (view === "atome") {
+    tags.push(<Tag key="s" tone={st.fail ? "bad" : "plain"}>{st.fail ? `✗ ${st.step}` : st.step}</Tag>);
+    if (st.n) tags.push(<Tag key="n">n = {st.n}</Tag>);
+    if (st.byp) tags.push(<Tag key="b">+ {st.byp}</Tag>);
+    if (st.cond && st.phase !== "init" && !done) tags.push(<Tag key="c">{st.cond}</Tag>);
+    if (st.living) tags.push(<Tag key="l" tone="ok">{tr("lebend", "living")}</Tag>);
+    if ((st.fail || st.note) && !busy) tags.push(whyBtn(!!st.fail));
+  }
+
+  const chip = (lbl: string, value: ReactNode, onClick: () => void, hue?: string) => (
+    <button type="button" className="pm-chip" onClick={onClick}>
+      <span className="pm-chip-l">{lbl}</span>
+      <span className="pm-chip-v">{hue && <i className={`pm-chip-dot hue-${hue}`} />}{value}</span>
+    </button>
+  );
+  const recipeRow = (
+    <div className="pm-recipe">
+      {chip(art === "poly" ? tr("Monomer", "Monomer") : tr("Monomer 1", "Monomer 1"), monoName(recipe.a), () => setTool("mono"), monoHue(recipe.a))}
+      {art === "poly"
+        ? chip(tr("Zweites", "Second"), recipe.b ? monoName(recipe.b) : "–", () => setTool("copo"), recipe.b ? monoHue(recipe.b) : undefined)
+        : chip(tr("Monomer 2", "Monomer 2"), recipe.b ? monoName(recipe.b) : "–", () => setTool("mono2"), recipe.b ? monoHue(recipe.b) : undefined)}
+      {art === "poly" && chip(tr("Verfahren", "Method"), method(recipe.method ?? "dbpo").short, () => setTool("verfahren"))}
+    </div>
+  );
+
+  // Aktionen in einer Zeile: Start, Monomer anlagern (Kügelchen), Abbruch (mehrere Arten → Auswahl)
+  const adds = actions.filter(a => a.kind === "add" || a.pair);
+  const stops = actions.filter(a => a.kind === "stop");
+  const firsts = actions.filter(a => !adds.includes(a) && !stops.includes(a));
+  const nBtn = firsts.length + adds.length + (stops.length ? 1 : 0);
+  const compact = nBtn > 2;
+  const button = (a: Action, small: boolean, disabled: boolean, onRun: (id: string) => void) => {
+    const add = a.kind === "add" || !!a.pair;
+    const ids = a.pair ?? (a.mono ? [a.mono] : []);
+    return (
+      <Button key={a.id} variant={a.kind === "stop" ? "soft" : "primary"} className={`pm-act${add ? " add" : ""}`} disabled={disabled}
+        aria-label={a.label} title={a.label} onClick={() => onRun(a.id)}>
+        {add && <span className="pm-plus" aria-hidden="true">+</span>}
+        {ids.map(m => <BeadIcon key={m} id={m} size={22} />)}
+        {(!add || !small) && <span className={add ? "pm-name" : undefined}>{add ? (a.pair ? a.label.replace(/^\+ /, "") : monoName(a.mono!)) : a.label}</span>}
+      </Button>
+    );
+  };
+  const actBtn = (a: Action) => button(a, compact, busy, id => { setAuto(false); run(id); });
+  const actRow = view === "atome" && (stopOpen
+    ? (
+      <div className="pm-acts-stop">
+        {stops.map(actBtn)}
+        <IconButton icon="close" label={tr("Kein Abbruch", "No stop")} onClick={() => { buzz(); setStopOpen(false); }} />
+      </div>
+    ) : (
+      <div className="pm-acts">
+        <IconButton icon="back" label={tr("Einen Schritt zurück", "One step back")} onClick={back} disabled={busy || !acts.length} />
+        <div className={`pm-acts-main n${nBtn}${compact ? " compact" : ""}`}>
+          {actions.length
+            ? <>
+                {firsts.map(actBtn)}
+                {adds.map(actBtn)}
+                {stops.length === 1 && actBtn(stops[0])}
+                {stops.length > 1 && <Button variant="soft" className="pm-act" disabled={busy} onClick={() => { buzz(); setAuto(false); setStopOpen(true); }}>{tr("Abbruch …", "Stop …")}</Button>}
+              </>
+            : <>
+                <Button variant="soft" className="pm-act" disabled={busy} onClick={() => { buzz(); setTool("produkt"); }}>{tr("Produkt", "Product")}</Button>
+                <Button variant="primary" className="pm-act" icon="reset" disabled={busy} onClick={reset}>{tr("Von vorn", "Start again")}</Button>
+              </>}
+        </div>
+        <IconButton icon={auto ? "close" : "play"} label={auto ? tr("Anhalten", "Stop") : tr("Automatisch abspielen", "Play automatically")} onClick={() => { buzz(); setAuto(a => !a); }} disabled={!actions.length && !auto} className={auto ? "pm-auto on" : "pm-auto"} />
+      </div>
+    ));
+
+  const ractions = view === "kugeln" ? reactor.current?.actions() ?? [] : [];
+  const rRow = view === "kugeln" && (
+    <div className="pm-acts">
+      <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={rreset} disabled={!rstats || rstats.phase === "bereit"} />
+      <div className={`pm-acts-main n${ractions.length}${ractions.length > 2 ? " compact" : ""}`}>
+        {ractions.map(a => button(a, ractions.length > 2, false, rrun))}
+      </div>
+      <IconButton icon={rpaused ? "play" : "pause"} label={rpaused ? tr("Weiter", "Resume") : tr("Anhalten", "Pause")}
+        onClick={() => { buzz(); setRpaused(p => !p); }} className={rpaused ? "pm-auto on" : "pm-auto"} />
+    </div>
+  );
+
+  const pickMono = (id: string) => { buzz(); setRecipe({ ...recipe, a: id, ...(recipe.b === id ? { b: undefined } : {}) }); setTool(null); };
+  const pickB = (id: string | undefined) => { buzz(); setRecipe({ ...recipe, b: id }); setTool(null); };
+  const monoList = art === "poly" ? VINYLS.map(v => v.id as string) : STEPS.filter(s => s.arts.includes(art)).map(s => s.id as string);
+
+  const tools = [
+    { id: "mono", label: low ? hyph(monoName(recipe.a)) : art === "poly" ? tr("Monomer", "Monomer") : tr("Monomer 1", "Monomer 1"),
+      title: art === "poly" ? tr("Monomer", "Monomer") : tr("Monomer 1", "Monomer 1"), icon: "molecule" as const, wide: true,
+      content: <div className="pm-grid">{monoList.map(id => <MonoCard key={id} id={id} active={recipe.a === id} onClick={() => pickMono(id)} />)}</div> },
+    art === "poly"
+      ? { id: "copo", label: low && recipe.b ? `+ ${hyph(monoName(recipe.b))}` : tr("Copolymer", "Copolymer"), title: tr("Copolymer", "Copolymer"), icon: "layers" as const, wide: true, content: (
+          <div className="pm-copo">
+            <Segmented label={tr("Zugabe", "Addition")} value={recipe.seq ? "seq" : "stat"} onChange={v => { buzz(); setRecipe({ ...recipe, seq: v === "seq" }); }}
+              options={[{ value: "stat", label: tr("gleichzeitig", "together") }, { value: "seq", label: tr("nacheinander", "one after another") }]} />
+            <div className="pm-grid">
+              <button type="button" className={`pm-mono none${!recipe.b ? " on" : ""}`} onClick={() => pickB(undefined)}><span className="pm-mono-name">{tr("ohne – nur ein Monomer", "none – one monomer only")}</span></button>
+              {VINYLS.filter(v => v.id !== recipe.a).map(v => <MonoCard key={v.id} id={v.id} active={recipe.b === v.id} onClick={() => pickB(v.id)} />)}
+            </div>
+          </div>
+        ) }
+      : { id: "mono2", label: low && recipe.b ? hyph(monoName(recipe.b)) : tr("Monomer 2", "Monomer 2"), title: tr("Monomer 2", "Monomer 2"), icon: "layers" as const, wide: true,
+          content: <div className="pm-grid">
+            <button type="button" className={`pm-mono none${!recipe.b ? " on" : ""}`} onClick={() => pickB(undefined)}><span className="pm-mono-name">{tr("ohne – Monomer allein", "none – monomer alone")}</span></button>
+            {monoList.map(id => <MonoCard key={id} id={id} active={recipe.b === id} onClick={() => pickB(id)} />)}
+          </div> },
+    ...(art === "poly" ? [{ id: "verfahren", label: low ? method(recipe.method ?? "dbpo").short : tr("Verfahren", "Method"), title: tr("Verfahren", "Method"), icon: "fire" as const, wide: true,
+      content: <div className="pm-meths">{METHODS.map(m => <MethodCard key={m.id} id={m.id} active={recipe.method === m.id} onClick={() => { buzz(); setRecipe({ ...recipe, method: m.id }); setTool(null); }} />)}</div> }] : []),
+    { id: "produkt", label: tr("Produkt", "Product"), icon: "grid" as const, content: <ProductCard recipe={recipe} mech={mech.current} /> },
+    { id: "ansicht", label: tr("Ansicht", "View"), icon: "screen" as const, content: (
+      <div className="pm-switches">
+        <Switch checked={halos} onChange={setHalos}>{tr("Bausteine farbig", "Colour the units")}</Switch>
+        <Switch checked={lp} onChange={setLp}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>
+        <Button variant="soft" icon="reset" onClick={again} disabled={busy || !lastClip.current}>{tr("Letzten Schritt nochmal", "Replay last step")}</Button>
+      </div>
+    ) },
+  ];
+
+  const whyText = view === "atome" ? st.fail ?? st.note : rstats?.why;
+  const whyTitle = view === "atome" ? (st.fail ? `✗ ${st.step}` : st.step) : rstats?.event ?? tr("Warum?", "Why?");
+
+  return (
+    <>
+      <Workbench className="pm-wb" active={tool} onActive={setTool} head={head} stage={stage}
+        status={tags.length ? <div className="pm-status">{tags}</div> : undefined}
+        controls={<div className="pm-controls">{recipeRow}{actRow}{rRow}</div>}
+        tools={tools} />
+      <MonomerSheet id={info} onClose={() => setInfo(null)} />
+      <Sheet open={why && !!whyText} title={whyTitle} onClose={() => setWhy(false)}>
+        <p className="pm-why">{whyText}</p>
+      </Sheet>
+      <Sheet open={!!particle} title={particle ? PARTICLE[particle]?.name ?? "" : ""} onClose={() => setParticle(null)}>
+        <p className="pm-why">{particle ? PARTICLE_INFO()[particle] ?? "" : ""}</p>
+      </Sheet>
+    </>
+  );
+}

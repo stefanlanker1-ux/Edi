@@ -12,6 +12,7 @@ Läuft im Browser, als installierbare Web-App (offline) und als Einzeldatei.
 | [Reaktionsgleichungen](modules/reaktionsgleichungen) | Gleichungen ausgleichen mit Teilchenbild, Quiz |
 | [Neutralisation](modules/neutralisation) | Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen, Quiz |
 | [Nomenklatur](modules/organik) | Organische Moleküle zeichnen und nach IUPAC benennen, E/Z, Quiz |
+| [Polymere](modules/polymere) | Polymerisation, Polykondensation, Polyaddition: Ansatz bauen, Entstehung in Atomen und als Kügelchen im Reaktor, Lernen in Kapiteln |
 | [Einheiten](modules/einheiten) | Einheiten umrechnen mit Rechenweg, Stellenwerttafel, Quiz |
 
 ## Datenschutz

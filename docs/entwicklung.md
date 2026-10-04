@@ -16,7 +16,7 @@ Pakete: `packages/chem` (reine Logik), `packages/units` (Einheiten, reine Logik)
 Zielgruppe: Schülerinnen und Schüler (Unterstufe = „Level I“, Oberstufe = „Level II“) auf Handy, Tablet, Schul-PC und Beamer. Sprache der Oberfläche: Deutsch (Englisch umschaltbar).
 
 Module in der Übersicht (Reihenfolge = empfohlene Lernreihenfolge, `apps/edi/src/modules.ts`):
-Gemische → Atombau → Ionenbindung → Elektronenpaarbindung → Reaktionsgleichungen → Neutralisation → Nomenklatur (`organik`) → Einheiten (unabhängig von der Chemie).
+Gemische → Atombau → Ionenbindung → Elektronenpaarbindung → Reaktionsgleichungen → Neutralisation → Nomenklatur (`organik`) → Polymere → Einheiten (unabhängig von der Chemie).
 Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bekannt (siehe „Begriffe einführen“).
 
 ## Arbeitsweise (für jede Sitzung)
@@ -186,7 +186,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
   egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: `quiz`, dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
   `probieren`, `start` – Kennungen und Speicher-Schlüssel nie umbenennen). Der beim Öffnen gezeigte Bereich bleibt die Werkbank.
-- **Lernen statt Erklärung + Quiz** (zuerst in Gemische, Übertragung auf weitere Module folgt): Leiste **Lernen | Experimentieren**. „Lernen“ (Tab-Kennung `quiz`,
+- **Lernen statt Erklärung + Quiz** (Gemische und Polymere, Übertragung auf weitere Module folgt): Leiste **Lernen | Experimentieren**. „Lernen“ (Tab-Kennung `quiz`,
   Zeichen Buch) zeigt die **Kapitel** wie die Level-Auswahl des Quiz. Ein Kapitel ist **ein Fluss**: beim ersten Antippen zuerst die **Lektion** des Kapitels
   (geführte Erklärung, vorgemacht → halb gelöst → selbst, 3–12 Schritte, `checkGuide(def, { lesson: true })`), „Zu den Aufgaben“ startet direkt die zehn Aufgaben.
   Danach startet das Kapitel gleich mit den Aufgaben; das Buch-Zeichen neben der Kapitelkarte wiederholt die Lektion. Technisch: `QuizScreen` Prop
@@ -242,7 +242,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
   Prüfen im Browser (z. B. Playwright): in allen Ansichten, Werkzeugen und Quizaufgaben darf weder die Seite noch Werkbank/Aufgabenkarte überlaufen, und nichts darf von einem
   Rahmen mit `overflow: hidden` abgeschnitten werden (Gleichungen, Formeln). Breiten: 390 × 844, 375 × 667, dazu schmale Android-Handys 360 × 740 und 412 × 915
-  (Quiz ab ≤ 370 px Breite kompakt wie bei niedrigen Bildschirmen).
+  (Quiz ab ≤ 370 px Breite kompakt wie bei niedrigen Bildschirmen). Nie mitten im Wort umbrechen: Auswahl-Antworten stehen nur zweispaltig, wenn jedes Wort
+  in seine Spalte passt (`McAnswer` misst, sonst einspaltig); im kompaktesten Menü (Stufe 5) stehen Sterne über Tipp und Pfeil, damit Level-Namen breit genug bleiben.
 - Knopf oder Anzeige – auf einen Blick: alles Antippbare sieht aus wie eine Taste (dunkler Rahmen `--rule`, Unterkante `--key-edge`,
   gedrückt `--key-edge-pressed`; neue Knopf-Klassen bekommen beides), Anzeigen haben keinen Rahmen, nur eine ruhige Fläche (`Tag`, `Chip`, Ergebnis).
   Beantwortete Auswahl verliert die Unterkante.
@@ -524,6 +525,72 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Erklärung (22 Schritte, keine Stufen): **Alkane** (Stamm, Methan … Hexan) · **Äste und Nummern** (Hauptkette, Ast, Methyl, Nummerierung vom nahen Ende) ·
   **Mehrfachbindungen** (-en = Alken, -in = Alkin, Nummer, E/Z) · **Alkohole** · **Säuren und Rangfolge**.
 
+## Polymere (`modules/polymere`)
+- Keine Stufen. Leiste **Lernen | Experimentieren** wie Gemische: Lernen = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
+- **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
+  danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
+  nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
+  - Polymerisation: Monomer (`VINYLS` in `chem/data.ts`: Ethen, Propen, Styrol, Vinylchlorid, Methylmethacrylat, Acrylnitril, Tetrafluorethen, Isobuten,
+    Butadien (Einbau 1,4), Vinylacetat), optional ein zweites (gleichzeitig = statistisches Copolymer; nacheinander = Blöcke nur bei lebenden Ketten, sonst zwei
+    getrennte Polymere), Verfahren (`METHODS`): Dibenzoylperoxid und AIBN (radikalisch, Initiator), Ziegler-Natta TiCl₄ + Al(C₂H₅)₃ (koordinativ, Katalysator),
+    Butyllithium (anionisch), BF₃ mit Wasser (kationisch).
+  - Polykondensation / Polyaddition: 18 Monomere mit funktionellen Gruppen (`STEPS`: Disäuren, Säurechloride, Diole, Glycerin, Ethanol und Essigsäure als
+    Kettenstopper, Diamine, Milchsäure und 6-Aminohexansäure als AB-Monomere, Phenol + Methanal, HDI, MDI, Bisphenol-A-diglycidylether), Monomer 1 + Monomer 2
+    oder ein Monomer allein (nur AB-Monomere reagieren mit sich selbst).
+  - Auswahl-Blätter: Monomere als Karten mit Kügelchen, Name und **Halbstrukturformel**; der reagierende Teil (C=C bzw. Gruppen) ist fett und in der Farbe des
+    Monomers hinterlegt (`struct` mit `{…}`). Lange Namen an Wortfugen trennbar (weiches Trennzeichen). Niedrige Handys (≤ 700 px hoch): keine Ansatz-Zeile,
+    die Werkzeugleiste zeigt stattdessen die Auswahl (Monomer, zweites Monomer, Verfahren).
+- **Fachlogik** (`chem/rules.ts`): Verträglichkeit Monomer × Verfahren (`compat`: ok / short / none, Art des Misserfolgs, Begründung in kurzen Sätzen):
+  Monomere mit O, N, Cl oder F **vergiften** Ziegler-Natta (freies Elektronenpaar besetzt die freie Stelle am Titan), Isobuten ist zu sperrig; Propen und Isobuten
+  radikalisch nur kurze Ketten (Abriss eines Allyl-H); anionisch nur mit stabilisierenden Gruppen (Styrol, Butadien, Acrylnitril, Methylmethacrylat bei −78 °C) –
+  lebende Ketten; Vinylchlorid, Tetrafluorethen, Vinylacetat anionisch nur Nebenreaktion; kationisch nur mit Elektronen schiebenden Gruppen (Isobuten bei −100 °C,
+  Styrol); Ethen radikalisch nur unter Hochdruck und verzweigt (PE-LD, Code 4), mit Ziegler-Natta unverzweigt (PE-HD, Code 2); Propen und Styrol mit Ziegler-Natta
+  isotaktisch, sonst ataktisch. Produkte (`polymerise`) mit Name, Kurzzeichen, Klasse (Thermoplast, Elastomer, Duroplast), Aufbau, Verwendung, Recycling-Code;
+  bekannte Copolymere SBR/SB, SAN, NBR, EPM, EVA, SMMA, PVC/VAc. Stufenwachstum (`reactGroups`, `stepReact`): –COOH + –OH → Esterbindung + H₂O,
+  –COOH + –NH₂ → Amidbindung + H₂O, –COCl + –OH/–NH₂ → … + HCl, –N=C=O + –OH → Urethangruppe, –N=C=O + –NH₂ → Harnstoffgruppe, Epoxid + –NH₂ → geöffneter
+  Ring (ohne Nebenprodukt), Phenol + Methanal → CH₂-Brücke + H₂O. Funktionalität (`functionality`; –NH₂ zählt gegenüber Epoxid doppelt): eine Gruppe → nur kleine
+  Moleküle (Kettenstopper), drei → Netz (Duroplast); gleiche Gruppen und Epoxid + Alkohol reagieren nicht. Bekannte Produkte: PET, PBT, PEA, PBA, PA 6.6, Aramid,
+  PA 6T, PLA, PA 6, Phenoplast, PUR, TPU, vernetztes PUR, Polyharnstoff, Epoxidharz, Polyesterharz.
+- **Atom-Ansicht** (`chem/scene.ts`, `chem/draw.ts`, `chem/stepdraw.ts`, `chem/mech/*`, `components/MechSvg.tsx`, `components/MechStage.tsx`): Valenzstrichformel
+  (Zweifachbindung = zweite Linie daneben, wird beim Einbau ausgeblendet), Bausteine farbig hinterlegt (gleiche Farbe wie ihr Kügelchen), freie Elektronenpaare als
+  Striche, Ladungen im Kreis, wandernde Elektronen als Punkte, **Pfeile vor jeder Bewegung** (halbe Spitze = ein Elektron, volle = Elektronenpaar).
+  Jede Aktion ist ein Ablauf aus Schlüsselbildern (`Key`: Bild, Halten, Bewegen, Pfeile), dazwischen weich überblendet (Lage, Deckkraft, Bindungsordnung).
+  Abläufe: radikalisch (Erwärmen: O–O bzw. C–N bricht, jedes Atom behält ein Elektron, CO₂ bzw. N₂ geht ab; Anlagern Monomer für Monomer; Abbruch durch
+  Rekombination oder Disproportionierung), anionisch (Butyllithium lagert sich an, Kette lebt, Methanol beendet), kationisch (Säure aus BF₃ und Wasser, Anlagern,
+  H⁺-Abspaltung), Ziegler-Natta (Aktivieren, Anlagerung an der freien Stelle, Vierzentren-Übergang, Einbau zwischen Titan und Kette, H₂ löst die fertige Kette,
+  Vergiftung sichtbar: O/N/Cl/F bindet an das Titan, ✗; Isobuten prallt ab), Polykondensation (Gruppen rücken heran, Pfeile, Verknüpfung, H₂O bzw. HCl sinkt weg),
+  Polyaddition (H wandert zum N, Urethan- bzw. Harnstoffgruppe; Epoxidring öffnet sich), Zweierkette, Phenoplast (CH₂-Brücke). Nicht passende Partner:
+  ✗ und Begründung (gleiche Gruppen, Kettenende blockiert).
+  Bedienung: eine Zeile Aktionen (Start, Monomer als Kügelchen „+ S“, „Abbruch …“ öffnet die Auswahl der Abbruchart), Zurück (spielt die Aktionen ohne Animation
+  nach, `replay`), Automatisch (`nextAuto`), am Ende „Produkt“ und „Von vorn“. Statuszeile nur kurze Kennzeichen (Schritt, n, „+ 2 H₂O“, Temperatur, lebend);
+  die Begründung eines Fehlschlags steht hinter „ⓘ“ (Blatt). Unter dem Bild die Kette als Kügelchen; Antippen zeigt das Monomer (Strukturformel und Baustein).
+  Kamera (`MechStage`): ein Ablauf beginnt im Ausschnitt seines ersten Bilds und fährt während des ersten Schritts zum ruhigen Ausschnitt des Rests; Ende,
+  Zurück und andere Ansätze werden weich angefahren (550 ms), andere Bühnengröße ohne Fahrt. Stufenwachstum: Ausschnitt = Kettenende + Platz für das nächste
+  Molekül (`span`), am Anfang beide Ausgangsstoffe ganz.
+- **Kügelchen-Ansicht** (`chem/reactor.ts` rein rechnerisch, `components/Reactor.tsx` Canvas): Becherglas mit vielen Molekülen (Kügelchen 6–9 px, Anzahl nach
+  Fläche), gedämpfte Zufallsbewegung, Federn zwischen gebundenen Kügelchen, leichte Streckung der Ketten, Abstoßung. Reaktionen bei Berührung mit Wahrscheinlichkeit:
+  Kettenwachstum nur an aktiven Enden (gestrichelter Ring: Radikal rot, Anion blau, Kation dunkelrot) – wenige lange Ketten, freies Monomer bleibt bis zum Schluss;
+  Starter zerfällt beim Erwärmen nach und nach (Gasbläschen CO₂/N₂ steigen auf); Abbruch zweier gewachsener Radikale (Styrol meist Rekombination, MMA meist
+  Disproportionierung); anionisch starten alle Ketten gleichzeitig und leben, ein zweites Monomer wächst als Block weiter, Methanol beendet; kationisch wandert
+  H⁺ weiter und startet neue Ketten; Ziegler-Natta: Ti-Kügelchen, Einbau zwischen Titan und Kette, „+ H₂“ löst die Ketten, polare Monomere vergiften (✗).
+  Stufenwachstum: jede passende Gruppe zweier Moleküle reagiert, Nebenprodukt steigt als Bläschen auf (Bläschen schieben nichts an), Netz ab drei Gruppen
+  (größtes Molekül ≥ 40 % der Bausteine). Reaktionspartner in der Nähe driften leicht aufeinander zu (sonst dauert es auf dem Bildschirm zu lange).
+  Anzeige: Umsatz als schwarzer Balken, Ketten bzw. Moleküle, mittlere und größte Länge; Kennzeichen (Vorgang, lebend, vernetzt, vergiftet, + H₂O, abgelöst),
+  Begründung hinter „ⓘ“. Antippen hebt das ganze Molekül hervor und zeigt das Monomer (Starter, Katalysator, Bläschen: kurze Info), Ziehen bewegt ein Kügelchen
+  samt Kette. Akku: höchstens 30 Bilder/s, Stillstand bei Ruhe (6 s ohne Reaktion bzw. 3 s, wenn nichts mehr möglich ist), Pause-Knopf, unsichtbare Seite pausiert;
+  Bewegung reduziert: Ablauf ohne Zwischenbilder vorausgerechnet. Der Reaktor bleibt beim Wechsel der Ansicht erhalten.
+- **Lernen** (`quiz/tasks.ts`, `lessons.tsx`, `quiz/explain.tsx`, `quiz/visual.tsx`, Katalog `quiz/misconceptions.ts`): sechs Kapitel – Monomere und Polymere;
+  radikalische Polymerisation; Katalysatoren und Verfahren; Polykondensation; Polyaddition; Struktur und Eigenschaften (Thermoplast/Elastomer/Duroplast,
+  Copolymere, Ketten- vs. Stufenwachstum, Recycling-Codes). Lektionen spielen die Abläufe der Atom-Ansicht ab („Nochmal“), ein Schritt lässt das Radikal-Atom
+  antippen; Bilder vorher/nachher am Handy untereinander. Aufgaben alle als Auswahl mit Bild (`Vis` als reine Daten: Monomer, gesättigtes Gegenstück, Baustein
+  mit/ohne C=C, Kettenausschnitt iso-/syndio-/ataktisch, Mechanismus-Standbild mit Pfeilen, Kügelchen, zwei Monomere, Kettenbild, Gefäß mit Kügelchen:
+  nur Monomer / wenige lange Ketten + Monomer / viele kurze Ketten / ein Riesenmolekül), teils mit Bild-Antworten (Ketten- vs. Stufenwachstum als vier Gefäße);
+  jede falsche Antwort steht für eine Fehlvorstellung. Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
+  Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
+- Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
+  Reaktor-Ergebnisse: Kettenwachstum mit Restmonomer, lebende Ketten, Vergiftung, PET-Umsatz, Netz, Kettenstopper), `quiz/*.test.ts` (Gültigkeit, Katalog,
+  einfache Sprache, Englisch), `guide*.test.ts` (Lektionen auf Deutsch und Englisch).
+
 ## Einheiten (`modules/einheiten`)
 - Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
 - Rechnen nur mit exakten Brüchen (`Q`, BigInt); Anzeige deutsch (Komma, 10 000, 0,000 01), nicht endende Zahlen als 1/60, 1/3,6 bzw. „≈“.
@@ -561,6 +628,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere (neues Modul `polymere`)** – Experimentieren: Auswahl Polymerisation | Polykondensation | Polyaddition, Ansatz aus Monomer(en) und Verfahren
+  (DBPO, AIBN, Ziegler-Natta, Butyllithium, BF₃), Entstehung Schritt für Schritt in Atomen mit Elektronenpfeilen (Start, Wachstum, Abbruch, Einbau am Titan,
+  Vergiftung durch polare Monomere, lebende Ketten, Wasser- bzw. HCl-Abspaltung, wanderndes H) und als Kügelchen im Reaktor (viele Ketten, Copolymere und Blöcke,
+  Umsatz, Netz, Antippen zeigt das Monomer, Ziehen bewegt Ketten, spart Akku). Lernen in sechs Kapiteln mit Lektionen und grafischen Aufgaben. Gemeinsam:
+  Zeichen „pause“ in `@lern/ui`; `check-ui.mjs` prüft das Modul mit; `@lern/quiz`: Auswahl-Antworten nur zweispaltig, wenn kein Wort
+  mitten im Wort umbricht, kompaktestes Menü mit Sternen über Tipp und Pfeil (Level-Namen brachen auf 375 × 667 mitten im Wort).
 - **Arbeitsweise: Grafikqualität** – neue Pflichtregel „Grafiken von Anfang an sorgfältig und schön“ (labornahe, fachlich richtige Geräte, der Vorgang passiert
   sichtbar, Zeichnungen zu mehreren Zeitpunkten rendern und selbst kritisch prüfen, bevor veröffentlicht wird).
 - **Gemische: Stoffe benannt, Trennverfahren genauer** – Lektionen nennen jeden Stoff mit Formel, Legende unter jedem Teilchenbild (Name + Formel), weil

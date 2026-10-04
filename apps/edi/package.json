@@ -24,6 +24,7 @@
     "@edi/ionenbindung": "*",
     "@edi/neutralisation": "*",
     "@edi/organik": "*",
+    "@edi/polymere": "*",
     "@edi/reaktionsgleichungen": "*",
     "@lern/chem-ui": "*",
     "@lern/quiz": "*",

@@ -25,6 +25,7 @@ const PATHS = {
   target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" /></>,
   fire: <path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z" />,
   play: <path d="M8 5.5v13l10.5-6.5z" />,
+  pause: <path d="M8.5 5.5v13M15.5 5.5v13" />,
   leaf: <><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z" /><path d="M5 19 13 11" /></>,
   book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" /><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" /></>,
   screen: <><rect x="2.5" y="4" width="19" height="12.5" rx="2" /><path d="M8 20.5h8M12 16.5v4" /></>,

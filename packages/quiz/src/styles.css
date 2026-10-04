@@ -281,13 +281,15 @@
 .quiz-menu[data-fit="4"] .level-card { padding: 5px 10px; gap: 10px; min-height: 48px; }
 .quiz-menu[data-fit="4"] .resume { padding-top: 8px; padding-bottom: 8px; }
 .quiz-menu[data-fit="4"] .lv-name { font-size: .95rem; line-height: 1.2; }
-/* Stufe 5 (viele Level, kleiner Bildschirm): wie 4, dazu Sterne und Pfeil in einer Zeile, Karten so niedrig wie ein Tippziel */
+/* Stufe 5 (viele Level, kleiner Bildschirm): wie 4, Karten so niedrig wie ein Tippziel; Sterne (kleiner) über Tipp und Pfeil,
+   damit der Name breit genug bleibt und nur an Leerzeichen umbricht („Polymerisatio|n“ wäre sonst möglich) */
 .quiz-menu[data-fit="5"] { gap: 6px; }
 .quiz-menu[data-fit="5"] .quiz-hero, .quiz-menu[data-fit="5"] .lv-desc, .quiz-menu[data-fit="5"] .lv-skills { display: none; }
 .quiz-menu[data-fit="5"] .level-list { gap: 4px; }
 .quiz-menu[data-fit="5"] .level-card { padding: 3px 10px; gap: 10px; min-height: 44px; }
 .quiz-menu[data-fit="5"] .lv-num { width: 34px; height: 34px; font-size: 1rem; }
-.quiz-menu[data-fit="5"] .lv-meta { display: flex; align-items: center; gap: 8px; }
+.quiz-menu[data-fit="5"] .lv-meta { display: grid; gap: 1px; justify-items: end; align-content: center; }
+.quiz-menu[data-fit="5"] .lv-meta .ui-star svg { width: 15px; height: 15px; }
 .quiz-menu[data-fit="5"] .resume { padding-top: 6px; padding-bottom: 6px; }
 .quiz-menu[data-fit="5"] .lv-name { font-size: .95rem; line-height: 1.2; }
 .resume { min-height: 44px; } /* Tippziel, auch in der kompakten Stufe */

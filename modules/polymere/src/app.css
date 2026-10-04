@@ -1,0 +1,231 @@
+/* Polymere – Stile gelten nur im offenen Modul (scripts/modul-scope.ts). Farben nur aus der Palette (tokens.css). */
+
+/* ── Atom-Ansicht (MechSvg) ── */
+.mb-svg { display: block; width: 100%; height: 100%; overflow: hidden; font-family: inherit; user-select: none; -webkit-user-select: none; }
+.mb-line { stroke: var(--text); stroke-width: 2.4; stroke-linecap: round; }
+.mb-coord .mb-line { stroke: var(--muted); stroke-dasharray: 5 6; }
+.mb-ts .mb-line { stroke: var(--hue-red-deep); stroke-dasharray: 3 5; stroke-width: 2; }
+.mb-wedge { fill: var(--text); }
+.mb-hash { stroke: var(--text); stroke-width: 2; stroke-linecap: round; }
+.mb-atom text { font-size: 22px; font-weight: 700; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
+.mb-atom.h text { font-size: 17px; font-weight: 600; }
+.mb-atom-bg { fill: var(--surface); }
+.mb-atom.el-o text { fill: var(--hue-red-deep); }
+.mb-atom.el-n text { fill: var(--hue-blue-deep); }
+.mb-atom.el-cl text, .mb-atom.el-f text { fill: var(--hue-green-deep); }
+.mb-atom.el-ti text, .mb-atom.el-al text { fill: var(--hue-grey-deep); }
+.mb-atom.el-li text { fill: var(--hue-violet-deep); }
+.mb-atom.el-b text { fill: var(--hue-orange-deep); }
+.mb-atom.hl .mb-atom-bg { fill: var(--hue-yellow-soft); }
+.mb-lp { stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; }
+.mb-charge circle { fill: var(--surface); stroke: var(--text); stroke-width: 1.6; }
+.mb-charge path { stroke: var(--text); stroke-width: 1.8; stroke-linecap: round; }
+.mb-e { fill: var(--hue-blue); stroke: var(--hue-blue-deep); stroke-width: 1; }
+.mb-vac { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 4; }
+.mb-arrow path { fill: none; stroke: var(--hue-red); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.mb-arrow .mb-arrow-bg { stroke: var(--surface); stroke-width: 6.5; }
+.mb-arrow .mb-head-fill { fill: var(--hue-red); stroke: var(--hue-red); stroke-width: 1; }
+.mb-note { font-size: 21px; font-weight: 750; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
+.mb-note.tone-gas { fill: var(--muted); }
+.mb-note.tone-bad { fill: var(--bad); font-size: 30px; }
+.mb-note.tone-ok { fill: var(--ok); }
+.mb-halo-l { stroke-width: 34; stroke-linecap: round; }
+.mb-bracket { fill: none; stroke: var(--text); stroke-width: 2.4; stroke-linejoin: round; }
+.mb-halo.hue-red { fill: var(--hue-red-soft); } .mb-halo-l.hue-red { stroke: var(--hue-red-soft); }
+.mb-halo.hue-blue { fill: var(--hue-blue-soft); } .mb-halo-l.hue-blue { stroke: var(--hue-blue-soft); }
+.mb-halo.hue-yellow { fill: var(--hue-yellow-soft); } .mb-halo-l.hue-yellow { stroke: var(--hue-yellow-soft); }
+.mb-halo.hue-green { fill: var(--hue-green-soft); } .mb-halo-l.hue-green { stroke: var(--hue-green-soft); }
+.mb-halo.hue-grey { fill: var(--hue-grey-soft); } .mb-halo-l.hue-grey { stroke: var(--hue-grey-soft); }
+.mb-halo.hue-violet { fill: var(--hue-violet-soft); } .mb-halo-l.hue-violet { stroke: var(--hue-violet-soft); }
+.mb-halo.hue-teal { fill: var(--hue-teal-soft); } .mb-halo-l.hue-teal { stroke: var(--hue-teal-soft); }
+.mb-halo.hue-orange { fill: var(--hue-orange-soft); } .mb-halo-l.hue-orange { stroke: var(--hue-orange-soft); }
+.mb-halo.hue-light { fill: var(--surface-3); } .mb-halo-l.hue-light { stroke: var(--surface-3); }
+.mb-halo.hue-sky { fill: var(--hue-blue-soft); } .mb-halo-l.hue-sky { stroke: var(--hue-blue-soft); }
+
+/* ── Kügelchen (Farbe je Monomer, Buchstabe; Text hell auf dunklen Farben) ── */
+.pm-bead-c { stroke-width: 1.5; }
+.pm-bead text { font-weight: 800; fill: #ffffff; font-feature-settings: "cv05", "cv08"; pointer-events: none; }
+.pm-bead.hue-red .pm-bead-c, .pm-chip-dot.hue-red { fill: var(--hue-red); stroke: var(--hue-red-deep); background: var(--hue-red); }
+.pm-bead.hue-blue .pm-bead-c, .pm-chip-dot.hue-blue { fill: var(--hue-blue); stroke: var(--hue-blue-deep); background: var(--hue-blue); }
+.pm-bead.hue-violet .pm-bead-c, .pm-chip-dot.hue-violet { fill: var(--hue-violet); stroke: var(--hue-violet-deep); background: var(--hue-violet); }
+.pm-bead.hue-teal .pm-bead-c, .pm-chip-dot.hue-teal { fill: var(--hue-teal); stroke: var(--hue-teal-deep); background: var(--hue-teal); }
+.pm-bead.hue-green .pm-bead-c, .pm-chip-dot.hue-green { fill: var(--hue-green); stroke: var(--hue-green-deep); background: var(--hue-green); }
+.pm-bead.hue-orange .pm-bead-c, .pm-chip-dot.hue-orange { fill: var(--hue-orange); stroke: var(--hue-orange-deep); background: var(--hue-orange); }
+.pm-bead.hue-yellow .pm-bead-c, .pm-chip-dot.hue-yellow { fill: var(--hue-yellow); stroke: var(--hue-yellow-deep); background: var(--hue-yellow); }
+.pm-bead.hue-grey .pm-bead-c, .pm-chip-dot.hue-grey { fill: var(--hue-grey); stroke: var(--hue-grey-deep); background: var(--hue-grey); }
+.pm-bead.hue-light .pm-bead-c, .pm-chip-dot.hue-light { fill: var(--hue-grey-soft); stroke: var(--hue-grey-deep); background: var(--hue-grey-soft); }
+.pm-bead.hue-sky .pm-bead-c, .pm-chip-dot.hue-sky { fill: var(--hue-blue-light); stroke: var(--hue-blue-deep); background: var(--hue-blue-light); }
+.pm-bead.hue-init .pm-bead-c { fill: var(--surface-3); stroke: var(--muted); }
+.pm-bead.hue-yellow text, .pm-bead.hue-light text, .pm-bead.hue-sky text, .pm-bead.hue-grey text, .pm-bead.hue-init text { fill: #111111; }
+.pm-bead-act { fill: none; stroke-width: 2.5; stroke-dasharray: 3 3; }
+.pm-bead-act.act-rad { stroke: var(--hue-red); }
+.pm-bead-act.act-an { stroke: var(--hue-blue); }
+.pm-bead-act.act-kat { stroke: var(--hue-red-deep); stroke-dasharray: none; }
+.pm-bead-act.act-ti { stroke: var(--hue-grey-deep); }
+
+/* ── Werkbank ── */
+.pm-head { width: 100%; min-width: 0; }
+.pm-head .ui-seg { display: flex; width: 100%; }
+.pm-head .ui-seg button { flex: 1 1 0; min-width: 0; padding: 4px 6px; font-size: .86rem; line-height: 1.15; }
+.pm-stage { position: relative; width: 100%; height: 100%; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 4px; }
+.pm-view { position: absolute; top: 0; right: 0; z-index: 2; }
+.pm-view .ui-seg { background: var(--surface); }
+.pm-view .ui-seg button { padding: 4px 10px; font-size: .8rem; }
+.pm-mech { width: 100%; height: 100%; min-height: 0; padding-top: 50px; box-sizing: border-box; }
+.pm-strip { display: block; width: 100%; height: 40px; }
+.pm-strip-bond { stroke: var(--text); stroke-width: 2.4; }
+.pm-strip-more { font-size: 20px; font-weight: 800; fill: var(--muted); }
+.pm-strip-tap { cursor: pointer; }
+.pm-hit { fill: transparent; }
+.pm-status { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; min-height: 26px; }
+.pm-controls { display: grid; gap: 8px; padding-bottom: 10px; }
+.pm-recipe { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
+.pm-chip { display: grid; gap: 1px; min-width: 0; min-height: 46px; padding: 4px 8px; text-align: left; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
+.pm-chip:active { box-shadow: var(--key-edge-pressed); }
+.pm-chip-l { font-size: .68rem; font-weight: 650; color: var(--muted); }
+.pm-chip-v { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: .86rem; font-weight: 750; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-chip-dot { flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--rule); }
+.pm-acts { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.pm-acts-main { display: flex; justify-content: center; gap: 6px; min-width: 0; container-type: inline-size; }
+/* zwei Knöpfe auf schmaler Leiste: Monomer nur als Kügelchen */
+@container (max-width: 300px) { .pm-acts-main.n2 .pm-act.add .pm-name { display: none; } }
+.pm-act { padding: 6px 12px; font-size: .9rem; min-height: 44px; gap: 6px; min-width: 0; }
+.pm-act > span { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+.pm-act > span > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pm-acts-stop { display: flex; gap: 6px; align-items: center; }
+.pm-acts-stop .pm-act { flex: 1 1 auto; padding: 6px 8px; font-size: .84rem; }
+.pm-acts-main.compact .pm-act { padding: 6px 7px; font-size: .84rem; }
+.pm-acts-main.compact .pm-act.add > span { gap: 2px; }
+.pm-plus { font-size: 1.15rem; font-weight: 800; line-height: 1; }
+.pm-auto.on { color: var(--signal); }
+.pm-why-btn { display: grid; place-items: center; width: 44px; height: 44px; margin: -9px -8px; padding: 0; border: 0; background: none; color: var(--text); }
+.pm-why-btn.bad { color: var(--bad); }
+.pm-why-btn svg { border-radius: 50%; }
+
+/* Auswahl am Anfang */
+.pm-choose { display: grid; gap: 10px; width: 100%; max-width: 560px; align-self: center; }
+.pm-choose-card { display: grid; grid-template-columns: 120px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 12px; align-items: center; text-align: left; padding: 10px 12px;
+  border: 1.5px solid var(--rule); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
+.pm-choose-card:active { box-shadow: var(--key-edge-pressed); }
+.pm-choose-card .pm-artpic { grid-row: 1 / 3; width: 120px; height: 54px; }
+.pm-choose-card b { font-size: 1.05rem; }
+.pm-choose-card span { font-size: .86rem; color: var(--muted); }
+.pm-artpic .pm-pic-b { stroke: var(--text); stroke-width: 1.2; }
+.pm-pic-b.hue-violet { fill: var(--hue-violet); } .pm-pic-b.hue-red { fill: var(--hue-red); } .pm-pic-b.hue-teal { fill: var(--hue-teal); }
+.pm-pic-dbl, .pm-pic-l, .pm-pic-arrow { fill: none; stroke: var(--text); stroke-width: 1.8; stroke-linecap: round; }
+.pm-pic-t { font-size: 11px; font-weight: 700; fill: var(--muted); }
+
+/* Blätter: Monomere, Verfahren, Produkt */
+.pm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.pm-mono { display: grid; align-content: center; gap: 2px; min-height: 52px; padding: 5px 8px; min-width: 0; text-align: left; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
+.pm-mono.on { outline: 3px solid var(--accent); outline-offset: -1px; }
+.pm-mono.none { display: flex; align-items: center; justify-content: center; text-align: center; }
+.pm-mono-name { display: flex; align-items: center; gap: 6px; font-weight: 750; font-size: .86rem; min-width: 0; line-height: 1.15; }
+.pm-mono-name > span { min-width: 0; hyphens: manual; overflow-wrap: anywhere; }
+.pm-grid > * { min-width: 0; }
+.pm-bead-ic { flex: none; display: block; }
+/* Halbstrukturformel: reagierender Teil fett und in der Farbe des Monomers hinterlegt */
+.pm-struct { font-size: .76rem; line-height: 1.35; color: var(--text); overflow-wrap: anywhere; }
+.pm-struct b { font-weight: 800; border-radius: 3px; padding: 0 2px; }
+.pm-struct.hue-red b { background: var(--hue-red-soft); } .pm-struct.hue-blue b { background: var(--hue-blue-soft); }
+.pm-struct.hue-yellow b { background: var(--hue-yellow-soft); } .pm-struct.hue-green b { background: var(--hue-green-soft); }
+.pm-struct.hue-grey b { background: var(--hue-grey-soft); } .pm-struct.hue-violet b { background: var(--hue-violet-soft); }
+.pm-struct.hue-teal b { background: var(--hue-teal-soft); } .pm-struct.hue-orange b { background: var(--hue-orange-soft); }
+.pm-struct.hue-light b { background: var(--surface-3); } .pm-struct.hue-sky b { background: var(--hue-blue-soft); }
+.pm-meths { display: grid; gap: 8px; }
+.pm-meth { display: grid; gap: 2px; padding: 8px 10px; text-align: left; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
+.pm-meth.on { outline: 3px solid var(--accent); outline-offset: -1px; }
+.pm-meth b { font-size: .95rem; }
+.pm-meth-f { font-size: .86rem; }
+.pm-meth-k { font-size: .78rem; color: var(--muted); }
+.pm-copo { display: grid; gap: 10px; }
+.pm-copo .ui-seg { display: flex; } .pm-copo .ui-seg button { flex: 1; }
+.pm-product { display: grid; gap: 8px; }
+.pm-product h3 { margin: 0; font-size: 1.05rem; }
+.pm-product-pic, .pm-monoinfo-pic { height: clamp(90px, 18vh, 150px); }
+.pm-product-pic .mb-svg, .pm-monoinfo-pic .mb-svg { width: 100%; height: 100%; }
+.pm-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.pm-why { margin: 0; }
+.pm-small { font-size: .84rem; color: var(--muted); margin: 0; }
+.pm-facts { display: grid; gap: 4px; margin: 0; }
+.pm-facts div { display: flex; gap: 8px; } .pm-facts dt { color: var(--muted); } .pm-facts dd { margin: 0; font-weight: 700; }
+.pm-switches { display: grid; gap: 12px; }
+.pm-monoinfo { display: grid; gap: 8px; }
+.pm-monoinfo p { margin: 0; }
+.pm-reactor { position: relative; width: 100%; height: 100%; min-height: 0; }
+.pm-reactor-cv { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: pointer; }
+/* Umsatz als Balken (schwarz auf hell), Ketten, mittlere und größte Länge */
+.pm-rstats { display: flex; align-items: center; gap: 8px; min-height: 26px; padding: 0 4px; font-size: .8rem; white-space: nowrap; overflow: hidden; }
+.pm-rs-l { color: var(--muted); font-weight: 650; }
+.pm-rs-bar { position: relative; flex: 1 1 60px; max-width: 170px; height: 9px; border: 1.5px solid var(--text); border-radius: 2px; overflow: hidden; }
+.pm-rs-bar i { position: absolute; inset: 0 auto 0 0; background: var(--text); transition: width .3s; }
+.pm-rs-pct { min-width: 3.1em; }
+.pm-rs-n { font-weight: 650; }
+@media (max-width: 380px) { .pm-rstats .pm-rs-n:last-child { display: none; } }
+
+@media (min-width: 900px) {
+  .pm-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pm-mech { padding-top: 54px; }
+}
+/* niedrige Handys: Leiste und Knöpfe enger, Ansatz steht in der Werkzeugleiste */
+@media (max-height: 700px) {
+  .pm-recipe { display: none; }
+  .pm-strip { height: 32px; }
+  .pm-controls { gap: 6px; }
+  .pm-chip { min-height: 44px; padding: 2px 6px; }
+}
+
+/* ── Lernen: Bilder in Aufgaben, Antworten und Lektionen ── */
+.q-visual:has(.q-pm) { container-type: size; }
+.q-pm { width: 100%; height: 100cqh; max-height: 300px; display: grid; place-items: center; min-height: 0; }
+.q-pm > * { width: 100%; height: 100%; min-height: 0; }
+.pm-vis-svg { display: block; width: 100%; height: 100%; }
+.pm-vis-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
+.pm-vis-pair .mb-svg { width: 100%; height: 100%; }
+.pm-vis-plus { font-size: 1.5rem; font-weight: 800; }
+.pm-vis-beads { display: grid; place-items: center; width: 100%; }
+.pm-vis-beads .pm-strip { width: 100%; max-height: 44px; }
+.pm-struct-pic { display: block; width: 100%; height: 100%; }
+.pm-sp-chain { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pm-sp-chain.c0 { stroke: var(--hue-violet); } .pm-sp-chain.c1 { stroke: var(--hue-orange); } .pm-sp-chain.c2 { stroke: var(--hue-teal); }
+.pm-sp-bridge { stroke: var(--text); stroke-width: 2.4; }
+.pm-sp-node { fill: var(--text); }
+/* Gefäß mit Kügelchen (Ketten und freies Monomer) */
+.pm-pot { display: block; width: 100%; height: 100%; }
+.pm-pot-glass { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.pm-pot-bond { stroke: var(--text); stroke-width: 1.4; }
+.pm-pot .pm-bead-c { stroke-width: 0.9; }
+/* Antworten als Bild */
+.mc-grid:has(.pm-opt-pic) { grid-template-columns: 1fr 1fr; }
+.pm-opt-pic { display: block; width: 100%; height: clamp(58px, 15vh, 130px); }
+.pm-opt-pic .mb-svg { width: 100%; height: 100%; }
+@media (max-height: 720px) { .pm-opt-pic { height: clamp(50px, 13vh, 100px); } }
+/* Lektionen */
+.pm-lesson-vis, .pm-lesson-mech { position: relative; width: 100%; height: 100%; min-height: 0; }
+.pm-lesson-mech .pm-mech { padding-top: 0; }
+.pm-lesson-again { position: absolute; right: 0; top: 0; z-index: 1; background: var(--surface); }
+.pm-lesson-two { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
+.pm-lesson-two figure { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; min-height: 0; }
+.pm-lesson-two figcaption, .pm-lesson-strips figcaption, .pm-lesson-growth figcaption { text-align: center; font-size: .8rem; font-weight: 650; color: var(--muted); }
+.pm-lesson-arrow { font-size: 1.4rem; font-weight: 800; }
+.pm-lesson-strips { display: grid; gap: 8px; width: 100%; align-content: center; }
+.pm-lesson-strips figure { margin: 0; }
+.pm-lesson-strips .pm-strip { max-height: 40px; }
+.pm-lesson-growth { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start; }
+.pm-lesson-growth figure { margin: 0; display: grid; gap: 4px; }
+.pm-lesson-growth .pm-strip { max-height: 30px; }
+.pm-lesson-free { display: flex; flex-wrap: wrap; gap: 2px 6px; justify-content: center; }
+.pm-lesson-free .pm-strip { width: auto; height: 24px; }
+.pm-tap-svg .mb-atom { cursor: pointer; }
+.hero-pm { display: block; width: 100%; }
+.hero-pm .pm-strip { width: 100%; height: auto; }
+.pm-ex-fig { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.pm-ex-step { display: flex; align-items: center; gap: 6px; flex: 1 1 0; min-width: 0; height: 120px; }
+.pm-ex-step .mb-svg, .pm-ex-step .pm-struct-pic { width: 100%; height: 100%; }
+.pm-ex-arrow { font-size: 1.3rem; font-weight: 800; }
+/* hochkant (Handy): Vorher/Nachher untereinander, Pfeil nach unten */
+@container (orientation: portrait) {
+  .pm-lesson-two { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); }
+  .pm-lesson-arrow { justify-self: center; transform: rotate(90deg); line-height: 1; }
+  .pm-lesson-growth { grid-template-columns: 1fr; }
+}

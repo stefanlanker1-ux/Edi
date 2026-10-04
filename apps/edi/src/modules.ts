@@ -11,7 +11,8 @@ import { modul as reaktionsgleichungen } from "@edi/reaktionsgleichungen";
 import { modul as neutralisation } from "@edi/neutralisation";
 import { modul as einheiten } from "@edi/einheiten";
 import { modul as organik } from "@edi/organik";
+import { modul as polymere } from "@edi/polymere";
 
-export const MODULES: readonly LernModule[] = [gemische, atombau, ionenbindung, elektronenpaarbindung, reaktionsgleichungen, neutralisation, organik, einheiten];
+export const MODULES: readonly LernModule[] = [gemische, atombau, ionenbindung, elektronenpaarbindung, reaktionsgleichungen, neutralisation, organik, polymere, einheiten];
 
 export const moduleById = (id: string): LernModule | undefined => MODULES.find(m => m.id === id);

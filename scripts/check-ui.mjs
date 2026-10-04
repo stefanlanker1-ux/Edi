@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const SITE = process.argv[2] ?? "site";
-const APPS = (process.argv[3] ?? ",gemische,atombau,ionenbindung,elektronenpaarbindung,reaktionsgleichungen,neutralisation,organik,einheiten").split(",");
+const APPS = (process.argv[3] ?? ",gemische,atombau,ionenbindung,elektronenpaarbindung,reaktionsgleichungen,neutralisation,organik,polymere,einheiten").split(",");
 // weitere Größen: VP="768x1024,1024x768" node scripts/check-ui.mjs
 const VIEWPORTS = process.env.VP ? process.env.VP.split(",").map(v => v.split("x").map(Number)) : [[390, 844], [375, 667], [1280, 800]];
 const PORT = Number(process.env.PORT ?? 4173);
