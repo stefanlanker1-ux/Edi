@@ -1,11 +1,13 @@
 // Eine Gleichung ausgleichen (Start): oben Titel (und Auswahl), dann das Teilchenbild,
 // darunter die Gleichung (Zahl antippen = ändern) und genau ein Hauptknopf: „Prüfen“, nach ✓ „Weiter“.
+// Nach ✓ öffnet „Ablauf ansehen“ ein Blatt: wie die Edukte zerfallen und sich die Atome zu den Produkten verbinden (AnimButton).
 
 import { useState, type ReactNode } from "react";
 import { Button, Tag, Workbench, buzz, ding } from "@lern/ui";
 import { isBalanced, unbalancedElements, type Reaction } from "@lern/chem";
 import { EquationRow, maxCoef } from "./Equation.tsx";
 import { MoleculeScene, hasModel } from "./Molecules.tsx";
+import { AnimButton } from "./AnimSheet.tsx";
 import { tr } from "@lern/i18n";
 
 const gcdAll = (xs: number[]) => xs.reduce((g, x) => { while (x) [g, x] = [x, g % x]; return g; }, 0);
@@ -25,6 +27,8 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
   const key = `${r.id}:${coeffs.join(",")}`;
   const shown = checked === key;
   const tries = fails[r.id] ?? 0;
+  // Ablauf nur für eine ausgeglichene, gekürzte Gleichung mit Teilchenbild
+  const canAnim = shown && ok && hasModel(r);
   const check = () => {
     buzz(); setChecked(key);
     if (ok) { ding(true); onSolved?.(); } else { ding(false); setFails({ ...fails, [r.id]: tries + 1 }); }
@@ -37,6 +41,7 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
         {!balanced && unbalancedElements(r, coeffs).map(el => <Tag key={el} tone="signal">≠ {el}</Tag>)}
         {balanced && !ok && <Tag tone="signal">{tr("kürzen :", "simplify ÷")} {g}</Tag>}
         {ok && <Tag tone="ok">✓ {tr("ausgeglichen", "balanced")}</Tag>}
+        {canAnim && <AnimButton r={r} coeffs={coeffs} />}
       </> : undefined}
       controls={
         <div className="rg-controls">

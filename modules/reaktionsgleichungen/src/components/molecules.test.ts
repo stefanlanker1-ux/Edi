@@ -2,7 +2,7 @@ import { test, assert } from "vitest";
 import { MOL3D, REACTIONS, REACTION_BY_ID, atoms3D, atomRadius as radius, hasShape, isMolecular, parseFormula, visibleShare } from "@lern/chem";
 import { shapeOf } from "@lern/chem-ui";
 import { hasModel } from "./Molecules.tsx";
-import { START } from "../store.ts";
+import { STARTS } from "../store.ts";
 
 const species = new Set(REACTIONS.flatMap(r => [...r.left, ...r.right]));
 
@@ -22,7 +22,7 @@ test("jeder Stoff der Reaktionen hat ein Teilchenbild mit den richtigen Atomen",
 });
 
 test("Teilchenbild nur für Moleküle – Salze und Metalle ohne Kalottenmodell", () => {
-  assert.ok(START.every(id => hasModel(REACTION_BY_ID[id])), "Start-Beispiele brauchen ein Teilchenbild");
+  assert.ok([...STARTS.us, ...STARTS.os].every(id => hasModel(REACTION_BY_ID[id])), "Start-Beispiele brauchen ein Teilchenbild");
   for (const f of ["Zn", "ZnCl2", "NaCl", "MgO", "Fe2O3", "NaOH", "NH4Cl"]) assert.ok(!isMolecular(f), f);
   for (const f of ["H2O", "HCl", "CO2", "CH4", "H2SO4", "NH3", "C", "S"]) assert.ok(isMolecular(f), f);
 });

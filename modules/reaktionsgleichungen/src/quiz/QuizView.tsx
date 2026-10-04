@@ -11,6 +11,7 @@ import { useApp } from "../store.ts";
 import { MoleculeScene, hasModel } from "../components/Molecules.tsx";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, reactionOf, speciesOf, type Task } from "./tasks.ts";
 import { SubstanceList } from "../components/Substance.tsx";
+import { ReactionMorph } from "../components/Morph.tsx";
 import { explainFor } from "./explain.tsx";
 import { tr } from "@lern/i18n";
 
@@ -69,6 +70,12 @@ export function QuizView() {
           : t.kind === "balance" ? <BalanceAnswer key={t.reaction + t.prompt} task={t} answered={a} submit={submit} />
             : null}
       solution={t => (t.kind === "num" ? String(t.answer) : t.kind === "balance" ? equationText(reactionOf(t), reactionOf(t).coeffs) : null)}
+      // nach dem Ausgleichen: Ablauf der Reaktion als Lösung (vorher würde er die Zahlen verraten)
+      feedbackExtra={t => {
+        if (t.kind !== "balance" || !hasModel(reactionOf(t))) return null;
+        const r = reactionOf(t);
+        return <><EquationRow eq={r} coeffs={r.coeffs} /><div className="rg-anim-box"><ReactionMorph eq={r} coeffs={r.coeffs} autoplay /></div></>;
+      }}
       explain={(level, task) => explainFor(stufe, level, task)}
       tools={t => {
         const fs = speciesOf(t);

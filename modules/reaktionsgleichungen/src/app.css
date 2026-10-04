@@ -53,6 +53,8 @@ button.eq-term:active { transform: scale(.96); }
 .rg-controls { display: grid; gap: 12px; }
 .rg-actions { display: flex; justify-content: center; gap: 8px; }
 .rg-actions .ui-btn-primary { min-width: 150px; }
+.rg-anim { padding: 6px 12px; }
+.rg-anim-box { height: min(62dvh, 560px); min-height: 0; }
 
 /* ── Quiz ───────────────────────────────────────────────────────────────── */
 .q-eq { margin: 0 0 8px; text-align: center; font-size: clamp(1.1rem, 4.5cqw, 1.6rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; }
