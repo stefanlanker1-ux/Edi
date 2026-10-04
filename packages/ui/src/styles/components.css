@@ -296,6 +296,19 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-guide-ok { display: flex; gap: 6px; align-items: flex-start; color: var(--ok); font-size: .9rem; font-weight: 650; animation: ui-guide-in .3s ease; }
 .ui-guide-ok .ic { flex: none; margin-top: 1px; }
 .ui-guide-say { line-height: 1.4; }
+/* Art des Schritts: vorgemacht / halb gelöst / jetzt du – kleine Kennzeichnung über dem Text */
+.ui-guide-mode { justify-self: start; font-size: .72rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border: 1.5px solid var(--rule); border-radius: var(--radius-sm); padding: 1px 6px; }
+.ui-guide-mode.m-worked { color: var(--text); border-style: dashed; }
+.ui-guide-mode.m-free { color: var(--signal); border-color: currentColor; }
+/* Lösungsweg Zeile für Zeile */
+.ui-guide-lines { margin: 0; padding: 0 0 0 1.4em; display: grid; gap: 2px; font-variant-numeric: tabular-nums; line-height: 1.35; }
+.ui-guide-lines li { padding-left: 2px; animation: ui-guide-line .25s ease-out; }
+.ui-guide-lines li::marker { color: var(--muted); font-weight: 700; }
+.ui-guide-lines.after { color: var(--muted); font-size: .92rem; }
+@keyframes ui-guide-line { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.ui-guide-gap { display: inline-block; min-width: 2.2em; padding: 0 6px; margin: 0 2px; text-align: center; font-weight: 800; border: 2px dashed var(--text); border-radius: var(--radius-sm); }
+.ui-guide-gap.filled { border-style: solid; border-color: var(--ok); color: var(--ok); }
+@media (prefers-reduced-motion: reduce) { .ui-guide-lines li { animation: none; } }
 .ui-guide-ask { font-weight: 750; font-size: 1.05rem; line-height: 1.35; }
 .ui-guide-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 8px; }
 .ui-guide-opts.many { grid-template-columns: repeat(2, minmax(0, 1fr)); }

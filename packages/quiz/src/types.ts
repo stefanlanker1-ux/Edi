@@ -18,7 +18,13 @@ export interface BaseTask {
   traps?: Trap[];
   /** Level mit Tipp: der Tipp ist auf die Aufgabe zugeschnitten – Knopf hervorgehoben („Tipp antippen“) */
   hintCue?: boolean;
+  /** neue Fertigkeit, von der Runde gesetzt: „worked“ = gelöstes Beispiel zum Ansehen (zählt nicht),
+   *  „faded“ = die nächste Aufgabe dieser Art mit sichtbarem ersten Schritt (Tipp ohne Abzug) */
+  stage?: "worked" | "faded";
 }
+
+/** Aufgaben, die zählen (ohne vorgemachte Beispiele) */
+export const counted = <T extends BaseTask>(tasks: T[]) => tasks.filter(t => t.stage !== "worked");
 
 /** Falle bei Eingabe-Aufgaben: Feld `field` hat genau `value` (oder mindestens `min`) → Fehlvorstellung `miss` */
 export interface Trap {

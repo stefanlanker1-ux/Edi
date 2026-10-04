@@ -31,6 +31,9 @@ const LATTICE_SAME = (f: string) => tr(`Die ${f}-Atome sind im Gitter verbunden 
 const ARRANGE_TEXT: Partial<Record<Arrange, string>> = tr({ vorher: "vorher", gemischt: "gemischt", unten: "unten", oben: "oben", getrennt: "getrennt", abwechselnd: "abwechselnd" },
   { vorher: "before", gemischt: "mixed", unten: "at the bottom", oben: "at the top", getrennt: "separate", abwechselnd: "alternating" });
 /** kurze Beschreibung eines Teilchenbilds (Vorlesen, Schlüssel der Bild-Antworten) */
+/** Begründung vor dem Ergebnis (Lösungsweg): „Feste Teilchen in Luft → Rauch“ */
+const because = (why: string) => why.trim().replace(/[.!]$/, "");
+
 export const describe = (p: Pic) => p.mix.map(([f, n]) => `${n} × ${F(f)}`).join(", ") + (p.arrange && ARRANGE_TEXT[p.arrange] ? ` – ${ARRANGE_TEXT[p.arrange]}` : "");
 
 // ── Teilchenbilder ─────────────────────────────────────────────────────────────
@@ -264,7 +267,7 @@ function bildArt(): Task {
     pic: m,
     prompt: tr("Was zeigt das Teilchenbild?", "What does the particle picture show?"),
     hint: tr("Wie viele Teilchensorten gibt es? Hat ein Teilchen eine oder mehrere Atomsorten?", "How many kinds of particles are there? Does a particle have one or several kinds of atoms?"),
-    tip: tr(`Schritt 1: Wie viele Teilchensorten? Hier sind es ${a.stoffe.length}. Schritt 2: Teilchen einfarbig oder mehrfarbig?`, `Step 1: How many kinds of particles? Here there are ${a.stoffe.length}. Step 2: Particles one colour or several colours?`),
+    tip: tr(`Schritt 1: Wie viele Teilchensorten? Hier: ${a.stoffe.length}. Schritt 2: Teilchen einfarbig oder mehrfarbig?`, `Step 1: How many kinds of particles? Here there are ${a.stoffe.length}. Step 2: Particles one colour or several colours?`),
     explain: `${cap(names(a.stoffe))} → **${PICTURE_LABEL[kind]}**.`,
   };
 }
@@ -479,7 +482,7 @@ function homogen(only?: (e: Everyday) => boolean): Task {
     prompt: tr(`Was ist **${e.name}**?`, `What is **${e.name}**?`),
     hint: tr("Homogen: überall gleich, keine Grenze. Heterogen: Teile oder Schichten sind zu erkennen.", "Homogeneous: the same everywhere, no boundary. Heterogeneous: pieces or layers can be seen."),
     tip: HOMOGEN_TIP[e.trap?.[1] ?? ""] ?? tr(`Stell dir ${e.name} im Glas vor. Siehst du Teile, Tröpfchen oder Schichten?`, `Imagine ${e.name} in a glass. Do you see pieces, droplets or layers?`),
-    explain: `${cap(e.name)}: **${e.ans}**. ${e.why}`,
+    explain: `${cap(e.name)}: ${because(e.why)} → **${e.ans}**.`,
   };
 }
 
@@ -576,7 +579,7 @@ function gemischart(arts?: string[]): Task {
     prompt: tr(`Welche Art von Gemisch ist **${g.name}**?`, `What type of mixture is **${g.name}**?`),
     hint: tr("Welche Zustände sind gemischt – fest, flüssig, gasförmig? Sieht man Teile?", "Which states are mixed – solid, liquid, gas? Can you see pieces?"),
     tip: ART_TIP[g.ans],
-    explain: `${cap(g.name)}: **${g.ans}**. ${g.why}`,
+    explain: `${cap(g.name)}: ${because(g.why)} → **${g.ans}**.`,
   };
 }
 
@@ -652,7 +655,7 @@ function alltag(): Task {
     tip: s.tip ?? (/\(.*[A-Z].*\)/.test(s.name) ? tr("Lies die Formel: Jeder Großbuchstabe ist eine Atomsorte.", "Read the formula: each capital letter is a kind of atom.")
       : s.ans === "Gemisch" ? tr(`Zähle auf, was alles in ${s.name} steckt. Mehr als ein Stoff?`, `List everything that is in ${s.name}. More than one substance?`)
       : tr(`Steht ${s.name.split(" ")[0]} im Periodensystem? Dann ist es eine Atomsorte.`, `Is ${s.name.split(" ")[0]} in the periodic table? Then it is one kind of atom.`)),
-    explain: `${cap(s.name)}: **${label(s.ans)}**. ${s.why}`,
+    explain: `${cap(s.name)}: ${because(s.why)} → **${label(s.ans)}**.`,
   };
 }
 
@@ -754,18 +757,18 @@ function erhalten(): Task {
 
 /** Masse beim Lösen bleibt erhalten */
 function masse(): Task {
-  const [stoff, what, solvent] = pick(tr([["Zucker", "das Zuckerwasser", "Wasser"], ["Salz", "das Salzwasser", "Wasser"], ["Zucker", "der Tee", "Tee"]], [["sugar", "the sugar water", "water"], ["salt", "the salt water", "water"], ["sugar", "the tea", "tea"]]));
+  const [stoff, what, solvent, art] = pick(tr([["Zucker", "das Zuckerwasser", "Wasser", "Der"], ["Salz", "das Salzwasser", "Wasser", "Das"], ["Zucker", "der Tee", "Tee", "Der"]], [["sugar", "the sugar water", "water", "The"], ["salt", "the salt water", "water", "The"], ["sugar", "the tea", "tea", "The"]]));
   const w = pick([100, 150, 200, 250, 300, 400, 500]), z = pick([10, 20, 30, 40, 50]);
   const g = (x: number) => `${x} g`;
   return {
     ...mc(g(w + z), [
-      d(g(w), "verschwindet", tr(`Der ${stoff} ist noch da – nur verteilt. Seine ${z} g zählen mit.`, `The ${stoff} is still there – just spread out. Its ${z} g count too.`)),
+      d(g(w), "verschwindet", tr(`${art} ${stoff} ist noch da – nur verteilt. Seine ${z} g zählen mit.`, `${art} ${stoff} is still there – just spread out. Its ${z} g count too.`)),
       d(g(w + z / 2), "masse-aendert", tr("Die Teilchen werden beim Lösen nicht leichter. Die Masse bleibt gleich.", "The particles do not get lighter when dissolving. The mass stays the same.")),
       d(g(w + 2 * z), "masse-aendert", tr(`Beim Lösen kommt nichts dazu. ${solvent} und ${stoff} zusammen wiegen genauso viel.`, `Nothing is added when dissolving. The ${solvent} and ${stoff} together weigh just as much.`)),
     ], 4, `${w} g + ${z} g = ${w + z} g.`),
     prompt: tr(`In **${w} g** ${solvent} lösen sich **${z} g** ${stoff}. Wie schwer ist ${what} jetzt?`, `**${z} g** of ${stoff} dissolve in **${w} g** of ${solvent}. How heavy is ${what} now?`),
     hint: tr("Beim Lösen verschwinden keine Teilchen. Was bedeutet das für die Masse?", "No particles disappear when dissolving. What does that mean for the mass?"),
-    tip: tr(`Der ${stoff} ist noch da, nur verteilt. Zähle beide Massen zusammen.`, `The ${stoff} is still there, just spread out. Add both masses together.`),
+    tip: tr(`${art} ${stoff} ist noch da, nur verteilt. Zähle beide Massen zusammen.`, `${art} ${stoff} is still there, just spread out. Add both masses together.`),
     explain: tr(`Alle Teilchen sind noch da: ${w} g + ${z} g = **${w + z} g**.`, `All particles are still there: ${w} g + ${z} g = **${w + z} g**.`),
   };
 }

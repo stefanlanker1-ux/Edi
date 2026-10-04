@@ -73,14 +73,42 @@ function Substances({ ex, onPick }: { ex: Example; onPick: (f: string) => void }
   );
 }
 
-function Counts({ ex }: { ex: Example }) {
+/**
+ * Zählen mit abnehmender Hilfe: Beispiel 1–2 vollständig gelöst, 3–5 fehlt die Zahl der Stoffe, ab 6 selbst zählen
+ * (Teilchen bleiben immer angegeben – bei über hundert Teilchen zählt niemand von Hand).
+ */
+function Counts({ ex, index }: { ex: Example; index: number }) {
   const a = analyse(ex.items);
-  const rows: [string, number][] = [[tr("Teilchen", "Particles"), a.teilchen], [tr("Stoffe", "Substances"), a.stoffe.length], [tr("davon Verbindungen", "of which compounds"), a.verbindungen.length],
-    [tr("davon Elemente", "of which elements"), a.elemente.length], [tr("Atomsorten", "Kinds of atoms"), a.atomsorten.length]];
+  const rows: [string, number, boolean][] = [[tr("Teilchen", "Particles"), a.teilchen, false], [tr("Stoffe", "Substances"), a.stoffe.length, index >= 2],
+    [tr("davon Verbindungen", "of which compounds"), a.verbindungen.length, index >= 5], [tr("davon Elemente", "of which elements"), a.elemente.length, index >= 5],
+    [tr("Atomsorten", "Kinds of atoms"), a.atomsorten.length, index >= 5]];
+  const open = rows.filter(r => r[2]).length;
   return (
-    <dl className="gm-counts">
-      {rows.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
-    </dl>
+    <div className="gm-count-wrap">
+      <p className="gm-count-mode">{open === 0 ? tr("Vorgemacht", "Worked example") : open === 1 ? tr("Ergänze die Lücke", "Fill in the gap") : tr("Jetzt du: selbst zählen", "Your turn: count yourself")}</p>
+      <dl className="gm-counts">
+        {rows.map(([k, v, hide]) => <div key={`${ex.id}-${k}`}><dt>{k}</dt><dd>{hide ? <CountCheck value={v} label={k} /> : v}</dd></div>)}
+      </dl>
+    </div>
+  );
+}
+
+/** Zahl selbst eintragen: ✓ zeigt sie, ✗ lässt es nochmal versuchen; nach zwei Fehlversuchen steht die Lösung da */
+function CountCheck({ value, label }: { value: number; label: string }) {
+  const [v, setV] = useState("");
+  const [state, setState] = useState<"open" | "ok" | "bad" | "shown">("open");
+  const [tries, setTries] = useState(0);
+  if (state === "ok" || state === "shown") return <span className={state === "ok" ? "gm-cc-ok" : undefined}>{value}{state === "ok" && " ✓"}</span>;
+  const check = () => {
+    if (Number(v) === value) { setState("ok"); buzz(); return; }
+    const t = tries + 1;
+    setTries(t); setState(t >= 2 ? "shown" : "bad"); setV("");
+  };
+  return (
+    <form className="gm-cc" onSubmit={e => { e.preventDefault(); if (v.trim()) check(); }}>
+      <input inputMode="numeric" value={v} placeholder="?" aria-label={label} onChange={e => setV(e.target.value.replace(/\D/g, ""))} className={state === "bad" ? "bad" : undefined} />
+      <button type="submit" disabled={!v} aria-label={tr("Prüfen", "Check")}>{state === "bad" ? "✗" : "✓"}</button>
+    </form>
   );
 }
 
@@ -327,7 +355,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
         }
         tools={[
           { id: "stoffe", label: tr("Stoffe", "Substances"), icon: "molecule", content: <Substances ex={ex} onPick={f => setPick(f)} /> },
-          { id: "zaehlen", label: tr("Zählen", "Count"), icon: "table", content: <Counts ex={ex} /> },
+          { id: "zaehlen", label: tr("Zählen", "Count"), icon: "table", content: <Counts ex={ex} index={index} /> },
           { id: "farben", label: tr("Farben", "Colours"), icon: "atom", content: <Legend els={a.atomsorten} /> },
           { id: "einteilung", label: tr("Einteilung", "Classification"), icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
           { id: "arten", label: tr("Arten", "Types"), icon: "beaker", title: tr("Arten von Gemischen", "Types of mixtures"), content: <Arten ex={ex} /> },

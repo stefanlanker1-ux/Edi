@@ -4,6 +4,8 @@
 // der Bestätigung (und Beschriftungen nach der Lösung) stehen, weiter mit „Weiter“ – Zeit zum Lesen und Anschauen.
 // Ganzer Bildschirm, nie scrollen: Bild füllt den Platz (container-type: size, Zeichnungen mit cqw/cqh oder Fit).
 // Längere Erklärungen in Kapiteln (`part`): Kapitelname im Kopf, Fortschrittsbalken in Abschnitten.
+// Lernen an Beispielen mit Ausblenden der Hilfe: jedes Kapitel beginnt mit einem vorgemachten Fall (Lösungsweg Zeile für Zeile),
+// dann ein halb gelöster (eine Lücke im Lösungsweg) und dann selbst lösen – und wieder von vorn mit dem nächsten Gedanken.
 
 import { num, tr } from "./i18n.ts";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
@@ -17,13 +19,21 @@ import { Callouts, type Callout } from "./Callouts.tsx";
 /** Was ein Bild bekommt: `pick` meldet ein angetipptes Ziel, `show` = Lösung markieren, `solved` = schon richtig */
 export interface GuideCtx { pick: (id: string) => void; show: boolean; solved: boolean }
 
+/** vorgemacht = Lösungsweg wird gezeigt; halb gelöst = eine Lücke im Lösungsweg; frei = selbst lösen */
+export type GuideMode = "worked" | "faded" | "free";
+
 export interface GuideStep {
+  /** Art des Schritts: Kapitel beginnen vorgemacht, dann halb gelöst, dann frei */
+  mode?: GuideMode;
+  /** Lösungsweg Zeile für Zeile: vorgemacht = wird gezeigt; halb gelöst = genau eine Zeile mit der Lücke `{?}`;
+   *  frei = erscheint nach der richtigen Antwort */
+  lines?: string[];
   /** neue Idee in ein, zwei kurzen Sätzen (`**fett**`) */
   say?: string;
   /** Auftrag: was jetzt anzutippen oder einzutippen ist */
   ask: string;
-  /** richtige Antwort: Text einer Auswahl, Zahl oder Kennung eines Ziels im Bild */
-  answer: string | number;
+  /** richtige Antwort: Text einer Auswahl, Zahl oder Kennung eines Ziels im Bild (nicht bei vorgemachten Schritten) */
+  answer?: string | number;
   /** Auswahl-Knöpfe unter dem Auftrag */
   options?: string[];
   /** Zahl eintippen (mit Einheit hinter dem Feld) */
@@ -60,6 +70,7 @@ export const parseNum = (s: string) => Number(s.trim().replace(/\s/g, "").replac
 
 /** Prüft eine Antwort gegen den Schritt (Zahlen tolerant gegenüber Komma/Punkt) */
 export function isRight(step: GuideStep, a: string | number): boolean {
+  if (step.answer === undefined) return false;
   if (typeof step.answer === "number") return Math.abs((typeof a === "number" ? a : parseNum(a)) - step.answer) < 1e-9;
   return String(a) === step.answer;
 }
@@ -69,6 +80,19 @@ export function feedback(step: GuideStep, why: string | undefined, tries: number
   const parts = [why ?? step.tip ?? tr("Noch nicht.", "Not yet.")];
   if (why && step.tip && tries >= 2) parts.push(`${tr("Tipp", "Tip")}: ${step.tip}`);
   return `${parts.join(" ")} ${tr(`Versuch ${tries} von ${GUIDE_TRIES}.`, `Try ${tries} of ${GUIDE_TRIES}.`)}`;
+}
+
+const MODE_NAME: Record<GuideMode, () => string> = {
+  worked: () => tr("Vorgemacht", "Worked example"),
+  faded: () => tr("Halb gelöst – ergänze", "Half solved – complete it"),
+  free: () => tr("Jetzt du", "Your turn"),
+};
+
+/** Zeile des Lösungswegs; `{?}` = Lücke (nach der Lösung mit der Antwort gefüllt) */
+function Line({ text, fill }: { text: string; fill?: string }) {
+  const [a, b] = text.split("{?}");
+  if (b === undefined) return <RichText text={text} />;
+  return <><RichText text={a} /><span className={`ui-guide-gap${fill ? " filled" : ""}`}>{fill ?? "?"}</span><RichText text={b} /></>;
 }
 
 export function Guide({ def, open, onClose, onFinish, finishLabel }: {
@@ -83,7 +107,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const [msg, setMsg] = useState<string | null>(null);
   const [val, setVal] = useState("");
   const [shake, setShake] = useState(0);
+  // vorgemacht: so viele Zeilen des Lösungswegs sind schon zu sehen
+  const [seen, setSeen] = useState(1);
   const n = def.steps.length, done = i >= n, step = def.steps[Math.min(i, n - 1)];
+  const worked = step.mode === "worked", lines = step.lines ?? [];
   const show = tries >= GUIDE_TRIES && !solved;
 
   // öffnen/schließen als modaler Dialog; Zurück-Taste schließt
@@ -109,7 +136,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const textRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (open && i > 0) textRef.current?.focus({ preventScroll: true }); }, [i, open]);
 
-  function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); }
+  function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); setSeen(1); }
+  // vorgemacht: nächste Zeile zeigen; nach der letzten ist der Schritt fertig
+  const reveal = () => { const k = seen + 1; setSeen(k); if (k >= lines.length) setSolved(true); };
+  useEffect(() => { if (open && worked && lines.length <= 1) setSolved(true); }, [open, i, worked, lines.length]);
 
   const answer = (a: string | number) => {
     if (solved || done) return;
@@ -127,7 +157,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
       ? step.show ?? tr(`So geht's: ${typeof step.answer === "number" ? `tippe **${num(step.answer)}** ein` : "tippe auf das Markierte"}.`, `Here's how: ${typeof step.answer === "number" ? `type **${num(step.answer)}**` : "tap the marked answer"}.`)
       : feedback(step, why, t));
   };
-  const ctx: GuideCtx = { pick: id => answer(id), show, solved };
+  // vorgemacht: das Bild zeigt den gelösten Fall von Anfang an
+  const ctx: GuideCtx = worked ? { pick: () => {}, show: false, solved: true } : { pick: id => answer(id), show, solved };
   const next = () => { setI(k => k + 1); reset(); };
   // Kapitel: Anfang je Kapitel und das aktuelle
   const starts = def.steps.map((s, k) => (s.part || k === 0 ? k : -1)).filter(k => k >= 0);
@@ -165,12 +196,21 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                 <div className={`ui-guide-visual${solved ? " solved" : ""}${show ? " show" : ""}`}>
                   {/* je Schritt neu aufbauen: Bilder gleiten nicht aus dem vorigen Schritt herüber (Beschriftungen messen sonst mitten im Übergang) */}
                   <Fragment key={`v${i}`}>{step.visual(ctx)}</Fragment>
-                  {step.labels && <Callouts key={i} items={step.labels} solved={solved} />}
+                  {step.labels && <Callouts key={i} items={step.labels} solved={solved || worked} />}
                 </div>
               )}
               <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
+                {step.mode && <span className={`ui-guide-mode m-${step.mode}`}>{MODE_NAME[step.mode]()}</span>}
                 {step.say && <p className="ui-guide-say"><RichText text={step.say} /></p>}
                 <p className="ui-guide-ask"><RichText text={step.ask} /></p>
+                {lines.length > 0 && (step.mode !== "free" || solved) && (
+                  <ol className={`ui-guide-lines${step.mode === "free" ? " after" : ""}`}>
+                    {(worked ? lines.slice(0, seen) : lines).map((l, k) => <li key={`${i}-${k}`}><Line text={l} fill={solved || show ? solText : undefined} /></li>)}
+                  </ol>
+                )}
+                {worked && !solved && (
+                  <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>
+                )}
                 {step.options && (
                   <div className={`ui-guide-opts${step.options.some(o => o.length > 16) ? " long" : step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
                     {step.options.map(o => {
@@ -192,7 +232,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                   </form>
                 )}
                 <p className={`ui-guide-msg${solved ? " right" : show ? " sol" : msg ? " wrong" : ""}`} aria-live="polite">
-                  {solved ? <><Icon name="check" size={18} /><span><RichText text={step.ok} /></span></>
+                  {solved ? <><Icon name={worked ? "arrow" : "check"} size={18} /><span><RichText text={step.ok} /></span></>
                     : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
                 </p>
                 {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}

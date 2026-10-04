@@ -1,5 +1,6 @@
 // Prüfungen für geführte Erklärungen (in den Tests der Module): 10–40 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
-// Rückmeldungen passen zu möglichen Antworten, kurze Sätze.
+// Rückmeldungen passen zu möglichen Antworten, kurze Sätze. Ausblenden der Hilfe: jedes Kapitel beginnt vorgemacht,
+// danach halb gelöst, dann frei (vorgemacht → halb → frei → vorgemacht …; mehrere halbe oder freie hintereinander erlaubt).
 
 import type { GuideDef } from "./Guide.tsx";
 
@@ -18,8 +19,29 @@ export function checkGuide(def: GuideDef): string[] {
   if (n > 15 && !def.steps[0].part) out.push(`${def.title}: über 15 Schritte – Kapitel (part) nötig, ab dem ersten Schritt`);
   if (def.steps[0].part || n > 15) starts.forEach((s, j) => { const len = (starts[j + 1] ?? n) - s; if (len > 8) out.push(`${def.title}: Kapitel „${def.steps[s].part}“ hat ${len} Schritte (höchstens 8)`); });
   if (!def.outro.length) out.push(`${def.title}: keine Zusammenfassung`);
+  // Reihenfolge der Arten: halb gelöst nur nach vorgemacht/halb, frei nur nach halb/frei, Kapitelanfang vorgemacht
+  const allowed: Record<string, string[]> = { worked: ["worked", "faded", "free"], faded: ["worked", "faded"], free: ["faded", "free"] };
+  const staged = def.steps.some(s => s.mode);
   def.steps.forEach((s, i) => {
     const at = `${def.title} Schritt ${i + 1}`;
+    if (staged && !s.mode) { out.push(`${at}: Art (mode) fehlt`); return; }
+    if (s.mode) {
+      const first = i === 0 || !!s.part;
+      if (first && s.mode !== "worked") out.push(`${at}: Kapitel beginnt nicht vorgemacht`);
+      if (!first && !allowed[s.mode].includes(def.steps[i - 1].mode!)) out.push(`${at}: „${s.mode}“ nach „${def.steps[i - 1].mode}“ – erst vorgemacht, dann halb, dann frei`);
+      if (s.mode === "worked") {
+        if (!s.lines?.length) out.push(`${at}: vorgemacht ohne Lösungsweg`);
+        if (s.options || s.num || s.answer !== undefined || s.why || s.tip) out.push(`${at}: vorgemacht braucht keine Antwort`);
+        if (s.lines?.some(l => l.includes("{?}"))) out.push(`${at}: Lücke in vorgemachtem Schritt`);
+        if (!s.ok) out.push(`${at}: Bestätigung fehlt`);
+        for (const t of [s.say ?? "", s.ask, s.ok, ...(s.lines ?? [])]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
+        return;
+      }
+    }
+    if (s.mode === "faded" && (s.lines ?? []).filter(l => l.includes("{?}")).length !== 1) out.push(`${at}: halb gelöst braucht genau eine Lücke {?}`);
+    if (s.mode === "faded" && typeof s.answer === "number" && (s.lines ?? []).some(l => new RegExp(`(^|[^0-9,\\p{L}])${String(s.answer).replace(".", ",")}([^0-9,\\p{L}]|$)`, "u").test(l.replace("{?}", "")))) out.push(`${at}: Lösungsweg verrät die Lücke`);
+    if (s.mode === "free" && s.lines?.some(l => l.includes("{?}"))) out.push(`${at}: Lücke in freiem Schritt`);
+    if (s.answer === undefined) { out.push(`${at}: Antwort fehlt`); return; }
     const kinds = [!!s.options, !!s.num, !s.options && !s.num].filter(Boolean).length;
     if (kinds !== 1) out.push(`${at}: genau eine Antwortform nötig`);
     if (s.options) {
@@ -44,7 +66,7 @@ export function checkGuide(def: GuideDef): string[] {
     for (const l of s.labels ?? []) if (!l.afterSolved && (l.text === sol || (typeof s.answer === "number"
       ? new RegExp(`(^|[^0-9,\\p{L}])${sol}([^0-9,\\p{L}]|$)`, "u").test(l.text) : sol.length > 2 && l.text.includes(sol)))) out.push(`${at}: Beschriftung „${l.text}“ verrät die Lösung`);
     if (!s.ok) out.push(`${at}: Bestätigung fehlt`);
-    for (const t of [s.say ?? "", s.ask, s.ok, s.show ?? "", s.tip ?? "", ...Object.values(s.why ?? {}), ...(s.labels ?? []).map(l => l.text)]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
+    for (const t of [s.say ?? "", s.ask, s.ok, s.show ?? "", s.tip ?? "", ...(s.lines ?? []), ...Object.values(s.why ?? {}), ...(s.labels ?? []).map(l => l.text)]) for (const l of longGuideSentences(t)) out.push(`${at}: langer Satz „${l}“`);
   });
   return out;
 }

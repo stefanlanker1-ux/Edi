@@ -4,7 +4,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { StoreApi, UseBoundStore } from "zustand";
 import { Button, Card, Fit, Icon, IconButton, Note, ResultBar, RichText, Sheet, Stars, Tag, buzz, ding, getLang, tr, type IconName } from "@lern/ui";
-import { diagnose, starsFor, weakTypes, type Answered, type BaseTask, type Game, type LevelKey, type McTask, type QuizLevel, type Submit } from "./types.ts";
+import { counted, diagnose, starsFor, weakTypes, type Answered, type BaseTask, type Game, type LevelKey, type McTask, type QuizLevel, type Submit } from "./types.ts";
 import type { QuizState } from "./store.ts";
 import { STAGES, dayStart, daysUntilDue, dueSkills, examDays, inExam, stageCounts, stageOf, weeklyDone, type Exam, type Skills, type Stage } from "./skills.ts";
 
@@ -371,8 +371,8 @@ function Play<T extends BaseTask>({ p, game, onPause }: { p: QuizScreenProps<T>;
       <div className="quiz-top">
         <IconButton icon="back" label={tr("Pause – zur Levelauswahl", "Pause – back to levels")} onClick={onPause} />
         <div className="q-prog">
-          <div className="q-prog-lbl"><span>{p.levelName(game.level)}</span><span>{tr("Aufgabe", "Task")} {game.i + 1} / {game.tasks.length}</span></div>
-          <ResultBar results={game.answers.map(a => (a ? a.ok : null))} />
+          <div className="q-prog-lbl"><span>{p.levelName(game.level)}</span><span>{game.tasks[game.i]?.stage === "worked" ? tr("Beispiel", "Example") : <>{tr("Aufgabe", "Task")} {counted(game.tasks.slice(0, game.i + 1)).length} / {counted(game.tasks).length}</>}</span></div>
+          <ResultBar results={game.answers.filter((_, k) => game.tasks[k].stage !== "worked").map(a => (a ? a.ok : null))} />
         </div>
         <div className="q-score" aria-label={tr(`${game.score} Punkte`, `${game.score} points`)}>{game.score}<small>{tr("Pkt", "pts")}</small></div>
         <div className={`q-streak${game.streak >= 2 ? " hot" : ""}`} aria-label={tr(`Serie ${game.streak}`, `Streak ${game.streak}`)}><Icon name="fire" />{game.streak}</div>
@@ -410,7 +410,9 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   useEffect(() => { if (game.i > 0 && lost()) promptRef.current?.focus({ preventScroll: true }); }, []);
   useEffect(() => { if (a && lost()) nextRef.current?.querySelector<HTMLButtonElement>(".q-next")?.focus({ preventScroll: true }); }, [!!a]);
   const isMc = t.kind === "mc";
+  const worked = t.stage === "worked";
   const visual = p.renderVisual?.(t);
+  if (worked) return <WorkedCard p={p} t={t} onNext={go} last={last} />;
   const extra = a ? p.feedbackExtra?.(t, a) : null;
   const diag = a ? diagnose(t, a) : null;
   return (
@@ -420,7 +422,7 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
       <div className="q-body">
         {visual && <div className="q-visual"><Fit>{visual}</Fit></div>}
         {isMc ? <McAnswer task={t as unknown as McTask} answered={a} submit={submit} renderOption={p.renderOption && (o => p.renderOption!(t, o))} /> : p.renderAnswer?.(t, a, submit)}
-        {game.hintUsed && !a && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
+        {(game.hintUsed || t.stage === "faded") && !a && <div className={`q-hint${t.stage === "faded" ? " q-first" : ""}`}><Icon name="bulb" /><span>{t.stage === "faded" && <b>{tr("Erster Schritt: ", "First step: ")}</b>}<RichText text={t.hint} /></span></div>}
         {a && (
           <div className={`q-feedback ${a.ok ? "ok" : "bad"}`} role="status">
             <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>
@@ -435,6 +437,32 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
           hint hintCue={t.hintCue} onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
           read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => `${"ABCD"[i]}: ${o}`) : [])].filter(Boolean).join(". ")} />
         {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
+      </div>
+    </Card>
+  );
+}
+
+/** Vorgemachtes Beispiel einer neuen Fertigkeit: Frage, Lösung markiert, Lösungsweg – zählt nicht, weiter mit „Jetzt du“ */
+function WorkedCard<T extends BaseTask>({ p, t, onNext, last }: { p: QuizScreenProps<T>; t: T; onNext: () => void; last: boolean }) {
+  const visual = p.renderVisual?.(t);
+  const mc = t.kind === "mc" ? (t as unknown as McTask) : null;
+  const shown: Answered = { ok: true, gained: 0, choice: mc?.answer };
+  return (
+    <Card className={`task-card kind-${t.kind} answered worked`}>
+      <p className="q-worked-tag"><Icon name="book" size={16} /> {tr("Vorgemacht – so löst man das", "Worked example – this is how")}</p>
+      {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
+      <p className="q-prompt"><RichText text={t.prompt} /></p>
+      <div className="q-body">
+        {visual && <div className="q-visual"><Fit>{visual}</Fit></div>}
+        {mc ? <McAnswer task={mc} answered={shown} submit={() => {}} renderOption={p.renderOption && (o => p.renderOption!(t, o))} />
+          : p.solution && <div className="fb-sol"><span>{tr("Lösung: ", "Solution: ")}</span>{p.solution(t)}</div>}
+        <div className="q-feedback ok q-worked-way">
+          <p className="fb-exp"><b>1.</b><span><RichText text={t.hint} /></span></p>
+          <p className="fb-exp"><b>2.</b><span><RichText text={t.explain} /></span></p>
+        </div>
+      </div>
+      <div className="q-actions">
+        <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={onNext}>{last ? tr("Auswertung", "Results") : tr("Verstanden – jetzt du", "Got it – your turn")}</Button>
       </div>
     </Card>
   );
@@ -473,7 +501,7 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
 function Result<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game: Game<T> }) {
   const { start, quit } = p.useQuiz();
   const [review, setReview] = useState(false);
-  const total = game.tasks.length;
+  const total = counted(game.tasks).length;
   const s = starsFor(game.correct, total);
   const msg = s === 3 ? tr("Ausgezeichnet!", "Excellent!") : s === 2 ? tr("Gut gemacht!", "Well done!") : s === 1 ? tr("Das wird – dranbleiben.", "Getting there – keep going.") : tr("Noch nicht – morgen sind diese Fertigkeiten wieder dran.", "Not yet – these skills come back tomorrow.");
   const wrong = game.tasks.map((t, i) => ({ t, a: game.answers[i] })).filter(x => x.a && !x.a.ok);

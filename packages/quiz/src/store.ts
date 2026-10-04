@@ -3,7 +3,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { RECENT_MAX, freshRound, recordStat, starsFor, taskKey, type Answered, type BaseTask, type Game, type LevelKey, type LevelProgress, type TypeStats } from "./types.ts";
+import { RECENT_MAX, counted, freshRound, recordStat, starsFor, taskKey, type Answered, type BaseTask, type Game, type LevelKey, type LevelProgress, type TypeStats } from "./types.ts";
 import { STAGES, dueSkills, recordAnswer, stageOf, type Exam, type Skills } from "./skills.ts";
 
 export interface QuizState<T extends BaseTask> {
@@ -43,6 +43,34 @@ export interface QuizConfig<T extends BaseTask> {
   fixedOrder?: boolean;
 }
 
+/** höchstens so viele vorgemachte Beispiele je Runde */
+const MAX_EXAMPLES = 3;
+
+/**
+ * Lernen an Beispielen: für jede Fertigkeit der Runde, die noch nie geübt wurde, vor der ersten Aufgabe ein gelöstes
+ * Beispiel derselben Art (aus einer zweiten Runde, andere Frage); die erste echte Aufgabe zeigt den ersten Schritt (Tipp).
+ */
+export function withExamples<T extends BaseTask>(tasks: T[], skills: Skills, more: () => T[]): T[] {
+  const fresh = [...new Set(tasks.map(t => t.type).filter((x): x is string => !!x && !skills[x]))].slice(0, MAX_EXAMPLES);
+  if (!fresh.length) return tasks;
+  // Beispiele aus weiteren Runden: so lange ziehen, bis jede neue Fertigkeit eine andere Frage derselben Art hat
+  const pool: T[] = [];
+  for (let k = 0; k < 8 && !fresh.every(f => pool.filter(o => o.type === f).length > tasks.filter(t => t.type === f).length); k++) pool.push(...more());
+  // gleiche Frage = gleiche Daten (gleicher Text reicht nicht: „Wie viele Teilchen?“ mit anderem Bild ist eine andere Aufgabe)
+  const key = (t: T) => JSON.stringify({ ...t, stage: undefined, lead: undefined });
+  const out: T[] = [], used = new Set(tasks.map(key));
+  const done = new Set<string>();
+  for (const t of tasks) {
+    if (t.type && fresh.includes(t.type) && !done.has(t.type)) {
+      done.add(t.type);
+      const ex = pool.find(o => o.type === t.type && !used.has(key(o)));
+      if (ex) { used.add(key(ex)); out.push({ ...ex, lead: undefined, stage: "worked" }); }
+      out.push({ ...t, stage: "faded" });
+    } else out.push(t);
+  }
+  return out;
+}
+
 export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
   return create<QuizState<T>>()(persist((set, get) => {
     const update = (stufe: string, fn: (g: Game<T>) => Game<T>) => {
@@ -64,7 +92,9 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       start: (stufe, level, dueIds) => {
         const sk = get().skills[stufe] ?? {};
         const due = level === "due" ? (dueIds ?? dueSkills(sk, Object.keys(sk), Date.now(), get().exams[stufe])) : undefined;
-        const tasks = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? [], 10, !!cfg.fixedOrder && typeof level === "number");
+        const round = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? [], 10, !!cfg.fixedOrder && typeof level === "number");
+        // neue Fertigkeiten: erst ein gelöstes Beispiel derselben Art, dann die Aufgabe mit sichtbarem ersten Schritt, danach frei
+        const tasks = level === "due" || level === "weak" ? round : withExamples(round, sk, () => cfg.makeRound(stufe, level, get().typeStats[stufe], due));
         const game: Game<T> = {
           stufe, level, tasks, i: 0, score: 0, streak: 0, bestStreak: 0, correct: 0, hintUsed: false,
           answers: tasks.map(() => null), startedAt: Date.now(), finished: false,
@@ -76,7 +106,7 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       takeHint: stufe => update(stufe, g => ({ ...g, hintUsed: true })),
       dismissIntro: stufe => update(stufe, g => ({ ...g, intro: false })),
       answer: (stufe, a) => update(stufe, g => {
-        if (g.answers[g.i]) return g;
+        if (g.answers[g.i] || g.tasks[g.i]?.stage === "worked") return g;
         const type = g.tasks[g.i].type;
         const key = taskKey(g.tasks[g.i]), rec = get().recent;
         set({ recent: { ...rec, [stufe]: [...(rec[stufe] ?? []).filter(k => k !== key), key].slice(-RECENT_MAX) } });
@@ -106,7 +136,7 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       }),
       next: stufe => {
         const s = get(), g = s.games[stufe];
-        if (!g || !g.answers[g.i]) return;
+        if (!g || (!g.answers[g.i] && g.tasks[g.i]?.stage !== "worked")) return;
         if (g.i + 1 < g.tasks.length) {
           set({ games: { ...s.games, [stufe]: { ...g, i: g.i + 1, hintUsed: false } } });
           return;
@@ -117,8 +147,8 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
           progress: {
             ...s.progress,
             [id]: {
-              stars: Math.max(prev.stars, starsFor(g.correct, g.tasks.length)), best: Math.max(prev.best, g.score),
-              rounds: prev.rounds + 1, correct: prev.correct + g.correct, total: prev.total + g.tasks.length, last: g.score,
+              stars: Math.max(prev.stars, starsFor(g.correct, counted(g.tasks).length)), best: Math.max(prev.best, g.score),
+              rounds: prev.rounds + 1, correct: prev.correct + g.correct, total: prev.total + counted(g.tasks).length, last: g.score,
             },
           },
           games: { ...s.games, [stufe]: { ...g, finished: true, finishedAt: Date.now(), newBest: prev.rounds > 0 && g.score > prev.best } },

@@ -73,6 +73,14 @@
 
 /* Werkzeug „Zählen“ */
 .gm-counts { margin: 0; display: grid; }
+.gm-count-wrap { display: grid; gap: 6px; }
+.gm-count-mode { margin: 0; font-size: .72rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.gm-cc { display: flex; gap: 6px; align-items: center; }
+.gm-cc input { width: 4.2em; min-height: 44px; font: inherit; font-size: 1.1rem; font-weight: 800; text-align: center; border: 2px dashed var(--text); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.gm-cc input.bad { border-color: var(--bad, var(--signal)); }
+.gm-cc button { min-width: 44px; min-height: 44px; border: 1.5px solid var(--text); border-radius: var(--radius-sm); background: var(--accent); color: var(--on-accent); font-weight: 800; }
+.gm-cc button:disabled { opacity: .4; }
+.gm-cc-ok { color: var(--ok); }
 .gm-counts div { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .gm-counts dt { font-weight: 650; }
 .gm-counts dd { margin: 0; font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
