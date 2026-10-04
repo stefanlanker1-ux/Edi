@@ -600,7 +600,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Copolymere, Ketten- vs. Stufenwachstum, Recycling-Codes). Lektionen spielen die Abläufe der Atom-Ansicht ab („Nochmal“), ein Schritt lässt das Radikal-Atom
   antippen; Bilder vorher/nachher am Handy untereinander. Aufgaben alle als Auswahl mit Bild (`Vis` als reine Daten: Monomer, gesättigtes Gegenstück, Baustein
   mit/ohne C=C, Kettenausschnitt iso-/syndio-/ataktisch, Mechanismus-Standbild mit Pfeilen, Kügelchen, zwei Monomere, Kettenbild, Gefäß mit Kügelchen:
-  nur Monomer / wenige lange Ketten + Monomer / viele kurze Ketten, kaum Monomer – Stufenwachstum bei 90 % Umsatz, denn bei 50 % ist noch die Hälfte
+  nur Monomer / wenige lange Ketten (als Schleife gelegt) + viel Monomer / drei mittellange Ketten, kaum Monomer – Stufenwachstum bei 90 % Umsatz, denn bei 50 % ist noch die Hälfte
   der Moleküle Monomer (mittlere Länge = 1/(1 − Umsatz)) / ein Riesenmolekül; **Umsatz** in der Lektion K6 eingeführt), teils mit Bild-Antworten (Ketten- vs. Stufenwachstum als vier Gefäße);
   jede falsche Antwort steht für eine Fehlvorstellung und hat eine Rückmeldung (Test: alle). Begründungen beginnen nicht mit dem Begriff der Antwort,
   wenn er schon fett davorsteht (`boldLead`, Test: kein Wort doppelt). Keine Aufgabe zweimal in einem Kapitel, auch nicht mit anders gemischten Antworten
@@ -650,6 +650,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Bilder zum Umsatz** – Gefäß „Stufenwachstum bei 90 %“ mit drei mittellangen Ketten (im Mittel 10 Bausteine), lange Ketten des
+  Kettenwachstums als Schleifen; Lektion K6 zeigt beide Gefäße zur Auswahl; „90 %“ bricht nicht mehr um; Melaminharz-Oberfläche.
 - **Polymere: Sprache und Fachliches** – Radikal „reagiert sehr leicht“ statt „sucht einen Partner“, Katalysator „vergiftet“ statt „tot“, Propan als
   gesättigtes Gegenstück; Lektion K3 führt **kationisch** ein (wurde im Quiz abgefragt); Englisch: polyaddition ≠ addition polymerisation.
 - **Polymere: Fehler aus dem Schülerdurchgang** – Elektronen-Punkt am CO₂ beim Zerfall von DBPO (wird zur C=O-Bindung), zweites Radikal sichtbar;

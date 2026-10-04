@@ -726,17 +726,17 @@ function wachstum(): Task {
   const MONO = T("Nur Monomer, keine Ketten", "Only monomer, no chains"), GIANT = T("Ein Riesenmolekül", "One giant molecule");
   const pics: Record<string, Vis> = { [LONG]: { k: "pot", s: "long", seq }, [SHORT]: { k: "pot", s: "short", seq }, [MONO]: { k: "pot", s: "mono", seq }, [GIANT]: { k: "pot", s: "giant", seq } };
   return task(kette ? T("Radikalische Polymerisation, kurz nach dem Start: Was ist im Gefäß?", "Radical polymerisation, shortly after the start: what is in the vessel?")
-    : T("Polykondensation bei 90 % Umsatz: Was ist im Gefäß?", "Polycondensation at 90 % conversion: what is in the vessel?"), kette ? LONG : SHORT, [
+    : T("Polykondensation bei 90 % Umsatz: Was ist im Gefäß?", "Polycondensation at 90 % conversion: what is in the vessel?"), kette ? LONG : SHORT, [
     kette ? d(SHORT, "kette-spaet", T("So sieht Stufenwachstum aus. Hier wachsen wenige Ketten sehr schnell.", "That is what step growth looks like. Here a few chains grow very fast."))
-      : d(LONG, "kette-sofort", T("Beim Stufenwachstum reagieren alle Moleküle. Bei 90 % Umsatz ist kaum noch Monomer übrig.", "In step growth all molecules react. At 90 % conversion hardly any monomer is left.")),
+      : d(LONG, "kette-sofort", T("Beim Stufenwachstum reagieren alle Moleküle. Bei 90 % Umsatz ist kaum noch Monomer übrig.", "In step growth all molecules react. At 90 % conversion hardly any monomer is left.")),
     d(MONO, kette ? "kette-spaet" : "kette-sofort", T("Die Reaktion läuft schon – es sind bereits Ketten entstanden.", "The reaction is already running – chains have already formed.")),
     d(GIANT, kette ? "kette-spaet" : "kette-sofort", kette ? T("So weit ist es noch nicht – es gibt noch viele einzelne Moleküle.", "It is not that far yet – there are still many separate molecules.")
-      : T("So weit ist es noch nicht – lange Ketten entstehen erst bei fast 100 % Umsatz.", "Not that far yet – long chains only form at almost 100 % conversion.")),
+      : T("So weit ist es noch nicht – lange Ketten entstehen erst bei fast 100 % Umsatz.", "Not that far yet – long chains only form at almost 100 % conversion.")),
   ], {
     pics,
     hint: T("Kettenwachstum: nur aktive Enden wachsen. Stufenwachstum: jede Gruppe reagiert.", "Chain growth: only active ends grow. Step growth: every group reacts."),
     explain: kette ? T("**Kettenwachstum**: Wenige aktive Ketten wachsen schnell. Freies Monomer bleibt lange übrig.", "**Chain growth**: few active chains grow fast. Free monomer is left for a long time.")
-      : T("**Stufenwachstum**: Bei 90 % Umsatz sind die Ketten im Mittel erst 10 Bausteine lang. Lange Ketten erst ganz am Ende.", "**Step growth**: at 90 % conversion chains are only 10 units long on average. Long chains only at the very end."),
+      : T("**Stufenwachstum**: Bei 90 % Umsatz sind die Ketten im Mittel erst 10 Bausteine lang. Lange Ketten erst ganz am Ende.", "**Step growth**: at 90 % conversion chains are only 10 units long on average. Long chains only at the very end."),
   });
 }
 
@@ -747,7 +747,7 @@ function klasseAlltag(): Task {
     { item: T("ein Autoreifen", "a car tyre"), k: "elast" as const },
     { item: T("eine PET-Flasche", "a PET bottle"), k: "thermo" as const },
     { item: T("ein Gummiband", "a rubber band"), k: "elast" as const },
-    { item: T("eine Arbeitsplatte aus Melaminharz", "a worktop made of melamine resin"), k: "duro" as const },
+    { item: T("eine Arbeitsplatte mit Melaminharz-Oberfläche", "a worktop with a melamine resin surface"), k: "duro" as const },
     { item: T("eine Plastiktüte aus PE", "a plastic bag made of PE"), k: "thermo" as const },
   ]);
   return task(T(`Zu welcher Kunststoffart gehört ${c.item}?`, `Which type of plastic is ${c.item}?`), K[c.k],

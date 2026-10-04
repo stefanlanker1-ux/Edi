@@ -53,9 +53,9 @@ test("Stufenwachstum bei hohem Umsatz: kaum Monomer, im Mittel 10 Bausteine (bei
   const ts = Array.from({ length: 60 }, () => GENERATORS.wachstum()).filter(t => /Polykondensation/.test(t.prompt));
   assert.ok(ts.length > 0);
   for (const t of ts) {
-    assert.match(t.prompt, /90 % Umsatz/);
+    assert.match(t.prompt, /90\s% Umsatz/);
     assert.match(t.explain, /10 Bausteine/);
-    assert.ok(!/50 %|halbe/.test(t.prompt + t.explain + Object.values(t.why ?? {}).join()), t.prompt);
+    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + Object.values(t.why ?? {}).join()), t.prompt);
   }
 }, 60_000);
 

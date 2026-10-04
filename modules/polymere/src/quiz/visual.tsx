@@ -113,9 +113,6 @@ function line(x0: number, y0: number, x1: number, y1: number, n: number, amp: nu
     return [x0 + (x1 - x0) * t - uy * o, y0 + (y1 - y0) * t + ux * o] as Pt;
   });
 }
-/** kurze Kette mit Mitte (x, y) und Richtung a */
-const piece = (x: number, y: number, n: number, a: number, step = 9): Pt[] =>
-  Array.from({ length: n }, (_, i) => [x + (i - (n - 1) / 2) * step * Math.cos(a), y + (i - (n - 1) / 2) * step * Math.sin(a)] as Pt);
 /** einzelne Monomere auf freie, zufällig gewählte Plätze eines leicht verrückten Rasters (fester Startwert: immer dasselbe Bild) */
 function fill(taken: Pt[], n: number): Pt[][] {
   let s = 7;
@@ -137,13 +134,14 @@ function fill(taken: Pt[], n: number): Pt[][] {
 function potPieces(s: PotKind): Pt[][] {
   if (s === "mono") return fill([], 24);
   if (s === "long") {
-    const ch = [line(18, 20, 99, 31, 10, 2.4), line(100, 60, 21, 50, 10, 2.4, 2)];
-    return [...ch, ...fill(ch.flat(), 13)];
+    // Kettenwachstum: zwei lange Ketten (in Schleifen gelegt) und viel freies Monomer
+    const loop = (a: Pt[], b: Pt[]) => [...a, ...b];
+    const ch = [loop(line(18, 17, 99, 19, 10, 1.6), line(99, 30, 54, 31, 6, 1.6, 2)), loop(line(100, 49, 19, 51, 10, 1.6, 1), line(19, 62, 64, 63, 6, 1.6, 3))];
+    return [...ch, ...fill(ch.flat(), 12)];
   }
   if (s === "short") {
-    // Stufenwachstum bei hohem Umsatz (≈ 90 %): mehrere kurze Ketten, fast kein freies Monomer mehr
-    const spec: [number, number, number, number][] = [[38, 19, 4, 0.15], [84, 21, 4, -0.2], [36, 44, 5, -0.1], [86, 46, 3, 0.35], [40, 69, 4, 0.2], [86, 69, 4, -0.15]];
-    const ch = spec.map(([x, y, n, a]) => piece(x, y, n, a));
+    // Stufenwachstum bei 90 % Umsatz: im Mittel 10 Bausteine – drei mittellange Ketten, fast kein freies Monomer mehr
+    const ch = [line(20, 19, 80, 23, 8, 2.2), line(98, 42, 30, 46, 8, 2.2, 1.5), line(22, 67, 88, 64, 9, 2.2, 3)];
     return [...ch, ...fill(ch.flat(), 1)];
   }
   // ein Riesenmolekül: Schlange über vier Reihen

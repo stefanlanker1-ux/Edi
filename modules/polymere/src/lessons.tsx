@@ -616,15 +616,18 @@ const K6: GuideStep[] = [
       T("**Kettenwachstum** (Polymerisation): Wenige Ketten werden schnell lang, viel Monomer bleibt übrig.", "**Chain growth** (polymerisation): a few chains quickly get long, lots of monomer is left."),
       T("**Stufenwachstum** (Polykondensation, Polyaddition): Alle Moleküle reagieren.", "**Step growth** (polycondensation, polyaddition): all molecules react."),
       T("Dort gibt es lange Ketten erst ganz am Ende.", "There, long chains only appear at the very end."),
-      T("**Umsatz** = Anteil der Gruppen, die schon reagiert haben: 90 % heißt 9 von 10.", "**Conversion** = share of the groups that have already reacted: 90 % means 9 out of 10."),
+      T("**Umsatz** = Anteil der Gruppen, die schon reagiert haben: 90 % heißt 9 von 10.", "**Conversion** = share of the groups that have already reacted: 90 % means 9 out of 10."),
     ],
     ok: T("Im Experimentieren zeigt der Reaktor beides.", "In Experiment the reactor shows both."),
   },
   {
     mode: "faded",
-    ask: T("Ergänze: Polykondensation bei 90 % Umsatz – was ist im Gefäß?", "Complete: polycondensation at 90 % conversion – what is in the vessel?"),
+    ask: T("Ergänze: Polykondensation bei 90 % Umsatz – was ist im Gefäß?", "Complete: polycondensation at 90 % conversion – what is in the vessel?"),
+    // beide Möglichkeiten als Bild (gleiche Monomere), Beschriftung = Antworttext – verrät nicht, welche stimmt
+    visual: () => <Two a={{ k: "pot", s: "short", seq: ["terephthalsaeure", "ethandiol"] }} b={{ k: "pot", s: "long", seq: ["terephthalsaeure", "ethandiol"] }}
+      la={T("viele kurze Ketten", "many short chains")} lb={T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")} vs />,
     answer: T("viele kurze Ketten", "many short chains"), options: [T("viele kurze Ketten", "many short chains"), T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")],
-    lines: [T("Stufenwachstum: alle Gruppen reagieren miteinander", "Step growth: all groups react with each other"), T("Bei 90 % Umsatz: {?}", "At 90 % conversion: {?}")],
+    lines: [T("Stufenwachstum: alle Gruppen reagieren miteinander", "Step growth: all groups react with each other"), T("Bei 90 % Umsatz: {?}", "At 90 % conversion: {?}")],
     why: { [T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")]: T("So sieht Kettenwachstum aus.", "That is what chain growth looks like.") },
     ok: T("Lange Ketten erst ganz am Ende.", "Long chains only at the very end."),
   },
