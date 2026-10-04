@@ -87,6 +87,7 @@ const PS: Recipe = { art: "poly", a: "styrol", method: "dbpo" };
 const ZN_PP: Recipe = { art: "poly", a: "propen", method: "zn" };
 const ZN_MMA: Recipe = { art: "poly", a: "mma", method: "zn" };
 const BULI: Recipe = { art: "poly", a: "styrol", method: "buli" };
+const IB_BF3: Recipe = { art: "poly", a: "isobuten", method: "bf3" };
 const PET: Recipe = { art: "kond", a: "terephthalsaeure", b: "ethandiol" };
 const PA: Recipe = { art: "kond", a: "adipinsaeure", b: "hexandiamin" };
 const PUR: Recipe = { art: "add", a: "hdi", b: "butandiol" };
@@ -112,7 +113,7 @@ const K1: GuideStep[] = [
     answer: T("Polypropen", "Polypropene"), options: [T("Polypropen", "Polypropene"), T("Polyethen", "Polyethene"), T("Propan", "Propane")],
     visual: () => <Pic v={{ k: "mono", id: "propen" }} />,
     lines: [T("Monomer: Propen", "Monomer: propene"), T("Polymer: Poly + Name des Monomers = {?}", "Polymer: poly + name of the monomer = {?}")],
-    why: { [T("Polyethen", "Polyethene")]: T("Polyethen entsteht aus Ethen – ohne CH₃-Gruppe.", "Polyethene forms from ethene – without a CH₃ group."), [T("Propan", "Propane")]: T("Propan hat keine Zweifachbindung – es ist kein Polymer.", "Propane has no double bond – it is not a polymer.") },
+    why: { [T("Polyethen", "Polyethene")]: T("Polyethen entsteht aus Ethen – ohne CH₃-Gruppe.", "Polyethene forms from ethene – without a CH₃ group."), [T("Propan", "Propane")]: T("Propan ist das gesättigte Gegenstück zu Propen. Ohne C=C entsteht keine Kette.", "Propane is the saturated partner of propene. Without C=C no chain forms.") },
     ok: T("Propen → Polypropen (PP).", "Propene → polypropene (PP)."),
   },
   {
@@ -304,7 +305,7 @@ const K3: GuideStep[] = [
     lines: [
       T("MMA hat O‑Atome mit freien Elektronenpaaren.", "MMA has O atoms with lone pairs."),
       T("Ein O‑Atom bindet an das Titan und besetzt die freie Stelle.", "An O atom binds to the titanium and blocks the free site."),
-      T("Kein Monomer kommt mehr heran: Der Katalysator ist tot.", "No monomer can reach it any more: the catalyst is dead."),
+      T("Kein Monomer kommt mehr heran: Der Katalysator ist **vergiftet**.", "No monomer can reach it any more: the catalyst is **poisoned**."),
     ],
     ok: T("PMMA macht man darum radikalisch, nicht mit Ziegler-Natta.", "That is why PMMA is made with radicals, not Ziegler–Natta."),
   },
@@ -346,6 +347,18 @@ const K3: GuideStep[] = [
     lines: [T("Alle Benzolringe zeigen nach oben", "All benzene rings point upwards"), T("Also: {?}", "So: {?}")],
     why: { [T("ataktisch", "atactic")]: T("Ataktisch wären die Ringe zufällig oben und unten.", "Atactic would have the rings randomly above and below.") },
     ok: T("Gleiche Seite: isotaktisch.", "Same side: isotactic."),
+  },
+  {
+    mode: "worked",
+    say: T("**Kationisch** mit BF₃ und Wasser: Ein H⁺ startet die Kette.", "**Cationic** with BF₃ and water: an H⁺ starts the chain."),
+    ask: T("Warum klappt das mit Isobuten (CH₃)₂C=CH₂?", "Why does this work with isobutene (CH₃)₂C=CH₂?"),
+    visual: () => <MechPlay r={IB_BF3} acts={["acid", "add:isobuten"]} />,
+    lines: [
+      T("BF₃ und Wasser bilden eine Säure: H⁺ wird frei.", "BF₃ and water form an acid: H⁺ is set free."),
+      T("H⁺ bindet an die C=C: Am Kettenende sitzt eine **positive Ladung**.", "H⁺ binds to the C=C: a **positive charge** sits at the chain end."),
+      T("Die zwei CH₃-Gruppen schieben Elektronen zum positiven C und machen es beständiger.", "The two CH₃ groups push electrons towards the positive C and make it more stable."),
+    ],
+    ok: T("Kationisch: Monomere mit Elektronen schiebenden Gruppen (Isobuten, Styrol).", "Cationic: monomers with electron-pushing groups (isobutene, styrene)."),
   },
   {
     mode: "worked",
@@ -457,7 +470,7 @@ const K4: GuideStep[] = [
 const K5: GuideStep[] = [
   {
     mode: "worked",
-    say: T("Bei der **Polyaddition** wird **nichts** abgespalten.", "In **polyaddition** **nothing** is split off."),
+    say: T("Bei der **Polyaddition** wird **nichts** abgespalten.", "In **polyaddition** **nothing** is split off. (Not the same as the addition polymerisation of alkenes in chapter 2.)"),
     ask: T("Wie entsteht ein Polyurethan?", "How does a polyurethane form?"),
     visual: () => <MechPlay r={PUR} acts={["join"]} />,
     lines: [

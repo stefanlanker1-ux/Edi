@@ -225,7 +225,7 @@ function radikal(): Task {
   ], {
     vis: lastFrame(PS, ["heat"]),
     hint: T("Der Punkt am Atom zeigt ein einzelnes Elektron.", "The dot at the atom shows a single electron."),
-    explain: T("Radikal = Teilchen mit **ungepaartem Elektron** (Punkt). Es sucht einen Partner und ist sehr reaktiv.", "Radical = particle with an **unpaired electron** (dot). It seeks a partner and is very reactive."),
+    explain: T("Radikal = Teilchen mit **ungepaartem Elektron** (Punkt). Es reagiert sehr leicht.", "Radical = particle with an **unpaired electron** (dot). It reacts very easily."),
   });
 }
 

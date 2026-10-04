@@ -595,7 +595,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   samt Kette. Akku: höchstens 30 Bilder/s, Stillstand bei Ruhe (6 s ohne Reaktion bzw. 3 s, wenn nichts mehr möglich ist), Pause-Knopf, unsichtbare Seite pausiert;
   Bewegung reduziert: Ablauf ohne Zwischenbilder vorausgerechnet. Der Reaktor bleibt beim Wechsel der Ansicht erhalten.
 - **Lernen** (`quiz/tasks.ts`, `lessons.tsx`, `quiz/explain.tsx`, `quiz/visual.tsx`, Katalog `quiz/misconceptions.ts`): sechs Kapitel – Monomere und Polymere;
-  radikalische Polymerisation; Katalysatoren und Verfahren; Polykondensation; Polyaddition; Struktur und Eigenschaften (Thermoplast/Elastomer/Duroplast,
+  radikalische Polymerisation; Katalysatoren und Verfahren (Ziegler-Natta, kationisch mit BF₃ und Wasser am Beispiel Isobuten – „positive Ladung“
+  eingeführt –, anionisch); Polykondensation; Polyaddition; Struktur und Eigenschaften (Thermoplast/Elastomer/Duroplast,
   Copolymere, Ketten- vs. Stufenwachstum, Recycling-Codes). Lektionen spielen die Abläufe der Atom-Ansicht ab („Nochmal“), ein Schritt lässt das Radikal-Atom
   antippen; Bilder vorher/nachher am Handy untereinander. Aufgaben alle als Auswahl mit Bild (`Vis` als reine Daten: Monomer, gesättigtes Gegenstück, Baustein
   mit/ohne C=C, Kettenausschnitt iso-/syndio-/ataktisch, Mechanismus-Standbild mit Pfeilen, Kügelchen, zwei Monomere, Kettenbild, Gefäß mit Kügelchen:
@@ -649,6 +650,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Sprache und Fachliches** – Radikal „reagiert sehr leicht“ statt „sucht einen Partner“, Katalysator „vergiftet“ statt „tot“, Propan als
+  gesättigtes Gegenstück; Lektion K3 führt **kationisch** ein (wurde im Quiz abgefragt); Englisch: polyaddition ≠ addition polymerisation.
 - **Polymere: Fehler aus dem Schülerdurchgang** – Elektronen-Punkt am CO₂ beim Zerfall von DBPO (wird zur C=O-Bindung), zweites Radikal sichtbar;
   abgeschnittene Moleküle: kleine Gruppen immer ganz im Bild, sonst Wellenlinie; Rekombination ohne Überlappung; größere Bild-Antworten; doppelte Wörter
   und Grammatik in Rückmeldungen; Rückmeldung zu jeder falschen Antwort; keine doppelte Aufgabe (auch nicht gelöstes Beispiel = Aufgabe); Recycling-Merksatz
