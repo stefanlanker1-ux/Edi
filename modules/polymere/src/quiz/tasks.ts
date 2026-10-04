@@ -286,7 +286,7 @@ function starterRest(): Task {
   ], {
     vis: lastFrame(PS, ["heat", "add:styrol", "add:styrol"]),
     hint: T("Vergleiche den Anfang der Kette mit dem Starter-Radikal.", "Compare the start of the chain with the initiator radical."),
-    explain: T("Der Starter wird **verbraucht**: Das Radikal C₆H₅• bleibt als Endgruppe am Kettenanfang.", "The initiator is **used up**: the radical C₆H₅• stays as end group at the start of the chain."),
+    explain: T("Der Starter wird **verbraucht**: Das Bruchstück C₆H₅– bleibt als Endgruppe am Kettenanfang.", "The initiator is **used up**: the fragment C₆H₅– stays as the end group at the chain start."),
   });
 }
 
@@ -413,7 +413,7 @@ function verfahrenWahl(): Task {
   const bad = shuffle(METHODS.map(x => x.id).filter(x => compat(m, x).fit !== "ok")).slice(0, 3);
   return task(T(`Mit welchem Verfahren bildet **${vinyl(m).name}** lange Ketten?`, `Which method makes **${nm(m)}** form long chains?`), methName(right),
     bad.map(b => d(methName(b), compat(m, b).fail === "poison" ? "zn-polar" : "verfahren-passt-nicht", compat(m, b).why)), {
-      hint: T("Polar (O, N, Cl): radikalisch. Unpolar ohne Ladung: Ziegler-Natta. Elektronen schiebend: kationisch.", "Polar (O, N, Cl): radical. Non-polar: Ziegler–Natta. Electron-pushing groups: cationic."),
+      hint: T("O, N, Cl: Ziegler-Natta wird vergiftet. Zwei CH₃ an einem C: zu sperrig für Titan, aber gut kationisch.", "O, N, Cl: Ziegler–Natta is poisoned. Two CH₃ on one C: too bulky for titanium, but fine cationically."),
       explain: compat(m, right).why,
     });
 }
@@ -715,16 +715,17 @@ function wachstum(): Task {
   const MONO = T("Nur Monomer, keine Ketten", "Only monomer, no chains"), GIANT = T("Ein Riesenmolekül", "One giant molecule");
   const pics: Record<string, Vis> = { [LONG]: { k: "pot", s: "long", seq }, [SHORT]: { k: "pot", s: "short", seq }, [MONO]: { k: "pot", s: "mono", seq }, [GIANT]: { k: "pot", s: "giant", seq } };
   return task(kette ? T("Radikalische Polymerisation, kurz nach dem Start: Was ist im Gefäß?", "Radical polymerisation, shortly after the start: what is in the vessel?")
-    : T("Polykondensation bei halbem Umsatz: Was ist im Gefäß?", "Polycondensation at half conversion: what is in the vessel?"), kette ? LONG : SHORT, [
+    : T("Polykondensation bei 90 % Umsatz: Was ist im Gefäß?", "Polycondensation at 90 % conversion: what is in the vessel?"), kette ? LONG : SHORT, [
     kette ? d(SHORT, "kette-spaet", T("So sieht Stufenwachstum aus. Hier wachsen wenige Ketten sehr schnell.", "That is what step growth looks like. Here a few chains grow very fast."))
-      : d(LONG, "kette-sofort", T("Beim Stufenwachstum reagieren alle Moleküle – erst entstehen Zweier- und Dreierketten.", "In step growth all molecules react – first chains of two and three form.")),
+      : d(LONG, "kette-sofort", T("Beim Stufenwachstum reagieren alle Moleküle. Bei 90 % Umsatz ist kaum noch Monomer übrig.", "In step growth all molecules react. At 90 % conversion hardly any monomer is left.")),
     d(MONO, kette ? "kette-spaet" : "kette-sofort", T("Die Reaktion läuft schon – es sind bereits Ketten entstanden.", "The reaction is already running – chains have already formed.")),
-    d(GIANT, kette ? "kette-spaet" : "kette-sofort", T("So weit ist es noch nicht – es gibt noch viele einzelne Moleküle.", "It is not that far yet – there are still many separate molecules.")),
+    d(GIANT, kette ? "kette-spaet" : "kette-sofort", kette ? T("So weit ist es noch nicht – es gibt noch viele einzelne Moleküle.", "It is not that far yet – there are still many separate molecules.")
+      : T("So weit ist es noch nicht – lange Ketten entstehen erst bei fast 100 % Umsatz.", "Not that far yet – long chains only form at almost 100 % conversion.")),
   ], {
     pics,
     hint: T("Kettenwachstum: nur aktive Enden wachsen. Stufenwachstum: jede Gruppe reagiert.", "Chain growth: only active ends grow. Step growth: every group reacts."),
     explain: kette ? T("**Kettenwachstum**: Wenige aktive Ketten wachsen schnell. Freies Monomer bleibt lange übrig.", "**Chain growth**: few active chains grow fast. Free monomer is left for a long time.")
-      : T("**Stufenwachstum**: Bei 50 % Umsatz gibt es fast nur Zweier- und Dreierketten. Lange Ketten erst ganz am Ende.", "**Step growth**: at 50 % conversion there are almost only chains of two or three. Long chains only at the very end."),
+      : T("**Stufenwachstum**: Bei 90 % Umsatz sind die Ketten im Mittel erst 10 Bausteine lang. Lange Ketten erst ganz am Ende.", "**Step growth**: at 90 % conversion chains are only 10 units long on average. Long chains only at the very end."),
   });
 }
 
@@ -735,7 +736,7 @@ function klasseAlltag(): Task {
     { item: T("ein Autoreifen", "a car tyre"), k: "elast" as const },
     { item: T("eine PET-Flasche", "a PET bottle"), k: "thermo" as const },
     { item: T("ein Gummiband", "a rubber band"), k: "elast" as const },
-    { item: T("eine Steckdose", "a socket"), k: "duro" as const },
+    { item: T("eine Arbeitsplatte aus Melaminharz", "a worktop made of melamine resin"), k: "duro" as const },
     { item: T("eine Plastiktüte aus PE", "a plastic bag made of PE"), k: "thermo" as const },
   ]);
   return task(T(`Zu welcher Kunststoffart gehört ${c.item}?`, `Which type of plastic is ${c.item}?`), K[c.k],

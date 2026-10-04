@@ -45,3 +45,13 @@ test("Mechanismus-Bilder lassen sich nachstellen", async () => {
     assert.ok(m.actions().some(a => a.id === t.vis!.k && false) || m.actions().some(a => a.id === (t.vis as { acts: string[] }).acts.at(-1)), `${t.type}: Aktion nicht möglich`);
   }
 });
+
+test("Stufenwachstum bei hohem Umsatz: kaum Monomer, im Mittel 10 Bausteine (bei 50 % wäre noch die Hälfte Monomer)", () => {
+  const ts = Array.from({ length: 60 }, () => GENERATORS.wachstum()).filter(t => /Polykondensation/.test(t.prompt));
+  assert.ok(ts.length > 0);
+  for (const t of ts) {
+    assert.match(t.prompt, /90 % Umsatz/);
+    assert.match(t.explain, /10 Bausteine/);
+    assert.ok(!/50 %|halbe/.test(t.prompt + t.explain + Object.values(t.why ?? {}).join()), t.prompt);
+  }
+});

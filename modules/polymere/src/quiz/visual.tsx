@@ -139,10 +139,10 @@ function potPieces(s: PotKind): Pt[][] {
     return [...ch, ...fill(ch.flat(), 13)];
   }
   if (s === "short") {
-    const spec: [number, number, number, number][] = [[26, 19, 3, 0.3], [62, 18, 2, -0.5], [93, 22, 3, 1.2], [24, 44, 2, 1.4], [58, 43, 3, -0.2], [92, 48, 2, 0.6],
-      [28, 68, 3, -0.4], [62, 67, 2, 0.2], [94, 69, 2, -1.1]];
+    // Stufenwachstum bei hohem Umsatz (≈ 90 %): mehrere kurze Ketten, fast kein freies Monomer mehr
+    const spec: [number, number, number, number][] = [[38, 19, 4, 0.15], [84, 21, 4, -0.2], [36, 44, 5, -0.1], [86, 46, 3, 0.35], [40, 69, 4, 0.2], [86, 69, 4, -0.15]];
     const ch = spec.map(([x, y, n, a]) => piece(x, y, n, a));
-    return [...ch, ...fill(ch.flat(), 2)];
+    return [...ch, ...fill(ch.flat(), 1)];
   }
   // ein Riesenmolekül: Schlange über vier Reihen
   const pts: Pt[] = [];

@@ -594,7 +594,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Copolymere, Ketten- vs. Stufenwachstum, Recycling-Codes). Lektionen spielen die Abläufe der Atom-Ansicht ab („Nochmal“), ein Schritt lässt das Radikal-Atom
   antippen; Bilder vorher/nachher am Handy untereinander. Aufgaben alle als Auswahl mit Bild (`Vis` als reine Daten: Monomer, gesättigtes Gegenstück, Baustein
   mit/ohne C=C, Kettenausschnitt iso-/syndio-/ataktisch, Mechanismus-Standbild mit Pfeilen, Kügelchen, zwei Monomere, Kettenbild, Gefäß mit Kügelchen:
-  nur Monomer / wenige lange Ketten + Monomer / viele kurze Ketten / ein Riesenmolekül), teils mit Bild-Antworten (Ketten- vs. Stufenwachstum als vier Gefäße);
+  nur Monomer / wenige lange Ketten + Monomer / viele kurze Ketten, kaum Monomer – Stufenwachstum bei 90 % Umsatz, denn bei 50 % ist noch die Hälfte
+  der Moleküle Monomer (mittlere Länge = 1/(1 − Umsatz)) / ein Riesenmolekül; **Umsatz** in der Lektion K6 eingeführt), teils mit Bild-Antworten (Ketten- vs. Stufenwachstum als vier Gefäße);
   jede falsche Antwort steht für eine Fehlvorstellung. Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
@@ -638,6 +639,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Fachkorrekturen Lernen** – Stufenwachstum-Aufgabe und Lektion K6 bei 90 % statt 50 % Umsatz (bei 50 % ist noch die Hälfte der Moleküle
+  Monomer), Bild mit wenig freiem Monomer, „Umsatz“ eingeführt; Starter-Bruchstück am Kettenanfang ist kein Radikal mehr; Tipp zur Verfahrenswahl passt zu
+  Isobuten (zu sperrig für Titan); „einschmelzen und neu formen“ statt „gut zu recyceln“; Topfgriffe „oft“ aus Duroplast; Melaminharz-Arbeitsplatte statt Steckdose.
 - **Polymere: Vorhersage in der Atom-Ansicht** – vor jedem neuen Schritt zuerst vermuten, was passiert (Elektronen beim Bindungsbruch, eingebaut oder
   nicht, wo das Radikal bzw. die Ladung danach sitzt, Nebenprodukt), mit Rückmeldung zu jeder Antwort; abschaltbar. Grund: selbst vorhersagen statt
   nur „weiter“ tippen (Vorhersagen vor dem Beobachten).
