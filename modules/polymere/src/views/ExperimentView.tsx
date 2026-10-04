@@ -1,12 +1,14 @@
 // Experimentieren: am Anfang Polymerisation, Polykondensation oder Polyaddition wählen, dann den Ansatz bauen
 // (Monomer[e], bei der Polymerisation Starter bzw. Katalysator) und die Entstehung Schritt für Schritt auslösen –
-// in Atomen (Mechanismus mit Elektronen) oder als Kügelchen (Reaktor mit vielen Ketten).
+// in Atomen (Mechanismus mit Elektronen) oder als Kügelchen (Reaktor mit vielen Ketten). In der Atom-Ansicht wird vor einem
+// Schritt zuerst vorhergesagt, was passiert (abschaltbar), dann läuft der Ablauf ab.
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Button, Icon, IconButton, Segmented, Sheet, Switch, Tag, buzz, tr, useMediaQuery, useReducedMotion, Workbench } from "@lern/ui";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Button, Icon, IconButton, Segmented, Sheet, Switch, Tag, buzz, ding, tr, useMediaQuery, useReducedMotion, Workbench } from "@lern/ui";
 import { ART_NAME, KIND_NAME, METHODS, STEPS, VINYLS, isVinyl, method, monoHue, monoLetter, monoName, monoStruct, stepMono, vinyl, type Art, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
 import { polymerise, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
 import { makeMech, nextAuto, replay, type Mech, type Recipe } from "../chem/mech/index.ts";
+import { predict, type PredOpt, type Prediction } from "../chem/mech/predict.ts";
 import type { Clip } from "../chem/scene.ts";
 import type { Action, Bead } from "../chem/mech/types.ts";
 import { MechStage } from "../components/MechStage.tsx";
@@ -177,9 +179,28 @@ function MonomerSheet({ id, onClose }: { id: string | null; onClose: () => void 
   );
 }
 
+/** Antworten der Vorhersage: drei (bzw. zwei) nebeneinander, solange kein Wort über den Rand ragt – sonst weniger Spalten (nie mitten im Wort trennen) */
+function PredictOptions({ options, onPick }: { options: PredOpt[]; onPick: (i: number) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const max = options.length === 3 ? 3 : Math.min(2, options.length);
+  const [cols, setCols] = useState(max);
+  useLayoutEffect(() => setCols(max), [options, max]);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || cols <= 1) return;
+    const over = [...el.querySelectorAll<HTMLElement>(".pm-pq-opt")].some(b => b.scrollWidth > b.clientWidth + 1);
+    if (over) setCols(c => c - 1);
+  });
+  return (
+    <div ref={ref} className={`pm-pq-opts c${cols}`}>
+      {options.map((o, i) => <button key={i} type="button" className="pm-pq-opt" onClick={() => onPick(i)}>{o.text}</button>)}
+    </div>
+  );
+}
+
 // ── Ansicht ──
 export function ExperimentView() {
-  const { art, setArt, recipes, setRecipe, view, setView, halos, lp, setHalos, setLp } = useApp();
+  const { art, setArt, recipes, setRecipe, view, setView, halos, lp, setHalos, setLp, predict: predictOn, setPredict } = useApp();
   const [tool, setTool] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [why, setWhy] = useState(false);
@@ -205,9 +226,11 @@ export function ExperimentView() {
   const [rwake, setRwake] = useState(0);
   const [rpaused, setRpaused] = useState(false);
   const [particle, setParticle] = useState<string | null>(null);
+  /** offene Vorhersage-Frage zur gewählten Aktion (picked = gewählte Antwort) */
+  const [pq, setPq] = useState<{ id: string; p: Prediction; picked?: number } | null>(null);
 
   // neuer Ansatz → von vorn
-  useEffect(() => { mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); setRpaused(false); }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); setRpaused(false); setPq(null); }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rrun = (id: string) => {
     buzz();
@@ -232,6 +255,19 @@ export function ExperimentView() {
     setActs(a => [...a, id]);
     setClip(c); setClipKey(k => k + 1);
   };
+  /** Aktion gewählt: zuerst vorhersagen (falls eingeschaltet und es eine Frage gibt), sonst gleich abspielen */
+  const ask = (id: string) => {
+    setAuto(false);
+    const p = predictOn ? predict(recipe, acts, id) : null;
+    if (!p) { run(id); return; }
+    buzz(); setStopOpen(false); setPq({ id, p });
+  };
+  const pick = (i: number) => {
+    if (!pq || pq.picked !== undefined) return;
+    ding(pq.p.options[i].ok);
+    setPq({ ...pq, picked: i });
+    run(pq.id);
+  };
   const ended = () => {
     setClip(null);
     force(v => v + 1);
@@ -250,9 +286,9 @@ export function ExperimentView() {
     setStopOpen(false);
     const a = acts.slice(0, -1);
     mech.current = replay(recipe, a);
-    setActs(a); setClip(null); setAuto(false); force(v => v + 1);
+    setActs(a); setClip(null); setAuto(false); setPq(null); force(v => v + 1);
   };
-  const reset = () => { buzz(); setStopOpen(false); mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); };
+  const reset = () => { buzz(); setStopOpen(false); mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); setPq(null); force(v => v + 1); };
   const again = () => { if (lastClip.current) { setClip(lastClip.current); setClipKey(k => k + 1); } };
 
   const snap = useMemo(() => mech.current.snap(), [ver]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -351,7 +387,7 @@ export function ExperimentView() {
       </Button>
     );
   };
-  const actBtn = (a: Action) => button(a, compact, busy, id => { setAuto(false); run(id); });
+  const actBtn = (a: Action) => button(a, compact, busy, ask);
   const actRow = view === "atome" && (stopOpen
     ? (
       <div className="pm-acts-stop">
@@ -377,6 +413,31 @@ export function ExperimentView() {
         <IconButton icon={auto ? "close" : "play"} label={auto ? tr("Anhalten", "Stop") : tr("Automatisch abspielen", "Play automatically")} onClick={() => { buzz(); setAuto(a => !a); }} disabled={!actions.length && !auto} className={auto ? "pm-auto on" : "pm-auto"} />
       </div>
     ));
+
+  // Vorhersage statt der Knopfzeile: Frage mit Antworten, danach Rückmeldung (der Ablauf spielt dabei schon)
+  const pqPanel = view === "atome" && pq && (() => {
+    const { p, picked } = pq;
+    if (picked === undefined) return (
+      <div className="pm-pq" role="group" aria-label={tr("Vorhersage", "Prediction")}>
+        <div className="pm-pq-head">
+          <p className="pm-pq-ask"><span className="pm-pq-tag">{tr("Vorhersage", "Predict")}</span>{p.ask}</p>
+          <IconButton icon="close" label={tr("Abbrechen", "Cancel")} onClick={() => { buzz(); setPq(null); }} />
+        </div>
+        <PredictOptions options={p.options} onPick={pick} />
+      </div>
+    );
+    const o = p.options[picked], right = p.options.find(x => x.ok)!;
+    return (
+      <div className={`pm-pq done ${o.ok ? "ok" : "no"}`} role="status">
+        <div className="pm-pq-fb">
+          <p><b>{o.ok ? `✓ ${o.text}` : tr("Noch nicht.", "Not yet.")}</b></p>
+          {!o.ok && <p className="pm-pq-right">✓ {right.text}</p>}
+          <p className="pm-pq-why">{o.ok ? p.ok : o.why}</p>
+        </div>
+        <Button variant="primary" className="pm-pq-next" onClick={() => { buzz(); setPq(null); }}>{tr("Weiter", "Next")}</Button>
+      </div>
+    );
+  })();
 
   const ractions = view === "kugeln" ? reactor.current?.actions() ?? [] : [];
   const rRow = view === "kugeln" && (
@@ -421,6 +482,7 @@ export function ExperimentView() {
       <div className="pm-switches">
         <Switch checked={halos} onChange={setHalos}>{tr("Bausteine farbig", "Colour the units")}</Switch>
         <Switch checked={lp} onChange={setLp}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>
+        <Switch checked={predictOn} onChange={v => { setPredict(v); if (!v) setPq(null); }}>{tr("Vorher vermuten", "Predict first")}</Switch>
         <Button variant="soft" icon="reset" onClick={again} disabled={busy || !lastClip.current}>{tr("Letzten Schritt nochmal", "Replay last step")}</Button>
       </div>
     ) },
@@ -433,7 +495,7 @@ export function ExperimentView() {
     <>
       <Workbench className="pm-wb" active={tool} onActive={setTool} head={head} stage={stage}
         status={tags.length ? <div className="pm-status">{tags}</div> : undefined}
-        controls={<div className="pm-controls">{recipeRow}{actRow}{rRow}</div>}
+        controls={<div className="pm-controls">{pqPanel || <>{recipeRow}{actRow}</>}{rRow}</div>}
         tools={tools} />
       <MonomerSheet id={info} onClose={() => setInfo(null)} />
       <Sheet open={why && !!whyText} title={whyTitle} onClose={() => setWhy(false)}>

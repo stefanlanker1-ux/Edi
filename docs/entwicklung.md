@@ -528,7 +528,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Polymere (`modules/polymere`)
 - Keine Stufen. Leiste **Lernen | Experimentieren** wie Gemische: Lernen = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
 - **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
-  danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
+  danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“, „Freie Elektronenpaare“ und „Vorher vermuten“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
   - Polymerisation: Monomer (`VINYLS` in `chem/data.ts`: Ethen, Propen, Styrol, Vinylchlorid, Methylmethacrylat, Acrylnitril, Tetrafluorethen, Isobuten,
     Butadien (Einbau 1,4), Vinylacetat), optional ein zweites (gleichzeitig = statistisches Copolymer; nacheinander = Blöcke nur bei lebenden Ketten, sonst zwei
@@ -565,6 +565,15 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Bedienung: eine Zeile Aktionen (Start, Monomer als Kügelchen „+ S“, „Abbruch …“ öffnet die Auswahl der Abbruchart), Zurück (spielt die Aktionen ohne Animation
   nach, `replay`), Automatisch (`nextAuto`), am Ende „Produkt“ und „Von vorn“. Statuszeile nur kurze Kennzeichen (Schritt, n, „+ 2 H₂O“, Temperatur, lebend);
   die Begründung eines Fehlschlags steht hinter „ⓘ“ (Blatt). Unter dem Bild die Kette als Kügelchen; Antippen zeigt das Monomer (Strukturformel und Baustein).
+  **Vorhersage** (`chem/mech/predict.ts`, Schalter „Vorher vermuten“ im Werkzeug Ansicht, gespeichert, Standard an): Eine Aktion antippen öffnet statt der
+  Knopfzeile eine Frage mit 2–4 Antworten (erst vermuten, dann ansehen); die richtige Antwort ergibt sich aus dem Ablauf selbst (Ansatz vorher und nachher
+  nachgespielt). Erstes Mal je Aktion: Start (wohin gehen die Elektronen der O–O- bzw. C–N-Bindung, was entsteht aus BF₃ und Wasser, was tut Al(C₂H₅)₃),
+  Anlagern (wird eingebaut / keine Reaktion / Kette endet bzw. Titan wird vergiftet – feste Reihenfolge, sonst Antworten gemischt), Abbruch (Rekombination, Disproportionierung, Methanol, H⁺, H₂),
+  Verknüpfen (+ H₂O / + HCl / sonst nichts / keine Reaktion), Anlagern beim Stufenwachstum (verknüpft / Ende blockiert / keine Reaktion); zweites Mal der
+  Vorgang (wo sitzt danach das Radikal bzw. die Ladung, Einbau zwischen Titan und Kette, Nebenprodukt). Danach läuft die Aktion ohne Frage, „Automatisch“
+  fragt nie. Nach der Wahl spielt der Ablauf sofort, darunter ✓ bzw. „Noch nicht“, die richtige Antwort (✓ grün) und die Begründung, „Weiter“ schließt.
+  Antworten dreispaltig, nur wenn kein Wort übersteht (sonst zwei bzw. eine Spalte). Tests: `predict.test.ts` (eine richtige Antwort, Rückmeldung zu
+  jeder falschen, Fachlogik, Satzlänge), `predict-english.test.ts`.
   Kamera (`MechStage`): ein Ablauf beginnt im Ausschnitt seines ersten Bilds und fährt während des ersten Schritts zum ruhigen Ausschnitt des Rests; Ende,
   Zurück und andere Ansätze werden weich angefahren (550 ms), andere Bühnengröße ohne Fahrt. Stufenwachstum: Ausschnitt = Kettenende + Platz für das nächste
   Molekül (`span`), am Anfang beide Ausgangsstoffe ganz.
@@ -629,6 +638,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Vorhersage in der Atom-Ansicht** – vor jedem neuen Schritt zuerst vermuten, was passiert (Elektronen beim Bindungsbruch, eingebaut oder
+  nicht, wo das Radikal bzw. die Ladung danach sitzt, Nebenprodukt), mit Rückmeldung zu jeder Antwort; abschaltbar. Grund: selbst vorhersagen statt
+  nur „weiter“ tippen (Vorhersagen vor dem Beobachten).
 - **Polymere: Absturz bei „+ Zweierkette“ behoben** – mit einem AB-Monomer (Milchsäure, 6-Aminohexansäure) und einer Disäure passte die Zweierkette
   nicht zusammen; sie wird nur noch bei zwei Monomeren mit je gleichen Gruppen angeboten. Neuer Test: jede angebotene Aktion läuft an jeder Stelle des Ablaufs.
 - **Polymere (neues Modul `polymere`)** – Experimentieren: Auswahl Polymerisation | Polykondensation | Polyaddition, Ansatz aus Monomer(en) und Verfahren
