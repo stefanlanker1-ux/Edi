@@ -10,8 +10,8 @@ export function longGuideSentences(text: string, max = 22): string[] {
   return plain.replace(/([.!?])\s+/g, "$1\n").split("\n").filter(s => s.split(/\s+/).filter(w => /[A-Za-zÄÖÜäöüß]/.test(w)).length > max);
 }
 
-/** Fachwort-artige Antwort: nur Buchstaben (keine Zahlen, Formeln, Sätze), höchstens zwei Wörter */
-const termLike = (s: string) => /^[\p{L}][\p{L}\-]*( [\p{L}][\p{L}\-]*)?$/u.test(s.trim()) && !/^(ja|nein|yes|no|keine?|none|nichts|nothing)$/i.test(s.trim());
+/** Fachwort-artige Antwort: nur Buchstaben (keine Zahlen, Formeln, Elementsymbole, Sätze), höchstens zwei Wörter */
+const termLike = (s: string) => s.trim().length >= 3 && /^[\p{L}][\p{L}\-]*( [\p{L}][\p{L}\-]*)?$/u.test(s.trim()) && !/^(ja|nein|yes|no|keine?|none|nichts|nothing)$/i.test(s.trim());
 /** gleicher Begriff trotz Beugung: „homogenes Gemisch“ ~ „homogen“, „Gemenge“ ~ „Gemenges“ */
 const sameTerm = (a: string, b: string) => {
   const x = a.toLowerCase(), y = b.toLowerCase();
