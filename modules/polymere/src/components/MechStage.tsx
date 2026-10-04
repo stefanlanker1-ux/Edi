@@ -11,7 +11,7 @@ import { MechSvg } from "./MechSvg.tsx";
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 const FALLBACK: Box = { x0: -3, y0: -2, x1: 3, y1: 2 };
 
-export function MechStage({ snap, snapKey, clip, clipKey, onEnd, halos, lp, label, speed = 1 }: {
+export function MechStage({ snap, snapKey, clip, clipKey, onEnd, halos, lp, label, speed = 1, mark }: {
   /** Standbild, wenn kein Ablauf läuft */
   snap: Snap;
   /** neuer Wert = anderes Standbild (Zurück, Von vorn, anderer Ansatz) */
@@ -24,6 +24,8 @@ export function MechStage({ snap, snapKey, clip, clipKey, onEnd, halos, lp, labe
   lp: boolean;
   label: string;
   speed?: number;
+  /** Atom gestrichelt einkreisen (z. B. das Kettenende, an das das nächste Molekül kommt) */
+  mark?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [aspect, setAspect] = useState(1.3);
@@ -94,7 +96,7 @@ export function MechStage({ snap, snapKey, clip, clipKey, onEnd, halos, lp, labe
   const pose = clip ? poseAt(clip, ms) : still(snap);
   return (
     <div className="pm-mech" ref={ref} data-busy={clip ? "1" : undefined}>
-      <MechSvg pose={pose} box={box} label={label} halos={halos} lp={lp} />
+      <MechSvg pose={pose} box={box} label={label} halos={halos} lp={lp} mark={mark} />
     </div>
   );
 }

@@ -34,6 +34,7 @@ function questions(copo: boolean) {
   return out;
 }
 
+const pet0 = (): Recipe => ({ art: "kond", a: "terephthalsaeure", b: "ethandiol" });
 const words = (s: string) => s.split(/[.!?]\s+/).map(x => x.split(/\s+/).filter(w => /\p{L}/u.test(w)).length);
 
 test("Vorhersage: eine richtige Antwort, Rückmeldung zu jeder falschen, kurze Texte", () => {
@@ -50,7 +51,7 @@ test("Vorhersage: eine richtige Antwort, Rückmeldung zu jeder falschen, kurze T
     assert.ok(p.options.length >= 2 && p.options.length <= 4, where);
     assert.ok(p.ask && p.ok, where);
     for (const o of p.options) {
-      assert.ok(o.text.length <= 26, `${where}: Antwort zu lang „${o.text}“`);
+      assert.ok(o.text.length <= 34, `${where}: Antwort zu lang „${o.text}“`);
       if (!o.ok) assert.ok(o.why, `${where}: keine Rückmeldung zu „${o.text}“`);
     }
     for (const s of [p.ask, p.ok, ...p.options.map(o => o.why ?? "")]) for (const n of words(s)) assert.ok(n <= 22, `${where}: Satz zu lang „${s}“`);
@@ -62,14 +63,19 @@ test("Vorhersage: richtige Antwort folgt der Fachlogik, je Aktion höchstens zwe
   const sty: Recipe = { art: "poly", a: "styrol", method: "dbpo" };
   assert.strictEqual(right(sty, [], "heat"), "je eins zu jedem O");
   assert.strictEqual(right(sty, ["heat"], "add:styrol"), "wird eingebaut");
-  assert.strictEqual(right(sty, ["heat", "add:styrol"], "add:styrol"), "am neuen Kettenende");
+  assert.strictEqual(right(sty, ["heat", "add:styrol"], "add:styrol"), "an das CH₂-Ende");
+  assert.strictEqual(right({ art: "poly", a: "ethen", method: "dbpo" }, ["heat", "add:ethen"], "add:ethen"), "am neuen Kettenende");
+  assert.strictEqual(right({ art: "kond", a: "milchsaeure", b: "ethandiol" }, ["join"], "add:milchsaeure"), "wird verknüpft");
+  assert.strictEqual(right(pet0(), ["join", "add:terephthalsaeure", "add:ethandiol"], "add:terephthalsaeure"), "aus der –COOH-Gruppe");
   assert.strictEqual(predict(sty, ["heat", "add:styrol", "add:styrol"], "add:styrol"), null);
   // Propen radikalisch: H-Atom wird abgerissen – die Kette endet
   assert.strictEqual(right({ art: "poly", a: "propen", method: "dbpo" }, ["heat"], "add:propen"), "Kette endet");
   // Ziegler-Natta: polares Monomer blockiert das Titan, Isobuten zu sperrig, Einbau zwischen Titan und Kette
   assert.strictEqual(right({ art: "poly", a: "vinylchlorid", method: "zn" }, ["act"], "add:vinylchlorid"), "Titan wird vergiftet");
   assert.strictEqual(right({ art: "poly", a: "isobuten", method: "zn" }, ["act"], "add:isobuten"), "keine Reaktion");
-  assert.strictEqual(right({ art: "poly", a: "propen", method: "zn" }, ["act", "add:propen"], "add:propen"), "zwischen Titan und Kette");
+  assert.strictEqual(right({ art: "poly", a: "propen", method: "zn" }, ["act", "add:propen"], "add:propen"), "Propen passt nur in einer Lage");
+  assert.strictEqual(right({ art: "poly", a: "ethen", method: "zn" }, ["act", "add:ethen"], "add:ethen"), "zwischen Titan und Kette");
+  assert.strictEqual(right({ art: "poly", a: "styrol", b: "butadien", seq: true, method: "buli" }, ["add:styrol", "add:styrol"], "add:butadien"), "wächst an jede Kette: Block");
   // Stufenwachstum: Nebenprodukt bzw. keine Reaktion
   assert.strictEqual(right({ art: "kond", a: "terephthalsaeure", b: "ethandiol" }, [], "join"), "Verknüpfung + H₂O");
   assert.strictEqual(right({ art: "kond", a: "adipoylchlorid", b: "hexandiamin" }, [], "join"), "Verknüpfung + HCl");

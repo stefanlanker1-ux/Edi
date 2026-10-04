@@ -5,7 +5,8 @@
 // (wo sitzt danach das Radikal bzw. die Ladung, wo wird eingebaut, was wird abgespalten). Danach läuft die Aktion direkt.
 
 import { tr } from "@lern/i18n";
-import { method, monoName } from "../data.ts";
+import { method, monoName, stepMono, vinyl, type FG, type StepId, type VinylId } from "../data.ts";
+import { reactGroups } from "../rules.ts";
 import { replay } from "./index.ts";
 import type { Recipe, Status } from "./types.ts";
 
@@ -87,11 +88,11 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
       tr("Das O gibt ein Elektronenpaar an das B. Dann löst sich ein H⁺ – es startet die Kette.", "The O gives an electron pair to the B. Then an H⁺ comes off – it starts the chain."));
   }
   if (id === "act") {
-    return q(tr("Al(C₂H₅)₃ trifft auf das Titan. Was passiert?", "Al(C₂H₅)₃ meets the titanium. What happens?"),
+    return q(tr("Al(C₂H₅)₃ hat drei Ethylgruppen. Was bekommt das Titan?", "Al(C₂H₅)₃ has three ethyl groups. What does the titanium get?"),
       [
-        [tr("C₂H₅ tauscht mit Cl", "C₂H₅ swaps with Cl")],
-        [tr("Al bindet an Ti", "Al binds to Ti"), tr("Das Al bleibt nicht am Titan. Es gibt eine Ethylgruppe C₂H₅ ab und nimmt dafür das Cl.", "The Al does not stay at the titanium. It hands over an ethyl group C₂H₅ and takes the Cl instead.")],
-        [tr("Ti löst sich ab", "Ti comes off"), tr("Das Titan bleibt im TiCl₃-Kristall. Nur das Cl tauscht mit einer Ethylgruppe C₂H₅.", "The titanium stays in the TiCl₃ crystal. Only the Cl swaps with an ethyl group C₂H₅.")],
+        [tr("eine Ethylgruppe C₂H₅", "an ethyl group C₂H₅")],
+        [tr("ein Al‑Atom", "an Al atom"), tr("Das Al bleibt nicht am Titan. Es gibt nur eine Ethylgruppe ab.", "The Al does not stay at the titanium. It only hands over an ethyl group.")],
+        [tr("ein Elektron", "an electron"), tr("Übertragen wird eine ganze Ethylgruppe, nicht ein einzelnes Elektron.", "A whole ethyl group is transferred, not a single electron.")],
       ], 0,
       tr("Eine Ethylgruppe C₂H₅ ersetzt das Cl am Titan. An ihr wächst gleich die Kette.", "An ethyl group C₂H₅ replaces the Cl at the titanium. The chain will grow on it."));
   }
@@ -151,17 +152,50 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
     : kind === "radikal" ? tr(`Das Radikal lagert sich an die C=C von ${name} an. Die Kette wächst um einen Baustein.`, `The radical adds to the C=C of ${name.toLowerCase()}. The chain grows by one unit.`)
     : kind === "anion" ? tr(`Das negative Ende greift die C=C von ${name} an. Die Kette wächst um einen Baustein.`, `The negative end attacks the C=C of ${name.toLowerCase()}. The chain grows by one unit.`)
     : tr(`Die C=C von ${name} greift das positive Ende an. Die Kette wächst um einen Baustein.`, `The C=C of ${name.toLowerCase()} attacks the positive end. The chain grows by one unit.`);
+  // lebende Ketten aus dem anderen Monomer + neues Monomer: Block
+  const living = kind === "anion" && before.n > 0 && !before.beads.some(b => b.mono === m);
+  if (asked === 0 && living && res === "grow") {
+    const first = monoName(before.beads.find(b => b.mono)?.mono ?? m);
+    return q(tr(`Die ${first}-Ketten leben noch. Jetzt kommt ${name} dazu. Was entsteht?`, `The ${first.toLowerCase()} chains are still alive. Now ${name.toLowerCase()} is added. What forms?`),
+      [
+        [tr("wächst an jede Kette: Block", "grows on each chain: block")],
+        [tr(`neue ${name}-Ketten`, `new ${name.toLowerCase()} chains`), tr(`Neue Ketten bräuchten neuen Starter. Die lebenden Enden nehmen das ${name} auf.`, `New chains would need new initiator. The living ends take up the ${name.toLowerCase()}.`)],
+        [tr("gemischte Reihenfolge", "mixed order"), tr(`Gemischt wird es nur, wenn beide Monomere gleichzeitig da sind. Hier kommt ${name} nach dem ${first}.`, `It only gets mixed if both monomers are there at once. Here ${name.toLowerCase()} comes after the ${first.toLowerCase()}.`)],
+      ], 0, tr(`Erst ein Block ${first}, dann ein Block ${name}: ein Blockcopolymer.`, `First a block of ${first.toLowerCase()}, then a block of ${name.toLowerCase()}: a block copolymer.`));
+  }
   if (asked === 0 || res !== "grow") {
     const right = res === "grow" ? 0 : res === "none" ? 1 : 2;
     const okText = res === "grow" ? growOk : after.fail ?? growOk;
+    // eigene Rückmeldung je falscher Wahl: Wächst die Kette, sagt sie warum; sonst nennt sie den Grund des Fehlschlags
+    const endsWhy = kind === "radikal" ? tr("Das Ende bleibt ein Radikal: Ein Elektron der C=C bleibt übrig.", "The end stays a radical: one electron of the C=C is left over.")
+      : zn ? tr(`${name} hat kein Atom mit freiem Elektronenpaar, das das Titan besetzt. Es wird eingebaut.`, `${name} has no atom with a lone pair that blocks the titanium. It is inserted.`)
+      : tr("Das Ende bleibt geladen: Die Ladung wandert mit an das neue Ende.", "The end stays charged: the charge moves on to the new end.");
+    const noneWhy = kind === "radikal" ? tr(`Das Radikal reagiert mit jeder C=C von ${name}.`, `The radical reacts with any C=C of ${name.toLowerCase()}.`)
+      : zn ? tr(`${name} passt an die freie Stelle am Titan.`, `${name} fits the free site at the titanium.`)
+      : kind === "anion" ? tr(`Das negative Ende greift die C=C von ${name} an.`, `The negative end attacks the C=C of ${name.toLowerCase()}.`)
+      : tr(`Die C=C von ${name} greift das positive Ende an.`, `The C=C of ${name.toLowerCase()} attacks the positive end.`);
+    const fail = after.fail ?? okText;
     return q(tr(`${name} kommt dazu. Was passiert?`, `${name} is added. What happens?`),
       [
-        [tr("wird eingebaut", "is built in")],
-        [tr("keine Reaktion", "no reaction")],
-        [zn ? tr("Titan wird vergiftet", "titanium is poisoned") : tr("Kette endet", "chain ends")],
+        [tr("wird eingebaut", "is built in"), fail],
+        [tr("keine Reaktion", "no reaction"), res === "grow" ? noneWhy : fail],
+        [zn ? tr("Titan wird vergiftet", "titanium is poisoned") : tr("Kette endet", "chain ends"), res === "grow" ? endsWhy : fail],
       ], right, okText, true);
   }
   // zweites Mal: Vorgang beim Einbau
+  const v = vinyl(m as VinylId), sideC = v.b.some(g => g !== "H") && v.a.every(g => g === "H") && !v.diene;
+  const SIDE = tr<Record<string, string>>(
+    { propen: "der CH₃-Gruppe", styrol: "dem Benzolring", vinylchlorid: "dem Cl", acrylnitril: "der C≡N-Gruppe", mma: "den zwei Gruppen", isobuten: "den zwei CH₃", vinylacetat: "der Acetatgruppe" },
+    { propen: "the CH₃ group", styrol: "the benzene ring", vinylchlorid: "the Cl", acrylnitril: "the C≡N group", mma: "the two groups", isobuten: "the two CH₃", vinylacetat: "the acetate group" })[m] ?? "";
+  if (zn && m === "propen") {
+    return q(tr("Warum zeigen alle CH₃-Gruppen zur selben Seite?", "Why do all CH₃ groups point to the same side?"),
+      [
+        [tr("Propen passt nur in einer Lage", "propene fits only one way round")],
+        [tr("Die CH₃-Gruppen ziehen sich an", "the CH₃ groups attract each other"), tr("Die CH₃-Gruppen ziehen sich kaum an. Die Lage bestimmt der enge Platz am Titan.", "The CH₃ groups hardly attract each other. The tight space at the titanium decides the position.")],
+        [tr("Zufall", "chance"), tr("Zufällig wäre ataktisch – wie radikalisch. Am Titan passt Propen nur gleich herum.", "Random would be atactic – like radical. At the titanium propene only fits one way round.")],
+      ], 0,
+      tr("Jedes Propen lagert sich gleich herum an: isotaktisch. Geordnete Ketten packen dicht – festes PP.", "Every propene attaches the same way round: isotactic. Ordered chains pack tightly – stiff PP."));
+  }
   if (zn) {
     return q(tr(`Wo wird ${name} eingebaut?`, `Where is ${name.toLowerCase()} inserted?`),
       [
@@ -171,12 +205,28 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
       ], 0,
       tr("Die Kette wächst am Titan, nicht am freien Ende: Jedes Monomer schiebt sich zwischen Titan und Kette.", "The chain grows at the titanium, not at the free end: each monomer slides in between titanium and chain."));
   }
+  if (sideC && SIDE && (kind === "radikal" || kind === "kation")) {
+    const who = kind === "radikal" ? tr("das Radikal", "the radical") : tr("das positive Kettenende", "the positive chain end");
+    return q(tr(`An welches C‑Atom von ${name} bindet ${who}?`, `Which C atom of ${name.toLowerCase()} does ${who} bind to?`),
+      [
+        [tr("an das CH₂-Ende", "to the CH₂ end")],
+        [tr(`an das C mit ${SIDE}`, `to the C with ${SIDE}`), kind === "radikal"
+          ? tr("Das Radikal greift das CH₂-Ende an. Dort ist Platz, und das neue Radikal wird beständiger.", "The radical attacks the CH₂ end. There is room there, and the new radical is more stable.")
+          : tr(`Dann säße die positive Ladung am CH₂ – ohne Stütze, sehr unbeständig. ${SIDE.charAt(0).toUpperCase() + SIDE.slice(1)} stützt sie am anderen C.`, `Then the positive charge would sit on the CH₂ – unsupported, very unstable. ${SIDE.charAt(0).toUpperCase() + SIDE.slice(1)} supports it on the other C.`)],
+        [kind === "radikal" ? tr("an beide gleichzeitig", "to both at once") : tr("an eine Seitengruppe", "to a side group"), kind === "radikal"
+          ? tr("Das Radikal hat nur ein Elektron. Es bildet genau eine neue Bindung.", "The radical has only one electron. It forms exactly one new bond.")
+          : tr("Das Kettenende braucht ein Elektronenpaar. Das gibt die C=C, nicht die Seitengruppe.", "The chain end needs an electron pair. The C=C provides it, not the side group.")],
+      ], 0,
+      kind === "radikal"
+        ? tr("Das Radikal bindet an das CH₂. Das neue Radikal sitzt am C mit der Seitengruppe – dort ist es beständiger.", "The radical binds to the CH₂. The new radical sits on the C with the side group – it is more stable there.")
+        : tr("Bindung an das CH₂. Die positive Ladung sitzt am C mit der Seitengruppe – die stützt sie.", "Bond to the CH₂. The positive charge sits on the C with the side group – it supports it."));
+  }
   const what = kind === "radikal" ? tr("das ungepaarte Elektron", "the unpaired electron") : kind === "anion" ? tr("die negative Ladung", "the negative charge") : tr("die positive Ladung", "the positive charge");
   const okWhere = kind === "radikal"
     ? tr("Das Radikal-Elektron und ein Elektron der C=C bilden die neue Bindung. Das zweite sitzt am neuen Kettenende.", "The radical electron and one electron of the C=C form the new bond. The second one sits at the new chain end.")
     : kind === "anion"
       ? tr("Das Elektronenpaar am Ende bildet die neue Bindung. Das Paar der C=C rückt an das neue Ende – dort ist die Ladung.", "The electron pair at the end forms the new bond. The pair of the C=C moves to the new end – the charge is there.")
-      : tr("Die Elektronen der C=C binden an das alte positive Ende. Dem anderen C fehlt jetzt ein Paar – es ist positiv.", "The electrons of the C=C bind to the old positive end. The other C now lacks a pair – it is positive.");
+      : tr("Die Elektronen der C=C binden an das alte positive Ende. Dem anderen C fehlt jetzt ein Elektronenpaar zum Oktett – es ist positiv.", "The electrons of the C=C bind to the old positive end. The other C now lacks an electron pair for its octet – it is positive.");
   return q(tr(`Nach dem Einbau von ${name}: Wo sitzt dann ${what}?`, `After ${name.toLowerCase()} is built in: where is ${what} then?`),
     [
       [tr("am neuen Kettenende", "at the new chain end")],
@@ -195,8 +245,16 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
 function stepQuestion(r: Recipe, id: string, asked: number, before: Status, after: Status): Prediction | null {
   const res = outcome(before, after, true);
   const byp = after.byp && after.byp !== before.byp ? (after.byp.includes("HCl") ? "HCl" : "H₂O") : null;
+  // reagierende Gruppen: Kettenende und passende Gruppe des neuen Moleküls
+  const end = before.end as FG | undefined;
+  const newIds = id === "join" ? [r.b ?? r.a] : id === "dimer" ? [r.a, r.b ?? r.a] : id === "add:pf" ? ["methanal"] : [id.slice(4)];
+  const g = end ? newIds.flatMap(x => stepMono(x as StepId).groups).find(x => reactGroups(end, x)) : undefined;
+  const link = end && g ? reactGroups(end, g)?.link : undefined;
+  const acidCl = end === "COCl" || g === "COCl";
+  const addLink = link === "urethan" || link === "harnstoff" || link === "aminoalkohol";
+  const pf = [r.a, r.b].includes("methanal");
   const bypOk = byp === "H₂O"
-    ? ([r.a, r.b].includes("methanal")
+    ? (pf
       ? tr("Das O des Methanals und zwei H der Phenolringe bilden Wasser H₂O.", "The O of the methanal and two H of the phenol rings form water H₂O.")
       : tr("Das OH der Säuregruppe und ein H der anderen Gruppe bilden Wasser H₂O.", "The OH of the acid group and one H of the other group form water H₂O."))
     : byp === "HCl"
@@ -204,13 +262,26 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
       : res === "none"
         ? after.fail ?? tr("Diese Gruppen reagieren nicht miteinander.", "These groups do not react with each other.")
         : tr("Hier wandert nur ein H‑Atom zur anderen Gruppe. Es wird nichts abgespalten.", "Here only one H atom moves to the other group. Nothing splits off.");
+  // eigene Rückmeldung je falscher Wahl
+  const reacts = addLink
+    ? tr(`Die Gruppen passen zusammen: ${link === "aminoalkohol" ? "Die Epoxidgruppe reagiert mit –NH₂." : "–N=C=O reagiert mit –OH bzw. –NH₂."}`, `The groups match: ${link === "aminoalkohol" ? "the epoxide group reacts with –NH₂." : "–N=C=O reacts with –OH or –NH₂."}`)
+    : tr("Die Gruppen passen zusammen: –COOH reagiert mit –OH bzw. –NH₂.", "The groups match: –COOH reacts with –OH or –NH₂.");
+  const W = {
+    h2o: addLink ? tr("Hier geht nichts ab: Das H wandert nur zum N bzw. O.", "Nothing leaves here: the H only moves to the N or O.")
+      : acidCl ? tr("Die Säuregruppe ist hier –COCl: Statt OH geht Cl mit einem H ab – HCl.", "The acid group here is –COCl: instead of OH, Cl leaves with an H – HCl.") : bypOk,
+    hcl: addLink ? tr("Hier geht nichts ab: Das H wandert nur zum N bzw. O.", "Nothing leaves here: the H only moves to the N or O.")
+      : tr("HCl geht nur ab, wenn eine –COCl-Gruppe beteiligt ist. Hier ist es –COOH: Es entsteht H₂O.", "HCl only leaves if a –COCl group takes part. Here it is –COOH: H₂O forms."),
+    nothing: acidCl ? tr("Bei –COCl geht immer ein kleines Molekül ab: HCl.", "With –COCl a small molecule always leaves: HCl.")
+      : tr("Bei –COOH + –OH bzw. –NH₂ geht immer ein kleines Molekül ab: H₂O.", "With –COOH + –OH or –NH₂ a small molecule always leaves: H₂O."),
+  };
+  const none = res === "none";
   const bypQ = () => q(tr("Verknüpfen: Was passiert?", "Linking: what happens?"),
     [
-      [tr("Verknüpfung + H₂O", "link + H₂O")],
-      [tr("Verknüpfung + HCl", "link + HCl")],
-      [tr("Verknüpfung, sonst nichts", "link, nothing else")],
-      [tr("keine Reaktion", "no reaction")],
-    ], res === "none" ? 3 : byp === "H₂O" ? 0 : byp === "HCl" ? 1 : 2, bypOk);
+      [tr("Verknüpfung + H₂O", "link + H₂O"), none ? bypOk : W.h2o],
+      [tr("Verknüpfung + HCl", "link + HCl"), none ? bypOk : W.hcl],
+      [tr("Verknüpfung, sonst nichts", "link, nothing else"), none ? bypOk : W.nothing],
+      [tr("keine Reaktion", "no reaction"), reacts],
+    ], none ? 3 : byp === "H₂O" ? 0 : byp === "HCl" ? 1 : 2, bypOk);
   if (id === "join") return asked ? null : bypQ();
   if (!id.startsWith("add:") && id !== "dimer") return null;
   if (asked === 0 || res === "none") {
@@ -219,12 +290,39 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
       : res === "ends" ? after.note ?? tr("Das neue Molekül hat nur eine reaktive Gruppe – danach ist das Kettenende blockiert.", "The new molecule has only one reactive group – then the chain end is blocked.")
       : id === "dimer" ? tr("Beim Stufenwachstum reagiert jede passende Gruppe – auch die Enden von Ketten.", "In step growth every matching group reacts – chain ends too.")
       : tr("Seine Gruppe passt zur Gruppe am Kettenende. Die Kette wird um einen Baustein länger.", "Its group matches the group at the chain end. The chain gets one unit longer.");
-    return q(tr(`${nm} kommt an das Kettenende. Was passiert?`, `${nm} reaches the chain end. What happens?`),
+    const blockedWhy = tr("Das neue Molekül hat zwei reaktive Gruppen: Nach der Verknüpfung ist wieder eine frei.", "The new molecule has two reactive groups: after linking one is free again.");
+    return q(tr(`${nm} kommt an das rechte Kettenende (markiert). Was passiert?`, `${nm} reaches the right chain end (marked). What happens?`),
       [
-        [tr("wird verknüpft", "is linked")],
-        [tr("verknüpft, Ende blockiert", "linked, end blocked")],
-        [tr("keine Reaktion", "no reaction")],
+        [tr("wird verknüpft", "is linked"), after.fail ?? okText],
+        [tr("verknüpft, Ende blockiert", "linked, end blocked"), none ? after.fail ?? okText : blockedWhy],
+        [tr("keine Reaktion", "no reaction"), reacts],
       ], res === "grow" ? 0 : res === "ends" ? 1 : 2, okText, true);
+  }
+  // zweites Mal: Frage zum Vorgang der Verknüpfung
+  if (link === "ester" && !acidCl && byp === "H₂O") {
+    return q(tr("Aus welcher Gruppe stammt das O‑Atom im abgespaltenen Wasser?", "Which group does the O atom in the water come from?"),
+      [
+        [tr("aus der –COOH-Gruppe", "from the –COOH group")],
+        [tr("aus der –OH des Alkohols", "from the alcohol's –OH"), tr("Das O des Alkohols bindet an das C der Säure – es bleibt in der Esterbindung.", "The O of the alcohol binds to the C of the acid – it stays in the ester bond.")],
+        [tr("aus der Luft", "from the air"), tr("Alle Atome des Wassers stammen aus den Monomeren: OH der Säure, H des Alkohols.", "All atoms of the water come from the monomers: OH of the acid, H of the alcohol.")],
+      ], 0,
+      tr("Die Säure gibt OH ab, der Alkohol ein H. Das O des Alkohols wird Teil der Esterbindung.", "The acid gives off OH, the alcohol an H. The alcohol's O becomes part of the ester bond."));
+  }
+  if (newIds[0] === "glycerin") {
+    return q(tr("Glycerin hat drei –OH. Was macht die dritte Gruppe?", "Glycerol has three –OH. What does the third group do?"),
+      [
+        [tr("verbindet zwei Ketten", "links two chains")],
+        [tr("bleibt immer frei", "always stays free"), tr("Jede passende Gruppe reagiert. Die dritte –OH knüpft eine zweite Kette an.", "Every matching group reacts. The third –OH links on a second chain.")],
+        [tr("Kette bleibt trotzdem gerade", "chain stays straight anyway"), tr("Die dritte Gruppe reagiert auch – diese Verknüpfung führt zur Seite: ein Netz.", "The third group reacts too – this link goes sideways: a network.")],
+      ], 0, tr("Drei Gruppen: Die Ketten verzweigen sich und verknüpfen sich zu einem Netz.", "Three groups: the chains branch and link up into a network."));
+  }
+  if (link === "aminoalkohol") {
+    return q(tr("Welche Bindung des Epoxidrings öffnet sich?", "Which bond of the epoxide ring opens?"),
+      [
+        [tr("eine C–O-Bindung", "a C–O bond")],
+        [tr("die C–C-Bindung", "the C–C bond"), tr("Das N greift ein C an. Das Elektronenpaar der C–O-Bindung geht zum O – der Ring öffnet sich dort.", "The N attacks a C. The electron pair of the C–O bond moves to the O – the ring opens there.")],
+        [tr("keine – der Ring bleibt", "none – the ring stays"), tr("Der Dreierring ist gespannt. Genau darum öffnet er sich leicht.", "The three-membered ring is strained. That is exactly why it opens easily.")],
+      ], 0, tr("C–O öffnet sich, das O wird zu –OH. Das N bindet an das CH₂ des Rings.", "C–O opens, the O becomes –OH. The N binds to the CH₂ of the ring."));
   }
   return bypQ();
 }

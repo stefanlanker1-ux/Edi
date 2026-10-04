@@ -231,6 +231,7 @@ export function ExperimentView() {
   const reduced = useReducedMotion();
   /** niedrige Handys: keine Ansatz-Zeile, die Werkzeugleiste zeigt die Auswahl */
   const low = useMediaQuery("(max-height: 700px)");
+  const wide = useMediaQuery("(min-width: 900px)");
   const recipe = art ? recipes[art] : DEFAULT_RECIPES.poly;
   const rkey = JSON.stringify(recipe);
   // Ablauf: Mechanismus, ausgeführte Aktionen, laufender Clip
@@ -252,7 +253,8 @@ export function ExperimentView() {
   /** Kügelchen: anderer Ansatz hat den laufenden Reaktor zurückgesetzt (Kennzeichen bis zur nächsten Aktion) */
   const [restarted, setRestarted] = useState(false);
   /** offene Vorhersage-Frage zur gewählten Aktion (picked = gewählte Antwort) */
-  const [pq, setPq] = useState<{ id: string; p: Prediction; picked?: number } | null>(null);
+  // Ablauf: vermuten (ask) → Wahl mit kurzer Rückmeldung (picked) → „Ansehen ▷“ spielt ab (watch) → danach die Begründung (explain)
+  const [pq, setPq] = useState<{ id: string; p: Prediction; picked?: number; phase: "ask" | "picked" | "watch" | "explain" } | null>(null);
 
   // neuer Ansatz → von vorn
   useEffect(() => {
@@ -288,15 +290,16 @@ export function ExperimentView() {
     setAuto(false);
     const p = predictOn ? predict(recipe, acts, id) : null;
     if (!p) { run(id); return; }
-    buzz(); setStopOpen(false); setPq({ id, p });
+    buzz(); setStopOpen(false); setPq({ id, p, phase: "ask" });
   };
   const pick = (i: number) => {
     if (!pq || pq.picked !== undefined) return;
     ding(pq.p.options[i].ok);
-    setPq({ ...pq, picked: i });
-    run(pq.id);
+    setPq({ ...pq, picked: i, phase: "picked" });
   };
+  const watch = () => { if (!pq) return; run(pq.id); setPq({ ...pq, phase: "watch" }); };
   const ended = () => {
+    setPq(q => (q && q.phase === "watch" ? { ...q, phase: "explain" } : q));
     setClip(null);
     force(v => v + 1);
   };
@@ -338,13 +341,14 @@ export function ExperimentView() {
   const label = tr(`${ART_NAME[art]} in Atomen`, `${ART_NAME[art]} in atoms`);
   const stage = (
     <div className="pm-stage">
-      <div className="pm-view">
+      <div className={`pm-view${pq && low ? " hide" : ""}`}>
         <Segmented label={tr("Ansicht", "View")} value={view} onChange={v => { buzz(); setView(v); }}
           options={[{ value: "atome", label: tr("Atome", "Atoms") }, { value: "kugeln", label: tr("Kügelchen", "Beads") }]} />
       </div>
       {view === "atome"
         ? <>
-            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : 1} />
+            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : 1}
+              mark={pq && (pq.phase === "ask" || pq.phase === "picked") && art !== "poly" ? st.endAtom : undefined} />
             {st.beads.length > 0 && <BeadStrip beads={st.beads} active={st.active} onPick={(b: Bead) => b.mono && setInfo(b.mono)} />}
           </>
         : <>
@@ -464,7 +468,7 @@ export function ExperimentView() {
 
   // Vorhersage statt der Knopfzeile: Frage mit Antworten, danach Rückmeldung (der Ablauf spielt dabei schon)
   const pqPanel = view === "atome" && pq && (() => {
-    const { p, picked } = pq;
+    const { p, picked, phase } = pq;
     if (picked === undefined) return (
       <div className="pm-pq" role="group" aria-label={tr("Vorhersage", "Prediction")}>
         <div className="pm-pq-head">
@@ -475,14 +479,22 @@ export function ExperimentView() {
       </div>
     );
     const o = p.options[picked], right = p.options.find(x => x.ok)!;
+    // erst beobachten, dann erklären: die Begründung erscheint, wenn der Ablauf zu Ende ist
     return (
-      <div className={`pm-pq done ${o.ok ? "ok" : "no"}`} role="status">
+      <div className={`pm-pq done ${o.ok ? "ok" : "no"} ${phase}`} role="status">
         <div className="pm-pq-fb">
-          <p><b>{o.ok ? `✓ ${o.text}` : tr("Noch nicht.", "Not yet.")}</b></p>
-          {!o.ok && <p className="pm-pq-right">✓ {right.text}</p>}
-          <p className="pm-pq-why">{o.ok ? p.ok : o.why}</p>
+          {o.ok
+            ? <p><b>✓ {o.text}</b></p>
+            : <><p><b>{tr("Noch nicht.", "Not yet.")}</b> <s className="pm-pq-wrong">✗ {o.text}</s></p><p className="pm-pq-right">✓ {right.text}</p></>}
+          {phase === "explain" && <p className="pm-pq-why">{o.ok ? p.ok : o.why}</p>}
         </div>
-        <Button variant="primary" className="pm-pq-next" onClick={() => { buzz(); setPq(null); }}>{tr("Weiter", "Next")}</Button>
+        <div className="pm-pq-btns">
+          {phase === "picked" && <Button variant="primary" className="pm-pq-next" onClick={() => { buzz(); watch(); }}>{tr("Ansehen ▷", "Watch ▷")}</Button>}
+          {phase === "explain" && <>
+            <Button variant="primary" className="pm-pq-next" onClick={() => { buzz(); setPq(null); }}>{tr("Weiter", "Next")}</Button>
+            <IconButton icon="reset" label={tr("Nochmal ansehen", "Watch again")} onClick={() => { buzz(); again(); }} />
+          </>}
+        </div>
       </div>
     );
   })();
@@ -542,9 +554,10 @@ export function ExperimentView() {
   return (
     <>
       <Workbench className="pm-wb" active={tool} onActive={setTool} head={head} stage={stage}
+        // am Handy während einer Vorhersage keine Werkzeugleiste: mehr Platz für das Bild
         status={tags.length ? <div className="pm-status">{tags}</div> : undefined}
         controls={<div className="pm-controls">{pqPanel || <>{recipeRow}{actRow}</>}{rRow}</div>}
-        tools={tools} />
+        tools={pq && view === "atome" && !wide ? [] : tools} />
       <MonomerSheet id={info} onClose={() => setInfo(null)} />
       <Sheet open={legend} title={tr("Legende", "Key")} onClose={() => setLegend(false)}><BeadLegend recipe={recipe} /></Sheet>
       <Sheet open={why && !!whyText} title={whyTitle} onClose={() => setWhy(false)}>

@@ -571,14 +571,16 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   nach, `replay`), Automatisch (`nextAuto`), am Ende „Produkt“ und „Von vorn“. Statuszeile nur kurze Kennzeichen (Schritt, n, „+ 2 H₂O“, Temperatur, lebend);
   die Begründung eines Fehlschlags steht hinter „ⓘ“ (Blatt). Unter dem Bild die Kette als Kügelchen; Antippen zeigt das Monomer (Strukturformel und Baustein).
   **Vorhersage** (`chem/mech/predict.ts`, Schalter „Vorher vermuten“ im Werkzeug Ansicht, gespeichert, Standard an): Eine Aktion antippen öffnet statt der
-  Knopfzeile eine Frage mit 2–4 Antworten (erst vermuten, dann ansehen); die richtige Antwort ergibt sich aus dem Ablauf selbst (Ansatz vorher und nachher
-  nachgespielt). Erstes Mal je Aktion: Start (wohin gehen die Elektronen der O–O- bzw. C–N-Bindung, was entsteht aus BF₃ und Wasser, was tut Al(C₂H₅)₃),
-  Anlagern (wird eingebaut / keine Reaktion / Kette endet bzw. Titan wird vergiftet – feste Reihenfolge, sonst Antworten gemischt), Abbruch (Rekombination, Disproportionierung, Methanol, H⁺, H₂),
-  Verknüpfen (+ H₂O / + HCl / sonst nichts / keine Reaktion), Anlagern beim Stufenwachstum (verknüpft / Ende blockiert / keine Reaktion); zweites Mal der
-  Vorgang (wo sitzt danach das Radikal bzw. die Ladung, Einbau zwischen Titan und Kette, Nebenprodukt). Danach läuft die Aktion ohne Frage, „Automatisch“
-  fragt nie. Nach der Wahl spielt der Ablauf sofort, darunter ✓ bzw. „Noch nicht“, die richtige Antwort (✓ grün) und die Begründung, „Weiter“ schließt.
-  Antworten dreispaltig, nur wenn kein Wort übersteht (sonst zwei bzw. eine Spalte). Tests: `predict.test.ts` (eine richtige Antwort, Rückmeldung zu
-  jeder falschen, Fachlogik, Satzlänge), `predict-english.test.ts`.
+  Knopfzeile eine Frage mit 2–4 Antworten; die richtige Antwort ergibt sich aus dem Ablauf selbst (Ansatz vorher und nachher nachgespielt).
+  **Erst vermuten, dann beobachten, dann erklären**: nach der Wahl nur ✓ bzw. „Noch nicht“ mit der gewählten (durchgestrichen, ✗) und der richtigen Antwort
+  (✓, gestrichelt grün), dann „Ansehen ▷“ spielt den Ablauf; erst danach die Begründung, „Weiter“ und „Nochmal“. Am Handy ist die Werkzeugleiste währenddessen
+  ausgeblendet (niedrige Handys auch der Umschalter Atome | Kügelchen). Beim Stufenwachstum ist das rechte Kettenende rot gestrichelt markiert.
+  Erste Frage je Aktion: Start (Elektronen der O–O- bzw. C–N-Bindung, BF₃ + Wasser, Ethylgruppe ans Titan), Anlagern (wird eingebaut / keine Reaktion /
+  Kette endet bzw. Titan wird vergiftet – feste Reihenfolge; lebende Ketten + neues Monomer: Block), Abbruch, Verknüpfen (+ H₂O / + HCl / sonst nichts /
+  keine Reaktion), Stufenwachstum (verknüpft / Ende blockiert / keine Reaktion). Zweite Frage: an welches C bindet das Radikal bzw. das positive Ende
+  (CH₂-Ende), Ziegler-Natta warum isotaktisch bzw. wo eingebaut, woher das O im Wasser (Ester), was die dritte Gruppe des Glycerins tut, welche Bindung des
+  Epoxidrings sich öffnet, sonst Nebenprodukt. Jede falsche Antwort hat eine eigene Rückmeldung. Danach läuft die Aktion ohne Frage, „Automatisch“ fragt nie.
+  Antworten gemischt (außer Ergebnis-Skala), dreispaltig nur, wenn kein Wort übersteht. Tests: `predict.test.ts`, `predict-english.test.ts`.
   Ausschnitt: kleine Anhängsel an Fokus-Atomen (–OH, –Cl, Benzolring, höchstens 7 Atome; `expandFocus`) gehören immer ganz ins Bild; was trotzdem
   über den Rand ragt, blendet `MechSvg` aus und endet an einer **Wellenlinie** (halbe Bindung + Welle) – nie ein Atom mitten im Zeichen abgeschnitten.
   Elektronen-Punkte nur am aktiven Ende (Test: nach jeder Aktion 1 Punkt beim Radikal, 2 beim Anion, sonst keiner); beim Zerfall des Starters gleitet das
@@ -658,6 +660,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Vorhersage beobachten, dann erklären** – Ablauf erst nach „Ansehen ▷“, Begründung nach dem Ablauf; eigene Rückmeldung je falscher Antwort;
+  neue zweite Fragen (Radikal an das CH₂-Ende, isotaktisch, Ester-O, Glycerin, Epoxidring, Block bei lebenden Ketten); Aktivieren als lösbare Frage;
+  markiertes Kettenende beim Stufenwachstum; am Handy mehr Platz für das Bild. Grund: Lernende lasen die Begründung, während die Bewegung lief.
 - **Polymere: Fachkorrekturen Stufenwachstum und Texte** – Monomere mit zwei verschiedenen Gruppen (Milchsäure, 6-Aminohexansäure) wenden der Kette die
   passende Gruppe zu (vorher „keine Reaktion“ bei Milchsäure an einem –OH-Ende; Test für alle Kombinationen); Begründung bei keiner Reaktion nennt die Gruppen
   am Kettenende („Am Kettenende sitzt schon –COCl …“); MMA bietet zuerst die Disproportionierung an (häufiger als Rekombination); Produktnamen ohne doppelte

@@ -98,7 +98,7 @@ export class StepMech implements Mech {
   status(): Status {
     const beads: Bead[] = this.units.map((u, i) => { const m = stepMono(u); return { kind: "unit", mono: u, hue: m.hue, letter: m.letter, title: m.name, unit: i }; });
     return {
-      phase: this.phase, n: this.units.length, step: this.stepName, active: null, fail: this.fail, beads, note: this.note, end: this.right?.fg,
+      phase: this.phase, n: this.units.length, step: this.stepName, active: null, fail: this.fail, beads, note: this.note, end: this.right?.fg, endAtom: this.right?.anchor,
       ...(this.byp ? { byp: `${this.byp} ${this.bypName}` } : {}),
     };
   }

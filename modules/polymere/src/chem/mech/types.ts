@@ -50,8 +50,9 @@ export interface Status {
   note?: string;
   /** Bedingung (Temperatur, Druck) */
   cond?: string;
-  /** Stufenwachstum: reaktive Gruppe am rechten Kettenende */
+  /** Stufenwachstum: reaktive Gruppe am rechten Kettenende und ihr Atom (zum Markieren) */
   end?: string;
+  endAtom?: string;
 }
 
 export interface Mech {

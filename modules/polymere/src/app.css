@@ -275,3 +275,11 @@
 .pm-act.other > span > span.pm-name { white-space: normal; overflow: visible; line-height: 1.05; font-size: .8rem; text-align: left; hyphens: manual; }
 .pm-acts-main .pm-act.add:not(.other) { flex: none; }
 .pm-acts-main .pm-act.other { flex: 0 1 auto; }
+.mb-mark { fill: none; stroke: var(--signal); stroke-width: 2.4; stroke-dasharray: 6 5; }
+.pm-view.hide { display: none; }
+.pm-pq-btns { display: flex; gap: 6px; align-items: center; }
+.pm-pq-wrong { color: var(--muted); font-weight: 650; }
+/* Begründung nach dem Ablauf: volle Breite, Knöpfe darunter rechts */
+.pm-pq.done.explain { grid-template-columns: minmax(0, 1fr); }
+.pm-pq.done.explain .pm-pq-btns { justify-content: flex-end; }
+@media (max-height: 700px) { .pm-pq.done.explain { gap: 4px; padding: 4px 8px; } .pm-pq-fb { font-size: .82rem; } }

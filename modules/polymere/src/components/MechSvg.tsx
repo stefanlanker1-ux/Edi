@@ -119,7 +119,7 @@ function ArrowPath({ from, to, half, bend = 0.5, op }: { from: Pt; to: Pt; half?
   );
 }
 
-export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true }: {
+export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true, mark }: {
   pose: Pose; box: Box; label: string; className?: string;
   /** Antippen eines Atoms (Kennung) */
   onPick?: (id: string) => void;
@@ -127,6 +127,8 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
   halos?: boolean;
   /** freie Elektronenpaare zeigen */
   lp?: boolean;
+  /** Atom gestrichelt einkreisen */
+  mark?: string;
 }) {
   const at = new Map(pose.atoms.map(a => [a.id, a]));
   // Atome am Bildrand: ganz drin (1) … draußen (0) – was hinausragt, wird ausgeblendet statt abgeschnitten
@@ -196,6 +198,7 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
       {onPick && pose.atoms.map(a => ((a.op ?? 1) * vis(a) > 0.5 && (a.text ?? a.el)
         ? <circle key={`hit${a.id}`} className="pm-hit" cx={a.x * U} cy={a.y * U} r={(a.el === "H" && !a.text ? 0.38 : 0.46) * U} data-atom={a.id} />
         : null))}
+      {mark && at.get(mark) && <circle className="mb-mark" cx={at.get(mark)!.x * U} cy={at.get(mark)!.y * U} r={0.62 * U} />}
       {pose.dots.map(d => (d.op ?? 1) > 0.02 && <circle key={d.id} className="mb-e" cx={d.x * U} cy={d.y * U} r={0.075 * U} opacity={d.op ?? 1} />)}
       {pose.notes.map(n => {
         if ((n.op ?? 1) <= 0.02) return null;
