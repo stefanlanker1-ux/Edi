@@ -24,7 +24,7 @@ export type GuideMode = "worked" | "faded" | "free";
 
 export interface GuideStep {
   /** Art des Schritts: Kapitel beginnen vorgemacht, dann halb gelöst, dann frei */
-  mode?: GuideMode;
+  mode: GuideMode;
   /** Lösungsweg Zeile für Zeile: vorgemacht = wird gezeigt; halb gelöst = genau eine Zeile mit der Lücke `{?}`;
    *  frei = erscheint nach der richtigen Antwort */
   lines?: string[];

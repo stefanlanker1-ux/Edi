@@ -25,7 +25,7 @@ function Wall({ c, base, acid, step, nB, nA, target, react }: { c: GuideCtx; bas
   );
 }
 
-const missing = (base: string, acid: string, nB: number, nA: number, answer: "A" | "B", say: string, ok: string, step?: number): GuideStep => ({
+const missing = (base: string, acid: string, nB: number, nA: number, answer: "A" | "B", say: string, ok: string, step?: number): Omit<GuideStep, "mode"> => ({
   say, ask: tr("Was fehlt, damit die **OH⁻-Reihe** und die **H⁺-Reihe** gleich lang sind? Tippe es an.", "What is missing so that the **OH⁻ row** and the **H⁺ row** are the same length? Tap it."), answer,
   visual: c => <Wall c={c} base={base} acid={acid} step={step} nB={nB} nA={nA} target={answer} />,
   why: { [answer === "A" ? "B" : "A"]: tr("Dann wird die längere Reihe noch länger. Vergleiche OH⁻ und H⁺.", "Then the longer row gets even longer. Compare OH⁻ and H⁺.") },

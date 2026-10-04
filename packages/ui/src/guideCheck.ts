@@ -54,11 +54,9 @@ export function checkGuide(def: GuideDef): string[] {
   if (!def.outro.length) out.push(`${def.title}: keine Zusammenfassung`);
   // Reihenfolge der Arten: halb gelöst nur nach vorgemacht/halb, frei nur nach halb/frei, Kapitelanfang vorgemacht
   const allowed: Record<string, string[]> = { worked: ["worked", "faded", "free"], faded: ["worked", "faded"], free: ["faded", "free"] };
-  const staged = def.steps.some(s => s.mode);
-  if (staged) out.push(...unintroducedTerms(def));
+  out.push(...unintroducedTerms(def));
   def.steps.forEach((s, i) => {
     const at = `${def.title} Schritt ${i + 1}`;
-    if (staged && !s.mode) { out.push(`${at}: Art (mode) fehlt`); return; }
     if (s.mode) {
       const first = i === 0 || !!s.part;
       if (first && s.mode !== "worked") out.push(`${at}: Kapitel beginnt nicht vorgemacht`);
