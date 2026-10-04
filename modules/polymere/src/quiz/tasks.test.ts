@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LEVELS, TYPE_NAMES, makeRound, type Task } from "./tasks.ts";
+import { GENERATORS, LEVELS, TYPE_NAMES, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -24,6 +24,14 @@ test("alle Aufgaben gültig und speicherbar", () => {
       assert.ok(t.prompt && t.hint && t.explain, `${t.type}: Texte fehlen`);
       assert.ok(TYPE_NAMES[t.type!], t.type);
       assert.deepEqual(JSON.parse(JSON.stringify(t)), t, "nicht JSON-fähig");
+      if (isTap(t)) {
+        // Antippen: Teile vorhanden, Lösung unter den Teilen, jede Falle mit Katalog-Schlüssel, jedes falsche Teil mit Rückmeldung
+        assert.ok(t.parts.length >= 3 && t.labels.length === t.parts.length, `${t.type}: Teile`);
+        assert.ok(t.mode === "pair" || (t.answer.length > 0 && t.answer.every(a => t.parts.includes(a))), `${t.type}: Lösung fehlt ${t.answer}`);
+        for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why, `${t.type}: Falle ohne Schlüssel`);
+        if (t.mode !== "pair") t.parts.forEach((p, i) => { if (!t.answer.includes(p)) assert.ok((t.traps ?? []).some(tr => tr.values?.[t.mode ? "wrong" : "pick"] === i), `${t.type}: keine Rückmeldung für ${p}`); });
+        continue;
+      }
       assert.ok(!/undefined|\bNaN\b|\bnull\b|\[object/.test(t.prompt + t.explain + t.hint + t.options.join()), `${t.type}: ${t.prompt} ${t.explain}`);
       assert.ok(t.options.length >= 3, `${t.type}: zu wenige Optionen ${t.options}`);
       assert.strictEqual(new Set(t.options).size, t.options.length, `${t.type}: doppelt ${t.options}`);
@@ -55,13 +63,13 @@ test("Stufenwachstum bei hohem Umsatz: kaum Monomer, im Mittel 10 Bausteine (bei
   for (const t of ts) {
     assert.match(t.prompt, /90\s% Umsatz/);
     assert.match(t.explain, /10 Bausteine/);
-    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + Object.values(t.why ?? {}).join()), t.prompt);
+    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + (isTap(t) ? "" : Object.values(t.why ?? {}).join())), t.prompt);
   }
 }, 60_000);
 
 test("keine Aufgabe zweimal in einem Kapitel (auch nicht mit anders gemischten Antworten)", () => {
   for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 20; k++) {
-    const sig = makeRound("us", lv).map(t => t.prompt + [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
+    const sig = makeRound("us", lv).map(t => t.prompt + (isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null)));
     assert.strictEqual(new Set(sig).size, sig.length, `${LEVELS[lv].id}: doppelte Aufgabe`);
   }
 }, 60_000);
@@ -77,6 +85,19 @@ test("Bausteine in Bildern: kein C-Atom mit mehr als vier Bindungen (außer im D
         const n = s.bonds.filter(b => b.a === a.id || b.b === a.id).reduce((t, b) => t + b.o, 0);
         assert.ok(n <= 4, `${id}: C mit ${n} Bindungen`);
       }
+    }
+  }
+});
+
+test("Antippen: Rückmeldung passt zum Teil (Benzolring nur bei Ring-Atomen)", async () => {
+  const { tapFrame } = await import("./tap.ts");
+  for (let k = 0; k < 20; k++) {
+    const t = GENERATORS.radikalTap();
+    if (!isTap(t)) continue;
+    const rings = Object.values(tapFrame(t.scene).snap.rings).flat();
+    for (const tr of t.traps ?? []) {
+      const id = t.parts[tr.values!.pick];
+      assert.strictEqual(/Benzolring/.test(tr.why), rings.includes(id), `${id}: ${tr.why}`);
     }
   }
 });

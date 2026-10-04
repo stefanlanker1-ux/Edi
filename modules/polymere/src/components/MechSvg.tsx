@@ -119,7 +119,7 @@ function ArrowPath({ from, to, half, bend = 0.5, op }: { from: Pt; to: Pt; half?
   );
 }
 
-export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true, mark }: {
+export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true, mark, pickable, marks }: {
   pose: Pose; box: Box; label: string; className?: string;
   /** Antippen eines Atoms (Kennung) */
   onPick?: (id: string) => void;
@@ -129,6 +129,10 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
   lp?: boolean;
   /** Atom gestrichelt einkreisen */
   mark?: string;
+  /** nur diese Atome sind antippbar (Trefferkreise auch für unbeschriftete Ring-Ecken und die freie Stelle) */
+  pickable?: string[];
+  /** Markierungen beim Antippen: gewählt, richtig (gestrichelt grün), noch nicht (gestrichelt, ✗) */
+  marks?: { id: string; kind: "sel" | "ok" | "no" }[];
 }) {
   const at = new Map(pose.atoms.map(a => [a.id, a]));
   // Atome am Bildrand: ganz drin (1) … draußen (0) – was hinausragt, wird ausgeblendet statt abgeschnitten
@@ -195,9 +199,20 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
         );
       })}
       {/* Antippen: unsichtbare Trefferkreise je Atom (größer als die Schrift) */}
-      {onPick && pose.atoms.map(a => ((a.op ?? 1) * vis(a) > 0.5 && (a.text ?? a.el)
+      {onPick && pose.atoms.map(a => ((a.op ?? 1) * vis(a) > 0.5 && (pickable ? pickable.includes(a.id) : (a.text ?? a.el))
         ? <circle key={`hit${a.id}`} className="pm-hit" cx={a.x * U} cy={a.y * U} r={(a.el === "H" && !a.text ? 0.38 : 0.46) * U} data-atom={a.id} />
         : null))}
+      {marks?.map(m => {
+        const a = at.get(m.id);
+        if (!a) return null;
+        const r = (a.el === "H" && !a.text ? 0.34 : 0.44) * U;
+        return (
+          <g key={`mk${m.id}`} className={`mb-pick ${m.kind}`} pointerEvents="none">
+            <circle cx={a.x * U} cy={a.y * U} r={r} />
+            {m.kind !== "sel" && <text x={(a.x + 0.42) * U} y={(a.y - 0.42) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
+          </g>
+        );
+      })}
       {mark && at.get(mark) && <circle className="mb-mark" cx={at.get(mark)!.x * U} cy={at.get(mark)!.y * U} r={0.62 * U} />}
       {pose.dots.map(d => (d.op ?? 1) > 0.02 && <circle key={d.id} className="mb-e" cx={d.x * U} cy={d.y * U} r={0.075 * U} opacity={d.op ?? 1} />)}
       {pose.notes.map(n => {

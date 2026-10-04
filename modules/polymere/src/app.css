@@ -289,3 +289,16 @@
 .pm-pot-more { font-size: 9px; font-weight: 800; fill: var(--text); }
 .pm-acts-main .pm-act.branch { flex: none; padding-inline: 8px; }
 .pm-act.branch > span { white-space: nowrap; }
+/* Antippen im Bild: gewählt (schwarz), richtig (gestrichelt grün mit ✓), noch nicht (gestrichelt mit ✗) – nie nur Farbe */
+.mb-pick circle { fill: none; stroke-width: 3; }
+.mb-pick.sel circle { stroke: var(--accent); }
+.mb-pick.ok circle { stroke: var(--ok); stroke-dasharray: 5 4; }
+.mb-pick.no circle { stroke: var(--text); stroke-dasharray: 2 4; }
+.mb-pick text { font-size: 15px; font-weight: 800; }
+.mb-pick.ok text { fill: var(--ok); } .mb-pick.no text { fill: var(--text); }
+.pm-tap { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; height: 100%; min-height: 0; }
+.pm-tap-pic { min-height: 0; container-type: size; }
+.pm-tap-pic .mb-svg { width: 100%; height: 100%; }
+.pm-tap-svg .pm-hit { cursor: pointer; }
+.pm-tap-bar { display: flex; justify-content: center; gap: 8px; align-items: center; min-height: 44px; }
+.q-body > .pm-tap { flex: 1 1 0; min-height: 140px; }

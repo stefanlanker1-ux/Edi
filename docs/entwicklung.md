@@ -617,6 +617,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (`ordered`; das gelöste Beispiel im Quiz-Paket vergleicht ebenso ohne Reihenfolge). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
   Kennbuchstabe klein in der Ecke. „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
   mit Trennlinie und Überschrift über jedem Bild; Pfeil nur bei vorher → nachher. Antippen in der Lektion mit unsichtbaren Trefferkreisen je Atom.
+  **Antippen im Bild** (`kind: "tap"`, `quiz/tap.ts`, `TapAnswer` in `quiz/QuizView.tsx`): Szene = Standbild der Atom-Ansicht (Ansatz, Aktionen, Bild des Ablaufs,
+  wahlweise ohne Pfeile) oder Kettenausschnitt; `parts` = antippbare Atome (stabile Kennungen), `answer` = richtige Atome, Fallen je falschem Teil
+  (`pick` bzw. bei mehreren `wrong`, dazu `n`, `adj`); mehrere Atome: antippen schaltet um, „Prüfen“; Lösung danach gestrichelt grün mit ✓, falsch gewählte
+  mit ✗; unsichtbare Knöpfe für Tastatur und Vorlesen; im gelösten Beispiel zeigt das Bild die markierte Lösung. Aufgaben: K1 `bausteinTap` (zwei benachbarte
+  C eines Bausteins, ohne farbige Hinterlegung), K2 `radikalTap` (C mit dem Radikal nach dem Anlagern), K3 `freieStelleTap`, `giftTap` (Cl/O/N am Titan),
+  K4 `wasserTap` (drei Atome des Wassers), K5 `hTap` (wanderndes H); die Auswahl-Fassungen bleiben in „Alles gemischt“ (`level(…, more)`).
   „C‑Atom“ usw. mit geschütztem Bindestrich (U+2011, nie „C-⏎Atom“). Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
@@ -660,6 +666,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Antippen im Bild** – sechs Aufgaben im Lernen sind jetzt Antippen statt Auswahl (Radikal-C, freie Stelle, vergiftendes Atom, wanderndes H,
+  drei Atome des Wassers, Baustein in der Kette). Grund: Auswahl-Antworten sind Wortwiedererkennung; Antippen verlangt, den Ort im Molekül zu finden.
 - **Polymere: Glycerin verzweigt** – die dritte –OH ist eine eigene Andockstelle: „+ Ast“ hängt die Säure senkrecht darunter (nie in die Hauptkette,
   vorher überlappten zwei Benzolringe), Kügelchen-Leiste zeigt den Ast in einer zweiten Zeile, Vorhersage-Frage zum Ast, Kennzeichen „Ast an der dritten –OH“;
   keine Zweierkette mit Glycerin. Test für den Weg Verknüpfen → +T → +T → +Gl → +T → Ast.

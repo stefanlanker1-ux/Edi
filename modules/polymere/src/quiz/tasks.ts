@@ -4,16 +4,21 @@
 // Jede falsche Antwort steht für eine Fehlvorstellung (misconceptions.ts): d(text, schlüssel, rückmeldung).
 
 import { tr } from "@lern/i18n";
-import { buildRound, d, mc, pick, shuffle, weakTypes, type Distractor, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
+import { buildRound, d, mc, pick, shuffle, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { METHODS, method, monoName, stepMono, vinyl, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
 import { compat, methodsFor, stepReact } from "../chem/rules.ts";
 import { replay } from "../chem/mech/index.ts";
 import type { Recipe } from "../chem/mech/types.ts";
 import { visText, type StructKind, type Tact, type Vis } from "./visual.tsx";
+import { tapAfter, tapFrame, visibleAtoms, type TapScene } from "./tap.ts";
 
 /** `vis`: Bild der Aufgabe; `pics`: Bilder als Antworten; `tip`: auf die Aufgabe zugeschnittener Tipp */
 type Extra = { vis?: Vis; pics?: Record<string, Vis>; tip?: string };
-export type Task = McTask & Extra;
+/** Antippen im Bild: `parts` = antippbare Atome (Kennungen), `answer` = richtige Atome; `mode` multi = genau diese Menge, pair = zwei benachbarte
+ *  Teile (Reihenfolge von `parts`). Gemeldet: einzeln `pick` (Index), mehrere `n`, `wrong` (erstes falsches Teil, sonst −1), `adj` (benachbart). */
+export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: string[]; labels: string[]; answer: string[]; mode?: "multi" | "pair"; halos?: boolean };
+export type Task = (McTask & Extra) | TapTask;
+export const isTap = (t: Task): t is TapTask => t.kind === "tap";
 
 /** Begründung, die mit dem Begriff beginnt („Isotaktisch: …“): Begriff fett, nicht noch einmal davor schreiben */
 const boldLead = (s: string) => {
@@ -58,6 +63,23 @@ function arrowKey(r: Recipe, acts: string[], nth = 0): number {
 const mech = (r: Recipe, acts: string[], key: number): Vis => ({ k: "mech", r, acts, key });
 const lastFrame = (r: Recipe, acts: string[]): Vis => mech(r, acts, -1);
 const PS: Recipe = { art: "poly", a: "styrol", method: "dbpo" };
+
+/** Beschriftung eines antippbaren Teils (Vorlesen, Tastatur) */
+const partLabel = (el: string, i: number, vac?: boolean) => (vac ? T("freie Stelle", "free site") : T(`${el}‑Atom ${i + 1}`, `${el} atom ${i + 1}`));
+/** Antipp-Aufgabe zusammensetzen; `why(id)` liefert für jedes falsche Teil Schlüssel und Rückmeldung */
+function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair"; halos?: boolean; prompt: string; hint: string; tip?: string; explain: string;
+  why?: (id: string) => [string, string]; extra?: Trap[] }): TapTask {
+  const frame = tapFrame(o.scene), at = new Map(frame.snap.atoms.map(a => [a.id, a]));
+  const labels = o.parts.map((id, i) => partLabel(at.get(id)?.el ?? "", i, at.get(id)?.vac));
+  const traps: Trap[] = [...(o.extra ?? [])];
+  if (o.why) o.parts.forEach((id, i) => {
+    if (o.answer.includes(id)) return;
+    const [miss, why] = o.why!(id);
+    traps.push({ values: o.mode ? { wrong: i } : { pick: i }, miss, why });
+  });
+  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}),
+    prompt: o.prompt, hint: o.hint, explain: o.explain, traps, ...(o.tip ? { tip: o.tip } : {}) };
+}
 
 /** Aufgabe zusammensetzen */
 function task(prompt: string, correct: string, wrongs: Distractor[], o: { vis?: Vis; pics?: Record<string, Vis>; hint: string; tip?: string; explain: string; praise?: string; right?: string }): Task {
@@ -770,6 +792,136 @@ function recycling(): Task {
 
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
+// ── Antippen im Bild ───────────────────────────────────────────────────────────
+
+/** K2: Folge den Pfeilen – welches C trägt nach dem Anlagern das Radikal? */
+function radikalTap(): Task {
+  const m = pick(["styrol", "vinylchlorid", "acrylnitril"] as VinylId[]);
+  const r: Recipe = { art: "poly", a: m, method: "dbpo" }, acts = ["heat", `add:${m}`, `add:${m}`];
+  const scene: TapScene = { k: "mech", r, acts, key: arrowKey(r, acts) };
+  const parts = visibleAtoms(tapFrame(scene).snap).filter(a => a.el === "C").sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
+  const rings = Object.values(tapFrame(scene).snap.rings).flat();
+  return tapTask({
+    scene, parts, answer: ["u1cb"],
+    prompt: T(`Folge den Pfeilen. Tippe auf das C‑Atom, das danach das Radikal trägt.`, `Follow the arrows. Tap the C atom that carries the radical afterwards.`),
+    hint: T("Ein Elektron der C=C bildet mit dem Radikal die neue Bindung. Das andere bleibt übrig.", "One electron of the C=C forms the new bond with the radical. The other is left over."),
+    tip: T("Das CH₂ bindet an die Kette. Wo bleibt das zweite Elektron der C=C?", "The CH₂ bonds to the chain. Where does the second electron of the C=C stay?"),
+    explain: T(`Das Radikal bindet an das CH₂. Das ungepaarte Elektron sitzt danach am C mit der Seitengruppe von ${nm(m)}.`, `The radical binds to the CH₂. The unpaired electron then sits on the C with the side group of ${nm(m)}.`),
+    why: id => id === "u1ca" ? ["radikal-bleibt", T("Das CH₂ bindet an die Kette. Das ungepaarte Elektron bleibt am anderen C der Zweifachbindung.", "The CH₂ bonds to the chain. The unpaired electron stays on the other C of the double bond.")]
+      : id === "u0cb" ? ["radikal-bleibt", T("Das Elektron des alten Kettenendes steckt jetzt in der neuen Bindung.", "The electron of the old chain end is now in the new bond.")]
+      : rings.includes(id) ? ["gruppe-verwechselt", T("Der Benzolring bleibt unverändert. Es reagiert nur die C=C.", "The benzene ring stays unchanged. Only the C=C reacts.")]
+      : ["radikal-bleibt", T("Dieses C ist schon fest in der Kette. Das Radikal sitzt immer am wachsenden Ende.", "This C is already fixed in the chain. The radical always sits at the growing end.")],
+  });
+}
+
+/** K3: Ziegler-Natta – wo lagert sich das nächste Propen an? */
+function freieStelleTap(): Task {
+  const r: Recipe = { art: "poly", a: "propen", method: "zn" };
+  const scene: TapScene = { k: "mech", r, acts: ["act"], key: -1 };
+  const parts = visibleAtoms(tapFrame(scene).snap).filter(a => a.vac || ["Ti", "Cl", "Al"].includes(a.el) || a.id === "ale0").sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
+  return tapTask({
+    scene, parts, answer: ["tvac"],
+    prompt: T("Tippe auf die Stelle, an der sich das nächste Propen anlagert.", "Tap the place where the next propene attaches."),
+    hint: T("Am Titan gibt es eine Lücke ohne Atom – dort hat ein Monomer Platz.", "There is a gap without an atom at the titanium – a monomer fits there."),
+    tip: T("Suche den gestrichelten Kreis am Titan.", "Look for the dashed circle at the titanium."),
+    explain: T("Das Propen lagert sich an der **freien Stelle** am Titan an. Dann schiebt es sich zwischen Titan und Kette.", "The propene attaches at the **free site** on the titanium. Then it slides in between titanium and chain."),
+    why: id => id === "tti" ? ["zn-radikal", T("Richtig am Titan – aber genau an seiner freien Stelle, dem gestrichelten Kreis.", "Right at the titanium – but exactly at its free site, the dashed circle.")]
+      : id === "ale0" ? ["zn-radikal", T("Am Kettenende sitzt hier kein Radikal. Die Kette hängt am Titan.", "There is no radical at the chain end here. The chain hangs on the titanium.")]
+      : id.includes("cl") ? ["zn-radikal", T("Die Cl‑Atome halten das Titan. Angelagert wird an der freien Stelle.", "The Cl atoms hold the titanium. Attachment is at the free site.")]
+      : ["zn-radikal", T("Das Al hat nur die Ethylgruppe übergeben. Angelagert wird am Titan.", "The Al only handed over the ethyl group. Attachment happens at the titanium.")],
+  });
+}
+
+/** K3: welches Atom des polaren Monomers vergiftet das Titan? */
+function giftTap(): Task {
+  const m = pick(["vinylchlorid", "mma", "acrylnitril"] as VinylId[]);
+  const r: Recipe = { art: "poly", a: m, method: "zn" }, acts = ["act", `add:${m}`];
+  const scene: TapScene = { k: "mech", r, acts, key: arrowKey(r, acts), noArrows: true };
+  const snap = tapFrame(scene).snap, after = tapAfter(scene);
+  const het = after.bonds.find(b => b.k === "coord" && (b.a === "tti" || b.b === "tti"));
+  const ans = het ? (het.a === "tti" ? het.b : het.a) : "";
+  const parts = visibleAtoms(snap).filter(a => a.id.startsWith("n")).sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
+  const el = snap.atoms.find(a => a.id === ans)?.el ?? "Cl";
+  return tapTask({
+    scene, parts, answer: [ans],
+    prompt: T(`${cap(nm(m))} kommt an das Titan. Tippe auf das Atom, das an das Titan bindet und es vergiftet.`, `${cap(nm(m))} reaches the titanium. Tap the atom that binds to the titanium and poisons it.`),
+    hint: T("Gesucht ist ein Atom mit freiem Elektronenpaar: Cl, O, N oder F.", "Look for an atom with a lone pair: Cl, O, N or F."),
+    tip: T("Welches Atom hat freie Elektronenpaare (Striche am Symbol)?", "Which atom has lone pairs (lines at the symbol)?"),
+    explain: T(`Das ${el}‑Atom bindet mit einem freien Elektronenpaar fest an die freie Stelle. Kein Monomer kommt mehr heran: **vergiftet**.`, `The ${el} atom binds firmly to the free site with a lone pair. No monomer can get in any more: **poisoned**.`),
+    why: id => {
+      const a = snap.atoms.find(x => x.id === id);
+      return a?.el === "C" ? ["zn-polar", T(`Die C=C würde eingebaut. Das ${el} bindet aber fester – mit einem freien Elektronenpaar.`, `The C=C would be inserted. But the ${el} binds more firmly – with a lone pair.`)]
+        : a?.el === "H" ? ["zn-polar", T("H hat kein freies Elektronenpaar. Suche Cl, O, N oder F.", "H has no lone pair. Look for Cl, O, N or F.")]
+        : ["zn-polar", T(`Auch dieses Atom hat freie Elektronenpaare. Am Titan bindet hier aber das ${el}, das zur freien Stelle zeigt.`, `This atom has lone pairs too. But here the ${el} pointing at the free site binds to the titanium.`)];
+    },
+  });
+}
+
+/** K5: welches H wandert zum N des Isocyanats? */
+function hTap(): Task {
+  const r: Recipe = pick<Recipe>([{ art: "add", a: "hdi", b: "butandiol" }, { art: "add", a: "hdi", b: "ethandiol" }, { art: "add", a: "mdi", b: "butandiol" }]);
+  const acts = ["join"];
+  const scene: TapScene = { k: "mech", r, acts, key: arrowKey(r, acts), noArrows: true };
+  const snap = tapFrame(scene).snap, after = tapAfter(scene);
+  const nb = (s: typeof snap, id: string) => s.bonds.filter(b => b.a === id || b.b === id).map(b => (b.a === id ? b.b : b.a));
+  const el = (id: string) => snap.atoms.find(a => a.id === id)?.el;
+  const vis = visibleAtoms(snap).filter(a => a.el === "H" || a.el === "O");
+  const ans = vis.find(a => a.el === "H" && nb(snap, a.id).some(x => el(x) === "O") && nb(after, a.id).some(x => after.atoms.find(y => y.id === x)?.el === "N"))?.id ?? "";
+  const parts = vis.sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
+  return tapTask({
+    scene, parts, answer: [ans],
+    prompt: T("Tippe auf das H‑Atom, das gleich zum N wandert.", "Tap the H atom that is about to move to the N."),
+    hint: T("Das O der –OH-Gruppe bindet an das C der N=C=O-Gruppe. Sein H geht zum N.", "The O of the –OH group binds to the C of the N=C=O group. Its H goes to the N."),
+    tip: T("Suche die –OH-Gruppe, die zur N=C=O-Gruppe zeigt.", "Look for the –OH group facing the N=C=O group."),
+    explain: T("Das H der –OH-Gruppe wandert zum N: –NH–CO–O–, die **Urethangruppe**. Nichts wird abgespalten.", "The H of the –OH group moves to the N: –NH–CO–O–, the **urethane group**. Nothing is split off."),
+    why: id => el(id) === "O" ? ["h-wandert-falsch", T("Das O bleibt und bindet an das C. Gesucht ist das H daran.", "The O stays and binds to the C. The H on it is wanted.")]
+      : nb(snap, id).some(x => el(x) === "O") ? ["h-wandert-falsch", T("Diese –OH sitzt am anderen Ende. Es reagiert die –OH, die zur N=C=O-Gruppe zeigt.", "This –OH is at the other end. The –OH facing the N=C=O group reacts.")]
+      : ["h-wandert-falsch", T("C–H-Bindungen bleiben. Es wandert das H der –OH-Gruppe.", "C–H bonds stay. The H of the –OH group moves.")],
+  });
+}
+
+/** K4: die drei Atome antippen, die als Wasser abgehen */
+function wasserTap(): Task {
+  const r: Recipe = pick<Recipe>([{ art: "kond", a: "terephthalsaeure", b: "ethandiol" }, { art: "kond", a: "adipinsaeure", b: "butandiol" }, { art: "kond", a: "adipinsaeure", b: "hexandiamin" }]);
+  const scene: TapScene = { k: "mech", r, acts: ["join"], key: 1, noArrows: true };
+  const snap = tapFrame(scene).snap, after = tapAfter(scene);
+  const gone = new Set(snap.atoms.filter(a => !after.atoms.some(b => b.id === a.id)).map(a => a.id));
+  const vis = visibleAtoms(snap).filter(a => a.el === "H" || a.el === "O").sort((p, q) => p.x - q.x || p.y - q.y);
+  const parts = vis.map(a => a.id), answer = parts.filter(id => gone.has(id));
+  const dbl = (id: string) => snap.bonds.some(b => (b.a === id || b.b === id) && b.o === 2);
+  const amine = r.b === "hexandiamin";
+  return tapTask({
+    scene, parts, answer, mode: "multi",
+    prompt: T("Tippe die drei Atome an, die zusammen als Wasser abgehen.", "Tap the three atoms that leave together as water."),
+    hint: T(`Die Säure gibt OH ab, ${amine ? "das Amin" : "der Alkohol"} ein H.`, `The acid gives off OH, the ${amine ? "amine" : "alcohol"} an H.`),
+    tip: T("Sieh dir die zwei Enden an, die sich gegenüberstehen.", "Look at the two ends that face each other."),
+    explain: T(`–OH der Säure + H ${amine ? "des Amins" : "des Alkohols"} → **Wasser H₂O**. ${amine ? "Das N" : "Das O des Alkohols"} bleibt in der neuen Bindung.`, `–OH of the acid + H of the ${amine ? "amine" : "alcohol"} → **water H₂O**. The ${amine ? "N" : "alcohol's O"} stays in the new bond.`),
+    extra: [{ values: { wrong: -1 }, miss: "byp-falsch", why: T("Noch nicht vollständig: Wasser H₂O hat drei Atome – zwei H und ein O.", "Not complete yet: water H₂O has three atoms – two H and one O.") }],
+    why: id => dbl(id) ? ["byp-falsch", T("Das =O bleibt am C – es gehört zur neuen Bindung.", "The =O stays on the C – it belongs to the new bond.")]
+      : snap.atoms.find(a => a.id === id)?.el === "O" ? ["byp-falsch", T("Das O des Alkohols bleibt in der Esterbindung. Das O im Wasser stammt aus der –COOH.", "The O of the alcohol stays in the ester bond. The O in the water comes from the –COOH.")]
+      : ["byp-falsch", T("Dieses H bleibt. Es geht das H ab, das an der reagierenden Gruppe gegenüber sitzt.", "This H stays. The H at the reacting group opposite leaves.")],
+  });
+}
+
+/** K1: die C‑Atome eines Bausteins in der Kette antippen */
+function bausteinTap(): Task {
+  const id = pick(["propen", "vinylchlorid", "styrol"] as VinylId[]);
+  const scene: TapScene = { k: "chain", id, n: 3 };
+  const parts = [0, 1, 2].flatMap(i => [`k${i}ca`, `k${i}cb`]);
+  return tapTask({
+    scene, parts, answer: [], mode: "pair", halos: false,
+    prompt: T("Tippe die C‑Atome der Hauptkette an, die zusammen **einen** Baustein bilden.", "Tap the C atoms of the main chain that together form **one** repeat unit."),
+    hint: T(`Ein Baustein entsteht aus einem Monomer ${nm(id)}: so viele C‑Atome wie in seiner C=C.`, `One unit comes from one monomer ${nm(id)}: as many C atoms as in its C=C.`),
+    tip: T("Das Muster wiederholt sich: Suche zwei C nebeneinander, eines mit Seitengruppe.", "The pattern repeats: look for two neighbouring C, one with a side group."),
+    explain: T("Ein Baustein = zwei benachbarte C‑Atome der Hauptkette: –CH₂–CH(Seitengruppe)–. Danach wiederholt sich das Muster.", "One unit = two neighbouring C atoms of the main chain: –CH₂–CH(side group)–. Then the pattern repeats."),
+    extra: [
+      { field: "n", value: 1, miss: "atome-statt-bausteine", why: T("Ein Baustein hat zwei C‑Atome der Hauptkette – so viele wie die C=C im Monomer.", "A unit has two C atoms of the main chain – as many as the C=C in the monomer.") },
+      { field: "n", min: 3, miss: "bindungen-gezaehlt", why: T("Zu viel: Nach zwei C‑Atomen wiederholt sich das Muster.", "Too many: the pattern repeats after two C atoms.") },
+      { values: { adj: 0 }, miss: "atome-statt-bausteine", why: T("Ein Baustein hängt zusammen: zwei C nebeneinander.", "A unit hangs together: two C next to each other.") },
+    ],
+  });
+}
+
 const GENS: Record<string, () => Task> = {
   polyName, monomerVon, baustein, doppelbindung, nBedeutung, kugelZaehlen, bausteinWahl, kunststoffAlltag,
   schritt, radikal, pfeil, startBruch, wohinRadikal, abbruchArt, starterRest, mehrStarter,
@@ -777,6 +929,7 @@ const GENS: Record<string, () => Task> = {
   gruppen, nebenprodukt, bindungArt, chlorid, paarWahl, stopper, netz, produkt, abMonomer, wasserZahl,
   keinNebenprodukt, hWandert, urethan, artWahl, epoxid, epoxidNetz,
   klasse, schmelzen, copolymer, wachstum, klasseAlltag, recycling,
+  radikalTap, freieStelleTap, giftTap, hTap, wasserTap, bausteinTap,
 };
 
 export const TYPE_NAMES: Record<string, string> = tr({
@@ -790,6 +943,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Kettenstopper", netz: "Netz durch drei Gruppen", produkt: "Kunststoff zum Monomer-Paar", abMonomer: "Monomer mit zwei Gruppen", wasserZahl: "Wasser zählen",
   keinNebenprodukt: "Ohne Nebenprodukt", hWandert: "Wanderndes H‑Atom", urethan: "Urethan und Harnstoff", artWahl: "Reaktionsart erkennen",
   epoxid: "Epoxidring", epoxidNetz: "Epoxidharz härtet",
+  radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Giftiges Atom antippen", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
   klasse: "Thermoplast, Elastomer, Duroplast", schmelzen: "Einschmelzen", copolymer: "Copolymere", wachstum: "Ketten- und Stufenwachstum",
   klasseAlltag: "Kunststoffart im Alltag", recycling: "Recycling-Code",
 }, {
@@ -803,6 +957,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Chain stopper", netz: "Network from three groups", produkt: "Plastic from a monomer pair", abMonomer: "Monomer with two groups", wasserZahl: "Counting water",
   keinNebenprodukt: "No by-product", hWandert: "Moving H atom", urethan: "Urethane and urea", artWahl: "Recognising the reaction type",
   epoxid: "Epoxide ring", epoxidNetz: "Epoxy resin hardens",
+  radikalTap: "Tap the radical", freieStelleTap: "Tap the free site", giftTap: "Tap the poisoning atom", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a unit",
   klasse: "Thermoplastic, elastomer, thermoset", schmelzen: "Melting down", copolymer: "Copolymers", wachstum: "Chain and step growth",
   klasseAlltag: "Type of plastic in everyday life", recycling: "Recycling code",
 });
@@ -821,7 +976,7 @@ const K1: Step[] = tr([
   ["monomerVon", "Der Name verrät das Monomer: **Poly** + Name des Monomers."],
   ["polyName", "Die Seitengruppe an der Zweifachbindung unterscheidet die Monomere."],
   ["kunststoffAlltag", "Kunststoffe sind Polymere – oft mit Kurzzeichen wie PE, PP, PS, PVC."],
-  ["baustein", "Zum Schluss: Kette lesen, Baustein finden, Monomer nennen."],
+  ["bausteinTap", "Zum Schluss: Kette lesen, Baustein finden, Monomer nennen."],
 ], [
   ["polyName", "A **polymer** is a giant molecule made of many small building blocks, the **monomers**."],
   ["doppelbindung", "Monomers for polymerisation have a **C=C double bond**."],
@@ -832,13 +987,13 @@ const K1: Step[] = tr([
   ["monomerVon", "The name gives away the monomer: **poly** + name of the monomer."],
   ["polyName", "The side group on the double bond tells the monomers apart."],
   ["kunststoffAlltag", "Plastics are polymers – often with short codes such as PE, PP, PS, PVC."],
-  ["baustein", "Finally: read the chain, find the unit, name the monomer."],
+  ["bausteinTap", "Finally: read the chain, find the unit, name the monomer."],
 ]);
 const K2: Step[] = tr([
   ["radikal", "Ein **Radikal** hat ein **ungepaartes Elektron** (Punkt). Es ist sehr reaktiv."],
   ["startBruch", "**Start**: Beim Erwärmen bricht die O–O-Bindung des Starters gleichmäßig."],
   ["pfeil", "Ein **halber Pfeil** zeigt, wohin **ein** Elektron wandert."],
-  ["wohinRadikal", "**Kettenwachstum**: Das Radikal greift C=C an – am neuen Ende sitzt wieder ein Radikal."],
+  ["radikalTap", "**Kettenwachstum**: Das Radikal greift C=C an – am neuen Ende sitzt wieder ein Radikal."],
   ["schritt", "Start, Wachstum, Abbruch: Die Pfeile zeigen, welcher Schritt es ist."],
   ["abbruchArt", "**Abbruch**: Zwei Radikale treffen sich – Rekombination oder Disproportionierung."],
   ["starterRest", "Der Starter wird verbraucht: Sein Bruchstück sitzt am Kettenanfang."],
@@ -849,7 +1004,7 @@ const K2: Step[] = tr([
   ["radikal", "A **radical** has an **unpaired electron** (dot). It is very reactive."],
   ["startBruch", "**Initiation**: on heating, the O–O bond of the initiator breaks evenly."],
   ["pfeil", "A **half arrow** shows where **one** electron moves."],
-  ["wohinRadikal", "**Chain growth**: the radical attacks C=C – the new end is a radical again."],
+  ["radikalTap", "**Chain growth**: the radical attacks C=C – the new end is a radical again."],
   ["schritt", "Initiation, growth, termination: the arrows show which step it is."],
   ["abbruchArt", "**Termination**: two radicals meet – combination or disproportionation."],
   ["starterRest", "The initiator is used up: its fragment sits at the start of the chain."],
@@ -859,7 +1014,7 @@ const K2: Step[] = tr([
 ]);
 const K3: Step[] = tr([
   ["katalysator", "Ein **Katalysator** wird nicht verbraucht. Am Titan wachsen nacheinander viele Ketten."],
-  ["freieStelle", "Am Titan gibt es eine **freie Stelle**. Dort lagert sich das Monomer an."],
+  ["freieStelleTap", "Am Titan gibt es eine **freie Stelle**. Dort lagert sich das Monomer an."],
   ["zieglerGift", "Polare Monomere binden mit O, N, Cl oder F an das Titan: Der Katalysator ist **vergiftet**."],
   ["taktisch", "**Isotaktisch**: alle Seitengruppen auf einer Seite. **Ataktisch**: zufällig."],
   ["taktischVerfahren", "Am Titan wird jedes Monomer gleich herum eingebaut – die Kette wird geordnet."],
@@ -867,10 +1022,10 @@ const K3: Step[] = tr([
   ["lebend", "**Anionisch** (Butyllithium): Die Ketten **leben** weiter, bis Methanol sie beendet."],
   ["kationisch", "**Kationisch** (BF₃ und Wasser): CH₃-Gruppen stabilisieren die positive Ladung."],
   ["verfahrenWahl", "Jedes Monomer braucht das passende Verfahren."],
-  ["zieglerGift", "Zum Schluss: Wer vergiftet das Titan – und warum?"],
+  ["giftTap", "Zum Schluss: Wer vergiftet das Titan – und warum?"],
 ], [
   ["katalysator", "A **catalyst** is not used up. Many chains grow one after another at the titanium."],
-  ["freieStelle", "The titanium has a **free site**. The monomer attaches there."],
+  ["freieStelleTap", "The titanium has a **free site**. The monomer attaches there."],
   ["zieglerGift", "Polar monomers bind to the titanium with O, N, Cl or F: the catalyst is **poisoned**."],
   ["taktisch", "**Isotactic**: all side groups on one side. **Atactic**: random."],
   ["taktischVerfahren", "At the titanium each monomer is inserted the same way round – the chain becomes ordered."],
@@ -878,11 +1033,11 @@ const K3: Step[] = tr([
   ["lebend", "**Anionic** (butyllithium): the chains **stay alive** until methanol stops them."],
   ["kationisch", "**Cationic** (BF₃ and water): CH₃ groups stabilise the positive charge."],
   ["verfahrenWahl", "Each monomer needs the right method."],
-  ["zieglerGift", "Finally: what poisons the titanium – and why?"],
+  ["giftTap", "Finally: what poisons the titanium – and why?"],
 ]);
 const K4: Step[] = tr([
   ["gruppen", "Bei der **Polykondensation** reagieren **funktionelle Gruppen**, z. B. –COOH mit –OH."],
-  ["nebenprodukt", "Dabei wird ein kleines Molekül **abgespalten** – meist Wasser."],
+  ["wasserTap", "Dabei wird ein kleines Molekül **abgespalten** – meist Wasser."],
   ["bindungArt", "Säure + Alkohol → **Esterbindung**. Säure + Amin → **Amidbindung**."],
   ["wasserZahl", "Jede Verknüpfung spaltet genau ein Molekül ab."],
   ["chlorid", "Mit **Säurechloriden** (–COCl) wird statt Wasser HCl abgespalten."],
@@ -893,7 +1048,7 @@ const K4: Step[] = tr([
   ["produkt", "PET ist ein Polyester, Nylon ein Polyamid."],
 ], [
   ["gruppen", "In **polycondensation** **functional groups** react, e.g. –COOH with –OH."],
-  ["nebenprodukt", "A small molecule is **split off** – usually water."],
+  ["wasserTap", "A small molecule is **split off** – usually water."],
   ["bindungArt", "Acid + alcohol → **ester bond**. Acid + amine → **amide bond**."],
   ["wasserZahl", "Each link splits off exactly one molecule."],
   ["chlorid", "With **acid chlorides** (–COCl), HCl is split off instead of water."],
@@ -905,7 +1060,7 @@ const K4: Step[] = tr([
 ]);
 const K5: Step[] = tr([
   ["keinNebenprodukt", "Bei der **Polyaddition** wird **nichts** abgespalten."],
-  ["hWandert", "Ein **H‑Atom wandert** von der –OH-Gruppe zum N‑Atom des Isocyanats."],
+  ["hTap", "Ein **H‑Atom wandert** von der –OH-Gruppe zum N‑Atom des Isocyanats."],
   ["urethan", "Isocyanat + Alkohol → **Urethangruppe**: Polyurethan (PUR)."],
   ["urethan", "Isocyanat + Amin → **Harnstoffgruppe**: Polyharnstoff."],
   ["artWahl", "Polymerisation (C=C), Polykondensation (+ kleines Molekül), Polyaddition (ohne)."],
@@ -916,7 +1071,7 @@ const K5: Step[] = tr([
   ["artWahl", "Zum Schluss: drei Reaktionsarten unterscheiden."],
 ], [
   ["keinNebenprodukt", "In **polyaddition** **nothing** is split off."],
-  ["hWandert", "An **H atom moves** from the –OH group to the N atom of the isocyanate."],
+  ["hTap", "An **H atom moves** from the –OH group to the N atom of the isocyanate."],
   ["urethan", "Isocyanate + alcohol → **urethane group**: polyurethane (PUR)."],
   ["urethan", "Isocyanate + amine → **urea group**: polyurea."],
   ["artWahl", "Polymerisation (C=C), polycondensation (+ small molecule), polyaddition (without)."],
@@ -950,16 +1105,17 @@ const K6: Step[] = tr([
   ["klasseAlltag", "Finally: connect type of plastic and structure."],
 ]);
 
-const level = (n: number, name: string, desc: string, steps: Step[]): Level => {
+/** `more`: Aufgabentypen, die nicht im festen Ablauf stehen, aber zum Kapitel gehören (Auswahl-Fassung von Antipp-Aufgaben – „Alles gemischt“, Wiederholung) */
+const level = (n: number, name: string, desc: string, steps: Step[], more: string[] = []): Level => {
   const seq = steps.map(([t]) => t);
-  return { id: `pm-k${n}`, name, desc, seq, leads: steps.map(([, l]) => l), tip: true, types: [...new Set(seq)] };
+  return { id: `pm-k${n}`, name, desc, seq, leads: steps.map(([, l]) => l), tip: true, types: [...new Set([...seq, ...more])] };
 };
 export const LEVELS: Level[] = [
-  level(1, tr("Monomere und Polymere", "Monomers and polymers"), tr("Zweifachbindung, Baustein, Name, Kügelchenmodell", "Double bond, unit, name, bead model"), K1),
-  level(2, tr("Radikalische Polymerisation", "Radical polymerisation"), tr("Radikal, Start, Kettenwachstum, Abbruch", "Radical, initiation, chain growth, termination"), K2),
-  level(3, tr("Katalysatoren und Verfahren", "Catalysts and methods"), tr("Ziegler-Natta, anionisch, kationisch, Taktizität", "Ziegler–Natta, anionic, cationic, tacticity"), K3),
-  level(4, tr("Polykondensation", "Polycondensation"), tr("Funktionelle Gruppen, Wasser abspalten, Ester, Amid, Netz", "Functional groups, splitting off water, ester, amide, network"), K4),
-  level(5, tr("Polyaddition", "Polyaddition"), tr("Urethan, Harnstoff, Epoxidharz – ohne Nebenprodukt", "Urethane, urea, epoxy resin – without a by-product"), K5),
+  level(1, tr("Monomere und Polymere", "Monomers and polymers"), tr("Zweifachbindung, Baustein, Name, Kügelchenmodell", "Double bond, unit, name, bead model"), K1, ["baustein"]),
+  level(2, tr("Radikalische Polymerisation", "Radical polymerisation"), tr("Radikal, Start, Kettenwachstum, Abbruch", "Radical, initiation, chain growth, termination"), K2, ["wohinRadikal"]),
+  level(3, tr("Katalysatoren und Verfahren", "Catalysts and methods"), tr("Ziegler-Natta, anionisch, kationisch, Taktizität", "Ziegler–Natta, anionic, cationic, tacticity"), K3, ["freieStelle"]),
+  level(4, tr("Polykondensation", "Polycondensation"), tr("Funktionelle Gruppen, Wasser abspalten, Ester, Amid, Netz", "Functional groups, splitting off water, ester, amide, network"), K4, ["nebenprodukt"]),
+  level(5, tr("Polyaddition", "Polyaddition"), tr("Urethan, Harnstoff, Epoxidharz – ohne Nebenprodukt", "Urethane, urea, epoxy resin – without a by-product"), K5, ["hWandert"]),
   level(6, tr("Struktur und Eigenschaften", "Structure and properties"), tr("Thermoplast, Elastomer, Duroplast, Copolymere", "Thermoplastic, elastomer, thermoset, copolymers"), K6),
 ];
 
@@ -978,7 +1134,7 @@ function withHint(t: Task, cue: boolean): Task {
 function ordered(seq: string[], leads: string[]): Task[] {
   const seen = new Set<string>();
   // gleiche Frage auch bei anderer Reihenfolge der Antworten
-  const sig = (t: Task) => t.prompt + [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null);
+  const sig = (t: Task) => t.prompt + (isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
   return seq.map((id, i) => {
     let t = GENS[id]();
     for (let k = 0; k < 30 && seen.has(sig(t)); k++) t = GENS[id]();
