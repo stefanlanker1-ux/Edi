@@ -19,7 +19,7 @@ const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
   ] },
   k3: { vis: [{ k: "chain", id: "propen", n: 4, tact: "iso" }], points: [
     "**Ziegler-Natta**: Einbau an der **freien Stelle** am Titan, Katalysator wird nicht verbraucht.",
-    "O-, N-, Cl- oder F-Atome **vergiften** das Titan. Ergebnis: unverzweigt (PE-HD), **isotaktisch** (PP).",
+    "O-, N-, Cl- oder F‑Atome **vergiften** das Titan. Ergebnis: unverzweigt (PE-HD), **isotaktisch** (PP).",
     "**Anionisch**: lebende Ketten → Blockcopolymere. **Kationisch**: Isobuten bei −100 °C.",
   ] },
   k4: { vis: [{ k: "pair", a: "terephthalsaeure", b: "ethandiol" }], points: [
@@ -28,7 +28,7 @@ const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
     "Zwei Gruppen je Monomer: Kette. Eine: **Kettenstopper**. Drei: **Netz**.",
   ] },
   k5: { vis: [{ k: "pair", a: "hdi", b: "butandiol" }], points: [
-    "**Polyaddition**: **kein Nebenprodukt** – ein H-Atom wandert.",
+    "**Polyaddition**: **kein Nebenprodukt** – ein H‑Atom wandert.",
     "Isocyanat + Alkohol → **Urethan** (PUR). Isocyanat + Amin → **Harnstoff**.",
     "**Epoxidharz**: Ring öffnet sich, jede –NH₂ reagiert zweimal → Netz.",
   ] },

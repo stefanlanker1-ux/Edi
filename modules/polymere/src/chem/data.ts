@@ -16,7 +16,7 @@ export const ART_NAME: Record<Art, string> = tr(
 
 // ── Kettenpolymerisation ────────────────────────────────────────────────────────
 
-/** Gruppe an einem C-Atom der Zweifachbindung */
+/** Gruppe an einem C‑Atom der Zweifachbindung */
 export type Grp = "H" | "CH3" | "Cl" | "F" | "Ph" | "CN" | "COOMe" | "OAc";
 
 export type VinylId = "ethen" | "propen" | "styrol" | "vinylchlorid" | "mma" | "acrylnitril" | "tfe" | "isobuten" | "butadien" | "vinylacetat";
@@ -36,7 +36,7 @@ export interface Vinyl {
   formula: string;
   /** Halbstrukturformel; {…} = reagierender Teil */
   struct: string;
-  /** Gruppen am CH₂-Ende (a) und am anderen C-Atom (b): [oben, unten] */
+  /** Gruppen am CH₂-Ende (a) und am anderen C‑Atom (b): [oben, unten] */
   a: [Grp, Grp];
   b: [Grp, Grp];
   /** Buta-1,3-dien: zwei Zweifachbindungen, Einbau 1,4 (–CH₂–CH=CH–CH₂–) */

@@ -73,7 +73,7 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
             : tr("Dann entstünden Ionen. Die Bindung bricht gleichmäßig: Jedes O behält ein Elektron – zwei Radikale.", "That would give ions. The bond breaks evenly: each O keeps one electron – two radicals.")],
         [tr("sie verschwinden", "they disappear"), tr("Elektronen verschwinden nie. Jedes Atom der Bindung behält eins – es entstehen Radikale.", "Electrons never disappear. Each atom of the bond keeps one – radicals form.")],
       ], 0,
-      ab ? tr("Jedes C behält ein Elektron: zwei Radikale. Die N-Atome bilden N₂, das entweicht.", "Each C keeps one electron: two radicals. The N atoms form N₂, which escapes.")
+      ab ? tr("Jedes C behält ein Elektron: zwei Radikale. Die N‑Atome bilden N₂, das entweicht.", "Each C keeps one electron: two radicals. The N atoms form N₂, which escapes.")
         : tr("Jedes O behält ein Elektron: zwei Radikale. Danach geht CO₂ ab.", "Each O keeps one electron: two radicals. Then CO₂ splits off."),
     );
   }
@@ -107,11 +107,11 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
       tr("Die zwei ungepaarten Elektronen bilden eine Bindung. Aus zwei Ketten wird eine – sie wächst nicht weiter.", "The two unpaired electrons form a bond. Two chains become one – it grows no further."));
   }
   if (id === "disp") {
-    return q(tr("Ein H-Atom wandert zur anderen Kette. Was hat die Kette, die es abgibt, danach am Ende?", "An H atom moves to the other chain. What does the giving chain have at its end afterwards?"),
+    return q(tr("Ein H‑Atom wandert zur anderen Kette. Was hat die Kette, die es abgibt, danach am Ende?", "An H atom moves to the other chain. What does the giving chain have at its end afterwards?"),
       [
         [tr("eine C=C", "a C=C")],
         [tr("ein Radikal", "a radical"), tr("Das H nimmt nur ein Elektron mit. Das übrige bildet mit dem Radikal-Elektron eine Zweifachbindung C=C.", "The H takes only one electron. The other one forms a double bond C=C with the radical electron.")],
-        [tr("eine Ladung", "a charge"), tr("Es wandert ein H-Atom mit einem Elektron, kein Ion. Zurück bleibt eine Zweifachbindung C=C.", "An H atom moves with one electron, not an ion. A double bond C=C is left behind.")],
+        [tr("eine Ladung", "a charge"), tr("Es wandert ein H‑Atom mit einem Elektron, kein Ion. Zurück bleibt eine Zweifachbindung C=C.", "An H atom moves with one electron, not an ion. A double bond C=C is left behind.")],
       ], 0,
       tr("Eine Kette bekommt das H und ist gesättigt. Die andere hat am Ende eine C=C – beide wachsen nicht weiter.", "One chain gets the H and is saturated. The other has a C=C at its end – neither grows on."));
   }
@@ -203,7 +203,7 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
       ? tr("Das Cl der Säurechlorid-Gruppe und ein H der anderen Gruppe bilden Chlorwasserstoff HCl.", "The Cl of the acid chloride group and one H of the other group form hydrogen chloride HCl.")
       : res === "none"
         ? after.fail ?? tr("Diese Gruppen reagieren nicht miteinander.", "These groups do not react with each other.")
-        : tr("Hier wandert nur ein H-Atom zur anderen Gruppe. Es wird nichts abgespalten.", "Here only one H atom moves to the other group. Nothing splits off.");
+        : tr("Hier wandert nur ein H‑Atom zur anderen Gruppe. Es wird nichts abgespalten.", "Here only one H atom moves to the other group. Nothing splits off.");
   const bypQ = () => q(tr("Verknüpfen: Was passiert?", "Linking: what happens?"),
     [
       [tr("Verknüpfung + H₂O", "link + H₂O")],

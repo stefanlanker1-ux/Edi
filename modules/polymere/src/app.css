@@ -5,6 +5,7 @@
 .mb-line { stroke: var(--text); stroke-width: 2.4; stroke-linecap: round; }
 .mb-coord .mb-line { stroke: var(--muted); stroke-dasharray: 5 6; }
 .mb-ts .mb-line { stroke: var(--hue-red-deep); stroke-dasharray: 3 5; stroke-width: 2; }
+.mb-wave { fill: none; stroke: var(--text); stroke-width: 2; stroke-linecap: round; }
 .mb-wedge { fill: var(--text); }
 .mb-hash { stroke: var(--text); stroke-width: 2; stroke-linecap: round; }
 .mb-atom text { font-size: 22px; font-weight: 700; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
@@ -216,11 +217,16 @@
 .pm-pot { display: block; width: 100%; height: 100%; }
 .pm-pot-glass { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .pm-pot-bond { stroke: var(--text); stroke-width: 1.4; }
+.pm-pots-cap { font-size: 10px; font-weight: 700; fill: var(--text); }
 .pm-pot .pm-bead-c { stroke-width: 0.9; }
 /* Antworten als Bild */
 .mc-grid:has(.pm-opt-pic) { grid-template-columns: 1fr 1fr; }
 .pm-opt-pic { display: block; width: 100%; height: clamp(58px, 15vh, 130px); }
 .pm-opt-pic .mb-svg { width: 100%; height: 100%; }
+/* Bild-Antworten: Kennbuchstabe klein in der Ecke, das Bild nutzt die ganze Kartenbreite */
+.mc-btn:has(.pm-opt-pic) { position: relative; padding: 6px; }
+.mc-btn:has(.pm-opt-pic) > .mc-key { position: absolute; top: 5px; left: 5px; width: 24px; height: 24px; z-index: 1; }
+.mc-btn:has(.pm-opt-pic) > span:not(.mc-key) { flex: 1 1 0; }
 @media (max-height: 720px) { .pm-opt-pic { height: clamp(50px, 13vh, 100px); } }
 /* Lektionen */
 .pm-lesson-vis, .pm-lesson-mech { position: relative; width: 100%; height: 100%; min-height: 0; }
@@ -230,6 +236,9 @@
 .pm-lesson-two figure { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; min-height: 0; }
 .pm-lesson-two figcaption, .pm-lesson-strips figcaption, .pm-lesson-growth figcaption { text-align: center; font-size: .8rem; font-weight: 650; color: var(--muted); }
 .pm-lesson-arrow { font-size: 1.4rem; font-weight: 800; }
+.pm-lesson-two.vs figure { grid-template-rows: auto minmax(0, 1fr); }
+.pm-lesson-two.vs figcaption { color: var(--text); }
+.pm-lesson-div { align-self: stretch; width: 0; border-left: 1.5px solid var(--rule); margin: 4px 6px; }
 .pm-lesson-strips { display: grid; gap: 8px; width: 100%; align-content: center; }
 .pm-lesson-strips figure { margin: 0; }
 .pm-lesson-strips .pm-strip { max-height: 40px; }
@@ -249,5 +258,6 @@
 @container (orientation: portrait) {
   .pm-lesson-two { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); }
   .pm-lesson-arrow { justify-self: center; transform: rotate(90deg); line-height: 1; }
+  .pm-lesson-div { justify-self: stretch; width: auto; height: 0; border-left: 0; border-top: 1.5px solid var(--rule); margin: 4px 0; }
   .pm-lesson-growth { grid-template-columns: 1fr; }
 }

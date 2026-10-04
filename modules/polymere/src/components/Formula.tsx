@@ -11,7 +11,9 @@ import { MechSvg } from "./MechSvg.tsx";
 
 export function SnapSvg({ snap, label, aspect = 1.4, halos = false, minW = 3, minH = 2.2, className }: { snap: Snap; label: string; aspect?: number; halos?: boolean; minW?: number; minH?: number; className?: string }) {
   const b = boxOf(snap.atoms) ?? { x0: -1, y0: -1, x1: 1, y1: 1 };
-  const box = fitBox(b, aspect, minW, minH, 0.35);
+  // aspect 0: Seitenverhältnis der Zeichnung selbst (füllt eine Antwortkarte, statt klein in der Mitte zu stehen)
+  const natural = (b.x1 - b.x0 + 0.7) / (b.y1 - b.y0 + 0.7);
+  const box = aspect > 0 ? fitBox(b, aspect, minW, minH, 0.35) : fitBox(b, natural, 0, 0, 0.35);
   return <MechSvg pose={still(snap)} box={box} label={label} halos={halos} lp className={className} />;
 }
 

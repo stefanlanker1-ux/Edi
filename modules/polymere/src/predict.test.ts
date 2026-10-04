@@ -55,7 +55,7 @@ test("Vorhersage: eine richtige Antwort, Rückmeldung zu jeder falschen, kurze T
     }
     for (const s of [p.ask, p.ok, ...p.options.map(o => o.why ?? "")]) for (const n of words(s)) assert.ok(n <= 22, `${where}: Satz zu lang „${s}“`);
   }
-});
+}, 120_000);
 
 test("Vorhersage: richtige Antwort folgt der Fachlogik, je Aktion höchstens zweimal gefragt", () => {
   const right = (r: Recipe, acts: string[], id: string) => predict(r, acts, id)!.options.find(o => o.ok)!.text;

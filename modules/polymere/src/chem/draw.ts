@@ -96,7 +96,7 @@ export interface UnitIds {
   hetero?: string;
   /** Atome der Hauptgruppe (oben bzw. unten) */
   r?: string[];
-  /** Butadien: mittlere C-Atome */
+  /** Butadien: mittlere C‑Atome */
   mid?: [string, string];
 }
 

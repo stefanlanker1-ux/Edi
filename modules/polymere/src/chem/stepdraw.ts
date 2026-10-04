@@ -143,7 +143,7 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     const o = A("o", "O", sc.at(top).x, sc.at(top).y - 1), h = A("ho", "H", sc.at(top).x + 0.8, sc.at(top).y - 1);
     sc.bond(top, o); sc.bond(o, h); sc.autoLp(o, 2, -90);
     left = r[0]; right = r[3];
-    // reaktive H-Atome an beiden Seiten (Stellungen neben der OH-Gruppe sind gezeichnet als links/rechts)
+    // reaktive H‑Atome an beiden Seiten (Stellungen neben der OH-Gruppe sind gezeichnet als links/rechts)
     const hl = A("hl", "H", sc.at(left).x - 0.8, y), hr = A("hr", "H", sc.at(right).x + 0.8, y);
     sc.bond(left, hl); sc.bond(right, hr);
     ends.push({ fg: "ArH", anchor: left, leave: [hl], extra: {}, s: -1 }, { fg: "ArH", anchor: right, leave: [hr], extra: {}, s: 1 });

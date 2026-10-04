@@ -574,6 +574,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   fragt nie. Nach der Wahl spielt der Ablauf sofort, darunter ✓ bzw. „Noch nicht“, die richtige Antwort (✓ grün) und die Begründung, „Weiter“ schließt.
   Antworten dreispaltig, nur wenn kein Wort übersteht (sonst zwei bzw. eine Spalte). Tests: `predict.test.ts` (eine richtige Antwort, Rückmeldung zu
   jeder falschen, Fachlogik, Satzlänge), `predict-english.test.ts`.
+  Ausschnitt: kleine Anhängsel an Fokus-Atomen (–OH, –Cl, Benzolring, höchstens 7 Atome; `expandFocus`) gehören immer ganz ins Bild; was trotzdem
+  über den Rand ragt, blendet `MechSvg` aus und endet an einer **Wellenlinie** (halbe Bindung + Welle) – nie ein Atom mitten im Zeichen abgeschnitten.
+  Elektronen-Punkte nur am aktiven Ende (Test: nach jeder Aktion 1 Punkt beim Radikal, 2 beim Anion, sonst keiner); beim Zerfall des Starters gleitet das
+  zweite Radikal beschriftet („2. Radikal“) zur Seite, die zwei Elektronen am CO₂ werden zur zweiten C=O-Bindung. Rekombination/Disproportionierung:
+  die zweite Kette steht um 30° gedreht, damit ihre Gruppen nicht auf denen des ersten Kettenendes liegen.
   Kamera (`MechStage`): ein Ablauf beginnt im Ausschnitt seines ersten Bilds und fährt während des ersten Schritts zum ruhigen Ausschnitt des Rests; Ende,
   Zurück und andere Ansätze werden weich angefahren (550 ms), andere Bühnengröße ohne Fahrt. Stufenwachstum: Ausschnitt = Kettenende + Platz für das nächste
   Molekül (`span`), am Anfang beide Ausgangsstoffe ganz.
@@ -596,7 +601,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   mit/ohne C=C, Kettenausschnitt iso-/syndio-/ataktisch, Mechanismus-Standbild mit Pfeilen, Kügelchen, zwei Monomere, Kettenbild, Gefäß mit Kügelchen:
   nur Monomer / wenige lange Ketten + Monomer / viele kurze Ketten, kaum Monomer – Stufenwachstum bei 90 % Umsatz, denn bei 50 % ist noch die Hälfte
   der Moleküle Monomer (mittlere Länge = 1/(1 − Umsatz)) / ein Riesenmolekül; **Umsatz** in der Lektion K6 eingeführt), teils mit Bild-Antworten (Ketten- vs. Stufenwachstum als vier Gefäße);
-  jede falsche Antwort steht für eine Fehlvorstellung. Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
+  jede falsche Antwort steht für eine Fehlvorstellung und hat eine Rückmeldung (Test: alle). Begründungen beginnen nicht mit dem Begriff der Antwort,
+  wenn er schon fett davorsteht (`boldLead`, Test: kein Wort doppelt). Keine Aufgabe zweimal in einem Kapitel, auch nicht mit anders gemischten Antworten
+  (`ordered`; das gelöste Beispiel im Quiz-Paket vergleicht ebenso ohne Reihenfolge). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
+  Kennbuchstabe klein in der Ecke. „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
+  mit Trennlinie und Überschrift über jedem Bild; Pfeil nur bei vorher → nachher. Antippen in der Lektion mit unsichtbaren Trefferkreisen je Atom.
+  „C‑Atom“ usw. mit geschütztem Bindestrich (U+2011, nie „C-⏎Atom“). Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
   Reaktor-Ergebnisse: Kettenwachstum mit Restmonomer, lebende Ketten, Vergiftung, PET-Umsatz, Netz, Kettenstopper), `quiz/*.test.ts` (Gültigkeit, Katalog,
@@ -639,6 +649,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Fehler aus dem Schülerdurchgang** – Elektronen-Punkt am CO₂ beim Zerfall von DBPO (wird zur C=O-Bindung), zweites Radikal sichtbar;
+  abgeschnittene Moleküle: kleine Gruppen immer ganz im Bild, sonst Wellenlinie; Rekombination ohne Überlappung; größere Bild-Antworten; doppelte Wörter
+  und Grammatik in Rückmeldungen; Rückmeldung zu jeder falschen Antwort; keine doppelte Aufgabe (auch nicht gelöstes Beispiel = Aufgabe); Recycling-Merksatz
+  verrät nichts; Kapitel 4 ohne Isocyanat; Vergleichsbilder ohne Pfeil; größere Tippziele; „Mehr Starter“ mit Bild vorher. Grund: Rückmeldungen aus dem
+  Durchgang mit Lernenden.
 - **Polymere: Fachkorrekturen Lernen** – Stufenwachstum-Aufgabe und Lektion K6 bei 90 % statt 50 % Umsatz (bei 50 % ist noch die Hälfte der Moleküle
   Monomer), Bild mit wenig freiem Monomer, „Umsatz“ eingeführt; Starter-Bruchstück am Kettenanfang ist kein Radikal mehr; Tipp zur Verfahrenswahl passt zu
   Isobuten (zu sperrig für Titan); „einschmelzen und neu formen“ statt „gut zu recyceln“; Topfgriffe „oft“ aus Duroplast; Melaminharz-Arbeitsplatte statt Steckdose.

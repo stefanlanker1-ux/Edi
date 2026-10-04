@@ -30,7 +30,9 @@ export type Vis =
   | { k: "pair"; a: string; b?: string }
   | { k: "struct"; s: StructKind }
   /** Gefäß mit Kügelchen; `seq` = Monomere, reihum gefärbt (zwei Monomere wechseln sich ab) */
-  | { k: "pot"; s: PotKind; seq: string[] };
+  | { k: "pot"; s: PotKind; seq: string[] }
+  /** zwei Gefäße vorher: gleich viel Monomer, links wenig, rechts viel Starter */
+  | { k: "starters" };
 
 /** Kettenausschnitt aus n Bausteinen (ohne Zweifachbindung), Enden offen */
 export function chainSnap(id: string, n: number, tact: Tact = "atakt", seed = 1): Snap {
@@ -173,12 +175,36 @@ export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
   );
 }
 
+/** zwei Gefäße vor dem Erwärmen: je 16 Monomere, links 2, rechts 6 Starter-Moleküle (grau) – zeigt die Lage, nicht das Ergebnis */
+export function StartersPic() {
+  const L = tr({ few: "wenig Starter", many: "viel Starter" }, { few: "little initiator", many: "lots of initiator" });
+  const pot = (n: number, ox: number, cap: string) => {
+    const pts = fill([], 16 + n).map(p => p[0]);
+    return (
+      <g transform={`translate(${ox} 0)`}>
+        <text className="pm-pots-cap" x={60} y={10} textAnchor="middle" dominantBaseline="central">{cap}</text>
+        <g transform="translate(0 16)">
+          <path className="pm-pot-glass" d="M8 5 V74 Q8 79 13 79 H107 Q112 79 112 74 V5" />
+          {pts.map((p, i) => <BeadDot key={i} cx={p[0]} cy={p[1]} r={i < n ? 4 : 3.2} hue={i < n ? "init" : monoHue("styrol")} />)}
+        </g>
+      </g>
+    );
+  };
+  return (
+    <svg className="pm-pot" viewBox="0 0 250 100" role="img" aria-label={tr("Zwei Gefäße mit gleich viel Monomer: links wenig, rechts viel Starter", "Two vessels with the same amount of monomer: little initiator on the left, lots on the right")}>
+      {pot(2, 0, L.few)}{pot(6, 130, L.many)}
+    </svg>
+  );
+}
+
 /** Bild einer Aufgabe bzw. eines Lektionsschritts */
-export function VisView({ v }: { v: Vis }) {
+/** opt: Bild in einer Antwortkarte – Strukturformeln im eigenen Seitenverhältnis, damit sie die Karte füllen */
+export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
+  const asp = opt ? 0 : 1.6;
   switch (v.k) {
-    case "mono": return <MonomerSvg id={v.id} aspect={1.6} className="pm-vis-svg" />;
-    case "sat": return <SnapSvg snap={saturatedSnap(v.id)} label={tr("Molekül ohne Zweifachbindung", "Molecule without a double bond")} aspect={1.6} className="pm-vis-svg" />;
-    case "unit": return v.dbl ? <SnapSvg snap={unitWithDouble(v.id)} label={tr("Baustein mit Zweifachbindung", "Unit with double bond")} aspect={1.6} halos className="pm-vis-svg" /> : <UnitSvg id={v.id} aspect={1.6} className="pm-vis-svg" />;
+    case "mono": return <MonomerSvg id={v.id} aspect={asp} className="pm-vis-svg" />;
+    case "sat": return <SnapSvg snap={saturatedSnap(v.id)} label={tr("Molekül ohne Zweifachbindung", "Molecule without a double bond")} aspect={asp} className="pm-vis-svg" />;
+    case "unit": return v.dbl ? <SnapSvg snap={unitWithDouble(v.id)} label={tr("Baustein mit Zweifachbindung", "Unit with double bond")} aspect={asp} halos className="pm-vis-svg" /> : <UnitSvg id={v.id} aspect={asp} className="pm-vis-svg" />;
     case "chain": return <ChainSvg id={v.id} n={v.n} tact={v.tact} seed={v.seed} />;
     case "mech": return <MechFrame r={v.r} acts={v.acts} keyIndex={v.key} label={tr("Mechanismus mit Elektronenpfeilen", "Mechanism with electron arrows")} />;
     case "beads": return <div className="pm-vis-beads"><BeadStrip beads={beadsOf(v.seq)} active={null} max={30} /></div>;
@@ -190,10 +216,11 @@ export function VisView({ v }: { v: Vis }) {
     );
     case "struct": return <StructPic s={v.s} />;
     case "pot": return <PotPic s={v.s} seq={v.seq} />;
+    case "starters": return <StartersPic />;
   }
 }
 
-/** gesättigtes Molekül: Monomer mit Einfachbindung und je einem H mehr an beiden C-Atomen (Ethan, Chlorethan …) */
+/** gesättigtes Molekül: Monomer mit Einfachbindung und je einem H mehr an beiden C‑Atomen (Ethan, Chlorethan …) */
 export function saturatedSnap(id: string): Snap {
   const sc = new Scene();
   const v = vinyl(id);
@@ -232,6 +259,7 @@ export function visText(v: Vis): string {
     case "struct": return v.s;
     case "pot": return tr({ mono: "nur Monomer", long: "wenige lange Ketten", short: "viele kurze Ketten", giant: "ein Riesenmolekül" }, { mono: "only monomer", long: "few long chains", short: "many short chains", giant: "one giant molecule" })[v.s];
     case "mech": return tr("Mechanismus", "Mechanism");
+    case "starters": return tr("zwei Gefäße: wenig und viel Starter", "two vessels: little and lots of initiator");
   }
 }
 

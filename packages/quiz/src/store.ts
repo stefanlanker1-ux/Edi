@@ -57,7 +57,13 @@ export function withExamples<T extends BaseTask>(tasks: T[], skills: Skills, mor
   const pool: T[] = [];
   for (let k = 0; k < 8 && !fresh.every(f => pool.filter(o => o.type === f).length > tasks.filter(t => t.type === f).length); k++) pool.push(...more());
   // gleiche Frage = gleiche Daten (gleicher Text reicht nicht: „Wie viele Teilchen?“ mit anderem Bild ist eine andere Aufgabe)
-  const key = (t: T) => JSON.stringify({ ...t, stage: undefined, lead: undefined });
+  // Reihenfolge der Antworten zählt nicht (gemischt ist es dieselbe Frage); Rückmeldungen hängen am Index und fallen deshalb heraus
+  const key = (t: T) => {
+    const o = t as T & { options?: unknown[]; answer?: number };
+    const opts = Array.isArray(o.options) ? o.options.map(x => JSON.stringify(x)) : undefined;
+    return JSON.stringify({ ...t, stage: undefined, lead: undefined, why: undefined, miss: undefined,
+      ...(opts ? { options: [...opts].sort(), answer: typeof o.answer === "number" ? opts[o.answer] : o.answer } : {}) });
+  };
   const out: T[] = [], used = new Set(tasks.map(key));
   const done = new Set<string>();
   for (const t of tasks) {

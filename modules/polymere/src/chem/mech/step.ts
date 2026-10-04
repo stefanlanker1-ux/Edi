@@ -1,5 +1,5 @@
 // Stufenwachstum in der Atom-Ansicht: Polykondensation (Ester, Amid, CH₂-Brücke – Wasser bzw. HCl wird abgespalten) und
-// Polyaddition (Urethan, Harnstoff, Epoxid + Amin – ein H-Atom wandert, nichts wird abgespalten).
+// Polyaddition (Urethan, Harnstoff, Epoxid + Amin – ein H‑Atom wandert, nichts wird abgespalten).
 // Die Kette wächst nach rechts: das neue Molekül nähert sich, die reagierenden Atome sind hinterlegt, dann verknüpfen sie sich.
 // „Zweierkette“: zwei schon verknüpfte Monomere verbinden sich mit der Kette – beim Stufenwachstum reagieren auch Ketten miteinander.
 

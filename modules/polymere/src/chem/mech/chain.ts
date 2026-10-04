@@ -7,7 +7,7 @@ import { tr } from "@lern/i18n";
 import { method, vinyl, type MechKind, type VinylId } from "../data.ts";
 import { compat } from "../rules.ts";
 import { aibn, bf3, buli, dbpo, group, methanol, vinylUnit, water, type UnitIds } from "../draw.ts";
-import { Scene, dirOf, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
+import { Scene, dirOf, rad, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
 import type { Action, Bead, Mech, Phase, Recipe, Status } from "./types.ts";
 
 /** Zufall mit festem Startwert (gleicher Ablauf beim Wiederherstellen) */
@@ -21,7 +21,7 @@ interface U { m: VinylId; flip: boolean; ids: UnitIds }
 export const STEP = tr(
   { start: "Start", zerfall: "Zerfall des Starters", saeure: "Säure entsteht", kettenstart: "Kettenstart", wachstum: "Kettenwachstum",
     rekombination: "Abbruch: Rekombination", disproportionierung: "Abbruch: Disproportionierung", methanol: "Abbruch mit Methanol",
-    hplus: "Abbruch: H⁺ abgespalten", allyl: "H-Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette" },
+    hplus: "Abbruch: H⁺ abgespalten", allyl: "H‑Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette" },
   { start: "Start", zerfall: "Initiator decomposes", saeure: "Acid forms", kettenstart: "Chain initiation", wachstum: "Chain growth",
     rekombination: "Termination: combination", disproportionierung: "Termination: disproportionation", methanol: "Termination with methanol",
     hplus: "Termination: H⁺ split off", allyl: "H atom pulled off", nebenreaktion: "Side reaction", keine: "No reaction", lebend: "living chain" },
@@ -159,17 +159,23 @@ export class ChainMech implements Mech {
       // Decarboxylierung links: C–C(Ring) spaltet, CO₂ entsteht
       sc.unbond("ic1", "ipa0");
       sc.dot("eC", -2.25, 0.02); sc.dot("eP", -2.95, 0.02);
-      // das zweite Radikal (rechts) wandert weg und startet eine eigene Kette
-      sc.move(right, 2.2, 0); right.forEach(i => sc.set(i, { op: 0 })); sc.dotAt("eR", "io2", 180); sc.dots.get("eR")!.op = 0;
+      // das zweite Radikal (rechts) gleitet beschriftet zur Seite – es startet eine eigene Kette
+      sc.move(right, 1.2, 0); sc.dotAt("eR", "io2", 180);
+      const rx = sc.at("io2").x + 1.3;
+      sc.note({ id: "r2", x: rx - 0.6, y: 0.85, text: tr("2. Radikal", "2nd radical"), tone: "plain" });
       this.key(120, 1000);
+      // CO₂ rückt ab; die zwei Elektronen (eins vom O, eins vom C) bilden die zweite C=O-Bindung
       sc.set("ic1", { x: -1.6, y: -1.7 }); sc.set("io1", { x: -0.6, y: -1.7, lp: [-90, 90] }); sc.set("iod1", { x: -2.6, y: -1.7, lp: [-90, 90] });
-      sc.order("ic1", "io1", 2);
-      sc.dot("eL", -1.1, -1.82); sc.dot("eC", -1.1, -1.58);
+      sc.dot("eL", -1.16, -1.7); sc.dot("eC", -1.04, -1.7);
       sc.dotAt("eP", "ipa0", 0);
       sc.note({ id: "co2", x: -1.6, y: -2.45, text: "CO₂", tone: "gas" });
-      this.key(250, 900);
-      sc.undot("eL"); sc.undot("eC"); sc.undot("eR");
+      sc.move(right, 1.6, 0); right.forEach(i => sc.set(i, { op: 0 })); sc.dotAt("eR", "io2", 180); sc.dots.get("eR")!.op = 0;
+      sc.note({ id: "r2", x: rx + 1.0, y: 0.85, text: tr("2. Radikal", "2nd radical"), tone: "plain", op: 0 });
+      this.key(250, 700);
+      sc.order("ic1", "io1", 2);
+      sc.undot("eL"); sc.undot("eC"); sc.undot("eR"); sc.unnote("r2");
       for (const i of right) sc.remove(i);
+      this.key(350, 600);
       for (const i of ["ic1", "io1", "iod1"]) sc.set(i, { y: -2.9, op: 0 });
       sc.note({ id: "co2", x: -1.6, y: -3.6, text: "CO₂", tone: "gas", op: 0 });
       this.key(200, 0);
@@ -198,8 +204,15 @@ export class ChainMech implements Mech {
       this.stepName = STEP.zerfall;
       this.key(300, 900);
       sc.order("in1", "in2", 3); sc.undot("e2"); sc.undot("e3");
-      sc.move(right, 2.2, 0); right.forEach(i => sc.set(i, { op: 0 })); sc.dotAt("e4", "ic2", 180); sc.dots.get("e4")!.op = 0;
+      // das zweite Radikal gleitet beschriftet zur Seite – es startet eine eigene Kette
+      sc.move(right, 1.0, 0); sc.dotAt("e4", "ic2", 180);
+      const rx = sc.at("ic2").x + 1.4;
+      sc.note({ id: "r2", x: rx - 0.6, y: 1.65, text: tr("2. Radikal", "2nd radical"), tone: "plain" });
       this.key(300, 900);
+      sc.move(right, 1.6, 0); right.forEach(i => sc.set(i, { op: 0 })); sc.dotAt("e4", "ic2", 180); sc.dots.get("e4")!.op = 0;
+      sc.note({ id: "r2", x: rx + 1.0, y: 1.65, text: tr("2. Radikal", "2nd radical"), tone: "plain", op: 0 });
+      this.key(300, 700);
+      sc.unnote("r2");
       for (const i of ["in1", "in2"]) sc.set(i, { y: -3.0, op: 0 });
       sc.note({ id: "n2", x: 0, y: -3.7, text: "N₂", tone: "gas", op: 0 });
       this.key(200, 0);
@@ -403,7 +416,7 @@ export class ChainMech implements Mech {
     sc.unnote("x");
   }
 
-  /** Radikal + Propen/Isobuten: H-Atom der CH₃-Gruppe wird abgerissen, das neue Radikal wächst kaum weiter */
+  /** Radikal + Propen/Isobuten: H‑Atom der CH₃-Gruppe wird abgerissen, das neue Radikal wächst kaum weiter */
   private allyl(m: VinylId) {
     const sc = this.sc, v = vinyl(m), k = this.units.length;
     this.fx = this.xe - 2.6;
@@ -454,11 +467,14 @@ export class ChainMech implements Mech {
     // Butadien: ein Baustein –CH₂–CH=CH–CH₂• (Zweifachbindung in der Mitte)
     sc.bond(cb, ca); sc.bond(ca, cb2, v.diene ? 2 : 1); sc.bond(cb2, ca2);
     const ga = v.diene ? [group(sc, "H", ca, 0, ctx1, "a0")] : [group(sc, v.a[0], ca, 0, ctx1, "a0"), group(sc, v.a[1], ca, 180, ctx1, "a1")];
-    const gb = v.diene ? [group(sc, "H", cb, 0, ctx1, "b0"), group(sc, "H", cb, -90 * s, ctx1, "b1")] : [group(sc, v.b[0], cb, 0, ctx1, "b0"), group(sc, v.b[1], cb, -90 * s, ctx1, "b1")];
+    const gb = v.diene ? [group(sc, "H", cb, 0, ctx1, "b0"), group(sc, "H", cb, -60 * s, ctx1, "b1")] : [group(sc, v.b[0], cb, 0, ctx1, "b0"), group(sc, v.b[1], cb, -60 * s, ctx1, "b1")];
     const g2 = v.diene ? [group(sc, "H", cb2, 0, ctx1, "c0"), group(sc, "H", ca2, 0, ctx1, "d0"), group(sc, "H", ca2, 180, ctx1, "d1")]
       : [group(sc, v.b[0], cb2, 0, ctx2, "b0"), group(sc, v.b[1], cb2, 180, ctx2, "b1"), group(sc, v.a[0], ca2, 0, ctx2, "a0"), group(sc, v.a[1], ca2, 180, ctx2, "a1")];
-    sc.note({ id: "zdots", x, y: 3.85 * s, text: "⋮" });
     const atoms = [cb, ca, cb2, ca2, ...ga.flatMap(g => g.atoms), ...gb.flatMap(g => g.atoms), ...g2.flatMap(g => g.atoms)];
+    // schräg nach außen gedreht: senkrecht lägen die Gruppen am zweiten C genau auf denen des ersten Kettenendes
+    const ang = -s * 30;
+    sc.rotate(atoms, { x, y: 0 }, ang);
+    sc.note({ id: "zdots", x: x - 3.85 * s * Math.sin(rad(ang)), y: 3.85 * s * Math.cos(rad(ang)), text: "⋮" });
     // H links an C_a (wandert bei der Disproportionierung)
     const hLeft = (ga[1] ?? ga[0]).atoms[0];
     return { cb, ca, atoms, hLeft };
@@ -508,7 +524,7 @@ export class ChainMech implements Mech {
       this.key(300, 700);
       sc.move(zAll.filter(i => i !== z.hLeft), 0.7, 0.4 * Math.sign(sc.at(z.ca).y || 1)); sc.notes.get("zdots")!.x += 0.7;
       this.stepName = STEP.disproportionierung;
-      this.note = tr("Ein H-Atom wandert: ein Ende gesättigt, das andere mit C=C.", "An H atom moves: one end saturated, the other with C=C.");
+      this.note = tr("Ein H‑Atom wandert: ein Ende gesättigt, das andere mit C=C.", "An H atom moves: one end saturated, the other with C=C.");
     }
     this.edots = [];
     this.phase = "ende";

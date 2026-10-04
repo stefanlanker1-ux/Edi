@@ -21,7 +21,7 @@ export const ZN_STEP = tr(
     vergiftet: "Catalyst poisoned", sperrig: "no insertion – too bulky", h2: "Chain released (H₂)" },
 );
 
-/** Abstand Ti – erstes C-Atom der Kette */
+/** Abstand Ti – erstes C‑Atom der Kette */
 const TI_C = 1.25;
 
 export class ZnMech implements Mech {
@@ -103,7 +103,7 @@ export class ZnMech implements Mech {
     this.units.forEach((u, i) => { if (i > 5) for (const id of u.rel.keys()) if (sc.has(id)) sc.remove(id); });
   }
 
-  /** erstes C-Atom der Kette (am Titan) */
+  /** erstes C‑Atom der Kette (am Titan) */
   private first(): string { return this.units[0]?.ids.ca ?? this.endGroup; }
 
   private activate() {

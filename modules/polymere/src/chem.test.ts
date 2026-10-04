@@ -126,6 +126,21 @@ test("Atom-Ansicht: jede angebotene Aktion läuft an jeder Stelle des Ablaufs", 
   }
 }, 120_000);
 
+test("Atom-Ansicht: Elektronen-Punkte nur am aktiven Ende (keiner bleibt an CO₂, N₂, H₂O, HCl oder der fertigen Kette)", () => {
+  for (const r of recipes()) {
+    if (r.art === "poly" && r.b) continue;
+    const m = makeMech(r);
+    for (let k = 0; k < 10; k++) {
+      const id = nextAuto(m, r);
+      if (!id) break;
+      const clip = m.run(id), st = m.status();
+      const dots = clip[clip.length - 1].snap.dots.filter(d => (d.op ?? 1) > 0.05).length;
+      const want = st.active === "rad" ? 1 : st.active === "an" && st.n > 0 ? 2 : 0;
+      assert.strictEqual(dots, want, `${JSON.stringify(r)} nach ${id}: ${dots} Punkte`);
+    }
+  }
+}, 60_000);
+
 test("Atom-Ansicht: Fehlschläge zeigen die Begründung", () => {
   const run = (r: Recipe, ids: string[]) => { const m = makeMech(r); for (const id of ids) m.run(id); return m.status(); };
   const zn = run({ art: "poly", a: "mma", method: "zn" }, ["act", "add:mma"]);

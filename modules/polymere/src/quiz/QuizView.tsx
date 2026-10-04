@@ -27,7 +27,7 @@ export function QuizView() {
       lesson={l => LESSONS[l]}
       heroArt={<span className="hero-pm" aria-hidden="true"><BeadStrip beads={beadsOf(["styrol", "styrol", "styrol", "butadien", "butadien", "butadien"])} active={null} /></span>}
       renderVisual={t => (t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
-      renderOption={(t, o) => (t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} /><span className="sr-only">{o}</span></span> : o)}
+      renderOption={(t, o) => (t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
       explain={(level, task) => explainFor(level, task)}
     />
   );

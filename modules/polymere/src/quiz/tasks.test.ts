@@ -32,7 +32,10 @@ test("alle Aufgaben gültig und speicherbar", () => {
       for (const m of Object.values(t.miss ?? {})) assert.ok(MISS[m], `${t.type}: Schlüssel ${m} fehlt im Katalog`);
       // jede falsche Antwort mit Diagnose: mindestens zwei je Aufgabe
       const diag = t.options.filter((_, i) => i !== t.answer && t.why?.[i]).length;
-      assert.ok(diag >= 2, `${t.type}: nur ${diag} Rückmeldungen (${t.options})`);
+      assert.strictEqual(diag, t.options.length - 1, `${t.type}: nur ${diag} Rückmeldungen (${t.options})`);
+      // kein Wort zweimal direkt hintereinander („Isotaktisch: Isotaktisch …“)
+      const words = t.explain.replace(/\*\*/g, "").toLowerCase().split(/[^\p{L}\p{N}‑-]+/u).filter(Boolean);
+      assert.ok(!words.some((w, i) => i > 0 && w.length > 2 && w === words[i - 1]), `${t.type}: doppeltes Wort in „${t.explain}“`);
     }
   }
 }, 60_000);
@@ -54,4 +57,11 @@ test("Stufenwachstum bei hohem Umsatz: kaum Monomer, im Mittel 10 Bausteine (bei
     assert.match(t.explain, /10 Bausteine/);
     assert.ok(!/50 %|halbe/.test(t.prompt + t.explain + Object.values(t.why ?? {}).join()), t.prompt);
   }
-});
+}, 60_000);
+
+test("keine Aufgabe zweimal in einem Kapitel (auch nicht mit anders gemischten Antworten)", () => {
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 20; k++) {
+    const sig = makeRound("us", lv).map(t => t.prompt + [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
+    assert.strictEqual(new Set(sig).size, sig.length, `${LEVELS[lv].id}: doppelte Aufgabe`);
+  }
+}, 60_000);

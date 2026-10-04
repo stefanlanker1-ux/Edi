@@ -321,9 +321,34 @@ export function boxOf(atoms: Atom[], focus?: string[]): Box | null {
   return Number.isFinite(x0) ? { x0, y0, x1, y1 } : null;
 }
 
-/** Ausschnitt eines Schnappschusses: Fokus-Atome, mindestens über die x-Spanne */
+/** Fokus um kleine Anhängsel erweitern: Hängt an einem Fokus-Atom außerhalb nur eine kleine Gruppe (–OH, –Cl, Benzolring, höchstens
+ *  `max` Atome), gehört sie ganz ins Bild – so wird nie eine reagierende Gruppe mitten im Atom abgeschnitten. Längere Ketten bleiben draußen
+ *  (die Zeichnung endet dort an einer Wellenlinie). */
+export function expandFocus(s: Snap, max = 7): string[] | undefined {
+  if (!s.focus) return undefined;
+  const vis = new Set(s.atoms.filter(a => (a.op ?? 1) >= 0.05).map(a => a.id));
+  const nb = new Map<string, string[]>();
+  for (const b of s.bonds) {
+    if ((b.op ?? 1) < 0.05 || !vis.has(b.a) || !vis.has(b.b)) continue;
+    nb.set(b.a, [...(nb.get(b.a) ?? []), b.b]); nb.set(b.b, [...(nb.get(b.b) ?? []), b.a]);
+  }
+  const f = new Set(s.focus);
+  for (const a of s.focus) for (const x of nb.get(a) ?? []) {
+    if (f.has(x)) continue;
+    // Gruppe hinter x (ohne über a zurückzugehen)
+    const seen = new Set([a, x]), stack = [x], group = [x];
+    while (stack.length && group.length <= max) {
+      // nur Atome außerhalb des Fokus sammeln (ein halb sichtbarer Ring wird so ganz aufgenommen)
+      for (const y of nb.get(stack.pop()!) ?? []) if (!seen.has(y) && !f.has(y)) { seen.add(y); stack.push(y); group.push(y); }
+    }
+    if (group.length <= max) group.forEach(y => f.add(y));
+  }
+  return [...f];
+}
+
+/** Ausschnitt eines Schnappschusses: Fokus-Atome (samt kleiner Anhängsel), mindestens über die x-Spanne */
 export function snapBox(s: Snap): Box | null {
-  const b = boxOf(s.atoms, s.focus);
+  const b = boxOf(s.atoms, expandFocus(s));
   if (!b || !s.span) return b;
   return { ...b, x0: Math.min(b.x0, s.span[0]), x1: Math.max(b.x1, s.span[1]) };
 }
