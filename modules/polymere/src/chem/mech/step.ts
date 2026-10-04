@@ -4,7 +4,7 @@
 // „Zweierkette“: zwei schon verknüpfte Monomere verbinden sich mit der Kette – beim Stufenwachstum reagieren auch Ketten miteinander.
 
 import { tr } from "@lern/i18n";
-import { stepMono, type StepId } from "../data.ts";
+import { stepMono, type FG, type StepId } from "../data.ts";
 import { LINK_SHORT, reactGroups, stepReact, type Link } from "../rules.ts";
 import { stepMolecule, type End, type StepMol } from "../stepdraw.ts";
 import { Scene, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
@@ -16,6 +16,15 @@ export const STEP_STEP = tr(
 );
 
 interface Mol { mol: StepMol; ids: StepId[] }
+
+/** Gruppen in Formelschreibweise */
+const FG_TEXT = (): Record<FG, string> => ({ COOH: "–COOH", COCl: "–COCl", OH: "–OH", NH2: "–NH₂", NCO: "–N=C=O", EPOX: tr("eine Epoxidgruppe", "an epoxide group"), ArH: "Ar–H", CHO: "–CHO" });
+/** Begründung, wenn das neue Molekül nicht an das Kettenende passt – mit den Gruppen genau dieser Stelle */
+function groupWhy(r: FG, l: FG): string {
+  const t = FG_TEXT(), a = t[r], b = t[l];
+  if (r === l) return tr(`Am Kettenende sitzt schon ${a}. Zwei gleiche Gruppen reagieren nicht miteinander.`, `There is already ${a} at the chain end. Two identical groups do not react with each other.`);
+  return tr(`Am Kettenende sitzt ${a}, das neue Molekül bringt ${b}. Diese beiden Gruppen reagieren hier nicht miteinander.`, `The chain end carries ${a}, the new molecule brings ${b}. These two groups do not react with each other here.`);
+}
 
 /** Monomer mit lauter gleichen Gruppen (Disäure, Diol, Diamin …): nur dann ist eine Zweierkette aus beiden eindeutig gebaut
  *  (mit Milchsäure oder 6-Aminohexansäure hinge es von der Richtung ab, welche Gruppen sich verbinden) */
@@ -89,7 +98,7 @@ export class StepMech implements Mech {
   status(): Status {
     const beads: Bead[] = this.units.map((u, i) => { const m = stepMono(u); return { kind: "unit", mono: u, hue: m.hue, letter: m.letter, title: m.name, unit: i }; });
     return {
-      phase: this.phase, n: this.units.length, step: this.stepName, active: null, fail: this.fail, beads, note: this.note,
+      phase: this.phase, n: this.units.length, step: this.stepName, active: null, fail: this.fail, beads, note: this.note, end: this.right?.fg,
       ...(this.byp ? { byp: `${this.byp} ${this.bypName}` } : {}),
     };
   }
@@ -169,12 +178,26 @@ export class StepMech implements Mech {
     this.join(m, false, true);
   }
 
+  /** Molekül spiegeln (links ↔ rechts): ein Monomer mit zwei verschiedenen Gruppen (Milchsäure) wendet der Kette die passende Gruppe zu */
+  private mirror(m: Mol) {
+    const sc = this.sc, c = (m.mol.x0 + m.mol.x1) / 2;
+    for (const id of m.mol.atoms) {
+      if (!sc.has(id)) continue;
+      const a = sc.at(id);
+      sc.set(id, { x: 2 * c - a.x, ...(a.lp ? { lp: a.lp.map(l => 180 - l) } : {}), ...(a.qa !== undefined ? { qa: 180 - a.qa } : {}) });
+    }
+    m.mol = { ...m.mol, ends: m.mol.ends.map(e => ({ ...e, s: -e.s as 1 | -1 })) };
+  }
+
   /** Molekül nähert sich und verknüpft sich mit dem rechten Kettenende */
   private join(m: Mol, initial: boolean, dimer = false) {
     const sc = this.sc;
     const R = this.right;
-    const L = m.mol.ends.find(e => e.s === -1) ?? m.mol.ends[0];
+    let L = m.mol.ends.find(e => e.s === -1) ?? m.mol.ends[0];
     if (!R || !L) return;
+    // passt die linke Gruppe nicht, aber die rechte, wird das Molekül gewendet
+    const other = m.mol.ends.find(e => e.s === 1);
+    if (!reactGroups(R.fg, L.fg) && other && reactGroups(R.fg, other.fg)) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1)!; }
     const r = reactGroups(R.fg, L.fg);
     const all = m.mol.atoms;
     if (!initial) {
@@ -198,7 +221,7 @@ export class StepMech implements Mech {
       const top = Math.min(0, ...[...sc.atoms.values()].filter(a => Math.abs(a.x - gx) < 1.2 && (a.op ?? 1) > 0.05).map(a => a.y));
       sc.note({ id: "x", x: gx, y: top - 0.8, text: "✗", tone: "bad" });
       this.stepName = STEP_STEP.keine;
-      this.fail = stepReact(this.units[this.units.length - 1], m.ids[0]).why;
+      this.fail = initial ? stepReact(this.units[this.units.length - 1], m.ids[0]).why : groupWhy(R.fg, L.fg);
       this.key(900, 700);
       sc.move(all, 1.6, 0.6); all.forEach(i => sc.set(i, { op: 0 }));
       this.key(0, 0);

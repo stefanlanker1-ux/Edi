@@ -155,8 +155,8 @@ function potPieces(s: PotKind): Pt[][] {
 }
 export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
   const LABEL: Record<PotKind, string> = tr(
-    { mono: "Nur einzelne Monomere", long: "Wenige lange Ketten und viele einzelne Monomere", short: "Viele kurze Ketten, kaum einzelne Monomere", giant: "Ein einziges Riesenmolekül" },
-    { mono: "Only single monomers", long: "A few long chains and many single monomers", short: "Many short chains, hardly any single monomers", giant: "One single giant molecule" },
+    { mono: "Nur einzelne Monomere", long: "Wenige lange Ketten und viele einzelne Monomere", short: "Mittellange Ketten, kaum einzelne Monomere", giant: "Ein einziges Riesenmolekül" },
+    { mono: "Only single monomers", long: "A few long chains and many single monomers", short: "Medium chains, hardly any single monomers", giant: "One single giant molecule" },
   );
   const pieces = potPieces(s);
   let k = 0;
@@ -175,7 +175,7 @@ export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
 
 /** zwei Gefäße vor dem Erwärmen: je 16 Monomere, links 2, rechts 6 Starter-Moleküle (grau) – zeigt die Lage, nicht das Ergebnis */
 export function StartersPic() {
-  const L = tr({ few: "wenig Starter", many: "viel Starter" }, { few: "little initiator", many: "lots of initiator" });
+  const L = tr({ few: "wenig Starter", many: "viel Starter", init: "Starter (DBPO)", mono: "Styrol" }, { few: "little initiator", many: "lots of initiator", init: "initiator (DBPO)", mono: "styrene" });
   const pot = (n: number, ox: number, cap: string) => {
     const pts = fill([], 16 + n).map(p => p[0]);
     return (
@@ -189,8 +189,12 @@ export function StartersPic() {
     );
   };
   return (
-    <svg className="pm-pot" viewBox="0 0 250 100" role="img" aria-label={tr("Zwei Gefäße mit gleich viel Monomer: links wenig, rechts viel Starter", "Two vessels with the same amount of monomer: little initiator on the left, lots on the right")}>
+    <svg className="pm-pot" viewBox="0 0 250 114" role="img" aria-label={tr("Zwei Gefäße mit gleich viel Monomer: links wenig, rechts viel Starter", "Two vessels with the same amount of monomer: little initiator on the left, lots on the right")}>
       {pot(2, 0, L.few)}{pot(6, 130, L.many)}
+      <g transform="translate(0 106)">
+        <BeadDot cx={30} cy={0} r={4} hue="init" /><text className="pm-pots-leg" x={38} y={0} dominantBaseline="central">{L.init}</text>
+        <BeadDot cx={150} cy={0} r={3.2} hue={monoHue("styrol")} /><text className="pm-pots-leg" x={158} y={0} dominantBaseline="central">{L.mono}</text>
+      </g>
     </svg>
   );
 }
@@ -233,11 +237,7 @@ export function unitWithDouble(id: string): Snap {
   const sc = new Scene();
   const v = vinyl(id);
   const u = vinylUnit(sc, v, 0, 0, { pre: "u", unit: 0, hue: v.hue }, { dbl: true });
-  // C=C bleibt und beide Bindungen zu den Nachbarn kommen dazu: dann fehlt jedem C ein H (sonst hätte es fünf Bindungen)
-  for (const c of [u.ca, u.cb]) {
-    const h = sc.nb(c).filter(i => sc.at(i).el === "H" && !sc.at(i).text).sort((p, q) => sc.at(q).y - sc.at(p).y)[0];
-    if (h) sc.remove(h);
-  }
+  // bewusst falsch (Distraktor „C=C bleibt“): jedes C hätte so fünf Bindungen – die Rückmeldung lässt die Striche zählen
   const L = sc.at(u.ca), R = sc.at(u.cb);
   sc.add({ id: "l", el: "", x: L.x - 0.85, y: 0, text: "" });
   sc.add({ id: "r", el: "", x: R.x + 0.85, y: 0, text: "" });
@@ -260,7 +260,7 @@ export function visText(v: Vis): string {
     case "beads": return v.seq.map(m => monoLetter(m)).join("–");
     case "pair": return v.b ? `${monoName(v.a)} + ${monoName(v.b)}` : monoName(v.a);
     case "struct": return v.s;
-    case "pot": return tr({ mono: "nur Monomer", long: "wenige lange Ketten", short: "viele kurze Ketten", giant: "ein Riesenmolekül" }, { mono: "only monomer", long: "few long chains", short: "many short chains", giant: "one giant molecule" })[v.s];
+    case "pot": return tr({ mono: "nur Monomer", long: "wenige lange Ketten", short: "mittellange Ketten", giant: "ein Riesenmolekül" }, { mono: "only monomer", long: "few long chains", short: "medium chains", giant: "one giant molecule" })[v.s];
     case "mech": return tr("Mechanismus", "Mechanism");
     case "starters": return tr("zwei Gefäße: wenig und viel Starter", "two vessels: little and lots of initiator");
   }

@@ -220,6 +220,7 @@
 .pm-pot-glass { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .pm-pot-bond { stroke: var(--text); stroke-width: 1.4; }
 .pm-pots-cap { font-size: 10px; font-weight: 700; fill: var(--text); }
+.pm-pots-leg { font-size: 8.5px; font-weight: 600; fill: var(--muted); }
 .pm-pot .pm-bead-c { stroke-width: 0.9; }
 /* Antworten als Bild */
 .mc-grid:has(.pm-opt-pic) { grid-template-columns: 1fr 1fr; }

@@ -82,6 +82,9 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
   },
 };
 
+/** Name mit Kurzzeichen: „Polyamid 6.6 (Nylon, PA 6.6)“ statt zweier Klammern hintereinander; ohne Kurzzeichen („—“) nur der Name */
+export const withAbbr = (name: string, abbr: string) => (!abbr || abbr === "—" ? name : name.endsWith(")") ? `${name.slice(0, -1)}, ${abbr})` : `${name} (${abbr})`);
+
 export function compat(m: VinylId, me: MethodId): Compat {
   return RULES[method(me).kind][m];
 }
@@ -193,7 +196,7 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
       ? tr("Die Ketten leben weiter: Erst wächst ein Block aus dem ersten Monomer, dann ein Block aus dem zweiten.", "The chains stay alive: first a block of the first monomer grows, then a block of the second.")
       : tr("Beide Monomere lagern sich an dasselbe Kettenende an – in zufälliger Reihenfolge.", "Both monomers add to the same chain end – in random order."),
     product: named
-      ? { name: `${named[1]} (${named[0]})`, abbr: named[0], klasse: elast ? "elast" : "thermo", struktur: "linear", uses: named[2], copo: kind }
+      ? { name: withAbbr(named[1], named[0]), abbr: named[0], klasse: elast ? "elast" : "thermo", struktur: "linear", uses: named[2], copo: kind }
       : { name: tr(`${capFirst(KIND[kind])} aus ${va.name} und ${vb.name}`, `${capFirst(KIND[kind])} of ${va.name.toLowerCase()} and ${vb.name.toLowerCase()}`), abbr: `${va.letter}/${vb.letter}`, klasse: elast ? "elast" : "thermo", struktur: "linear", uses: "–", copo: kind },
   };
 }
@@ -298,7 +301,7 @@ export function stepReact(a: StepId, b?: StepId): StepOutcome {
     return {
       struktur: "linear", art: r.art, link: r.link, byp: r.byp, groups: [x, y],
       why: tr(`${A.name} trägt zwei verschiedene Gruppen. Das eine Ende reagiert mit dem anderen Ende des nächsten Moleküls.`, `${A.name} carries two different groups. One end reacts with the other end of the next molecule.`),
-      product: p && { name: `${p.p[1]} (${p.p[0]})`, abbr: p.p[0], klasse: p.klasse ?? "thermo", struktur: "linear", uses: p.p[2], code: p.code, note: p.note },
+      product: p && { name: withAbbr(p.p[1], p.p[0]), abbr: p.p[0], klasse: p.klasse ?? "thermo", struktur: "linear", uses: p.p[2], code: p.code, note: p.note },
     };
   }
   // passende Gruppen suchen
@@ -323,8 +326,8 @@ export function stepReact(a: StepId, b?: StepId): StepOutcome {
   const known = STEP_PRODUCTS.find(s => (s.a === a && s.b === b) || (s.a === b && s.b === a));
   const linkName = LINK_NAME[pair.r.link];
   let product: Product;
-  if (known) product = { name: `${known.p[1]} (${known.p[0]})`, abbr: known.p[0], klasse: known.klasse ?? (net ? "duro" : "thermo"), struktur: net ? "vernetzt" : "linear", uses: known.p[2], code: known.code, note: known.note };
-  else if (net && pair.r.link === "ester") product = { name: `${NET_ESTER[1]} (${NET_ESTER[0]})`, abbr: NET_ESTER[0], klasse: "duro", struktur: "vernetzt", uses: NET_ESTER[2] };
+  if (known) product = { name: withAbbr(known.p[1], known.p[0]), abbr: known.p[0], klasse: known.klasse ?? (net ? "duro" : "thermo"), struktur: net ? "vernetzt" : "linear", uses: known.p[2], code: known.code, note: known.note };
+  else if (net && pair.r.link === "ester") product = { name: withAbbr(NET_ESTER[1], NET_ESTER[0]), abbr: NET_ESTER[0], klasse: "duro", struktur: "vernetzt", uses: NET_ESTER[2] };
   else {
     const kind = pair.r.link === "ester" ? tr("Polyester", "Polyester") : pair.r.link === "amid" ? tr("Polyamid", "Polyamide") : pair.r.link === "urethan" ? tr("Polyurethan", "Polyurethane") : pair.r.link === "harnstoff" ? tr("Polyharnstoff", "Polyurea") : tr("Polymer", "Polymer");
     product = { name: tr(`${kind} aus ${A.name} und ${B.name}`, `${kind} of ${A.name.toLowerCase()} and ${B.name.toLowerCase()}`), abbr: kind, klasse: net ? "duro" : "thermo", struktur: net ? "vernetzt" : "linear", uses: "–" };

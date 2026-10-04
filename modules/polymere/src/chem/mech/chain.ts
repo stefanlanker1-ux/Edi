@@ -96,9 +96,12 @@ export class ChainMech implements Mech {
       for (const m of this.monos()) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${vinyl(m).name}` });
       if (this.phase === "wachsend") {
         if (this.kind === "radikal") {
-          out.push({ id: "comb", kind: "stop", label: tr("Rekombination", "Combination") });
-          const last = vinyl(this.units[this.units.length - 1].m);
-          if (!last.diene && last.a.includes("H")) out.push({ id: "disp", kind: "stop", label: tr("Disproportionierung", "Disproportionation") });
+          const lastU = this.units[this.units.length - 1], last = vinyl(lastU.m);
+          const comb: Action = { id: "comb", kind: "stop", label: tr("Rekombination", "Combination") };
+          const disp: Action = { id: "disp", kind: "stop", label: tr("Disproportionierung", "Disproportionation") };
+          // MMA endet überwiegend durch Disproportionierung (etwa 3 : 1), Styrol überwiegend durch Rekombination – das Häufigere zuerst
+          if (!last.diene && last.a.includes("H")) out.push(...(lastU.m === "mma" ? [disp, comb] : [comb, disp]));
+          else out.push(comb);
         }
         if (this.kind === "anion") out.push({ id: "meoh", kind: "stop", label: tr("+ Methanol", "+ methanol") });
         if (this.kind === "kation") out.push({ id: "hplus", kind: "stop", label: tr("H⁺ abspalten", "Split off H⁺") });

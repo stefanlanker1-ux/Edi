@@ -331,7 +331,7 @@ const K3: GuideStep[] = [
     mode: "worked",
     say: T("**Isotaktisch**: Alle Seitengruppen zeigen zur selben Seite.", "**Isotactic**: all side groups point to the same side."),
     ask: T("Wie unterscheiden sich die Ketten?", "How do the chains differ?"),
-    visual: () => <Two a={{ k: "chain", id: "propen", n: 4, tact: "iso" }} b={{ k: "chain", id: "propen", n: 4, tact: "atakt", seed: 7 }} la={T("Ziegler-Natta", "Ziegler–Natta")} lb={T("zufällig", "random")} vs />,
+    visual: () => <Two a={{ k: "chain", id: "propen", n: 4, tact: "iso" }} b={{ k: "chain", id: "propen", n: 4, tact: "atakt", seed: 7 }} la={T("isotaktisch (Ziegler-Natta)", "isotactic (Ziegler–Natta)")} lb={T("ataktisch (zufällig)", "atactic (random)")} vs />,
     lines: [
       T("Am Titan wird jedes Propen gleich herum eingebaut: isotaktisch.", "At the titanium every propene is inserted the same way: isotactic."),
       T("Zufällige Lage der Seitengruppen heißt **ataktisch**.", "A random position of the side groups is called **atactic**."),
@@ -355,10 +355,10 @@ const K3: GuideStep[] = [
     visual: () => <MechPlay r={IB_BF3} acts={["acid", "add:isobuten"]} />,
     lines: [
       T("BF₃ und Wasser bilden eine Säure: H⁺ wird frei.", "BF₃ and water form an acid: H⁺ is set free."),
-      T("H⁺ bindet an die C=C: Am Kettenende sitzt eine **positive Ladung**.", "H⁺ binds to the C=C: a **positive charge** sits at the chain end."),
+      T("H⁺ bindet an das CH₂ der C=C: Am Kettenende sitzt eine **positive Ladung**.", "H⁺ binds to the CH₂ of the C=C: a **positive charge** sits at the chain end."),
       T("Die zwei CH₃-Gruppen schieben Elektronen zum positiven C und machen es beständiger.", "The two CH₃ groups push electrons towards the positive C and make it more stable."),
     ],
-    ok: T("Kationisch: Monomere mit Elektronen schiebenden Gruppen (Isobuten, Styrol).", "Cationic: monomers with electron-pushing groups (isobutene, styrene)."),
+    ok: T("Kationisch: Monomere, deren Gruppen die positive Ladung stützen (Isobuten: CH₃-Gruppen; Styrol: Benzolring).", "Cationic: monomers whose groups support the positive charge (isobutene: CH₃ groups; styrene: benzene ring)."),
   },
   {
     mode: "worked",
@@ -625,8 +625,8 @@ const K6: GuideStep[] = [
     ask: T("Ergänze: Polykondensation bei 90 % Umsatz – was ist im Gefäß?", "Complete: polycondensation at 90 % conversion – what is in the vessel?"),
     // beide Möglichkeiten als Bild (gleiche Monomere), Beschriftung = Antworttext – verrät nicht, welche stimmt
     visual: () => <Two a={{ k: "pot", s: "short", seq: ["terephthalsaeure", "ethandiol"] }} b={{ k: "pot", s: "long", seq: ["terephthalsaeure", "ethandiol"] }}
-      la={T("viele kurze Ketten", "many short chains")} lb={T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")} vs />,
-    answer: T("viele kurze Ketten", "many short chains"), options: [T("viele kurze Ketten", "many short chains"), T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")],
+      la={T("kürzere Ketten, kaum Monomer", "shorter chains, hardly any monomer")} lb={T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")} vs />,
+    answer: T("kürzere Ketten, kaum Monomer", "shorter chains, hardly any monomer"), options: [T("kürzere Ketten, kaum Monomer", "shorter chains, hardly any monomer"), T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")],
     lines: [T("Stufenwachstum: alle Gruppen reagieren miteinander", "Step growth: all groups react with each other"), T("Bei 90 % Umsatz: {?}", "At 90 % conversion: {?}")],
     why: { [T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")]: T("So sieht Kettenwachstum aus.", "That is what chain growth looks like.") },
     ok: T("Lange Ketten erst ganz am Ende.", "Long chains only at the very end."),

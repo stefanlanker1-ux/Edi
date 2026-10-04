@@ -199,3 +199,31 @@ test("Namen der Monomere im Reaktor und in der Auswahl gleich", () => {
   for (const v of VINYLS) assert.strictEqual(vinyl(v.id).name, v.name);
   for (const s of STEPS) assert.strictEqual(stepMono(s.id).name, s.name);
 });
+
+test("Stufenwachstum: Monomer mit zwei verschiedenen Gruppen wendet der Kette die passende Gruppe zu (Milchsäure an –OH-Ende)", async () => {
+  const { reactGroups } = await import("./chem/rules.ts");
+  const ab = STEPS.filter(s => s.groups.length === 2 && s.groups[0] !== s.groups[1]).map(s => s.id);
+  let checked = 0;
+  for (const art of ["kond", "add"] as const) {
+    const ms = STEPS.filter(s => s.arts.includes(art)).map(s => s.id);
+    for (const x of ab.filter(id => ms.includes(id))) for (const y of ms) for (const [a, b] of [[x, y], [y, x]]) {
+      if (a === b) continue;
+      const r: Recipe = { art, a, b };
+      const m = makeMech(r);
+      if (!m.actions().some(t => t.id === "join")) continue;
+      m.run("join");
+      for (let k = 0; k < 4; k++) {
+        const st = m.status();
+        if (!st.end || st.phase !== "wachsend") break;
+        const end = st.end as never;
+        const fits = stepMono(x).groups.some(g => reactGroups(end, g as never));
+        const before = st.n;
+        m.run(`add:${x}`);
+        assert.strictEqual(m.status().n > before, fits, `${JSON.stringify(r)}: ${x} an Ende ${end}`);
+        checked++;
+        if (!fits) break;
+      }
+    }
+  }
+  assert.ok(checked > 10, `${checked} Fälle`);
+});

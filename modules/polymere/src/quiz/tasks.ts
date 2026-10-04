@@ -168,7 +168,7 @@ function bausteinWahl(): Task {
   const dbl: [string, Vis] = [visText({ k: "unit", id: v, dbl: true }), { k: "unit", id: v, dbl: true }];
   const other: [string, Vis] = [visText({ k: "unit", id: w }), { k: "unit", id: w }];
   return task(T("Welcher **Baustein** steckt im Polymer aus diesem Monomer?", "Which **unit** is in the polymer made from this monomer?"), right[0], [
-    d(dbl[0], "doppelbindung-bleibt", T("Im Baustein ist die Zweifachbindung weg. Ihre Elektronen bilden die Bindungen zu den Nachbarn.", "In the unit the double bond is gone. Its electrons form the bonds to the neighbours.")),
+    d(dbl[0], "doppelbindung-bleibt", T("Zähl die Striche am C: fünf – das geht nicht, C bildet vier Bindungen. Die C=C muss sich öffnen, damit die Bindungen nach außen entstehen.", "Count the lines at the C: five – impossible, C forms four bonds. The C=C has to open so that the outward bonds can form.")),
     d(other[0], "gruppe-verwechselt", T(`Dieser Baustein trägt ${SIDE[w]} – er gehört zu ${vinyl(w).name}.`, `This unit carries ${SIDE[w]} – it belongs to ${nm(w)}.`)),
   ], {
     vis: { k: "mono", id: v }, pics: Object.fromEntries([right, dbl, other]),
@@ -288,7 +288,7 @@ function starterRest(): Task {
   return task(T("Was sitzt am Anfang jeder Kette?", "What sits at the start of every chain?"), T("Ein Bruchstück des Starters", "A fragment of the initiator"), [
     d(T("Nichts (Starter = Katalysator)", "Nothing (initiator = catalyst)"), "starter-katalysator", T("Der Starter wird verbraucht. Sein Bruchstück wird Teil der Kette.", "The initiator is used up. Its fragment becomes part of the chain.")),
     d(T("Ein Radikal", "A radical"), "radikal-bleibt", T("Das Radikal sitzt am wachsenden Ende, nicht am Anfang.", "The radical sits at the growing end, not at the start.")),
-    d(T("Ein Wassermolekül", "A water molecule"), "byp-falsch", T("Bei der Polymerisation entsteht kein Wasser. Am Anfang sitzt das Starter-Radikal, das die Kette begonnen hat.", "Polymerisation forms no water. The start holds the initiator radical that began the chain.")),
+    d(T("Ein Wassermolekül", "A water molecule"), "byp-falsch", T("Bei der Polymerisation entsteht kein Wasser. Am Anfang sitzt das Bruchstück des Starters, das die Kette begonnen hat.", "Polymerisation forms no water. The start holds the initiator fragment that began the chain.")),
   ], {
     vis: lastFrame(PS, ["heat", "add:styrol", "add:styrol"]),
     hint: T("Vergleiche den Anfang der Kette mit dem Starter-Radikal.", "Compare the start of the chain with the initiator radical."),
@@ -722,7 +722,7 @@ function copolymer(): Task {
 function wachstum(): Task {
   const kette = Math.random() < 0.5;
   const seq = kette ? ["styrol"] : ["terephthalsaeure", "ethandiol"];
-  const LONG = T("Wenige lange Ketten + viel Monomer", "Few long chains + lots of monomer"), SHORT = T("Viele kurze Ketten, kaum Monomer", "Many short chains, little monomer");
+  const LONG = T("Wenige lange Ketten + viel Monomer", "Few long chains + lots of monomer"), SHORT = T("Mittellange Ketten, kaum Monomer", "Medium chains, hardly any monomer");
   const MONO = T("Nur Monomer, keine Ketten", "Only monomer, no chains"), GIANT = T("Ein Riesenmolekül", "One giant molecule");
   const pics: Record<string, Vis> = { [LONG]: { k: "pot", s: "long", seq }, [SHORT]: { k: "pot", s: "short", seq }, [MONO]: { k: "pot", s: "mono", seq }, [GIANT]: { k: "pot", s: "giant", seq } };
   return task(kette ? T("Radikalische Polymerisation, kurz nach dem Start: Was ist im Gefäß?", "Radical polymerisation, shortly after the start: what is in the vessel?")

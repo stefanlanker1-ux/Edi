@@ -66,11 +66,13 @@ test("keine Aufgabe zweimal in einem Kapitel (auch nicht mit anders gemischten A
   }
 }, 60_000);
 
-test("Bausteine in Bildern: kein C-Atom mit mehr als vier Bindungen (auch die falsche Antwort „C=C bleibt“)", async () => {
+test("Bausteine in Bildern: kein C-Atom mit mehr als vier Bindungen (außer im Distraktor „C=C bleibt“, der genau das zeigt)", async () => {
   const { unitWithDouble, chainSnap, saturatedSnap } = await import("./visual.tsx");
   const { unitSnap } = await import("../components/Formula.tsx");
   for (const id of ["propen", "styrol", "vinylchlorid", "acrylnitril"]) {
-    for (const s of [unitWithDouble(id), unitSnap(id), chainSnap(id, 4), saturatedSnap(id)]) {
+    const dbl = unitWithDouble(id), five = dbl.atoms.filter(a => a.el === "C" && !a.text && dbl.bonds.filter(b => b.a === a.id || b.b === a.id).reduce((t, b) => t + b.o, 0) === 5);
+    assert.strictEqual(five.length, 2, `${id}: Distraktor zeigt zwei C mit fünf Bindungen`);
+    for (const s of [unitSnap(id), chainSnap(id, 4), saturatedSnap(id)]) {
       for (const a of s.atoms.filter(x => x.el === "C" && !x.text)) {
         const n = s.bonds.filter(b => b.a === a.id || b.b === a.id).reduce((t, b) => t + b.o, 0);
         assert.ok(n <= 4, `${id}: C mit ${n} Bindungen`);
