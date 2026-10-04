@@ -193,7 +193,7 @@ const STEPS: GuideStep[] = [
     ask: tr("Ist **Zuckerwasser** homogen oder heterogen?", "Is **sugar water** homogeneous or heterogeneous?"),
     visual: () => <Picture p={ZUCKER} />,
     labels: [{ at: "[data-f=\"C12H22O11\"]", text: tr("Zucker-Molekül", "Sugar molecule"), side: "left" }, { at: "[data-f=\"H2O\"]", text: tr("Wasser-Molekül", "Water molecule"), side: "right" }],
-    lines: [tr("Zwei Stoffe: Zucker und Wasser → Gemisch.", "Two substances: sugar and water → mixture."), tr("Man sieht keine Teile – der Zucker ist bis zu den Teilchen verteilt.", "No pieces are visible – the sugar is spread down to the particles."), tr("→ **homogenes Gemisch** (Lösung).", "→ **homogeneous mixture** (solution).")],
+    lines: [tr("Zwei Stoffe: Zucker und Wasser → Gemisch.", "Two substances: sugar and water → mixture."), tr("Man sieht keine Teile – der Zucker ist bis zu den Teilchen verteilt.", "No pieces are visible – the sugar is spread down to the particles."), tr("→ **homogenes Gemisch**. Ein gelöster Stoff in Flüssigkeit heißt **Lösung**.", "→ **homogeneous mixture**. A substance dissolved in a liquid is called a **solution**.")],
     ok: tr("Klar heißt nicht rein: Zuckerwasser ist ein Gemisch.", "Clear does not mean pure: sugar water is a mixture."),
   },
   {
@@ -215,10 +215,16 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("Die Art eines heterogenen Gemischs: **was** ist verteilt, und **worin**?", "The type of a heterogeneous mixture: **what** is spread out, and **in what**?"),
+    say: tr("Heterogene Gemische haben eigene Namen. Man fragt: **was** ist verteilt, und **worin**?", "Heterogeneous mixtures have their own names. Ask: **what** is spread out, and **in what**?"),
+    ask: tr("Welche Arten von Gemischen gibt es?", "What types of mixtures are there?"),
+    lines: [tr("Feste Körner in Flüssigkeit → **Suspension** (Sand in Wasser).", "Solid grains in a liquid → **suspension** (sand in water)."), tr("Tröpfchen in Flüssigkeit → **Emulsion** (Milch, geschütteltes Öl in Wasser).", "Droplets in a liquid → **emulsion** (milk, shaken oil in water)."), tr("Gasblasen in Flüssigkeit → **Schaum** (Schlagsahne).", "Gas bubbles in a liquid → **foam** (whipped cream)."), tr("Nur feste Stücke nebeneinander → **Gemenge** (Müsli, Sand und Kies).", "Only solid pieces side by side → **coarse mixture** (muesli, sand and gravel)."), tr("Homogen dagegen: Metalle bis zu den Atomen gemischt → **Legierung** (Messing).", "Homogeneous instead: metals mixed down to the atoms → **alloy** (brass).")],
+    ok: tr("Zwei Fragen genügen: Was ist verteilt? Worin?", "Two questions are enough: what is spread out? In what?"),
+  },
+  {
+    mode: "worked",
     ask: tr("Welche Art von Gemisch ist **Sand in Wasser**?", "What type of mixture is **sand in water**?"),
     lines: [tr("Was ist verteilt? Sand – **fest**, als Körner.", "What is spread out? Sand – **solid**, as grains."), tr("Worin? Wasser – **flüssig**.", "In what? Water – **liquid**."), tr("Feste Körner in Flüssigkeit → **Suspension**.", "Solid grains in a liquid → **suspension**.")],
-    ok: tr("Tröpfchen in Flüssigkeit = Emulsion, Blasen = Schaum, nur Feststoffe = Gemenge.", "Droplets in a liquid = emulsion, bubbles = foam, only solids = coarse mixture."),
+    ok: tr("Erst „was“, dann „worin“ – dann steht die Art fest.", "First “what”, then “in what” – then the type is clear."),
   },
   {
     mode: "faded",

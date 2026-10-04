@@ -76,7 +76,7 @@
 .num-field .mark { font-weight: 800; }
 .num-field .mark.right { color: var(--ok); } .num-field .mark.wrong { color: var(--bad); }
 .check-btn { justify-self: end; }
-.q-body > .answer-build { flex: 2 1 0; min-height: 120px; }
+.q-body > .answer-build { flex: none; } /* Zähler und Prüfen-Knopf immer ganz; das Bild darüber passt sich an */
 .answer-build { display: flex; flex-direction: column; gap: 10px; }
 .ab-atom-box { flex: 1 1 0; min-height: 60px; container-type: size; display: grid; place-items: center; }
 .ab-atom { position: relative; width: min(100cqw, 100cqh, 260px); aspect-ratio: 1; }
@@ -94,7 +94,8 @@
 .q-worked-tag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: .78rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; color: var(--text); }
 .task-card.worked { border-style: dashed; }
 .q-worked-way .fb-exp { display: flex; gap: 6px; }
-.q-hint.q-first { background: transparent; border: 1.5px dashed var(--rule); }
+.q-first { display: flex; gap: 6px; align-items: flex-start; margin: 0; padding: 4px 8px; border: 1.5px dashed var(--rule); border-radius: var(--radius-sm); font-size: .9rem; line-height: 1.3; }
+.q-first .ic { color: var(--signal); flex: none; margin-top: 1px; }
 .q-feedback { border-radius: var(--radius-md); padding: 10px 14px; animation: pop .3s ease-out; }
 .q-feedback.ok { background: var(--ok-soft); }
 .q-feedback.bad { background: var(--bad-soft); }

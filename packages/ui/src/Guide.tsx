@@ -58,6 +58,8 @@ export interface GuideStep {
 
 export interface GuideDef {
   title: string;
+  /** Begriffe, die schon bekannt sind (Alltag oder frühere Apps) – alle anderen Fachwörter müssen fett eingeführt werden */
+  known?: string[];
   steps: GuideStep[];
   /** Zusammenfassung am Ende: das kannst du jetzt */
   outro: string[];
@@ -201,7 +203,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
               )}
               <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
                 {step.mode && <span className={`ui-guide-mode m-${step.mode}`}>{MODE_NAME[step.mode]()}</span>}
-                {step.say && <p className="ui-guide-say"><RichText text={step.say} /></p>}
+                {/* nach dem Lösen ist der Einleitungssatz gelesen – sein Platz gehört dem Lösungsweg */}
+                {step.say && !(solved && !worked && lines.length > 0) && <p className="ui-guide-say"><RichText text={step.say} /></p>}
                 <p className="ui-guide-ask"><RichText text={step.ask} /></p>
                 {lines.length > 0 && (step.mode !== "free" || solved) && (
                   <ol className={`ui-guide-lines${step.mode === "free" ? " after" : ""}`}>

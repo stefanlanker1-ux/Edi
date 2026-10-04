@@ -111,3 +111,10 @@
 .ab-g-spot { fill: var(--surface); }
 .ab-g-dot-e { fill: var(--hue-blue); opacity: .7; }
 .ab-g-nucdot { fill: var(--hue-red); }
+
+/* Erklärung, niedrige Bildschirme: 3D-Ansicht darf kleiner werden, Legende entfällt (steht in der Wellenmechanik-Ansicht) */
+@media (max-height: 760px) {
+  .ab-g-orb .orb-view { min-height: 90px; }
+  .ab-g-orb .orb-legend { display: none; }
+  .ab-g-orb .orb-atom { gap: 4px; }
+}

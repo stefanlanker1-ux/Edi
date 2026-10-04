@@ -419,10 +419,12 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
     <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}`}>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt" ref={promptRef} tabIndex={-1}><RichText text={t.prompt} /></p>
+      {/* neue Fertigkeit, zweite Begegnung: erster Schritt steht unter der Frage (verdeckt keine Antwortfläche) */}
+      {t.stage === "faded" && !a && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
       <div className="q-body">
         {visual && <div className="q-visual"><Fit>{visual}</Fit></div>}
         {isMc ? <McAnswer task={t as unknown as McTask} answered={a} submit={submit} renderOption={p.renderOption && (o => p.renderOption!(t, o))} /> : p.renderAnswer?.(t, a, submit)}
-        {(game.hintUsed || t.stage === "faded") && !a && <div className={`q-hint${t.stage === "faded" ? " q-first" : ""}`}><Icon name="bulb" /><span>{t.stage === "faded" && <b>{tr("Erster Schritt: ", "First step: ")}</b>}<RichText text={t.hint} /></span></div>}
+        {game.hintUsed && t.stage !== "faded" && !a && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
         {a && (
           <div className={`q-feedback ${a.ok ? "ok" : "bad"}`} role="status">
             <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>

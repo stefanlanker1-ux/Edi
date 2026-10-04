@@ -1,4 +1,4 @@
-// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–40 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
+// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–48 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
 // Rückmeldungen passen zu möglichen Antworten, kurze Sätze. Ausblenden der Hilfe: jedes Kapitel beginnt vorgemacht,
 // danach halb gelöst, dann frei (vorgemacht → halb → frei → vorgemacht …; mehrere halbe oder freie hintereinander erlaubt).
 
@@ -10,10 +10,43 @@ export function longGuideSentences(text: string, max = 22): string[] {
   return plain.replace(/([.!?])\s+/g, "$1\n").split("\n").filter(s => s.split(/\s+/).filter(w => /[A-Za-zÄÖÜäöüß]/.test(w)).length > max);
 }
 
+/** Fachwort-artige Antwort: nur Buchstaben (keine Zahlen, Formeln, Sätze), höchstens zwei Wörter */
+const termLike = (s: string) => /^[\p{L}][\p{L}\-]*( [\p{L}][\p{L}\-]*)?$/u.test(s.trim()) && !/^(ja|nein|yes|no|keine?|none|nichts|nothing)$/i.test(s.trim());
+/** gleicher Begriff trotz Beugung: „homogenes Gemisch“ ~ „homogen“, „Gemenge“ ~ „Gemenges“ */
+const sameTerm = (a: string, b: string) => {
+  const x = a.toLowerCase(), y = b.toLowerCase();
+  if (x === y || (y.length >= 4 && x.includes(y)) || (x.length >= 4 && y.includes(x))) return true;
+  let k = 0;
+  while (k < x.length && k < y.length && x[k] === y[k]) k++;
+  return k >= 5 && k >= Math.min(x.length, y.length) - 2;
+};
+
+/**
+ * Begriffe vor dem Abfragen einführen: eine richtige Antwort, die ein Fachwort ist, muss vorher (oder im selben Schritt)
+ * **fett** in einem Text oder Lösungsweg stehen – oder in `known` (Alltag, frühere Apps). Falsche Antworten, die erst später
+ * eingeführte Fachwörter sind, dürfen nicht vorher auftauchen.
+ */
+export function unintroducedTerms(def: GuideDef): string[] {
+  const out: string[] = [];
+  const intro: { term: string; at: number }[] = (def.known ?? []).map(term => ({ term, at: -1 }));
+  def.steps.forEach((s, i) => { for (const t of [s.say ?? "", s.ask, s.ok, ...(s.lines ?? [])]) for (const m of t.matchAll(/\*\*([^*]+)\*\*/g)) intro.push({ term: m[1], at: i }); });
+  const firstIntro = (w: string) => Math.min(...intro.filter(t => sameTerm(t.term, w)).map(t => t.at), Infinity);
+  def.steps.forEach((s, i) => {
+    if (!s.options) return;
+    for (const o of s.options) {
+      if (!termLike(o)) continue;
+      const at = firstIntro(o);
+      if (o === s.answer && at > i) out.push(`${def.title} Schritt ${i + 1}: Begriff „${o}“ wird abgefragt, aber nicht vorher eingeführt (fett) – oder in known eintragen`);
+      if (o !== s.answer && at !== Infinity && at > i) out.push(`${def.title} Schritt ${i + 1}: Begriff „${o}“ kommt vor seiner Einführung (Schritt ${at + 1}) vor`);
+    }
+  });
+  return out;
+}
+
 export function checkGuide(def: GuideDef): string[] {
   const out: string[] = [];
   const n = def.steps.length;
-  if (n < 10 || n > 40) out.push(`${def.title}: ${n} Schritte (erlaubt 10–40)`);
+  if (n < 10 || n > 48) out.push(`${def.title}: ${n} Schritte (erlaubt 10–48)`);
   // längere Erklärungen in Kapiteln, jedes überschaubar (höchstens 8 Schritte)
   const starts = def.steps.map((s, i) => (s.part || i === 0 ? i : -1)).filter(i => i >= 0);
   if (n > 15 && !def.steps[0].part) out.push(`${def.title}: über 15 Schritte – Kapitel (part) nötig, ab dem ersten Schritt`);
@@ -22,6 +55,7 @@ export function checkGuide(def: GuideDef): string[] {
   // Reihenfolge der Arten: halb gelöst nur nach vorgemacht/halb, frei nur nach halb/frei, Kapitelanfang vorgemacht
   const allowed: Record<string, string[]> = { worked: ["worked", "faded", "free"], faded: ["worked", "faded"], free: ["faded", "free"] };
   const staged = def.steps.some(s => s.mode);
+  if (staged) out.push(...unintroducedTerms(def));
   def.steps.forEach((s, i) => {
     const at = `${def.title} Schritt ${i + 1}`;
     if (staged && !s.mode) { out.push(`${at}: Art (mode) fehlt`); return; }
@@ -39,7 +73,7 @@ export function checkGuide(def: GuideDef): string[] {
       }
     }
     if (s.mode === "faded" && (s.lines ?? []).filter(l => l.includes("{?}")).length !== 1) out.push(`${at}: halb gelöst braucht genau eine Lücke {?}`);
-    if (s.mode === "faded" && typeof s.answer === "number" && (s.lines ?? []).some(l => new RegExp(`(^|[^0-9,\\p{L}])${String(s.answer).replace(".", ",")}([^0-9,\\p{L}]|$)`, "u").test(l.replace("{?}", "")))) out.push(`${at}: Lösungsweg verrät die Lücke`);
+    if (s.mode === "faded" && typeof s.answer === "number" && (s.lines ?? []).filter(l => l.includes("{?}")).some(l => new RegExp(`(^|[^0-9,\\p{L}])${String(s.answer).replace(".", ",")}([^0-9,\\p{L}]|$)`, "u").test(l.replace("{?}", "")))) out.push(`${at}: Zeile mit der Lücke verrät die Lösung`);
     if (s.mode === "free" && s.lines?.some(l => l.includes("{?}"))) out.push(`${at}: Lücke in freiem Schritt`);
     if (s.answer === undefined) { out.push(`${at}: Antwort fehlt`); return; }
     const kinds = [!!s.options, !!s.num, !s.options && !s.num].filter(Boolean).length;
