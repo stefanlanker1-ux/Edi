@@ -215,7 +215,7 @@ const US: GuideStep[] = [
     ask: tr("Wie verteilen sich die 9 Elektronen von **Fluor**?", "How are the 9 electrons of **fluorine** arranged?"),
     visual: () => <BohrOnly Z={9} N={10} E={9} />,
     labels: [{ at: ".bohr .ring", text: tr("1. Schale", "1st shell"), nth: 0, point: "nw", side: "top" }, { at: ".bohr .ring", text: tr("2. Schale", "2nd shell"), nth: 1, point: "ne", side: "top" }],
-    lines: [tr("1. Schale: 2 – jetzt voll.", "1st shell: 2 – now full."), tr("2. Schale: 9 − 2 = **7**.", "2nd shell: 9 − 2 = **7**."), tr("Kurz: **2 · 7**. Die äußerste Schale hat 7 **Außenelektronen**.", "In short: **2 · 7**. The outer shell has 7 **outer electrons**.")],
+    lines: [tr("1. Schale: 2 – jetzt voll.", "1st shell: 2 – now full."), tr("2. Schale: 9 − 2 = **7**.", "2nd shell: 9 − 2 = **7**."), tr("Kurz: **2 · 7**. Die äußerste Schale hat 7 **Außenelektronen**.", "In short: **2 · 7**. The outer shell has 7 **outer electrons**."), tr("Die Schalen heißen von innen auch **K**, **L**, **M**, **N**.", "From the inside the shells are also called **K**, **L**, **M**, **N**.")],
     ok: tr("Erst die innere Schale füllen, dann die nächste.", "Fill the inner shell first, then the next."),
   },
   {
@@ -268,7 +268,7 @@ const US: GuideStep[] = [
     ask: tr("Was wird aus **Natrium** (2 · 8 · 1)?", "What does **sodium** (2 · 8 · 1) become?"),
     visual: () => <BohrOnly Z={11} N={12} E={10} />,
     lines: [tr("1 Außenelektron abgeben ist leichter als 7 aufnehmen.", "Losing 1 outer electron is easier than gaining 7."), tr("Danach außen: die volle 2. Schale (8).", "Afterwards on the outside: the full 2nd shell (8)."), tr("11 Plus, 10 Minus → Ladung **1+**: das Ion **Na⁺**.", "11 plus, 10 minus → charge **1+**: the ion **Na⁺**.")],
-    ok: tr("Geladene Teilchen heißen **Ionen**.", "Charged particles are called **ions**."),
+    ok: tr("Geladene Teilchen heißen **Ionen**: positive **Kationen**, negative **Anionen**.", "Charged particles are called **ions**: positive **cations**, negative **anions**."),
   },
   {
     mode: "faded",
@@ -640,7 +640,7 @@ const OS: GuideStep[] = [
     part: tr("Ionen", "Ions"),
     say: tr("Hauptgruppen-Atome bilden Ionen mit **Edelgaskonfiguration**.", "Main group atoms form ions with a **noble gas configuration**."),
     ask: tr("Welches Ion bildet **Natrium** ([Ne] 3s¹)?", "Which ion does **sodium** ([Ne] 3s¹) form?"),
-    lines: [tr("Natrium gibt das eine 3s-Elektron ab.", "Sodium loses its one 3s electron."), tr("Übrig: [Ne] – wie das Edelgas Neon.", "Left: [Ne] – like the noble gas neon."), tr("11 Protonen, 10 Elektronen → **Na⁺**.", "11 protons, 10 electrons → **Na⁺**.")],
+    lines: [tr("Natrium gibt das eine 3s-Elektron ab.", "Sodium loses its one 3s electron."), tr("Übrig: [Ne] – wie das Edelgas Neon.", "Left: [Ne] – like the noble gas neon."), tr("11 Protonen, 10 Elektronen → **Na⁺**, ein **Kation**.", "11 protons, 10 electrons → **Na⁺**, a **cation**.")],
     ok: tr("Gruppe 1, 2, 13 geben 1, 2, 3 ab; Gruppe 15, 16, 17 nehmen 3, 2, 1 auf.", "Groups 1, 2, 13 lose 1, 2, 3; groups 15, 16, 17 gain 3, 2, 1."),
   },
   {
@@ -653,7 +653,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    say: tr("Teilchen mit **gleicher Elektronenkonfiguration** heißen isoelektronisch.", "Particles with the **same electron configuration** are called isoelectronic."),
+    say: tr("Teilchen mit gleicher Elektronenkonfiguration heißen **isoelektronisch**.", "Particles with the same electron configuration are called **isoelectronic**."),
     ask: tr("Welches Teilchen hat dieselbe Konfiguration wie **Neon** (10 Elektronen)?", "Which particle has the same configuration as **neon** (10 electrons)?"), answer: "Mg²⁺", options: ["Mg²⁺", "Mg", "Na", "Cl⁻"],
     why: { Mg: tr("Magnesium-Atom: 12 Elektronen.", "Magnesium atom: 12 electrons."), Na: tr("Natrium-Atom: 11 Elektronen.", "Sodium atom: 11 electrons."), "Cl⁻": tr("Cl⁻ hat 18 Elektronen – wie Argon.", "Cl⁻ has 18 electrons – like argon.") },
     ok: tr("Mg²⁺: 12 − 2 = 10 Elektronen.", "Mg²⁺: 12 − 2 = 10 electrons."),

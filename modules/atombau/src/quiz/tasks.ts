@@ -393,7 +393,7 @@ export const nuclideInput: Gen = pool => {
       ...(q ? [{ field: "q", value: 0, miss: "ladung-neutral", why: tr(`${P(Z)} und ${El(E)} sind nicht gleich viele – das Teilchen ist geladen.`, `${P(Z)} and ${El(E)} are not equal in number – the particle is charged.`) }] : []),
     ], { z: Z, a: Z + N, q }),
     hint: tr("A = Protonen + Neutronen. Ladung = Protonen − Elektronen.", "A = protons + neutrons. Charge = protons − electrons."),
-    explain: `Z = **${Z}**, A = ${Z} + ${N} = **${Z + N}**, ${tr("Ladung", "charge")} = ${Z} − ${E} = ${minus(q)} → **${signed(q)}**.`,
+    explain: `Z = **${Z}**, A = ${Z} + ${N} = **${Z + N}**, ${tr("Ladung", "charge")} = ${Z} − ${E} = ${minus(q)} → **${q === 0 ? tr("neutral", "neutral") : signed(q)}**.`,
   };
 };
 
@@ -479,7 +479,7 @@ export const unpairedMC: Gen = pool => {
       ...(u !== 0 ? [d("0", "hund-alle-gepaart", tr(`Nach der Hund'schen Regel werden Kästchen gleicher Energie zuerst **einzeln** besetzt – in ${last.key}${sup(last.count)} bleiben Elektronen ungepaart.`, `By Hund's rule boxes of equal energy are filled **singly** first – in ${last.key}${sup(last.count)} electrons stay unpaired.`))] : []),
       ...nearNums(u, 0).map(n => dis(String(n), tr(`Kästchen zeichnen: ${last.key}${sup(last.count)} → ${u} ungepaart.`, `Draw the boxes: ${last.key}${sup(last.count)} → ${u} unpaired.`))),
     ]),
-    prompt: tr(`Wie viele **ungepaarte Elektronen** hat ein **${el(Z).name}**-Atom im Grundzustand?`, `How many **unpaired electrons** does a **${el(Z).name}** atom have in the ground state?`),
+    prompt: tr(`Wie viele **ungepaarte Elektronen** hat ein **${el(Z).name}**-Atom?`, `How many **unpaired electrons** does a **${el(Z).name}** atom have?`),
     hint: tr("Zeichne die äußerste, nicht volle Unterschale als Kästchen und besetze nach der Hund'schen Regel.", "Draw the outermost subshell that is not full as boxes and fill by Hund's rule."),
     explain: tr(`${el(Z).name}: \`${shortConfigString(Z)}\`. In ${last.key}${sup(last.count)} ${u ? `${u === 1 ? "bleibt" : "bleiben"} **${u}** ${u === 1 ? "Elektron" : "Elektronen"} ungepaart (Hund'sche Regel).` : "sind alle Elektronen gepaart → **0**."}`,
       `${el(Z).name}: \`${shortConfigString(Z)}\`. In ${last.key}${sup(last.count)} ${u ? `**${u}** ${u === 1 ? "electron stays" : "electrons stay"} unpaired (Hund's rule).` : "all electrons are paired → **0**."}`),
