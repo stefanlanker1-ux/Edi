@@ -3,7 +3,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { StoreApi, UseBoundStore } from "zustand";
-import { Button, Card, Fit, Icon, IconButton, Note, ResultBar, RichText, Sheet, Stars, Tag, buzz, ding, getLang, tr, type IconName } from "@lern/ui";
+import { Button, Card, Fit, Guide, Icon, IconButton, Note, ResultBar, RichText, Sheet, Stars, Tag, buzz, ding, getLang, tr, type GuideDef, type IconName } from "@lern/ui";
 import { counted, diagnose, starsFor, weakTypes, type Answered, type BaseTask, type Game, type LevelKey, type McTask, type QuizLevel, type Submit } from "./types.ts";
 import type { QuizState } from "./store.ts";
 import { STAGES, dayStart, daysUntilDue, dueSkills, examDays, inExam, stageCounts, stageOf, weeklyDone, type Exam, type Skills, type Stage } from "./skills.ts";
@@ -34,7 +34,18 @@ export interface QuizScreenProps<T extends BaseTask> {
   tools?: (task: T) => QuizTool[];
   /** Name einer Fehlvorstellung (Stolperstein) für Landkarte und Auswertung */
   missName?: (key: string) => string | undefined;
+  /**
+   * Lernen in Kapiteln: Lektion (geführte Erklärung) eines Levels. Beim ersten Antippen des Kapitels läuft zuerst die Lektion
+   * (vorgemacht → halb gelöst → selbst), danach direkt die Aufgaben – ein Fluss. Später startet das Kapitel gleich mit den Aufgaben,
+   * die Lektion lässt sich über das Buch-Zeichen neben der Karte wiederholen. Erledigt-Stand in localStorage `LESSON_KEY`.
+   */
+  lesson?: (level: number) => GuideDef | undefined;
 }
+
+/** localStorage-Schlüssel: welche Lektionen schon durchlaufen sind (gehört in `storage` des Moduls) */
+export const LESSON_KEY = "lern-lektionen";
+const lessonsDone = (): Record<string, boolean> => { try { return JSON.parse(localStorage.getItem(LESSON_KEY) ?? "{}"); } catch { return {}; } };
+const markLesson = (id: string) => { try { localStorage.setItem(LESSON_KEY, JSON.stringify({ ...lessonsDone(), [id]: true })); } catch { /* egal */ } };
 
 /** Hilfsmittel während einer Aufgabe: Inhalt passt sich der Aufgabe an */
 export interface QuizTool { id: string; label: string; icon: IconName; content: ReactNode; wide?: boolean }
@@ -170,14 +181,20 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
   const lastRound = Math.max(0, ...(rounds[p.stufe] ?? []));
   const back = done === 0 && lastRound > 0 && Date.now() - lastRound >= 7 * 86_400_000;
   const name = (id: string) => p.typeName?.(id) ?? id;
-  const go = (level: LevelKey) => { start(p.stufe, level, level === "due" ? due : undefined); onStart(); window.scrollTo({ top: 0 }); };
+  const begin = (level: LevelKey) => { start(p.stufe, level, level === "due" ? due : undefined); onStart(); window.scrollTo({ top: 0 }); };
+  // Kapitel mit Lektion: beim ersten Mal (oder über das Buch-Zeichen) zuerst die Lektion, danach die Aufgaben
+  const [lesson, setLesson] = useState<number | null>(null);
+  const [doneLessons, setDoneLessons] = useState(lessonsDone);
+  const go = (level: LevelKey) => (typeof level === "number" && p.lesson?.(level) && !doneLessons[p.levelId(level)] ? setLesson(level) : begin(level));
+  const lessonDef = lesson !== null ? p.lesson?.(lesson) : undefined;
   const examOn = !!exam && examIn !== null && examIn >= 0;
   const examIds = exam?.types?.length ? exam.types : allTypes;
   const examCount = stageCounts(sk, examIds);
   const card = (level: LevelKey, n: ReactNode, title: string, desc: string, ids?: string[], tip?: boolean) => {
     const pr = progress[p.levelId(level)];
     const c = ids ? stageCounts(sk, ids) : null;
-    return (
+    const again = typeof level === "number" && !!p.lesson?.(level) && doneLessons[p.levelId(level)];
+    const btn = (
       <button key={String(level)} type="button" className={`level-card${level === "due" ? " due" : ""}`} onClick={() => go(level)}>
         <span className="lv-num">{n}</span>
         <span className="lv-body">
@@ -194,6 +211,12 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
           <span className="lv-go">{tip && <span className="lv-tip" role="img" aria-label={tr("mit Tipp", "with tip")}><Icon name="bulb" /></span>}<Icon name="play" className="lv-play" /></span></span>
       </button>
     );
+    return again ? (
+      <div key={String(level)} className="lv-row">
+        {btn}
+        <IconButton icon="book" className="lv-lesson" label={tr(`Erklärung: ${title}`, `Explanation: ${title}`)} onClick={() => setLesson(level as number)} />
+      </div>
+    ) : btn;
   };
   // Nie scrollen: passt das Menü nicht (kleines Handy, viele Level, „Weiterspielen“), stufenweise kompakter –
   // 1 ohne Beschreibungen, 2 engere Karten, 3 ohne Fertigkeiten-Kästchen, 4 ohne Titelkarte
@@ -240,6 +263,8 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
         {card("mix", "★", tr("Alles gemischt", "All mixed"), tr("Aufgaben aus allen Levels", "Tasks from all levels"))}
         {weak.length > 0 && card("weak", <Icon name="reset" />, tr("Schwächen üben", "Practise weak spots"), weak.map(name).join(", "))}
       </div>
+      {lessonDef && <Guide key={`${lesson}-${lessonDef.title}`} def={lessonDef} open onClose={() => setLesson(null)} finishLabel={tr("Zu den Aufgaben", "To the tasks")}
+        onFinish={() => { const l = lesson!; markLesson(p.levelId(l)); setDoneLessons(lessonsDone()); setLesson(null); begin(l); }} />}
       <Sheet open={map} title={tr("Landkarte", "Skill map")} onClose={() => setMap(false)}>
         <SkillMap levels={p.levels} skills={sk} name={name} misses={misses[p.stufe] ?? {}} missName={p.missName} exam={exam} />
       </Sheet>
@@ -377,7 +402,7 @@ function Play<T extends BaseTask>({ p, game, onPause }: { p: QuizScreenProps<T>;
         <div className="q-score" aria-label={tr(`${game.score} Punkte`, `${game.score} points`)}>{game.score}<small>{tr("Pkt", "pts")}</small></div>
         <div className={`q-streak${game.streak >= 2 ? " hot" : ""}`} aria-label={tr(`Serie ${game.streak}`, `Streak ${game.streak}`)}><Icon name="fire" />{game.streak}</div>
       </div>
-      {game.intro && game.i === 0 && !game.answers[0] && p.explain
+      {game.intro && game.i === 0 && !game.answers[0] && p.explain && !(typeof game.level === "number" && p.lesson?.(game.level))
         ? (
           <Card className="intro-card">
             <h2><Icon name="book" /> {tr("So geht's", "How it works")}: {p.levelName(game.level)}</h2>

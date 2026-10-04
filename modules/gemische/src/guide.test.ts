@@ -1,6 +1,9 @@
-// Erklärung: 10–15 Schritte, jede Antwort lösbar, Rückmeldungen passend, kurze Sätze.
+// Lektionen der fünf Kapitel: vorgemacht → halb gelöst → selbst, jede Antwort lösbar, Begriffe eingeführt, kurze Sätze.
 import { test, expect } from "vitest";
 import { checkGuide } from "@lern/ui";
-import { GUIDE } from "./guide.tsx";
+import { LESSONS } from "./lessons.tsx";
 
-test("Erklärung", () => { expect(checkGuide(GUIDE)).toEqual([]); });
+test("Lektionen", () => {
+  expect(LESSONS.length).toBe(5);
+  for (const l of LESSONS) expect(checkGuide(l, { lesson: true })).toEqual([]);
+});

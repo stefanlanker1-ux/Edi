@@ -37,6 +37,10 @@ const MISS_DE: Record<string, string> = {
   "modell-echt": "Modellfarben für echt gehalten",
   "oel-mischt": "Öl und Wasser bleiben gemischt",
   "oel-unten": "Öl für schwerer als Wasser gehalten",
+  // Stofftrennung
+  "filter-geloest": "Gelöstes für filtrierbar gehalten",
+  "teil-verwechselt": "Teile nach dem Trennen verwechselt",
+  "reihenfolge": "Reihenfolge der Trennschritte vertauscht",
 };
 const MISS_EN: Record<string, string> = {
   "atome-gezaehlt": "Counted atoms instead of particles",
@@ -68,5 +72,8 @@ const MISS_EN: Record<string, string> = {
   "modell-echt": "Model colours taken as real",
   "oel-mischt": "Oil and water stay mixed",
   "oel-unten": "Oil thought heavier than water",
+  "filter-geloest": "Dissolved substance thought to be filterable",
+  "teil-verwechselt": "Parts mixed up after separating",
+  "reihenfolge": "Separation steps in the wrong order",
 };
 export const MISS = tr(MISS_DE, MISS_EN);

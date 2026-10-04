@@ -2,11 +2,12 @@ import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { MixView } from "./views/MixView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
-import { GUIDE } from "./guide.tsx";
+import { LESSON_KEY } from "@lern/quiz";
 import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "quiz", label: "Quiz", icon: "quiz" },
+  // Lernen = Lektion und Aufgaben je Kapitel (statt Erklärung und Quiz getrennt)
+  { id: "quiz", label: tr("Lernen", "Learn"), icon: "book" },
   { id: "probieren", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
@@ -28,7 +29,7 @@ const Logo = () => (
 export function App() {
   const { tab, setTab } = useApp();
   return (
-    <LernApp name={tr("Gemische", "Mixtures")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["gemische-v1", "gemische-quiz"]} guide={GUIDE}>
+    <LernApp name={tr("Gemische", "Mixtures")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["gemische-v1", "gemische-quiz", LESSON_KEY]}>
       {tab === "probieren" && <MixView />}
       {tab === "quiz" && <QuizView />}
     </LernApp>

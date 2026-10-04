@@ -170,3 +170,59 @@
 .gm-milk-water { fill: var(--hue-blue-soft); }
 .gm-milk-fat { fill: var(--hue-yellow-soft); stroke: var(--hue-yellow-deep); stroke-width: 1.5; }
 .gm-milk-cap { font-size: 14px; font-weight: 700; fill: var(--text); text-anchor: middle; }
+
+/* ── Trennverfahren (components/Separation.tsx): Linien statt Flächen, Farben nur aus der Palette ── */
+.sp-wrap { position: relative; width: 100%; height: 100%; display: grid; place-items: center; min-height: 0; }
+.sp { display: block; width: 100%; height: 100%; max-height: 100%; }
+.sp-again { position: absolute; top: 0; right: 0; }
+.sp [data-part] { cursor: inherit; }
+.sp-glass, .sp-frame, .sp-dish, .sp-stand { fill: none; stroke: var(--text); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.sp-plate { fill: var(--surface-2, var(--hue-grey-soft)); stroke: var(--rule); stroke-width: 1.5; }
+.sp-bowl { fill: none; stroke: var(--text); stroke-width: 2; }
+.sp-mesh { stroke: var(--text); stroke-width: 2; stroke-dasharray: 2 3; }
+.sp-pea { fill: var(--hue-green); stroke: var(--hue-green-deep); stroke-width: 1; }
+.sp-lentil { fill: var(--hue-orange); stroke: var(--hue-orange-deep); stroke-width: .8; }
+.sp-tool { stroke: var(--muted); stroke-width: 2; stroke-linecap: round; fill: none; }
+.sp-sand { fill: var(--hue-yellow-deep); }
+.sp-stone { fill: var(--hue-grey); stroke: var(--hue-grey-deep); stroke-width: 1.2; }
+.sp-sulfur { fill: var(--hue-yellow); stroke: var(--hue-yellow-deep); stroke-width: .6; }
+.sp-iron { stroke: var(--hue-grey-deep); stroke-width: 2.2; stroke-linecap: round; }
+.sp-magnet { fill: var(--hue-red); stroke: var(--hue-red-deep); stroke-width: 1.5; }
+.sp-magnet-pole { fill: var(--hue-grey); stroke: var(--hue-grey-deep); stroke-width: 1; }
+.sp-water { fill: var(--hue-blue-soft); }
+.sp-water.sp-clear { fill: var(--hue-blue-soft); }
+.sp-muddy { fill: color-mix(in srgb, var(--hue-blue-soft) 60%, var(--hue-yellow) 40%); }
+.sp-sand-layer { fill: var(--hue-yellow); stroke: var(--hue-yellow-deep); stroke-width: 1; }
+.sp-stream { fill: none; stroke: var(--hue-blue); stroke-width: 3; stroke-linecap: round; }
+.sp-paper { fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.sp-drop { fill: var(--hue-blue); }
+.sp-steam { fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.sp-salt { fill: var(--bg); stroke: var(--text); stroke-width: 1; }
+.sp-flame { fill: var(--hue-orange); }
+.sp-flame-in { fill: var(--hue-yellow); }
+.sp-burner { fill: var(--hue-grey); stroke: var(--hue-grey-deep); stroke-width: 1; }
+.sp-bubble { fill: none; stroke: var(--hue-blue-deep); stroke-width: 1; }
+.sp-cooler { fill: var(--hue-teal-soft); stroke: var(--text); stroke-width: 2; stroke-linejoin: round; }
+.sp-cool-arrow { stroke: var(--hue-teal-deep); stroke-width: 2; stroke-linecap: round; fill: none; }
+.sp-vapor { fill: var(--muted); }
+.sp-paper-strip { fill: var(--bg); stroke: var(--text); stroke-width: 1.5; }
+.sp-wet { fill: var(--hue-blue-soft); opacity: .7; }
+.sp-start { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 3 2; }
+.sp-ink { fill: var(--text); }
+.sp-dye-yellow { fill: var(--hue-yellow); }
+.sp-dye-red { fill: var(--hue-red); }
+.sp-dye-blue { fill: var(--hue-blue); }
+
+/* Lernen: Antippen im Bild füllt den Platz der Aufgabe (nie scrollen), Verfahren als kleine Bildkarten */
+.q-body > .gm-tap { flex: 1 1 0; min-height: 120px; display: grid; grid-template-rows: minmax(0, 1fr); }
+.gm-tap-pic { min-height: 0; width: 100%; height: 100%; display: grid; place-items: center; container-type: size; }
+.gm-tap-pic > svg, .gm-tap-pic .gm-beaker { width: 100cqw; height: 100cqh; }
+.gm-tap .gm-p.pick, .gm-tap .sp [data-part] { cursor: pointer; }
+.q-sep .sp { width: 100%; height: 100%; }
+.gm-method { display: grid; grid-template-rows: auto auto; justify-items: center; gap: 2px; width: 100%; }
+.gm-method .sp { width: 100%; height: clamp(36px, 8vh, 84px); }
+.gm-method > span { font-weight: 700; font-size: .9rem; hyphens: manual; overflow-wrap: normal; text-align: center; line-height: 1.15; }
+@media (max-height: 760px), (max-width: 400px) { .gm-method .sp { height: clamp(30px, 6vh, 52px); } .gm-method > span { font-size: .82rem; } }
+/* Teilchenbilder als Antworten: Höhe begrenzt, damit zwei Reihen auch am Desktop ganz passen */
+.mc-grid:has(.gm-pic) .gm-pic:not(.gm-method) .gm-beaker { width: 100%; height: clamp(56px, 19vh, 170px); }
+@media (max-height: 720px) { .mc-grid:has(.gm-pic) .gm-pic:not(.gm-method) .gm-beaker { height: clamp(50px, 16vh, 120px); } }

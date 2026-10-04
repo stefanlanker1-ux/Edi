@@ -8,7 +8,7 @@ const all = (level: number | "mix", rounds: number) => Array.from({ length: roun
 const picsOf = (t: Task): Pic[] => [...(t.pic ? [t.pic] : []), ...Object.values(t.pics ?? {})];
 
 test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
-  for (const level of [0, 1, 2, 3, "mix" as const]) {
+  for (const level of [0, 1, 2, 3, 4, "mix" as const]) {
     for (const t of all(level, 120)) {
       assert.ok(t.prompt && t.hint && t.explain, "Texte fehlen");
       assert.ok(TYPE_NAMES[t.type!], t.type);
@@ -26,12 +26,16 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
         assert.strictEqual(new Set(t.options).size, t.options.length, `doppelt: ${t.options}`);
         assert.ok(t.answer >= 0 && t.answer < t.options.length);
         if (t.pics) for (const o of t.options) assert.ok(t.pics[o], `Bild fehlt: ${o}`);
+      } else if (t.kind === "tap") {
+        assert.ok(t.parts.includes(t.answer) && new Set(t.parts).size === t.parts.length && t.parts.length >= 2, t.prompt);
+        assert.ok(t.pic || t.sep, "Bild zum Antippen fehlt");
+        if (t.pic) for (const p of t.parts) assert.ok(t.pic.mix.some(([f]) => f === p), p);
       } else {
-        assert.ok(Number.isInteger(t.answer) && t.answer >= 0, t.prompt);
+        assert.fail(`Zahl eintippen soll es nicht mehr geben: ${t.type}`);
       }
     }
   }
-  assert.strictEqual(LEVELS.length, 4);
+  assert.strictEqual(LEVELS.length, 5);
 });
 
 test("keine Moleküle aus nur einer Atomsorte (O₂, O₃, N₂ …) in Bildern und Texten", () => {
@@ -43,23 +47,24 @@ test("keine Moleküle aus nur einer Atomsorte (O₂, O₃, N₂ …) in Bildern 
 
 test("Zählaufgaben stimmen mit der Auswertung überein", () => {
   for (const t of all("mix", 200) as Task[]) {
-    if (t.kind !== "num" || !t.pic || t.type === "erhalten") continue;
+    if (t.kind !== "mc" || !t.pic || !["teilchen", "stoffe", "atomsorten", "verbindungen", "elemente"].includes(t.type!)) continue;
     const a = analyse(t.pic.mix);
     const want: Record<string, number> = { teilchen: a.teilchen, stoffe: a.stoffe.length, atomsorten: a.atomsorten.length, verbindungen: a.verbindungen.length, elemente: a.elemente.length };
-    assert.strictEqual(t.answer, want[t.type!], `${t.type}: ${JSON.stringify(t.pic.mix)}`);
+    assert.strictEqual(t.options[t.answer], String(want[t.type!]), `${t.type}: ${JSON.stringify(t.pic.mix)}`);
+    assert.deepEqual([...t.options].map(Number), [...t.options].map(Number).sort((x, y) => x - y), "Zahlen aufsteigend");
   }
 });
 
 test("Teilchen bleiben erhalten: Antwort = Teilchen des gelösten Stoffs im Bild vorher", () => {
-  for (const t of all(3, 200)) {
-    if (t.type !== "erhalten" || t.kind !== "num") continue;
+  for (const t of all("mix", 300)) {
+    if (t.type !== "erhalten" || t.kind !== "mc") continue;
     assert.strictEqual(t.pic!.arrange, "vorher");
-    assert.strictEqual(t.answer, t.pic!.mix.find(([f]) => f !== "H2O")![1]);
+    assert.strictEqual(t.options[t.answer], String(t.pic!.mix.find(([f]) => f !== "H2O")![1]));
   }
 });
 
 test("Teilchenbilder einordnen: die richtige Antwort passt zur Art des Bildes", () => {
-  for (const t of all(1, 200)) {
+  for (const t of all("mix", 300)) {
     if (t.kind !== "mc") continue;
     if (t.type === "bildArt") assert.strictEqual(t.options[t.answer], PICTURE_LABEL[pictureKind(t.pic!.mix)]);
     if (t.type === "bildWahl") {
@@ -76,7 +81,7 @@ test("Teilchenbilder einordnen: die richtige Antwort passt zur Art des Bildes", 
 });
 
 test("Masse beim Lösen: Wasser + gelöster Stoff", () => {
-  for (const t of all(3, 200)) {
+  for (const t of all(2, 200)) {
     if (t.type !== "masse" || t.kind !== "mc") continue;
     const [w, z] = [...t.prompt.matchAll(/\*\*(\d+) g\*\*/g)].map(m => Number(m[1]));
     assert.strictEqual(t.options[t.answer], `${w + z} g`);
@@ -98,6 +103,10 @@ test("diagnostische Distraktoren: Schlüssel im Katalog, Rückmeldung zu jedem S
         seen.add(m);
       }
     }
+    if (t.kind === "tap") {
+      if (t.traps?.length) withDiag++;
+      for (const tr of t.traps ?? []) { assert.ok(MISS[tr.miss], tr.miss); assert.ok(tr.why.length > 10, tr.why); seen.add(tr.miss); }
+    }
     if (t.kind === "num") {
       if (t.traps?.length) withDiag++;
       for (const tr of t.traps ?? []) {
@@ -116,7 +125,9 @@ test("diagnostische Distraktoren: Schlüssel im Katalog, Rückmeldung zu jedem S
 test("genug verschiedene Aufgaben je Level (keine Wiederholungen)", () => {
   for (let lv = 0; lv < LEVELS.length; lv++) {
     const keys = new Set(all(lv, 60).map(t => JSON.stringify({ ...t, options: undefined, answer: undefined, why: undefined, miss: undefined })));
-    assert.ok(keys.size >= 80, `${LEVELS[lv].name}: nur ${keys.size} verschiedene Aufgaben`);
+    // Stofftrennung: eine feste Zahl echter Fälle (Gemisch → Verfahren, Teile im Bild) statt Zufallsbildern
+    const min = LEVELS[lv].id === "gm-k5" ? 25 : 80;
+    assert.ok(keys.size >= min, `${LEVELS[lv].name}: nur ${keys.size} verschiedene Aufgaben`);
   }
 });
 
@@ -124,8 +135,8 @@ test("keine zwei Atomsorten mit ähnlicher Farbe in einer Aufgabe (z. B. He und 
   for (const t of all("mix", 300)) assert.ok(distinctColors(t), `${t.type}: ${JSON.stringify(t.pic ?? t.pics)}`);
 }, 60_000);
 
-test("Niveaus 1–4: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt, Tipp zugeschnitten", () => {
-  assert.deepEqual(LEVELS.map(l => l.name), ["Elemente und Verbindungen", "Homogen und heterogen", "Gemische im Alltag", "Lösen und Mischen"]);
+test("Kapitel 1–5: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt, Tipp zugeschnitten", () => {
+  assert.deepEqual(LEVELS.map(l => l.name), ["Teilchen und Atomsorten", "Elemente und Verbindungen", "Reinstoffe und Gemische", "Gemische im Alltag", "Stofftrennung"]);
   for (let lv = 0; lv < LEVELS.length; lv++) {
     const L = LEVELS[lv];
     assert.strictEqual(L.seq.length, 10);

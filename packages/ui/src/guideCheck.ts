@@ -1,4 +1,4 @@
-// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–48 Schritte (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
+// Prüfungen für geführte Erklärungen (in den Tests der Module): 10–48 Schritte (Lektionen eines Kapitels 3–12) (ab 16 in Kapiteln zu höchstens 8), jede Antwort lösbar,
 // Rückmeldungen passen zu möglichen Antworten, kurze Sätze. Ausblenden der Hilfe: jedes Kapitel beginnt vorgemacht,
 // danach halb gelöst, dann frei (vorgemacht → halb → frei → vorgemacht …; mehrere halbe oder freie hintereinander erlaubt).
 
@@ -43,10 +43,12 @@ export function unintroducedTerms(def: GuideDef): string[] {
   return out;
 }
 
-export function checkGuide(def: GuideDef): string[] {
+/** `lesson`: Lektion eines Kapitels (Lernen in Kapiteln) – kurz, 3–12 Schritte, ohne Unterkapitel */
+export function checkGuide(def: GuideDef, opts: { lesson?: boolean } = {}): string[] {
   const out: string[] = [];
   const n = def.steps.length;
-  if (n < 10 || n > 48) out.push(`${def.title}: ${n} Schritte (erlaubt 10–48)`);
+  const [lo, hi] = opts.lesson ? [3, 12] : [10, 48];
+  if (n < lo || n > hi) out.push(`${def.title}: ${n} Schritte (erlaubt ${lo}–${hi})`);
   // längere Erklärungen in Kapiteln, jedes überschaubar (höchstens 8 Schritte)
   const starts = def.steps.map((s, i) => (s.part || i === 0 ? i : -1)).filter(i => i >= 0);
   if (n > 15 && !def.steps[0].part) out.push(`${def.title}: über 15 Schritte – Kapitel (part) nötig, ab dem ersten Schritt`);

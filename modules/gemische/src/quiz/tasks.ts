@@ -5,15 +5,19 @@
 
 import { toSubscript } from "@lern/chem";
 import { buildRound, d, dis, mc, pick, shuffle, validTraps, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
-import { EXAMPLES, PICTURE_LABEL, analyse, elementName, isElement, shortName, small, type Before, type PictureKind, type State } from "../mixtures.ts";
+import { EXAMPLES, PICTURE_LABEL, analyse, elementName, isElement, nameOf, shortName, small, type Before, type PictureKind, type State } from "../mixtures.ts";
+import type { Method } from "../components/Separation.tsx";
+import { trennEigenschaft, trennReihe, trennTipp, trennWahl, type MixKind } from "./trennen.ts";
 import type { Arrange } from "../mixing.ts";
 import { tr } from "@lern/i18n";
 
 /** Teilchenbild: Stoffe mit Teilchenzahl, Zustand, Anordnung */
 export interface Pic { mix: [string, number][]; state: State; floats?: string[]; before?: Before; solute?: string; arrange?: Arrange }
-/** `tip`: auf die Aufgabe zugeschnittener Tipp (Level mit Tipp), sonst gilt der allgemeine `hint` */
-type Extra = { pic?: Pic; pics?: Record<string, Pic>; tip?: string };
-export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer: number });
+/** `tip`: auf die Aufgabe zugeschnittener Tipp (Level mit Tipp), sonst gilt der allgemeine `hint`;
+ *  `sep`: Bild eines Trennverfahrens (t = −1 abspielen, sonst Standbild bei t); `mixPic`: Gemisch vor dem Trennen; `methods`: Antworten als Bildkarten der Verfahren */
+type Extra = { pic?: Pic; pics?: Record<string, Pic>; tip?: string; sep?: { m: Method; t: number }; mixPic?: MixKind; methods?: boolean };
+/** `tap`: Teil im Bild antippen – `parts` = antippbare Teile (Formeln im Teilchenbild bzw. Teile des Verfahrens), gemeldet als `values.pick` = Index */
+export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer: number }) | (BaseTask & Extra & { kind: "tap"; answer: string; parts: string[] });
 
 const F = toSubscript;
 const int = (a: number, b: number) => a + Math.floor(Math.random() * (b - a + 1));
@@ -965,6 +969,68 @@ function nachher(): Task {
   };
 }
 
+// ── Antippen im Teilchenbild ─────────────────────────────────────────────────
+
+const atomsOf = (f: string) => analyse([[f, 1]]).atome;
+const ATOM_WORD = (n: number) => tr(n === 1 ? "einem Atom" : `${n} Atomen`, n === 1 ? "one atom" : `${n} atoms`);
+
+/** Tippe auf ein Teilchen aus n Atomen (Teilchenbild mit verschieden großen Teilchen) */
+function tippAtome(): Task {
+  for (;;) {
+    const fs = shuffle([...COMPOUNDS, ...NOBLE]).slice(0, 3);
+    const ns = fs.map(atomsOf);
+    if (new Set(ns).size < 3) continue;
+    const k = int(0, 2), f = fs[k], n = ns[k];
+    const pic: Pic = { mix: fs.map(x => [x, int(2, 4)] as [string, number]), state: "modell" };
+    return {
+      kind: "tap", answer: f, parts: fs, pic,
+      traps: fs.map((x, i) => (i === k ? null : { values: { pick: i }, miss: "atome-gezaehlt", why: tr(`${F(x)} besteht aus ${ATOM_WORD(ns[i])}. Zähle die Kugeln in einem Teilchen.`, `${F(x)} is made of ${ATOM_WORD(ns[i])}. Count the spheres in one particle.`) })).filter(x => !!x) as Trap[],
+      prompt: tr(`Tippe auf ein Teilchen aus **${ATOM_WORD(n)}**.`, `Tap a particle made of **${ATOM_WORD(n)}**.`),
+      hint: tr("Jede Kugel ist ein Atom. Zähle die Kugeln eines Teilchens.", "Each sphere is an atom. Count the spheres of one particle."),
+      tip: tr(`Suche ein Teilchen mit ${n} ${n === 1 ? "Kugel" : "Kugeln"}.`, `Look for a particle with ${n} ${n === 1 ? "sphere" : "spheres"}.`),
+      explain: tr(`${F(f)} hat **${ATOM_WORD(n)}**.`, `${F(f)} has **${ATOM_WORD(n)}**.`),
+    };
+  }
+}
+
+/** Tippe auf ein Teilchen eines Elements bzw. einer Verbindung */
+function tippArt(element: boolean): Task {
+  const one = element ? pick(NOBLE) : pick(COMPOUNDS);
+  const rest = shuffle(element ? COMPOUNDS : NOBLE).slice(0, 2);
+  const fs = shuffle([one, ...rest]);
+  const pic: Pic = { mix: fs.map(x => [x, int(2, 4)] as [string, number]), state: "modell" };
+  const word = element ? tr("eines **Elements**", "of an **element**") : tr("einer **Verbindung**", "of a **compound**");
+  return {
+    kind: "tap", answer: one, parts: fs, pic,
+    traps: fs.map((x, i) => (x === one ? null : {
+      values: { pick: i }, miss: element ? "verbindung-element" : "element-verbindung",
+      why: element ? tr(`${F(x)} hat mehrere Atomsorten. Das ist eine Verbindung.`, `${F(x)} has several kinds of atoms. That is a compound.`)
+        : tr(`${F(x)} hat nur eine Atomsorte. Das ist ein Element.`, `${F(x)} has only one kind of atom. That is an element.`),
+    })).filter(x => !!x) as Trap[],
+    prompt: tr(`Tippe auf ein Teilchen ${word}.`, `Tap a particle ${word}.`),
+    hint: tr("Element: Kugeln in einer Farbe. Verbindung: mehrere Farben fest in einem Teilchen.", "Element: spheres of one colour. Compound: several colours bonded in one particle."),
+    tip: element ? tr("Suche ein Teilchen mit nur einer Farbe.", "Look for a particle with only one colour.") : tr("Suche ein Teilchen mit mehreren Farben.", "Look for a particle with several colours."),
+    explain: element ? tr(`${nameOf(one)} (${F(one)}): eine Atomsorte → **Element**.`, `${nameOf(one)} (${F(one)}): one kind of atom → **element**.`)
+      : tr(`${nameOf(one)} (${F(one)}): mehrere Atomsorten → **Verbindung**.`, `${nameOf(one)} (${F(one)}): several kinds of atoms → **compound**.`),
+  };
+}
+
+/** Zahlen nicht eintippen: Zählaufgaben als Auswahl – die Fallen werden diagnostische Distraktoren, Zahlen aufsteigend */
+function asChoice(t: Task): Task {
+  if (t.kind === "mc") return t.options.every(o => /^\d+$/.test(o)) ? sortNum(t) : t;
+  if (t.kind !== "num") return t;
+  const { traps, answer, ...rest } = t;
+  return sortNum({ ...rest, ...mc(String(answer), [...(traps ?? []).map(x => (x.value !== undefined ? d(String(x.value), x.miss, x.why) : null)), ...nearNums(answer, 0)]) } as Task & McTask);
+}
+/** Zahlen-Auswahl aufsteigend (Rückmeldungen wandern mit) */
+function sortNum(m: Task & McTask): Task {
+  const order = m.options.map((_, i) => i).sort((a, b) => Number(m.options[a]) - Number(m.options[b]));
+  const remap = <V>(r?: Record<number, V>) => (r ? Object.fromEntries(Object.entries(r).map(([i, v]) => [order.indexOf(Number(i)), v])) as Record<number, V> : undefined);
+  const why = remap(m.why), miss = remap(m.miss);
+  const { why: _w, miss: _m, ...rest } = m;
+  return { ...rest, options: order.map(i => m.options[i]), answer: order.indexOf(m.answer), ...(why ? { why } : {}), ...(miss ? { miss } : {}) } as Task;
+}
+
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
 const RAW: Record<string, () => Task> = {
@@ -972,12 +1038,14 @@ const RAW: Record<string, () => Task> = {
   homogen: () => homogen(), gemischart: () => gemischart(), alltag, reinAlltag, wohin, erhalten, masse, zwischen, bewegung, farbe, nachher,
   homogenBild: homogenOf(e => !!e.ex), homogenKlar: homogenOf(e => e.trap?.[1] === "klar-reinstoff"), homogenSieht: homogenOf(e => e.trap?.[1] === "sieht-einheitlich"),
   artFluessig: gemischartOf(ARTEN.slice(0, 1).concat(ARTEN.slice(3, 5))), artFestGas: gemischartOf([ARTEN[1], ARTEN[2], ARTEN[5]]), artInGas: gemischartOf(ARTEN.slice(6, 9)),
+  tippAtome, tippElement: () => tippArt(true), tippVerbindung: () => tippArt(false),
+  trennWahl, trennEigenschaft, trennTipp, trennReihe,
 };
 /** neu würfeln, bis keine zwei Atomsorten ähnliche Farben haben */
 const GENS: Record<string, () => Task> = Object.fromEntries(Object.entries(RAW).map(([id, gen]) => [id, () => {
   let t = gen();
   for (let k = 0; k < 60 && !distinctColors(t); k++) t = gen();
-  return t;
+  return asChoice(t);
 }]));
 
 export const TYPE_NAMES: Record<string, string> = tr({
@@ -989,6 +1057,8 @@ export const TYPE_NAMES: Record<string, string> = tr({
   bewegung: "Teilchen bewegen sich", farbe: "Teilchen und Stoff", nachher: "Nach dem Mischen",
   homogenBild: "Homogen oder heterogen im Teilchenbild", homogenKlar: "Klar heißt nicht rein", homogenSieht: "Sieht einheitlich aus",
   artFluessig: "Lösung, Emulsion, Suspension", artFestGas: "Legierung, Gasgemisch, Gemenge", artInGas: "Rauch, Nebel, Schaum",
+  tippAtome: "Atome im Teilchen", tippElement: "Element im Bild finden", tippVerbindung: "Verbindung im Bild finden",
+  trennWahl: "Trennverfahren wählen", trennEigenschaft: "Genutzte Eigenschaft", trennTipp: "Teile nach dem Trennen", trennReihe: "Reihenfolge der Trennschritte",
 }, {
   teilchen: "Counting particles", stoffe: "Counting substances", reinOderGemisch: "Pure substance or mixture", reinGemisch: "Pure substance, element or compound",
   einordnen: "Element or compound", bildArt: "Classifying a particle picture", bildWahl: "Choosing a particle picture",
@@ -998,113 +1068,140 @@ export const TYPE_NAMES: Record<string, string> = tr({
   bewegung: "Particles move", farbe: "Particle and substance", nachher: "After mixing",
   homogenBild: "Homogeneous or heterogeneous in the particle picture", homogenKlar: "Clear does not mean pure", homogenSieht: "Looks uniform",
   artFluessig: "Solution, emulsion, suspension", artFestGas: "Alloy, gas mixture, coarse mixture", artInGas: "Smoke, fog, foam",
+  tippAtome: "Atoms in a particle", tippElement: "Finding an element", tippVerbindung: "Finding a compound",
+  trennWahl: "Choosing a separation method", trennEigenschaft: "Property used", trennTipp: "Parts after separating", trennReihe: "Order of separation steps",
 });
 
 /** `seq`: feste Reihenfolge der zehn Aufgaben (leicht → schwer, jede baut auf der vorigen auf), `leads`: Merksatz je Schritt */
 interface Level extends QuizLevel { types: string[]; seq: string[]; leads: string[]; cue: boolean }
 type Step = [type: string, lead: string];
 
-const STEPS_ELEMENTS: Step[] = tr([
-  ["teilchen", "Alles besteht aus winzigen **Teilchen**. Ein Teilchen ist ein **einzelnes Atom** oder ein **Molekül** aus mehreren Atomen."],
+// Lernen in fünf Kapiteln (je Kapitel zuerst die Lektion in lessons.tsx, dann diese zehn Aufgaben): Merksatz je Aufgabe
+const K1: Step[] = tr([
+  ["teilchen", "Alles besteht aus winzigen **Teilchen**: einzelnen Atomen oder **Molekülen** aus mehreren Atomen."],
   ["teilchen", "Ein Molekül zählt als **ein** Teilchen – egal, aus wie vielen Atomen es besteht."],
-  ["atomsorten", "Jede **Atomsorte** hat im Bild eine eigene Farbe (H weiß, C schwarz, O rot …). Gleiche Farbe = gleiche Atomsorte."],
-  ["einordnen", "Ein **Element** besteht aus nur **einer** Atomsorte. Eine **Verbindung** hat **mehrere** Atomsorten fest in einem Teilchen."],
-  ["einordnen", "Die Formel verrät es: Jeder **Großbuchstabe** ist eine Atomsorte. H₂O hat H und O – also eine Verbindung."],
+  ["tippAtome", "Jede Kugel im Bild ist **ein Atom**. Ein Teilchen kann eine oder mehrere Kugeln haben."],
+  ["atomsorten", "Jede **Atomsorte** hat im Bild eine eigene Farbe (H weiß, C schwarz, O rot …)."],
+  ["tippAtome", "Zähle die Kugeln in **einem** Teilchen – nicht im ganzen Bild."],
+  ["atomsorten", "Gleiche Farbe = gleiche Atomsorte. Jede Farbe zählt nur einmal."],
   ["stoffe", "Gleiche Teilchen bilden **einen Stoff**. Verschiedene Teilchen sind verschiedene Stoffe."],
-  ["elemente", "In einem Bild können mehrere Stoffe sein. Teilchen mit **einer** Farbe sind Elemente."],
-  ["verbindungen", "Teilchen mit **mehreren** Farben sind Verbindungen. Gleiche Teilchen zählen als **ein** Stoff."],
-  ["reinOderGemisch", "Nur **ein** Stoff = **Reinstoff**. **Mehrere** Stoffe = **Gemisch**."],
-  ["bildArt", "Alles zusammen: erst die Teilchensorten zählen (ein Stoff oder mehrere?), dann die Farben im Teilchen (Element oder Verbindung?)."],
+  ["stoffe", "Teilchen zählen, Stoffe zählen, Atomsorten zählen – drei verschiedene Fragen."],
+  ["zwischen", "Zwischen den Teilchen ist **nichts** – leerer Raum."],
+  ["farbe", "Die Farben im Modell helfen nur beim Unterscheiden. Ein Teilchen hat **keine Farbe**."],
 ], [
-  ["teilchen", "Everything is made of tiny **particles**. A particle is a **single atom** or a **molecule** of several atoms."],
+  ["teilchen", "Everything is made of tiny **particles**: single atoms or **molecules** of several atoms."],
   ["teilchen", "A molecule counts as **one** particle – no matter how many atoms it has."],
-  ["atomsorten", "Each **kind of atom** has its own colour in the picture (H white, C black, O red …). Same colour = same kind of atom."],
-  ["einordnen", "An **element** has only **one** kind of atom. A **compound** has **several** kinds of atoms bonded in one particle."],
-  ["einordnen", "The formula tells you: each **capital letter** is a kind of atom. H₂O has H and O – so it is a compound."],
+  ["tippAtome", "Each sphere in the picture is **one atom**. A particle can have one or several spheres."],
+  ["atomsorten", "Each **kind of atom** has its own colour in the picture (H white, C black, O red …)."],
+  ["tippAtome", "Count the spheres in **one** particle – not in the whole picture."],
+  ["atomsorten", "Same colour = same kind of atom. Each colour counts only once."],
   ["stoffe", "Identical particles form **one substance**. Different particles are different substances."],
-  ["elemente", "A picture can contain several substances. Particles with **one** colour are elements."],
-  ["verbindungen", "Particles with **several** colours are compounds. Identical particles count as **one** substance."],
-  ["reinOderGemisch", "Only **one** substance = **pure substance**. **Several** substances = **mixture**."],
-  ["bildArt", "All together: first count the kinds of particles (one substance or several?), then the colours in a particle (element or compound?)."],
+  ["stoffe", "Counting particles, substances and kinds of atoms – three different questions."],
+  ["zwischen", "Between the particles there is **nothing** – empty space."],
+  ["farbe", "The model colours only help to tell them apart. A particle has **no colour**."],
 ]);
-const STEPS_HOMOGEN: Step[] = tr([
-  ["reinGemisch", "Rückblick: ein Stoff = **Reinstoff** (Element oder Verbindung), mehrere Stoffe = **Gemisch**. Jetzt geht es um Gemische."],
-  ["homogenBild", "Gemische gibt es in zwei Arten: **homogen** – überall gleich, keine Grenze zu sehen; **heterogen** – Teile, Tröpfchen oder Schichten sind zu erkennen."],
-  ["homogenBild", "Im Teilchenbild: homogen = die Teilchen sind **gleichmäßig** gemischt. Heterogen = es gibt **getrennte Bereiche**."],
-  ["homogenBild", "Gelöstes sieht man nicht mehr: Seine Teilchen sitzen überall zwischen den Wasserteilchen – das Gemisch ist homogen."],
-  ["homogenKlar", "Vorsicht: **klar** heißt nicht **rein**. Auch ein klares Getränk kann viele gelöste Stoffe enthalten."],
-  ["homogenKlar", "Gase mischen sich immer vollständig – ein **Gasgemisch** wie Luft ist homogen."],
-  ["homogenSieht", "Manches sieht einheitlich aus und ist doch **heterogen**: Unter dem Mikroskop sieht man Tröpfchen oder Körner."],
-  ["homogenSieht", "Frage dich: Würde man mit Lupe oder Mikroskop **Teile** erkennen? Dann ist es heterogen."],
-  ["homogen", "Alles zusammen: erst – ein Stoff oder mehrere? Dann – sieht man Grenzen oder nicht?"],
-  ["homogen", "Noch einmal: Reinstoff, homogenes oder heterogenes Gemisch?"],
+const K2: Step[] = tr([
+  ["einordnen", "Ein **Element** besteht aus nur **einer** Atomsorte. Eine **Verbindung** hat **mehrere** Atomsorten fest in einem Teilchen."],
+  ["einordnen", "Die Formel verrät es: Jeder **Großbuchstabe** ist eine Atomsorte. H₂O hat H und O."],
+  ["tippElement", "Im Bild: Teilchen mit **einer** Farbe gehören zu einem Element."],
+  ["tippVerbindung", "Teilchen mit **mehreren** Farben gehören zu einer Verbindung."],
+  ["elemente", "Gleiche Teilchen sind **ein** Stoff. Zähle die Element-Stoffe, nicht die Atome."],
+  ["verbindungen", "Zähle die verschiedenen Teilchen mit mehreren Farben."],
+  ["tippElement", "Auch Metalle sind Elemente: viele gleiche Atome im Gitter."],
+  ["tippVerbindung", "Eine Verbindung ist **ein** Stoff, kein Gemisch – die Atome sind fest verbunden."],
+  ["elemente", "Noch einmal: Element = eine Atomsorte."],
+  ["verbindungen", "Zum Schluss: Verbindung = mehrere Atomsorten in einem Teilchen."],
 ], [
-  ["reinGemisch", "Recap: one substance = **pure substance** (element or compound), several substances = **mixture**. Now it is about mixtures."],
-  ["homogenBild", "There are two kinds of mixtures: **homogeneous** – the same everywhere, no boundary visible; **heterogeneous** – pieces, droplets or layers can be seen."],
-  ["homogenBild", "In the particle picture: homogeneous = the particles are mixed **evenly**. Heterogeneous = there are **separate regions**."],
-  ["homogenBild", "You can no longer see what is dissolved: its particles sit everywhere between the water particles – the mixture is homogeneous."],
-  ["homogenKlar", "Careful: **clear** does not mean **pure**. Even a clear drink can contain many dissolved substances."],
-  ["homogenKlar", "Gases always mix completely – a **gas mixture** such as air is homogeneous."],
-  ["homogenSieht", "Some things look uniform and are still **heterogeneous**: under the microscope you see droplets or grains."],
-  ["homogenSieht", "Ask yourself: would you see **pieces** with a magnifier or microscope? Then it is heterogeneous."],
-  ["homogen", "All together: first – one substance or several? Then – can you see boundaries or not?"],
-  ["homogen", "Once more: pure substance, homogeneous or heterogeneous mixture?"],
+  ["einordnen", "An **element** has only **one** kind of atom. A **compound** has **several** kinds of atoms bonded in one particle."],
+  ["einordnen", "The formula tells you: each **capital letter** is a kind of atom. H₂O has H and O."],
+  ["tippElement", "In the picture: particles with **one** colour belong to an element."],
+  ["tippVerbindung", "Particles with **several** colours belong to a compound."],
+  ["elemente", "Identical particles are **one** substance. Count the element substances, not the atoms."],
+  ["verbindungen", "Count the different particles with several colours."],
+  ["tippElement", "Metals are elements too: many identical atoms in a lattice."],
+  ["tippVerbindung", "A compound is **one** substance, not a mixture – the atoms are bonded."],
+  ["elemente", "Once more: element = one kind of atom."],
+  ["verbindungen", "Finally: compound = several kinds of atoms in one particle."],
 ]);
-const STEPS_EVERYDAY: Step[] = tr([
+const K3: Step[] = tr([
+  ["reinOderGemisch", "Nur **ein** Stoff = **Reinstoff**. **Mehrere** Stoffe = **Gemisch**."],
+  ["reinGemisch", "Ein Reinstoff ist ein Element oder eine Verbindung."],
+  ["bildArt", "Erst die Teilchensorten zählen (ein Stoff oder mehrere?), dann die Farben im Teilchen."],
+  ["bildWahl", "Gemische gibt es aus Elementen, aus Verbindungen oder aus beidem."],
+  ["homogenBild", "**Homogen**: überall gleich, keine Grenze. **Heterogen**: Teile, Tröpfchen oder Schichten sind zu sehen."],
+  ["homogenKlar", "Vorsicht: **klar** heißt nicht **rein**. Ein klares Getränk kann viele gelöste Stoffe enthalten."],
+  ["wohin", "Beim **Lösen** verteilen sich die Teilchen zwischen den Wasserteilchen. Es entsteht eine **Lösung**."],
+  ["nachher", "Nicht mischbare Stoffe wie Öl und Wasser trennen sich wieder."],
+  ["masse", "Alle Teilchen bleiben – also bleibt auch die **Masse** gleich."],
+  ["bewegung", "Teilchen sind **ständig in Bewegung**. Darum mischen sich Stoffe auch ohne Rühren."],
+], [
+  ["reinOderGemisch", "Only **one** substance = **pure substance**. **Several** substances = **mixture**."],
+  ["reinGemisch", "A pure substance is an element or a compound."],
+  ["bildArt", "First count the kinds of particles (one substance or several?), then the colours in a particle."],
+  ["bildWahl", "Mixtures can be made of elements, of compounds or of both."],
+  ["homogenBild", "**Homogeneous**: the same everywhere, no boundary. **Heterogeneous**: pieces, droplets or layers are visible."],
+  ["homogenKlar", "Careful: **clear** does not mean **pure**. A clear drink can contain many dissolved substances."],
+  ["wohin", "When **dissolving**, the particles spread out between the water particles. A **solution** forms."],
+  ["nachher", "Substances that do not mix, such as oil and water, separate again."],
+  ["masse", "All particles stay – so the **mass** stays the same too."],
+  ["bewegung", "Particles are **always moving**. That is why substances mix even without stirring."],
+]);
+const K4: Step[] = tr([
   ["alltag", "Im Alltag fehlt das Teilchenbild. Frage dich: Steckt **ein** Stoff darin oder **mehrere**?"],
-  ["alltag", "Ist es ein Stoff: Steht er als **Element** im Periodensystem – oder ist es eine **Verbindung** aus mehreren Atomsorten?"],
-  ["reinAlltag", "**„Rein“** auf einer Packung heißt: nichts dazugegeben. In der Chemie heißt **Reinstoff**: nur **ein** Stoff."],
+  ["alltag", "Ist es ein Stoff: **Element** aus dem Periodensystem – oder **Verbindung**?"],
+  ["reinAlltag", "**„Rein“** auf einer Packung heißt: nichts dazugegeben. **Reinstoff** heißt: nur **ein** Stoff."],
   ["reinAlltag", "Fast alles aus dem Supermarkt ist ein **Gemisch** – auch wenn „rein“ draufsteht."],
-  ["artFluessig", "Gemische haben Namen. In Flüssigkeiten: **Lösung** (gelöst, klar), **Emulsion** (Flüssigkeit in Flüssigkeit, Tröpfchen), **Suspension** (Feststoff in Flüssigkeit, Körner)."],
-  ["artFluessig", "Erst bestimmen: Was ist **wo** drin – fest, flüssig oder gasförmig? Dann den Namen wählen."],
-  ["artFestGas", "**Legierung**: Metalle gleichmäßig gemischt. **Gasgemisch**: Gase gemischt. **Gemenge**: Feststoffe, deren Körner man sieht."],
-  ["artInGas", "In Gas oder mit Gas: **Rauch** (fest in Gas), **Nebel** (flüssig in Gas), **Schaum** (Gas in Flüssigkeit)."],
+  ["homogenSieht", "Manches sieht einheitlich aus und ist doch **heterogen**: Unter dem Mikroskop sieht man Tröpfchen."],
+  ["artFluessig", "In Flüssigkeiten: **Lösung** (gelöst), **Emulsion** (Tröpfchen), **Suspension** (feste Körner)."],
+  ["artFluessig", "Erst bestimmen: Was ist **worin** – fest, flüssig oder gasförmig? Dann den Namen wählen."],
+  ["artFestGas", "**Legierung**: Metalle gemischt. **Gasgemisch**: Gase gemischt. **Gemenge**: feste Stücke nebeneinander."],
+  ["artInGas", "Mit Gas: **Rauch** (fest in Gas), **Nebel** (flüssig in Gas), **Schaum** (Gas in Flüssigkeit)."],
   ["gemischart", "Alles zusammen: Zustände bestimmen, dann den Namen des Gemischs."],
-  ["alltag", "Zum Schluss: Reinstoff oder Gemisch – Element oder Verbindung?"],
 ], [
   ["alltag", "In everyday life there is no particle picture. Ask yourself: is there **one** substance in it or **several**?"],
-  ["alltag", "If it is one substance: is it an **element** in the periodic table – or a **compound** of several kinds of atoms?"],
-  ["reinAlltag", "**“Pure”** on a package means: nothing added. In chemistry a **pure substance** means: only **one** substance."],
+  ["alltag", "If it is one substance: an **element** from the periodic table – or a **compound**?"],
+  ["reinAlltag", "**“Pure”** on a package means: nothing added. A **pure substance** means: only **one** substance."],
   ["reinAlltag", "Almost everything from the supermarket is a **mixture** – even if it says “pure”."],
-  ["artFluessig", "Mixtures have names. In liquids: **solution** (dissolved, clear), **emulsion** (liquid in liquid, droplets), **suspension** (solid in liquid, grains)."],
+  ["homogenSieht", "Some things look uniform and are still **heterogeneous**: under the microscope you see droplets."],
+  ["artFluessig", "In liquids: **solution** (dissolved), **emulsion** (droplets), **suspension** (solid grains)."],
   ["artFluessig", "First decide: what is **in** what – solid, liquid or gas? Then choose the name."],
-  ["artFestGas", "**Alloy**: metals mixed evenly. **Gas mixture**: gases mixed. **Coarse mixture**: solids whose grains you can see."],
-  ["artInGas", "In gas or with gas: **smoke** (solid in gas), **fog** (liquid in gas), **foam** (gas in liquid)."],
+  ["artFestGas", "**Alloy**: metals mixed. **Gas mixture**: gases mixed. **Coarse mixture**: solid pieces side by side."],
+  ["artInGas", "With gas: **smoke** (solid in gas), **fog** (liquid in gas), **foam** (gas in liquid)."],
   ["gemischart", "All together: decide the states, then the name of the mixture."],
-  ["alltag", "Finally: pure substance or mixture – element or compound?"],
 ]);
-const STEPS_SOLVING: Step[] = tr([
-  ["wohin", "Beim **Lösen** verschwindet ein Stoff nicht. Seine Teilchen verteilen sich zwischen den Wasserteilchen."],
-  ["erhalten", "Kein Teilchen geht verloren und keines kommt dazu – sie werden nur **verteilt**."],
-  ["masse", "Wenn alle Teilchen bleiben, bleibt auch die **Masse** gleich: Masse vorher = Masse nachher."],
-  ["zwischen", "Zwischen den Teilchen ist **nichts** – leerer Raum, auch keine Luft."],
-  ["bewegung", "Teilchen sind **ständig in Bewegung**. Darum mischen sich Stoffe auch ohne Rühren – nur langsamer."],
-  ["farbe", "Ein einzelnes Teilchen hat **keine Farbe**. Die Farben im Modell helfen nur beim Unterscheiden."],
-  ["nachher", "Wie sieht es **nachher** aus? Gelöste Teilchen sind gleichmäßig verteilt, nicht mischbare Stoffe trennen sich."],
-  ["bewegung", "Denk an die Bewegung: Was die Teilchen tun, erklärt, warum sich etwas von selbst mischt."],
-  ["farbe", "Eigenschaften wie Farbe oder Geschmack hat der **Stoff** – viele Teilchen zusammen, nicht ein einzelnes."],
-  ["nachher", "Zum Schluss: Alle Teilchen sind noch da – nur anders verteilt."],
+const K5: Step[] = tr([
+  ["trennWahl", "Gemische lassen sich trennen, weil sich die Stoffe in einer **Eigenschaft** unterscheiden."],
+  ["trennEigenschaft", "Größe, Magnetismus, Dichte, Siedetemperatur: Jedes Verfahren nutzt eine davon."],
+  ["trennTipp", "Beim **Filtrieren** bleibt der **Rückstand** im Filter, das **Filtrat** läuft durch."],
+  ["trennWahl", "Gelöstes geht durch jeden Filter. Es bleibt erst beim **Eindampfen** zurück."],
+  ["trennTipp", "Beim **Destillieren** wird der Dampf im **Kühler** wieder flüssig: das **Destillat**."],
+  ["trennEigenschaft", "Eindampfen und Destillieren nutzen beide die **Siedetemperatur**."],
+  ["trennWahl", "Will man die Flüssigkeit behalten, destilliert man. Will man nur das Gelöste, dampft man ein."],
+  ["trennTipp", "Bei der **Chromatografie** wandern Farbstoffe verschieden weit über das Papier."],
+  ["trennReihe", "Manche Gemische brauchen mehrere Schritte nacheinander."],
+  ["trennWahl", "Zum Schluss: Welche Eigenschaft unterscheidet die Stoffe? Daraus folgt das Verfahren."],
 ], [
-  ["wohin", "When **dissolving**, a substance does not disappear. Its particles spread out between the water particles."],
-  ["erhalten", "No particle is lost and none is added – they are only **spread out**."],
-  ["masse", "If all particles stay, the **mass** stays the same: mass before = mass after."],
-  ["zwischen", "Between the particles there is **nothing** – empty space, not even air."],
-  ["bewegung", "Particles are **always moving**. That is why substances mix even without stirring – just more slowly."],
-  ["farbe", "A single particle has **no colour**. The colours in the model only help to tell them apart."],
-  ["nachher", "What does it look like **afterwards**? Dissolved particles are evenly spread, substances that do not mix separate."],
-  ["bewegung", "Think of the movement: what the particles do explains why something mixes by itself."],
-  ["farbe", "Properties such as colour or taste belong to the **substance** – many particles together, not a single one."],
-  ["nachher", "Finally: all the particles are still there – just spread out differently."],
+  ["trennWahl", "Mixtures can be separated because the substances differ in a **property**."],
+  ["trennEigenschaft", "Size, magnetism, density, boiling point: each method uses one of them."],
+  ["trennTipp", "When **filtering**, the **residue** stays in the filter, the **filtrate** runs through."],
+  ["trennWahl", "Dissolved things pass through any filter. They only stay behind when **evaporating**."],
+  ["trennTipp", "When **distilling**, the vapour turns liquid again in the **condenser**: the **distillate**."],
+  ["trennEigenschaft", "Evaporating and distilling both use the **boiling point**."],
+  ["trennWahl", "To keep the liquid, distil. To get only the dissolved substance, evaporate."],
+  ["trennTipp", "In **chromatography**, dyes move different distances across the paper."],
+  ["trennReihe", "Some mixtures need several steps one after another."],
+  ["trennWahl", "Finally: which property tells the substances apart? That gives the method."],
 ]);
 const level = (n: number, name: string, desc: string, steps: Step[]): Level => {
   const seq = steps.map(([t]) => t);
-  return { id: `gm-t${n}`, name, desc, seq, leads: steps.map(([, l]) => l), cue: true, tip: true, types: [...new Set(seq)] };
+  return { id: `gm-k${n}`, name, desc, seq, leads: steps.map(([, l]) => l), cue: true, tip: true, types: [...new Set(seq)] };
 };
 export const LEVELS: Level[] = [
-  level(1, tr("Elemente und Verbindungen", "Elements and compounds"), tr("Teilchen, Atomsorten, Element, Verbindung, Reinstoff und Gemisch", "Particles, kinds of atoms, element, compound, pure substance and mixture"), STEPS_ELEMENTS),
-  level(2, tr("Homogen und heterogen", "Homogeneous and heterogeneous"), tr("Gemische unterscheiden: überall gleich oder Teile zu sehen", "Telling mixtures apart: the same everywhere or pieces visible"), STEPS_HOMOGEN),
-  level(3, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("Stoffe aus dem Alltag, „rein“ auf Packungen, Arten von Gemischen", "Everyday substances, “pure” on packages, types of mixtures"), STEPS_EVERYDAY),
-  level(4, tr("Lösen und Mischen", "Dissolving and mixing"), tr("Teilchen bleiben erhalten, bewegen sich, haben keine Farbe", "Particles are conserved, move, have no colour"), STEPS_SOLVING),
+  level(1, tr("Teilchen und Atomsorten", "Particles and kinds of atoms"), tr("Teilchen, Moleküle, Atomsorten und Stoffe zählen", "Counting particles, molecules, kinds of atoms and substances"), K1),
+  level(2, tr("Elemente und Verbindungen", "Elements and compounds"), tr("Eine Atomsorte oder mehrere in einem Teilchen", "One kind of atom or several in one particle"), K2),
+  level(3, tr("Reinstoffe und Gemische", "Pure substances and mixtures"), tr("Ein Stoff oder mehrere, homogen oder heterogen, Lösen", "One substance or several, homogeneous or heterogeneous, dissolving"), K3),
+  level(4, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("„Rein“ auf Packungen, Lösung, Emulsion, Suspension …", "“Pure” on packages, solution, emulsion, suspension …"), K4),
+  level(5, tr("Stofftrennung", "Separating mixtures"), tr("Sieben, Magnet, Filtrieren, Eindampfen, Destillieren …", "Sieving, magnet, filtering, evaporating, distilling …"), K5),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `gm-${level}`);

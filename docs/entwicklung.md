@@ -67,6 +67,9 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   nennt den Denkfehler und zeigt den richtigen Weg.
 - **Diagnostische Distraktoren**: jede falsche Antwort steht für eine typische Fehlvorstellung und bekommt eine eigene Rückmeldung mit den Zahlen der Aufgabe.
 - **Tipps und Hilfsmittel verraten die Lösung nie** (PSE nur mit Angaben eines gedruckten PSE; keine Animation, die die gesuchten Zahlen zeigt, vor der Antwort).
+- **Grafik statt Eintippen**: Aufgaben möglichst mit Bildern lösen – auswählen (auch Bildkarten), im Bild antippen, sortieren. Zahlen und Text
+  nur ausnahmsweise eintippen lassen; Zählaufgaben als Auswahl mit diagnostischen Zahlen (aufsteigend). Erklärungen und Aufgaben zeigen den Vorgang als Bild
+  oder Animation (z. B. jedes Trennverfahren animiert).
 - **Visualisierung auf Abruf**: Animationen und Zusatzansichten (Ablauf einer Reaktion, 3D, Lupe) nicht aufdrängen – ein Knopf öffnet sie; reduzierte Bewegung respektieren
   (`useReducedMotion`: dann gleich das Endbild).
 - **Modell ehrlich kennzeichnen**: Vereinfachungen im Modell benennen („nur im Modell“, „im Modell verstärkt“), fachlich nie Falsches zeigen. Fachliche Richtigkeit
@@ -171,6 +174,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
   egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: `quiz`, dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
   `probieren`, `start` – Kennungen und Speicher-Schlüssel nie umbenennen). Der beim Öffnen gezeigte Bereich bleibt die Werkbank.
+- **Lernen statt Erklärung + Quiz** (zuerst in Gemische, Übertragung auf weitere Module folgt): Leiste **Lernen | Experimentieren**. „Lernen“ (Tab-Kennung `quiz`,
+  Zeichen Buch) zeigt die **Kapitel** wie die Level-Auswahl des Quiz. Ein Kapitel ist **ein Fluss**: beim ersten Antippen zuerst die **Lektion** des Kapitels
+  (geführte Erklärung, vorgemacht → halb gelöst → selbst, 3–12 Schritte, `checkGuide(def, { lesson: true })`), „Zu den Aufgaben“ startet direkt die zehn Aufgaben.
+  Danach startet das Kapitel gleich mit den Aufgaben; das Buch-Zeichen neben der Kapitelkarte wiederholt die Lektion. Technisch: `QuizScreen` Prop
+  `lesson: (level) => GuideDef`, erledigte Lektionen in localStorage `LESSON_KEY` (`lern-lektionen`, in `storage` des Moduls eintragen). Kein eigener Eintrag
+  „Erklärung“ mehr (LernApp ohne `guide`). Fertigkeiten, Wiederholung, „Heute fällig“, „Schwächen üben“, Landkarte und Prüfungstermin bleiben unverändert.
 - React 19 + TypeScript (strict) + Vite. State mit zustand. Keine weiteren UI-Frameworks.
 - Gemeinsames gehört in `packages/`; Module importieren `@lern/*` (Quelltext wird direkt gebündelt, kein eigener Build-Schritt für Pakete).
 - **Erklärung** je Modul und Stufe: Regeln im Abschnitt „Erklärung“ oben (vorgemacht → halb gelöst → selbst, Begriffe fett einführen, automatisch geprüft).
@@ -182,6 +191,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   `freshRound` nimmt je Platz eine neue Frage desselben Typs, sonst eines anderen Typs des Levels, erst danach die am längsten zurückliegende. Sprache: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Schuld.
   Prüfungstermin (`Exam`, Blatt „Schularbeit“ im Menü, trägt der Lernende selbst ein, bleibt auf dem Gerät): bis dahin Abstand höchstens halbe Restzeit
   (`examInterval`, `effectiveDue`), neue Fertigkeiten zuerst fällig, Menü zeigt Countdown und „x / n sicher“; nach dem Tag löscht sich der Termin.
+- Antwortform **Antippen im Bild** (Gemische, `kind: "tap"`): `parts` = antippbare Teile (Formeln im Teilchenbild bzw. `data-part` eines Trennverfahrens),
+  gemeldet als `values.pick` (Index), Fallen `traps: [{ values: { pick }, miss, why }]`; nach der Antwort ist die Lösung gestrichelt grün markiert; für Tastatur
+  und Vorlesen dieselben Teile als unsichtbare Knöpfe.
 - **Gelöstes Beispiel im Quiz** (`withExamples` in `packages/quiz/src/store.ts`): vor der ersten Aufgabe jeder Fertigkeit der Runde, die noch nie geübt wurde,
   steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, höchstens 3 je Runde, Schlüssel = ganze Aufgabe als JSON):
   `stage: "worked"` → Karte `WorkedCard` mit Frage, markierter Lösung, „1. Tipp 2. Erklärung“ und Knopf „Verstanden – jetzt du“; zählt nicht für Punkte und Statistik (`counted`).
@@ -299,24 +311,41 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente; beim Sprudel zusätzlich „entsteht in kleiner Menge“: Kohlensäure, `forms`) | Zählen | Farben („nur im Modell“) |
   Einteilung (Stoffe → Reinstoffe/Gemische mit allen Beispielen; niedrige Handys ohne Wurzel) | Arten (verteilter Stoff in Hauptstoff: Gemenge, Legierung, Suspension,
   Lösung, Rauch, Emulsion, Nebel, Schaum, Gasgemisch mit Alltagsbeispiel; aktuelles Beispiel markiert) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
-- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): vier Lern-Level mit rotem Faden (`gm-t1` … `gm-t4`), plus „Alles gemischt“, „Heute fällig“, „Schwächen üben“:
-  1 **Elemente und Verbindungen** (teilchen, teilchen, atomsorten, einordnen, einordnen, stoffe, elemente, verbindungen, reinOderGemisch, bildArt) ·
-  2 **Homogen und heterogen** (reinGemisch, homogenBild ×3, homogenKlar ×2, homogenSieht ×2, homogen ×2) ·
-  3 **Gemische im Alltag** (alltag ×2, reinAlltag ×2, artFluessig ×2, artFestGas, artInGas, gemischart, alltag) ·
-  4 **Lösen und Mischen** (wohin, erhalten, masse, zwischen, bewegung, farbe, nachher, bewegung, farbe, nachher).
-  **Feste Reihenfolge** (`seq`, jede Aufgabe baut auf der vorigen auf, `ordered`; der Store ersetzt Wiederholungen nur innerhalb des Typs, `fixedOrder`), keine Frage doppelt in einer Runde.
-  Über jeder Aufgabe ein **Merksatz** (`leads` → `lead`), der den Gedanken des Schritts nennt. Jede Aufgabe hat einen **zugeschnittenen Tipp** (`tip`, mit Stoffen,
-  Formeln oder Zahlen der Aufgabe), der als Tipp gilt und hervorgehoben ist (`hintCue`, kostet keine Punkte); Glühbirne an der Levelkarte.
-  Rückmeldungen begründen mit dem Bild („weil zwei Atomsorten in einem Teilchen verbunden sind“, `because`). Sprudel nicht im Quiz (dort reagiert ein Teil zu Kohlensäure).
-  Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (Schlüssel = Antworttext, `renderOption`, zwei Spalten). Anordnungen für falsche Bilder:
-  gemischt, unten, oben, getrennt, abwechselnd. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
-  verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag.
-  Hilfsmittel „Farben“: alle Atomfarben des Quiz (verrät nicht, welche vorkommen). Nie zwei Atomsorten mit ähnlicher Farbe
-  (He/Ne, Cu/Fe, Zn/Al) in einer Aufgabe (`distinctColors`, Test); Argon violett. Artikel und Einzahl/Mehrzahl in erzeugten Sätzen beachten („Das Salz“, „1 Teilchen“).
+- **Lernen** (`src/quiz/tasks.ts`, Lektionen `src/lessons.tsx`, Katalog `misconceptions.ts`): fünf Kapitel (`gm-k1` … `gm-k5`) mit je einer Lektion und zehn Aufgaben
+  in fester Reihenfolge, plus „Alles gemischt“, „Heute fällig“, „Schwächen üben“:
+  1 **Teilchen und Atomsorten** (teilchen ×2, tippAtome ×2, atomsorten ×2, stoffe ×2, zwischen, farbe) ·
+  2 **Elemente und Verbindungen** (einordnen ×2, tippElement ×2, tippVerbindung ×2, elemente ×2, verbindungen ×2) ·
+  3 **Reinstoffe und Gemische** (reinOderGemisch, reinGemisch, bildArt, bildWahl, homogenBild, homogenKlar, wohin, nachher, masse, bewegung – Lösen gehört hierher) ·
+  4 **Gemische im Alltag** (alltag ×2, reinAlltag ×2, homogenSieht, artFluessig ×2, artFestGas, artInGas, gemischart) ·
+  5 **Stofftrennung** (trennWahl ×4, trennEigenschaft ×2, trennTipp ×3, trennReihe; `src/quiz/trennen.ts`).
+  **Keine Zahleneingabe**: Zählaufgaben werden zur Auswahl (`asChoice`: Fallen → diagnostische Distraktoren, Zahlen aufsteigend); Antippen im Teilchenbild
+  (`tippAtome`: Teilchen aus n Atomen, `tippElement`/`tippVerbindung`). Stofftrennung: `trennWahl` (Bild des Gemischs ohne Geräte `MixPic`, Antworten als
+  Bildkarten der Verfahren; 9 Fälle: Eisen/Schwefel → Magnet, Sand/Kies → Sieben, Erbsen/Linsen → Auslesen, abgesetzter Sand → Dekantieren, trübes Wasser →
+  Filtrieren, Salzwasser → Eindampfen (Salz) bzw. Destillieren (Wasser), Alkohol/Wasser → Destillieren, Filzstift → Chromatografie; jede falsche Wahl mit
+  Begründung, Gelöstes durch den Filter = Stolperstein `filter-geloest`), `trennEigenschaft` (Animation des Verfahrens, Eigenschaft wählen: Korngröße,
+  Magnetismus, Dichte, Siedetemperatur, Aussehen, Haften am Papier), `trennTipp` (Endbild antippen: Rückstand, Filtrat, Destillat, Kühler, Salz, Eisen, weitester
+  Farbstoff, Bodensatz), `trennReihe` (Salz und Sand bzw. Eisen, Sand, Salz: Magnet → Lösen → Filtrieren → Eindampfen).
+  Über jeder Aufgabe ein **Merksatz** (`leads` → `lead`; weicht dem „Ersten Schritt“ und nach der Antwort am Handy der Rückmeldung). Jede Aufgabe hat einen
+  **zugeschnittenen Tipp** (`tip` → `hint`, `hintCue`). Rückmeldungen begründen mit dem Bild. Sprudel nicht im Lernen (dort reagiert ein Teil zu Kohlensäure).
+  Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (zwei Spalten, Höhe begrenzt), Verfahren `sep` (t = −1 Animation, sonst Standbild), Gemisch `mixPic`,
+  Verfahren als Bildkarten `methods`. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
+  verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag, Gelöstes filtrierbar,
+  Teile nach dem Trennen verwechselt, Reihenfolge vertauscht.
+  Hilfsmittel „Farben“: alle Atomfarben (verrät nicht, welche vorkommen). Nie zwei Atomsorten mit ähnlicher Farbe (He/Ne, Cu/Fe, Zn/Al) in einer Aufgabe
+  (`distinctColors`, Test); Argon violett. Artikel und Einzahl/Mehrzahl in erzeugten Sätzen beachten. Erklärkarte je Kapitel (`quiz/explain.tsx`, Kapitel 5 mit
+  dem Bild des Filtrierens).
+- **Trennverfahren** (`components/Separation.tsx`): Auslesen, Sieben, Magnettrennung, Dekantieren, Filtrieren, Eindampfen, Destillieren, Chromatografie als SVG-Bild,
+  das eine reine Funktion des Fortschritts t ist (`SepScene`, 0 = vorher, 1 = getrennt; `SepAnim` spielt ab, „Nochmal“-Knopf, reduzierte Bewegung → Endbild).
+  Teile mit `data-part` (Ziele für Beschriftung und Antippen, dazu unsichtbare größere Trefferflächen). Farben nur aus der Palette (`.sp-*` in `app.css`).
+  `MixPic` = Gemisch vor dem Trennen ohne Geräte (verrät das Verfahren nicht). Eindeutige `clipPath`-Kennungen je Bild (`useId`).
 - Zählen in der Werkbank mit abnehmender Hilfe (`Counts` in `views/MixView.tsx`): Beispiel 1–2 vorgerechnet („Vorgemacht“), 3–5 fehlt die Zahl der Stoffe
   („Ergänze die Lücke“), ab 6 alles selbst („Jetzt du“) – Eingabe mit ✓/✗, nach zwei Fehlversuchen steht die Lösung da; die Teilchenzahl ist immer angegeben.
-- Erklärung (27 Schritte, keine Stufen): Kapitel **Teilchen und Stoffe** · **Element und Verbindung** · **Arten von Gemischen** (vorgemachter Überblick, der Suspension,
-  Emulsion, Schaum, Gemenge, Legierung, Lösung jeweils mit Alltagsbeispiel fett einführt, bevor danach gefragt wird) · **Lösen und Mischen**.
+- **Lektionen** (`src/lessons.tsx`, `LESSONS[0…4]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe): 1 Teilchen zählen,
+  Teilchen aus 5 Atomen antippen, Atomsorten an den Farben, Stoffe, leerer Raum · 2 Element/Verbindung, Element antippen, Verbindungen zählen, Kupfer ·
+  3 Reinstoff/Gemisch, homogen/heterogen (Zuckerwasser = Lösung, Milch, Gasgemisch), Lösen (Animation), Masse, Tinte · 4 Arten von Gemischen (Suspension,
+  Emulsion, Schaum, Gemenge, Legierung fett eingeführt), Öl in Wasser, Müsli, „rein“ · 5 Sieben, Magnettrennung, Auslesen, Filtrieren (Rückstand, Filtrat,
+  Dekantieren), Rückstand antippen, Eindampfen/Destillieren (Kühler, Destillat, Siedetemperatur), Chromatografie (Laufmittel), weitesten Farbstoff antippen.
+  Begriffe früherer Kapitel stehen in `known`.
 
 ## Atombau (`modules/atombau`)
 - Start immer: helles Farbschema, Unterstufe, Elektronen kreisen nicht, kein Beamer-Modus (diese Werte werden nicht gespeichert).
@@ -515,6 +544,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Gemische: Lernen in Kapiteln** – „Erklärung“ und „Quiz“ zu **Lernen** zusammengefasst (Leiste Lernen | Experimentieren): fünf Kapitel (Teilchen und
+  Atomsorten, Elemente und Verbindungen, Reinstoffe und Gemische inkl. Lösen, Gemische im Alltag, **Stofftrennung** neu), je Kapitel Lektion → zehn Aufgaben in einem
+  Fluss, Lektion über das Buch-Zeichen wiederholbar (`QuizScreen` `lesson`, `LESSON_KEY`). Aufgaben grafisch statt Eintippen: Zählaufgaben als Auswahl,
+  Antippen im Teilchenbild und in Trennverfahren, Verfahren als Bildkarten; acht Trennverfahren animiert (`Separation.tsx`). Quiz allgemein: Merksatz weicht
+  dem „Ersten Schritt“ und am Handy nach der Antwort der Rückmeldung; „Landkarte“ bei 360 px nur als Zeichen. Grund: Lernen und Üben gehören zusammen, Bilder
+  statt Eintippen. Zuerst nur Gemische, weitere Module folgen nach Rückmeldung.
 - **Bereichsleiste (alle Module)** – einheitlich **Erklärung | Quiz | Experimentieren**: „Erklärung“ ist jetzt ein gleich gestalteter Eintrag der Leiste (vorher eigener
   schwarzer Knopf links), Werkbank-Bereiche heißen überall „Experimentieren“ (vorher Probieren, Bauen, Formeln bauen, Moleküle bauen, Neutralisieren, Zeichnen,
   Umrechnen, Start) mit Becherglas-Zeichen; Ring „noch nie durchlaufen“ kleiner, damit er die Schrift nicht überdeckt. Grund: einheitliche Bedienung in allen Apps.

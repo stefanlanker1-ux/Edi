@@ -5,7 +5,7 @@ import { setLang } from "@lern/i18n";
 test("Erklärung auf Englisch", async () => {
   setLang("en", false);
   const { checkGuide } = await import("@lern/ui");
-  const mod = await import("./guide.tsx") as Record<string, unknown>;
+  const mod = await import("./lessons.tsx") as Record<string, unknown>;
   const texts = new Set<string>();
   const walk = (x: unknown): void => {
     if (typeof x === "string") texts.add(x);
@@ -13,8 +13,8 @@ test("Erklärung auf Englisch", async () => {
     else if (x && typeof x === "object") Object.values(x).forEach(walk);
   };
   const guideFor = mod.guideFor as ((s: "us" | "os") => unknown) | undefined;
-  const guides = guideFor ? [guideFor("us"), guideFor("os")] : Object.entries(mod).filter(([k]) => k.startsWith("GUIDE")).map(([, g]) => g);
-  for (const g of guides) { walk(g); expect(checkGuide(g as Parameters<typeof checkGuide>[0])).toEqual([]); }
+  const guides = guideFor ? [guideFor("us"), guideFor("os")] : (mod.LESSONS as unknown[]);
+  for (const g of guides) { walk(g); expect(checkGuide(g as Parameters<typeof checkGuide>[0], { lesson: true })).toEqual([]); }
   setLang("de", false);
   expect(texts.size).toBeGreaterThan(30);
   expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s))).toEqual([]);

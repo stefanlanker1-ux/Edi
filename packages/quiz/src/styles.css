@@ -11,6 +11,10 @@
 .level-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .level-card { display: flex; align-items: center; gap: 14px; text-align: left; width: 100%; padding: 16px 18px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); transition: border-color .15s; }
 .level-card:hover { border-color: var(--rule); }
+/* Kapitel mit Lektion: Buch-Zeichen rechts neben der Karte wiederholt die Lektion */
+.lv-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.lv-row > .level-card { min-width: 0; }
+.lv-row .lv-lesson { height: auto; min-height: 44px; }
 .level-card:hover .lv-play { color: var(--signal); }
 .lv-num { display: grid; place-items: center; width: 46px; height: 46px; border-radius: var(--radius-md); background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 1.2rem; flex: none; }
 .lv-body { display: grid; gap: 2px; flex: 1; min-width: 0; }
@@ -165,6 +169,14 @@
   .num-field input, .num-field select { min-height: 44px; }
   .ab-controls .ui-stepper.stack .ui-stepper-ctl input, .ab-controls .ui-stepper.stack .ui-stepper-ctl output { height: 26px; min-height: 26px; }
   .ab-controls .ui-stepper.stack { gap: 0; }
+  .q-lead { font-size: .88rem; line-height: 1.3; }
+}
+/* Merksatz weicht dem „Ersten Schritt“ (der ist genauer und steht an derselben Stelle) */
+.task-card:has(.q-first) .q-lead { display: none; }
+/* Handys: nach der Antwort weicht der Merksatz der Rückmeldung, das Bild darf ganz klein werden (nie scrollen) */
+@media (max-height: 900px) {
+  .task-card.answered .q-lead { display: none; }
+  .task-card.answered .q-body > .q-visual { min-height: 0; }
 }
 
 /* ── Fertigkeiten: Wochenziel, Stufen-Marken, Landkarte ─────────────────── */
@@ -193,6 +205,8 @@
 .q-exam b { color: var(--signal); white-space: nowrap; }
 .q-exam-btn { margin-left: 0; padding: 0 8px; min-width: 44px; justify-content: center; }
 @media (max-width: 599px) { .q-week.has-exam .q-map-btn { padding: 0 8px; } .q-week.has-exam .q-map-btn span { display: none; } }
+/* schmale Android-Handys (360 px): „Landkarte“ nur als Zeichen, sonst steht der Termin-Knopf über */
+@media (max-width: 370px) { .q-map-btn { padding: 0; min-width: 44px; justify-content: center; } .q-map-btn span { display: none; } .q-week { gap: 6px; } }
 @media (max-width: 399px) { .q-exam { font-size: .84rem; gap: 6px; padding: 0 8px; } }
 /* breit: Level-Karten in zwei Spalten, damit auch Menü mit „Heute fällig“ + „Schwächen üben“ ohne Scrollen passt */
 @media (min-width: 600px) { .level-list { grid-template-columns: 1fr 1fr; } } /* auch Tablet quer / Laptop mit 150 % (~830 px) */
