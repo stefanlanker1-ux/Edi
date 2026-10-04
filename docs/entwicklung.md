@@ -658,6 +658,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Fachfehler im Bild behoben** – falsche Antwort „Baustein mit C=C“ zeigte jedes C mit fünf Bindungen; jetzt fehlt jedem C ein H
+  (–CH=C(R)–), Test: kein C in Baustein-, Ketten- und Monomerbildern mit mehr als vier Bindungen.
 - **Polymere: Experimentieren verständlicher** – Startbild der Polyaddition lesbar, keine Überlappung bei „keine Reaktion“, Ring-Hinterlegung, Kette löst
   sich sichtbar vom Titan, Kügelchen-Leiste nach Rekombination, Knöpfe nie gesperrt, Vorschlag nach Fehlschlag, Zweierkette beschriftet, Chips zweizeilig;
   Reaktor: Stufenwachstum langsamer, Erklärung bei hohem Umsatz, Legende, Methanol sofort sichtbar, Kennzeichen bei Neustart.

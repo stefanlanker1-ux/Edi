@@ -65,3 +65,16 @@ test("keine Aufgabe zweimal in einem Kapitel (auch nicht mit anders gemischten A
     assert.strictEqual(new Set(sig).size, sig.length, `${LEVELS[lv].id}: doppelte Aufgabe`);
   }
 }, 60_000);
+
+test("Bausteine in Bildern: kein C-Atom mit mehr als vier Bindungen (auch die falsche Antwort „C=C bleibt“)", async () => {
+  const { unitWithDouble, chainSnap, saturatedSnap } = await import("./visual.tsx");
+  const { unitSnap } = await import("../components/Formula.tsx");
+  for (const id of ["propen", "styrol", "vinylchlorid", "acrylnitril"]) {
+    for (const s of [unitWithDouble(id), unitSnap(id), chainSnap(id, 4), saturatedSnap(id)]) {
+      for (const a of s.atoms.filter(x => x.el === "C" && !x.text)) {
+        const n = s.bonds.filter(b => b.a === a.id || b.b === a.id).reduce((t, b) => t + b.o, 0);
+        assert.ok(n <= 4, `${id}: C mit ${n} Bindungen`);
+      }
+    }
+  }
+});

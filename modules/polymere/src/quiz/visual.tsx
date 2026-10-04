@@ -229,10 +229,15 @@ export function saturatedSnap(id: string): Snap {
 }
 
 /** Baustein, der die Zweifachbindung (fälschlich) behalten hat – für Distraktoren */
-function unitWithDouble(id: string): Snap {
+export function unitWithDouble(id: string): Snap {
   const sc = new Scene();
   const v = vinyl(id);
   const u = vinylUnit(sc, v, 0, 0, { pre: "u", unit: 0, hue: v.hue }, { dbl: true });
+  // C=C bleibt und beide Bindungen zu den Nachbarn kommen dazu: dann fehlt jedem C ein H (sonst hätte es fünf Bindungen)
+  for (const c of [u.ca, u.cb]) {
+    const h = sc.nb(c).filter(i => sc.at(i).el === "H" && !sc.at(i).text).sort((p, q) => sc.at(q).y - sc.at(p).y)[0];
+    if (h) sc.remove(h);
+  }
   const L = sc.at(u.ca), R = sc.at(u.cb);
   sc.add({ id: "l", el: "", x: L.x - 0.85, y: 0, text: "" });
   sc.add({ id: "r", el: "", x: R.x + 0.85, y: 0, text: "" });
