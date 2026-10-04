@@ -19,8 +19,12 @@ type Extra = { vis?: Vis; pics?: Record<string, Vis>; tip?: string };
 export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: string[]; labels: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean;
   /** Lösung in Worten (statt Nummern, die im Bild nicht stehen) */
   sol: string };
-export type Task = (McTask & Extra) | TapTask;
+/** Ordnen: `cards` = Bilder in der gezeigten Reihenfolge, `correct` = Kartenindizes in der richtigen Reihenfolge, `names` = Name je Karte (nach der Antwort).
+ *  Gemeldet: `startFirst`, `termLast`, `addsOk` (je 1 = stimmt). */
+export type OrderTask = BaseTask & Extra & { kind: "order"; cards: Vis[]; names: string[]; correct: number[]; sol: string };
+export type Task = (McTask & Extra) | TapTask | OrderTask;
 export const isTap = (t: Task): t is TapTask => t.kind === "tap";
+export const isOrder = (t: Task): t is OrderTask => t.kind === "order";
 
 /** Begründung, die mit dem Begriff beginnt („Isotaktisch: …“): Begriff fett, nicht noch einmal davor schreiben */
 const boldLead = (s: string) => {
@@ -795,6 +799,36 @@ function recycling(): Task {
 
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
+// ── Ordnen ─────────────────────────────────────────────────────────────────────
+
+/** K2: vier Standbilder mit Pfeilen (Start, erstes Anlagern, Anlagern an die Kette, Abbruch) in die richtige Reihenfolge bringen */
+function ordnen(): Task {
+  const m = pick(["styrol", "vinylchlorid", "mma"] as VinylId[]);
+  const r: Recipe = { art: "poly", a: m, method: "dbpo" };
+  const stop = m === "mma" || Math.random() < 0.3 ? "disp" : "comb";
+  const seqs = [["heat"], ["heat", `add:${m}`], ["heat", `add:${m}`, `add:${m}`, `add:${m}`], ["heat", `add:${m}`, `add:${m}`, stop]];
+  const cards0 = seqs.map(acts => mech(r, acts, arrowKey(r, acts)));
+  const N = tr(["Starter zerfällt", "erstes Anlagern", "Anlagern an die Kette", stop === "comb" ? "Abbruch: Rekombination" : "Abbruch: Disproportionierung"],
+    ["Initiator splits", "first addition", "addition to the chain", stop === "comb" ? "Termination: combination" : "Termination: disproportionation"]);
+  // gemischt, aber nie schon in der richtigen Reihenfolge
+  let perm = shuffle([0, 1, 2, 3]);
+  while (perm.every((x, i) => x === i)) perm = shuffle([0, 1, 2, 3]);
+  const cards = perm.map(i => cards0[i]), names = perm.map(i => N[i]);
+  const correct = [0, 1, 2, 3].map(k => perm.indexOf(k));
+  return {
+    kind: "order", cards, names, correct, sol: tr("Start → Wachstum → Wachstum → Abbruch", "Initiation → growth → growth → termination"),
+    prompt: T("Bringe die Schritte in die richtige Reihenfolge.", "Put the steps in the right order."),
+    hint: T("Suche zuerst das Bild ohne Monomer.", "First find the picture without a monomer."),
+    tip: T("Ohne Radikal geht nichts: Wo entsteht das erste Radikal? Wo verschwindet das letzte?", "Nothing happens without a radical: where does the first radical form? Where does the last one disappear?"),
+    explain: T("Jeder Schritt braucht das Radikal aus dem Schritt davor.", "Each step needs the radical from the step before."),
+    traps: [
+      { values: { startFirst: 0 }, miss: "schritt-verwechselt", why: T("Ohne Starter gibt es kein Radikal. Das erste Radikal entsteht beim Zerfall des Starters.", "Without the initiator there is no radical. The first radical forms when the initiator splits.") },
+      { values: { termLast: 0 }, miss: "schritt-verwechselt", why: T("Nach dem Abbruch gibt es kein Radikal mehr. Danach kann nichts mehr wachsen.", "After termination there is no radical left. Nothing can grow after it.") },
+      { values: { addsOk: 0 }, miss: "radikal-bleibt", why: T("Erst ein Baustein, dann der nächste: Die Kette wird bei jedem Schritt um einen Baustein länger.", "One unit, then the next: the chain gets one unit longer at each step.") },
+    ],
+  };
+}
+
 // ── Antippen im Bild ───────────────────────────────────────────────────────────
 
 /** K4: im Polyester bzw. Polyamid die Bindung antippen, die bei der Polykondensation neu entstanden ist */
@@ -966,7 +1000,7 @@ const GENS: Record<string, () => Task> = {
   gruppen, nebenprodukt, bindungArt, chlorid, paarWahl, stopper, netz, produkt, abMonomer, wasserZahl,
   keinNebenprodukt, hWandert, urethan, artWahl, epoxid, epoxidNetz,
   klasse, schmelzen, copolymer, wachstum, klasseAlltag, recycling,
-  radikalTap, freieStelleTap, giftTap, hTap, wasserTap, bausteinTap, schnitt,
+  radikalTap, freieStelleTap, giftTap, hTap, wasserTap, bausteinTap, schnitt, ordnen,
 };
 
 export const TYPE_NAMES: Record<string, string> = tr({
@@ -980,7 +1014,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Kettenstopper", netz: "Netz durch drei Gruppen", produkt: "Kunststoff zum Monomer-Paar", abMonomer: "Monomer mit zwei Gruppen", wasserZahl: "Wasser zählen",
   keinNebenprodukt: "Ohne Nebenprodukt", hWandert: "Wanderndes H‑Atom", urethan: "Urethan und Harnstoff", artWahl: "Reaktionsart erkennen",
   epoxid: "Epoxidring", epoxidNetz: "Epoxidharz härtet",
-  schnitt: "Neue Bindung antippen", radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Giftiges Atom antippen", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
+  ordnen: "Schritte ordnen", schnitt: "Neue Bindung antippen", radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Giftiges Atom antippen", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
   klasse: "Thermoplast, Elastomer, Duroplast", schmelzen: "Einschmelzen", copolymer: "Copolymere", wachstum: "Ketten- und Stufenwachstum",
   klasseAlltag: "Kunststoffart im Alltag", recycling: "Recycling-Code",
 }, {
@@ -994,7 +1028,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Chain stopper", netz: "Network from three groups", produkt: "Plastic from a monomer pair", abMonomer: "Monomer with two groups", wasserZahl: "Counting water",
   keinNebenprodukt: "No by-product", hWandert: "Moving H atom", urethan: "Urethane and urea", artWahl: "Recognising the reaction type",
   epoxid: "Epoxide ring", epoxidNetz: "Epoxy resin hardens",
-  schnitt: "Tap the new bond", radikalTap: "Tap the radical", freieStelleTap: "Tap the free site", giftTap: "Tap the poisoning atom", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a unit",
+  ordnen: "Order the steps", schnitt: "Tap the new bond", radikalTap: "Tap the radical", freieStelleTap: "Tap the free site", giftTap: "Tap the poisoning atom", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a unit",
   klasse: "Thermoplastic, elastomer, thermoset", schmelzen: "Melting down", copolymer: "Copolymers", wachstum: "Chain and step growth",
   klasseAlltag: "Type of plastic in everyday life", recycling: "Recycling code",
 });
@@ -1036,7 +1070,7 @@ const K2: Step[] = tr([
   ["starterRest", "Der Starter wird verbraucht: Sein Bruchstück sitzt am Kettenanfang."],
   ["abbruchArt", "Rekombination verbindet die Enden. Bei der Disproportionierung wandert ein H‑Atom."],
   ["mehrStarter", "Jedes Radikal startet eine Kette – Starter und Monomer bestimmen die Kettenlänge."],
-  ["schritt", "Zum Schluss alle drei Schritte noch einmal."],
+  ["ordnen", "Zum Schluss: die ganze Kette von Start bis Abbruch."],
 ], [
   ["radikal", "A **radical** has an **unpaired electron** (dot). It is very reactive."],
   ["startBruch", "**Initiation**: on heating, the O–O bond of the initiator breaks evenly."],
@@ -1047,7 +1081,7 @@ const K2: Step[] = tr([
   ["starterRest", "The initiator is used up: its fragment sits at the start of the chain."],
   ["abbruchArt", "Combination joins the ends. In disproportionation an H atom moves."],
   ["mehrStarter", "Each radical starts a chain – initiator and monomer decide the chain length."],
-  ["schritt", "Finally all three steps once more."],
+  ["ordnen", "Finally: the whole chain from initiation to termination."],
 ]);
 const K3: Step[] = tr([
   ["katalysator", "Ein **Katalysator** wird nicht verbraucht. Am Titan wachsen nacheinander viele Ketten."],
@@ -1171,7 +1205,7 @@ function withHint(t: Task, cue: boolean): Task {
 function ordered(seq: string[], leads: string[]): Task[] {
   const seen = new Set<string>();
   // gleiche Frage auch bei anderer Reihenfolge der Antworten
-  const sig = (t: Task) => t.prompt + (isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
+  const sig = (t: Task) => t.prompt + (isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
   return seq.map((id, i) => {
     let t = GENS[id]();
     for (let k = 0; k < 30 && seen.has(sig(t)); k++) t = GENS[id]();

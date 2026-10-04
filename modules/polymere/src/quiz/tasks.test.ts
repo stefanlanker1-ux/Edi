@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LEVELS, TYPE_NAMES, isTap, makeRound, type Task } from "./tasks.ts";
+import { GENERATORS, LEVELS, TYPE_NAMES, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -24,6 +24,12 @@ test("alle Aufgaben gültig und speicherbar", () => {
       assert.ok(t.prompt && t.hint && t.explain, `${t.type}: Texte fehlen`);
       assert.ok(TYPE_NAMES[t.type!], t.type);
       assert.deepEqual(JSON.parse(JSON.stringify(t)), t, "nicht JSON-fähig");
+      if (isOrder(t)) {
+        assert.strictEqual(t.cards.length, 4); assert.deepEqual([...t.correct].sort(), [0, 1, 2, 3]);
+        assert.ok(!t.correct.every((x, i) => x === i), "schon geordnet");
+        for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why);
+        continue;
+      }
       if (isTap(t)) {
         // Antippen: Teile vorhanden, Lösung unter den Teilen, jede Falle mit Katalog-Schlüssel, jedes falsche Teil mit Rückmeldung
         assert.ok(t.parts.length >= 3 && t.labels.length === t.parts.length && t.sol, `${t.type}: Teile`);
@@ -63,13 +69,13 @@ test("Stufenwachstum bei hohem Umsatz: kaum Monomer, im Mittel 10 Bausteine (bei
   for (const t of ts) {
     assert.match(t.prompt, /90\s% Umsatz/);
     assert.match(t.explain, /10 Bausteine/);
-    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + (isTap(t) ? "" : Object.values(t.why ?? {}).join())), t.prompt);
+    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + (isTap(t) || isOrder(t) ? "" : Object.values(t.why ?? {}).join())), t.prompt);
   }
 }, 60_000);
 
 test("keine Aufgabe zweimal in einem Kapitel (auch nicht mit anders gemischten Antworten)", () => {
   for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 20; k++) {
-    const sig = makeRound("us", lv).map(t => t.prompt + (isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null)));
+    const sig = makeRound("us", lv).map(t => t.prompt + (isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null)));
     assert.strictEqual(new Set(sig).size, sig.length, `${LEVELS[lv].id}: doppelte Aufgabe`);
   }
 }, 60_000);

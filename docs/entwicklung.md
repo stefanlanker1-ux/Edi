@@ -625,6 +625,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   C eines Bausteins, ohne farbige Hinterlegung), K2 `radikalTap` (C mit dem Radikal nach dem Anlagern), K3 `freieStelleTap`, `giftTap` (Cl/O/N am Titan),
   K4 `wasserTap` (drei Atome des Wassers), `schnitt` (Bindung antippen, die neu entstanden ist: C–O bzw. C–N zwischen zwei Bausteinen; Bindungen als Teile „a|b“,
   `mode: "any"`; **Hydrolyse** in Lektion K4 eingeführt), K5 `hTap` (wanderndes H); die Auswahl-Fassungen bleiben in „Alles gemischt“ (`level(…, more)`).
+  **Ordnen** (`kind: "order"`, `OrderAnswer`): K2 `ordnen` am Ende des Kapitels – vier Standbilder mit Pfeilen (Starter zerfällt, erstes Anlagern, Anlagern an
+  die Kette, Abbruch durch Rekombination oder Disproportionierung; Styrol, Vinylchlorid, MMA), gemischt, nie schon richtig; Bildausschnitt um die Pfeile, ohne Lichthöfe.
+  Antippen nummeriert ①–④ (Kennziffer rot), nochmal antippen nimmt die Nummer und alle späteren weg, ab vier „Prüfen“; danach je Bild ✓ bzw. ✗ mit dem richtigen
+  Platz und Name des Schritts (Bilder dann klein bzw. auf niedrigen Bildschirmen weg). Gemeldet `startFirst`, `termLast`, `addsOk` → Fallen (Start nicht zuerst,
+  Abbruch nicht zuletzt, Anlagerungen vertauscht). Vorlesen: vorher „Bild A“, danach mit Name.
   „C‑Atom“ usw. mit geschütztem Bindestrich (U+2011, nie „C-⏎Atom“). Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
@@ -668,6 +673,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Schritte ordnen** – neue Antwortform `order` und Aufgabe `ordnen` am Ende von Kapitel 2: vier Mechanismus-Bilder (Start, zwei Anlagerungen, Abbruch)
+  in die richtige Reihenfolge tippen; Abläufe als Kausalkette selbst herstellen statt nur auswählen. Fallen mit Rückmeldung je Fehlerart.
 - **Polymere: Antippen nachgebessert** – sichtbar, was tippbar ist, Rückmeldung bei Tippen daneben, Zähler bei Mehrfachwahl, Tippziele ≥ 44 px, Lösung in
   Worten; Satz „Der Benzolring stützt sie …“ (Kationisch-Vorhersage) grammatisch richtig.
 - **Polymere: Ränder und Ast-Rückmeldung** – Ringe am Bildrand werden ganz ausgeblendet (vorher blasse Reste beim Phenoplast); Rückmeldung zum Ast nennt

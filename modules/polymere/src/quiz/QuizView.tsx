@@ -6,10 +6,11 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
-import { LEVELS, TYPE_NAMES, isTap, levelId, levelName, makeRound, type TapTask, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, isOrder, isTap, levelId, levelName, makeRound, type OrderTask, type TapTask, type Task } from "./tasks.ts";
 import { tapFrame } from "./tap.ts";
 import { MechSvg } from "../components/MechSvg.tsx";
-import { fitBox, snapBox, still } from "../chem/scene.ts";
+import { anchorPt, fitBox, snapBox, still } from "../chem/scene.ts";
+import type { Vis } from "./visual.tsx";
 import { MISS } from "./misconceptions.ts";
 import { explainFor } from "./explain.tsx";
 import { LESSONS } from "../lessons.tsx";
@@ -95,6 +96,63 @@ function TapAnswer({ t, answered, submit }: { t: TapTask; answered: Answered | n
   );
 }
 
+const NUM = "①②③④";
+/** Ordnen-Bild: Ausschnitt um die Elektronenpfeile (dort passiert der Schritt), ohne Lichthöfe – klein noch lesbar */
+function OrderPic({ v }: { v: Vis }) {
+  const pic = useMemo(() => {
+    if (v.k !== "mech") return null;
+    const f = tapFrame({ k: "mech", r: v.r, acts: v.acts, key: v.key });
+    const pts = f.arrows.flatMap(a => [anchorPt(f.snap, a.from), anchorPt(f.snap, a.to)]).filter(p => !!p);
+    const all = snapBox(f.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
+    const b = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 1.6), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 1.6),
+      y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
+    return { pose: { ...still(f.snap), arrows: f.arrows.map(arrow => ({ arrow, op: 1 })) }, box: fitBox(b, 1.15, 4.4, 3.8, 0.4) };
+  }, [v]);
+  if (!pic) return <VisView v={v} />;
+  return <MechSvg pose={pic.pose} box={pic.box} label="" halos={false} className="pm-order-svg" />;
+}
+/** Ordnen: Bilder nacheinander antippen (Nummer erscheint), nochmal antippen nimmt die Nummer weg; ab vier Nummern „Prüfen“ */
+function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: Answered | null; submit?: Submit; solved?: boolean }) {
+  const [seq, setSeq] = useState<number[]>([]);
+  const done = !!answered || !!solved;
+  const shown = solved && !answered ? t.correct : seq;
+  const tap = (i: number) => {
+    if (done) return;
+    buzz();
+    setSeq(s => (s.includes(i) ? s.slice(0, s.indexOf(i)) : [...s, i]));
+  };
+  const check = () => {
+    const pos = (k: number) => seq.indexOf(t.correct[k]);
+    const ok = t.correct.every((c, k) => seq[k] === c);
+    submit?.({ ok, values: { startFirst: pos(0) === 0 ? 1 : 0, termLast: pos(3) === 3 ? 1 : 0, addsOk: pos(1) < pos(2) ? 1 : 0 } });
+  };
+  return (
+    <div className={`pm-order${done ? " done" : ""}`}>
+      <div className="pm-order-grid">
+        {t.cards.map((v, i) => {
+          const n = shown.indexOf(i), right = t.correct.indexOf(i);
+          const st = done ? (n === right ? "ok" : "no") : n >= 0 ? "sel" : "";
+          return (
+            <button key={i} type="button" className={`pm-order-card ${st}`} onClick={() => tap(i)} disabled={done && !!answered}
+              aria-label={done ? `${tr("Bild", "Picture")} ${"ABCD"[i]}: ${t.names[i]}` : `${tr("Bild", "Picture")} ${"ABCD"[i]}${n >= 0 ? `, ${tr("Platz", "position")} ${n + 1}` : ""}`}>
+              <span className="pm-order-pic"><OrderPic v={v} /></span>
+              {n >= 0 && <span className="pm-order-num" aria-hidden="true">{NUM[n]}</span>}
+              {done && <span className="pm-order-mark" aria-hidden="true">{st === "ok" ? "✓" : `✗ ${NUM[right]}`}</span>}
+              {done && <span className="pm-order-name">{t.names[i]}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {!done && (
+        <div className="pm-tap-bar">
+          <span className="pm-tap-note">{tr(`Bilder der Reihe nach antippen · ${seq.length} / 4`, `Tap the pictures in order · ${seq.length} / 4`)}</span>
+          <Button variant="primary" disabled={seq.length < 4} onClick={() => { buzz(); check(); }}>{tr("Prüfen", "Check")}</Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function QuizView() {
   return (
     <QuizScreen<Task>
@@ -108,11 +166,11 @@ export function QuizView() {
       missName={id => MISS[id]}
       lesson={l => LESSONS[l]}
       heroArt={<span className="hero-pm" aria-hidden="true"><BeadStrip beads={beadsOf(["styrol", "styrol", "styrol", "butadien", "butadien", "butadien"])} active={null} /></span>}
-      renderVisual={t => (isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
+      renderVisual={t => (isOrder(t) ? (t.stage === "worked" ? <OrderAnswer t={t} answered={null} solved /> : null) : isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
         : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
-      renderOption={(t, o) => (!isTap(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
-      renderAnswer={(t, a, submit) => (isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
-      solution={t => (isTap(t) ? t.sol : null)}
+      renderOption={(t, o) => (!isTap(t) && !isOrder(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
+      renderAnswer={(t, a, submit) => (isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
+      solution={t => (isTap(t) || isOrder(t) ? t.sol : null)}
       explain={(level, task) => explainFor(level, task)}
     />
   );

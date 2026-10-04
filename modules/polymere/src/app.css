@@ -310,3 +310,24 @@
 .pm-tap-note { font-size: .84rem; color: var(--muted); }
 .q-body > .pm-tap.done { min-height: 70px; }
 @media (max-height: 700px) { .q-body > .pm-tap { min-height: 110px; } .q-body > .pm-tap.done { min-height: 56px; } }
+/* Ordnen: vier Bilder 2 × 2, Nummer als rote Kennziffer, nach dem Prüfen ✓ bzw. ✗ mit richtigem Platz (nie nur Farbe) */
+.q-body > .pm-order { flex: 1 1 0; min-height: 160px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; }
+.pm-order-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; min-height: 0; }
+.pm-order-card { position: relative; min-height: 44px; min-width: 0; padding: 4px; display: grid; grid-template-rows: minmax(0, 1fr) auto; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
+.pm-order-card:active { box-shadow: var(--key-edge-pressed); }
+.pm-order-card.sel { border-color: var(--accent); border-width: 2.5px; }
+.pm-order-card.ok { border: 2px dashed var(--ok); box-shadow: none; }
+.pm-order-card.no { border: 2px dashed var(--text); box-shadow: none; }
+.pm-order-pic { min-height: 0; display: block; container-type: size; }
+.pm-order-pic svg { width: 100%; height: 100%; display: block; }
+.pm-order-num { position: absolute; top: 2px; left: 6px; font-size: 1.3rem; font-weight: 800; color: var(--signal); }
+.pm-order-mark { position: absolute; top: 2px; right: 6px; font-size: .9rem; font-weight: 800; }
+.pm-order-card.ok .pm-order-mark { color: var(--ok); }
+.pm-order-name { font-size: .72rem; font-weight: 650; line-height: 1.15; }
+.q-pm:has(.pm-order) { height: auto; }
+/* nach der Antwort: Bilder klein, Platz für die Rückmeldung */
+.q-body > .pm-order.done { flex: none; min-height: 0; grid-template-rows: auto; }
+.pm-order.done .pm-order-grid, .pm-order.done .pm-order-card { grid-template-rows: auto auto; }
+.pm-order.done .pm-order-pic { height: 40px; }
+@media (min-width: 600px) and (min-height: 740px) { .pm-order.done .pm-order-pic { height: 90px; } }
+@media (max-height: 700px), (max-width: 370px) { .pm-order.done .pm-order-pic { display: none; } .pm-order.done .pm-order-card { padding-top: 26px; } }
