@@ -582,7 +582,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Epoxidrings sich öffnet, sonst Nebenprodukt. Jede falsche Antwort hat eine eigene Rückmeldung. Danach läuft die Aktion ohne Frage, „Automatisch“ fragt nie.
   Antworten gemischt (außer Ergebnis-Skala), dreispaltig nur, wenn kein Wort übersteht. Tests: `predict.test.ts`, `predict-english.test.ts`.
   Ausschnitt: kleine Anhängsel an Fokus-Atomen (–OH, –Cl, Benzolring, höchstens 7 Atome; `expandFocus`) gehören immer ganz ins Bild; was trotzdem
-  über den Rand ragt, blendet `MechSvg` aus und endet an einer **Wellenlinie** (halbe Bindung + Welle) – nie ein Atom mitten im Zeichen abgeschnitten.
+  über den Rand ragt, blendet `MechSvg` aus und endet an einer **Wellenlinie** (halbe Bindung + Welle) – nie ein Atom mitten im Zeichen abgeschnitten. Ringe am Rand verschwinden ganz (samt –OH/–H), nie ein halber Ring.
   Elektronen-Punkte nur am aktiven Ende (Test: nach jeder Aktion 1 Punkt beim Radikal, 2 beim Anion, sonst keiner); beim Zerfall des Starters gleitet das
   zweite Radikal beschriftet („2. Radikal“) zur Seite, die zwei Elektronen am CO₂ werden zur zweiten C=O-Bindung. Rekombination/Disproportionierung:
   die zweite Kette steht um 30° gedreht, damit ihre Gruppen nicht auf denen des ersten Kettenendes liegen.
@@ -667,6 +667,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Ränder und Ast-Rückmeldung** – Ringe am Bildrand werden ganz ausgeblendet (vorher blasse Reste beim Phenoplast); Rückmeldung zum Ast nennt
+  die Verknüpfung des Ansatzes (Ester + H₂O, Ester + HCl, Urethan ohne Nebenprodukt).
 - **Polymere: neue Bindung antippen** – Kapitel 4 endet mit „Tippe auf eine Bindung, die bei der Polykondensation neu entstanden ist“ (PET bzw. PA 6.6),
   Fallen C=O, Bindung im Diol/Diamin, Bindung im Monomer; Begriff Hydrolyse eingeführt.
 - **Polymere: Antippen im Bild** – sechs Aufgaben im Lernen sind jetzt Antippen statt Auswahl (Radikal-C, freie Stelle, vergiftendes Atom, wanderndes H,

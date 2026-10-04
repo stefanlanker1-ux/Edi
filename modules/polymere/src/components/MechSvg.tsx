@@ -136,11 +136,25 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
 }) {
   const at = new Map(pose.atoms.map(a => [a.id, a]));
   // Atome am Bildrand: ganz drin (1) … draußen (0) – was hinausragt, wird ausgeblendet statt abgeschnitten
-  const vis = (a: Atom) => {
+  const vis0 = (a: Atom) => {
     const w = labelHalf(a) + 0.12, hy = 0.3;
     const d = Math.min(a.x - w - box.x0, box.x1 - a.x - w, a.y - hy - box.y0, box.y1 - a.y - hy);
     return Math.max(0, Math.min(1, (d + 0.15) / 0.25));
   };
+  // Ringe am Rand verschwinden ganz (nie ein halber Ring), ihre kleinen Anhängsel (–OH, –H) mit ihnen
+  const vmap = new Map(pose.atoms.map(a => [a.id, vis0(a)]));
+  for (const ids of Object.values(pose.rings)) {
+    const m = Math.min(...ids.map(i => vmap.get(i) ?? 1));
+    if (m < 1) for (const i of ids) vmap.set(i, m < 0.5 ? 0 : m);
+  }
+  const nbs = new Map<string, string[]>();
+  for (const b of pose.bonds) { nbs.set(b.a, [...(nbs.get(b.a) ?? []), b.b]); nbs.set(b.b, [...(nbs.get(b.b) ?? []), b.a]); }
+  const isH = (id: string) => at.get(id)?.el === "H" && !at.get(id)?.text;
+  for (let pass = 0; pass < 2; pass++) for (const a of pose.atoms) {
+    const n = nbs.get(a.id) ?? [], heavy = n.filter(x => !isH(x));
+    if (heavy.length === 1 && (isH(a.id) || n.length <= 2)) vmap.set(a.id, Math.min(vmap.get(a.id) ?? 1, vmap.get(heavy[0]) ?? 1));
+  }
+  const vis = (a: Atom) => vmap.get(a.id) ?? vis0(a);
   const vb = [box.x0 * U, box.y0 * U, (box.x1 - box.x0) * U, (box.y1 - box.y0) * U].join(" ");
   // Hinterlegung je Baustein
   const halo: ReactNode[] = [];

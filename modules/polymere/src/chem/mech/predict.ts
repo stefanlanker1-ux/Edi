@@ -292,10 +292,16 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
   if (id.startsWith("branch:")) {
     if (asked) return null;
     const an = monoName(id.slice(7));
+    // Verknüpfung genau dieses Ansatzes (Ester + H₂O, Ester + HCl, Urethan ohne Nebenprodukt …)
+    const g = stepMono(id.slice(7) as StepId).groups.find(x => reactGroups("OH", x));
+    const pr = g ? reactGroups("OH", g) : null;
+    const LN = tr({ ester: "Esterbindung", amid: "Amidbindung", urethan: "Urethangruppe", harnstoff: "Harnstoffgruppe", aminoalkohol: "Bindung", methylen: "CH₂-Brücke" },
+      { ester: "ester bond", amid: "amide bond", urethan: "urethane group", harnstoff: "urea group", aminoalkohol: "bond", methylen: "CH₂ bridge" });
+    const brLink = pr ? (pr.byp ? tr(`${LN[pr.link]} und ${pr.byp === "HCl" ? "HCl" : "H₂O"}`, `${LN[pr.link]} and ${pr.byp === "HCl" ? "HCl" : "H₂O"}`) : tr(`${LN[pr.link]}, ohne Nebenprodukt`, `${LN[pr.link]}, without a by-product`)) : "";
     return q(tr(`${an} kommt an die dritte –OH des Glycerins. Was entsteht?`, `${an} reaches the third –OH of the glycerol. What forms?`),
       [
         [tr("ein Ast – Anfang eines Netzes", "a branch – start of a network")],
-        [tr("keine Reaktion", "no reaction"), tr("Die dritte –OH reagiert wie die anderen: Esterbindung und H₂O.", "The third –OH reacts like the others: ester bond and H₂O.")],
+        [tr("keine Reaktion", "no reaction"), tr(`Die dritte –OH reagiert wie die anderen: ${brLink}.`, `The third –OH reacts like the others: ${brLink}.`)],
         [tr("die Kette wird länger", "the chain gets longer"), tr("Die dritte –OH sitzt in der Mitte – es entsteht ein Ast, keine längere Kette.", "The third –OH sits in the middle – a branch forms, not a longer chain.")],
       ], 0, tr("An der dritten –OH wächst ein Ast. Viele solche Äste verbinden die Ketten zu einem Netz.", "A branch grows at the third –OH. Many such branches link the chains into a network."));
   }
