@@ -110,7 +110,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Neue Prüfungen, die einen echten Fehler gefunden haben, als Test ins Repository übernehmen.
 
 ## Erklärung (`@lern/ui` `Guide`, je Modul `src/guide.tsx`)
-- Knopf „Erklärung“ (`GuideButton`) in der Kopfzeile links (breit) bzw. unten links vor den Bereichen (Handy); roter Ring, bis die Erklärung einmal ganz durchlaufen
+- „Erklärung“ ist der erste Eintrag der Bereichsleiste (siehe „Bereichsleiste“), rotes Abspiel-Zeichen; roter Ring um das Zeichen, bis die Erklärung einmal ganz durchlaufen
   ist (`lern-erklaert-<App>`). Ganzer Bildschirm, nie scrollen. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
 - Aufbau: `GuideDef { title, steps, outro, known? }`. 10–48 Schritte; ab 16 Schritten in **Kapiteln** (`part` am ersten Schritt, Name im Kopf, Fortschrittsbalken in Abschnitten),
   jedes Kapitel höchstens 8 Schritte. Ende: Zusammenfassung „Das kannst du jetzt“ (`outro`), Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab.
@@ -164,7 +164,13 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Browser-Unterstützung: Safari/iOS ab 16, Chrome/Android ab 107 (Vite-Standardziel); keine Regex-Lookbehinds (iOS < 16.4).
 
 ## Regeln
-- Jedes Modul hat nur zwei Arten von Ansichten: **Probieren** (Werkbank: selbst bauen, zeichnen, vorgegebene Beispiele lösen) und **Quiz**. Keine eigenen Übungsseiten.
+- Jedes Modul hat nur zwei Arten von Ansichten: **Experimentieren** (Werkbank: selbst bauen, zeichnen, vorgegebene Beispiele lösen) und **Quiz**, dazu die **Erklärung**
+  als Vollbild. Keine eigenen Übungsseiten.
+- **Bereichsleiste in allen Modulen gleich** (Handy unten, ab 900 px oben in der Kopfzeile): **Erklärung | Quiz | Experimentieren** (Atombau zusätzlich „Periodensystem“/„PSE“
+  dahinter). Alle Einträge gleich gestaltet (Zeichen + Wort, aktiver Bereich mit rotem Strich); „Erklärung“ öffnet die Erklärung (kein eigener Bereich) und ist dort
+  in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
+  egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: `quiz`, dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
+  `probieren`, `start` – Kennungen und Speicher-Schlüssel nie umbenennen). Der beim Öffnen gezeigte Bereich bleibt die Werkbank.
 - React 19 + TypeScript (strict) + Vite. State mit zustand. Keine weiteren UI-Frameworks.
 - Gemeinsames gehört in `packages/`; Module importieren `@lern/*` (Quelltext wird direkt gebündelt, kein eigener Build-Schritt für Pakete).
 - **Erklärung** je Modul und Stufe: Regeln im Abschnitt „Erklärung“ oben (vorgemacht → halb gelöst → selbst, Begriffe fett einführen, automatisch geprüft).
@@ -217,7 +223,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   gedrückt `--key-edge-pressed`; neue Knopf-Klassen bekommen beides), Anzeigen haben keinen Rahmen, nur eine ruhige Fläche (`Tag`, `Chip`, Ergebnis).
   Beantwortete Auswahl verliert die Unterkante.
 - Keine Erklärsätze in der Oberfläche; Zustand als kurze `Tag`s (✓ neutral, Kation Fe³⁺ …). Erklärungen nur kurz in Erklärkarten und als Tipp nach Fehlern.
-- Fachsprache überall gleich (Probieren, Quiz, Erklärkarten, alle Module):
+- Fachsprache überall gleich (Experimentieren, Quiz, Erklärkarten, alle Module):
   beschreibend statt zielgerichtet – nie „das Atom will/braucht ein Oktett“, sondern „das Ion hat dann eine volle Außenschale wie ein Edelgas“;
   Gruppen je Stufe: Unterstufe römische Hauptgruppe („IV. Hauptgruppe“), Oberstufe Gruppe 1–18 (`groupLabel` in `@lern/chem`, auch PSE-Kopf und PSE-Hilfe);
   Ladungen als Zahl vor dem Zeichen: 2+, 1− (`signed`, `chargeFull`), Rechnung mit echtem Minus (`minus`);
@@ -232,7 +238,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf DE/EN in der Kopfzeile
   (`lern-sprache`; Wechsel lädt die Seite neu, Stände bleiben). Tests laufen auf Deutsch; je Modul `english.test.ts`/`guide-english.test.ts` prüfen, dass nichts Deutsches
   in der englischen Fassung bleibt. Fachnamen englisch nach IUPAC (alkene, ethanoic acid …).
-- Kopfzeile (`LernApp`): Logo (→ Übersicht), Tabs, Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
+- Kopfzeile (`LernApp`): Logo (→ Übersicht), Bereichsleiste (ab 900 px), Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
   nicht gespeichert), Farbschema hell/dunkel (Start hell, nicht gespeichert), DE/EN, „Lesbar“, Klang. Am Handy (≤ 374 px) engere Abstände, damit nichts übersteht.
 - Offline-fähig: Web-Build mit Service Worker, zusätzlich Einzeldatei mit allen Modulen (`vite build --mode single` → `edi-offline.html`).
 - Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`.
@@ -250,7 +256,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Stoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte), Atomsorten.
   Die Erklärkarte nennt trotzdem alle Arten von Elementen (einzelne Atome, Metallgitter, Moleküle wie O₂), nur die Bilder zeigen keine Element-Moleküle.
   Teilchenbilder in fünf Arten (`pictureKind`): Element, Verbindung, Gemisch aus Elementen / aus Verbindungen / aus Element und Verbindung.
-- Probieren (`views/MixView.tsx`, `components/FlowView.tsx`, Canvas): Gefäß mit allen Teilchen (klein) und **verschiebbarer Lupe**
+- Experimentieren (`views/MixView.tsx`, `components/FlowView.tsx`, Canvas): Gefäß mit allen Teilchen (klein) und **verschiebbarer Lupe**
   (anfassen und ziehen – Abstand zum Finger bleibt; daneben tippen – Lupe gleitet hin; Pfeiltasten), daneben bzw. darüber die Vergrößerung mit etwa 20 Teilchen
   als schattiertes Kalottenmodell (`lensRadius`). Die Lupe springt nie: sie gleitet, und das Bild ordnet sich nicht neu an (Statuszeile immer einzeilig,
   höchstens zwei kurze Kennzeichen, `.gm-status`). Teilchen in der Lupe antippen → Stoff-Info (öffnet beim Loslassen; das Blatt ignoriert den Klick gleich nach dem Öffnen, sonst schließt es am Handy sofort wieder). Grenze Öl/Wasser als gerade Linie (`boundaryY`), sobald getrennt.
@@ -381,7 +387,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Reaktionen in `REACTIONS` mit `stufe` (us/os) und `niveau` 1–4 (`reactionsFor(stufe, …niveaus)`), Titel, Art, Formeln ASCII wie `Ca(OH)2`; Stoffnamen in `SPECIES_NAMES` (jeder Stoff braucht einen Namen).
   Niveaus: US 1 eine Zahl · 2 mehrere Zahlen · 3 Verbrennungen/Metalloxide · 4 knifflig (halbe Zahl → verdoppeln, Al + HCl); OS 1 Salze/Säuren (Ionen als Block) · 2 Zerfall/Fällung/Neutralisation ·
   3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 5 Aufgaben).
-- Aufbau (einfach, wenige Knöpfe): Tabs **Start | Quiz**. Start = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
+- Aufbau (einfach, wenige Knöpfe): Bereiche **Erklärung | Quiz | Experimentieren**. Experimentieren (Kennung `start`) = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
   nach dem letzten Beispiel „Zum Quiz“. Mit `BalanceCard`:
   Titel, Teilchenbild (`MoleculeScene`, Kästen passen sich dem Inhalt an, nebeneinander oder übereinander), Ergebnis erst nach „Prüfen“ (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`,
   Kastenrahmen grün bzw. rot gestrichelt), Gleichung **immer einzeilig, nie umbrechen** (`EquationRow`: Fit-Text – Schrift passt sich der Breite an, 26 → min. 10 px; jeder Stoff ist ein Tippziel ≥ 44 px, antippen → Zahlenauswahl 1–12, Niveau 4 bis 30; `FitLine` für die Gleichung über Quizfragen), ein Hauptknopf. Keine Werkzeugleiste, kein 3D.
@@ -486,7 +492,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Live-Hilfe (`components/LiveHelp.tsx`, Umrechnen, Quiz-Rückmeldung, Erklärkarten): Pfeilkette wie im Heft (`ArrowChain`, `chainFor`: unten „· 10“ nach rechts, oben „: 10“ nach links, Weg leuchtet, Zahl unter jeder Einheit) + Stellenwerttafel;
   seltene Vorsilben = Vorsilben-Skala n … G (10⁻⁹ … 10⁹, `PowerScale`, `prefixStep`): Umrechnungszahl = 10^(Hochzahl vorher − nachher), bei m²/m³ mal 2/3. Zusammengesetzt Einsetz-Kette (`SubstFlow`).
 - Flächen und Volumen (`components/DimChain.tsx`): Pfeilkette mit den Längen darüber (km² ha a m² … unter km 100 m 10 m m …), jede Stufe „· 100“ mit „10 · 10“ bzw. „· 1000“ mit „10 · 10 · 10“ – Fläche = Länge · Länge.
-- Tabs: Umrechnen | Quiz. Quiz (`src/quiz/tasks.ts`) je Stufe fünf Niveaus: 1 Zehnerschritte (Werte nur 1, 10 … 0,0001; Längen, Massen, Liter, Umrechnungszahl; OS auch Vorsilben) ·
+- Bereiche: Erklärung | Quiz | Experimentieren (Umrechnen, Kennung `convert`). Quiz (`src/quiz/tasks.ts`) je Stufe fünf Niveaus: 1 Zehnerschritte (Werte nur 1, 10 … 0,0001; Längen, Massen, Liter, Umrechnungszahl; OS auch Vorsilben) ·
   2 beliebige Zahlen (1,5 g = 0,0015 kg; Mal oder geteilt?, Vergleichen) · 3 Flächen (inkl. ha/a, Größenvorstellung) · 4 Volumen (inkl. 1 l = 1 dm³; Tipp „gleich groß“) ·
   5 Unterstufe Zeit (umrechnen, Umrechnungszahl, „Was dauert länger?“ mit Falle 1 h = 100 min) bzw. Oberstufe zusammengesetzt, in der Runde nach Schwierigkeit sortiert (`STAGE`):
   Zeit → nur Zähler → nur Nenner → beide → Einheiten mit eigenem Namen (Pa, J, C …); Werte alltagsnah (`PLAUSIBLE`, z. B. Dichte ≤ 23 g/cm³).
@@ -508,6 +514,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Bereichsleiste (alle Module)** – einheitlich **Erklärung | Quiz | Experimentieren**: „Erklärung“ ist jetzt ein gleich gestalteter Eintrag der Leiste (vorher eigener
+  schwarzer Knopf links), Werkbank-Bereiche heißen überall „Experimentieren“ (vorher Probieren, Bauen, Formeln bauen, Moleküle bauen, Neutralisieren, Zeichnen,
+  Umrechnen, Start) mit Becherglas-Zeichen; Ring „noch nie durchlaufen“ kleiner, damit er die Schrift nicht überdeckt. Grund: einheitliche Bedienung in allen Apps.
 
 - **Doku** – Pflicht eingeführt: jede relevante Änderung aktualisiert dieses Dokument und bekommt einen Eintrag hier (lückenloser Verlauf).
 - **Doku** – Lernprinzipien, Motivation, Zugänglichkeit und bewährte Prüfmethoden ergänzt (a4043fe).

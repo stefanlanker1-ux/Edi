@@ -21,25 +21,32 @@ export function LangButton() {
   );
 }
 
-export function AppShell<T extends string>({ name, logo, homeHref, tabs, active, onTab, actions, lead, storage, children }: {
+export function AppShell<T extends string>({ name, logo, homeHref, tabs, active, onTab, actions, guide, storage, children }: {
   name: string; logo?: ReactNode;
   /** Link zur Übersicht aller Apps (Logo wird klickbar) */
   homeHref?: string; tabs: ShellTab<T>[]; active: T; onTab: (t: T) => void; actions?: ReactNode;
-  /** links vor den Bereichen (Knopf „Erklärung“) */
-  lead?: ReactNode;
+  /** „Erklärung“ als erster Eintrag der Bereichsleiste (gleich gestaltet wie die Bereiche); `fresh` = noch nie durchlaufen (roter Ring) */
+  guide?: { fresh: boolean; open: () => void };
   /** localStorage-Schlüssel der App: „Neu starten“ nach einem Absturz setzt sie zurück */
   storage?: string[]; children: ReactNode;
 }) {
   const sound = useSound();
   const readable = useReadable();
   const lang = useLang();
-  const nav = (cls: string) => tabs.map(t => (
+  const nav = (cls: string) => [guide && (
+    <button key="guide" type="button" className={`${cls} ui-guide-tab${guide.fresh ? " fresh" : ""}`} onClick={guide.open}
+      title={tr("Schritt für Schritt erklärt – zum Mitmachen", "Explained step by step – try it yourself")}>
+      <span className="ui-guide-tab-ic"><Icon name="play" size={cls === "ui-bn-tab" ? 24 : 20} /></span>
+      <span className="ui-long">{tr("Erklärung", "Explanation")}</span>
+      <span className="ui-short">{tr("Erklärung", "Explanation")}</span>
+    </button>
+  ), ...tabs.map(t => (
     <button key={t.id} type="button" className={`${cls}${t.id === active ? " active" : ""}`} aria-current={t.id === active ? "page" : undefined} onClick={() => onTab(t.id)}>
       <Icon name={t.icon} size={cls === "ui-bn-tab" ? 24 : 20} />
       <span className="ui-long">{t.label}</span>
       <span className="ui-short">{t.short ?? t.label}</span>
     </button>
-  ));
+  ))];
   return (
     <>
       <a className="ui-skip" href="#main">{tr("Zum Inhalt springen", "Skip to content")}</a>
@@ -47,7 +54,6 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
         {homeHref
           ? <a className="ui-brand" href={homeHref} title={tr("Zur Übersicht", "All apps")}>{logo}<h1 className="ui-brand-name">{name}</h1></a>
           : <div className="ui-brand">{logo}<h1 className="ui-brand-name">{name}</h1></div>}
-        {lead && <div className="ui-lead">{lead}</div>}
         <nav className="ui-top-tabs" aria-label={tr("Bereiche", "Sections")}>{nav("ui-top-tab")}</nav>
         <div className="ui-top-actions">
           {actions}
@@ -63,7 +69,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
         </div>
       </header>
       <main id="main" className="ui-main"><Rescue key={`${active}-${lang}`} storage={storage}>{children}</Rescue></main>
-      <nav className="ui-bottom-nav" aria-label={tr("Bereiche", "Sections")}>{lead && <div className="ui-bn-lead">{lead}</div>}{nav("ui-bn-tab")}</nav>
+      <nav className="ui-bottom-nav" aria-label={tr("Bereiche", "Sections")}>{nav("ui-bn-tab")}</nav>
     </>
   );
 }

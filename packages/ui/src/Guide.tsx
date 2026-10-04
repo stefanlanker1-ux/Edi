@@ -248,12 +248,3 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   );
 }
 
-/** Knopf „Erklärung“ in der Kopfzeile: hervorgehoben, bis die Erklärung einmal ganz durchlaufen ist */
-export function GuideButton({ onClick, fresh }: { onClick: () => void; fresh: boolean }) {
-  return (
-    <button type="button" className={`ui-guide-btn${fresh ? " fresh" : ""}`} onClick={onClick} title={tr("Schritt für Schritt erklärt – zum Mitmachen", "Explained step by step – try it yourself")}>
-      <span className="ui-guide-btn-ic" aria-hidden="true"><Icon name="play" size={14} /></span>
-      <span>{tr("Erklärung", "Explanation")}</span>
-    </button>
-  );
-}

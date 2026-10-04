@@ -6,8 +6,8 @@ import { guideFor } from "./guide.tsx";
 import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "build", label: tr("Neutralisieren", "Neutralise"), short: tr("Bauen", "Build"), icon: "grid" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
+  { id: "build", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
 // Logo: Kation (gold) mit OH⁻, darunter H⁺ mit Säurerest (grün) – H⁺ und OH⁻ blau, weil sie zu Wasser werden

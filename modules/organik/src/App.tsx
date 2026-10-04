@@ -5,8 +5,8 @@ import { QuizView } from "./quiz/QuizView.tsx";
 import { GUIDE } from "./guide.tsx";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "zeichnen", label: tr("Zeichnen", "Draw"), icon: "bond" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
+  { id: "zeichnen", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
 // Logo: Zickzack-Kette mit Nummern

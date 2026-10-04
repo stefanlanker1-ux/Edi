@@ -6,8 +6,8 @@ import { GUIDE } from "./guide.tsx";
 import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "probieren", label: tr("Probieren", "Explore"), icon: "beaker" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
+  { id: "probieren", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
 // Logo: Becher mit Teilchen (Wassermolekül und Atome)

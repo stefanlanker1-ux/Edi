@@ -13,7 +13,7 @@ import { AppShell, type ShellTab } from "./AppShell.tsx";
 import { IconButton, Segmented } from "./components.tsx";
 import { applyTheme } from "./hooks.ts";
 import { HomeLink } from "./modul.ts";
-import { Guide, GuideButton, type GuideDef } from "./Guide.tsx";
+import { Guide, type GuideDef } from "./Guide.tsx";
 
 /** läuft als Android/iOS-App (Capacitor) */
 export const isNative: boolean = !!(globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.();
@@ -94,7 +94,7 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   };
   return (
     <AppShell name={name} logo={logo} homeHref={homeHref} tabs={tabs} active={tab} storage={storage}
-      lead={guide && <GuideButton fresh={fresh} onClick={() => setGuideOpen(true)} />}
+      guide={guide ? { fresh, open: () => setGuideOpen(true) } : undefined}
       onTab={t => { onTab(t); window.scrollTo({ top: 0 }); }}
       actions={<>
         {stufe && <Segmented<S> label="Level" value={stufe.value} onChange={stufe.onChange} options={stufe.options ?? (US_OS as StufeSwitch<S>["options"] & object)} />}

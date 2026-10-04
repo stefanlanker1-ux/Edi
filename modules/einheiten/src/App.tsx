@@ -6,8 +6,8 @@ import { guideFor } from "./guide.tsx";
 import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "convert", label: tr("Umrechnen", "Convert"), icon: "ruler" },
   { id: "quiz", label: "Quiz", icon: "quiz" },
+  { id: "convert", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
 const Logo = () => (
