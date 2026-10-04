@@ -68,6 +68,39 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 - **Barrierearm**: richtig/falsch nie nur über Farbe (zusätzlich ✓/✗, Muster, gestrichelt), Tippziele ≥ 44 px, Tastatur bedienbar, `aria-label` für Bilder und Knöpfe,
   Schalter „Lesbar“ (mehr Abstände), Klang standardmäßig aus, Vorlesen im Quiz.
 
+## Lernprinzipien, Motivation, Oberfläche (Begründung der Regeln)
+Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach entscheiden:
+- **Abrufen schlägt Wiederlesen**: Üben (Quiz) ist der Hauptweg, Erklärungen sind kurz und enden immer mit einer Frage oder Handlung.
+- **Verteilt üben**: Wiederholung je Fertigkeit nach 1-3-7-14-30 Tagen, nach Fehlern früher; ein Prüfungstermin zieht Fälligkeiten vor.
+- **Verschränkt üben**: Aufgabentypen in einer Runde mischen, nie zehnmal dasselbe; „Alles gemischt“ ist ein vollwertiger Modus.
+- **Rückmeldung erklärt, statt nur zu bewerten**: nach Fehlern Begründung und Lösungsweg (Blatt), nach Treffern nur kurze Bestätigung. Lob nennt die Strategie,
+  nicht die Begabung („Du hast zuerst die Ladung gezählt – genau so.“).
+- **Lösungsbeispiele mit Ausblenden** (vorgemacht → halb → selbst) und **Vorhersagen vor dem Beobachten** (erst vermuten, dann Animation/Modell ansehen, dann erklären).
+- **Wenig fremde Last**: eine Bühne, ein Bereich, keine Erklärsätze in der Oberfläche, Rot nur für das Wesentliche, Inhalte in kleine Abschnitte geteilt.
+- **Drei Ebenen der Chemie**: jede Darstellung verbindet zwei Ebenen – Stoff/Alltag ↔ Teilchen ↔ Symbol (Bohrmodell ↔ Atomsymbol, Ionenwand ↔ Formel,
+  Lewis ↔ 3D, Teilchenbild ↔ Gleichung, Becherglas ↔ Lupe). Nie nur auf der Symbolebene bleiben.
+- **Fehlvorstellungen sind der Inhalt**: typische Schülerfehler (Atom „will“ ein Oktett, Ionen als Moleküle, Elektronen „wandern“ bei der Ionenbindung, gelöster Stoff
+  verschwindet …) werden gezielt als falsche Antworten angeboten und in der Rückmeldung beim Namen genannt.
+- **Meisterschaft statt Durchlauf**: Fertigkeiten-Stufen neu → geübt → sicher → gemeistert, sichtbar auf der Landkarte; Fortschritt ist der wichtigste Motivator.
+- **Kurze Einheiten**: Runde = 10 Aufgaben (einige Minuten), jederzeit unterbrechbar (Stand bleibt beim Neuladen erhalten); erster Erfolg in der ersten Minute
+  (keine Anmeldung, keine Einführungsfolien – die App öffnet direkt mit etwas zum Tun).
+- **Motivation ohne Manipulation**: Fortschritt statt Punktejagd (Punkte nur innerhalb einer Runde), Wochenziel (3 Runden) statt Tagesserie, Rückkehr wird freundlich
+  begrüßt, keine Ranglisten, keine Ligen, keine „Leben“, keine Verlust- oder Schuldnachrichten, kein Zeitdruck, keine leidende Figur, keine Werbung, keine Konten,
+  keine Tracker. Abschluss jeder Runde: Trefferquote, Zeit, neu erreichte Stufen, häufigster Stolperstein.
+- **Selbstbestimmung**: Thema, Level und „Schwächen üben“ sind Angebote, keine Pflicht.
+- **Zugänglichkeit**: Kontrast ≥ 4,5 : 1, Zeilenabstand großzügig, keine Kursivschrift im Fließtext, Bewegung reduzierbar, Vorlesen der Aufgaben, „Lesbar“ (größere
+  Abstände), einfache Sprache (Fachwort + Alltagswort), richtig/falsch nie nur über Farbe.
+- **Ein Aha-Moment je Modul** (3D-Molekül drehen, Teilchen in Bewegung, Reaktion als Animation, Orbitale in 3D) – aber immer auf Abruf, nie als Pflicht.
+
+## Prüfmethoden (bewährt)
+- **Richtig lösen im Browser**: jede Aufgabenart jedes Levels (beide Stufen) im Browser richtig beantworten – muss ✓ geben (fängt Fehler zwischen Daten und Antwortform).
+- **Falsch lösen**: jede falsche Auswahl liefert eine Rückmeldung, nach den Fehlversuchen erscheint die Lösung, nichts läuft über.
+- **Lernende über mehrere Tage** (simulierte Uhr): Fehler am nächsten Morgen fällig, dann nach 3 und 7 Tagen; Wochenziel zählt; Neuladen mitten in der Runde setzt
+  bei derselben Aufgabe fort; Stufenwechsel verliert nichts; Zurück-Taste schließt jedes Blatt.
+- **Erklärungen durchspielen** (alle Schritte, alle Größen), **Animationen** bis zum Ende laufen lassen und Zwischenbilder ansehen (Sprünge, Zittern, Überlappungen).
+- **Texte durchsehen**: alle erzeugten Texte einer Runde ausgeben und lesen (Grammatik, Einzahl/Mehrzahl, Artikel, nicht eingeführte Begriffe, englische Fassung).
+- Neue Prüfungen, die einen echten Fehler gefunden haben, als Test ins Repository übernehmen.
+
 ## Erklärung (`@lern/ui` `Guide`, je Modul `src/guide.tsx`)
 - Knopf „Erklärung“ (`GuideButton`) in der Kopfzeile links (breit) bzw. unten links vor den Bereichen (Handy); roter Ring, bis die Erklärung einmal ganz durchlaufen
   ist (`lern-erklaert-<App>`). Ganzer Bildschirm, nie scrollen. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
