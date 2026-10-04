@@ -141,7 +141,7 @@ function formulaMc(os: boolean): Task {
   return {
     ...mc(F(c, a), wrongs),
     prompt: tr(`Welche Formel hat **${compoundName(c, a)}**?`, `What is the formula of **${compoundName(c, a)}**?`),
-    hint: tr(`Ladungen: ${ionText(c)} und ${ionText(a)}. Suche das kleinste gemeinsame Vielfache.`, `Charges: ${ionText(c)} and ${ionText(a)}. Find the lowest common multiple.`),
+    hint: tr(`Ladungen: ${ionText(c)} und ${ionText(a)}. Nimm von jedem Ion so viele, bis Plus und Minus gleich groß sind.`, `Charges: ${ionText(c)} and ${ionText(a)}. Take as many of each ion as needed until plus and minus are equal.`),
     explain: `${balance(c, a, r.nC, r.nA)} → **${F(c, a)}**.`
       + (a.Z === undefined && r.nA > 1 ? tr(" Mehratomige Ionen kommen in Klammern, wenn man mehrere braucht.", " Polyatomic ions go in brackets when you need more than one.") : ""),
   };

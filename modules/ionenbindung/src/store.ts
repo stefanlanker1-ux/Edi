@@ -25,10 +25,11 @@ const usOk = (id: string) => !ION_BY_ID[id]?.os;
 export const useApp = create<State>()(persist((set, get) => ({
   tab: "build",
   stufe: "us",
+  // erster Start: ein fertig gelöstes Beispiel (CaCl₂ ausgeglichen); jedes neue Ionenpaar gleicht man dann selbst aus
   cation: "Ca2+",
   anion: "Cl-",
   nC: 1,
-  nA: 1,
+  nA: 2,
   setTab: tab => set({ tab }),
   setStufe: stufe => {
     const s = get();
