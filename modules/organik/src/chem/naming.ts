@@ -1030,8 +1030,8 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
     const rn = rk.kind === "benzen" ? "Benzen (Benzolring)" : rk.kind === "carbo" ? cap(rk.base) + "an" : cap(rk.base);
     out.push(`Stammsystem: **Ring** geht vor Kette → **${rn}**.`);
   }
-  const what = [n ? "Hauptgruppe" : "", o.en.length || o.yn.length ? "Mehrfachbindung" : "", o.prefixes.length ? "Seitenketten" : ""].filter(Boolean);
-  if (o.seq.length > 1 && what.length) out.push(`Nummerieren: so, dass ${what[0] === "Hauptgruppe" ? "die **Hauptgruppe**" : what[0] === "Mehrfachbindung" ? "die **Mehrfachbindung**" : "die **Seitenketten**"} die kleinste Nummer bekommt.`);
+  const what = [n ? "Hauptgruppe" : "", o.en.length || o.yn.length ? "Mehrfachbindung" : "", o.prefixes.length ? "Äste" : ""].filter(Boolean);
+  if (o.seq.length > 1 && what.length) out.push(`Nummerieren: so, dass ${what[0] === "Hauptgruppe" ? "die **Hauptgruppe**" : what[0] === "Mehrfachbindung" ? "die **Mehrfachbindung**" : "die **Äste**"} ${what[0] === "Äste" ? "die kleinsten Nummern bekommen" : "die kleinste Nummer bekommt"}.`);
   if (n && o.kind === "chain" && o.mode === "incl" && K && C_TYPE.has(K)) out.push(`Das C der ${info!.label}gruppe ist **C1** – die Nummer steht nicht im Namen.`);
   if (o.en.length) out.push(`Doppelbindung bei C${nums(o.en)} → **-en**.`);
   for (const st of r.stereo) out.push(ezStep(ctx, st));

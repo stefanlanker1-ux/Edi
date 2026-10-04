@@ -124,7 +124,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "worked",
     part: tr("Mehrfachbindungen", "Multiple bonds"),
-    say: tr("Doppelbindung → Endung **-en**, Dreifachbindung → **-in**.", "Double bond → ending **-ene**, triple bond → **-yne**."),
+    say: tr("Doppelbindung → Endung **-en**, ein **Alken**. Dreifachbindung → **-in**, ein **Alkin**.", "Double bond → ending **-ene**, an **alkene**. Triple bond → **-yne**, an **alkyne**."),
     ask: tr("Wie heißt das Molekül?", "What is the molecule called?"),
     visual: () => <Pic s="C=CCC" />,
     lines: [tr("4 C → But; Doppelbindung → -en.", "4 C → but; double bond → -ene."), tr("Die Doppelbindung bekommt die kleinste Nummer: zwischen C1 und C2 → 1.", "The double bond gets the lowest number: between C1 and C2 → 1."), tr("Die Nummer steht vor der Endung: **But-1-en**.", "The number goes before the ending: **but-1-ene**.")],

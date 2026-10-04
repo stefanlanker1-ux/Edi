@@ -5,7 +5,7 @@ import { tr } from "@lern/i18n";
 export const MISS: Record<string, string> = tr({
   "zaehlen": "C-Atome falsch gezählt",
   "kette-kurz": "Nicht die längste Kette gewählt",
-  "alle-c": "Seitenketten in die Hauptkette gezählt",
+  "alle-c": "Äste in die Hauptkette gezählt",
   "nummer": "Von der falschen Seite nummeriert",
   "alphabet": "Vorsilben nicht alphabetisch geordnet",
   "multi": "Gleiche Reste nicht mit di, tri zusammengefasst",

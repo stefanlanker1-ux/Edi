@@ -126,7 +126,7 @@ function kette(): Task {
   do { m = mol(branchedAlkane()); r = ok(m)!; } while (r.parent.size === m.atoms.length);
   const other = ok(m, { pick: "otherChain" });
   const traps = [
-    { field: "n", value: m.atoms.length, miss: "alle-c", why: tr(`${m.atoms.length} sind alle C. Die Seitenketten zählen nicht zur Hauptkette.`, `${m.atoms.length} is the number of all C. Side chains do not count as part of the main chain.`) },
+    { field: "n", value: m.atoms.length, miss: "alle-c", why: tr(`${m.atoms.length} sind alle C. Die Äste zählen nicht zur Hauptkette.`, `${m.atoms.length} is the number of all C. Branches do not count as part of the main chain.`) },
     ...(other ? [{ field: "n", value: other.parent.size, miss: "kette-kurz", why: tr(`Es gibt eine längere Kette mit ${r.parent.size} C.`, `There is a longer chain with ${r.parent.size} C.`) }] : []),
   ].filter(t => t.value !== r.parent.size);
   return {
