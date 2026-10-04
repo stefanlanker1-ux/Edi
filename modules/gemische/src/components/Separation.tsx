@@ -68,21 +68,31 @@ function auslesen(t: number) {
 }
 
 function sieben(t: number) {
-  // Sieb schüttelt; feine Sandkörner fallen durch die Maschen in die Schale, Kiesel bleiben liegen
-  const shake = t < .9 ? Math.sin(t * 70) * 4 * (1 - seg(t, .75, .9)) : 0;
-  const stones = Array.from({ length: 6 }, (_, i) => ({ x: 70 + i * 20 + rnd(i) * 6, y: 58 - rnd(i + 3) * 4 }));
-  const grains = Array.from({ length: 26 }, (_, i) => {
-    const x = 60 + rnd(i + 20) * 120, k = seg(t, .1 + rnd(i + 40) * .55, .25 + rnd(i + 40) * .55);
-    return { x: x + shake * (1 - k), y: lerp(56 + rnd(i + 60) * 6, 136 - rnd(i + 80) * 10, k) };
+  // Sieb schüttelt; die Maschen (Drähte im Querschnitt) lassen nur Körner durch, die kleiner als die Lücken sind:
+  // Sandkörner rutschen zur nächsten Lücke, fallen hindurch und häufen sich in der Schale; Kiesel bleiben liegen
+  const shake = Math.sin(t * 70) * 4 * (1 - seg(t, .78, .92));
+  const wires = Array.from({ length: 19 }, (_, i) => 48 + i * 8);
+  const stones = [62, 86, 110, 134, 158, 180].map((x, i) => ({ x: x + rnd(i) * 3, y: 56.5 }));
+  const grains = Array.from({ length: 56 }, (_, i) => {
+    const x0 = 52 + rnd(i + 20) * 136, gx = 52 + Math.min(17, Math.max(0, Math.floor((x0 - 48) / 8))) * 8;
+    const ts = .06 + rnd(i + 40) * .62, slide = seg(t, ts, ts + .07), fall = clamp((t - ts - .07) / .12);
+    // Sand häuft sich in der Mitte der Schale
+    const lx = 120 + (gx - 120) * .5 + (rnd(i + 90) - .5) * 10, heap = Math.max(0, 1 - ((lx - 120) / 46) ** 2);
+    const land = 149 - rnd(i + 80) * 2 - heap * rnd(i + 70) * 8;
+    const onSieve = fall <= 0;
+    return {
+      x: onSieve ? lerp(x0, gx, slide) + shake : lerp(gx, lx, seg(fall, .55, 1)),
+      y: onSieve ? lerp(62 - rnd(i + 60) * 4, 63, slide) : lerp(63, land, fall * fall),
+    };
   });
   return (
     <>
       <path className="sp-bowl" d="M52 120 Q52 152 120 152 Q188 152 188 120 Z" data-part="schale" />
       <g transform={`translate(${shake} 0)`} data-part="sieb">
-        <path className="sp-frame" d="M48 48 L48 66 L192 66 L192 48" />
-        <line className="sp-mesh" x1={48} y1={66} x2={192} y2={66} />
+        <path className="sp-frame" d="M44 40 L44 66 M196 66 L196 40" />
+        {wires.map(x => <circle key={x} className="sp-wire" cx={x} cy={66} r={2} />)}
       </g>
-      <g data-part="sand">{grains.map((g, i) => <circle key={i} className="sp-sand" cx={g.x} cy={g.y} r={1.8} />)}</g>
+      <g data-part="sand">{grains.map((g, i) => <circle key={i} className="sp-sand" cx={g.x} cy={g.y} r={1.6} />)}</g>
       <g data-part="kies" transform={`translate(${shake} 0)`}>{stones.map((s, i) => <circle key={i} className="sp-stone" cx={s.x} cy={s.y} r={7} />)}</g>
     </>
   );
@@ -183,47 +193,89 @@ function eindampfen(t: number, id: string) {
 }
 
 function destillieren(t: number, id: string) {
-  // Salzwasser im Kolben siedet; Wasserdampf steigt in den Kühler, kondensiert und tropft als Destillat in die Vorlage; Salz bleibt
-  const k = seg(t, .08, .95);
-  const left = lerp(80, 98, k), right = lerp(152, 132, k);
-  const bubbles = Array.from({ length: 6 }, (_, i) => { const ph = (t * 4 + rnd(i)) % 1; return { x: 44 + rnd(i + 3) * 28, y: lerp(108, left + 2, ph), on: k > 0 && k < 1 }; });
-  const vapor = Array.from({ length: 5 }, (_, i) => { const ph = (t * 2.5 + i / 5) % 1; return { x: lerp(66, 168, ph), y: lerp(44, 92, ph), on: k > .02 && k < 1 }; });
-  const drop = { y: 108 + ((t * 5) % 1) * (right - 108), on: k > .05 && k < 1 };
+  // Destillationsapparatur: Rundkolben mit Salzwasser über dem Brenner, Thermometer am Abzweig, Liebig-Kühler (Kühlwasser
+  // im Gegenstrom: unten hinein, oben heraus), Vorlage. Erst steigt die Temperatur auf 100 °C, dann bleibt sie dort:
+  // Wasserdampf zieht in den Kühler, wird dort wieder flüssig und tropft als Destillat in die Vorlage; das Salz bleibt im Kolben.
+  const heat = seg(t, 0, .2), k = seg(t, .2, .95), boiling = t > .2 && k < 1;
+  const temp = Math.round(lerp(20, 100, heat));
+  const level = lerp(95, 119, k), recv = lerp(160, 140, k);
+  const A = [56, 50], B = [192, 114];
+  const len = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / len, uy = (B[1] - A[1]) / len, nx = -uy, ny = ux;
+  const at = (s: number, o = 0) => [A[0] + ux * len * s + nx * o, A[1] + uy * len * s + ny * o];
+  const p = (q: number[]) => `${q[0].toFixed(1)} ${q[1].toFixed(1)}`;
+  const j0 = .16, j1 = .84, jw = 7;
+  const jacket = `M${p(at(j0, -jw))} L${p(at(j1, -jw))} L${p(at(j1, jw))} L${p(at(j0, jw))} Z`;
+  const inP = at(.76, jw), outP = at(.24, -jw);
+  const travel = Array.from({ length: 7 }, (_, i) => {
+    const ph = (t * 1.6 + i / 7) % 1;
+    if (ph < .3) { const q = ph / .3; return { x: 50 + Math.sin(i + q * 6) * 2, y: lerp(level - 2, 50, q), wet: false }; }
+    const s = (ph - .3) / .7, q = at(s);
+    return { x: q[0], y: q[1], wet: s > .5 };
+  });
+  const bubbles = Array.from({ length: 6 }, (_, i) => { const ph = (t * 4 + rnd(i)) % 1; return { x: 40 + rnd(i + 3) * 20, y: lerp(122, level + 2, ph) }; });
+  const salt = Array.from({ length: 9 }, (_, i) => ({ x: 40 + rnd(i + 30) * 20, y: 121 - rnd(i + 50) * 3 }));
+  const drop = { y: lerp(116, recv, (t * 5) % 1), on: boiling && k > .05 };
+  const mercury = lerp(6, 30, heat);
   return (
     <>
-      <defs><clipPath id={`${id}-in`}><circle cx={58} cy={92} r={22} /></clipPath></defs>
-      <rect className="sp-water" x={30} y={left} width={60} height={60} clipPath={`url(#${id}-in)`} data-part="rueckstand" />
-      {bubbles.map((b, i) => b.on && <circle key={i} className="sp-bubble" cx={b.x} cy={b.y} r={1.6} />)}
-      <path className="sp-glass" d="M52 72 A22 22 0 1 0 64 72 L64 44 L52 44 Z" data-part="kolben" />
-      <path className="sp-cooler" d="M84 44 L174 86 L168 98 L78 56 Z" data-part="kuehler" />
-      <path className="sp-glass" d="M64 48 L176 100" />
-      <path className="sp-cool-arrow" d="M170 104 l6 4 M86 40 l-6 -4" />
-      {vapor.map((v, i) => v.on && <circle key={i} className="sp-vapor" cx={v.x} cy={v.y} r={1.8} data-part="dampf" />)}
-      {drop.on && <circle className="sp-drop" cx={178} cy={drop.y} r={2} />}
-      <rect className="sp-water sp-clear" x={160} y={right} width={36} height={160 - right} data-part="destillat" />
-      <Beaker x0={160} y0={106} x1={196} y1={160} />
-      <Flame x={58} y={130} t={t} on={k < .98} />
+      <defs>
+        <clipPath id={`${id}-in`}><circle cx={50} cy={104} r={21} /></clipPath>
+        <clipPath id={`${id}-er`}><path d="M186 120 L186 128 L172 158 L212 158 L198 128 L198 120 Z" /></clipPath>
+      </defs>
+      <g data-part="kolben">
+        <rect className="sp-water" x={26} y={level} width={48} height={40} clipPath={`url(#${id}-in)`} />
+        {k > .55 && salt.map((c, i) => <rect key={i} className="sp-salt" x={c.x} y={c.y} width={2.6} height={2.6} style={{ opacity: seg(k, .55 + i * .03, .7 + i * .03) }} />)}
+        {boiling && bubbles.map((b, i) => <circle key={i} className="sp-bubble" cx={b.x} cy={b.y} r={1.5} />)}
+        <path className="sp-glass" d="M44 83 A22 22 0 1 0 56 83 L56 38 M44 83 L44 38" />
+      </g>
+      <rect className="sp-stopper" x={41} y={32} width={18} height={6} rx={1} />
+      <g data-part="thermometer">
+        <rect className="sp-thermo" x={48.2} y={10} width={3.6} height={44} rx={1.8} />
+        <rect className="sp-mercury" x={49.2} y={53 - mercury} width={1.6} height={mercury} />
+        <circle className="sp-mercury" cx={50} cy={53} r={2.6} />
+        <text className="sp-temp" x={57} y={20}>{temp} °C</text>
+      </g>
+      <path className="sp-tube" d={`M${p(A)} L${p(B)}`} />
+      <g data-part="kuehler">
+        <path className="sp-cooler" d={jacket} />
+        <path className="sp-tube" d={`M${p(at(j0))} L${p(at(j1))}`} />
+        <path className="sp-glass" d={`M${p(inP)} l0 9 M${p(outP)} l0 -9`} />
+        <path className="sp-cool-arrow" d={`M${inP[0] - 3} ${inP[1] + 14} l3 -4 l3 4 M${outP[0] - 3} ${outP[1] - 12} l3 -4 l3 4`} />
+      </g>
+      {boiling && t > .22 && travel.map((v, i) => <circle key={i} className={v.wet ? "sp-drop" : "sp-vapor"} cx={v.x} cy={v.y} r={v.wet ? 1.7 : 1.9} data-part="dampf" />)}
+      {drop.on && <circle className="sp-drop" cx={192} cy={drop.y} r={1.8} />}
+      <g data-part="destillat">
+        <rect className="sp-water sp-clear" x={170} y={recv} width={44} height={160 - recv} clipPath={`url(#${id}-er)`} />
+        <path className="sp-glass" d="M186 118 L186 128 L172 156 Q171 158 174 158 L210 158 Q213 158 212 156 L198 128 L198 118" />
+      </g>
+      <path className="sp-stand" d="M26 129 L74 129 M32 129 L28 160 M68 129 L72 160" />
+      <Flame x={50} y={150} t={t} on={t < .97} />
     </>
   );
 }
 
 function chromatografie(t: number) {
-  // Papierstreifen steht im Laufmittel; die Front steigt, der schwarze Farbfleck trennt sich in blau, rot und gelb
-  const k = seg(t, .05, .95);
-  const start = 128, front = lerp(start + 6, 30, k);
-  const dye = (rf: number) => start - (start - front) * rf;
-  const sep = seg(k, .1, 1);
+  // Papierstreifen hängt im abgedeckten Becherglas, unten im Laufmittel. Der schwarze Startpunkt ist ein Gemisch aus drei Farbstoffen
+  // (übereinander erscheinen sie schwarz). Das Laufmittel steigt; jeder Farbstoff wandert verschieden weit mit (unterschiedlich stark
+  // vom Papier festgehalten) – der Punkt läuft auseinander in Gelb, Rot und Blau.
+  const k = seg(t, .04, .96);
+  const start = 126, front = lerp(139, 56, k), run = Math.max(0, start - front);
+  const dye = (rf: number) => start - run * rf;
+  const spread = run * (.85 - .3), black = clamp(1 - spread / 11), col = 1 - black;
+  const ry = (rf: number) => 3.6 + rf * 2.2 * clamp(run / 60);
   return (
     <>
-      <rect className="sp-water" x={70} y={136} width={100} height={22} data-part="laufmittel" />
-      <rect className="sp-paper-strip" x={104} y={20} width={32} height={140} />
-      <rect className="sp-wet" x={104} y={front} width={32} height={160 - front} data-part="front" />
-      <line className="sp-start" x1={104} y1={start} x2={136} y2={start} data-part="start" />
-      <circle className="sp-ink" cx={120} cy={start} r={5 * (1 - sep) + .01} />
-      <ellipse className="sp-dye-yellow" cx={120} cy={dye(.3)} rx={5} ry={4} style={{ opacity: sep }} data-part="gelb" />
-      <ellipse className="sp-dye-red" cx={120} cy={dye(.55)} rx={5} ry={4} style={{ opacity: sep }} data-part="rot" />
-      <ellipse className="sp-dye-blue" cx={120} cy={dye(.85)} rx={5} ry={4} style={{ opacity: sep }} data-part="blau" />
-      <Beaker x0={70} y0={60} x1={170} y1={160} />
+      <rect className="sp-water" x={72} y={140} width={96} height={18} data-part="laufmittel" />
+      <rect className="sp-paper-strip" x={108} y={30} width={24} height={126} />
+      <rect className="sp-wet" x={108} y={front} width={24} height={156 - front} data-part="front" />
+      <line className="sp-start" x1={108} y1={start} x2={132} y2={start} data-part="start" />
+      <ellipse className="sp-dye-yellow" cx={120} cy={dye(.3)} rx={5} ry={ry(.3)} style={{ opacity: col }} data-part="gelb" />
+      <ellipse className="sp-dye-red" cx={120} cy={dye(.55)} rx={5} ry={ry(.55)} style={{ opacity: col }} data-part="rot" />
+      <ellipse className="sp-dye-blue" cx={120} cy={dye(.85)} rx={5} ry={ry(.85)} style={{ opacity: col }} data-part="blau" />
+      <ellipse className="sp-ink" cx={120} cy={start - run * .55} rx={5} ry={3.6 + spread / 2} style={{ opacity: black }} />
+      <rect className="sp-lid" x={64} y={44} width={112} height={4} rx={1} />
+      <rect className="sp-clip" x={115} y={26} width={10} height={18} rx={1.5} />
+      <Beaker x0={70} y0={50} x1={170} y1={160} />
     </>
   );
 }

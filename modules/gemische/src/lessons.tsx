@@ -11,6 +11,16 @@ import type { Pic } from "./quiz/tasks.ts";
 import { nameOf } from "./mixtures.ts";
 import { tr } from "@lern/i18n";
 import { SepAnim, SepScene, type Method } from "./components/Separation.tsx";
+import { MiniParticle } from "./views/MixView.tsx";
+
+/** Legende unter jedem Teilchenbild: welches Teilchen zu welchem Stoff gehört (Name und Formel) */
+function Key({ p }: { p: Pic }) {
+  return (
+    <ul className="gm-g-legend" aria-label={tr("Legende", "Key")}>
+      {p.mix.map(([f]) => <li key={f}><MiniParticle f={f} size={24} /><span>{nameOf(f)} <b>{toSubscript(f)}</b></span></li>)}
+    </ul>
+  );
+}
 
 /** Teilchenbild; mit `target` sind Teilchen antippbar (Ziel = Formel), darunter dieselben Stoffe als Knöpfe */
 function Picture({ p, c, target }: { p: Pic; c?: GuideCtx; target?: string }) {
@@ -19,6 +29,7 @@ function Picture({ p, c, target }: { p: Pic; c?: GuideCtx; target?: string }) {
   return (
     <div className="gm-g">
       <Fit className="gm-g-pic" min={0.2}><Beaker sim={sim} label={label} onPick={target && c ? f => c.pick(f) : undefined} /></Fit>
+      <Key p={p} />
       {target && c && (
         <div className="gm-g-keys">
           {p.mix.map(([f]) => (
@@ -34,7 +45,7 @@ function Picture({ p, c, target }: { p: Pic; c?: GuideCtx; target?: string }) {
 function Glide({ p, c }: { p: Pic; c: GuideCtx }) {
   const sim = initial({ items: p.mix, state: p.state, floats: p.floats, before: p.before, solute: p.solute }, seedOf(JSON.stringify(p)), c.solved ? "nachher" : "vorher");
   const label = `${tr("Teilchenbild", "Particle picture")}: ${p.mix.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`;
-  return <div className="gm-g gm-slow"><Fit className="gm-g-pic" min={0.2}><Beaker sim={sim} label={label} /></Fit></div>;
+  return <div className="gm-g gm-slow"><Fit className="gm-g-pic" min={0.2}><Beaker sim={sim} label={label} /></Fit><Key p={p} /></div>;
 }
 
 /** Milch: im Glas einheitlich weiß, unter dem Mikroskop Fetttröpfchen in Wasser (Emulsion) */
@@ -99,14 +110,14 @@ const K1: GuideStep[] = [
     ask: tr("Wie viele **Teilchen** sind im Bild?", "How many **particles** are in the picture?"),
     visual: () => <Picture p={MIX} />,
     labels: [{ at: "[data-f=\"H2O\"]", text: tr("Molekül = 1 Teilchen", "Molecule = 1 particle"), side: "left" }, { at: "[data-f=\"He\"]", text: tr("Atom = 1 Teilchen", "Atom = 1 particle"), side: "right" }],
-    lines: [tr("Wassermoleküle: **4** – jedes zählt als ein Teilchen.", "Water molecules: **4** – each counts as one particle."), tr("Einzelne Heliumatome: **3**.", "Single helium atoms: **3**."), tr("4 + 3 = **7 Teilchen**.", "4 + 3 = **7 particles**.")],
+    lines: [tr("Wassermoleküle H₂O: **4** – jedes zählt als ein Teilchen.", "Water molecules H₂O: **4** – each counts as one particle."), tr("Einzelne Heliumatome He: **3**.", "Single helium atoms He: **3**."), tr("4 + 3 = **7 Teilchen**.", "4 + 3 = **7 particles**.")],
     ok: tr("Ein Molekül ist ein Teilchen – egal aus wie vielen Atomen.", "A molecule is one particle – no matter how many atoms it has."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Wie viele **Teilchen** sind hier?", "Complete: how many **particles** are here?"), answer: "8", options: ["8", "14", "2"],
     visual: () => <Picture p={MIX2} />,
-    lines: [tr("CO₂-Moleküle: **3**.", "CO₂ molecules: **3**."), tr("Einzelne Neonatome: **5**.", "Single neon atoms: **5**."), tr("3 + 5 = {?} Teilchen", "3 + 5 = {?} particles")],
+    lines: [tr("Kohlendioxid-Moleküle CO₂: **3**.", "Carbon dioxide molecules CO₂: **3**."), tr("Einzelne Neonatome Ne: **5**.", "Single neon atoms Ne: **5**."), tr("3 + 5 = {?} Teilchen", "3 + 5 = {?} particles")],
     why: { "14": tr("14 sind alle Atome. Ein Molekül zählt als **ein** Teilchen.", "14 is the number of atoms. A molecule counts as **one** particle."), "2": tr("2 sind die Sorten. Zähle jedes Teilchen.", "2 is the number of kinds. Count every particle.") },
     ok: tr("3 Moleküle + 5 Atome = 8 Teilchen.", "3 molecules + 5 atoms = 8 particles."),
   },
@@ -115,7 +126,7 @@ const K1: GuideStep[] = [
     say: tr("Jede Kugel im Bild ist ein Atom.", "Each sphere in the picture is an atom."),
     ask: tr("Jetzt du: Tippe auf ein Teilchen aus **5 Atomen**.", "Your turn: tap a particle made of **5 atoms**."), answer: "CH4",
     visual: c => <Picture p={{ mix: [["CO", 3], ["CH4", 2], ["He", 3]], state: "modell" }} c={c} target="CH4" />,
-    why: { "CO": tr("CO hat 2 Atome: C und O.", "CO has 2 atoms: C and O."), "He": tr("Helium ist ein einzelnes Atom.", "Helium is a single atom.") },
+    why: { "CO": tr("Kohlenmonoxid CO hat 2 Atome: C und O.", "Carbon monoxide CO has 2 atoms: C and O."), "He": tr("Helium He ist ein einzelnes Atom.", "Helium He is a single atom.") },
     tip: tr("Zähle die Kugeln in einem Teilchen.", "Count the spheres in one particle."),
     show: tr("So geht's: tippe auf ein Methan-Molekül (CH₄).", "Here's how: tap a methane molecule (CH₄)."),
     lines: [tr("Methan CH₄: 1 C + 4 H = 5 Atome.", "Methane CH₄: 1 C + 4 H = 5 atoms.")],
@@ -134,7 +145,7 @@ const K1: GuideStep[] = [
     ask: tr("Ergänze: Wie viele **Atomsorten**?", "Complete: how many **kinds of atoms**?"), answer: "3", options: ["3", "2", "9"],
     visual: () => <Picture p={{ mix: [["H2O", 3], ["NH3", 2]], state: "modell" }} />,
     lines: [tr("Weiß (H), rot (O), blau (N).", "White (H), red (O), blue (N)."), tr("Atomsorten: {?}", "Kinds of atoms: {?}")],
-    why: { "2": tr("Das sind die Teilchensorten. Zähle die Farben.", "Those are the kinds of particles. Count the colours."), "9": tr("Gleiche Farben zählen nur einmal.", "Identical colours count only once.") },
+    why: { "2": tr("2 sind die Teilchensorten (Wasser H₂O, Ammoniak NH₃). Zähle die Farben.", "2 is the number of kinds of particles (water H₂O, ammonia NH₃). Count the colours."), "9": tr("Gleiche Farben zählen nur einmal.", "Identical colours count only once.") },
     ok: tr("Drei Farben → 3 Atomsorten.", "Three colours → 3 kinds of atoms."),
   },
   {
@@ -142,14 +153,14 @@ const K1: GuideStep[] = [
     say: tr("Gleiche Teilchen gehören zum **selben Stoff**.", "Identical particles belong to the **same substance**."),
     ask: tr("Wie viele **Stoffe** sind im Bild?", "How many **substances** are in the picture?"),
     visual: () => <Picture p={MIX} />,
-    lines: [tr("Alle Wassermoleküle sehen gleich aus → Stoff 1.", "All water molecules look the same → substance 1."), tr("Alle Heliumatome sehen gleich aus → Stoff 2.", "All helium atoms look the same → substance 2."), tr("→ **2 Stoffe**.", "→ **2 substances**.")],
+    lines: [tr("Alle Wassermoleküle H₂O sehen gleich aus → Stoff 1.", "All water molecules H₂O look the same → substance 1."), tr("Alle Heliumatome He sehen gleich aus → Stoff 2.", "All helium atoms He look the same → substance 2."), tr("→ **2 Stoffe**.", "→ **2 substances**.")],
     ok: tr("Zähle Teilchen**sorten**, nicht Teilchen.", "Count **kinds** of particles, not particles."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Wie viele **Stoffe** sind im Bild?", "Complete: how many **substances** are in the picture?"), answer: "4", options: ["4", "8", "3"],
     visual: () => <Picture p={SORTEN} />,
-    lines: [tr("Sorten: Wasser, Kohlendioxid, Kohlenmonoxid, Methan.", "Kinds: water, carbon dioxide, carbon monoxide, methane."), tr("Anzahl der Stoffe: {?}", "Number of substances: {?}")],
+    lines: [tr("Sorten: Wasser H₂O, Kohlendioxid CO₂, Kohlenmonoxid CO, Methan CH₄.", "Kinds: water H₂O, carbon dioxide CO₂, carbon monoxide CO, methane CH₄."), tr("Anzahl der Stoffe: {?}", "Number of substances: {?}")],
     why: { "8": tr("8 sind die Teilchen. Gleiche Teilchen = ein Stoff.", "8 is the number of particles. Identical particles = one substance."), "3": tr("3 sind die Atomsorten. Gezählt werden Teilchensorten.", "3 is the number of kinds of atoms. Count kinds of particles.") },
     ok: tr("4 Teilchensorten = 4 Stoffe.", "4 kinds of particles = 4 substances."),
   },
@@ -171,14 +182,14 @@ const K2: GuideStep[] = [
     ask: tr("Element oder Verbindung?", "Element or compound?"),
     visual: () => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} />,
     labels: [{ at: "[data-f=\"Ne\"]", text: tr("Element", "Element"), side: "right" }, { at: "[data-f=\"CO2\"]", text: tr("Verbindung", "Compound"), side: "left" }],
-    lines: [tr("Neon: Kugeln in **einer** Farbe → eine Atomsorte → **Element**.", "Neon: spheres of **one** colour → one kind of atom → **element**."), tr("CO₂: **zwei** Farben fest verbunden → **Verbindung**.", "CO₂: **two** colours firmly joined → **compound**.")],
+    lines: [tr("Neon Ne: Kugeln in **einer** Farbe → eine Atomsorte → **Element**.", "Neon Ne: spheres of **one** colour → one kind of atom → **element**."), tr("Kohlendioxid CO₂: **zwei** Farben fest verbunden → **Verbindung**.", "Carbon dioxide CO₂: **two** colours firmly joined → **compound**.")],
     ok: tr("Die Farben der Kugeln zeigen die Atomsorten.", "The colours of the spheres show the kinds of atoms."),
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Was ist Helium?", "Complete: what is helium?"), answer: EL(), options: [EL(), VB()],
+    ask: tr("Ergänze: Was ist Helium He?", "Complete: what is helium He?"), answer: EL(), options: [EL(), VB()],
     visual: () => <Picture p={{ mix: [["H2O", 3], ["He", 4]], state: "modell" }} />,
-    lines: [tr("Wasser: zwei Farben (H, O) → Verbindung.", "Water: two colours (H, O) → compound."), tr("Helium: eine Farbe → {?}", "Helium: one colour → {?}")],
+    lines: [tr("Wasser H₂O: zwei Farben (H, O) → Verbindung.", "Water H₂O: two colours (H, O) → compound."), tr("Helium He: eine Farbe → {?}", "Helium He: one colour → {?}")],
     why: { [VB()]: tr("Eine Verbindung braucht mehrere Atomsorten. Helium hat nur eine.", "A compound needs several kinds of atoms. Helium has only one.") },
     ok: tr("Eine Atomsorte → Element.", "One kind of atom → element."),
   },
@@ -186,26 +197,26 @@ const K2: GuideStep[] = [
     mode: "free",
     ask: tr("Jetzt du: Tippe auf ein Teilchen, das zu einem **Element** gehört.", "Your turn: tap a particle that belongs to an **element**."), answer: "Ar",
     visual: c => <Picture p={{ mix: [["CH4", 3], ["Ar", 4]], state: "modell" }} c={c} target="Ar" />,
-    why: { "CH4": tr("Methan hat zwei Atomsorten (C und H) – eine Verbindung.", "Methane has two kinds of atoms (C and H) – a compound.") },
+    why: { "CH4": tr("Methan CH₄ hat zwei Atomsorten (C und H) – eine Verbindung.", "Methane CH₄ has two kinds of atoms (C and H) – a compound.") },
     show: tr("So geht's: tippe auf ein einzelnes Argon-Atom (Ar).", "Here's how: tap a single argon atom (Ar)."),
     tip: tr("Ein Element-Teilchen hat Kugeln in nur einer Farbe.", "An element particle has spheres of only one colour."),
-    lines: [tr("Argon: eine Atomsorte → Element. Methan: C und H → Verbindung.", "Argon: one kind of atom → element. Methane: C and H → compound.")],
-    ok: tr("Richtig: Argon ist ein Element.", "Right: argon is an element."),
+    lines: [tr("Argon Ar: eine Atomsorte → Element. Methan CH₄: C und H → Verbindung.", "Argon Ar: one kind of atom → element. Methane CH₄: C and H → compound.")],
+    ok: tr("Richtig: Argon Ar ist ein Element.", "Right: argon Ar is an element."),
   },
   {
     mode: "worked",
     ask: tr("Wie viele der Stoffe sind **Verbindungen**?", "How many of the substances are **compounds**?"),
     visual: () => <Picture p={{ mix: [["He", 3], ["H2O", 3], ["CO2", 2]], state: "modell" }} />,
-    lines: [tr("Helium: eine Atomsorte → Element.", "Helium: one kind of atom → element."), tr("Wasser: H und O → Verbindung.", "Water: H and O → compound."), tr("CO₂: C und O → Verbindung.", "CO₂: C and O → compound."), tr("→ **2 Verbindungen**, 1 Element.", "→ **2 compounds**, 1 element.")],
+    lines: [tr("Helium He: eine Atomsorte → Element.", "Helium He: one kind of atom → element."), tr("Wasser H₂O: H und O → Verbindung.", "Water H₂O: H and O → compound."), tr("Kohlendioxid CO₂: C und O → Verbindung.", "Carbon dioxide CO₂: C and O → compound."), tr("→ **2 Verbindungen**, 1 Element.", "→ **2 compounds**, 1 element.")],
     ok: tr("Jeden Stoff einzeln prüfen – nicht die Teilchen zählen.", "Check each substance – do not count particles."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Wie viele Stoffe sind **Verbindungen**?", "Complete: how many substances are **compounds**?"), answer: "2", options: ["2", "3", "5"],
     visual: () => <Picture p={{ mix: [["Ne", 3], ["CO", 3], ["CH4", 2]], state: "modell" }} />,
-    lines: [tr("Neon: eine Farbe → Element.", "Neon: one colour → element."), tr("CO: C und O → Verbindung.", "CO: C and O → compound."), tr("Methan: C und H → Verbindung.", "Methane: C and H → compound."), tr("Verbindungen: {?}", "Compounds: {?}")],
+    lines: [tr("Neon Ne: eine Farbe → Element.", "Neon Ne: one colour → element."), tr("Kohlenmonoxid CO: C und O → Verbindung.", "Carbon monoxide CO: C and O → compound."), tr("Methan CH₄: C und H → Verbindung.", "Methane CH₄: C and H → compound."), tr("Verbindungen: {?}", "Compounds: {?}")],
     why: { "3": tr("Neon hat nur eine Atomsorte – ein Element.", "Neon has only one kind of atom – an element."), "5": tr("Gefragt sind Stoffe, nicht Teilchen.", "The question asks for substances, not particles.") },
-    ok: tr("CO und Methan: 2 Verbindungen.", "CO and methane: 2 compounds."),
+    ok: tr("Kohlenmonoxid CO und Methan CH₄: 2 Verbindungen.", "Carbon monoxide CO and methane CH₄: 2 compounds."),
   },
   {
     mode: "free",
@@ -224,14 +235,14 @@ const K3: GuideStep[] = [
     say: tr("**Reinstoff** = nur **ein** Stoff. **Gemisch** = mehrere Stoffe.", "**Pure substance** = only **one** substance. **Mixture** = several substances."),
     ask: tr("Reinstoff oder Gemisch?", "Pure substance or mixture?"),
     visual: () => <Picture p={MIX} />,
-    lines: [tr("Wasser und Helium: 2 Teilchensorten → 2 Stoffe.", "Water and helium: 2 kinds of particles → 2 substances."), tr("→ **Gemisch**.", "→ **mixture**.")],
+    lines: [tr("Wasser H₂O und Helium He: 2 Teilchensorten → 2 Stoffe.", "Water H₂O and helium He: 2 kinds of particles → 2 substances."), tr("→ **Gemisch**.", "→ **mixture**.")],
     ok: tr("Mehrere Stoffe → Gemisch.", "Several substances → mixture."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Reinstoff oder Gemisch?", "Complete: pure substance or mixture?"), answer: REIN(), options: [REIN(), GM()],
     visual: () => <Picture p={NUR_CO2} />,
-    lines: [tr("Alle Teilchen gleich (CO₂) → ein Stoff.", "All particles identical (CO₂) → one substance."), tr("Ein Stoff → {?}", "One substance → {?}")],
+    lines: [tr("Alle Teilchen gleich (Kohlendioxid CO₂) → ein Stoff.", "All particles identical (carbon dioxide CO₂) → one substance."), tr("Ein Stoff → {?}", "One substance → {?}")],
     why: { [GM()]: tr("Jedes Teilchen hat zwei Atomsorten – aber alle Teilchen sind gleich. Ein Stoff.", "Each particle has two kinds of atoms – but all particles are identical. One substance.") },
     ok: tr("Reinstoff – auch wenn ein Teilchen aus mehreren Atomen besteht.", "Pure substance – even if a particle consists of several atoms."),
   },
@@ -241,7 +252,7 @@ const K3: GuideStep[] = [
     ask: tr("Ist **Zuckerwasser** homogen oder heterogen?", "Is **sugar water** homogeneous or heterogeneous?"),
     visual: () => <Picture p={ZUCKER} />,
     labels: [{ at: "[data-f=\"C12H22O11\"]", text: tr("Zucker-Molekül", "Sugar molecule"), side: "left" }, { at: "[data-f=\"H2O\"]", text: tr("Wasser-Molekül", "Water molecule"), side: "right" }],
-    lines: [tr("Zwei Stoffe: Zucker und Wasser → Gemisch.", "Two substances: sugar and water → mixture."), tr("Man sieht keine Teile – der Zucker ist bis zu den Teilchen verteilt.", "No pieces are visible – the sugar is spread down to the particles."), tr("→ **homogenes Gemisch**. Ein gelöster Stoff in Flüssigkeit heißt **Lösung**.", "→ **homogeneous mixture**. A substance dissolved in a liquid is called a **solution**.")],
+    lines: [tr("Zwei Stoffe: Zucker C₁₂H₂₂O₁₁ und Wasser H₂O → Gemisch.", "Two substances: sugar C₁₂H₂₂O₁₁ and water H₂O → mixture."), tr("Man sieht keine Teile – der Zucker ist bis zu den Teilchen verteilt.", "No pieces are visible – the sugar is spread down to the particles."), tr("→ **homogenes Gemisch**. Ein gelöster Stoff in Flüssigkeit heißt **Lösung**.", "→ **homogeneous mixture**. A substance dissolved in a liquid is called a **solution**.")],
     ok: tr("Klar heißt nicht rein: Zuckerwasser ist ein Gemisch.", "Clear does not mean pure: sugar water is a mixture."),
   },
   {
@@ -255,7 +266,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Argon und CO₂ haben sich gemischt. Was ist das?", "Your turn: argon and CO₂ have mixed. What is it?"), answer: HOM(), options: [HOM(), HET(), REIN()],
+    ask: tr("Jetzt du: Argon Ar und Kohlendioxid CO₂ haben sich gemischt. Was ist das?", "Your turn: argon Ar and carbon dioxide CO₂ have mixed. What is it?"), answer: HOM(), options: [HOM(), HET(), REIN()],
     visual: () => <Picture p={LUFT} />,
     why: { [HET()]: tr("Gase mischen sich bis zu den Teilchen – es gibt keine Grenze.", "Gases mix down to the particles – there is no boundary."), [REIN()]: tr("Zwei Teilchensorten – also zwei Stoffe.", "Two kinds of particles – so two substances.") },
     lines: [tr("Zwei Stoffe, überall gleich verteilt → homogen (wie Luft).", "Two substances, spread evenly → homogeneous (like air).")],

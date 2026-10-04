@@ -67,6 +67,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   nennt den Denkfehler und zeigt den richtigen Weg.
 - **Diagnostische Distraktoren**: jede falsche Antwort steht für eine typische Fehlvorstellung und bekommt eine eigene Rückmeldung mit den Zahlen der Aufgabe.
 - **Tipps und Hilfsmittel verraten die Lösung nie** (PSE nur mit Angaben eines gedruckten PSE; keine Animation, die die gesuchten Zahlen zeigt, vor der Antwort).
+- **Stoffe immer mit Name und Formel**: Schüler kennen die Stoffe noch nicht. Jeder genannte Stoff steht mit Formel da („Methan CH₄“, „Helium He“,
+  „Wasser H₂O“), und unter jedem Teilchenbild einer Lektion steht eine Legende (Teilchen + Name + Formel), damit klar ist, welches Teilchen zu welchem Stoff gehört.
 - **Grafik statt Eintippen**: Aufgaben möglichst mit Bildern lösen – auswählen (auch Bildkarten), im Bild antippen, sortieren. Zahlen und Text
   nur ausnahmsweise eintippen lassen; Zählaufgaben als Auswahl mit diagnostischen Zahlen (aufsteigend). Erklärungen und Aufgaben zeigen den Vorgang als Bild
   oder Animation (z. B. jedes Trennverfahren animiert).
@@ -338,6 +340,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   das eine reine Funktion des Fortschritts t ist (`SepScene`, 0 = vorher, 1 = getrennt; `SepAnim` spielt ab, „Nochmal“-Knopf, reduzierte Bewegung → Endbild).
   Teile mit `data-part` (Ziele für Beschriftung und Antippen, dazu unsichtbare größere Trefferflächen). Farben nur aus der Palette (`.sp-*` in `app.css`).
   `MixPic` = Gemisch vor dem Trennen ohne Geräte (verrät das Verfahren nicht). Eindeutige `clipPath`-Kennungen je Bild (`useId`).
+  Sieben: Maschen als Drahtquerschnitte mit sichtbaren Lücken; Sandkörner rutschen zur nächsten Lücke, fallen hindurch und häufen sich in der Schale, Kiesel
+  (größer als die Lücke) bleiben liegen. Destillieren: Rundkolben auf Dreifuß über dem Brenner, Thermometer am Abzweig (steigt auf 100 °C und bleibt dort, solange
+  Wasser siedet), Liebig-Kühler mit Kühlwasser im Gegenstrom (unten hinein, oben heraus), Dampf wird im Kühler zu Tropfen, Vorlage = Erlenmeyerkolben, Salz bleibt
+  im Kolben. Chromatografie: Streifen hängt im abgedeckten Becherglas; der Startpunkt ist schwarz (drei Farbstoffe übereinander), die Laufmittelfront steigt,
+  jeder Farbstoff wandert verschieden weit (Gelb, Rot, Blau) – der Punkt läuft auseinander.
 - Zählen in der Werkbank mit abnehmender Hilfe (`Counts` in `views/MixView.tsx`): Beispiel 1–2 vorgerechnet („Vorgemacht“), 3–5 fehlt die Zahl der Stoffe
   („Ergänze die Lücke“), ab 6 alles selbst („Jetzt du“) – Eingabe mit ✓/✗, nach zwei Fehlversuchen steht die Lösung da; die Teilchenzahl ist immer angegeben.
 - **Lektionen** (`src/lessons.tsx`, `LESSONS[0…4]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe): 1 Teilchen zählen,
@@ -544,6 +551,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Gemische: Stoffe benannt, Trennverfahren genauer** – Lektionen nennen jeden Stoff mit Formel, Legende unter jedem Teilchenbild (Name + Formel), weil
+  Schüler die Stoffe nicht kennen. Sieben mit echten Maschen (Körner fallen durch die Lücken), Destillation als Apparatur mit Thermometer und Liebig-Kühler,
+  Chromatografie: schwarzer Punkt trennt sich in drei Farbstoffe.
 - **Gemische: Lernen in Kapiteln** – „Erklärung“ und „Quiz“ zu **Lernen** zusammengefasst (Leiste Lernen | Experimentieren): fünf Kapitel (Teilchen und
   Atomsorten, Elemente und Verbindungen, Reinstoffe und Gemische inkl. Lösen, Gemische im Alltag, **Stofftrennung** neu), je Kapitel Lektion → zehn Aufgaben in einem
   Fluss, Lektion über das Buch-Zeichen wiederholbar (`QuizScreen` `lesson`, `LESSON_KEY`). Aufgaben grafisch statt Eintippen: Zählaufgaben als Auswahl,
