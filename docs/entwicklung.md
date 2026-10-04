@@ -559,7 +559,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Rekombination oder Disproportionierung), anionisch (Butyllithium lagert sich an, Kette lebt, Methanol beendet), kationisch (Säure aus BF₃ und Wasser, Anlagern,
   H⁺-Abspaltung), Ziegler-Natta (Aktivieren, Anlagerung an der freien Stelle, Vierzentren-Übergang, Einbau zwischen Titan und Kette, H₂ löst die fertige Kette,
   Vergiftung sichtbar: O/N/Cl/F bindet an das Titan, ✗; Isobuten prallt ab), Polykondensation (Gruppen rücken heran, Pfeile, Verknüpfung, H₂O bzw. HCl sinkt weg),
-  Polyaddition (H wandert zum N, Urethan- bzw. Harnstoffgruppe; Epoxidring öffnet sich), Zweierkette, Phenoplast (CH₂-Brücke). Nicht passende Partner:
+  Polyaddition (H wandert zum N, Urethan- bzw. Harnstoffgruppe; Epoxidring öffnet sich), Zweierkette (nur wenn beide Monomere lauter gleiche Gruppen
+  haben – mit Milchsäure oder 6-Aminohexansäure wäre die Richtung nicht eindeutig), Phenoplast (CH₂-Brücke). Nicht passende Partner:
   ✗ und Begründung (gleiche Gruppen, Kettenende blockiert).
   Bedienung: eine Zeile Aktionen (Start, Monomer als Kügelchen „+ S“, „Abbruch …“ öffnet die Auswahl der Abbruchart), Zurück (spielt die Aktionen ohne Animation
   nach, `replay`), Automatisch (`nextAuto`), am Ende „Produkt“ und „Von vorn“. Statuszeile nur kurze Kennzeichen (Schritt, n, „+ 2 H₂O“, Temperatur, lebend);
@@ -628,6 +629,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Absturz bei „+ Zweierkette“ behoben** – mit einem AB-Monomer (Milchsäure, 6-Aminohexansäure) und einer Disäure passte die Zweierkette
+  nicht zusammen; sie wird nur noch bei zwei Monomeren mit je gleichen Gruppen angeboten. Neuer Test: jede angebotene Aktion läuft an jeder Stelle des Ablaufs.
 - **Polymere (neues Modul `polymere`)** – Experimentieren: Auswahl Polymerisation | Polykondensation | Polyaddition, Ansatz aus Monomer(en) und Verfahren
   (DBPO, AIBN, Ziegler-Natta, Butyllithium, BF₃), Entstehung Schritt für Schritt in Atomen mit Elektronenpfeilen (Start, Wachstum, Abbruch, Einbau am Titan,
   Vergiftung durch polare Monomere, lebende Ketten, Wasser- bzw. HCl-Abspaltung, wanderndes H) und als Kügelchen im Reaktor (viele Ketten, Copolymere und Blöcke,

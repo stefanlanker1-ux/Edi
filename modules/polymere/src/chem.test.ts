@@ -111,6 +111,21 @@ test("Atom-Ansicht: jeder Ansatz läuft automatisch durch, Zurück stellt densel
   assert.ok(n > 1000, `${n} Ansätze`);
 }, 120_000);
 
+test("Atom-Ansicht: jede angebotene Aktion läuft an jeder Stelle des Ablaufs", () => {
+  for (const r of recipes()) {
+    if (r.art === "poly" && r.b) continue;
+    const m = makeMech(r), acts: string[] = [];
+    for (let k = 0; k < 8; k++) {
+      for (const a of m.actions()) {
+        try { replay(r, [...acts, a.id]); } catch (e) { assert.fail(`${JSON.stringify(r)} ${acts.join(" ")} → ${a.id}: ${e}`); }
+      }
+      const id = nextAuto(m, r);
+      if (!id) break;
+      m.run(id); acts.push(id);
+    }
+  }
+}, 120_000);
+
 test("Atom-Ansicht: Fehlschläge zeigen die Begründung", () => {
   const run = (r: Recipe, ids: string[]) => { const m = makeMech(r); for (const id of ids) m.run(id); return m.status(); };
   const zn = run({ art: "poly", a: "mma", method: "zn" }, ["act", "add:mma"]);

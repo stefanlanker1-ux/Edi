@@ -17,6 +17,10 @@ export const STEP_STEP = tr(
 
 interface Mol { mol: StepMol; ids: StepId[] }
 
+/** Monomer mit lauter gleichen Gruppen (Disäure, Diol, Diamin …): nur dann ist eine Zweierkette aus beiden eindeutig gebaut
+ *  (mit Milchsäure oder 6-Aminohexansäure hinge es von der Richtung ab, welche Gruppen sich verbinden) */
+const sameGroups = (id: StepId) => stepMono(id).groups.every(g => g === stepMono(id).groups[0]);
+
 export class StepMech implements Mech {
   sc = new Scene();
   keys: Key[] = [];
@@ -93,7 +97,7 @@ export class StepMech implements Mech {
     const out: Action[] = [];
     if (this.isPhenoplast()) out.push({ id: "add:pf", kind: "add", pair: ["methanal", "phenol"], label: tr("+ Methanal + Phenol", "+ methanal + phenol") });
     else for (const m of [...new Set([this.a, this.b])]) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${stepMono(m).name}` });
-    if (this.units.length >= 2 && !this.isPhenoplast() && this.a !== this.b) out.push({ id: "dimer", kind: "other", pair: [this.a, this.b], label: tr("+ Zweierkette", "+ chain of two") });
+    if (this.units.length >= 2 && !this.isPhenoplast() && this.a !== this.b && sameGroups(this.a) && sameGroups(this.b)) out.push({ id: "dimer", kind: "other", pair: [this.a, this.b], label: tr("+ Zweierkette", "+ chain of two") });
     return out;
   }
 
