@@ -32,6 +32,16 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   (`native.yml`: Debug-APK als Artefakt, iOS-Simulator-Build). Erst wenn beide Läufe für den neuen Commit grün sind, gilt etwas als veröffentlicht.
   Pull-Requests laufen durch `check.yml` (typecheck, test, build).
 - Abgeschlossene, geprüfte Arbeiten werden ohne weitere Rückfrage veröffentlicht. Größere Aufträge über mehrere Module: je Modul fertigstellen, prüfen, veröffentlichen.
+- **Grafiken von Anfang an sorgfältig und schön** (Pflicht, gilt für jede neue oder geänderte Zeichnung, Animation und jedes Teilchenbild – nicht erst nach Rückmeldung):
+  - **Fachlich und gegenständlich richtig wie im Labor**: Geräte so zeichnen, wie man sie kennt (Sieb mit Maschen und Lücken, Destillation mit Rundkolben,
+    Thermometer am Abzweig, Liebig-Kühler mit Kühlwasser im Gegenstrom, Vorlage; Chromatografie mit abgedecktem Gefäß, Startlinie, Laufmittelfront).
+    Was ein Verfahren ausmacht, muss im Bild **sichtbar passieren** (Körner fallen durch die Lücken, Temperatur steigt und bleibt beim Sieden stehen,
+    ein schwarzer Punkt läuft in seine Farbstoffe auseinander) – nie nur angedeutet.
+  - **Detailreich, aber klar**: lieber eine Zeichnung mehr Mühe als eine Skizze; Bewegungen flüssig und physikalisch plausibel (Fallen beschleunigt,
+    Teilchen bleiben erhalten, nichts springt). Beschriftungen, Legenden und Messwerte dort, wo sie das Verstehen erleichtern.
+  - **Selbst prüfen, bevor etwas gezeigt wird**: jede Zeichnung zu mehreren Zeitpunkten rendern (z. B. t = 0 / 0,15 / 0,35 / 0,6 / 1) und die Screenshots
+    kritisch ansehen: Würde eine Lehrkraft das Gerät sofort erkennen? Sieht ein Schüler, was passiert? Wirkt es hochwertig? Wenn nicht: nachbessern, bevor veröffentlicht wird.
+  - Stil bleibt der der App (Linien statt Flächen, Farben nur aus der Palette), aber „schlicht“ heißt nie „lieblos“.
 - **Vor jedem Commit** (Pflicht): `npm run typecheck && npm test && npm run build`. Bei Änderungen an der Oberfläche zusätzlich `npm run site` und Browser-Prüfung
   (siehe „Prüfen vor dem Commit“) – in allen betroffenen Ansichten, Werkzeugen, Blättern, Erklärungen und Quizaufgaben, in den Größen 390 × 844, 375 × 667, 360 × 740 und Desktop.
   Screenshots ansehen, nicht nur Zahlen messen (leere Bilder, abgeschnittene Formeln, zu kleine Zeichnungen fallen nur so auf).
@@ -551,6 +561,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Arbeitsweise: Grafikqualität** – neue Pflichtregel „Grafiken von Anfang an sorgfältig und schön“ (labornahe, fachlich richtige Geräte, der Vorgang passiert
+  sichtbar, Zeichnungen zu mehreren Zeitpunkten rendern und selbst kritisch prüfen, bevor veröffentlicht wird).
 - **Gemische: Stoffe benannt, Trennverfahren genauer** – Lektionen nennen jeden Stoff mit Formel, Legende unter jedem Teilchenbild (Name + Formel), weil
   Schüler die Stoffe nicht kennen. Sieben mit echten Maschen (Körner fallen durch die Lücken), Destillation als Apparatur mit Thermometer und Liebig-Kühler,
   Chromatografie: schwarzer Punkt trennt sich in drei Farbstoffe.
