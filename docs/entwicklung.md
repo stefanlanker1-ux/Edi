@@ -622,7 +622,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (`pick` bzw. bei mehreren `wrong`, dazu `n`, `adj`); mehrere Atome: antippen schaltet um, „Prüfen“; Lösung danach gestrichelt grün mit ✓, falsch gewählte
   mit ✗; unsichtbare Knöpfe für Tastatur und Vorlesen; im gelösten Beispiel zeigt das Bild die markierte Lösung. Aufgaben: K1 `bausteinTap` (zwei benachbarte
   C eines Bausteins, ohne farbige Hinterlegung), K2 `radikalTap` (C mit dem Radikal nach dem Anlagern), K3 `freieStelleTap`, `giftTap` (Cl/O/N am Titan),
-  K4 `wasserTap` (drei Atome des Wassers), K5 `hTap` (wanderndes H); die Auswahl-Fassungen bleiben in „Alles gemischt“ (`level(…, more)`).
+  K4 `wasserTap` (drei Atome des Wassers), `schnitt` (Bindung antippen, die neu entstanden ist: C–O bzw. C–N zwischen zwei Bausteinen; Bindungen als Teile „a|b“,
+  `mode: "any"`; **Hydrolyse** in Lektion K4 eingeführt), K5 `hTap` (wanderndes H); die Auswahl-Fassungen bleiben in „Alles gemischt“ (`level(…, more)`).
   „C‑Atom“ usw. mit geschütztem Bindestrich (U+2011, nie „C-⏎Atom“). Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
@@ -666,6 +667,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: neue Bindung antippen** – Kapitel 4 endet mit „Tippe auf eine Bindung, die bei der Polykondensation neu entstanden ist“ (PET bzw. PA 6.6),
+  Fallen C=O, Bindung im Diol/Diamin, Bindung im Monomer; Begriff Hydrolyse eingeführt.
 - **Polymere: Antippen im Bild** – sechs Aufgaben im Lernen sind jetzt Antippen statt Auswahl (Radikal-C, freie Stelle, vergiftendes Atom, wanderndes H,
   drei Atome des Wassers, Baustein in der Kette). Grund: Auswahl-Antworten sind Wortwiedererkennung; Antippen verlangt, den Ort im Molekül zu finden.
 - **Polymere: Glycerin verzweigt** – die dritte –OH ist eine eigene Andockstelle: „+ Ast“ hängt die Säure senkrecht darunter (nie in die Hauptkette,

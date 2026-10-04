@@ -202,7 +202,23 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
       {onPick && pose.atoms.map(a => ((a.op ?? 1) * vis(a) > 0.5 && (pickable ? pickable.includes(a.id) : (a.text ?? a.el))
         ? <circle key={`hit${a.id}`} className="pm-hit" cx={a.x * U} cy={a.y * U} r={(a.el === "H" && !a.text ? 0.38 : 0.46) * U} data-atom={a.id} />
         : null))}
+      {/* Bindungen antippen: Kennung „a|b“, breite unsichtbare Trefferlinie */}
+      {onPick && pickable?.filter(id => id.includes("|")).map(id => {
+        const [A, B] = id.split("|").map(x => at.get(x));
+        return A && B ? <line key={`hb${id}`} className="pm-hit-bond" x1={A.x * U} y1={A.y * U} x2={B.x * U} y2={B.y * U} data-atom={id} /> : null;
+      })}
       {marks?.map(m => {
+        if (m.id.includes("|")) {
+          const [A, B] = m.id.split("|").map(x => at.get(x));
+          if (!A || !B) return null;
+          const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+          return (
+            <g key={`mk${m.id}`} className={`mb-pick bond ${m.kind}`} pointerEvents="none">
+              <line x1={A.x * U} y1={A.y * U} x2={B.x * U} y2={B.y * U} />
+              {m.kind !== "sel" && <text x={mx * U} y={(my - 0.38) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
+            </g>
+          );
+        }
         const a = at.get(m.id);
         if (!a) return null;
         const r = (a.el === "H" && !a.text ? 0.34 : 0.44) * U;

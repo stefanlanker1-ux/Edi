@@ -404,7 +404,7 @@ const K4: GuideStep[] = [
     visual: () => <MechPlay r={PET} acts={["join", "add:terephthalsaeure"]} />,
     lines: [T("Von –COOH geht OH weg, von –OH ein H", "OH leaves –COOH, H leaves –OH"), T("OH + H = {?}", "OH + H = {?}")],
     why: { "H₂": T("Das O‑Atom aus der Säuregruppe geht mit ab.", "The O atom from the acid group leaves as well."), "CO₂": T("Das C‑Atom bleibt in der Kette.", "The C atom stays in the chain.") },
-    ok: T("Je Verknüpfung ein Wassermolekül.", "One water molecule per link."),
+    ok: T("Je Verknüpfung ein Wassermolekül. Rückwärts – Wasser spaltet die Esterbindung – heißt **Hydrolyse**.", "One water molecule per link. Backwards – water splits the ester bond – is called **hydrolysis**."),
   },
   {
     mode: "worked",

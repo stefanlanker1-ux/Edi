@@ -23,8 +23,8 @@ function tapResult(t: TapTask, sel: string[]) {
   const idx = sel.map(p => t.parts.indexOf(p)).sort((a, b) => a - b);
   const adj = idx.length === 2 && idx[1] - idx[0] === 1 ? 1 : 0;
   const wrong = t.mode === "pair" ? -1 : idx.find(i => !t.answer.includes(t.parts[i])) ?? -1;
-  const ok = t.mode === "pair" ? idx.length === 2 && adj === 1 : sel.length === t.answer.length && t.answer.every(a => sel.includes(a));
-  const values: Record<string, number> = t.mode ? { n: sel.length, wrong, adj } : { pick: idx[0] };
+  const ok = t.mode === "pair" ? idx.length === 2 && adj === 1 : t.mode === "any" ? sel.length === 1 && t.answer.includes(sel[0]) : sel.length === t.answer.length && t.answer.every(a => sel.includes(a));
+  const values: Record<string, number> = t.mode && t.mode !== "any" ? { n: sel.length, wrong, adj } : { pick: idx[0] };
   return { ok, values };
 }
 
@@ -39,7 +39,7 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
   }, [frame, t.parts]);
   const pose = { ...still(frame.snap), arrows: frame.arrows.map(arrow => ({ arrow, op: 1 })) };
   // Lösung: einzeln/mehrere = `answer`; Paar: ein Beispiel (der erste Baustein) – oder die gewählten, wenn sie stimmen
-  const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.answer;
+  const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.mode === "any" ? (sel.length && t.answer.includes(sel[0]) ? sel : t.answer.slice(0, 1)) : t.answer;
   const marks = solved
     ? [...right.map(id => ({ id, kind: "ok" as const })), ...sel.filter(id => !right.includes(id)).map(id => ({ id, kind: "no" as const }))]
     : sel.map(id => ({ id, kind: "sel" as const }));
@@ -53,7 +53,7 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
 
 function TapAnswer({ t, answered, submit }: { t: TapTask; answered: Answered | null; submit: Submit }) {
   const [sel, setSel] = useState<string[]>([]);
-  const multi = !!t.mode;
+  const multi = t.mode === "multi" || t.mode === "pair";
   const pickPart = (id: string) => {
     if (answered || !t.parts.includes(id)) return;
     buzz();

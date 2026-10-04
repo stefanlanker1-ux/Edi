@@ -302,3 +302,6 @@
 .pm-tap-svg .pm-hit { cursor: pointer; }
 .pm-tap-bar { display: flex; justify-content: center; gap: 8px; align-items: center; min-height: 44px; }
 .q-body > .pm-tap { flex: 1 1 0; min-height: 140px; }
+.pm-hit-bond { stroke: transparent; stroke-width: 26; stroke-linecap: round; cursor: pointer; }
+.mb-pick.bond line { stroke-width: 9; stroke-linecap: round; opacity: .55; }
+.mb-pick.bond.sel line { stroke: var(--accent); } .mb-pick.bond.ok line { stroke: var(--ok); stroke-dasharray: 6 5; opacity: .8; } .mb-pick.bond.no line { stroke: var(--text); stroke-dasharray: 2 5; }
