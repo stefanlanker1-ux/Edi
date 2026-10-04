@@ -64,11 +64,14 @@ export class StepMech implements Mech {
     const A = stepMolecule(sc, this.a, 0, 0, this.ctx(this.a));
     this.units.push(this.a);
     this.right = A.ends.find(e => e.s === 1) ?? null;
-    const B = stepMolecule(sc, this.b, A.x1 + 2.4, 0, this.ctx(this.b));
+    // zweites Molekül unter dem ersten (etwas eingerückt): so passen beide auch hochkant groß ins Bild; beim Verknüpfen gleitet es an das Kettenende
+    const B0 = stepMolecule(sc, this.b, 0, 2.5, this.ctx(this.b));
+    const B = { ...B0, x0: B0.x0 + A.x0 + 1.2 - B0.x0, x1: B0.x1 + A.x0 + 1.2 - B0.x0 };
+    sc.move(B0.atoms, A.x0 + 1.2 - B0.x0, 0);
     this.pending = { mol: B, ids: [this.b] };
     // zu Beginn beide Ausgangsstoffe ganz zeigen
     this.fx = A.x0 - 0.2;
-    this.fw = B.x1 + 0.2 - this.fx;
+    this.fw = Math.max(A.x1, B.x1) + 0.2 - this.fx;
   }
 
   /** Ausschnitt: Kettenende links, Platz für das nächste Molekül rechts */
@@ -97,7 +100,7 @@ export class StepMech implements Mech {
     const out: Action[] = [];
     if (this.isPhenoplast()) out.push({ id: "add:pf", kind: "add", pair: ["methanal", "phenol"], label: tr("+ Methanal + Phenol", "+ methanal + phenol") });
     else for (const m of [...new Set([this.a, this.b])]) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${stepMono(m).name}` });
-    if (this.units.length >= 2 && !this.isPhenoplast() && this.a !== this.b && sameGroups(this.a) && sameGroups(this.b)) out.push({ id: "dimer", kind: "other", pair: [this.a, this.b], label: tr("+ Zweierkette", "+ chain of two") });
+    if (this.units.length >= 2 && !this.isPhenoplast() && this.a !== this.b && sameGroups(this.a) && sameGroups(this.b)) out.push({ id: "dimer", kind: "other", pair: [this.a, this.b], label: tr("+ Zweier\u00ADkette", "+ chain of two") });
     return out;
   }
 
@@ -179,17 +182,21 @@ export class StepMech implements Mech {
       all.forEach(i => sc.set(i, { op: 0 }));
       this.key(60, 600);
       all.forEach(i => sc.set(i, { op: 1 }));
-      sc.move(all, -1.2, 0);
+      sc.move(all, r ? -1.2 : 0.4, 0);
       this.key(200, 600);
     } else {
       // vom Platz der Ausgangsstoffe an die Kette heranrücken
-      const want = this.placeX(R, L);
-      sc.move(all, want - sc.at(L.anchor).x + 1.0, 0);
+      // passen die Gruppen nicht, bleibt sichtbar Abstand (die Moleküle dürfen sich nicht überdecken)
+      const want = this.placeX(R, L) + (r ? 0 : 1.6);
+      sc.move(all, want - sc.at(L.anchor).x + 1.0, sc.at(R.anchor).y - sc.at(L.anchor).y);
       this.key(200, 600);
     }
     if (!r) {
       // keine Reaktion: gleiche Gruppen bzw. Epoxid + Alkohol
-      sc.note({ id: "x", x: (sc.at(R.anchor).x + sc.at(L.anchor).x) / 2, y: -1.2, text: "✗", tone: "bad" });
+      // ✗ über der Lücke, oberhalb aller Atome dort
+      const gx = (sc.at(R.anchor).x + sc.at(L.anchor).x) / 2;
+      const top = Math.min(0, ...[...sc.atoms.values()].filter(a => Math.abs(a.x - gx) < 1.2 && (a.op ?? 1) > 0.05).map(a => a.y));
+      sc.note({ id: "x", x: gx, y: top - 0.8, text: "✗", tone: "bad" });
       this.stepName = STEP_STEP.keine;
       this.fail = stepReact(this.units[this.units.length - 1], m.ids[0]).why;
       this.key(900, 700);

@@ -285,15 +285,19 @@ export class ZnMech implements Mech {
     sc.set(h1, { x: 0.82, y: 0 });
     const C = sc.at(c1);
     sc.set(h2, { x: C.x - 0.8, y: C.y });
-    // fertige Kette wandert weg
+    // fertige Kette löst sich und gleitet sichtbar vom Titan weg (Titan bleibt mit H und freier Stelle)
     const chain = sc.component(c1);
+    const abbr = this.recipe.b ? tr("Kette", "chain") : vinyl(this.recipe.a as VinylId).abbr;
     sc.move(chain, 0.9, 0.5);
     sc.set(h2, { x: sc.at(c1).x - 0.8, y: sc.at(c1).y });
-    sc.note({ id: "done", x: sc.at(c1).x + 2.2, y: 1.6, text: tr("fertige Kette", "finished chain"), tone: "ok" });
+    sc.note({ id: "done", x: sc.at(c1).x + 2.2, y: sc.at(c1).y + 1.9, text: tr(`${abbr} abgelöst`, `${abbr} released`), tone: "ok" });
     this.stepName = ZN_STEP.h2;
     this.key(900, 900);
+    sc.move(chain, 1.8, 0.9);
+    sc.notes.get("done")!.x += 1.8; sc.notes.get("done")!.y += 0.9;
+    this.key(500, 1400);
     for (const id of chain) sc.set(id, { op: 0 });
-    sc.move(chain, 1.5, 1.0);
+    sc.move(chain, 1.2, 0.6);
     sc.notes.get("done")!.op = 0;
     sc.set("tvac", { op: 1 });
     this.key(0, 0);

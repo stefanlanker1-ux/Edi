@@ -50,6 +50,8 @@ export class ChainMech implements Mech {
   private startBead: Bead | null = null;
   /** Gegenion (Li⁺) */
   private li = "";
+  /** Rekombination: die zweite Kette hängt jetzt am Ende (Kügelchen-Leiste zeigt beide, Starter-Rest an beiden Enden) */
+  private merged = false;
 
   constructor(public recipe: Recipe) {
     this.kind = method(recipe.method ?? "dbpo").kind as Exclude<MechKind, "koord">;
@@ -78,6 +80,7 @@ export class ChainMech implements Mech {
     const beads: Bead[] = [];
     if (this.startBead) beads.push(this.startBead);
     this.units.forEach((u, i) => { const v = vinyl(u.m); beads.push({ kind: "unit", mono: u.m, hue: v.hue, letter: v.letter, title: v.name, unit: i }); });
+    if (this.merged) beads.push(...beads.map(b => ({ ...b, unit: undefined })).reverse());
     const active = this.phase === "bereit" || this.phase === "wachsend" ? (this.kind === "radikal" ? "rad" : this.kind === "anion" ? "an" : "kat") : null;
     return { phase: this.phase, n: this.units.length, step: this.stepName, active, fail: this.fail, beads, living: this.kind === "anion" && this.phase === "wachsend", note: this.note, cond: this.cond };
   }
@@ -501,6 +504,7 @@ export class ChainMech implements Mech {
       sc.bond(this.end, z.cb);
       sc.undot(r); sc.undot("zr");
       this.stepName = STEP.rekombination;
+      this.merged = true;
       this.note = tr("Zwei Kettenenden verbinden sich.", "Two chain ends join.");
     } else {
       const H = sc.at(z.hLeft);

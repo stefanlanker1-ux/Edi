@@ -562,6 +562,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Polyaddition (H wandert zum N, Urethan- bzw. Harnstoffgruppe; Epoxidring öffnet sich), Zweierkette (nur wenn beide Monomere lauter gleiche Gruppen
   haben – mit Milchsäure oder 6-Aminohexansäure wäre die Richtung nicht eindeutig), Phenoplast (CH₂-Brücke). Nicht passende Partner:
   ✗ und Begründung (gleiche Gruppen, Kettenende blockiert).
+  Polykondensation/Polyaddition beginnen mit dem zweiten Molekül unter dem ersten (hochkant groß genug); passen die Gruppen nicht, bleibt Abstand, ✗ über der Lücke.
+  Ringe ganz farbig hinterlegt (kein helles Sechseck innen), Benzolring überall mit drei Zweifachbindungen. Ziegler-Natta „+ H₂“: die fertige Kette
+  gleitet sichtbar weg („PP abgelöst“). Nach Rekombination zeigt die Kügelchen-Leiste beide Ketten (Starter-Rest an beiden Enden).
+  Während eines Ablaufs bleibt alles bedienbar: eine neue Aktion beendet den laufenden Ablauf. Nach einem Fehlschlag ein Vorschlag (passendes Verfahren aus
+  `methodsFor`, bzw. „Partner …“ beim Stufenwachstum), „Von vorn“ dann als Zeichen. „+ Zweierkette“ immer beschriftet. Ansatz-Chips zweizeilig statt abgeschnitten.
   Bedienung: eine Zeile Aktionen (Start, Monomer als Kügelchen „+ S“, „Abbruch …“ öffnet die Auswahl der Abbruchart), Zurück (spielt die Aktionen ohne Animation
   nach, `replay`), Automatisch (`nextAuto`), am Ende „Produkt“ und „Von vorn“. Statuszeile nur kurze Kennzeichen (Schritt, n, „+ 2 H₂O“, Temperatur, lebend);
   die Begründung eines Fehlschlags steht hinter „ⓘ“ (Blatt). Unter dem Bild die Kette als Kügelchen; Antippen zeigt das Monomer (Strukturformel und Baustein).
@@ -590,7 +595,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   H⁺ weiter und startet neue Ketten; Ziegler-Natta: Ti-Kügelchen, Einbau zwischen Titan und Kette, „+ H₂“ löst die Ketten, polare Monomere vergiften (✗).
   Stufenwachstum: jede passende Gruppe zweier Moleküle reagiert, Nebenprodukt steigt als Bläschen auf (Bläschen schieben nichts an), Netz ab drei Gruppen
   (größtes Molekül ≥ 40 % der Bausteine). Reaktionspartner in der Nähe driften leicht aufeinander zu (sonst dauert es auf dem Bildschirm zu lange).
-  Anzeige: Umsatz als schwarzer Balken, Ketten bzw. Moleküle, mittlere und größte Länge; Kennzeichen (Vorgang, lebend, vernetzt, vergiftet, + H₂O, abgelöst),
+  Stufenwachstum langsam genug zum Zusehen (50 % nach etwa 10 s), mittlere Länge folgt 1/(1 − Umsatz); ab 80 % erklärt „ⓘ“, warum lange Ketten fast
+  vollständigen Umsatz brauchen (Nebenprodukt entfernen, Vakuum). Methanol fällt sichtbar hinein („Methanol zugegeben“), nur einmal. Legende („?“):
+  Baustein, Starter, aktives Ende, Bläschen. Ein neuer Ansatz setzt den Reaktor zurück (Kennzeichen „neuer Ansatz – von vorn“).
+  Anzeige: Umsatz als schwarzer Balken, Ketten bzw. Moleküle, „Ø … Bausteine“ und „längste …“; Kennzeichen (Vorgang, lebend, vernetzt, vergiftet, + H₂O, abgelöst),
   Begründung hinter „ⓘ“. Antippen hebt das ganze Molekül hervor und zeigt das Monomer (Starter, Katalysator, Bläschen: kurze Info), Ziehen bewegt ein Kügelchen
   samt Kette. Akku: höchstens 30 Bilder/s, Stillstand bei Ruhe (6 s ohne Reaktion bzw. 3 s, wenn nichts mehr möglich ist), Pause-Knopf, unsichtbare Seite pausiert;
   Bewegung reduziert: Ablauf ohne Zwischenbilder vorausgerechnet. Der Reaktor bleibt beim Wechsel der Ansicht erhalten.
@@ -650,6 +658,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Experimentieren verständlicher** – Startbild der Polyaddition lesbar, keine Überlappung bei „keine Reaktion“, Ring-Hinterlegung, Kette löst
+  sich sichtbar vom Titan, Kügelchen-Leiste nach Rekombination, Knöpfe nie gesperrt, Vorschlag nach Fehlschlag, Zweierkette beschriftet, Chips zweizeilig;
+  Reaktor: Stufenwachstum langsamer, Erklärung bei hohem Umsatz, Legende, Methanol sofort sichtbar, Kennzeichen bei Neustart.
 - **Polymere: Bilder zum Umsatz** – Gefäß „Stufenwachstum bei 90 %“ mit drei mittellangen Ketten (im Mittel 10 Bausteine), lange Ketten des
   Kettenwachstums als Schleifen; Lektion K6 zeigt beide Gefäße zur Auswahl; „90 %“ bricht nicht mehr um; Melaminharz-Oberfläche.
 - **Polymere: Sprache und Fachliches** – Radikal „reagiert sehr leicht“ statt „sucht einen Partner“, Katalysator „vergiftet“ statt „tot“, Propan als

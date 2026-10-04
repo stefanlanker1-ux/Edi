@@ -74,15 +74,15 @@ export interface RStats {
 
 const EV = tr(
   { zerfall: "Starter zerfällt", start: "Ketten starten", wachstum: "Kettenwachstum", rekombination: "Rekombination", disproportionierung: "Disproportionierung",
-    uebertragung: "H⁺ wandert weiter", vergiftet: "Katalysator vergiftet", h2: "Ketten abgelöst (H₂)", methanol: "Abbruch mit Methanol", verknuepfung: "Verknüpfung",
+    uebertragung: "H⁺ wandert weiter", vergiftet: "Katalysator vergiftet", h2: "Ketten abgelöst (H₂)", methanol: "Abbruch mit Methanol", methanolZu: "Methanol zugegeben", verknuepfung: "Verknüpfung",
     keine: "keine Reaktion", allyl: "H‑Atom abgerissen", neben: "Nebenreaktion", netz: "Netz entsteht" },
   { zerfall: "Initiator decomposes", start: "Chains start", wachstum: "Chain growth", rekombination: "Combination", disproportionierung: "Disproportionation",
-    uebertragung: "H⁺ moves on", vergiftet: "Catalyst poisoned", h2: "Chains released (H₂)", methanol: "Stopped with methanol", verknuepfung: "Linking",
+    uebertragung: "H⁺ moves on", vergiftet: "Catalyst poisoned", h2: "Chains released (H₂)", methanol: "Stopped with methanol", methanolZu: "Methanol added", verknuepfung: "Linking",
     keine: "No reaction", allyl: "H atom pulled off", neben: "Side reaction", netz: "Network forms" },
 );
 
 /** Wahrscheinlichkeiten je Berührung bzw. Schritt */
-const KD = 0.008, KP = 0.45, KT = 0.5, KS = 0.22, KPOISON = 0.35;
+const KD = 0.008, KP = 0.45, KT = 0.5, KS = 0.006, KPOISON = 0.35;
 /** Kügelchen-Radien */
 const R_MONO = 1, R_INIT = 0.8, R_CAT = 1.7, R_GAS = 0.55;
 
@@ -287,7 +287,8 @@ export class Reactor {
       return [{ id: "start", kind: "start", label }];
     }
     for (const m of this.monos) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${monoName(m)}` });
-    if (k === "anion") out.push({ id: "meoh", kind: "stop", label: tr("+ Methanol", "+ methanol") });
+    // Methanol nur einmal zugeben (wirkt dann, bis alle Ketten beendet sind)
+    if (k === "anion" && !this.beads.some(b => b.kind === "stop")) out.push({ id: "meoh", kind: "stop", label: tr("+ Methanol", "+ methanol") });
     if (k === "koord") out.push({ id: "h2", kind: "stop", label: "+ H₂" });
     return out;
   }
@@ -317,7 +318,9 @@ export class Reactor {
       return;
     }
     if (id === "meoh") {
-      for (let i = 0; i < 14; i++) this.place({ kind: "stop", m: "meoh", r: 0.7 }, "all");
+      // fallen sichtbar von oben hinein; das Kennzeichen erscheint sofort
+      for (let i = 0; i < 14; i++) this.place({ kind: "stop", m: "meoh", r: 0.7 }, "top");
+      this.event = EV.methanolZu;
       this.lastEvent = this.t;
       return;
     }
@@ -388,7 +391,7 @@ export class Reactor {
           if (d2 >= bd || !this.match(a, o)) continue;
           bd = d2; best = o;
         }
-        if (best) pull(a, best, 0.012);
+        if (best) pull(a, best, 0.008);
       }
       return;
     }
@@ -512,7 +515,7 @@ export class Reactor {
         if (e.act === "an" && n.kind === "stop") { e.act = undefined; this.remove(n); this.fire(EV.methanol); break; }
       }
       // Methanol verteilt sich schnell: ohne Berührung nach kurzer Zeit
-      if (e.act === "an" && this.beads.some(b => b.kind === "stop") && rnd() < 0.012) {
+      if (e.act === "an" && this.beads.some(b => b.kind === "stop") && rnd() < 0.03) {
         e.act = undefined;
         const st = this.beads.find(b => b.kind === "stop");
         if (st) this.remove(st);
@@ -686,6 +689,13 @@ export class Reactor {
       if (!why) why = step ? stepReact(this.recipe.a as StepId, this.recipe.b as StepId | undefined).why : this.firstFailWhy();
     }
     if (this.kind === "koord" && poisoned === bs.filter(b => b.kind === "cat").length) phase = "aus";
+    // Stufenwachstum bei hohem Umsatz: mittlere Länge = 1/(1 − Umsatz) – lange Ketten erst, wenn fast jede Gruppe reagiert hat
+    if (step && !why && conv >= 0.8 && !network) {
+      const p = Math.round(conv * 100), n = Math.round(avg);
+      why = stepReact(this.recipe.a as StepId, this.recipe.b as StepId | undefined).byp
+        ? tr(`Bei ${p} %: im Mittel ${n} Bausteine. Für lange Ketten muss das Nebenprodukt weg – technisch unter Vakuum.`, `At ${p} %: about ${n} units on average. Long chains need the by-product removed – industrially under vacuum.`)
+        : tr(`Bei ${p} %: im Mittel ${n} Bausteine. Für lange Ketten muss fast jede Gruppe reagieren.`, `At ${p} %: about ${n} units on average. Long chains need almost every group to react.`);
+    }
     const ev = network ? EV.netz : phase === "aus" && !this.event ? EV.keine : this.event;
     return {
       phase, conv, chains, avg, max, active, living: this.kind === "anion" && active > 0, network, poisoned,

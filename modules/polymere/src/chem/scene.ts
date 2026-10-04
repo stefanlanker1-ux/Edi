@@ -333,6 +333,11 @@ export function expandFocus(s: Snap, max = 7): string[] | undefined {
     nb.set(b.a, [...(nb.get(b.a) ?? []), b.b]); nb.set(b.b, [...(nb.get(b.b) ?? []), b.a]);
   }
   const f = new Set(s.focus);
+  // nur Gruppen nahe am Ausschnitt (nicht das ferne Ende eines langen Moleküls)
+  const fa = s.atoms.filter(a => f.has(a.id));
+  if (!fa.length) return s.focus;
+  const bx0 = Math.min(...fa.map(a => a.x)) - 2.2, bx1 = Math.max(...fa.map(a => a.x)) + 2.2;
+  const pos = new Map(s.atoms.map(a => [a.id, a]));
   for (const a of s.focus) for (const x of nb.get(a) ?? []) {
     if (f.has(x)) continue;
     // Gruppe hinter x (ohne über a zurückzugehen)
@@ -341,7 +346,7 @@ export function expandFocus(s: Snap, max = 7): string[] | undefined {
       // nur Atome außerhalb des Fokus sammeln (ein halb sichtbarer Ring wird so ganz aufgenommen)
       for (const y of nb.get(stack.pop()!) ?? []) if (!seen.has(y) && !f.has(y)) { seen.add(y); stack.push(y); group.push(y); }
     }
-    if (group.length <= max) group.forEach(y => f.add(y));
+    if (group.length <= max && group.every(y => { const p = pos.get(y)!; return p.x >= bx0 && p.x <= bx1; })) group.forEach(y => f.add(y));
   }
   return [...f];
 }

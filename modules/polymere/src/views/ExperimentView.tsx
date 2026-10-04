@@ -6,7 +6,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, Icon, IconButton, Segmented, Sheet, Switch, Tag, buzz, ding, tr, useMediaQuery, useReducedMotion, Workbench } from "@lern/ui";
 import { ART_NAME, KIND_NAME, METHODS, STEPS, VINYLS, isVinyl, method, monoHue, monoLetter, monoName, monoStruct, stepMono, vinyl, type Art, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
-import { polymerise, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
+import { compat, methodsFor, polymerise, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
 import { makeMech, nextAuto, replay, type Mech, type Recipe } from "../chem/mech/index.ts";
 import { predict, type PredOpt, type Prediction } from "../chem/mech/predict.ts";
 import type { Clip } from "../chem/scene.ts";
@@ -19,6 +19,9 @@ import { PARTICLE, Reactor, type RBead, type RStats } from "../chem/reactor.ts";
 import { DEFAULT_RECIPES, useApp } from "../store.ts";
 
 const ARTS: Art[] = ["poly", "kond", "add"];
+/** Vorschlag nach einem Fehlschlag: mit diesem Verfahren klappt es */
+const KIND_TRY = tr({ radikal: "Radikalisch", anion: "Anionisch", kation: "Kationisch", koord: "Ziegler-Natta" },
+  { radikal: "Radical", anion: "Anionic", kation: "Cationic", koord: "Ziegler–Natta" });
 const ART_SHORT: Record<Art, string> = tr({ poly: "Polymeri­sation", kond: "Polykonden­sation", add: "Poly­addition" }, { poly: "Polymeri­sation", kond: "Polycon­densation", add: "Poly­addition" });
 const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "+ Wasser", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "+ water", add: "no by-product" });
 
@@ -155,9 +158,28 @@ function ReactorStats({ st, step }: { st: RStats; step: boolean }) {
       <span className="pm-rs-bar" role="meter" aria-label={tr("Umsatz", "Conversion")} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%` }} /></span>
       <b className="pm-rs-pct">{pct} %</b>
       <span className="pm-rs-n">{st.chains} {step ? tr("Moleküle", "molecules") : tr("Ketten", "chains")}</span>
-      <span className="pm-rs-n">Ø {String(avg).replace(".", tr(",", "."))}</span>
-      <span className="pm-rs-n">max {st.max}</span>
+      <span className="pm-rs-n">Ø {String(avg).replace(".", tr(",", "."))} {tr("Bausteine", "units")}</span>
+      <span className="pm-rs-n">{tr("längste", "longest")} {st.max}</span>
     </div>
+  );
+}
+
+/** Legende der Kügelchen-Ansicht: was die Kügelchen, Ringe und Bläschen bedeuten */
+function BeadLegend({ recipe }: { recipe: Recipe }) {
+  const poly = recipe.art === "poly", kind = poly ? method(recipe.method ?? "dbpo").kind : null;
+  const row = (pic: ReactNode, text: string) => <li><svg viewBox="-12 -12 24 24" className="pm-leg-pic" aria-hidden="true">{pic}</svg><span>{text}</span></li>;
+  const m = recipe.a;
+  return (
+    <ul className="pm-legend">
+      {row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(m)} letter={monoLetter(m)} />, tr(`ein Baustein (${monoName(m)}); verbundene Kügelchen = Kette`, `one unit (${monoName(m).toLowerCase()}); joined beads = chain`))}
+      {poly && kind !== "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Starter bzw. sein Bruchstück am Kettenanfang", "initiator or its fragment at the chain start"))}
+      {kind === "radikal" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="rad" />, tr("rot gestrichelt: Radikal – hier wächst die Kette", "red dashes: radical – the chain grows here"))}
+      {kind === "anion" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="an" />, tr("blau gestrichelt: negatives Kettenende (lebend)", "blue dashes: negative chain end (living)"))}
+      {kind === "kation" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="kat" />, tr("dunkelroter Ring: positives Kettenende", "dark red ring: positive chain end"))}
+      {kind === "koord" && row(<BeadDot cx={0} cy={0} r={9} hue="init" letter="Ti" />, tr("Titan (Katalysator): die Kette wächst hier", "titanium (catalyst): the chain grows here"))}
+      {poly && (recipe.method === "dbpo" || recipe.method === "aibn") && row(<circle className="pm-leg-gas" r={4} />, tr(`Bläschen: ${recipe.method === "dbpo" ? "CO₂" : "N₂"} aus dem Starter`, `bubbles: ${recipe.method === "dbpo" ? "CO₂" : "N₂"} from the initiator`))}
+      {!poly && row(<circle className="pm-leg-byp" r={4} />, tr("blaue Bläschen: abgespaltenes Wasser H₂O bzw. HCl", "blue bubbles: split-off water H₂O or HCl"))}
+    </ul>
   );
 }
 
@@ -226,18 +248,24 @@ export function ExperimentView() {
   const [rwake, setRwake] = useState(0);
   const [rpaused, setRpaused] = useState(false);
   const [particle, setParticle] = useState<string | null>(null);
+  const [legend, setLegend] = useState(false);
+  /** Kügelchen: anderer Ansatz hat den laufenden Reaktor zurückgesetzt (Kennzeichen bis zur nächsten Aktion) */
+  const [restarted, setRestarted] = useState(false);
   /** offene Vorhersage-Frage zur gewählten Aktion (picked = gewählte Antwort) */
   const [pq, setPq] = useState<{ id: string; p: Prediction; picked?: number } | null>(null);
 
   // neuer Ansatz → von vorn
-  useEffect(() => { mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); setRpaused(false); setPq(null); }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); setRpaused(false); setPq(null);
+    setRestarted(!!rstats && rstats.phase !== "bereit");
+  }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps // eslint-disable-line react-hooks/exhaustive-deps
 
   const rrun = (id: string) => {
     buzz();
     const R = reactor.current;
     if (!R) return;
     R.run(id);
-    setRstats(R.stats()); setRwake(w => w + 1); setRpaused(false);
+    setRstats(R.stats()); setRwake(w => w + 1); setRpaused(false); setRestarted(false);
   };
   const rreset = () => {
     buzz();
@@ -337,12 +365,14 @@ export function ExperimentView() {
   if (view === "kugeln" && rstats) {
     const ev = rstats.phase === "bereit" ? tr("bereit", "ready") : rstats.event ?? (rstats.phase === "fertig" ? tr("fertig", "done") : tr("läuft", "running"));
     tags.push(<Tag key="e" tone={rstats.phase === "aus" ? "bad" : "plain"}>{rstats.phase === "aus" ? `✗ ${ev}` : ev}</Tag>);
+    if (restarted && rstats.phase === "bereit") tags.push(<Tag key="neu">{tr("neuer Ansatz – von vorn", "new mix – starts again")}</Tag>);
     if (rstats.living) tags.push(<Tag key="l" tone="ok">{tr("lebend", "living")}</Tag>);
     if (rstats.network) tags.push(<Tag key="v">{tr("vernetzt", "network")}</Tag>);
     if (rstats.poisoned) tags.push(<Tag key="p" tone="bad">{tr(`${rstats.poisoned} × Ti vergiftet`, `${rstats.poisoned} × Ti poisoned`)}</Tag>);
     if (rstats.byp) tags.push(<Tag key="b">+ {rstats.byp} {rstats.bypName}</Tag>);
     if (rstats.released) tags.push(<Tag key="r">{tr(`${rstats.released} abgelöst`, `${rstats.released} released`)}</Tag>);
     if (rstats.why) tags.push(whyBtn(rstats.phase === "aus"));
+    tags.push(<button key="leg" type="button" className="pm-why-btn" onClick={() => { buzz(); setLegend(true); }} aria-label={tr("Legende", "Key")}><span className="pm-leg-q" aria-hidden="true">?</span></button>);
   }
   if (view === "atome") {
     tags.push(<Tag key="s" tone={st.fail ? "bad" : "plain"}>{st.fail ? `✗ ${st.step}` : st.step}</Tag>);
@@ -356,7 +386,7 @@ export function ExperimentView() {
   const chip = (lbl: string, value: ReactNode, onClick: () => void, hue?: string) => (
     <button type="button" className="pm-chip" onClick={onClick}>
       <span className="pm-chip-l">{lbl}</span>
-      <span className="pm-chip-v">{hue && <i className={`pm-chip-dot hue-${hue}`} />}{value}</span>
+      <span className="pm-chip-v">{hue && <i className={`pm-chip-dot hue-${hue}`} />}<span>{typeof value === "string" ? hyph(value) : value}</span></span>
     </button>
   );
   const recipeRow = (
@@ -379,15 +409,29 @@ export function ExperimentView() {
     const add = a.kind === "add" || !!a.pair;
     const ids = a.pair ?? (a.mono ? [a.mono] : []);
     return (
-      <Button key={a.id} variant={a.kind === "stop" ? "soft" : "primary"} className={`pm-act${add ? " add" : ""}`} disabled={disabled}
+      <Button key={a.id} variant={a.kind === "stop" ? "soft" : "primary"} className={`pm-act${add ? " add" : ""}${a.kind === "other" ? " other" : ""}`} disabled={disabled}
         aria-label={a.label} title={a.label} onClick={() => onRun(a.id)}>
         {add && <span className="pm-plus" aria-hidden="true">+</span>}
-        {ids.map(m => <BeadIcon key={m} id={m} size={22} />)}
-        {(!add || !small) && <span className={add ? "pm-name" : undefined}>{add ? (a.pair ? a.label.replace(/^\+ /, "") : monoName(a.mono!)) : a.label}</span>}
+        {!(small && a.kind === "other") && ids.map(m => <BeadIcon key={m} id={m} size={22} />)}
+        {(!add || !small || a.kind === "other") && <span className={add ? "pm-name" : undefined}>{add ? (a.pair ? a.label.replace(/^\+ /, "") : monoName(a.mono!)) : a.label}</span>}
       </Button>
     );
   };
-  const actBtn = (a: Action) => button(a, compact, busy, ask);
+  // während eines Ablaufs bleibt alles bedienbar: eine neue Aktion beendet den laufenden Ablauf und startet die nächste
+  // nach einem Fehlschlag: Vorschlag, womit es klappt (passendes Verfahren bzw. anderer Partner)
+  const suggest = (() => {
+    if (!st.fail || actions.length) return null;
+    if (art === "poly") {
+      const me = recipe.method ?? "dbpo";
+      const bad = ([recipe.a, recipe.b].filter(Boolean) as VinylId[]).find(m => compat(m, me).fit !== "ok");
+      const alt = bad && methodsFor(bad).find(x => x !== me && ([recipe.a, recipe.b].filter(Boolean) as VinylId[]).every(m => compat(m, x).fit === "ok"));
+      if (!alt) return null;
+      const name = KIND_TRY[method(alt).kind];
+      return { label: name, go: () => { buzz(); setRecipe({ ...recipe, method: alt }); } };
+    }
+    return { label: tr("Partner …", "Partner …"), go: () => { buzz(); setTool("mono2"); } };
+  })();
+  const actBtn = (a: Action) => button(a, compact, false, ask);
   const actRow = view === "atome" && (stopOpen
     ? (
       <div className="pm-acts-stop">
@@ -396,18 +440,22 @@ export function ExperimentView() {
       </div>
     ) : (
       <div className="pm-acts">
-        <IconButton icon="back" label={tr("Einen Schritt zurück", "One step back")} onClick={back} disabled={busy || !acts.length} />
+        <IconButton icon="back" label={tr("Einen Schritt zurück", "One step back")} onClick={back} disabled={!acts.length} />
         <div className={`pm-acts-main n${nBtn}${compact ? " compact" : ""}`}>
           {actions.length
             ? <>
                 {firsts.map(actBtn)}
                 {adds.map(actBtn)}
                 {stops.length === 1 && actBtn(stops[0])}
-                {stops.length > 1 && <Button variant="soft" className="pm-act" disabled={busy} onClick={() => { buzz(); setAuto(false); setStopOpen(true); }}>{tr("Abbruch …", "Stop …")}</Button>}
+                {stops.length > 1 && <Button variant="soft" className="pm-act" onClick={() => { buzz(); setAuto(false); setStopOpen(true); }}>{tr("Abbruch …", "Stop …")}</Button>}
               </>
             : <>
-                <Button variant="soft" className="pm-act" disabled={busy} onClick={() => { buzz(); setTool("produkt"); }}>{tr("Produkt", "Product")}</Button>
-                <Button variant="primary" className="pm-act" icon="reset" disabled={busy} onClick={reset}>{tr("Von vorn", "Start again")}</Button>
+                {suggest
+                  ? <Button variant="soft" className="pm-act" icon="arrow" aria-label={tr(`Vorschlag: ${suggest.label}`, `Suggestion: ${suggest.label}`)} onClick={suggest.go}>{suggest.label}</Button>
+                  : <Button variant="soft" className="pm-act" onClick={() => { buzz(); setTool("produkt"); }}>{tr("Produkt", "Product")}</Button>}
+                {suggest
+                  ? <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={reset} />
+                  : <Button variant="primary" className="pm-act" icon="reset" onClick={reset}>{tr("Von vorn", "Start again")}</Button>}
               </>}
         </div>
         <IconButton icon={auto ? "close" : "play"} label={auto ? tr("Anhalten", "Stop") : tr("Automatisch abspielen", "Play automatically")} onClick={() => { buzz(); setAuto(a => !a); }} disabled={!actions.length && !auto} className={auto ? "pm-auto on" : "pm-auto"} />
@@ -498,6 +546,7 @@ export function ExperimentView() {
         controls={<div className="pm-controls">{pqPanel || <>{recipeRow}{actRow}</>}{rRow}</div>}
         tools={tools} />
       <MonomerSheet id={info} onClose={() => setInfo(null)} />
+      <Sheet open={legend} title={tr("Legende", "Key")} onClose={() => setLegend(false)}><BeadLegend recipe={recipe} /></Sheet>
       <Sheet open={why && !!whyText} title={whyTitle} onClose={() => setWhy(false)}>
         <p className="pm-why">{whyText}</p>
       </Sheet>

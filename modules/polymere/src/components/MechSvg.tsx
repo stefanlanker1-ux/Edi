@@ -146,6 +146,15 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
       if (op < 0.02) continue;
       halo.push(<line key={`hb${halo.length}`} className={`mb-halo-l hue-${A.hue}`} x1={A.x * U} y1={A.y * U} x2={B.x * U} y2={B.y * U} opacity={op} />);
     }
+    // Ringe ganz hinterlegen (sonst bliebe innen ein helles Sechseck, das wie ein zweiter Ring aussieht)
+    for (const [rid, ids] of Object.entries(pose.rings)) {
+      const ps = ids.map(i => at.get(i)).filter((x): x is Atom => !!x);
+      const h = ps[0];
+      if (ps.length < 3 || !h?.hue || h.unit === undefined || ps.some(p => p.unit !== h.unit)) continue;
+      const op = Math.min(...ps.map(p => (p.op ?? 1) * vis(p)));
+      if (op < 0.02) continue;
+      halo.push(<polygon key={`hr${rid}`} className={`mb-halo hue-${h.hue}`} points={ps.map(p => `${p.x * U},${p.y * U}`).join(" ")} opacity={op} />);
+    }
     for (const a of pose.atoms) if (a.hue && a.unit !== undefined && (a.op ?? 1) * vis(a) > 0.02 && !a.vac) halo.push(<circle key={`ha${a.id}`} className={`mb-halo hue-${a.hue}`} cx={a.x * U} cy={a.y * U} r={(a.el === "H" && !a.text ? 0.3 : 0.4) * U} opacity={(a.op ?? 1) * vis(a)} />);
   }
   return (
