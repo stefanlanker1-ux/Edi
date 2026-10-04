@@ -184,7 +184,9 @@ export class StepMech implements Mech {
     for (const id of m.mol.atoms) {
       if (!sc.has(id)) continue;
       const a = sc.at(id);
-      sc.set(id, { x: 2 * c - a.x, ...(a.lp ? { lp: a.lp.map(l => 180 - l) } : {}), ...(a.qa !== undefined ? { qa: 180 - a.qa } : {}) });
+      // gespiegelt liest sich „H₃C“ rechts als „CH₃“
+      const text = a.text === "H₃C" ? "CH₃" : a.text === "CH₃" && a.x < c ? "H₃C" : a.text;
+      sc.set(id, { x: 2 * c - a.x, ...(a.lp ? { lp: a.lp.map(l => 180 - l) } : {}), ...(a.qa !== undefined ? { qa: 180 - a.qa } : {}), ...(text !== a.text ? { text } : {}) });
     }
     m.mol = { ...m.mol, ends: m.mol.ends.map(e => ({ ...e, s: -e.s as 1 | -1 })) };
   }
@@ -198,6 +200,8 @@ export class StepMech implements Mech {
     // passt die linke Gruppe nicht, aber die rechte, wird das Molekül gewendet
     const other = m.mol.ends.find(e => e.s === 1);
     if (!reactGroups(R.fg, L.fg) && other && reactGroups(R.fg, other.fg)) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1)!; }
+    // Molekül mit nur einer Gruppe (Ethanol), die rechts sitzt: wenden, damit sie zur Kette zeigt und nichts überlappt
+    else if (L.s === 1) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1) ?? L; }
     const r = reactGroups(R.fg, L.fg);
     const all = m.mol.atoms;
     if (!initial) {
@@ -248,7 +252,7 @@ export class StepMech implements Mech {
     // neues rechtes Ende
     this.right = m.mol.ends.find(e => e.s === 1 && e !== L) ?? null;
     this.phase = this.right ? "wachsend" : "ende";
-    if (!this.right) { this.stepName = STEP_STEP.blockiert; this.note = tr("Nur eine reaktive Gruppe – die Kette kann hier nicht weiterwachsen.", "Only one reactive group – the chain cannot grow on here."); }
+    if (!this.right) { this.stepName = STEP_STEP.blockiert; this.note = tr("Nur eine reaktive Gruppe – die Kette kann hier nicht weiterwachsen. Auch die zweite Gruppe am anderen Ende kann so blockiert werden – dann entsteht ein kleines Molekül, keine Kette. Im Modell wächst nur das rechte Ende.", "Only one reactive group – the chain cannot grow on here. The group at the other end can be blocked the same way – then a small molecule forms, no chain. In the model only the right end grows."); }
   }
 
   /** Nebenprodukt sinkt weg und verschwindet */
@@ -348,12 +352,14 @@ export class StepMech implements Mech {
       const o = ep.extra.o, ch = ep.extra.ch, h = nuc.leave[0];
       sc.bond(ep.anchor, nuc.anchor);
       sc.unbond(ep.anchor, o);
+      // das äußere H des CH₂ weicht nach unten aus (dort sitzt jetzt das N)
+      if (ep.extra.h3 && sc.has(ep.extra.h3)) { const A = sc.at(ep.anchor); sc.set(ep.extra.h3, { x: A.x, y: A.y + 0.8 }); }
       const CH = sc.at(ch);
       sc.set(o, { x: CH.x, y: CH.y + 1 });
       sc.unbond(nuc.anchor, h);
-      sc.set(h, { x: CH.x + 0.8 * (ep === R ? 1 : -1), y: CH.y + 1 });
+      sc.set(h, { x: CH.x, y: CH.y + 1.8 });
       sc.bond(o, h);
-      sc.autoLp(o, 2, 90);
+      sc.autoLp(o, 2, 0);
       sc.autoLp(nuc.anchor, 1, 90);
       return;
     }

@@ -227,3 +227,24 @@ test("Stufenwachstum: Monomer mit zwei verschiedenen Gruppen wendet der Kette di
   }
   assert.ok(checked > 10, `${checked} Fälle`);
 });
+
+test("Atom-Ansicht: Moleküle überlappen sich nicht (Stufenwachstum, Endbild jedes Schritts)", () => {
+  const bad: string[] = [];
+  for (const r of recipes()) {
+    if (r.art === "poly") continue;
+    const m = makeMech(r);
+    for (let k = 0; k < 6; k++) {
+      const id = nextAuto(m, r);
+      if (!id) break;
+      m.run(id);
+      const s = m.snap(), at = s.atoms.filter(a => (a.op ?? 1) > 0.5 && (a.text ?? a.el));
+      const bonded = new Set(s.bonds.map(b => [b.a, b.b].sort().join("|")));
+      for (let i = 0; i < at.length; i++) for (let j = i + 1; j < at.length; j++) {
+        const a = at[i], b = at[j];
+        if (bonded.has([a.id, b.id].sort().join("|"))) continue;
+        if (Math.hypot(a.x - b.x, a.y - b.y) < 0.6) bad.push(`${r.a}+${r.b ?? ""} ${id}: ${a.text ?? a.el}/${b.text ?? b.el}`);
+      }
+    }
+  }
+  assert.deepEqual([...new Set(bad)].slice(0, 12), []);
+}, 120_000);

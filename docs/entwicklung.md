@@ -660,6 +660,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Stufenwachstum ohne Überlappung** – Ethanol wird gewendet, damit seine –OH zur Kette zeigt (vorher über dem Benzolring), Glycerin mit
+  –CH(OH)– als Ast nach unten, Epoxid-Öffnung ohne übereinanderliegende H; Hinweis, dass auch das andere Ende blockiert werden kann (im Modell wächst nur
+  das rechte Ende). Test: keine zwei nicht gebundenen Atome näher als 0,6 Bindungslängen in allen Ansätzen.
 - **Polymere: Kleinigkeiten Reaktor und Namen** – Reaktor-Zeile bricht um statt abgeschnitten zu werden („Ø … · längste … Bausteine“), Legende für
   Ziegler-Natta (Ethylgruppe bzw. H am Anfang) und Kation mit „+“; Produktnamen „Polyamid 6.6 (PA 6.6, Nylon)“; Milchsäure als Monomer 1 setzt Monomer 2
   auf „ohne“ (reagiert allein); eigene Rückmeldung „radikalisch ataktisch“ bei der Verfahrenswahl für isotaktisches PP.

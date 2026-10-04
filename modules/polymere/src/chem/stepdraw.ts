@@ -62,7 +62,7 @@ function grp(sc: Scene, ctx: Ctx, k: string, fg: FG, x: number, y: number, s: 1 
       const h1 = A("h1", "H", x, y - 0.8), h2 = A("h2", "H", x + s, y - 0.8), h3 = A("h3", "H", x + 1.8 * s, y);
       sc.bond(k, ch); sc.bond(ch, c2); sc.bond(ch, o); sc.bond(c2, o); sc.bond(ch, h1); sc.bond(c2, h2); sc.bond(c2, h3);
       sc.at(o).lp = [60, 120];
-      return { fg, anchor: c2, leave: [], extra: { ch, o }, s };
+      return { fg, anchor: c2, leave: [], extra: { ch, o, h3 }, s };
     }
     default:
       return { fg, anchor: k, leave: [], extra: {}, s };
@@ -116,8 +116,9 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     H(cs[0], -90, "h0u"); H(cs[0], 90, "h0d"); H(cs[1], -90, "h1u"); H(cs[2], -90, "h2u"); H(cs[2], 90, "h2d");
     left = cs[0]; right = cs[2]; xc += 2;
     // dritte OH-Gruppe unten am mittleren C
-    const o = A("o3", "O", xc - 1, y + 1), h = A("h3", "H", xc - 0.2, y + 1);
-    sc.bond(cs[1], o); sc.bond(o, h); sc.autoLp(o, 2, 90);
+    // –CH(OH)–: O als Ast nach unten, H darunter (nicht neben das H des rechten CH₂)
+    const o = A("o3", "O", xc - 1, y + 1), h = A("h3", "H", xc - 1, y + 1.8);
+    sc.bond(cs[1], o); sc.bond(o, h); sc.autoLp(o, 2, 0);
     ends.push({ fg: "OH", anchor: o, leave: [h], extra: {}, s: 1 });
   } else if (core.k === "mdi") {
     const r1 = benzene(sc, xc, y, 0, ctx, "ra");
