@@ -158,8 +158,7 @@ function ReactorStats({ st, step }: { st: RStats; step: boolean }) {
       <span className="pm-rs-bar" role="meter" aria-label={tr("Umsatz", "Conversion")} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><i style={{ width: `${pct}%` }} /></span>
       <b className="pm-rs-pct">{pct} %</b>
       <span className="pm-rs-n">{st.chains} {step ? tr("Moleküle", "molecules") : tr("Ketten", "chains")}</span>
-      <span className="pm-rs-n">Ø {String(avg).replace(".", tr(",", "."))} {tr("Bausteine", "units")}</span>
-      <span className="pm-rs-n">{tr("längste", "longest")} {st.max}</span>
+      <span className="pm-rs-n pm-rs-len">Ø {String(avg).replace(".", tr(",", "."))} · {tr("längste", "longest")} {st.max} {tr("Bausteine", "units")}</span>
     </div>
   );
 }
@@ -173,9 +172,10 @@ function BeadLegend({ recipe }: { recipe: Recipe }) {
     <ul className="pm-legend">
       {row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(m)} letter={monoLetter(m)} />, tr(`ein Baustein (${monoName(m)}); verbundene Kügelchen = Kette`, `one unit (${monoName(m).toLowerCase()}); joined beads = chain`))}
       {poly && kind !== "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Starter bzw. sein Bruchstück am Kettenanfang", "initiator or its fragment at the chain start"))}
+      {kind === "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Ethylgruppe bzw. H am Kettenanfang", "ethyl group or H at the chain start"))}
       {kind === "radikal" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="rad" />, tr("rot gestrichelt: Radikal – hier wächst die Kette", "red dashes: radical – the chain grows here"))}
       {kind === "anion" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="an" />, tr("blau gestrichelt: negatives Kettenende (lebend)", "blue dashes: negative chain end (living)"))}
-      {kind === "kation" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="kat" />, tr("dunkelroter Ring: positives Kettenende", "dark red ring: positive chain end"))}
+      {kind === "kation" && row(<><BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="kat" /><text className="pm-leg-plus" x={7} y={-6} textAnchor="middle" dominantBaseline="central">+</text></>, tr("dunkelroter Ring mit +: positives Kettenende", "dark red ring with +: positive chain end"))}
       {kind === "koord" && row(<BeadDot cx={0} cy={0} r={9} hue="init" letter="Ti" />, tr("Titan (Katalysator): die Kette wächst hier", "titanium (catalyst): the chain grows here"))}
       {poly && (recipe.method === "dbpo" || recipe.method === "aibn") && row(<circle className="pm-leg-gas" r={4} />, tr(`Bläschen: ${recipe.method === "dbpo" ? "CO₂" : "N₂"} aus dem Starter`, `bubbles: ${recipe.method === "dbpo" ? "CO₂" : "N₂"} from the initiator`))}
       {!poly && row(<circle className="pm-leg-byp" r={4} />, tr("blaue Bläschen: abgespaltenes Wasser H₂O bzw. HCl", "blue bubbles: split-off water H₂O or HCl"))}
@@ -511,7 +511,9 @@ export function ExperimentView() {
     </div>
   );
 
-  const pickMono = (id: string) => { buzz(); setRecipe({ ...recipe, a: id, ...(recipe.b === id ? { b: undefined } : {}) }); setTool(null); };
+  // Monomer mit zwei verschiedenen Gruppen (Milchsäure) reagiert allein: zweites Monomer dann zunächst „ohne“
+  const isAB = (id: string) => art !== "poly" && new Set(stepMono(id as StepId).groups).size === 2 && stepMono(id as StepId).groups.length === 2;
+  const pickMono = (id: string) => { buzz(); setRecipe({ ...recipe, a: id, ...(recipe.b === id || isAB(id) ? { b: undefined } : {}) }); setTool(null); };
   const pickB = (id: string | undefined) => { buzz(); setRecipe({ ...recipe, b: id }); setTool(null); };
   const monoList = art === "poly" ? VINYLS.map(v => v.id as string) : STEPS.filter(s => s.arts.includes(art)).map(s => s.id as string);
 

@@ -369,7 +369,7 @@ function taktisch(): Task {
 
 function taktischVerfahren(): Task {
   return task(T("Mit welchem Verfahren entsteht **isotaktisches** Polypropen?", "Which method gives **isotactic** polypropene?"), methName("zn"), [
-    d(methName("dbpo"), "radikal-taktisch", compat("propen", "dbpo").why),
+    d(methName("dbpo"), "radikal-taktisch", T("Radikalisch gibt Propen nur kurze Ketten. Und ein Radikal-Ende lagert jedes Monomer zufällig herum an: ataktisch.", "With radicals propene gives only short chains. And a radical end adds each monomer randomly: atactic.")),
     d(methName("bf3"), "verfahren-passt-nicht", compat("propen", "bf3").why),
     d(methName("buli"), "verfahren-passt-nicht", compat("propen", "buli").why),
   ], {

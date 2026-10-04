@@ -82,8 +82,12 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
   },
 };
 
-/** Name mit Kurzzeichen: „Polyamid 6.6 (Nylon, PA 6.6)“ statt zweier Klammern hintereinander; ohne Kurzzeichen („—“) nur der Name */
-export const withAbbr = (name: string, abbr: string) => (!abbr || abbr === "—" ? name : name.endsWith(")") ? `${name.slice(0, -1)}, ${abbr})` : `${name} (${abbr})`);
+/** Name mit Kurzzeichen: „Polyamid 6.6 (PA 6.6, Nylon)“ statt zweier Klammern hintereinander; ohne Kurzzeichen („—“) nur der Name */
+export const withAbbr = (name: string, abbr: string) => {
+  if (!abbr || abbr === "—") return name;
+  const i = name.lastIndexOf(" (");
+  return i > 0 && name.endsWith(")") ? `${name.slice(0, i)} (${abbr}, ${name.slice(i + 2)}` : `${name} (${abbr})`;
+};
 
 export function compat(m: VinylId, me: MethodId): Compat {
   return RULES[method(me).kind][m];

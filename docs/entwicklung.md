@@ -660,6 +660,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Kleinigkeiten Reaktor und Namen** – Reaktor-Zeile bricht um statt abgeschnitten zu werden („Ø … · längste … Bausteine“), Legende für
+  Ziegler-Natta (Ethylgruppe bzw. H am Anfang) und Kation mit „+“; Produktnamen „Polyamid 6.6 (PA 6.6, Nylon)“; Milchsäure als Monomer 1 setzt Monomer 2
+  auf „ohne“ (reagiert allein); eigene Rückmeldung „radikalisch ataktisch“ bei der Verfahrenswahl für isotaktisches PP.
 - **Polymere: Vorhersage beobachten, dann erklären** – Ablauf erst nach „Ansehen ▷“, Begründung nach dem Ablauf; eigene Rückmeldung je falscher Antwort;
   neue zweite Fragen (Radikal an das CH₂-Ende, isotaktisch, Ester-O, Glycerin, Epoxidring, Block bei lebenden Ketten); Aktivieren als lösbare Frage;
   markiertes Kettenende beim Stufenwachstum; am Handy mehr Platz für das Bild. Grund: Lernende lasen die Begründung, während die Bewegung lief.
