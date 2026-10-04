@@ -187,6 +187,10 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
   const SIDE = tr<Record<string, string>>(
     { propen: "der CH₃-Gruppe", styrol: "dem Benzolring", vinylchlorid: "dem Cl", acrylnitril: "der C≡N-Gruppe", mma: "den zwei Gruppen", isobuten: "den zwei CH₃", vinylacetat: "der Acetatgruppe" },
     { propen: "the CH₃ group", styrol: "the benzene ring", vinylchlorid: "the Cl", acrylnitril: "the C≡N group", mma: "the two groups", isobuten: "the two CH₃", vinylacetat: "the acetate group" })[m] ?? "";
+  // Satzanfang (Nominativ): „Der Benzolring stützt …“
+  const SIDE_NOM = tr<Record<string, string>>(
+    { propen: "Die CH₃-Gruppe", styrol: "Der Benzolring", vinylchlorid: "Das Cl", acrylnitril: "Die C≡N-Gruppe", mma: "Die zwei Gruppen", isobuten: "Die zwei CH₃-Gruppen", vinylacetat: "Die Acetatgruppe" },
+    { propen: "The CH₃ group", styrol: "The benzene ring", vinylchlorid: "The Cl", acrylnitril: "The C≡N group", mma: "The two groups", isobuten: "The two CH₃ groups", vinylacetat: "The acetate group" })[m] ?? "";
   if (zn && m === "propen") {
     return q(tr("Warum zeigen alle CH₃-Gruppen zur selben Seite?", "Why do all CH₃ groups point to the same side?"),
       [
@@ -212,7 +216,7 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
         [tr("an das CH₂-Ende", "to the CH₂ end")],
         [tr(`an das C mit ${SIDE}`, `to the C with ${SIDE}`), kind === "radikal"
           ? tr("Das Radikal greift das CH₂-Ende an. Dort ist Platz, und das neue Radikal wird beständiger.", "The radical attacks the CH₂ end. There is room there, and the new radical is more stable.")
-          : tr(`Dann säße die positive Ladung am CH₂ – ohne Stütze, sehr unbeständig. ${SIDE.charAt(0).toUpperCase() + SIDE.slice(1)} stützt sie am anderen C.`, `Then the positive charge would sit on the CH₂ – unsupported, very unstable. ${SIDE.charAt(0).toUpperCase() + SIDE.slice(1)} supports it on the other C.`)],
+          : tr(`Dann säße die positive Ladung am CH₂ – ohne Stütze, sehr unbeständig. ${SIDE_NOM} ${m === "mma" || m === "isobuten" ? "stützen" : "stützt"} sie am anderen C.`, `Then the positive charge would sit on the CH₂ – unsupported, very unstable. ${SIDE_NOM} ${m === "mma" || m === "isobuten" ? "support" : "supports"} it on the other C.`)],
         [kind === "radikal" ? tr("an beide gleichzeitig", "to both at once") : tr("an eine Seitengruppe", "to a side group"), kind === "radikal"
           ? tr("Das Radikal hat nur ein Elektron. Es bildet genau eine neue Bindung.", "The radical has only one electron. It forms exactly one new bond.")
           : tr("Das Kettenende braucht ein Elektronenpaar. Das gibt die C=C, nicht die Seitengruppe.", "The chain end needs an electron pair. The C=C provides it, not the side group.")],

@@ -16,7 +16,9 @@ import { tapAfter, tapFrame, visibleAtoms, type TapScene } from "./tap.ts";
 type Extra = { vis?: Vis; pics?: Record<string, Vis>; tip?: string };
 /** Antippen im Bild: `parts` = antippbare Atome (Kennungen), `answer` = richtige Atome; `mode` multi = genau diese Menge, pair = zwei benachbarte
  *  Teile (Reihenfolge von `parts`). Gemeldet: einzeln `pick` (Index), mehrere `n`, `wrong` (erstes falsches Teil, sonst −1), `adj` (benachbart). */
-export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: string[]; labels: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean };
+export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: string[]; labels: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean;
+  /** Lösung in Worten (statt Nummern, die im Bild nicht stehen) */
+  sol: string };
 export type Task = (McTask & Extra) | TapTask;
 export const isTap = (t: Task): t is TapTask => t.kind === "tap";
 
@@ -68,7 +70,7 @@ const PS: Recipe = { art: "poly", a: "styrol", method: "dbpo" };
 const partLabel = (el: string, i: number, vac?: boolean) => (vac ? T("freie Stelle", "free site") : T(`${el}‑Atom ${i + 1}`, `${el} atom ${i + 1}`));
 const bondLabel = (els: string[], i: number) => T(`Bindung ${i + 1}: ${els.join("–")}`, `Bond ${i + 1}: ${els.join("–")}`);
 /** Antipp-Aufgabe zusammensetzen; `why(id)` liefert für jedes falsche Teil Schlüssel und Rückmeldung */
-function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; prompt: string; hint: string; tip?: string; explain: string;
+function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; sol: string; prompt: string; hint: string; tip?: string; explain: string;
   why?: (id: string) => [string, string]; extra?: Trap[] }): TapTask {
   const frame = tapFrame(o.scene), at = new Map(frame.snap.atoms.map(a => [a.id, a]));
   const labels = o.parts.map((id, i) => (id.includes("|") ? bondLabel(id.split("|").map(x => at.get(x)?.text || at.get(x)?.el || "?"), i) : partLabel(at.get(id)?.el ?? "", i, at.get(id)?.vac)));
@@ -79,7 +81,7 @@ function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?:
     traps.push({ values: o.mode && o.mode !== "any" ? { wrong: i } : { pick: i }, miss, why });
   });
   return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}),
-    prompt: o.prompt, hint: o.hint, explain: o.explain, traps, ...(o.tip ? { tip: o.tip } : {}) };
+    sol: o.sol, prompt: o.prompt, hint: o.hint, explain: o.explain, traps, ...(o.tip ? { tip: o.tip } : {}) };
 }
 
 /** Aufgabe zusammensetzen */
@@ -814,7 +816,7 @@ function schnitt(): Task {
   const answer = bonds.filter(isNew).map(b => key(b.a, b.b));
   const X = amide ? "N" : "O", link = amide ? T("Amidbindung", "amide bond") : T("Esterbindung", "ester bond");
   return tapTask({
-    scene, parts, answer, mode: "any",
+    scene, parts, answer, mode: "any", sol: T(`die Bindung vom C der C=O zum ${X}`, `the bond from the C of the C=O to the ${X}`),
     prompt: T("Tippe auf eine Bindung, die bei der Polykondensation neu entstanden ist.", "Tap a bond that formed in the polycondensation."),
     hint: T(`Die farbigen Flächen zeigen die Bausteine. Neu ist eine Bindung zwischen zwei Bausteinen.`, `The coloured areas show the units. A new bond lies between two units.`),
     tip: T(`Suche die Stelle, an der die Farbe wechselt: C=O auf der einen Seite, ${X} auf der anderen.`, `Look where the colour changes: C=O on one side, ${X} on the other.`),
@@ -837,7 +839,7 @@ function radikalTap(): Task {
   const parts = visibleAtoms(tapFrame(scene).snap).filter(a => a.el === "C").sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
   const rings = Object.values(tapFrame(scene).snap.rings).flat();
   return tapTask({
-    scene, parts, answer: ["u1cb"],
+    scene, parts, answer: ["u1cb"], sol: T("das C mit der Seitengruppe des neuen Monomers", "the C with the side group of the new monomer"),
     prompt: T(`Folge den Pfeilen. Tippe auf das C‑Atom, das danach das Radikal trägt.`, `Follow the arrows. Tap the C atom that carries the radical afterwards.`),
     hint: T("Ein Elektron der C=C bildet mit dem Radikal die neue Bindung. Das andere bleibt übrig.", "One electron of the C=C forms the new bond with the radical. The other is left over."),
     tip: T("Das CH₂ bindet an die Kette. Wo bleibt das zweite Elektron der C=C?", "The CH₂ bonds to the chain. Where does the second electron of the C=C stay?"),
@@ -855,7 +857,7 @@ function freieStelleTap(): Task {
   const scene: TapScene = { k: "mech", r, acts: ["act"], key: -1 };
   const parts = visibleAtoms(tapFrame(scene).snap).filter(a => a.vac || ["Ti", "Cl", "Al"].includes(a.el) || a.id === "ale0").sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
   return tapTask({
-    scene, parts, answer: ["tvac"],
+    scene, parts, answer: ["tvac"], sol: T("die freie Stelle am Titan (gestrichelter Kreis)", "the free site at the titanium (dashed circle)"),
     prompt: T("Tippe auf die Stelle, an der sich das nächste Propen anlagert.", "Tap the place where the next propene attaches."),
     hint: T("Am Titan gibt es eine Lücke ohne Atom – dort hat ein Monomer Platz.", "There is a gap without an atom at the titanium – a monomer fits there."),
     tip: T("Suche den gestrichelten Kreis am Titan.", "Look for the dashed circle at the titanium."),
@@ -878,7 +880,7 @@ function giftTap(): Task {
   const parts = visibleAtoms(snap).filter(a => a.id.startsWith("n")).sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
   const el = snap.atoms.find(a => a.id === ans)?.el ?? "Cl";
   return tapTask({
-    scene, parts, answer: [ans],
+    scene, parts, answer: [ans], sol: T(`das ${el}‑Atom mit freiem Elektronenpaar`, `the ${el} atom with a lone pair`),
     prompt: T(`${cap(nm(m))} kommt an das Titan. Tippe auf das Atom, das an das Titan bindet und es vergiftet.`, `${cap(nm(m))} reaches the titanium. Tap the atom that binds to the titanium and poisons it.`),
     hint: T("Gesucht ist ein Atom mit freiem Elektronenpaar: Cl, O, N oder F.", "Look for an atom with a lone pair: Cl, O, N or F."),
     tip: T("Welches Atom hat freie Elektronenpaare (Striche am Symbol)?", "Which atom has lone pairs (lines at the symbol)?"),
@@ -904,7 +906,7 @@ function hTap(): Task {
   const ans = vis.find(a => a.el === "H" && nb(snap, a.id).some(x => el(x) === "O") && nb(after, a.id).some(x => after.atoms.find(y => y.id === x)?.el === "N"))?.id ?? "";
   const parts = vis.sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
   return tapTask({
-    scene, parts, answer: [ans],
+    scene, parts, answer: [ans], sol: T("das H der –OH-Gruppe, die zur N=C=O-Gruppe zeigt", "the H of the –OH group facing the N=C=O group"),
     prompt: T("Tippe auf das H‑Atom, das gleich zum N wandert.", "Tap the H atom that is about to move to the N."),
     hint: T("Das O der –OH-Gruppe bindet an das C der N=C=O-Gruppe. Sein H geht zum N.", "The O of the –OH group binds to the C of the N=C=O group. Its H goes to the N."),
     tip: T("Suche die –OH-Gruppe, die zur N=C=O-Gruppe zeigt.", "Look for the –OH group facing the N=C=O group."),
@@ -926,7 +928,7 @@ function wasserTap(): Task {
   const dbl = (id: string) => snap.bonds.some(b => (b.a === id || b.b === id) && b.o === 2);
   const amine = r.b === "hexandiamin";
   return tapTask({
-    scene, parts, answer, mode: "multi",
+    scene, parts, answer, mode: "multi", sol: T(`das –OH der Säure und das H ${amine ? "des Amins" : "des Alkohols"}`, `the –OH of the acid and the H of the ${amine ? "amine" : "alcohol"}`),
     prompt: T("Tippe die drei Atome an, die zusammen als Wasser abgehen.", "Tap the three atoms that leave together as water."),
     hint: T(`Die Säure gibt OH ab, ${amine ? "das Amin" : "der Alkohol"} ein H.`, `The acid gives off OH, the ${amine ? "amine" : "alcohol"} an H.`),
     tip: T("Sieh dir die zwei Enden an, die sich gegenüberstehen.", "Look at the two ends that face each other."),
@@ -944,8 +946,8 @@ function bausteinTap(): Task {
   const scene: TapScene = { k: "chain", id, n: 3 };
   const parts = [0, 1, 2].flatMap(i => [`k${i}ca`, `k${i}cb`]);
   return tapTask({
-    scene, parts, answer: [], mode: "pair", halos: false,
-    prompt: T("Tippe die C‑Atome der Hauptkette an, die zusammen **einen** Baustein bilden.", "Tap the C atoms of the main chain that together form **one** repeat unit."),
+    scene, parts, answer: [], mode: "pair", halos: false, sol: T("zwei benachbarte C‑Atome der Hauptkette", "two neighbouring C atoms of the main chain"),
+    prompt: T("Tippe die **zwei** C‑Atome der Hauptkette an, die zusammen **einen** Baustein bilden.", "Tap the **two** C atoms of the main chain that together form **one** repeat unit."),
     hint: T(`Ein Baustein entsteht aus einem Monomer ${nm(id)}: so viele C‑Atome wie in seiner C=C.`, `One unit comes from one monomer ${nm(id)}: as many C atoms as in its C=C.`),
     tip: T("Das Muster wiederholt sich: Suche zwei C nebeneinander, eines mit Seitengruppe.", "The pattern repeats: look for two neighbouring C, one with a side group."),
     explain: T("Ein Baustein = zwei benachbarte C‑Atome der Hauptkette: –CH₂–CH(Seitengruppe)–. Danach wiederholt sich das Muster.", "One unit = two neighbouring C atoms of the main chain: –CH₂–CH(side group)–. Then the pattern repeats."),

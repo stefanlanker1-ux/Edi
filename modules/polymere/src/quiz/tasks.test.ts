@@ -26,7 +26,7 @@ test("alle Aufgaben gültig und speicherbar", () => {
       assert.deepEqual(JSON.parse(JSON.stringify(t)), t, "nicht JSON-fähig");
       if (isTap(t)) {
         // Antippen: Teile vorhanden, Lösung unter den Teilen, jede Falle mit Katalog-Schlüssel, jedes falsche Teil mit Rückmeldung
-        assert.ok(t.parts.length >= 3 && t.labels.length === t.parts.length, `${t.type}: Teile`);
+        assert.ok(t.parts.length >= 3 && t.labels.length === t.parts.length && t.sol, `${t.type}: Teile`);
         assert.ok(t.mode === "pair" || (t.answer.length > 0 && t.answer.every(a => t.parts.includes(a))), `${t.type}: Lösung fehlt ${t.answer}`);
         for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why, `${t.type}: Falle ohne Schlüssel`);
         if (t.mode !== "pair") t.parts.forEach((p, i) => { if (!t.answer.includes(p)) assert.ok((t.traps ?? []).some(tr => tr.values?.[t.mode && t.mode !== "any" ? "wrong" : "pick"] === i), `${t.type}: keine Rückmeldung für ${p}`); });

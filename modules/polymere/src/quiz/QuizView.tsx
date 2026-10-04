@@ -2,7 +2,7 @@
 // Aufgaben mit Bildern: Strukturformel, Kettenausschnitt, Mechanismus-Schritt mit Pfeilen, Kügelchen, Kettenbild;
 // manche Antworten sind selbst Bilder (Monomer, Baustein).
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
@@ -40,32 +40,51 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
   const pose = { ...still(frame.snap), arrows: frame.arrows.map(arrow => ({ arrow, op: 1 })) };
   // Lösung: einzeln/mehrere = `answer`; Paar: ein Beispiel (der erste Baustein) – oder die gewählten, wenn sie stimmen
   const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.mode === "any" ? (sel.length && t.answer.includes(sel[0]) ? sel : t.answer.slice(0, 1)) : t.answer;
+  // vor der Antwort: alle antippbaren Teile dünn gepunktet umrandet (sichtbar, was tippbar ist), gewählte schwarz
   const marks = solved
     ? [...right.map(id => ({ id, kind: "ok" as const })), ...sel.filter(id => !right.includes(id)).map(id => ({ id, kind: "no" as const }))]
-    : sel.map(id => ({ id, kind: "sel" as const }));
+    : [...(onPick ? t.parts.filter(id => !sel.includes(id)).map(id => ({ id, kind: "can" as const })) : []), ...sel.map(id => ({ id, kind: "sel" as const }))];
+  // Trefferkreise mindestens 44 px Durchmesser (Bildmaßstab messen)
+  const ref = useRef<HTMLDivElement>(null);
+  const [hitR, setHitR] = useState(0.46);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const upd = () => { const svg = el.querySelector("svg"); if (!svg) return; const r = svg.getBoundingClientRect(); const ppu = Math.min(r.width / (box.x1 - box.x0), r.height / (box.y1 - box.y0)); if (ppu > 0) setHitR(Math.max(0.46, 22 / ppu)); };
+    upd();
+    const ro = new ResizeObserver(upd); ro.observe(el);
+    return () => ro.disconnect();
+  }, [box]);
   return (
-    <div className="pm-tap-pic">
+    <div className="pm-tap-pic" ref={ref}>
       <MechSvg pose={pose} box={box} label={t.prompt.replace(/\*\*/g, "")} halos={t.halos !== false} className="pm-tap-svg"
-        onPick={onPick} pickable={t.parts} marks={marks} />
+        onPick={onPick} pickable={t.parts} marks={marks} hitR={hitR} />
     </div>
   );
 }
 
 function TapAnswer({ t, answered, submit }: { t: TapTask; answered: Answered | null; submit: Submit }) {
   const [sel, setSel] = useState<string[]>([]);
+  const [miss, setMiss] = useState(false);
   const multi = t.mode === "multi" || t.mode === "pair";
+  const need = t.mode === "pair" ? 2 : t.mode === "multi" ? t.answer.length : 1;
   const pickPart = (id: string) => {
-    if (answered || !t.parts.includes(id)) return;
+    if (answered) return;
+    // daneben getippt: kurz sagen, was tippbar ist
+    if (!t.parts.includes(id)) { setMiss(true); return; }
+    setMiss(false);
     buzz();
     if (!multi) { setSel([id]); submit(tapResult(t, [id])); return; }
     setSel(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
   };
   return (
-    <div className="pm-tap">
+    <div className={`pm-tap${answered ? " done" : ""}`}>
       <TapPic t={t} sel={sel} solved={!!answered} onPick={pickPart} />
-      {multi && !answered && (
-        <div className="pm-tap-bar">
-          <Button variant="primary" disabled={!sel.length} onClick={() => { buzz(); submit(tapResult(t, sel)); }}>{tr("Prüfen", "Check")}</Button>
+      {!answered && (multi || miss) && (
+        <div className="pm-tap-bar" aria-live="polite">
+          {miss ? <span className="pm-tap-note">{tr("Tippbar sind die gepunktet umrandeten Teile.", "Only the parts with a dotted outline can be tapped.")}</span>
+            : <span className="pm-tap-note">{tr(`${sel.length} von ${need} gewählt`, `${sel.length} of ${need} chosen`)}</span>}
+          {multi && <Button variant="primary" disabled={!sel.length} onClick={() => { buzz(); submit(tapResult(t, sel)); }}>{tr("Prüfen", "Check")}</Button>}
         </div>
       )}
       {/* Tastatur und Vorlesen: dieselben Teile als Knöpfe */}
@@ -93,7 +112,7 @@ export function QuizView() {
         : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
       renderOption={(t, o) => (!isTap(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
       renderAnswer={(t, a, submit) => (isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
-      solution={t => (isTap(t) ? (t.mode === "pair" ? tr("zwei benachbarte C‑Atome", "two neighbouring C atoms") : t.answer.map(a => t.labels[t.parts.indexOf(a)]).join(", ")) : null)}
+      solution={t => (isTap(t) ? t.sol : null)}
       explain={(level, task) => explainFor(level, task)}
     />
   );

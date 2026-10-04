@@ -119,7 +119,7 @@ function ArrowPath({ from, to, half, bend = 0.5, op }: { from: Pt; to: Pt; half?
   );
 }
 
-export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true, mark, pickable, marks }: {
+export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true, mark, pickable, marks, hitR }: {
   pose: Pose; box: Box; label: string; className?: string;
   /** Antippen eines Atoms (Kennung) */
   onPick?: (id: string) => void;
@@ -132,7 +132,9 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
   /** nur diese Atome sind antippbar (Trefferkreise auch für unbeschriftete Ring-Ecken und die freie Stelle) */
   pickable?: string[];
   /** Markierungen beim Antippen: gewählt, richtig (gestrichelt grün), noch nicht (gestrichelt, ✗) */
-  marks?: { id: string; kind: "sel" | "ok" | "no" }[];
+  marks?: { id: string; kind: "can" | "sel" | "ok" | "no" }[];
+  /** Radius der Trefferkreise (Bindungslängen), mindestens 44 px am Bildschirm */
+  hitR?: number;
 }) {
   const at = new Map(pose.atoms.map(a => [a.id, a]));
   // Atome am Bildrand: ganz drin (1) … draußen (0) – was hinausragt, wird ausgeblendet statt abgeschnitten
@@ -214,7 +216,7 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
       })}
       {/* Antippen: unsichtbare Trefferkreise je Atom (größer als die Schrift) */}
       {onPick && pose.atoms.map(a => ((a.op ?? 1) * vis(a) > 0.5 && (pickable ? pickable.includes(a.id) : (a.text ?? a.el))
-        ? <circle key={`hit${a.id}`} className="pm-hit" cx={a.x * U} cy={a.y * U} r={(a.el === "H" && !a.text ? 0.38 : 0.46) * U} data-atom={a.id} />
+        ? <circle key={`hit${a.id}`} className="pm-hit" cx={a.x * U} cy={a.y * U} r={(hitR ?? (a.el === "H" && !a.text ? 0.38 : 0.46)) * U} data-atom={a.id} />
         : null))}
       {/* Bindungen antippen: Kennung „a|b“, breite unsichtbare Trefferlinie */}
       {onPick && pickable?.filter(id => id.includes("|")).map(id => {
@@ -229,7 +231,7 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
           return (
             <g key={`mk${m.id}`} className={`mb-pick bond ${m.kind}`} pointerEvents="none">
               <line x1={A.x * U} y1={A.y * U} x2={B.x * U} y2={B.y * U} />
-              {m.kind !== "sel" && <text x={mx * U} y={(my - 0.38) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
+              {(m.kind === "ok" || m.kind === "no") && <text x={mx * U} y={(my - 0.38) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
             </g>
           );
         }
@@ -239,7 +241,7 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
         return (
           <g key={`mk${m.id}`} className={`mb-pick ${m.kind}`} pointerEvents="none">
             <circle cx={a.x * U} cy={a.y * U} r={r} />
-            {m.kind !== "sel" && <text x={(a.x + 0.42) * U} y={(a.y - 0.42) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
+            {(m.kind === "ok" || m.kind === "no") && <text x={(a.x + 0.42) * U} y={(a.y - 0.42) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
           </g>
         );
       })}
