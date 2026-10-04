@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "io.github.stefanlanker1ux.edi"
+    namespace = "app.edi.lernen"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "io.github.stefanlanker1ux.edi"
+        applicationId "app.edi.lernen"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // im Release-Workflow fortlaufend gesetzt (VERSION_CODE), lokal 1

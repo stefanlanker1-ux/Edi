@@ -31,5 +31,5 @@ In Android Studio bzw. Xcode dann auf ▶ drücken (Emulator oder angeschlossene
 Nach jeder Änderung erneut `npm run android` bzw. `npm run ios` ausführen.
 
 Vor einer Veröffentlichung im Play Store / App Store:
-- `appId` in `capacitor.config.ts` festlegen (danach nicht mehr ändern)
+- `appId` (`app.edi.lernen`, auch in `android/app/build.gradle`, `MainActivity.java`, `strings.xml`, iOS `project.pbxproj`) bleibt für immer gleich
 - eigene App-Icons und Startbildschirm erzeugen, z. B. mit `npx @capacitor/assets generate` (Vorlage: `public/icons/icon-512.png`)

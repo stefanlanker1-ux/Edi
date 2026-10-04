@@ -35,6 +35,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   (steigt automatisch). Signatur aus den Repository-Secrets `UPLOAD_KEYSTORE_BASE64` (Keystore als Base64) und `UPLOAD_KEYSTORE_PASSWORD`;
   `apps/edi/android/app/build.gradle` liest `UPLOAD_KEYSTORE_FILE`/`UPLOAD_KEYSTORE_PASSWORD`, `VERSION_CODE`, `VERSION_NAME` aus der Umgebung.
   Schlüsseldateien (`*.p12`, `*.jks`, `*.keystore`) und Passwörter **nie** ins Repository (`.gitignore`), nie in Logs, nie im Gespräch abfragen.
+- App-Kennung `app.edi.lernen` (Capacitor `appId`, Android `applicationId`/`namespace`/Paket von `MainActivity`, iOS Bundle-ID) **nie ändern** –
+  der Play Store bzw. App Store würde sie als neue App behandeln. Keine persönlichen Namen in Kennungen.
 - App-Icons: Vorlage `apps/edi/assets/` bzw. `public/icons/icon-512.png`; native Icons mit `npx @capacitor/assets generate` (im Ordner `apps/edi`).
 - Hilfsskripte für einmalige Browser-Prüfungen gehören nicht ins Repository (temporär außerhalb anlegen); dauerhaft nützliche Prüfungen als Test oder in `scripts/`.
 

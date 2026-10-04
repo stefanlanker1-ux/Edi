@@ -3,8 +3,6 @@
 Interaktive Lern-App für die Sekundarstufe: eine App mit mehreren Modulen, die sich Design und Logik teilen.
 Läuft im Browser, als installierbare Web-App (offline) und als Einzeldatei.
 
-Website: **https://stefanlanker1-ux.github.io/Edi/**
-
 | Modul | Inhalt |
 | --- | --- |
 | [Gemische](modules/gemische) | Reinstoffe und Gemische im Teilchenmodell: Teilchen, Elemente, Verbindungen; Öl und Wasser entmischen, Quiz |
@@ -13,6 +11,7 @@ Website: **https://stefanlanker1-ux.github.io/Edi/**
 | [Elektronenpaarbindung](modules/elektronenpaarbindung) | Moleküle aus Lewis-Atomen bauen, Valenz- und Keilstrichformel, 3D-Modell, Quiz |
 | [Reaktionsgleichungen](modules/reaktionsgleichungen) | Gleichungen ausgleichen mit Teilchenbild, Quiz |
 | [Neutralisation](modules/neutralisation) | Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen, Quiz |
+| [Nomenklatur](modules/organik) | Organische Moleküle zeichnen und nach IUPAC benennen, E/Z, Quiz |
 | [Einheiten](modules/einheiten) | Einheiten umrechnen mit Rechenweg, Stellenwerttafel, Quiz |
 
 ## Datenschutz

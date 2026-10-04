@@ -1,4 +1,4 @@
-package io.github.stefanlanker1ux.edi;
+package app.edi.lernen;
 
 import com.getcapacitor.BridgeActivity;
 
