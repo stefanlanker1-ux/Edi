@@ -53,7 +53,7 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
     acrylnitril: { fit: "none", fail: "poison", why: T("Das N‑Atom der Nitrilgruppe bindet mit seinem freien Elektronenpaar an das Titan. Der Katalysator ist vergiftet.", "The N atom of the nitrile group binds to the titanium with its lone pair. The catalyst is poisoned.") },
     tfe: { fit: "none", fail: "poison", why: T("Ein F‑Atom bindet an das Titan und besetzt die freie Stelle. Der Katalysator ist vergiftet.", "An F atom binds to the titanium and blocks the free site. The catalyst is poisoned.") },
     isobuten: { fit: "none", fail: "bulky", why: T("Zwei CH₃-Gruppen am selben C‑Atom sind zu sperrig. Isobuten wird am Titan nicht eingebaut.", "Two CH₃ groups on the same C atom are too bulky. Isobutene is not inserted at the titanium.") },
-    butadien: { fit: "ok", why: T("Butadien wird am Metall eingebaut – fast immer cis-1,4: ein Kautschuk wie Naturkautschuk.", "Butadiene is inserted at the metal – almost always cis-1,4: a rubber like natural rubber."), note: "cis-1,4" },
+    butadien: { fit: "ok", why: T("Butadien wird am Metall 1,4 eingebaut. Mit passendem Katalysator (z. B. Neodym) fast nur cis-1,4: ein Kautschuk wie Naturkautschuk.", "Butadiene is inserted 1,4 at the metal. With a suitable catalyst (e.g. neodymium) almost only cis-1,4: a rubber like natural rubber."), note: "cis-1,4" },
     vinylacetat: { fit: "none", fail: "poison", why: T("Ein O‑Atom der Estergruppe bindet an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "An O atom of the ester group binds to the titanium. It blocks the free site: the catalyst is poisoned.") },
   },
   anion: {
@@ -211,7 +211,7 @@ export type Link = "ester" | "amid" | "urethan" | "harnstoff" | "aminoalkohol" |
 export type Byp = "H2O" | "HCl" | null;
 
 export const LINK_NAME: Record<Link, string> = tr(
-  { ester: "Esterbindung", amid: "Amidbindung (Peptidbindung)", urethan: "Urethangruppe", harnstoff: "Harnstoffgruppe", aminoalkohol: "Aminoalkohol-Brücke", methylen: "CH₂-Brücke" },
+  { ester: "Esterbindung", amid: "Amidbindung (wie die Peptidbindung in Proteinen)", urethan: "Urethangruppe", harnstoff: "Harnstoffgruppe", aminoalkohol: "Aminoalkohol-Brücke", methylen: "CH₂-Brücke" },
   { ester: "ester bond", amid: "amide bond (peptide bond)", urethan: "urethane group", harnstoff: "urea group", aminoalkohol: "amino alcohol bridge", methylen: "CH₂ bridge" },
 );
 /** kurzer Name für die Statuszeile */
@@ -264,8 +264,8 @@ const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klass
   { a: "terephthaloylchlorid", b: "butandiol", p: tr(["PBT", "Polybutylenterephthalat", "Stecker und Gehäuse für Elektrogeräte"], ["PBT", "Poly(butylene terephthalate)", "plugs and housings for electrical devices"]) },
   { a: "adipinsaeure", b: "ethandiol", p: tr(["PEA", "Polyethylenadipat (Polyester)", "Ausgangsstoff für weiche Polyurethane"], ["PEA", "Poly(ethylene adipate) (polyester)", "raw material for soft polyurethanes"]) },
   { a: "adipoylchlorid", b: "ethandiol", p: tr(["PEA", "Polyethylenadipat (Polyester)", "Ausgangsstoff für weiche Polyurethane"], ["PEA", "Poly(ethylene adipate) (polyester)", "raw material for soft polyurethanes"]) },
-  { a: "adipinsaeure", b: "butandiol", p: tr(["PBA", "Polybutylenadipat (Polyester)", "Bestandteil kompostierbarer Folien"], ["PBA", "Poly(butylene adipate) (polyester)", "part of compostable films"]) },
-  { a: "adipoylchlorid", b: "butandiol", p: tr(["PBA", "Polybutylenadipat (Polyester)", "Bestandteil kompostierbarer Folien"], ["PBA", "Poly(butylene adipate) (polyester)", "part of compostable films"]) },
+  { a: "adipinsaeure", b: "butandiol", p: tr(["PBA", "Polybutylenadipat (Polyester)", "verwandt mit PBAT in kompostierbaren Folien"], ["PBA", "Poly(butylene adipate) (polyester)", "related to PBAT in compostable films"]) },
+  { a: "adipoylchlorid", b: "butandiol", p: tr(["PBA", "Polybutylenadipat (Polyester)", "verwandt mit PBAT in kompostierbaren Folien"], ["PBA", "Poly(butylene adipate) (polyester)", "related to PBAT in compostable films"]) },
   { a: "adipinsaeure", b: "hexandiamin", p: tr(["PA 6.6", "Polyamid 6.6 (Nylon)", "Strumpfhosen, Seile, Zahnräder, Kabelbinder"], ["PA 6.6", "Polyamide 6.6 (nylon)", "tights, ropes, gear wheels, cable ties"]) },
   { a: "adipoylchlorid", b: "hexandiamin", p: tr(["PA 6.6", "Polyamid 6.6 (Nylon)", "Strumpfhosen, Seile, Zahnräder, Kabelbinder"], ["PA 6.6", "Polyamide 6.6 (nylon)", "tights, ropes, gear wheels, cable ties"]) },
   { a: "terephthaloylchlorid", b: "phenylendiamin", p: tr(["PPTA", "Aramid (Poly-p-phenylenterephthalamid)", "schusssichere Westen, Feuerwehrkleidung, Seile"], ["PPTA", "Aramid (poly-p-phenylene terephthalamide)", "bulletproof vests, firefighter clothing, ropes"]) },
@@ -278,11 +278,11 @@ const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klass
   { a: "aminohexansaeure", p: tr(["PA 6", "Polyamid 6", "Fasern, Teppiche, Strümpfe"], ["PA 6", "Polyamide 6", "fibres, carpets, stockings"]),
     note: tr("technisch aus dem ringförmigen Caprolactam", "made industrially from the ring-shaped caprolactam") },
   { a: "phenol", b: "methanal", klasse: "duro", p: tr(["PF", "Phenoplast (Phenol-Formaldehyd-Harz)", "Griffe von Töpfen, Steckdosen, Leiterplatten"], ["PF", "Phenolic resin (phenol–formaldehyde)", "pan handles, sockets, circuit boards"]) },
-  { a: "hdi", b: "ethandiol", p: tr(["PUR", "Polyurethan", "Lacke, Klebstoffe, Schuhsohlen"], ["PUR", "Polyurethane", "paints, adhesives, shoe soles"]) },
-  { a: "hdi", b: "butandiol", p: tr(["PUR", "Polyurethan", "Lacke, Klebstoffe, Schuhsohlen"], ["PUR", "Polyurethane", "paints, adhesives, shoe soles"]) },
+  { a: "hdi", b: "ethandiol", p: tr(["PUR", "Polyurethan", "lichtechte Lacke, Klebstoffe"], ["PUR", "Polyurethane", "lightfast paints, adhesives"]) },
+  { a: "hdi", b: "butandiol", p: tr(["PUR", "Polyurethan", "lichtechte Lacke, Klebstoffe"], ["PUR", "Polyurethane", "lightfast paints, adhesives"]) },
   { a: "mdi", b: "ethandiol", p: tr(["TPU", "Thermoplastisches Polyurethan", "Skischuhe, Kabelmäntel, Handyhüllen"], ["TPU", "Thermoplastic polyurethane", "ski boots, cable sheaths, phone cases"]) },
   { a: "mdi", b: "butandiol", p: tr(["TPU", "Thermoplastisches Polyurethan", "Skischuhe, Kabelmäntel, Handyhüllen"], ["TPU", "Thermoplastic polyurethane", "ski boots, cable sheaths, phone cases"]) },
-  { a: "hdi", b: "glycerin", klasse: "duro", p: tr(["PUR", "Vernetztes Polyurethan", "harte Lacke, Hartschaum zum Dämmen"], ["PUR", "Cross-linked polyurethane", "hard paints, rigid insulation foam"]) },
+  { a: "hdi", b: "glycerin", klasse: "duro", p: tr(["PUR", "Vernetztes Polyurethan", "harte, lichtechte Lacke"], ["PUR", "Cross-linked polyurethane", "hard, lightfast paints"]) },
   { a: "mdi", b: "glycerin", klasse: "duro", p: tr(["PUR", "Vernetztes Polyurethan", "Hartschaum zum Dämmen"], ["PUR", "Cross-linked polyurethane", "rigid insulation foam"]) },
   { a: "hdi", b: "hexandiamin", p: tr(["PUA", "Polyharnstoff", "Schutzbeschichtungen für Böden und Ladeflächen"], ["PUA", "Polyurea", "protective coatings for floors and truck beds"]) },
   { a: "mdi", b: "hexandiamin", p: tr(["PUA", "Polyharnstoff", "Schutzbeschichtungen für Böden und Ladeflächen"], ["PUA", "Polyurea", "protective coatings for floors and truck beds"]) },
@@ -290,7 +290,7 @@ const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klass
 ];
 
 /** Polyester aus einer Säure und Glycerin: vernetzt */
-const NET_ESTER = tr(["UP", "Vernetzter Polyester (Polyesterharz)", "Lacke, Harze für Bootsrümpfe"], ["UP", "Cross-linked polyester (polyester resin)", "paints, resins for boat hulls"]);
+const NET_ESTER = tr(["—", "Vernetzter Polyester (Glycerin-Polyesterharz, Alkydharz-Typ)", "Lackharze"], ["—", "Cross-linked polyester (glycerol polyester resin, alkyd type)", "paint resins"]);
 
 /** Stufenwachstum aus einem Monomer (AB-Monomer) oder zwei Monomeren */
 export function stepReact(a: StepId, b?: StepId): StepOutcome {

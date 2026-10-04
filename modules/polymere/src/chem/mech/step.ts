@@ -279,17 +279,29 @@ export class StepMech implements Mech {
     if (link === "urethan" || link === "harnstoff") {
       const nco = R.fg === "NCO" ? R : L, nuc = R.fg === "NCO" ? L : R;
       const s = nco === R ? 1 : -1;
+      const h = nuc.leave[0];
       return [
         { from: { a: nuc.anchor, ang: s > 0 ? 200 : -20, r: 0.42 }, to: { a: nco.anchor, ang: s > 0 ? -20 : 200, r: 0.38 }, bend: 0.5 * s },
         { from: { b: [nco.extra.n, nco.anchor], off: -0.13 }, to: { a: nco.extra.n, ang: -90, r: 0.45 }, bend: -0.5 * s },
+        // H-Wanderung: das Elektronenpaar am N holt das H, das O–H-Paar bleibt am O
+        ...(h ? [
+          { from: { a: nco.extra.n, ang: 90, r: 0.42 }, to: { a: h, ang: 180, r: 0.3 }, bend: 0.6 },
+          { from: { b: [nuc.anchor, h], off: 0.12 }, to: { a: nuc.anchor, ang: 90, r: 0.42 }, bend: -0.5 },
+        ] as Arrow[] : []),
       ];
     }
     if (link === "aminoalkohol") {
       const ep = R.fg === "EPOX" ? R : L, n = R.fg === "EPOX" ? L : R;
       void sc;
+      const h = n.leave[0];
       return [
         { from: { a: n.anchor, ang: R === ep ? 180 : 0, r: 0.42 }, to: { a: ep.anchor, ang: R === ep ? 0 : 180, r: 0.38 }, bend: 0.5 },
         { from: { b: [ep.anchor, ep.extra.o], off: 0.12 }, to: { a: ep.extra.o, ang: 90, r: 0.45 }, bend: 0.5 },
+        // H-Wanderung: N–H-Paar bleibt am N, das O greift das H
+        ...(h ? [
+          { from: { b: [n.anchor, h], off: 0.12 }, to: { a: n.anchor, ang: 90, r: 0.42 }, bend: -0.5 },
+          { from: { a: ep.extra.o, ang: 90, r: 0.42 }, to: { a: h, ang: 0, r: 0.3 }, bend: 0.6 },
+        ] as Arrow[] : []),
       ];
     }
     return undefined;

@@ -130,7 +130,7 @@ export class ZnMech implements Mech {
     this.endGroup = "eth";
     this.phase = "bereit";
     this.stepName = ZN_STEP.aktiv;
-    this.note = tr("Ethylgruppe am Titan, oben eine freie Stelle.", "Ethyl group on titanium, a free site at the top.");
+    this.note = tr("Al(C₂H₅)₃ macht aus TiCl₄ festes TiCl₃ und setzt eine Ethylgruppe ans Titan. Dort beginnt die Kette.", "Al(C₂H₅)₃ turns TiCl₄ into solid TiCl₃ and puts an ethyl group on the titanium. The chain starts there.");
   }
 
   private add(m: VinylId) {

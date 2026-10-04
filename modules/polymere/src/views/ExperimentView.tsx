@@ -23,7 +23,7 @@ const ARTS: Art[] = ["poly", "kond", "add"];
 const KIND_TRY = tr({ radikal: "Radikalisch", anion: "Anionisch", kation: "Kationisch", koord: "Ziegler-Natta" },
   { radikal: "Radical", anion: "Anionic", kation: "Cationic", koord: "Ziegler–Natta" });
 const ART_SHORT: Record<Art, string> = tr({ poly: "Polymeri­sation", kond: "Polykonden­sation", add: "Poly­addition" }, { poly: "Polymeri­sation", kond: "Polycon­densation", add: "Poly­addition" });
-const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "+ Wasser", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "+ water", add: "no by-product" });
+const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "spaltet H₂O ab", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "splits off H₂O", add: "no by-product" });
 
 // ── Kleine Bilder für die Auswahl am Anfang ──
 function ArtPic({ art }: { art: Art }) {
@@ -115,13 +115,18 @@ function ProductCard({ recipe, mech }: { recipe: Recipe; mech: Mech }) {
       {product ? <h3>{product.name}</h3> : <h3>{tr("Kein Polymer", "No polymer")}</h3>}
       {recipe.art === "poly" && product && !product.copo && isVinyl(recipe.a) && <div className="pm-product-pic"><UnitSvg id={recipe.a} aspect={1.6} /></div>}
       {product && <div className="pm-tags">
-        <Tag>{KL[product.klasse]}</Tag><Tag>{ST[product.struktur]}</Tag>
+        {/* unvernetzte Ketten aus dem Ansatz sind Kautschuk: zum Elastomer werden sie erst durch Vulkanisieren (Schwefelbrücken) */}
+        {product.klasse === "elast" && product.struktur !== "vernetzt"
+          ? <><Tag>{tr("Kautschuk", "Rubber")}</Tag><Tag>{tr("Elastomer nach dem Vulkanisieren", "elastomer after vulcanisation")}</Tag></>
+          : <Tag>{KL[product.klasse]}</Tag>}
+        <Tag>{ST[product.struktur]}</Tag>
         {product.code && <Tag>{tr("Recycling-Code", "Recycling code")} {product.code}</Tag>}
       </div>}
       {extra}
       <p className="pm-why">{st.fail ?? why}</p>
       {product?.uses && product.uses !== "–" && <p><b>{tr("Verwendung", "Uses")}:</b> {product.uses}</p>}
       {product?.note && <p className="pm-small">{product.note}</p>}
+      {product?.klasse === "elast" && product.struktur !== "vernetzt" && <p className="pm-small">{tr("Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten.", "Rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains.")}</p>}
     </div>
   );
 }

@@ -21,10 +21,10 @@ interface U { m: VinylId; flip: boolean; ids: UnitIds }
 export const STEP = tr(
   { start: "Start", zerfall: "Zerfall des Starters", saeure: "Säure entsteht", kettenstart: "Kettenstart", wachstum: "Kettenwachstum",
     rekombination: "Abbruch: Rekombination", disproportionierung: "Abbruch: Disproportionierung", methanol: "Abbruch mit Methanol",
-    hplus: "Abbruch: H⁺ abgespalten", allyl: "H‑Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette" },
+    hplus: "Kettenende: H⁺ abgespalten", allyl: "H‑Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette" },
   { start: "Start", zerfall: "Initiator decomposes", saeure: "Acid forms", kettenstart: "Chain initiation", wachstum: "Chain growth",
     rekombination: "Termination: combination", disproportionierung: "Termination: disproportionation", methanol: "Termination with methanol",
-    hplus: "Termination: H⁺ split off", allyl: "H atom pulled off", nebenreaktion: "Side reaction", keine: "No reaction", lebend: "living chain" },
+    hplus: "Chain end: H⁺ split off", allyl: "H atom pulled off", nebenreaktion: "Side reaction", keine: "No reaction", lebend: "living chain" },
 );
 
 export class ChainMech implements Mech {
@@ -435,7 +435,12 @@ export class ChainMech implements Mech {
     const M = sc.at(me);
     const h = this.id("ha");
     sc.add({ id: h, el: "H", x: M.x - 0.1, y: M.y - 0.05, op: 0 });
-    this.key(800, 300, [{ from: { d: this.edots[0] }, to: { p: { x: (this.xe + M.x) / 2, y: (0 + M.y) / 2 - 0.2 } }, half: true, bend: -0.5 }]);
+    this.key(800, 300, [
+      { from: { d: this.edots[0] }, to: { p: { x: (this.xe + M.x) / 2, y: (0 + M.y) / 2 - 0.2 } }, half: true, bend: -0.5 },
+      // C–H-Bindung bricht: ein Elektron geht mit dem H zur neuen Bindung, eins bleibt am C (neues, beständiges Radikal)
+      { from: { a: me, ang: 200, r: 0.45 }, to: { p: { x: (this.xe + M.x) / 2 + 0.15, y: (0 + M.y) / 2 - 0.05 } }, half: true, bend: 0.5 },
+      { from: { a: me, ang: 200, r: 0.45 }, to: { a: me, ang: -20, r: 0.5 }, half: true, bend: -0.6 },
+    ]);
     sc.set(h, { op: 1 });
     this.key(100, 900);
     const E = sc.at(this.end);
@@ -515,6 +520,8 @@ export class ChainMech implements Mech {
         { from: { d: r }, to: { p: { x: (this.xe + H.x) / 2 + 0.1, y: H.y / 2 - 0.1 } }, half: true, bend: -0.6 },
         { from: { b: [z.ca, z.hLeft], off: 0.12 }, to: { a: z.hLeft, ang: -60, r: 0.35 }, half: true, bend: 0.6 },
         { from: { b: [z.ca, z.hLeft], off: 0.12 }, to: { b: [z.cb, z.ca], off: 0.14 }, half: true, bend: -0.6 },
+        // das Radikal-Elektron der zweiten Kette bildet mit dem übrigen C–H-Elektron die neue C=C
+        { from: { d: "zr" }, to: { b: [z.cb, z.ca], off: 0.14 }, half: true, bend: 0.6 },
       ]);
       sc.unbond(z.ca, z.hLeft);
       const dh = this.id("dh"), dc = this.id("dc"), C = sc.at(z.ca);

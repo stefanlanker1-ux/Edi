@@ -660,6 +660,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Fachkorrekturen Experimentieren** – Disäure + Glycerin = Glycerin-Polyesterharz (Alkydharz-Typ, Lackharze) statt UP; Butadien am Metall
+  1,4 (cis nur mit passendem Katalysator); Polybutadien, SBR, NBR, EPM … als **Kautschuk** (Elastomer erst nach dem Vulkanisieren); PUR- und PBA-Verwendungen;
+  Amidbindung „wie die Peptidbindung“; ⓘ zu Al(C₂H₅)₃; „spaltet H₂O ab“, „am Titan“; Pfeile für die H-Wanderung (Urethan, Epoxid), Disproportionierung
+  (vierter Halbpfeil) und Allyl-H-Abriss; „Kettenende: H⁺ abgespalten“.
 - **Polymere: Stufenwachstum ohne Überlappung** – Ethanol wird gewendet, damit seine –OH zur Kette zeigt (vorher über dem Benzolring), Glycerin mit
   –CH(OH)– als Ast nach unten, Epoxid-Öffnung ohne übereinanderliegende H; Hinweis, dass auch das andere Ende blockiert werden kann (im Modell wächst nur
   das rechte Ende). Test: keine zwei nicht gebundenen Atome näher als 0,6 Bindungslängen in allen Ansätzen.

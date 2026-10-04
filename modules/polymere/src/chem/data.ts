@@ -85,8 +85,8 @@ export const VINYLS: Vinyl[] = [
   },
   {
     id: "isobuten", struct: "{H₂C=C}(CH₃)₂", letter: "I", hue: "yellow", formula: "C4H8", a: ["H", "H"], b: ["CH3", "CH3"], abbr: "PIB", klasse: "elast",
-    ...tr({ name: "Isobuten", alt: "2-Methylpropen", polymer: "Polyisobuten", uses: "Kaugummimasse, Dichtmassen, Schläuche (Butylkautschuk)" },
-      { name: "Isobutene", alt: "2-methylpropene", polymer: "Polyisobutene", uses: "chewing gum base, sealants, inner tubes (butyl rubber)" }),
+    ...tr({ name: "Isobuten", alt: "2-Methylpropen", polymer: "Polyisobuten", uses: "Kaugummimasse, Dichtmassen; mit wenig Isopren: Butylkautschuk für Schläuche" },
+      { name: "Isobutene", alt: "2-methylpropene", polymer: "Polyisobutene", uses: "chewing gum base, sealants; with a little isoprene: butyl rubber for inner tubes" }),
   },
   {
     id: "butadien", struct: "{H₂C=CH–CH=CH₂}", letter: "B", hue: "orange", formula: "C4H6", a: ["H", "H"], b: ["H", "H"], diene: true, abbr: "BR", klasse: "elast",
@@ -153,8 +153,8 @@ export const METHODS: Method[] = [
 export const method = (id: string): Method => METHODS.find(m => m.id === id) ?? METHODS[0];
 
 export const KIND_NAME: Record<MechKind, string> = tr(
-  { radikal: "radikalisch", koord: "koordinativ (am Metall)", anion: "anionisch", kation: "kationisch" },
-  { radikal: "radical", koord: "coordinative (at the metal)", anion: "anionic", kation: "cationic" },
+  { radikal: "radikalisch", koord: "am Titan", anion: "anionisch", kation: "kationisch" },
+  { radikal: "radical", koord: "at titanium", anion: "anionic", kation: "cationic" },
 );
 
 // ── Stufenwachstum: Monomere mit funktionellen Gruppen ─────────────────────────
