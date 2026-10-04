@@ -289,6 +289,16 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
       [tr("keine Reaktion", "no reaction"), reacts],
     ], none ? 3 : byp === "H₂O" ? 0 : byp === "HCl" ? 1 : 2, bypOk);
   if (id === "join") return asked ? null : bypQ();
+  if (id.startsWith("branch:")) {
+    if (asked) return null;
+    const an = monoName(id.slice(7));
+    return q(tr(`${an} kommt an die dritte –OH des Glycerins. Was entsteht?`, `${an} reaches the third –OH of the glycerol. What forms?`),
+      [
+        [tr("ein Ast – Anfang eines Netzes", "a branch – start of a network")],
+        [tr("keine Reaktion", "no reaction"), tr("Die dritte –OH reagiert wie die anderen: Esterbindung und H₂O.", "The third –OH reacts like the others: ester bond and H₂O.")],
+        [tr("die Kette wird länger", "the chain gets longer"), tr("Die dritte –OH sitzt in der Mitte – es entsteht ein Ast, keine längere Kette.", "The third –OH sits in the middle – a branch forms, not a longer chain.")],
+      ], 0, tr("An der dritten –OH wächst ein Ast. Viele solche Äste verbinden die Ketten zu einem Netz.", "A branch grows at the third –OH. Many such branches link the chains into a network."));
+  }
   if (!id.startsWith("add:") && id !== "dimer") return null;
   if (asked === 0 || res === "none") {
     const nm = id === "dimer" ? tr("Eine Zweierkette", "A chain of two") : id === "add:pf" ? tr("Methanal + Phenol", "Methanal + phenol") : monoName(id.slice(4));

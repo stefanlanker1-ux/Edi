@@ -660,6 +660,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Glycerin verzweigt** – die dritte –OH ist eine eigene Andockstelle: „+ Ast“ hängt die Säure senkrecht darunter (nie in die Hauptkette,
+  vorher überlappten zwei Benzolringe), Kügelchen-Leiste zeigt den Ast in einer zweiten Zeile, Vorhersage-Frage zum Ast, Kennzeichen „Ast an der dritten –OH“;
+  keine Zweierkette mit Glycerin. Test für den Weg Verknüpfen → +T → +T → +Gl → +T → Ast.
 - **Polymere: Ketten- vs. Stufenwachstum eindeutig** – eine Wortwahl überall („sehr lange Ketten und viel Monomer“ ↔ „kurze Ketten (im Mittel 10 Bausteine),
   kaum Monomer“), Gefäßbilder zeigen den Längenunterschied (lange Ketten in Schleifen mit „…“); Vorhersage-Rückmeldungen mit genau den Gruppen des Ansatzes,
   neutrale Grammatik, Ablauf nach „Ansehen ▷“ schneller (×1,6); Reaktor: Ladung als „+“/„−“ am aktiven Ende, Legende mit beiden Monomeren; K3-Zusammenfassung

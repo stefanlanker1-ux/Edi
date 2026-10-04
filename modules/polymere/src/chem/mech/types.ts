@@ -28,7 +28,9 @@ export interface Action {
 export type Phase = "init" | "bereit" | "wachsend" | "ende" | "aus";
 
 /** Kügelchen der Leiste: Starter-Rest, Baustein (Monomer) oder aktives Ende */
-export interface Bead { kind: "init" | "unit" | "cat"; mono?: string; hue: Hue | "init"; letter: string; title: string; unit?: number }
+export interface Bead { kind: "init" | "unit" | "cat"; mono?: string; hue: Hue | "init"; letter: string; title: string; unit?: number;
+  /** Ast: hängt unter dem Kügelchen mit diesem Index der Hauptkette (Glycerin, dritte –OH) */
+  branchOf?: number }
 
 export interface Status {
   phase: Phase;

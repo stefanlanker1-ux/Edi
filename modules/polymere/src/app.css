@@ -74,6 +74,7 @@
 .pm-view .ui-seg button { padding: 4px 10px; font-size: .8rem; }
 .pm-mech { width: 100%; height: 100%; min-height: 0; padding-top: 50px; box-sizing: border-box; }
 .pm-strip { display: block; width: 100%; height: 40px; }
+.pm-strip.two { height: 66px; }
 .pm-strip-bond { stroke: var(--text); stroke-width: 2.4; }
 .pm-strip-more { font-size: 20px; font-weight: 800; fill: var(--muted); }
 .pm-strip-tap { cursor: pointer; }
@@ -195,6 +196,7 @@
 @media (max-height: 700px) {
   .pm-recipe { display: none; }
   .pm-strip { height: 32px; }
+  .pm-strip.two { height: 54px; }
   .pm-controls { gap: 6px; }
   .pm-chip { min-height: 44px; padding: 2px 6px; }
 }
@@ -285,3 +287,5 @@
 .pm-leg-plus { font-size: 12px; font-weight: 800; fill: var(--hue-red-deep); }
 .pm-leg-plus.an { fill: var(--hue-blue-deep); }
 .pm-pot-more { font-size: 9px; font-weight: 800; fill: var(--text); }
+.pm-acts-main .pm-act.branch { flex: none; padding-inline: 8px; }
+.pm-act.branch > span { white-space: nowrap; }

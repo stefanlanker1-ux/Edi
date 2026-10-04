@@ -21,20 +21,33 @@ export function BeadDot({ cx, cy, r, hue, letter, active }: { cx: number; cy: nu
 export function BeadStrip({ beads, active, onPick, max = 24 }: {
   beads: Bead[]; active: string | null; onPick?: (b: Bead) => void; max?: number;
 }) {
-  const shown = beads.length > max ? beads.slice(beads.length - max) : beads;
-  const cut = beads.length > max;
-  const r = 13, gap = 2 * r + 4, w = Math.max(1, shown.length) * gap + (cut ? gap : 0) + 10, h = 2 * r + 12;
+  // Äste (branchOf) stehen in einer zweiten Zeile unter ihrem Kügelchen der Hauptkette
+  const main = beads.filter(b => b.branchOf === undefined), branches = beads.filter(b => b.branchOf !== undefined);
+  const shown = main.length > max ? main.slice(main.length - max) : main;
+  const cut = main.length > max, off = main.length - shown.length;
+  const r = 13, gap = 2 * r + 4, w = Math.max(1, shown.length) * gap + (cut ? gap : 0) + 10;
+  const row = 2 * r + 12, h = row + (branches.some(b => b.branchOf! >= off) ? gap : 0);
+  const cxOf = (i: number) => (cut ? gap : 0) + gap / 2 + 5 + i * gap, cy = row / 2;
   return (
-    <svg className="pm-strip" viewBox={`0 0 ${w} ${h}`} role="img" aria-label={tr(`Kette als Kügelchen: ${beads.length} Teile`, `Chain as beads: ${beads.length} parts`)}>
-      {cut && <text className="pm-strip-more" x={gap / 2 + 4} y={h / 2} dominantBaseline="central" textAnchor="middle">…</text>}
+    <svg className={`pm-strip${h > row ? " two" : ""}`} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={tr(`Kette als Kügelchen: ${beads.length} Teile`, `Chain as beads: ${beads.length} parts`)}>
+      {cut && <text className="pm-strip-more" x={gap / 2 + 4} y={cy} dominantBaseline="central" textAnchor="middle">…</text>}
       {shown.map((b, i) => {
-        const cx = (cut ? gap : 0) + gap / 2 + 5 + i * gap, cy = h / 2;
+        const cx = cxOf(i);
         const last = i === shown.length - 1;
         return (
           <g key={i} onClick={onPick && b.kind === "unit" ? () => onPick(b) : undefined} className={onPick && b.kind === "unit" ? "pm-strip-tap" : undefined}>
             {i > 0 && <line className="pm-strip-bond" x1={cx - gap + r} y1={cy} x2={cx - r} y2={cy} />}
             <BeadDot cx={cx} cy={cy} r={b.kind === "unit" ? r : r * 0.72} hue={b.hue} letter={b.letter} active={last ? active : null} />
-            {onPick && b.kind === "unit" && <rect className="pm-hit" x={cx - gap / 2} y={0} width={gap} height={h} />}
+            {onPick && b.kind === "unit" && <rect className="pm-hit" x={cx - gap / 2} y={0} width={gap} height={row} />}
+          </g>
+        );
+      })}
+      {branches.filter(b => b.branchOf! >= off).map((b, k) => {
+        const cx = cxOf(b.branchOf! - off), y = cy + gap;
+        return (
+          <g key={`b${k}`} onClick={onPick ? () => onPick(b) : undefined} className={onPick ? "pm-strip-tap" : undefined}>
+            <line className="pm-strip-bond" x1={cx} y1={cy + r} x2={cx} y2={y - r} />
+            <BeadDot cx={cx} cy={y} r={r} hue={b.hue} letter={b.letter} />
           </g>
         );
       })}

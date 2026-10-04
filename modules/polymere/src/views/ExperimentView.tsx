@@ -419,7 +419,7 @@ export function ExperimentView() {
     const add = a.kind === "add" || !!a.pair;
     const ids = a.pair ?? (a.mono ? [a.mono] : []);
     return (
-      <Button key={a.id} variant={a.kind === "stop" ? "soft" : "primary"} className={`pm-act${add ? " add" : ""}${a.kind === "other" ? " other" : ""}`} disabled={disabled}
+      <Button key={a.id} variant={a.kind === "stop" ? "soft" : "primary"} className={`pm-act${add ? " add" : ""}${a.kind === "other" ? " other" : ""}${a.id.startsWith("branch:") ? " branch" : ""}`} disabled={disabled}
         aria-label={a.label} title={a.label} onClick={() => onRun(a.id)}>
         {add && <span className="pm-plus" aria-hidden="true">+</span>}
         {!(small && a.kind === "other") && ids.map(m => <BeadIcon key={m} id={m} size={22} />)}

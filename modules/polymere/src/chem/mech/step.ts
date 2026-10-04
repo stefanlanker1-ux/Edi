@@ -11,8 +11,8 @@ import { Scene, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
 import type { Action, Bead, Mech, Phase, Recipe, Status } from "./types.ts";
 
 export const STEP_STEP = tr(
-  { start: "Ausgangsstoffe", keine: "keine Reaktion", blockiert: "Kettenende blockiert", zwei: "Ketten verbinden sich" },
-  { start: "Starting materials", keine: "No reaction", blockiert: "Chain end blocked", zwei: "Chains join" },
+  { start: "Ausgangsstoffe", keine: "keine Reaktion", blockiert: "Kettenende blockiert", zwei: "Ketten verbinden sich", ast: "Ast an der dritten –OH" },
+  { start: "Starting materials", keine: "No reaction", blockiert: "Chain end blocked", zwei: "Chains join", ast: "Branch at the third –OH" },
 );
 
 interface Mol { mol: StepMol; ids: StepId[] }
@@ -28,6 +28,7 @@ function groupWhy(r: FG, l: FG): string {
 
 /** Monomer mit lauter gleichen Gruppen (Disäure, Diol, Diamin …): nur dann ist eine Zweierkette aus beiden eindeutig gebaut
  *  (mit Milchsäure oder 6-Aminohexansäure hinge es von der Richtung ab, welche Gruppen sich verbinden) */
+/* Zweierkette nur bei zwei Gruppen je Monomer: bei Glycerin gibt es stattdessen den Ast */
 const sameGroups = (id: StepId) => stepMono(id).groups.every(g => g === stepMono(id).groups[0]);
 
 export class StepMech implements Mech {
@@ -41,6 +42,8 @@ export class StepMech implements Mech {
   units: StepId[] = [];
   /** rechtes Ende der Kette */
   right: End | null = null;
+  /** freie bzw. besetzte Andockstellen für Äste (dritte –OH des Glycerins); unit = Index des Glycerins in der Kette */
+  branches: { end: End; unit: number; used?: StepId }[] = [];
   /** Molekül, das schon bereitsteht (vor der ersten Verknüpfung) */
   pending: Mol | null = null;
   byp = 0;
@@ -72,7 +75,8 @@ export class StepMech implements Mech {
     }
     const A = stepMolecule(sc, this.a, 0, 0, this.ctx(this.a));
     this.units.push(this.a);
-    this.right = A.ends.find(e => e.s === 1) ?? null;
+    this.right = A.ends.find(e => e.s === 1 && !e.branch) ?? null;
+    this.addBranches(A.ends, 0, [this.a]);
     // zweites Molekül unter dem ersten (etwas eingerückt): so passen beide auch hochkant groß ins Bild; beim Verknüpfen gleitet es an das Kettenende
     const B0 = stepMolecule(sc, this.b, 0, 3, this.ctx(this.b));
     const B = { ...B0, x0: B0.x0 + A.x0 + 1.2 - B0.x0, x1: B0.x1 + A.x0 + 1.2 - B0.x0 };
@@ -97,8 +101,9 @@ export class StepMech implements Mech {
 
   status(): Status {
     const beads: Bead[] = this.units.map((u, i) => { const m = stepMono(u); return { kind: "unit", mono: u, hue: m.hue, letter: m.letter, title: m.name, unit: i }; });
+    for (const b of this.branches) if (b.used) { const m = stepMono(b.used); beads.push({ kind: "unit", mono: b.used, hue: m.hue, letter: m.letter, title: m.name, branchOf: b.unit }); }
     return {
-      phase: this.phase, n: this.units.length, step: this.stepName, active: null, fail: this.fail, beads, note: this.note, end: this.right?.fg, endAtom: this.right?.anchor,
+      phase: this.phase, n: this.units.length + this.branches.filter(b => b.used).length, step: this.stepName, active: null, fail: this.fail, beads, note: this.note, end: this.right?.fg, endAtom: this.right?.anchor,
       ...(this.byp ? { byp: `${this.byp} ${this.bypName}` } : {}),
     };
   }
@@ -109,7 +114,11 @@ export class StepMech implements Mech {
     const out: Action[] = [];
     if (this.isPhenoplast()) out.push({ id: "add:pf", kind: "add", pair: ["methanal", "phenol"], label: tr("+ Methanal + Phenol", "+ methanal + phenol") });
     else for (const m of [...new Set([this.a, this.b])]) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${stepMono(m).name}` });
-    if (this.units.length >= 2 && !this.isPhenoplast() && this.a !== this.b && sameGroups(this.a) && sameGroups(this.b)) out.push({ id: "dimer", kind: "other", pair: [this.a, this.b], label: tr("+ Zweier\u00ADkette", "+ chain of two") });
+    // Ast an der dritten –OH des Glycerins (mit dem Partner, dessen Gruppe dazu passt)
+    const free = this.branches.find(b => !b.used);
+    const bm = free && [this.a, this.b].find(m => m !== "glycerin" && stepMono(m).groups.some(g => reactGroups(free.end.fg, g)));
+    if (bm) out.push({ id: `branch:${bm}`, kind: "other", mono: bm, label: tr("+ Ast", "+ branch") });
+    if (this.units.length >= 2 && !this.isPhenoplast() && this.a !== this.b && sameGroups(this.a) && sameGroups(this.b) && !bm && stepMono(this.a).groups.length === 2 && stepMono(this.b).groups.length === 2) out.push({ id: "dimer", kind: "other", pair: [this.a, this.b], label: tr("+ Zweier\u00ADkette", "+ chain of two") });
     return out;
   }
 
@@ -122,6 +131,7 @@ export class StepMech implements Mech {
     else if (id === "add:pf") this.addPf();
     else if (id.startsWith("add:")) this.addMono(id.slice(4) as StepId);
     else if (id === "dimer") this.addDimer();
+    else if (id.startsWith("branch:")) this.addBranch(id.slice(7) as StepId);
     this.key(0, 0);
     return this.keys;
   }
@@ -152,7 +162,7 @@ export class StepMech implements Mech {
     let mol = stepMolecule(this.sc, ids[0], x0, 0, this.ctx(ids[0]));
     // weitere Monomere (Zweierkette) gleich anhängen, ohne Ablauf
     for (let i = 1; i < ids.length; i++) {
-      const r = mol.ends.find(e => e.s === 1)!;
+      const r = mol.ends.find(e => e.s === 1 && !e.branch)!;
       const nb = stepMolecule(this.sc, ids[i], this.sc.at(r.anchor).x + 1 + (stepMono(ids[i]).groups[0] === "NCO" && (r.fg === "OH" || r.fg === "NH2") ? -1 : 0), 0, this.ctx(ids[i]));
       const l = nb.ends.find(e => e.s === -1)!;
       this.link(r, l, false);
@@ -195,13 +205,13 @@ export class StepMech implements Mech {
   private join(m: Mol, initial: boolean, dimer = false) {
     const sc = this.sc;
     const R = this.right;
-    let L = m.mol.ends.find(e => e.s === -1) ?? m.mol.ends[0];
+    let L = m.mol.ends.find(e => e.s === -1 && !e.branch) ?? m.mol.ends[0];
     if (!R || !L) return;
     // passt die linke Gruppe nicht, aber die rechte, wird das Molekül gewendet
-    const other = m.mol.ends.find(e => e.s === 1);
-    if (!reactGroups(R.fg, L.fg) && other && reactGroups(R.fg, other.fg)) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1)!; }
+    const other = m.mol.ends.find(e => e.s === 1 && !e.branch);
+    if (!reactGroups(R.fg, L.fg) && other && reactGroups(R.fg, other.fg)) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1 && !e.branch)!; }
     // Molekül mit nur einer Gruppe (Ethanol), die rechts sitzt: wenden, damit sie zur Kette zeigt und nichts überlappt
-    else if (L.s === 1) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1) ?? L; }
+    else if (L.s === 1) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1 && !e.branch) ?? L; }
     const r = reactGroups(R.fg, L.fg);
     const all = m.mol.atoms;
     if (!initial) {
@@ -245,14 +255,62 @@ export class StepMech implements Mech {
     sc.move(all, dx, 0);
     this.link(R, L, true);
     hl.forEach(i => sc.has(i) && sc.set(i, { hl: false }));
+    this.addBranches(m.mol.ends, this.units.length, m.ids);
     this.units.push(...m.ids);
     this.stepName = dimer ? STEP_STEP.zwei : LINK_SHORT[r.link];
     this.key(700, 900);
     this.release();
     // neues rechtes Ende
-    this.right = m.mol.ends.find(e => e.s === 1 && e !== L) ?? null;
+    this.right = m.mol.ends.find(e => e.s === 1 && e !== L && !e.branch) ?? null;
     this.phase = this.right ? "wachsend" : "ende";
     if (!this.right) { this.stepName = STEP_STEP.blockiert; this.note = tr("Nur eine reaktive Gruppe – die Kette kann hier nicht weiterwachsen. Auch die zweite Gruppe am anderen Ende kann so blockiert werden – dann entsteht ein kleines Molekül, keine Kette. Im Modell wächst nur das rechte Ende.", "Only one reactive group – the chain cannot grow on here. The group at the other end can be blocked the same way – then a small molecule forms, no chain. In the model only the right end grows."); }
+  }
+
+  /** Andockstellen für Äste merken (Glycerin: dritte –OH) */
+  private addBranches(ends: End[], start: number, ids: StepId[]) {
+    const gi = ids.indexOf("glycerin");
+    for (const e of ends) if (e.branch && gi >= 0) this.branches.push({ end: e, unit: start + gi });
+  }
+
+  /** Ast: ein Molekül bindet an die dritte –OH des Glycerins und wird senkrecht nach unten gezeichnet (nie in die Hauptkette) */
+  private addBranch(id: StepId) {
+    const sc = this.sc, b = this.branches.find(x => !x.used);
+    if (!b) return;
+    const R = b.end, O = sc.at(R.anchor);
+    const mol = stepMolecule(sc, id, 0, 0, this.ctx(id));
+    const m: Mol = { mol, ids: [id] };
+    let L = mol.ends.find(e => e.s === -1 && !e.branch) ?? mol.ends[0];
+    if (!reactGroups(R.fg, L.fg)) { const o = mol.ends.find(e => e.s === 1 && !e.branch); if (o && reactGroups(R.fg, o.fg)) { this.mirror(m); L = m.mol.ends.find(e => e.s === -1 && !e.branch)!; } }
+    const r = reactGroups(R.fg, L.fg);
+    if (!r) { mol.atoms.forEach(i => sc.remove(i)); return; }
+    // senkrecht nach unten drehen und mit dem reagierenden Atom unter das O setzen
+    const A0 = sc.at(L.anchor);
+    sc.rotate(m.mol.atoms, { x: A0.x, y: A0.y }, 90);
+    const A1 = sc.at(L.anchor);
+    sc.move(m.mol.atoms, O.x - A1.x, O.y + 1 - A1.y);
+    this.fx = O.x - 3.4; this.fw = 8.2;
+    // von unten heranschweben
+    sc.move(m.mol.atoms, 0, 1.6); m.mol.atoms.forEach(i => sc.set(i, { op: 0 }));
+    this.key(60, 500);
+    m.mol.atoms.forEach(i => sc.set(i, { op: 1 }));
+    this.key(150, 600);
+    const hl = [R.anchor, L.anchor, ...R.leave, ...L.leave].filter(i => sc.has(i));
+    hl.forEach(i => sc.set(i, { hl: true }));
+    this.key(800, 300);
+    sc.move(m.mol.atoms, 0, -1.6);
+    this.link(R, L, true);
+    hl.forEach(i => sc.has(i) && sc.set(i, { hl: false }));
+    // Nebenprodukt seitlich neben den Ast (nicht in ihn hinein)
+    if (this.bypIds.length) {
+      sc.move(this.bypIds.filter(i => sc.has(i)), 1.8 - (sc.at(this.bypIds[0]).x - O.x), O.y + 0.9 - sc.at(this.bypIds[0]).y);
+      const n = sc.notes.get("bypn"); if (n) { n.x = O.x + 3.0; n.y = O.y + 1.1; }
+    }
+    b.used = id;
+    this.fail = undefined;
+    this.stepName = STEP_STEP.ast;
+    this.note = tr("Verzweigt: Ein Ast hängt an der dritten –OH. Mit mehr Glycerin entsteht ein Netz.", "Branched: a branch hangs on the third –OH. With more glycerol a network forms.");
+    this.key(700, 900);
+    this.release();
   }
 
   /** Nebenprodukt sinkt weg und verschwindet */

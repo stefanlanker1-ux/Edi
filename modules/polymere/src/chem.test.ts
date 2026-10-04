@@ -248,3 +248,23 @@ test("Atom-Ansicht: Moleküle überlappen sich nicht (Stufenwachstum, Endbild je
   }
   assert.deepEqual([...new Set(bad)].slice(0, 12), []);
 }, 120_000);
+
+test("Glycerin: dritte –OH als Ast nach unten, nie in der Hauptkette (Weg Verknüpfen, +T, +T, Zweierkette, +T, Ast)", () => {
+  for (const acid of ["terephthalsaeure", "adipinsaeure"]) {
+    const r: Recipe = { art: "kond", a: acid, b: "glycerin" };
+    const m = makeMech(r);
+    for (const id of ["join", `add:${acid}`, `add:${acid}`, "add:glycerin", `add:${acid}`, `branch:${acid}`]) if (m.actions().some(a => a.id === id)) m.run(id);
+    const st = m.status();
+    const main = st.beads.filter(b => b.branchOf === undefined).map(b => b.mono);
+    for (let i = 1; i < main.length; i++) assert.ok(!(main[i] === acid && main[i - 1] === acid), `${acid}: zwei Säuren nebeneinander ${main}`);
+    const br = st.beads.filter(b => b.branchOf !== undefined);
+    assert.strictEqual(br.length, 1, `${acid}: ein Ast`);
+    assert.strictEqual(main[br[0].branchOf!], "glycerin");
+    const s = m.snap(), at = s.atoms.filter(a => (a.op ?? 1) > 0.5 && (a.text ?? a.el));
+    const bonded = new Set(s.bonds.map(b => [b.a, b.b].sort().join("|")));
+    for (let i = 0; i < at.length; i++) for (let j = i + 1; j < at.length; j++) {
+      if (bonded.has([at[i].id, at[j].id].sort().join("|"))) continue;
+      assert.ok(Math.hypot(at[i].x - at[j].x, at[i].y - at[j].y) >= 0.6, `${acid}: ${at[i].id}/${at[j].id} überlappen`);
+    }
+  }
+});

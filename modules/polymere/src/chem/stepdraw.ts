@@ -17,6 +17,8 @@ export interface End {
   extra: Record<string, string>;
   /** Seite: +1 rechts, −1 links */
   s: 1 | -1;
+  /** dritte Gruppe in der Mitte (Glycerin): Andockstelle für einen Ast, nie Fortsetzung der Hauptkette */
+  branch?: boolean;
 }
 export interface StepMol { atoms: string[]; ends: End[]; x0: number; x1: number }
 
@@ -119,7 +121,7 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     // –CH(OH)–: O als Ast nach unten, H darunter (nicht neben das H des rechten CH₂)
     const o = A("o3", "O", xc - 1, y + 1), h = A("h3", "H", xc - 1, y + 1.8);
     sc.bond(cs[1], o); sc.bond(o, h); sc.autoLp(o, 2, 0);
-    ends.push({ fg: "OH", anchor: o, leave: [h], extra: {}, s: 1 });
+    ends.push({ fg: "OH", anchor: o, leave: [h], extra: {}, s: 1, branch: true });
   } else if (core.k === "mdi") {
     const r1 = benzene(sc, xc, y, 0, ctx, "ra");
     const ch2 = A("ch2", "C", xc + 2.44, y);
