@@ -3,7 +3,7 @@
 // in Atomen (Mechanismus mit Elektronen) oder als Kügelchen (Reaktor mit vielen Ketten). In der Atom-Ansicht wird vor einem
 // Schritt zuerst vorhergesagt, was passiert (abschaltbar), dann läuft der Ablauf ab.
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, Icon, IconButton, Segmented, Sheet, Switch, Tag, buzz, ding, tr, useMediaQuery, useReducedMotion, Workbench } from "@lern/ui";
 import { ART_NAME, KIND_NAME, METHODS, STEPS, VINYLS, isVinyl, method, monoHue, monoLetter, monoName, monoStruct, stepMono, vinyl, type Art, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
 import { compat, methodsFor, polymerise, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
@@ -175,12 +175,13 @@ function BeadLegend({ recipe }: { recipe: Recipe }) {
   const m = recipe.a;
   return (
     <ul className="pm-legend">
-      {row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(m)} letter={monoLetter(m)} />, tr(`ein Baustein (${monoName(m)}); verbundene Kügelchen = Kette`, `one unit (${monoName(m).toLowerCase()}); joined beads = chain`))}
+      {([recipe.a, recipe.b].filter(Boolean) as string[]).map(x => <Fragment key={x}>{row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(x)} letter={monoLetter(x)} />, tr(`ein Baustein ${monoName(x)}`, `one unit of ${monoName(x).toLowerCase()}`))}</Fragment>)}
+      {row(<><BeadDot cx={-5} cy={0} r={5} hue={monoHue(m)} /><BeadDot cx={5} cy={0} r={5} hue={monoHue(recipe.b ?? m)} /></>, tr("verbundene Kügelchen = Kette", "joined beads = chain"))}
       {poly && kind !== "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Starter bzw. sein Bruchstück am Kettenanfang", "initiator or its fragment at the chain start"))}
       {kind === "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Ethylgruppe bzw. H am Kettenanfang", "ethyl group or H at the chain start"))}
       {kind === "radikal" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="rad" />, tr("rot gestrichelt: Radikal – hier wächst die Kette", "red dashes: radical – the chain grows here"))}
-      {kind === "anion" && row(<BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="an" />, tr("blau gestrichelt: negatives Kettenende (lebend)", "blue dashes: negative chain end (living)"))}
-      {kind === "kation" && row(<><BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="kat" /><text className="pm-leg-plus" x={7} y={-6} textAnchor="middle" dominantBaseline="central">+</text></>, tr("dunkelroter Ring mit +: positives Kettenende", "dark red ring with +: positive chain end"))}
+      {kind === "anion" && row(<><BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="an" /><text className="pm-leg-plus an" x={8} y={-8} textAnchor="middle" dominantBaseline="central">−</text></>, tr("blau gestrichelt mit −: negatives Kettenende (lebend)", "blue dashes with −: negative chain end (living)"))}
+      {kind === "kation" && row(<><BeadDot cx={0} cy={0} r={6.5} hue={monoHue(m)} active="kat" /><text className="pm-leg-plus" x={8} y={-8} textAnchor="middle" dominantBaseline="central">+</text></>, tr("dunkelroter Ring mit +: positives Kettenende", "dark red ring with +: positive chain end"))}
       {kind === "koord" && row(<BeadDot cx={0} cy={0} r={9} hue="init" letter="Ti" />, tr("Titan (Katalysator): die Kette wächst hier", "titanium (catalyst): the chain grows here"))}
       {poly && (recipe.method === "dbpo" || recipe.method === "aibn") && row(<circle className="pm-leg-gas" r={4} />, tr(`Bläschen: ${recipe.method === "dbpo" ? "CO₂" : "N₂"} aus dem Starter`, `bubbles: ${recipe.method === "dbpo" ? "CO₂" : "N₂"} from the initiator`))}
       {!poly && row(<circle className="pm-leg-byp" r={4} />, tr("blaue Bläschen: abgespaltenes Wasser H₂O bzw. HCl", "blue bubbles: split-off water H₂O or HCl"))}
@@ -352,7 +353,7 @@ export function ExperimentView() {
       </div>
       {view === "atome"
         ? <>
-            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : 1}
+            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : pq?.phase === "watch" ? 1.6 : 1}
               mark={pq && (pq.phase === "ask" || pq.phase === "picked") && art !== "poly" ? st.endAtom : undefined} />
             {st.beads.length > 0 && <BeadStrip beads={st.beads} active={st.active} onPick={(b: Bead) => b.mono && setInfo(b.mono)} />}
           </>

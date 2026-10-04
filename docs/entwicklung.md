@@ -660,6 +660,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Ketten- vs. Stufenwachstum eindeutig** – eine Wortwahl überall („sehr lange Ketten und viel Monomer“ ↔ „kurze Ketten (im Mittel 10 Bausteine),
+  kaum Monomer“), Gefäßbilder zeigen den Längenunterschied (lange Ketten in Schleifen mit „…“); Vorhersage-Rückmeldungen mit genau den Gruppen des Ansatzes,
+  neutrale Grammatik, Ablauf nach „Ansehen ▷“ schneller (×1,6); Reaktor: Ladung als „+“/„−“ am aktiven Ende, Legende mit beiden Monomeren; K3-Zusammenfassung
+  mit kationisch; Milchsäure allein mit mehr Abstand.
 - **Polymere: Fachkorrekturen Experimentieren** – Disäure + Glycerin = Glycerin-Polyesterharz (Alkydharz-Typ, Lackharze) statt UP; Butadien am Metall
   1,4 (cis nur mit passendem Katalysator); Polybutadien, SBR, NBR, EPM … als **Kautschuk** (Elastomer erst nach dem Vulkanisieren); PUR- und PBA-Verwendungen;
   Amidbindung „wie die Peptidbindung“; ⓘ zu Al(C₂H₅)₃; „spaltet H₂O ab“, „am Titan“; Pfeile für die H-Wanderung (Urethan, Epoxid), Disproportionierung

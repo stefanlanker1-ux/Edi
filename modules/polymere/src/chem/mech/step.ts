@@ -74,7 +74,7 @@ export class StepMech implements Mech {
     this.units.push(this.a);
     this.right = A.ends.find(e => e.s === 1) ?? null;
     // zweites Molekül unter dem ersten (etwas eingerückt): so passen beide auch hochkant groß ins Bild; beim Verknüpfen gleitet es an das Kettenende
-    const B0 = stepMolecule(sc, this.b, 0, 2.5, this.ctx(this.b));
+    const B0 = stepMolecule(sc, this.b, 0, 3, this.ctx(this.b));
     const B = { ...B0, x0: B0.x0 + A.x0 + 1.2 - B0.x0, x1: B0.x1 + A.x0 + 1.2 - B0.x0 };
     sc.move(B0.atoms, A.x0 + 1.2 - B0.x0, 0);
     this.pending = { mol: B, ids: [this.b] };

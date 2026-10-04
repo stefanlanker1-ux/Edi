@@ -134,14 +134,13 @@ function fill(taken: Pt[], n: number): Pt[][] {
 function potPieces(s: PotKind): Pt[][] {
   if (s === "mono") return fill([], 24);
   if (s === "long") {
-    // Kettenwachstum: zwei lange Ketten (in Schleifen gelegt) und viel freies Monomer
-    const loop = (a: Pt[], b: Pt[]) => [...a, ...b];
-    const ch = [loop(line(18, 17, 99, 19, 10, 1.6), line(99, 30, 54, 31, 6, 1.6, 2)), loop(line(100, 49, 19, 51, 10, 1.6, 1), line(19, 62, 64, 63, 6, 1.6, 3))];
+    // Kettenwachstum: zwei sehr lange Ketten in Schleifen, die über den Rand hinausgehen (tausende Bausteine), dazu viel freies Monomer
+    const ch = [[...line(14, 16, 106, 16, 11, 1.4), ...line(106, 28, 30, 28, 9, 1.4, 2)], [...line(106, 52, 14, 52, 11, 1.4, 1), ...line(14, 64, 90, 64, 9, 1.4, 3)]];
     return [...ch, ...fill(ch.flat(), 12)];
   }
   if (s === "short") {
-    // Stufenwachstum bei 90 % Umsatz: im Mittel 10 Bausteine – drei mittellange Ketten, fast kein freies Monomer mehr
-    const ch = [line(20, 19, 80, 23, 8, 2.2), line(98, 42, 30, 46, 8, 2.2, 1.5), line(22, 67, 88, 64, 9, 2.2, 3)];
+    // Stufenwachstum bei 90 % Umsatz: kurze Ketten (im Mittel etwa 10 Bausteine, hier 6–12), fast kein freies Monomer
+    const ch = [line(16, 18, 61, 18, 6, 1.4), line(72, 18, 104, 22, 5, 1.4, 1), line(16, 41, 102, 43, 9, 1.6, 2), line(18, 66, 102, 64, 10, 1.6, 3)];
     return [...ch, ...fill(ch.flat(), 1)];
   }
   // ein Riesenmolekül: Schlange über vier Reihen
@@ -155,14 +154,18 @@ function potPieces(s: PotKind): Pt[][] {
 }
 export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
   const LABEL: Record<PotKind, string> = tr(
-    { mono: "Nur einzelne Monomere", long: "Wenige lange Ketten und viele einzelne Monomere", short: "Mittellange Ketten, kaum einzelne Monomere", giant: "Ein einziges Riesenmolekül" },
-    { mono: "Only single monomers", long: "A few long chains and many single monomers", short: "Medium chains, hardly any single monomers", giant: "One single giant molecule" },
+    { mono: "Nur einzelne Monomere", long: "Sehr lange Ketten und viel Monomer", short: "Kurze Ketten (im Mittel 10 Bausteine), kaum Monomer", giant: "Ein einziges Riesenmolekül" },
+    { mono: "Only single monomers", long: "Very long chains and lots of monomer", short: "Short chains (about 10 units), hardly any monomer", giant: "One single giant molecule" },
   );
   const pieces = potPieces(s);
   let k = 0;
   return (
     <svg className="pm-pot" viewBox="0 0 120 84" role="img" aria-label={LABEL[s]}>
       <path className="pm-pot-glass" d="M8 5 V74 Q8 79 13 79 H107 Q112 79 112 74 V5" />
+      {s === "long" && <>
+        <text className="pm-pot-more" x={22} y={28} textAnchor="middle" dominantBaseline="central">…</text>
+        <text className="pm-pot-more" x={98} y={64} textAnchor="middle" dominantBaseline="central">…</text>
+      </>}
       {pieces.map((pc, i) => (
         <g key={i}>
           {pc.slice(1).map((p, j) => <line key={j} className="pm-pot-bond" x1={pc[j][0]} y1={pc[j][1]} x2={p[0]} y2={p[1]} />)}
@@ -260,7 +263,7 @@ export function visText(v: Vis): string {
     case "beads": return v.seq.map(m => monoLetter(m)).join("–");
     case "pair": return v.b ? `${monoName(v.a)} + ${monoName(v.b)}` : monoName(v.a);
     case "struct": return v.s;
-    case "pot": return tr({ mono: "nur Monomer", long: "wenige lange Ketten", short: "mittellange Ketten", giant: "ein Riesenmolekül" }, { mono: "only monomer", long: "few long chains", short: "medium chains", giant: "one giant molecule" })[v.s];
+    case "pot": return tr({ mono: "nur Monomer", long: "sehr lange Ketten", short: "kurze Ketten", giant: "ein Riesenmolekül" }, { mono: "only monomer", long: "very long chains", short: "short chains", giant: "one giant molecule" })[v.s];
     case "mech": return tr("Mechanismus", "Mechanism");
     case "starters": return tr("zwei Gefäße: wenig und viel Starter", "two vessels: little and lots of initiator");
   }

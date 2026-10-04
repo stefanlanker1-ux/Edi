@@ -73,11 +73,11 @@ function Growth() {
         <BeadStrip beads={beadsOf(Array(9).fill(S))} active={null} />
         <BeadStrip beads={beadsOf(Array(7).fill(S))} active={null} />
         <div className="pm-lesson-free">{Array.from({ length: 8 }, (_, i) => <BeadStrip key={i} beads={beadsOf([S])} active={null} />)}</div>
-        <figcaption>{T("Kettenwachstum: lange Ketten + viel Monomer", "Chain growth: long chains + lots of monomer")}</figcaption>
+        <figcaption>{T("Kettenwachstum: sehr lange Ketten und viel Monomer", "Chain growth: very long chains and lots of monomer")}</figcaption>
       </figure>
       <figure>
         <div className="pm-lesson-free">{[[A, B], [A, B, A], [B, A], [A, B, A, B], [B, A, B], [A, B], [A, B, A]].map((s, i) => <BeadStrip key={i} beads={beadsOf(s)} active={null} />)}</div>
-        <figcaption>{T("Stufenwachstum: viele kurze Ketten", "Step growth: many short chains")}</figcaption>
+        <figcaption>{T("Stufenwachstum: kurze Ketten, kaum Monomer", "Step growth: short chains, hardly any monomer")}</figcaption>
       </figure>
     </div>
   );
@@ -625,10 +625,10 @@ const K6: GuideStep[] = [
     ask: T("Ergänze: Polykondensation bei 90 % Umsatz – was ist im Gefäß?", "Complete: polycondensation at 90 % conversion – what is in the vessel?"),
     // beide Möglichkeiten als Bild (gleiche Monomere), Beschriftung = Antworttext – verrät nicht, welche stimmt
     visual: () => <Two a={{ k: "pot", s: "short", seq: ["terephthalsaeure", "ethandiol"] }} b={{ k: "pot", s: "long", seq: ["terephthalsaeure", "ethandiol"] }}
-      la={T("kürzere Ketten, kaum Monomer", "shorter chains, hardly any monomer")} lb={T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")} vs />,
-    answer: T("kürzere Ketten, kaum Monomer", "shorter chains, hardly any monomer"), options: [T("kürzere Ketten, kaum Monomer", "shorter chains, hardly any monomer"), T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")],
+      la={T("kurze Ketten (im Mittel 10 Bausteine), kaum Monomer", "short chains (about 10 units), hardly any monomer")} lb={T("sehr lange Ketten und viel Monomer", "very long chains and lots of monomer")} vs />,
+    answer: T("kurze Ketten, kaum Monomer", "short chains, hardly any monomer"), options: [T("kurze Ketten, kaum Monomer", "short chains, hardly any monomer"), T("sehr lange Ketten und viel Monomer", "very long chains and lots of monomer")],
     lines: [T("Stufenwachstum: alle Gruppen reagieren miteinander", "Step growth: all groups react with each other"), T("Bei 90 % Umsatz: {?}", "At 90 % conversion: {?}")],
-    why: { [T("wenige lange Ketten und viel Monomer", "a few long chains and lots of monomer")]: T("So sieht Kettenwachstum aus.", "That is what chain growth looks like.") },
+    why: { [T("sehr lange Ketten und viel Monomer", "very long chains and lots of monomer")]: T("So sieht Kettenwachstum aus.", "That is what chain growth looks like.") },
     ok: T("Lange Ketten erst ganz am Ende.", "Long chains only at the very end."),
   },
 ];
@@ -640,7 +640,7 @@ export const LESSONS: GuideDef[] = [
   { title: T("Radikalische Polymerisation", "Radical polymerisation"), steps: K2,
     outro: [T("Start: Starter zerfällt. Wachstum: Radikal + C=C. Abbruch: Radikal + Radikal.", "Initiation: initiator splits. Growth: radical + C=C. Termination: radical + radical."), T("Halber Pfeil = ein Elektron.", "Half arrow = one electron.")] },
   { title: T("Katalysatoren und Verfahren", "Catalysts and methods"), steps: K3, known: [T("Propen", "Propene")],
-    outro: [T("Ziegler-Natta: Einbau am Titan, Propen isotaktisch; O, N, Cl, F vergiften.", "Ziegler–Natta: insertion at titanium, propene isotactic; O, N, Cl, F poison it."), T("Anionisch: lebende Ketten, Blockcopolymere.", "Anionic: living chains, block copolymers.")] },
+    outro: [T("Ziegler-Natta: Einbau am Titan, Propen isotaktisch; O, N, Cl, F vergiften.", "Ziegler–Natta: insertion at titanium, propene isotactic; O, N, Cl, F poison it."), T("Kationisch: H⁺ startet, Elektronen schiebende Gruppen (Isobuten).", "Cationic: H⁺ starts, electron-pushing groups (isobutene)."), T("Anionisch: lebende Ketten, Blockcopolymere.", "Anionic: living chains, block copolymers.")] },
   { title: T("Polykondensation", "Polycondensation"), steps: K4,
     outro: [T("Gruppen reagieren, H₂O oder HCl geht ab: Ester, Amid.", "Groups react, H₂O or HCl leaves: ester, amide."), T("Eine Gruppe stoppt, drei Gruppen vernetzen.", "One group stops, three groups cross-link.")] },
   { title: T("Polyaddition", "Polyaddition"), steps: K5, known: ["H"],

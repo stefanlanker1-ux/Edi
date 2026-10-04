@@ -722,7 +722,7 @@ function copolymer(): Task {
 function wachstum(): Task {
   const kette = Math.random() < 0.5;
   const seq = kette ? ["styrol"] : ["terephthalsaeure", "ethandiol"];
-  const LONG = T("Wenige lange Ketten + viel Monomer", "Few long chains + lots of monomer"), SHORT = T("Mittellange Ketten, kaum Monomer", "Medium chains, hardly any monomer");
+  const LONG = T("Sehr lange Ketten und viel Monomer", "Very long chains and lots of monomer"), SHORT = T("Kurze Ketten (im Mittel 10 Bausteine), kaum Monomer", "Short chains (about 10 units), hardly any monomer");
   const MONO = T("Nur Monomer, keine Ketten", "Only monomer, no chains"), GIANT = T("Ein Riesenmolekül", "One giant molecule");
   const pics: Record<string, Vis> = { [LONG]: { k: "pot", s: "long", seq }, [SHORT]: { k: "pot", s: "short", seq }, [MONO]: { k: "pot", s: "mono", seq }, [GIANT]: { k: "pot", s: "giant", seq } };
   return task(kette ? T("Radikalische Polymerisation, kurz nach dem Start: Was ist im Gefäß?", "Radical polymerisation, shortly after the start: what is in the vessel?")

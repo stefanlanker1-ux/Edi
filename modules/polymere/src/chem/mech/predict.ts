@@ -170,7 +170,7 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
     const endsWhy = kind === "radikal" ? tr("Das Ende bleibt ein Radikal: Ein Elektron der C=C bleibt übrig.", "The end stays a radical: one electron of the C=C is left over.")
       : zn ? tr(`${name} hat kein Atom mit freiem Elektronenpaar, das das Titan besetzt. Es wird eingebaut.`, `${name} has no atom with a lone pair that blocks the titanium. It is inserted.`)
       : tr("Das Ende bleibt geladen: Die Ladung wandert mit an das neue Ende.", "The end stays charged: the charge moves on to the new end.");
-    const noneWhy = kind === "radikal" ? tr(`Das Radikal reagiert mit jeder C=C von ${name}.`, `The radical reacts with any C=C of ${name.toLowerCase()}.`)
+    const noneWhy = kind === "radikal" ? tr(`Das Radikal lagert sich an die C=C von ${name} an.`, `The radical adds to the C=C of ${name.toLowerCase()}.`)
       : zn ? tr(`${name} passt an die freie Stelle am Titan.`, `${name} fits the free site at the titanium.`)
       : kind === "anion" ? tr(`Das negative Ende greift die C=C von ${name} an.`, `The negative end attacks the C=C of ${name.toLowerCase()}.`)
       : tr(`Die C=C von ${name} greift das positive Ende an.`, `The C=C of ${name.toLowerCase()} attacks the positive end.`);
@@ -263,16 +263,22 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
         ? after.fail ?? tr("Diese Gruppen reagieren nicht miteinander.", "These groups do not react with each other.")
         : tr("Hier wandert nur ein H‑Atom zur anderen Gruppe. Es wird nichts abgespalten.", "Here only one H atom moves to the other group. Nothing splits off.");
   // eigene Rückmeldung je falscher Wahl
-  const reacts = addLink
-    ? tr(`Die Gruppen passen zusammen: ${link === "aminoalkohol" ? "Die Epoxidgruppe reagiert mit –NH₂." : "–N=C=O reagiert mit –OH bzw. –NH₂."}`, `The groups match: ${link === "aminoalkohol" ? "the epoxide group reacts with –NH₂." : "–N=C=O reacts with –OH or –NH₂."}`)
-    : tr("Die Gruppen passen zusammen: –COOH reagiert mit –OH bzw. –NH₂.", "The groups match: –COOH reacts with –OH or –NH₂.");
+  // Begründung mit genau den Gruppen dieses Ansatzes
+  const acidG = acidCl ? "–COCl" : "–COOH";
+  const reacts = link === "ester" ? tr(`Die Gruppen passen zusammen: ${acidG} reagiert mit –OH zur Esterbindung.`, `The groups match: ${acidG} reacts with –OH to form an ester bond.`)
+    : link === "amid" ? tr(`Die Gruppen passen zusammen: ${acidG} reagiert mit –NH₂ zur Amidbindung.`, `The groups match: ${acidG} reacts with –NH₂ to form an amide bond.`)
+    : link === "urethan" ? tr("Die Gruppen passen zusammen: –N=C=O reagiert mit –OH zur Urethangruppe.", "The groups match: –N=C=O reacts with –OH to form a urethane group.")
+    : link === "harnstoff" ? tr("Die Gruppen passen zusammen: –N=C=O reagiert mit –NH₂ zur Harnstoffgruppe.", "The groups match: –N=C=O reacts with –NH₂ to form a urea group.")
+    : link === "aminoalkohol" ? tr("Die Gruppen passen zusammen: Die Epoxidgruppe reagiert mit –NH₂.", "The groups match: the epoxide group reacts with –NH₂.")
+    : tr("Die Gruppen passen zusammen und reagieren miteinander.", "The groups match and react with each other.");
   const W = {
-    h2o: addLink ? tr("Hier geht nichts ab: Das H wandert nur zum N bzw. O.", "Nothing leaves here: the H only moves to the N or O.")
+    h2o: addLink ? (link === "aminoalkohol" ? tr("Hier geht nichts ab: Das H wandert nur zum O.", "Nothing leaves here: the H only moves to the O.") : tr("Hier geht nichts ab: Das H wandert nur zum N.", "Nothing leaves here: the H only moves to the N."))
       : acidCl ? tr("Die Säuregruppe ist hier –COCl: Statt OH geht Cl mit einem H ab – HCl.", "The acid group here is –COCl: instead of OH, Cl leaves with an H – HCl.") : bypOk,
-    hcl: addLink ? tr("Hier geht nichts ab: Das H wandert nur zum N bzw. O.", "Nothing leaves here: the H only moves to the N or O.")
+    hcl: addLink ? (link === "aminoalkohol" ? tr("Hier geht nichts ab: Das H wandert nur zum O.", "Nothing leaves here: the H only moves to the O.") : tr("Hier geht nichts ab: Das H wandert nur zum N.", "Nothing leaves here: the H only moves to the N."))
       : tr("HCl geht nur ab, wenn eine –COCl-Gruppe beteiligt ist. Hier ist es –COOH: Es entsteht H₂O.", "HCl only leaves if a –COCl group takes part. Here it is –COOH: H₂O forms."),
     nothing: acidCl ? tr("Bei –COCl geht immer ein kleines Molekül ab: HCl.", "With –COCl a small molecule always leaves: HCl.")
-      : tr("Bei –COOH + –OH bzw. –NH₂ geht immer ein kleines Molekül ab: H₂O.", "With –COOH + –OH or –NH₂ a small molecule always leaves: H₂O."),
+      : pf ? tr("Bei der CH₂-Brücke geht immer Wasser H₂O ab.", "A CH₂ bridge always splits off water H₂O.")
+      : tr(`Bei –COOH + ${link === "amid" ? "–NH₂" : "–OH"} geht immer ein kleines Molekül ab: H₂O.`, `With –COOH + ${link === "amid" ? "–NH₂" : "–OH"} a small molecule always leaves: H₂O.`),
   };
   const none = res === "none";
   const bypQ = () => q(tr("Verknüpfen: Was passiert?", "Linking: what happens?"),
@@ -289,7 +295,7 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
     const okText = res === "none" ? after.fail ?? bypOk
       : res === "ends" ? after.note ?? tr("Das neue Molekül hat nur eine reaktive Gruppe – danach ist das Kettenende blockiert.", "The new molecule has only one reactive group – then the chain end is blocked.")
       : id === "dimer" ? tr("Beim Stufenwachstum reagiert jede passende Gruppe – auch die Enden von Ketten.", "In step growth every matching group reacts – chain ends too.")
-      : tr("Seine Gruppe passt zur Gruppe am Kettenende. Die Kette wird um einen Baustein länger.", "Its group matches the group at the chain end. The chain gets one unit longer.");
+      : tr("Die Gruppe des neuen Moleküls passt zur Gruppe am Kettenende. Die Kette wird um einen Baustein länger.", "The group of the new molecule matches the group at the chain end. The chain gets one unit longer.");
     const blockedWhy = tr("Das neue Molekül hat zwei reaktive Gruppen: Nach der Verknüpfung ist wieder eine frei.", "The new molecule has two reactive groups: after linking one is free again.");
     return q(tr(`${nm} kommt an das rechte Kettenende (markiert). Was passiert?`, `${nm} reaches the right chain end (marked). What happens?`),
       [

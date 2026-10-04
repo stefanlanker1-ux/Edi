@@ -35,7 +35,7 @@ const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
   k6: { vis: [{ k: "struct", s: "elast" }], points: [
     "**Thermoplast**: einzelne Ketten, schmelzbar. **Elastomer**: wenige Brücken, dehnbar. **Duroplast**: dichtes Netz, hart.",
     "**Copolymere**: statistisch, alternierend oder in **Blöcken**.",
-    "**Kettenwachstum**: lange Ketten sofort. **Stufenwachstum**: lange Ketten erst am Ende.",
+    "**Kettenwachstum**: sehr lange Ketten sofort, viel Monomer bleibt. **Stufenwachstum**: lange erst am Ende – bei 90 % Umsatz kurze Ketten (im Mittel 10 Bausteine), kaum Monomer.",
   ] },
 }, {
   k1: { vis: [{ k: "mono", id: "propen" }, { k: "unit", id: "propen" }], points: [
@@ -66,7 +66,7 @@ const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
   k6: { vis: [{ k: "struct", s: "elast" }], points: [
     "**Thermoplastic**: separate chains, meltable. **Elastomer**: a few bridges, stretchy. **Thermoset**: dense network, hard.",
     "**Copolymers**: statistical, alternating or in **blocks**.",
-    "**Chain growth**: long chains at once. **Step growth**: long chains only at the end.",
+    "**Chain growth**: very long chains at once, lots of monomer is left. **Step growth**: long only at the end – at 90 % conversion short chains (about 10 units), hardly any monomer.",
   ] },
 });
 const TOPIC: Record<string, string> = { "pm-k1": "k1", "pm-k2": "k2", "pm-k3": "k3", "pm-k4": "k4", "pm-k5": "k5", "pm-k6": "k6" };

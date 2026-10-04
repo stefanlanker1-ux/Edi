@@ -282,4 +282,6 @@
 .pm-pq.done.explain { grid-template-columns: minmax(0, 1fr); }
 .pm-pq.done.explain .pm-pq-btns { justify-content: flex-end; }
 @media (max-height: 700px) { .pm-pq.done.explain { gap: 4px; padding: 4px 8px; } .pm-pq-fb { font-size: .82rem; } }
-.pm-leg-plus { font-size: 9px; font-weight: 800; fill: var(--hue-red-deep); }
+.pm-leg-plus { font-size: 12px; font-weight: 800; fill: var(--hue-red-deep); }
+.pm-leg-plus.an { fill: var(--hue-blue-deep); }
+.pm-pot-more { font-size: 9px; font-weight: 800; fill: var(--text); }

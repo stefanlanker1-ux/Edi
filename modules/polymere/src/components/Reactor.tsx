@@ -135,6 +135,11 @@ export function ReactorView({ recipe, rkey, store, wake, paused, onStats, onPick
         ctx.strokeStyle = b.act === "rad" ? c["--hue-red"] : b.act === "an" ? c["--hue-blue"] : b.act === "kat" ? c["--hue-red-deep"] : c["--muted"];
         ctx.beginPath(); ctx.arc(x, y, r + 3.5, 0, Math.PI * 2); ctx.stroke();
         ctx.setLineDash([]);
+        // Ladung zusätzlich als Zeichen (nie nur über die Farbe)
+        if (b.act === "kat" || b.act === "an") {
+          ctx.fillStyle = ctx.strokeStyle; ctx.font = font(11);
+          ctx.fillText(b.act === "kat" ? "+" : "−", x + r + 4, y - r - 3);
+        }
       }
       if (b.kind === "cat" && b.dead) {
         ctx.strokeStyle = c["--bad"]; ctx.lineWidth = 2.6;
