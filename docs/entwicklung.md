@@ -4,6 +4,12 @@ Dieses Dokument ist die vollständige Arbeitsgrundlage. Wer (Mensch oder Assiste
 danach soll keine weitere Erklärung nötig sein. Es beschreibt, wie gearbeitet wird, welche didaktischen und gestalterischen Regeln gelten und wie jedes Modul
 aufgebaut ist. Neue Anforderungen werden **hier** als neutral formulierte Regel ergänzt (was die App tun soll und warum), sobald sie umgesetzt sind.
 
+**Pflicht bei jeder relevanten Änderung** (neue Funktion, geänderte Regel, didaktische Entscheidung, behobener Fachfehler, neue Prüfung):
+1. die betroffene Regel bzw. den Modul-Abschnitt in diesem Dokument anpassen (der Text beschreibt immer den **aktuellen** Stand), und
+2. einen Eintrag im **Änderungsverlauf** am Ende ergänzen (neueste oben: was geändert wurde und warum, mit Modul und Commit),
+im selben Commit wie die Änderung. So entsteht ein lückenloser Verlauf, und eine neue Sitzung kennt Stand und Geschichte ohne weitere Erklärung.
+Einträge anonym und rein technisch (keine Namen, Adressen, Daten zu Personen, keine Begründung mit Personen wie „gewünscht von …“).
+
 Modularer Monolith: **eine** App (`apps/edi`) mit Modulen (`modules/*`) auf gemeinsamen Paketen (`packages/*`), npm-Workspaces.
 Pakete: `packages/chem` (reine Logik), `packages/units` (Einheiten, reine Logik), `packages/ui` (React-Designsystem), `packages/chem-ui` (Bohrmodell, Atomsymbol, Formel …),
 `packages/quiz` (Quiz-Grundgerüst), `packages/i18n` (Sprache Deutsch/Englisch). Website: `npm run site` → `site/` (App, `edi-offline.html`, Weiterleitungen der früheren Adressen; GitHub Pages).
@@ -29,6 +35,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 - **Vor jedem Commit** (Pflicht): `npm run typecheck && npm test && npm run build`. Bei Änderungen an der Oberfläche zusätzlich `npm run site` und Browser-Prüfung
   (siehe „Prüfen vor dem Commit“) – in allen betroffenen Ansichten, Werkzeugen, Blättern, Erklärungen und Quizaufgaben, in den Größen 390 × 844, 375 × 667, 360 × 740 und Desktop.
   Screenshots ansehen, nicht nur Zahlen messen (leere Bilder, abgeschnittene Formeln, zu kleine Zeichnungen fallen nur so auf).
+- **Dokumentation gehört zur Änderung**: Regel/Modul-Abschnitt aktualisieren und Änderungsverlauf ergänzen (siehe oben) – ein Commit ohne Doku-Anpassung ist nur bei
+  reinen Korrekturen ohne neue Regel erlaubt.
 - **Commit-Nachrichten** auf Deutsch, rein technisch, Form „<Modul oder Paket>: <was geändert wurde>“ (mehrere Punkte mit Strichpunkt).
   Keine Zusatzzeilen (keine Mitwirkenden-, Sitzungs- oder Werkzeughinweise), keine Namen.
 - **Android-Release** (`release.yml`, nur von Hand gestartet, Eingabe Versionsname): baut ein signiertes App-Bundle (AAB) als Artefakt; `versionCode` = Laufnummer des Workflows
@@ -497,3 +505,49 @@ In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=
 Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
 laufen lassen; je Zustand messen (Seite, `.ui-wb`, `.ui-wb-stage`, Aufgabenkarte, Blatt: `scrollHeight/scrollWidth` ≤ `clientHeight/clientWidth`, Bild nicht winzig) und Screenshots ansehen.
 Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „success“), erst dann „veröffentlicht“ melden.
+
+## Änderungsverlauf
+Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Doku** – Pflicht eingeführt: jede relevante Änderung aktualisiert dieses Dokument und bekommt einen Eintrag hier (lückenloser Verlauf).
+- **Doku** – Lernprinzipien, Motivation, Zugänglichkeit und bewährte Prüfmethoden ergänzt (a4043fe).
+- **App-Kennung** – neutral `app.edi.lernen` in Capacitor, Android (applicationId, namespace, Paket von MainActivity, strings.xml) und iOS (Bundle-ID); vor dem ersten
+  Store-Upload, danach unveränderlich. README ohne Website-Adresse, Nomenklatur in der Modultabelle (c8bb7fd).
+- **Doku** – dieses Dokument vollständig neu gegliedert: Arbeitsweise, Didaktik, Erklärung, Quiz-Beispiele, Sprache, Stand je Modul (46e8c70).
+- **Organik** – Alken/Alkin (Erklärung + Erklärkarte) und Stoffklasse (Erklärkarte) eingeführt, weil das Quiz sie benutzt; „Äste“ statt „Seitenketten“ in Quiz,
+  Lösungsweg und Stolpersteinen (einheitliche Fachsprache) (80d21a8).
+- **Reaktionsgleichungen** – Start-Beispiele je Stufe, Level II komplexer (Gärung, Fotosynthese, Ethanol, Ostwald, Oktan); „Ablauf ansehen“ öffnet die Animation
+  Edukte → Produkte als Blatt (Start nach ✓, Quiz erst nach der Antwort, damit sie die Zahlen nicht verrät); Speicherformat Version 3 je Stufe.
+  **Kopfzeile** – bei ≤ 374 px engere Abstände (vorher 13 px Überlauf bei 360 px) (ec088b1).
+- **Organik** – Erklärung nach vorgemacht → halb → selbst (22 Schritte); `mode` je Erklärungsschritt verpflichtend (Typ und `checkGuide`) (0d792b6).
+- **Alle Erklärungen** – je Modul nach vorgemacht → halb gelöst → selbst umgebaut, Begriffe vor dem Abfragen fett eingeführt (automatische Begriffsprüfung):
+  Einheiten (d60cb2e), Neutralisation (1610c40), Reaktionsgleichungen (7be50ac), Elektronenpaarbindung (ad7005b), Ionenbindung + Start mit gelöstem CaCl₂ (e9a75dd),
+  Atombau (ccd7a32; K/L/M, Kation/Anion, isoelektronisch eingeführt, Quiz ohne „Grundzustand“, Ladung 0 = neutral: 5ee793b).
+- **Grundlage Lernen an Beispielen** – Guide-Schrittarten worked/faded/free mit Lösungsweg und Lücke, Prüfregeln; Quiz zeigt vor jeder neuen Fertigkeit ein gelöstes Beispiel,
+  danach den ersten Schritt; Gemische umgestellt (Erklärung, Zählen mit abnehmender Hilfe) (d70012a).
+- **3D** – Modelle flüssiger: gemeinsame Geometrien, Beschriftungen nur bei Bedarf, keine Kantenglättung bei hoher Pixeldichte; Gemische-Animation pausiert, solange das
+  Stoff-Blatt offen ist (dc58d95).
+- **Android-Release** – signiertes App-Bundle per Workflow, Schlüssel aus Secrets, versionCode = Laufnummer (56e1100).
+- **Atombau Level II** – Orbitalmodell: 3D-Orbitale aus wasserstoffähnlichen Wellenfunktionen, Werkzeug Wellenmechanik, Erklärung von Grund auf (2d25da8, 6b20208);
+  Kästchenschema zum Selbst-Befüllen in Erklärung und Quiz (12f4f82, e32c6ee).
+- **Gemische-Quiz** – vier Lern-Level mit festem Ablauf und Merksatz je Aufgabe (1d9f687).
+- **Erklärung (Baustein)** – Kapitel (`part`), Anschauen nach der Antwort (jeder Schritt wartet auf „Weiter“), Vorhersage-Schritte; Beschriftungspfeile enden am Rand des Ziels
+  und weichen Elektronen aus (de715c8, cd1e7de, 545df18, 942252c, d033dde).
+- **Kraftfeld MMFF94** in TypeScript (auch im Web, Hintergrund-Thread), gemessene Strukturen für Schulmoleküle; 3D nach EPA für kleine Ringe (a9043ed, b4f3869, de94eee, e0c3cb3).
+- **Android/iOS** – Capacitor-Projekte mit Icons und Startbild, Workflow für Debug-APK und iOS-Simulator-Build (aa180ca).
+- **Englisch** – Paket `@lern/i18n`, Sprachwahl aus der Gerätesprache und Knopf DE/EN, alle Module und Pakete zweisprachig, Tests gegen deutsche Reste in der englischen
+  Fassung, englische IUPAC-Namen (e618b4c, b2eedf8, 2fc3b82, 8d6244a, 4134a87).
+- **Nomenklatur (neues Modul `organik`)** – Zeichnen (Lewis/Gerüst), Name nach IUPAC 2013 mit weiteren Namen, Farbe je Namensteil, E/Z nach CIP, Lösungsweg, Quiz,
+  Prüfung gegen ein externes Namens-Orakel (5a4bbec, 65636a0, 82bf265, 2098fc8, 95d6b1a, de299e4).
+- **Erklärung in jeder App** – geführter Durchgang zum Mitmachen; Tipps, Rückmeldung zu jeder falschen Auswahl, Bestätigung mit Regel, Begriffe mit Pfeilen im Bild,
+  Lösung nie im Bild verraten (21b4c45, a1880ac, 8872bc1, 9fc312c, 3668610, 88c4f40, dfff862).
+- **Fachsprache und Didaktik** – beschreibend statt „Atom will“, Gruppen je Stufe, Ladungsschreibweise, einheitliche Begriffe, diagnostische Distraktoren in allen Modulen,
+  Tipps je Reaktionstyp, keine erfundenen Namen (8dc7397, 9ed7f22, bd06527, f9ca809, a75e003).
+- **Einheiten** – fünf Quiz-Niveaus je Stufe, Hilfen passend zur Aufgabe, Pfeilkette für Flächen/Volumen, Oberstufe mit Vorsilben-Skala (b2119ce, e9def8e, fc6f8f9).
+- **Elektronenpaarbindung** – gewinkelte Strichformel, Oktett-Kreise im Vordergrund mit Schalter, Paare als Punkte oder Striche, Keilstrichformel mit Standard-Tetraeder
+  (1c27344, e162d5e, 34d669a). **Atombau** – PSE nach Blöcken färben (fc6f8f9).
+- **Gemische (Modul)** – Glas mit Lupe, fließende Teilchenbewegung mit festem Takt, Beispiele beginnen „vorher“, Kristall löst sich von außen, Öl als Stäbe mit Tröpfchenbildung,
+  Messing schmilzt und erstarrt ohne Sprünge, Sprudel mit Gleichgewicht, Öffnen und Kohlensäure, Temperaturregler, reduzierte Bewegung, Müsli als Gemenge
+  (6e59c81 … 839a514, afb4a22, 62d9935). **Lesbar** – Zeichnungen ohne zusätzlichen Buchstabenabstand (2e4a770).
+- **Grundaufbau** – Lern-Apps zu einer App mit Modulen zusammengeführt (modularer Monolith, Hülle, Laden bei Bedarf, Architekturprüfung); Quiz ohne Wiederholungen,
+  Stoff-Info, eindeutige Schrift (Cl/CI), Knöpfe als Tasten (9e1dd57, 4b3df62, 38634bd, 14857e6).
