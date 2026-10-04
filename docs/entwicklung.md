@@ -1,13 +1,102 @@
 # Entwicklung – Regeln und Konventionen
 
+Dieses Dokument ist die vollständige Arbeitsgrundlage. Wer (Mensch oder Assistent) neu an diesem Repository arbeitet, liest es **ganz**, bevor er etwas ändert –
+danach soll keine weitere Erklärung nötig sein. Es beschreibt, wie gearbeitet wird, welche didaktischen und gestalterischen Regeln gelten und wie jedes Modul
+aufgebaut ist. Neue Anforderungen werden **hier** als neutral formulierte Regel ergänzt (was die App tun soll und warum), sobald sie umgesetzt sind.
+
 Modularer Monolith: **eine** App (`apps/edi`) mit Modulen (`modules/*`) auf gemeinsamen Paketen (`packages/*`), npm-Workspaces.
 Pakete: `packages/chem` (reine Logik), `packages/units` (Einheiten, reine Logik), `packages/ui` (React-Designsystem), `packages/chem-ui` (Bohrmodell, Atomsymbol, Formel …),
-`packages/quiz` (Quiz-Grundgerüst). Website: `npm run site` → `site/` (App, `edi-offline.html`, Weiterleitungen der früheren Adressen; GitHub Pages).
-Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Schul-PC. Sprache der Oberfläche: Deutsch.
+`packages/quiz` (Quiz-Grundgerüst), `packages/i18n` (Sprache Deutsch/Englisch). Website: `npm run site` → `site/` (App, `edi-offline.html`, Weiterleitungen der früheren Adressen; GitHub Pages).
+Zielgruppe: Schülerinnen und Schüler (Unterstufe = „Level I“, Oberstufe = „Level II“) auf Handy, Tablet, Schul-PC und Beamer. Sprache der Oberfläche: Deutsch (Englisch umschaltbar).
+
+Module in der Übersicht (Reihenfolge = empfohlene Lernreihenfolge, `apps/edi/src/modules.ts`):
+Gemische → Atombau → Ionenbindung → Elektronenpaarbindung → Reaktionsgleichungen → Neutralisation → Nomenklatur (`organik`) → Einheiten (unabhängig von der Chemie).
+Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bekannt (siehe „Begriffe einführen“).
+
+## Arbeitsweise (für jede Sitzung)
+- **Gespräch auf Deutsch**, kurz und konkret. Bei längeren Arbeiten zwischendurch in ein, zwei Sätzen sagen, woran gerade gearbeitet wird.
+  Am Ende: was geändert wurde, was im Browser geprüft wurde, ob veröffentlicht ist – ehrlich, auch wenn etwas nicht geklappt hat.
+- Rückfragen nur, wenn eine Entscheidung wirklich offen ist; sonst die naheliegende Lösung umsetzen und im Bericht nennen.
+- Fachliche Einwände (z. B. „Müsste X nicht anders sein?“) zuerst fachlich prüfen. Ist die Darstellung richtig, nichts ändern, sondern kurz begründen;
+  ist sie falsch, beheben und einen Test ergänzen, der den Fehler künftig findet.
+- Wird eine Regel verletzt gemeldet (z. B. „Begriff nicht eingeführt“), nicht nur die gemeldete Stelle ändern: **alle Module** auf dieselbe Art Fehler prüfen
+  und, wo möglich, eine automatische Prüfung (Test, `checkGuide`) ergänzen.
+- **Zweige:** Entwickelt wird auf `entwicklung`. Veröffentlichen = beide Zweige pushen: `git push origin entwicklung` und `git push origin entwicklung:main`.
+  Ein Push auf `main` startet die Workflows „App auf GitHub Pages veröffentlichen“ (`pages.yml`: typecheck, test, site, Deploy) und „Android- und iOS-App bauen“
+  (`native.yml`: Debug-APK als Artefakt, iOS-Simulator-Build). Erst wenn beide Läufe für den neuen Commit grün sind, gilt etwas als veröffentlicht.
+  Pull-Requests laufen durch `check.yml` (typecheck, test, build).
+- Abgeschlossene, geprüfte Arbeiten werden ohne weitere Rückfrage veröffentlicht. Größere Aufträge über mehrere Module: je Modul fertigstellen, prüfen, veröffentlichen.
+- **Vor jedem Commit** (Pflicht): `npm run typecheck && npm test && npm run build`. Bei Änderungen an der Oberfläche zusätzlich `npm run site` und Browser-Prüfung
+  (siehe „Prüfen vor dem Commit“) – in allen betroffenen Ansichten, Werkzeugen, Blättern, Erklärungen und Quizaufgaben, in den Größen 390 × 844, 375 × 667, 360 × 740 und Desktop.
+  Screenshots ansehen, nicht nur Zahlen messen (leere Bilder, abgeschnittene Formeln, zu kleine Zeichnungen fallen nur so auf).
+- **Commit-Nachrichten** auf Deutsch, rein technisch, Form „<Modul oder Paket>: <was geändert wurde>“ (mehrere Punkte mit Strichpunkt).
+  Keine Zusatzzeilen (keine Mitwirkenden-, Sitzungs- oder Werkzeughinweise), keine Namen.
+- **Android-Release** (`release.yml`, nur von Hand gestartet, Eingabe Versionsname): baut ein signiertes App-Bundle (AAB) als Artefakt; `versionCode` = Laufnummer des Workflows
+  (steigt automatisch). Signatur aus den Repository-Secrets `UPLOAD_KEYSTORE_BASE64` (Keystore als Base64) und `UPLOAD_KEYSTORE_PASSWORD`;
+  `apps/edi/android/app/build.gradle` liest `UPLOAD_KEYSTORE_FILE`/`UPLOAD_KEYSTORE_PASSWORD`, `VERSION_CODE`, `VERSION_NAME` aus der Umgebung.
+  Schlüsseldateien (`*.p12`, `*.jks`, `*.keystore`) und Passwörter **nie** ins Repository (`.gitignore`), nie in Logs, nie im Gespräch abfragen.
+- App-Icons: Vorlage `apps/edi/assets/` bzw. `public/icons/icon-512.png`; native Icons mit `npx @capacitor/assets generate` (im Ordner `apps/edi`).
+- Hilfsskripte für einmalige Browser-Prüfungen gehören nicht ins Repository (temporär außerhalb anlegen); dauerhaft nützliche Prüfungen als Test oder in `scripts/`.
+
+## Didaktik (verbindlich für alle Module)
+- **Lernen an gelösten Beispielen, dann Hilfe ausblenden** – überall nach demselben Muster: zuerst ein **fertig gelöster Fall** (vorgemacht, Lösungsweg Schritt für Schritt),
+  dann ein **halb gelöster** (eine Lücke zum Ergänzen), dann **selbst lösen** – und mit dem nächsten Gedanken wieder von vorn (vorgemacht → halb → frei → vorgemacht …).
+  Nie mit freiem Entdecken beginnen. Umsetzung:
+  - Erklärung: Schrittarten `worked` / `faded` / `free` (siehe „Erklärung“), automatisch geprüft.
+  - Quiz: vor der ersten Aufgabe einer noch nie geübten Fertigkeit ein gelöstes Beispiel, die nächste Aufgabe zeigt den ersten Schritt (siehe „Quiz“).
+  - Werkbank: Start mit einem gelösten Zustand bzw. abnehmender Hilfe (Gemische „Zählen“: Beispiel 1–2 vorgerechnet, 3–5 eine Lücke, ab 6 selbst;
+    Ionenbindung startet mit fertigem CaCl₂; Nomenklatur startet mit gezeichnetem und benanntem Beispiel).
+- **Begriffe einführen, bevor sie gebraucht werden.** Jedes Fachwort, das in einer Frage, Antwort, einem Tipp oder einer Rückmeldung vorkommt, muss vorher
+  **fett** eingeführt sein – in der Erklärung, in der Erklärkarte des Quiz-Levels oder in einem früheren Modul. Nie ein Wort wie „Gemenge“, „Alken“ oder „Stoffklasse“
+  benutzen, ohne es mit Beispiel zu erklären („**Gemenge**: feste Stoffe gemischt, z. B. Müsli“). Begriffe aus früheren Modulen oder dem Alltag in `GuideDef.known`.
+  `checkGuide` prüft das für Erklärungen automatisch; für Quiz und Erklärkarten beim Ändern selbst prüfen (alle Texte einer Runde durchsehen).
+- **Einheitliche Fachsprache** in Werkbank, Erklärung, Quiz, Erklärkarten und Lösungsweg (ein Begriff, nie zwei für dasselbe; z. B. „Äste“, nicht „Seitenketten“).
+- **Einfache Sprache**: kurze Sätze (höchstens 22 Wörter, geprüft), Du-Form, aktiv, ein Gedanke pro Satz. Keine Erklärsätze in der Oberfläche (nur kurze `Tag`s);
+  Erklärungen gehören in Erklärung, Erklärkarten, Tipps und Rückmeldungen.
+- **Ohne Schuld und Beschämung**: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Vergleiche mit anderen. Jede Rückmeldung zu einem Fehler
+  nennt den Denkfehler und zeigt den richtigen Weg.
+- **Diagnostische Distraktoren**: jede falsche Antwort steht für eine typische Fehlvorstellung und bekommt eine eigene Rückmeldung mit den Zahlen der Aufgabe.
+- **Tipps und Hilfsmittel verraten die Lösung nie** (PSE nur mit Angaben eines gedruckten PSE; keine Animation, die die gesuchten Zahlen zeigt, vor der Antwort).
+- **Visualisierung auf Abruf**: Animationen und Zusatzansichten (Ablauf einer Reaktion, 3D, Lupe) nicht aufdrängen – ein Knopf öffnet sie; reduzierte Bewegung respektieren
+  (`useReducedMotion`: dann gleich das Endbild).
+- **Modell ehrlich kennzeichnen**: Vereinfachungen im Modell benennen („nur im Modell“, „im Modell verstärkt“), fachlich nie Falsches zeigen. Fachliche Richtigkeit
+  geht vor Einfachheit (z. B. Wasser nie linear, häufigstes Isotop statt gerundeter Masse).
+- **Nicht überladen**: Funktionen nur dort, wo sie gebraucht werden; Oberstufen-Inhalte nur in Level II; ein Hauptknopf je Ansicht.
+- **Üben mit Abstand** (verteilte Wiederholung, Fertigkeiten-Stufen, „Heute fällig“, „Schwächen üben“, Prüfungstermin) – siehe „Quiz“.
+- **Barrierearm**: richtig/falsch nie nur über Farbe (zusätzlich ✓/✗, Muster, gestrichelt), Tippziele ≥ 44 px, Tastatur bedienbar, `aria-label` für Bilder und Knöpfe,
+  Schalter „Lesbar“ (mehr Abstände), Klang standardmäßig aus, Vorlesen im Quiz.
+
+## Erklärung (`@lern/ui` `Guide`, je Modul `src/guide.tsx`)
+- Knopf „Erklärung“ (`GuideButton`) in der Kopfzeile links (breit) bzw. unten links vor den Bereichen (Handy); roter Ring, bis die Erklärung einmal ganz durchlaufen
+  ist (`lern-erklaert-<App>`). Ganzer Bildschirm, nie scrollen. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
+- Aufbau: `GuideDef { title, steps, outro, known? }`. 10–48 Schritte; ab 16 Schritten in **Kapiteln** (`part` am ersten Schritt, Name im Kopf, Fortschrittsbalken in Abschnitten),
+  jedes Kapitel höchstens 8 Schritte. Ende: Zusammenfassung „Das kannst du jetzt“ (`outro`), Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab.
+- **Schrittarten** (`mode`, Pflicht bei jedem Schritt; Kennzeichen oben: „Vorgemacht“ / „Halb gelöst – ergänze“ / „Jetzt du“):
+  - `worked`: Lösungsweg `lines` erscheint Zeile für Zeile („Nächster Schritt“), Bild im gelösten Zustand, **keine** Antwort, keine `options`/`num`/`why`/`tip`, Pflicht `ok`.
+  - `faded`: Lösungsweg mit **genau einer Lücke** `{?}`; die Lücke darf die gesuchte Zahl nicht schon enthalten; nach dem Lösen wird sie gefüllt.
+  - `free`: selbst lösen; `lines` (optional) erscheinen erst nach der richtigen Antwort.
+  - Reihenfolge: jedes Kapitel (und der erste Schritt) beginnt `worked`; `faded` nur nach `worked`/`faded`; `free` nur nach `faded`/`free`.
+- Jeder nicht vorgemachte Schritt verlangt eine Handlung: Auswahl (`options`), Zahl (`num`, mit Einheit) oder ein Ziel im Bild antippen (`visual` ruft `pick(id)`),
+  mit den Bausteinen der App (Bohrmodell, PSE, Ionenwand, Lewis-Formel, Teilchenbild, Pfeilkette, Orbitale in 3D …).
+  Falsch → Rückmeldung zum Denkfehler (`why`, **jede** falsche Auswahl hat eine), sonst Denkanstoß zum Vorgehen (`tip`, Pflicht bei Zahl und Antippen, nennt die Lösung nicht);
+  ab dem 2. Versuch Rückmeldung + Tipp, dazu „Versuch x von 4“; nach 4 Versuchen wird die Lösung markiert (`show`, gestrichelt grün, pulsierend) und muss selbst angetippt werden.
+  Richtig → ✓, der Schritt bleibt stehen, die Bestätigung (`ok`) nennt die Regel mit dem Beispiel („Massenzahl = Protonen + Neutronen = 7 + 7 = 14“), nicht nur das Ergebnis.
+- Neue Ideen in `say` (ein, zwei kurze Sätze), Auftrag in `ask`. Fachwörter beim ersten Auftreten **fett** (das ist zugleich die Einführung für die Begriffsprüfung).
+- Beschriftung mit Pfeilen (`labels`, Baustein `Callouts`): Begriff am Rand, Pfeil auf ein Teil des Bildes (CSS-Selektor, z. B. `.bohr .nuc`, `.lone.pair`,
+  `[data-f="H2O"]`, `[data-el="O"]`, `.ion-tile.cation`, `.ms-box`); ohne `nth` das Teil, das der Seite am nächsten liegt; weicht Schrift im Bild aus (`AVOID`).
+  Nie die gesuchte Antwort beschriften, außer mit `afterSolved` (erscheint erst nach der richtigen Antwort).
+- Automatische Prüfung je Modul (`guide.test.ts`, `checkGuide` in `packages/ui/src/guideCheck.ts`): Schrittzahl und Kapitel, Reihenfolge der Schrittarten, Lösungsweg bzw. Lücke,
+  Antwort unter den Auswahlen, Rückmeldung zu jeder falschen Auswahl, Tipp bei Zahl/Antippen (ohne die gesuchte Zahl), Sätze ≤ 22 Wörter,
+  **Begriffe** (`unintroducedTerms`: ein abgefragtes Fachwort muss vorher fett stehen oder in `known`; falsche Auswahlen, die erst später eingeführt werden, dürfen nicht vorher vorkommen).
+  Englische Fassung: `guide-english.test.ts` (alle Texte übersetzt, gleiche Struktur).
+- Browser-Prüfung jeder geänderten Erklärung: alle Schritte durchspielen (auch Fehlversuche bis zur markierten Lösung), in jedem Schritt prüfen, dass nichts überläuft
+  oder abgeschnitten ist, in 1240 × 860, 390 × 844 und 375 × 667.
 
 ## Grundsätze für Beiträge
-- Keine personenbezogenen Daten im Repository (Namen, E-Mail-Adressen, Schulen, Orte) – weder in Dateien, Kommentaren, Commit-Nachrichten noch in Metadaten.
-- Keine Planungs-, Strategie- oder Protokolldateien; das Repository enthält Quellcode, Tests und technische Dokumentation.
+- **Anonym**: keine personenbezogenen Daten im Repository (Namen, E-Mail-Adressen, Schulen, Orte, eigene Web-Adressen, Konten) – weder in Dateien, Kommentaren,
+  Commit-Nachrichten, Testdaten, Bildern noch in Metadaten. Keine Hinweise darauf, wer etwas wünscht, plant oder entscheidet („Vorgabe …“, „Wunsch …“).
+- Keine Planungs-, Strategie-, Geschäfts- oder Protokolldateien, keine Zeitpläne; das Repository enthält Quellcode, Tests und technische Dokumentation (dieses Dokument
+  beschreibt nur, wie die App ist und sein soll).
 - Commit-Nachrichten und Pull-Request-Texte rein technisch (was geändert wurde), ohne Zusatzzeilen zu Mitwirkenden oder Werkzeugen.
 - Kommentare begründen fachlich oder technisch („übliche Schreibweise“), nie mit Vorlagen oder Quellen Dritter.
 - Keine fremden Texte, Aufgaben oder Grafiken übernehmen; Aufgaben werden selbst erzeugt, Fachdaten sind allgemein bekannte Werte oder selbst berechnet.
@@ -35,18 +124,7 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Jedes Modul hat nur zwei Arten von Ansichten: **Probieren** (Werkbank: selbst bauen, zeichnen, vorgegebene Beispiele lösen) und **Quiz**. Keine eigenen Übungsseiten.
 - React 19 + TypeScript (strict) + Vite. State mit zustand. Keine weiteren UI-Frameworks.
 - Gemeinsames gehört in `packages/`; Module importieren `@lern/*` (Quelltext wird direkt gebündelt, kein eigener Build-Schritt für Pakete).
-- **Erklärung** (`@lern/ui` `Guide`, Knopf `GuideButton`): jede App übergibt `guide` an `LernApp` (je Stufe, `src/guide.tsx`). Breit links neben den Bereichen,
-  am Handy unten links vor den Bereichen; roter Ring, bis die Erklärung einmal durchlaufen ist (`lern-erklaert-<App>`). Ganzer Bildschirm, nie scrollen.
-  10–15 Schritte, jeder verlangt eine Handlung: Auswahl (`options`), Zahl (`num`) oder ein Ziel im Bild antippen (`visual` ruft `pick(id)`), mit den Bausteinen
-  der App (Bohrmodell, PSE, Ionenwand, Lewis-Formel, Teilchenbild, Pfeilkette …). Falsch → Rückmeldung zum Denkfehler (`why`, jede falsche Auswahl hat eine),
-  sonst Denkanstoß zum Vorgehen (`tip`, Pflicht bei Zahl und Antippen, nennt die Lösung nicht); ab dem 2. Versuch Rückmeldung + Tipp (`feedback`), dazu „Versuch x von 4“; nach 4 Versuchen
-  wird die Lösung markiert (`show`, gestrichelt grün, pulsierend) und muss selbst angetippt werden. Richtig → ✓, die Bestätigung (`ok`) steht über dem nächsten Schritt
-  und nennt die Regel mit dem Beispiel („Massenzahl = Protonen + Neutronen = 7 + 7 = 14“), nicht nur das Ergebnis.
-  Ende: Zusammenfassung „Das kannst du jetzt“, Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab. Test je Modul (`guide.test.ts`, `checkGuide`):
-  Schrittzahl, Antwort unter den Auswahlen, Rückmeldung zu jeder falschen Auswahl, Tipp bei Zahl/Antippen (ohne die gesuchte Zahl), Sätze höchstens 22 Wörter.
-  Beschriftung mit Pfeilen (`labels`, Baustein `Callouts`): Begriff am Rand, Pfeil auf ein Teil des Bildes (CSS-Selektor, z. B. `.bohr .nuc`, `.lone.pair`,
-  `[data-f="H2O"]`, `[data-el="O"]`, `.ion-tile.cation`, `.ms-box`); ohne `nth` das Teil, das der Seite am nächsten liegt; weicht Schrift im Bild aus (`AVOID`).
-  Nie die gesuchte Antwort beschriften (prüft `checkGuide`), außer mit `afterSolved` (erscheint erst nach der richtigen Antwort).
+- **Erklärung** je Modul und Stufe: Regeln im Abschnitt „Erklärung“ oben (vorgemacht → halb gelöst → selbst, Begriffe fett einführen, automatisch geprüft).
 - Alle Module nutzen für das Quiz `@lern/quiz` (`createQuizStore` + `QuizScreen`); Aufgaben sind reine Daten, Aufgabentyp = Fertigkeit.
   Optional: Level mit Tipp (`QuizLevel.tip` = Glühbirne an der Karte, Aufgabe `hintCue` = Tipp-Knopf hervorgehoben, Tipp kostet keine Punkte) und feste Reihenfolge (`fixedOrder`).
   Fertigkeiten (`skills.ts`): neu → geübt → sicher (2 Treffer in Folge) → gemeistert (Treffer nach ≥ 7 Tagen Abstand); Wiederholung nach 1-3-7-14-30 Tagen
@@ -55,6 +133,14 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   `freshRound` nimmt je Platz eine neue Frage desselben Typs, sonst eines anderen Typs des Levels, erst danach die am längsten zurückliegende. Sprache: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Schuld.
   Prüfungstermin (`Exam`, Blatt „Schularbeit“ im Menü, trägt der Lernende selbst ein, bleibt auf dem Gerät): bis dahin Abstand höchstens halbe Restzeit
   (`examInterval`, `effectiveDue`), neue Fertigkeiten zuerst fällig, Menü zeigt Countdown und „x / n sicher“; nach dem Tag löscht sich der Termin.
+- **Gelöstes Beispiel im Quiz** (`withExamples` in `packages/quiz/src/store.ts`): vor der ersten Aufgabe jeder Fertigkeit der Runde, die noch nie geübt wurde,
+  steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, höchstens 3 je Runde, Schlüssel = ganze Aufgabe als JSON):
+  `stage: "worked"` → Karte `WorkedCard` mit Frage, markierter Lösung, „1. Tipp 2. Erklärung“ und Knopf „Verstanden – jetzt du“; zählt nicht für Punkte und Statistik (`counted`).
+  Die erste echte Aufgabe dieser Fertigkeit bekommt `stage: "faded"`: der erste Schritt (der Tipp) steht unter der Frage (`.q-first`, kostet nichts).
+  Nicht in „Heute fällig“ und „Schwächen üben“. Damit das Beispiel passt, muss jeder Aufgabentyp genug verschiedene Aufgaben erzeugen.
+- Weitere Bausteine von `QuizScreen`: `renderVisual` (Bild über der Frage, per `Fit`), `renderOption` (eigene Darstellung von Antworten), `renderAnswer` (eigene Antwortform),
+  `solution` (Lösung nach Fehlern), `feedbackExtra` (zusätzliches Blatt „Lösung“ nach der Antwort, z. B. Ablauf der Reaktion), `tools` (Hilfsmittel), `explain` (Erklärkarte je Level),
+  `lead` an der Aufgabe (Merksatz über der Frage), `hint` (Tipp) und `hintCue` (Tipp-Knopf hervorgehoben, kostet keine Punkte).
 - Diagnostische Distraktoren: jede falsche Antwort steht für eine Fehlvorstellung. MC: `mc(richtig, [d(text, miss, why), …])` – `miss` = Schlüssel aus
   `src/quiz/misconceptions.ts` der App (`MISS`, Name für Landkarte/Auswertung), `why` = Rückmeldungssatz mit den konkreten Zahlen (steht vor der Erklärung).
   Eingabe-Aufgaben: `traps` (`{ field, value | min }` oder `{ values: {…} }`) auf den gemeldeten `values`; `diagnose(task, answer)` wertet aus.
@@ -100,6 +186,11 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen). `mc` bevorzugt Optionen mit Diagnose.
 - Quiz-Hilfsmittel je Aufgabe über `tools` von `QuizScreen` (`QuizHelp`): z. B. PSE mit den Elementen der Aufgabe markiert (`PseHelp` in `@lern/chem-ui`, Elemente per `elementsIn(prompt)` aus `@lern/chem`).
   Hilfsmittel dürfen die Lösung nicht direkt verraten (PSE nur Angaben eines gedruckten PSE: Z, Gruppe, Periode, Atommasse).
+- **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf DE/EN in der Kopfzeile
+  (`lern-sprache`; Wechsel lädt die Seite neu, Stände bleiben). Tests laufen auf Deutsch; je Modul `english.test.ts`/`guide-english.test.ts` prüfen, dass nichts Deutsches
+  in der englischen Fassung bleibt. Fachnamen englisch nach IUPAC (alkene, ethanoic acid …).
+- Kopfzeile (`LernApp`): Logo (→ Übersicht), Tabs, Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
+  nicht gespeichert), Farbschema hell/dunkel (Start hell, nicht gespeichert), DE/EN, „Lesbar“, Klang. Am Handy (≤ 374 px) engere Abstände, damit nichts übersteht.
 - Offline-fähig: Web-Build mit Service Worker, zusätzlich Einzeldatei mit allen Modulen (`vite build --mode single` → `edi-offline.html`).
 - Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`.
 
@@ -159,18 +250,24 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente; beim Sprudel zusätzlich „entsteht in kleiner Menge“: Kohlensäure, `forms`) | Zählen | Farben („nur im Modell“) |
   Einteilung (Stoffe → Reinstoffe/Gemische mit allen Beispielen; niedrige Handys ohne Wurzel) | Arten (verteilter Stoff in Hauptstoff: Gemenge, Legierung, Suspension,
   Lösung, Rauch, Emulsion, Nebel, Schaum, Gasgemisch mit Alltagsbeispiel; aktuelles Beispiel markiert) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
-- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`), sechs Niveaus in festen Paaren – mit Tipp (1, 3, 5) und ohne (2, 4, 6) – plus „Alles gemischt“:
-  Teilchen und Stoffe (teilchen, stoffe, atomsorten, reinOderGemisch, einordnen, reinGemisch, elemente, verbindungen, bildArt, bildWahl) |
-  Gemische im Alltag (alltag ×2, homogen ×3, gemischart ×3, reinAlltag ×2) | Lösen und Mischen (wohin, erhalten, masse, zwischen, bewegung, farbe, nachher, bewegung, farbe, nachher).
-  **Feste Reihenfolge** (`seq`, leicht → schwer, `ordered`; der Store ersetzt Wiederholungen nur innerhalb des Typs, `fixedOrder`), keine Frage doppelt in einer Runde.
-  Jede Aufgabe hat einen allgemeinen Tipp (`hint`) und einen **zugeschnittenen** (`tip`, mit den Stoffen, Formeln oder Zahlen der Aufgabe); in den Niveaus mit Tipp
-  wird er zum Tipp und der Knopf hervorgehoben (`hintCue` in `@lern/quiz`, kostet dort keine Punkte), Glühbirne an der Levelkarte, Erklärkarte nennt den Tipp-Knopf.
-  Sprudel nicht im Quiz (dort reagiert ein Teil zu Kohlensäure).
+- Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): vier Lern-Level mit rotem Faden (`gm-t1` … `gm-t4`), plus „Alles gemischt“, „Heute fällig“, „Schwächen üben“:
+  1 **Elemente und Verbindungen** (teilchen, teilchen, atomsorten, einordnen, einordnen, stoffe, elemente, verbindungen, reinOderGemisch, bildArt) ·
+  2 **Homogen und heterogen** (reinGemisch, homogenBild ×3, homogenKlar ×2, homogenSieht ×2, homogen ×2) ·
+  3 **Gemische im Alltag** (alltag ×2, reinAlltag ×2, artFluessig ×2, artFestGas, artInGas, gemischart, alltag) ·
+  4 **Lösen und Mischen** (wohin, erhalten, masse, zwischen, bewegung, farbe, nachher, bewegung, farbe, nachher).
+  **Feste Reihenfolge** (`seq`, jede Aufgabe baut auf der vorigen auf, `ordered`; der Store ersetzt Wiederholungen nur innerhalb des Typs, `fixedOrder`), keine Frage doppelt in einer Runde.
+  Über jeder Aufgabe ein **Merksatz** (`leads` → `lead`), der den Gedanken des Schritts nennt. Jede Aufgabe hat einen **zugeschnittenen Tipp** (`tip`, mit Stoffen,
+  Formeln oder Zahlen der Aufgabe), der als Tipp gilt und hervorgehoben ist (`hintCue`, kostet keine Punkte); Glühbirne an der Levelkarte.
+  Rückmeldungen begründen mit dem Bild („weil zwei Atomsorten in einem Teilchen verbunden sind“, `because`). Sprudel nicht im Quiz (dort reagiert ein Teil zu Kohlensäure).
   Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (Schlüssel = Antworttext, `renderOption`, zwei Spalten). Anordnungen für falsche Bilder:
   gemischt, unten, oben, getrennt, abwechselnd. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
   verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag.
   Hilfsmittel „Farben“: alle Atomfarben des Quiz (verrät nicht, welche vorkommen). Nie zwei Atomsorten mit ähnlicher Farbe
-  (He/Ne, Cu/Fe, Zn/Al) in einer Aufgabe (`distinctColors`, Test); Argon violett.
+  (He/Ne, Cu/Fe, Zn/Al) in einer Aufgabe (`distinctColors`, Test); Argon violett. Artikel und Einzahl/Mehrzahl in erzeugten Sätzen beachten („Das Salz“, „1 Teilchen“).
+- Zählen in der Werkbank mit abnehmender Hilfe (`Counts` in `views/MixView.tsx`): Beispiel 1–2 vorgerechnet („Vorgemacht“), 3–5 fehlt die Zahl der Stoffe
+  („Ergänze die Lücke“), ab 6 alles selbst („Jetzt du“) – Eingabe mit ✓/✗, nach zwei Fehlversuchen steht die Lösung da; die Teilchenzahl ist immer angegeben.
+- Erklärung (27 Schritte, keine Stufen): Kapitel **Teilchen und Stoffe** · **Element und Verbindung** · **Arten von Gemischen** (vorgemachter Überblick, der Suspension,
+  Emulsion, Schaum, Gemenge, Legierung, Lösung jeweils mit Alltagsbeispiel fett einführt, bevor danach gefragt wird) · **Lösen und Mischen**.
 
 ## Atombau (`modules/atombau`)
 - Start immer: helles Farbschema, Unterstufe, Elektronen kreisen nicht, kein Beamer-Modus (diese Werte werden nicht gespeichert).
@@ -187,7 +284,14 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   im Quiz als Hilfsmittel bei Aufgaben zur Elektronenkonfiguration (`BLOCK_TYPES` in `QuizView.tsx`), nicht bei „Blöcke im PSE“ (wäre die Lösung).
 - Chemie: Elemente Z = 1–86; Kationen geben Elektronen von außen nach innen ab: ns/np, dann (n−1)d, dann (n−2)f (Fe²⁺ = [Ar] 3d⁶, Eu³⁺ = [Xe] 4f⁶). Konfiguration überall nach dem Aufbauprinzip ohne Sonderfälle (auch Cr, Cu); das Quiz fragt diese Elemente (`DEVIATING`) und Cu⁺ nicht ab.
 - Häufigstes Isotop aus der Tabelle `COMMON_A` (`standardNeutrons`), nie gerundete Atommasse (Cu-63, nicht Cu-64). Ionen in Aufgaben nur mit Ladungen, die es gibt (`commonCharges`); Namen mit `ionName` (Chlorid-Ion, Eisen(III)-Ion).
-- Einzahl/Mehrzahl in generierten Texten beachten („1 Proton“, „1 Außenelektron“) – die Quiz-Tests prüfen das.
+- Einzahl/Mehrzahl in generierten Texten beachten („1 Proton“, „1 Außenelektron“) – die Quiz-Tests prüfen das. Ladung 0 heißt „neutral“ (nicht „0+“).
+  Im Quiz nicht „Grundzustand“ verwenden (nicht eingeführt).
+- Erklärung Level I (26 Schritte): **Kern und Hülle** · **Elektronen und Masse** · **Schalen** (K, L, M fett eingeführt) · **Ionen** (Kation/Anion fett) · **Isotope** · **Atomsymbol**.
+  Level II (38 Schritte, Orbitalmodell von Grund auf): **Grenzen des Schalenmodells** · **Elektronen als Welle** · **Quantenzahlen und Formen** · **Wie viele Elektronen?** ·
+  **Energie und Aufbau** · **Das Atom in 3D** · **Kurzschreibweise und PSE** · **Ionen** (isoelektronisch fett).
+  3D-Orbitale (`@lern/chem-ui/orbitals3d`, `Orbital3D`, per `lazy()`): Grenzflächen der wasserstoffähnlichen Wellenfunktion ψ (`packages/chem/src/orbitals.ts`, Marching Cubes),
+  Farbe nach Orbitaltyp wie im Kästchenschema, Vorzeichen von ψ als dunkle/helle Tönung, Ziehen dreht. Höhere Schalen liegen weiter außen (5s weiter außen als 4s) –
+  so ist es fachlich richtig, auch wenn 5s energetisch höher liegt. Orbitalbild bei niedrigen Bildschirmen (Höhe ≤ 760 px) kompakter.
 
 ## Ionenbindung (`modules/ionenbindung`)
 - Ionen-Bausteine: Kationen gold, Anionen grün, Breite = Ladung. Neutral, wenn beide Reihen gleich lang sind.
@@ -197,6 +301,9 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Erklärkarte: im Salz keine Paare oder Moleküle, sondern ein Ionengitter.
 - Nicht beständige Verbindungen (FeI₃, CuI₂, Al₂(CO₃)₃, AgOH, Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN`
   (`isKnownCompound`): das Quiz fragt sie nicht ab, der Baukasten zeigt einen Hinweis.
+- Baukasten startet gelöst (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`) – zuerst ein fertiges Beispiel ansehen, dann selbst bauen.
+- Erklärung Level I (17 Schritte): **Vom Atom zum Ion** · **Nichtmetall-Ionen** · **Formeln** · **Namen**. Level II (13 Schritte): **Ionen** (mehratomige Ionen,
+  Hydrogencarbonat eingeführt) · **Klammern** · **Nebengruppen und Namen**. Quiz-Tipps ohne „kgV“ (nicht eingeführt): „Füge Bausteine hinzu, bis die goldene und die grüne Reihe gleich lang sind – mit möglichst wenigen Bausteinen.“
 
 ## Elektronenpaarbindung (`modules/elektronenpaarbindung`)
 - Baufeld 6 × 5: Atome ziehen oder antippen und Felder antippen (Auswahl bleibt aktiv bis „Fertig“). Aus dem Feld ziehen = entfernen.
@@ -220,13 +327,18 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Umschalter Strichformel / Keilstrichformel (nur fertige Moleküle): `wedgeLayout` in `packages/chem/src/wedge.ts` (Papierebene aus embed3D, Keil = nach vorn, gestrichelt = nach hinten).
   Ein Zentralatom mit Tetraeder (CH₄, NH₃ …) als feste Standard-Zeichnung (Bindungen gleich lang, zu Partnern mit freien Paaren wie Cl × 1,2; Striche halten vor zweibuchstabigen Symbolen mehr Abstand); sonst beste Ansicht (viele Bindungen in der Ebene, keine Überlappung). Einfachbindungen zwischen Tetraeder-Atomen gestaffelt.
 - Wasser nie linear zeichnen (auch nicht als Deko, z. B. Übersicht).
+- Erklärung Level I (16 Schritte): **Außenelektronen** (Lewis-Schreibweise, ungepaarte Elektronen, Edelgaskonfiguration fett) · **Bindungen** · **Mehrfachbindungen** ·
+  **Moleküle und Namen**. Level II (15 Schritte): **Bindungen** · **Molekülform** (EPA) · **Polarität**.
+- 3D frei gebauter Moleküle: Kraftfeld MMFF94 (`packages/chem/src/mmff`, Einstieg `@lern/chem/mmff`, erst bei Bedarf geladen, rechnet im Hintergrund-Thread
+  `packages/chem-ui/src/ff.worker.ts`); für bekannte Moleküle gemessene Strukturen (`mol3d.ts`). Prüfung gegen RDKit: `scripts/mmff-reference.py`, `packages/chem/test/mmff-reference.test.ts`.
+  3D-Darstellung: gemeinsame Geometrien, Beschriftungen nur bei Bedarf, ohne Kantenglättung bei hoher Pixeldichte (flüssig auf Handys).
 
 ## Reaktionsgleichungen (`modules/reaktionsgleichungen`)
 - Logik in `packages/chem/src/reactions.ts`: `parseFormula` (Klammern, tiefgestellte Ziffern), `balance` (Nullraum mit Brüchen → kleinste ganze Koeffizienten, `null` bei mehrdeutigen Gleichungen), `isBalanced`, `unbalancedElements`, `equationText` (Koeffizient 1 weglassen, `null` = „?“).
 - Reaktionen in `REACTIONS` mit `stufe` (us/os) und `niveau` 1–4 (`reactionsFor(stufe, …niveaus)`), Titel, Art, Formeln ASCII wie `Ca(OH)2`; Stoffnamen in `SPECIES_NAMES` (jeder Stoff braucht einen Namen).
   Niveaus: US 1 eine Zahl · 2 mehrere Zahlen · 3 Verbrennungen/Metalloxide · 4 knifflig (halbe Zahl → verdoppeln, Al + HCl); OS 1 Salze/Säuren (Ionen als Block) · 2 Zerfall/Fällung/Neutralisation ·
   3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 5 Aufgaben).
-- Aufbau (einfach, wenige Knöpfe): Tabs **Start | Quiz**. Start = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS Gärung, Fotosynthese, Ethanol, Ostwald, Oktan; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf“ = `ReactionMorph` auf Abruf),
+- Aufbau (einfach, wenige Knöpfe): Tabs **Start | Quiz**. Start = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
   nach dem letzten Beispiel „Zum Quiz“. Mit `BalanceCard`:
   Titel, Teilchenbild (`MoleculeScene`, Kästen passen sich dem Inhalt an, nebeneinander oder übereinander), Ergebnis erst nach „Prüfen“ (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`,
   Kastenrahmen grün bzw. rot gestrichelt), Gleichung **immer einzeilig, nie umbrechen** (`EquationRow`: Fit-Text – Schrift passt sich der Breite an, 26 → min. 10 px; jeder Stoff ist ein Tippziel ≥ 44 px, antippen → Zahlenauswahl 1–12, Niveau 4 bis 30; `FitLine` für die Gleichung über Quizfragen), ein Hauptknopf. Keine Werkzeugleiste, kein 3D.
@@ -240,7 +352,15 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Formelgleichungen als MC-Antwort ebenfalls einzeilig mit Fit-Text (`renderOption` von `QuizScreen` → `FitLine base={18}`). „Ausgeglichen?“-Antworten mit Elementsymbolen („Nein – Ca, C und O stimmen nicht“).
   Kalottenmodell, **jedes Atom muss gut zu sehen sein (Vorrang vor echtem 3D)** (Geometrie `packages/chem/src/kalotte.ts`, Zeichnung `@lern/chem-ui` `Kalotte`, Test ≥ 65 % je Atom über `visibleShare`): Moleküle aus `MOL3D` (MMFF94) in der Ansicht mit dem am wenigsten verdeckten Atom (`orient`, 160 Richtungen), Bindungen bis ×1,15 gestreckt, gebundene Kugeln überlappen; ist trotzdem ein Atom unter 70 % sichtbar, die ebene Zeichnung wie eine Strukturformel (`flatView` aus `flat` der Daten, RDKit 2D, auseinandergeschoben; Glucose, Ethanol, H₃PO₄, CH₄ …; P₄O₁₀ als feste Standard-Zeichnung `flatFixed`, P₄ bleibt Tetraeder). Ketten CₙH₂ₙ₊₂ immer gerade wie die Strukturformel (`chainView`, kein Zickzack). Salze/Säuren aus Bausteinen, Kugeln nach Tiefe sortiert und dezent schattiert
   (radialer Verlauf – bewusste Ausnahme vom „keine Verläufe“), Farbfamilien nach CPK aus der Palette (`--hue-*`, Tokens `--atom-X` in `@lern/chem-ui` styles.css; die Tests prüfen Farbtoken, Atomzahlen und Abstände). Formeln nie änderbar.
-- Gespeichert: Stand der Start-Beispiele und Übungsgleichung (`reaktionsgleichungen-v2`); Quiz in `reaktionsgleichungen-quiz`. Stufen-Schalter US/OS (Start immer Unterstufe, nicht gespeichert).
+- **Ablauf der Reaktion auf Abruf** (`components/AnimSheet.tsx` → `ReactionMorph` in `components/Morph.tsx`, Logik `morph.ts`): Start nach ✓ Knopf „Ablauf ansehen“ in der Statuszeile
+  → Blatt mit Gleichung (Zahlen rot) und Animation: Edukt-Moleküle lockern sich (Bindungen brechen) → Atome wandern zum nächstgelegenen Platz gleicher Sorte im Produkt →
+  rücken zusammen (neue Bindungen). Kein Atom verschwindet oder kommt dazu; Atomzahlen je Element stehen darunter. „Abspielen“/„Noch einmal“ und Regler Edukte ↔ Produkte,
+  Abschnittsname als `Tag`. Im Quiz erst **nach** der Antwort bei Ausgleich-Aufgaben aus Molekülen (`feedbackExtra` → Blatt „Lösung“), vorher würde sie die Zahlen verraten.
+  Nur für Gleichungen aus Molekülen (`hasModel`). Höhe im Blatt `min(62dvh, 560px)` – auf kleinen Handys hat die Animation in der Karte keinen Platz.
+- Gespeichert: Stand der Start-Beispiele je Stufe (`reaktionsgleichungen-v2`, Version 3 übernimmt den alten Stand der Unterstufe); Quiz in `reaktionsgleichungen-quiz`.
+  Stufen-Schalter Level I/II (Start immer Level I, nicht gespeichert).
+- Erklärung Level I (18 Schritte): **Was passiert?** (Edukte/Produkte, Animation) · **Formeln lesen** · **Ausgleichen** · **Verbrennung**. Level II (15 Schritte):
+  **Warum ausgleichen?** · **Teilchen zählen** · **Ionen als Block** · **Große Gleichungen**.
 - Quiz (`src/quiz/tasks.ts`): je Stufe vier Level „Niveau 1–4“. Fertigkeiten `zaehlen` (OS mit Klammern), `pruefen`, `koeffizient`, `koeff-4`, `wort`, `aus-1`, `ausgleichen` (= Niveau 2), `aus-3`, `aus-4`;
   Antwortformen `mc`, `num` (Zahl eintippen), `balance` (Koeffizienten setzen, richtig nur ausgeglichen **und** gekürzt). Gleichung steht als `eq` groß über der Frage (`renderVisual`), nicht im Prompt.
   Erklärkarte je Niveau und Stufe (`explain.tsx`).
@@ -261,6 +381,8 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
 - Salzformeln ionisch, Kation zuerst (NaCH₃COO, KHCOO, Ca(HCO₃)₂). Wortgleichung mit Laugen-/Säurenamen (Natronlauge + Salzsäure → Natriumchlorid + Wasser).
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): protolyse, protonen (OS), restName, restLadung, hydroxid, bauen (Bausteine, Fallen 1 : 1 / vertauscht / nicht gekürzt),
   wasser, koeffizient (OS), salz, salzName, gleichung. Namensfallen nur mit Ionen, die es gibt (-id/-it/-at, Hydrogen-Formen nur beim Schwefel, Formiat ↔ Acetat). Säuretabelle als Hilfsmittel nur Oberstufe und nur bei Aufgaben, die nicht nach Namen/Ladung der Säurereste fragen.
+- Erklärung Level I (15 Schritte): **Säuren** · **Laugen und Wasser** (vorgemachte Wand ohne Reaktion) · **Salz und Gleichung**. Level II (14 Schritte): **Mehrprotonige Säuren** ·
+  **Ausgleichen** · **Salze benennen** (Formiat, Perchlorat eingeführt; `known`: Nitrat, Sulfat, Carbonat, Hydrogencarbonat, Phosphat aus der Ionenbindung).
 
 ## Nomenklatur (`modules/organik`)
 - Organische Verbindungen frei zeichnen, der Name folgt nach IUPAC (deutsche Schreibweise: Benzen, Oct, Ethansäure, Butansäureethylester), mit weiteren Namen
@@ -301,6 +423,11 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Gespeichert (`organik-v1`): Zeichnung, Stift, Ansicht, Name sichtbar, Farbe.
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): stamm, kette (Zahl), alkan, alken, lage (Zahl), klasse, endung, gruppen, ester, prio, mehrere, struktur (Name → Formel,
   Antworten als Gerüstformel). Falsche Namen kommen aus der Benennung selbst. Hilfsmittel: Groß (Formel bildschirmfüllend), Regeln (Stämme nicht bei stamm, Rangfolge nicht bei klasse/endung/prio).
+  Level: 1 Alkane (Stämme bis Dec, längste Kette, Äste) · 2 Doppel- und Dreifachbindung (Alken/Alkin, Lage, E/Z) · 3 Funktionelle Gruppen (Stoffklassen, Endungen, Ester) ·
+  4 Mehrere Gruppen (Rangfolge, Vorsilben, Name → Formel); feste Reihenfolge je Level. Erklärkarten (`quiz/explain.tsx`) führen ein, was die Erklärung nicht hat
+  (Hept … Dec, Alken/Alkin, Stoffklasse, Ester, Ordnungszahl bei E/Z, Chlor-/Amino-Vorsilben). Begriff „Äste“ überall (Quiz, Lösungsweg `naming.ts`, Stolpersteine).
+- Erklärung (22 Schritte, keine Stufen): **Alkane** (Stamm, Methan … Hexan) · **Äste und Nummern** (Hauptkette, Ast, Methyl, Nummerierung vom nahen Ende) ·
+  **Mehrfachbindungen** (-en = Alken, -in = Alkin, Nummer, E/Z) · **Alkohole** · **Säuren und Rangfolge**.
 
 ## Einheiten (`modules/einheiten`)
 - Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
@@ -325,7 +452,13 @@ Zielgruppe: Schülerinnen und Schüler (Unter-/Oberstufe) auf Handy, Tablet, Sch
   Umrechnungszahl-Aufgaben mit diagnostischen Distraktoren (`dis`: Gegenrichtung, „wie bei Längen“, Stufe zu viel/zu wenig).
 - Quiz-Hilfsmittel passend zur Aufgabe, ohne Ergebnis (nicht bei Fragen nach der Umrechnungszahl): Pfeile (bzw. `DimChain`), Skala (wenn `prefixStep`), Stellen (Stellenwerttafel), sonst Einsetzen.
   Eingabe-Aufgaben zeigen als Bild die Aufgabe groß mit Einheitennamen (`TaskBanner`, Quadrat/Würfel bei Fläche/Volumen).
+- Erklärung Level I (17 Schritte): **Längen** · **Masse und Hohlmaße** · **Fläche und Volumen** · **Zeit** (`known`: „gleich lang“). Level II (14 Schritte):
+  **Vorsilben** · **Flächen und Volumen** · **Zeit und zusammengesetzte Einheiten**.
 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
-Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"` und `LESBAR=1`).
+Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"`, `LESBAR=1` und `LOCALE=en-GB`).
+In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=/opt/pw-browsers/chromium`), Playwright global (`PLAYWRIGHT=…/playwright/index.mjs`); nie `playwright install`.
+Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
+laufen lassen; je Zustand messen (Seite, `.ui-wb`, `.ui-wb-stage`, Aufgabenkarte, Blatt: `scrollHeight/scrollWidth` ≤ `clientHeight/clientWidth`, Bild nicht winzig) und Screenshots ansehen.
+Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „success“), erst dann „veröffentlicht“ melden.
