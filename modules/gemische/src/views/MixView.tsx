@@ -360,16 +360,18 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
               <IconButton icon="back" label={tr("Voriges Beispiel", "Previous example")} onClick={() => goTo(index - 1)} />
               <Button variant="primary" icon={action.icon} onClick={act} disabled={!canAct}>{action.label}</Button>
               <IconButton icon="arrow" label={tr("Nächstes Beispiel", "Next example")} onClick={() => goTo(index + 1)} />
+              {/* Messing: ohne Temperaturregler steht „Von vorn“ in derselben Zeile */}
+              {ex.state === "fest" && <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={again} />}
             </div>
-            <div className="gm-row">
+            {ex.state !== "fest" && <div className="gm-row">
               {ex.before && <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={again} />}
-              {ex.state !== "fest" && <label className="gm-temp">
+              <label className="gm-temp">
                 <Icon name="fire" size={18} />
                 <input type="range" min={0} max={100} step={10} value={temp} aria-label={tr("Temperatur", "Temperature")}
                   onChange={e => { setTemp(Number(e.target.value)); if (reduced) setVersion(v => v + 1); }} />
                 <output>{temp} °C</output>
-              </label>}
-            </div>
+              </label>
+            </div>}
           </div>
         }
         tools={[

@@ -39,11 +39,21 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
   assert.strictEqual(LEVELS.length, 5);
 });
 
-test("keine Moleküle aus nur einer Atomsorte (O₂, O₃, N₂ …) in Bildern und Texten", () => {
+test("Moleküle aus nur einer Atomsorte nur in der Aufgabe „Element oder Verbindung“ (O₂, N₂ mit Falle element-molekuel), sonst nie", () => {
+  let seen = 0;
   for (const t of all("mix", 200)) {
-    for (const p of picsOf(t)) for (const [f] of p.mix) assert.ok(!isElement(f) || !/\d/.test(f), `${t.type}: ${f}`);
-    assert.ok(!/(^|[^A-Za-z₀-₉])(O₂|O₃|N₂|H₂|Cl₂)(?![A-Za-z₀-₉])/.test(t.prompt + (t.kind === "mc" ? t.options.join() : "")), t.prompt);
+    const allowed = t.type === "einordnen";
+    for (const p of picsOf(t)) for (const [f] of p.mix) {
+      if (allowed && ["O2", "N2"].includes(f)) { seen++; assert.ok(t.kind === "mc" && Object.values(t.miss ?? {}).includes("element-molekuel"), "Falle fehlt"); continue; }
+      assert.ok(!isElement(f) || !/\d/.test(f), `${t.type}: ${f}`);
+    }
+    if (!allowed) assert.ok(!/(^|[^A-Za-z₀-₉])(O₂|O₃|N₂|H₂|Cl₂)(?![A-Za-z₀-₉])/.test(t.prompt + (t.kind === "mc" ? t.options.join() : "")), t.prompt);
   }
+  assert.ok(seen > 0, "O₂/N₂-Variante kommt nie vor");
+  // in Kapitel 2 mindestens einmal je drei Runden (im Mittel)
+  let rounds = 0, hit = 0;
+  for (let k = 0; k < 90; k++) { rounds++; if (makeRound("us", 1).some(t => t.type === "einordnen" && t.pic?.mix.some(([f]) => ["O2", "N2"].includes(f)))) hit++; }
+  assert.ok(hit / rounds > 1 / 3, `${hit} von ${rounds}`);
 });
 
 test("Zählaufgaben stimmen mit der Auswertung überein", () => {
@@ -197,3 +207,14 @@ test("Tipp und erster Schritt (hint und tip) verraten die Antwort nicht – in j
   }
   assert.deepEqual([...bad], []);
 }, 60_000);
+
+test("Art des Gemischs: das Antwortwort steht nicht im Namen des Beispiels (sonst ohne Nachdenken lösbar)", () => {
+  const bad = new Set<string>();
+  for (let k = 0; k < 400; k++) {
+    const t = GENS.gemischart();
+    if (t.kind !== "mc") continue;
+    const name = (t.prompt.match(/\*\*(.+?)\*\*/)?.[1] ?? "").toLowerCase().split(/[^\p{L}]+/u);
+    if (name.includes(t.options[t.answer].toLowerCase())) bad.add(t.prompt);
+  }
+  assert.deepEqual([...bad], []);
+});

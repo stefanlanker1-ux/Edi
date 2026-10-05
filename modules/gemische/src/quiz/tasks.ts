@@ -367,17 +367,24 @@ function elemente(): Task {
 
 const EINORDNEN = ["H2O", "He", "Ne", "Ar", "CO2", "CH4", "C2H5OH", "NH3", "H2O2", "CO", "H2S", "C12H26", "C12H22O11", "Cu", "Zn", "Fe", "Al"];
 
+/** Elemente aus Molekülen (zwei gleiche Atome): nur hier im Quiz – Kontrast zu Verbindungen wie CO */
+const ELEMENT_MOLECULES = ["O2", "N2"];
+
 function einordnen(): Task {
-  const f = pick(EINORDNEN);
+  // jede vierte Aufgabe ein Element aus Molekülen (O₂, N₂): zwei Atome, aber eine Atomsorte
+  const f = Math.random() < .25 ? pick(ELEMENT_MOLECULES) : pick(EINORDNEN);
+  const molecule = ELEMENT_MOLECULES.includes(f);
   const els = analyse([[f, 1]]).atomsorten;
   const metal = METALS.includes(f);
   const pic: Pic = metal ? { mix: [[f, pick(LATTICE)]], state: "fest" } : { mix: [[f, isElement(f) ? int(5, 8) : f.length > 6 ? 3 : int(4, 6)]], state: "modell" };
   const name = shortName(f);
   const opts = isElement(f)
     ? mc(W.el, [
-      d(W.comp, "element-verbindung", metal
-        ? LATTICE_SAME(f)
-        : tr(`${F(f)} besteht nur aus ${f}-Atomen. Eine Verbindung braucht mehrere Atomsorten.`, `${F(f)} consists only of ${f} atoms. A compound needs several kinds of atoms.`)),
+      molecule
+        ? d(W.comp, "element-molekuel", tr(`${F(f)} hat zwei Atome, aber nur eine Atomsorte – ein Element.`, `${F(f)} has two atoms but only one kind of atom – an element.`))
+        : d(W.comp, "element-verbindung", metal
+          ? LATTICE_SAME(f)
+          : tr(`${F(f)} besteht nur aus ${f}-Atomen. Eine Verbindung braucht mehrere Atomsorten.`, `${F(f)} consists only of ${f} atoms. A compound needs several kinds of atoms.`)),
       dis(W.mix, tr("Alle Teilchen sind gleich – ein Reinstoff, kein Gemisch.", "All particles are the same – a pure substance, not a mixture.")),
     ], 3)
     : mc(W.comp, [
@@ -389,7 +396,9 @@ function einordnen(): Task {
     prompt: tr(`**${name}** (${F(f)}): Element, Verbindung oder Gemisch?`, `**${name}** (${F(f)}): element, compound or mixture?`),
     hint: tr("Wie viele Atomsorten stecken in einem Teilchen?", "How many kinds of atoms are in one particle?"),
     tip: tr(`Lies die Formel ${F(f)}: Jeder Großbuchstabe ist eine Atomsorte. Wie viele Großbuchstaben zählst du?`, `Read the formula ${F(f)}: each capital letter is a kind of atom. How many capital letters do you count?`),
-    explain: isElement(f)
+    explain: molecule
+      ? tr(`${name} ${F(f)}: zwei gleiche Atome (${els[0]}) → eine Atomsorte → **Element**.`, `${name} ${F(f)}: two identical atoms (${els[0]}) → one kind of atom → **element**.`)
+      : isElement(f)
       ? tr(`${name}: nur ${elementName(els[0])}-Atome (${els[0]}) → **Element**${metal ? ", auch im Metallgitter" : ""}.`, `${name}: only ${elementName(els[0]).toLowerCase()} atoms (${els[0]}) → **element**${metal ? ", also in a metal lattice" : ""}.`)
       : tr(`${name}: ${list(els)} in einem Teilchen → **Verbindung**.`, `${name}: ${list(els)} in one particle → **compound**.`),
   };
@@ -509,8 +518,8 @@ const GEMISCHARTEN: Art[] = tr([
   { name: "Orangensaft mit Fruchtfleisch", ans: "Suspension", why: "Feste Stückchen im Saft.", traps: [["Emulsion", ZUSTAND, "Fruchtfleisch ist fest – das sind Stückchen, keine Tröpfchen."]] },
   { name: "Granit", ans: "Gemenge", why: "Verschiedene feste Körner nebeneinander.", traps: [["Legierung", "sieht-einheitlich", "Die Körner im Granit sieht man – nicht bis zu den Atomen gemischt."]] },
   { name: "Müsli", ans: "Gemenge", why: "Feste Teile nebeneinander.", traps: [["Suspension", ZUSTAND, "Im Müsli ist keine Flüssigkeit – nur feste Teile."]] },
-  { name: "Nebel", ans: "Nebel", why: "Flüssige Tröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Rauch hat feste Teilchen, Nebel flüssige Tröpfchen."]] },
-  { name: "Rauch", ans: "Rauch", why: "Feste Teilchen in Luft.", traps: [["Nebel", ZUSTAND, "Nebel hat flüssige Tröpfchen, Rauch feste Teilchen."]] },
+  { name: "Dunst über dem Teich am Morgen", ans: "Nebel", why: "Flüssige Tröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Rauch hat feste Teilchen, Nebel flüssige Tröpfchen."]] },
+  { name: "Qualm eines Lagerfeuers", ans: "Rauch", why: "Feste Rußstückchen in Luft.", traps: [["Nebel", ZUSTAND, "Nebel hat flüssige Tröpfchen, Rauch feste Teilchen."]] },
   { name: "Schlagsahne", ans: "Schaum", why: "Luftblasen in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "In Schlagsahne stecken Luftblasen – ein Gas in Flüssigkeit."]] },
   { name: "Seifenschaum", ans: "Schaum", why: "Luftblasen in Seifenwasser.", traps: [["Nebel", ZUSTAND, "Beim Nebel ist die Flüssigkeit im Gas – hier ist es umgekehrt."]] },
   { name: "Essig", ans: "Lösung", why: "Essigsäure ist in Wasser gelöst.", traps: [["Emulsion", "geloest-heterogen", "Essigsäure mischt sich ganz mit Wasser – keine Tröpfchen."]] },
@@ -523,7 +532,7 @@ const GEMISCHARTEN: Art[] = tr([
   { name: "Kakao mit Pulver am Boden", ans: "Suspension", why: "Feste Pulverkörner in Milch.", traps: [["Emulsion", ZUSTAND, "Kakaopulver ist fest – Körner, keine Tröpfchen."]] },
   { name: "Schlamm", ans: "Suspension", why: "Feste Erdteilchen im Wasser.", traps: [["Emulsion", ZUSTAND, "Erde ist fest – Körner, keine Tröpfchen."]] },
   { name: "Sand und Kies", ans: "Gemenge", why: "Feste Körner verschiedener Größe.", traps: [["Legierung", "sieht-einheitlich", "Legierungen sind Metalle, bis zu den Atomen gemischt. Hier sieht man Körner."]] },
-  { name: "Wolke", ans: "Nebel", why: "Wassertröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Wolken bestehen aus flüssigen Tröpfchen – nicht aus festen Teilchen."]] },
+  { name: "eine Wolke", ans: "Nebel", why: "Wassertröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Wolken bestehen aus flüssigen Tröpfchen – nicht aus festen Teilchen."]] },
   { name: "Staub in der Luft", ans: "Rauch", why: "Feste Teilchen schweben in Luft.", traps: [["Nebel", ZUSTAND, "Staub ist fest – Nebel hat flüssige Tröpfchen."]] },
   { name: "Bierschaum", ans: "Schaum", why: "Gasblasen in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "Im Schaum stecken Gasblasen, keine Tröpfchen."]] },
 ], [
@@ -542,8 +551,8 @@ const GEMISCHARTEN: Art[] = tr([
   { name: "orange juice with pulp", ans: "Suspension", why: "Solid bits in the juice.", traps: [["Emulsion", ZUSTAND, "Pulp is solid – these are bits, not droplets."]] },
   { name: "granite", ans: "Coarse mixture", why: "Different solid grains side by side.", traps: [["Alloy", "sieht-einheitlich", "You can see the grains in granite – not mixed down to the atoms."]] },
   { name: "muesli", ans: "Coarse mixture", why: "Solid pieces side by side.", traps: [["Suspension", ZUSTAND, "There is no liquid in muesli – only solid pieces."]] },
-  { name: "fog", ans: "Fog", why: "Liquid droplets in air.", traps: [["Smoke", ZUSTAND, "Smoke has solid particles, fog has liquid droplets."]] },
-  { name: "smoke", ans: "Smoke", why: "Solid particles in air.", traps: [["Fog", ZUSTAND, "Fog has liquid droplets, smoke has solid particles."]] },
+  { name: "haze over a pond in the morning", ans: "Fog", why: "Liquid droplets in air.", traps: [["Smoke", ZUSTAND, "Smoke has solid particles, fog has liquid droplets."]] },
+  { name: "the fumes of a campfire", ans: "Smoke", why: "Solid bits of soot in air.", traps: [["Fog", ZUSTAND, "Fog has liquid droplets, smoke has solid particles."]] },
   { name: "whipped cream", ans: "Foam", why: "Air bubbles in a liquid.", traps: [["Emulsion", ZUSTAND, "Whipped cream contains air bubbles – a gas in a liquid."]] },
   { name: "soap foam", ans: "Foam", why: "Air bubbles in soapy water.", traps: [["Fog", ZUSTAND, "In fog the liquid is in the gas – here it is the other way round."]] },
   { name: "vinegar", ans: "Solution", why: "Acetic acid is dissolved in water.", traps: [["Emulsion", "geloest-heterogen", "Acetic acid mixes completely with water – no droplets."]] },
@@ -556,7 +565,7 @@ const GEMISCHARTEN: Art[] = tr([
   { name: "cocoa with powder at the bottom", ans: "Suspension", why: "Solid powder grains in milk.", traps: [["Emulsion", ZUSTAND, "Cocoa powder is solid – grains, not droplets."]] },
   { name: "mud", ans: "Suspension", why: "Solid soil particles in water.", traps: [["Emulsion", ZUSTAND, "Soil is solid – grains, not droplets."]] },
   { name: "sand and gravel", ans: "Coarse mixture", why: "Solid grains of different sizes.", traps: [["Alloy", "sieht-einheitlich", "Alloys are metals mixed down to the atoms. Here you can see grains."]] },
-  { name: "cloud", ans: "Fog", why: "Water droplets in air.", traps: [["Smoke", ZUSTAND, "Clouds consist of liquid droplets – not of solid particles."]] },
+  { name: "a cloud", ans: "Fog", why: "Water droplets in air.", traps: [["Smoke", ZUSTAND, "Clouds consist of liquid droplets – not of solid particles."]] },
   { name: "dust in the air", ans: "Smoke", why: "Solid particles float in air.", traps: [["Fog", ZUSTAND, "Dust is solid – fog has liquid droplets."]] },
   { name: "beer foam", ans: "Foam", why: "Gas bubbles in a liquid.", traps: [["Emulsion", ZUSTAND, "Foam contains gas bubbles, not droplets."]] },
 ]);

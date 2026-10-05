@@ -28,7 +28,8 @@ function Picture({ p, c, target }: { p: Pic; c?: GuideCtx; target?: string }) {
   const label = `${tr("Teilchenbild", "Particle picture")}: ${p.mix.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`;
   return (
     <div className="gm-g">
-      <Fit className="gm-g-pic" min={0.2}><Beaker sim={sim} label={label} onPick={target && c ? f => c.pick(f) : undefined} /></Fit>
+      {/* key: neues Bild = neue Teilchen (sonst gleiten die Teilchen des vorigen Schritts herüber und die Beschriftungspfeile zeigen ins Leere) */}
+      <Fit className="gm-g-pic" min={0.2}><Beaker key={JSON.stringify(p)} sim={sim} label={label} onPick={target && c ? f => c.pick(f) : undefined} /></Fit>
       <Key p={p} />
       {target && c && (
         <div className="gm-g-keys">
@@ -178,7 +179,7 @@ const K1: GuideStep[] = [
 const K2: GuideStep[] = [
   {
     mode: "worked",
-    say: tr("**Element**: nur **eine** Atomsorte. **Verbindung**: mehrere Atomsorten fest verbunden – als Molekül wie Wasser oder im Gitter wie Kochsalz.", "**Element**: only **one** kind of atom. **Compound**: several kinds of atoms firmly bonded – as a molecule like water or in a lattice like table salt."),
+    say: tr("**Element**: nur **eine** Atomsorte. **Verbindung**: mehrere Atomsorten fest verbunden – als Molekül wie Wasser oder im **Gitter** wie Kochsalz (NaCl).", "**Element**: only **one** kind of atom. **Compound**: several kinds of atoms firmly bonded – as a molecule like water or in a **lattice** like table salt (NaCl)."),
     ask: tr("Element oder Verbindung?", "Element or compound?"),
     visual: () => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} />,
     labels: [{ at: "[data-f=\"Ne\"]", text: tr("Element", "Element"), side: "right" }, { at: "[data-f=\"CO2\"]", text: tr("Verbindung", "Compound"), side: "left" }],
@@ -202,6 +203,25 @@ const K2: GuideStep[] = [
     tip: tr("Ein Element-Teilchen hat Kugeln in nur einer Farbe.", "An element particle has spheres of only one colour."),
     lines: [tr("Argon Ar: eine Atomsorte → Element. Methan CH₄: C und H → Verbindung.", "Argon Ar: one kind of atom → element. Methane CH₄: C and H → compound.")],
     ok: tr("Richtig: Argon Ar ist ein Element.", "Right: argon Ar is an element."),
+  },
+  {
+    mode: "worked",
+    say: tr("Manche Elemente bestehen aus **Molekülen** aus gleichen Atomen.", "Some elements consist of **molecules** made of identical atoms."),
+    ask: tr("Sauerstoff O₂ oder Kohlenmonoxid CO: Was ist ein Element?", "Oxygen O₂ or carbon monoxide CO: which is an element?"),
+    visual: () => <Picture p={{ mix: [["O2", 4], ["CO", 4]], state: "modell" }} />,
+    labels: [{ at: "[data-f=\"O2\"]", text: tr("Element", "Element"), side: "right" }, { at: "[data-f=\"CO\"]", text: tr("Verbindung", "Compound"), side: "left" }],
+    lines: [tr("Sauerstoff O₂: zwei Atome, **eine** Farbe → eine Atomsorte → **Element**.", "Oxygen O₂: two atoms, **one** colour → one kind of atom → **element**."),
+      tr("Kohlenmonoxid CO: zwei Atome, **zwei** Farben → **Verbindung**.", "Carbon monoxide CO: two atoms, **two** colours → **compound**."),
+      tr("Es zählt die Zahl der Atomsorten, nicht die Zahl der Atome.", "What counts is the number of kinds of atoms, not the number of atoms.")],
+    ok: tr("Auch ein Molekül aus gleichen Atomen gehört zu einem Element.", "A molecule of identical atoms also belongs to an element."),
+  },
+  {
+    mode: "faded",
+    ask: tr("Ergänze: Was ist Stickstoff N₂?", "Complete: what is nitrogen N₂?"), answer: EL(), options: [VB(), EL()],
+    visual: () => <Picture p={{ mix: [["N2", 4], ["CO2", 3]], state: "modell" }} />,
+    lines: [tr("Kohlendioxid CO₂: C und O → Verbindung.", "Carbon dioxide CO₂: C and O → compound."), tr("Stickstoff N₂: zwei Atome, eine Atomsorte → {?}", "Nitrogen N₂: two atoms, one kind of atom → {?}")],
+    why: { [VB()]: tr("Zwei Atome – aber beide gleich. Eine Verbindung braucht mehrere Atomsorten.", "Two atoms – but both the same. A compound needs several kinds of atoms.") },
+    ok: tr("Eine Atomsorte → Element, auch im Molekül N₂.", "One kind of atom → element, even in the molecule N₂."),
   },
   {
     mode: "worked",
@@ -252,7 +272,7 @@ const K3: GuideStep[] = [
     ask: tr("Ist **Zuckerwasser** homogen oder heterogen?", "Is **sugar water** homogeneous or heterogeneous?"),
     visual: () => <Picture p={ZUCKER} />,
     labels: [{ at: "[data-f=\"C12H22O11\"]", text: tr("Zucker-Molekül", "Sugar molecule"), side: "left" }, { at: "[data-f=\"H2O\"]", text: tr("Wasser-Molekül", "Water molecule"), side: "right" }],
-    lines: [tr("Zwei Stoffe: Zucker C₁₂H₂₂O₁₁ und Wasser H₂O → Gemisch.", "Two substances: sugar C₁₂H₂₂O₁₁ and water H₂O → mixture."), tr("Man sieht keine Teile – der Zucker ist bis zu den Teilchen verteilt.", "No pieces are visible – the sugar is spread down to the particles."), tr("→ **homogenes Gemisch**. Ein gelöster Stoff in Flüssigkeit heißt **Lösung**.", "→ **homogeneous mixture**. A substance dissolved in a liquid is called a **solution**.")],
+    lines: [tr("Zwei Stoffe: Zucker C₁₂H₂₂O₁₁ und Wasser H₂O → Gemisch.", "Two substances: sugar C₁₂H₂₂O₁₁ and water H₂O → mixture."), tr("Man sieht keine Teile – der Zucker ist bis zu den Teilchen verteilt.", "No pieces are visible – the sugar is spread down to the particles."), tr("→ **homogenes Gemisch**. Flüssigkeit mit gelöstem Stoff = **Lösung**.", "→ **homogeneous mixture**. A liquid with a dissolved substance is a **solution**.")],
     ok: tr("Klar heißt nicht rein: Zuckerwasser ist ein Gemisch.", "Clear does not mean pure: sugar water is a mixture."),
   },
   {
@@ -277,7 +297,7 @@ const K3: GuideStep[] = [
     say: tr("Ein Zuckerkristall liegt im Wasser. Niemand rührt um.", "A sugar crystal lies in water. Nobody stirs."),
     ask: tr("Was passiert mit den **Zuckerteilchen**?", "What happens to the **sugar particles**?"),
     visual: () => <Play p={LOESEN} />,
-    lines: [tr("Vorher: Zuckerteilchen dicht gepackt im Kristall.", "Before: sugar particles packed tightly in the crystal."), tr("Alle Teilchen bewegen sich **ständig** – Wasserteilchen stoßen sie heraus.", "All particles move **all the time** – water particles knock them out."), tr("Nachher: überall zwischen den Wasserteilchen. Keines ist verschwunden.", "After: everywhere between the water particles. None has disappeared.")],
+    lines: [tr("Vorher: Zuckerteilchen dicht gepackt im Kristall.", "Before: sugar particles packed tightly in the crystal."), tr("Alle Teilchen bewegen sich **ständig** – Wasserteilchen lagern sich an und lösen sie heraus.", "All particles move **all the time** – water particles attach themselves and pull them out."), tr("Nachher: überall zwischen den Wasserteilchen. Keines ist verschwunden.", "After: everywhere between the water particles. None has disappeared.")],
     ok: tr("Lösen = Teilchen verteilen sich. Sie bleiben erhalten.", "Dissolving = particles spread out. They are conserved."),
   },
   {

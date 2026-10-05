@@ -15,6 +15,7 @@ const MISS_DE: Record<string, string> = {
   "verbindung-gemisch": "Verbindung für Gemisch gehalten",
   "verbindung-element": "Verbindung für Element gehalten",
   "element-verbindung": "Element für Verbindung gehalten",
+  "element-molekuel": "Element aus Molekülen für Verbindung gehalten",
   "gemisch-verbindung": "Gemisch aus Elementen für Verbindung gehalten",
   "nur-elemente-rein": "Gemisch aus Elementen für Reinstoff gehalten",
   // Gemische im Alltag
@@ -52,6 +53,7 @@ const MISS_EN: Record<string, string> = {
   "verbindung-gemisch": "Compound taken for a mixture",
   "verbindung-element": "Compound taken for an element",
   "element-verbindung": "Element taken for a compound",
+  "element-molekuel": "Element made of molecules taken for a compound",
   "gemisch-verbindung": "Mixture of elements taken for a compound",
   "nur-elemente-rein": "Mixture of elements taken for a pure substance",
   "klar-reinstoff": "Clear mixture taken for a pure substance",

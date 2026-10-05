@@ -284,7 +284,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Als elftes Beispiel **Müsli** (`MUESLI`, `components/MuesliBowl.tsx`): Gemenge aus sichtbaren Stücken (Haferflocken, Rosinen, Haselnüsse) ohne Teilchenbild –
   das Gemisch-Konzept gilt auch für Bestandteile, die selbst aus vielen Stoffen bestehen. Vorher jede Sorte als Haufen, **Mischen** (Schale wackelt, Stücke gleiten
   an zufällige Plätze), **Auslesen** (zurück in Haufen); Werkzeuge Zutaten | Zählen (Bestandteile, Stücke) | Einteilung | Arten | Beispiele.
-- **Elemente nur als einzelne Atome** (Edelgase) oder Metallgitter – keine Moleküle aus einer Atomsorte (O₂, O₃, N₂ …), auch nicht im Quiz (Test).
+- **Elemente in Bildern als einzelne Atome** (Edelgase) oder Metallgitter. Ausnahme, gezielt gegen die Fehlvorstellung „zwei Atome = Verbindung“: Lektion 2 zeigt
+  Sauerstoff O₂ neben Kohlenmonoxid CO (vorgemacht) und Stickstoff N₂ (halb gelöst), und die Aufgabe „Element oder Verbindung“ (`einordnen`) fragt in etwa jeder
+  vierten Aufgabe O₂ oder N₂ mit der Falle „Verbindung“ (Stolperstein `element-molekuel`). Sonst nirgends Element-Moleküle (Test; Experimentieren unverändert).
 - Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Stoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte), Atomsorten.
   Die Erklärkarte nennt trotzdem alle Arten von Elementen (einzelne Atome, Metallgitter, Moleküle wie O₂), nur die Bilder zeigen keine Element-Moleküle.
   Teilchenbilder in fünf Arten (`pictureKind`): Element, Verbindung, Gemisch aus Elementen / aus Verbindungen / aus Element und Verbindung.
@@ -698,6 +700,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Element-Moleküle O₂ und N₂ eingeführt** – Lektion 2 mit vorgemachtem Kontrast O₂ / CO und halb gelöstem N₂; Aufgabe `einordnen` mit O₂/N₂ (etwa jede
+  vierte, Test: in Kapitel 2 mindestens jede dritte Runde) und neuem Stolperstein „Element aus Molekülen für Verbindung gehalten“. Texte: „Flüssigkeit mit gelöstem Stoff
+  = Lösung“, „Wasserteilchen lagern sich an“, Legierung = Metall mit anderen Elementen zusammen geschmolzen. Messing: „Von vorn“ in der ersten Bedienzeile.
+  Art des Gemischs: Beispielnamen ohne das Antwortwort („Dunst über dem Teich am Morgen“, „Qualm eines Lagerfeuers“, Test); „Gitter“ in Lektion 2 fett eingeführt.
+  Lektionsbilder werden je Schritt neu aufgebaut (Teilchen gleiten nicht aus dem vorigen Schritt herüber).
 
 - **Gemische: Fachfehler und einheitliche Definitionen** – Messing 2 : 1 statt 60 : 40 (zweiphasig); Ablenker „abwechselnd“ beim erstarrten Messing nicht mehr 1 : 1
   (regelmäßiges Muster mit gleichen Abständen) und mit Rückmeldung „Zink zufällig auf Plätzen des Kupfergitters, kein festes Verhältnis“ statt „nur in Verbindungen“;

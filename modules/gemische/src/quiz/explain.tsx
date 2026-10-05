@@ -26,7 +26,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Beim **Lösen** lagern sich Wasserteilchen an und lösen die Teilchen heraus; sie verteilen sich. Nichts verschwindet, die **Masse bleibt gleich**.",
   ] },
   k4: { ex: "messing", arr: ["nachher"], points: [
-    "Homogen: **Lösung** (Flüssigkeit mit gelöstem Stoff), **Legierung** (Metalle zusammen geschmolzen), **Gasgemisch** (Gase).",
+    "Homogen: **Lösung** (Flüssigkeit mit gelöstem Stoff), **Legierung** (Metall mit anderen Elementen zusammen geschmolzen), **Gasgemisch** (Gase).",
     "Heterogen: **Emulsion** (Tröpfchen in Flüssigkeit), **Suspension** (Körner in Flüssigkeit), **Gemenge** (feste Stücke), **Rauch** (fest in Gas), **Nebel** (Tröpfchen in Gas), **Schaum** (Gas in Flüssigkeit).",
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
@@ -52,7 +52,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "When **dissolving**, water particles attach themselves and pull the particles out; they spread out. Nothing disappears, the **mass stays the same**.",
   ] },
   k4: { ex: "messing", arr: ["nachher"], points: [
-    "Homogeneous: **solution** (liquid with a dissolved substance), **alloy** (metals melted together), **gas mixture** (gases).",
+    "Homogeneous: **solution** (liquid with a dissolved substance), **alloy** (a metal melted together with other elements), **gas mixture** (gases).",
     "Heterogeneous: **emulsion** (droplets in a liquid), **suspension** (grains in a liquid), **coarse mixture** (solid pieces), **smoke** (solid in gas), **fog** (droplets in gas), **foam** (gas in a liquid).",
     "“Pure” on a package means: nothing added. A **pure substance** is only **one** substance.",
   ] },
