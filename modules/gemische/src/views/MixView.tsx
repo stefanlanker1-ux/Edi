@@ -257,7 +257,8 @@ export function statusOf(ex: Example, i: Info, done: number | undefined): string
   // einmal gemischt bleibt gemischt (bis „Von vorn“) – zufällige Schwankungen der Verteilung lassen die Anzeige nicht zurückspringen
   if (ex.before === "schicht") return i.mixed || done !== undefined ? [tr("Lösung", "Solution"), time(MIXED())] : [MIXING()];
   if (ex.floats?.length) return [i.sep ? tr("2 Schichten", "2 layers") : "Emulsion", HET()];
-  if (ex.state === "fest") return i.walls ? [SEP()] : i.melt ? [tr("geschmolzen", "molten")] : [ex.type ?? tr("Legierung", "Alloy"), tr("homogen", "homogeneous")];
+  // Metalle schmelzen erst weit über der Raumtemperatur (Messing ab etwa 900 °C) – der Temperaturregler gilt hier nicht und ist ausgeblendet
+  if (ex.state === "fest") return i.walls ? [SEP()] : i.melt ? [tr("geschmolzen", "molten"), tr("über 900 °C", "above 900 °C")] : [ex.type ?? tr("Legierung", "Alloy"), tr("homogen", "homogeneous")];
   if (ex.before) return i.walls ? [SEP()] : i.mixed || done !== undefined ? [ex.type ?? tr("Gasgemisch", "Gas mixture"), time(MIXED())] : [MIXING()];
   return MIX_LABEL[mixKind(ex)];
 }
@@ -362,12 +363,12 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
             </div>
             <div className="gm-row">
               {ex.before && <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={again} />}
-              <label className="gm-temp">
+              {ex.state !== "fest" && <label className="gm-temp">
                 <Icon name="fire" size={18} />
                 <input type="range" min={0} max={100} step={10} value={temp} aria-label={tr("Temperatur", "Temperature")}
                   onChange={e => { setTemp(Number(e.target.value)); if (reduced) setVersion(v => v + 1); }} />
                 <output>{temp} °C</output>
-              </label>
+              </label>}
             </div>
           </div>
         }

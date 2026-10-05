@@ -278,7 +278,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Gemische (`modules/gemische`)
 - Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**, 110–240 Teilchen je Beispiel (alle verschieden):
   Wasser, Helium im Luftballon, Zuckerwasser (Saccharose), Alkohol und Wasser, Sprudelwasser, Öl und Wasser (Öl vereinfacht als Dodecan),
-  Messing (Cu, Zn), Erdgas (CH₄, C₂H₆, CO₂), Schutzgas zum Schweißen (Ar, CO₂), Modellgemisch (He, Ar, CO₂, CH₄).
+  Messing (Cu, Zn im Verhältnis 2 : 1 – CuZn33, einphasig; Zink sitzt zufällig auf Plätzen des Kupfergitters), Erdgas (CH₄, C₂H₆, CO₂), Schutzgas zum Schweißen (Ar, CO₂), Modellgemisch (He, Ar, CO₂, CH₄).
   Zweimal gleich viele Verbindungen wie Elemente (Schutzgas, Modellgemisch), achtmal verschieden viele (Test).
   Quiz und Erklärkarten zeigen ein Zehntel der Teilchen (`small`) im Rasterbild (`mixing.ts`, `components/Beaker.tsx`).
   Als elftes Beispiel **Müsli** (`MUESLI`, `components/MuesliBowl.tsx`): Gemenge aus sichtbaren Stücken (Haferflocken, Rosinen, Haselnüsse) ohne Teilchenbild –
@@ -326,7 +326,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   stärker herumgeworfen, Öl und Wasser länger geschüttelt: 5 s) – geschüttelt **fein verteilt** (keine Klumpen), danach finden sich Tröpfchen, die sich wieder zur Schicht sammeln. Startlage: jeder Stab wird so gedreht, dass er die anderen möglichst wenig berührt (`settle`; gekreuzte Stäbe ließen sich später nicht mehr trennen, Test). Test: geschüttelt unter den 6 nächsten Nachbarn eines Ölmoleküls kaum mehr Öl als zufällig, 1,5 s danach deutlich mehr (Tröpfchen).
   **Gase**: „Wand weg“ zieht die Trennwand in knapp 1 s hoch (`wallEnd`), die Gase strömen unten durch. **Schmelze** im warm hinterlegten Tiegel.
   Reduzierte Bewegung: Knopf rechnet bis zum Endzustand (gelöst bzw. gleichmäßig gemischt).
-  **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C): Teilchengeschwindigkeit im Modell verstärkt (`heat`: 0 °C × 0,5, 20 °C × 1, 100 °C × 3; echt wären nur + 17 %),
+  **Temperaturregler** 0–100 °C (nicht gespeichert, Start 20 °C; bei Messing ausgeblendet – Metalle schmelzen erst weit darüber, Status beim Schmelzen „geschmolzen · über 900 °C“): Teilchengeschwindigkeit im Modell verstärkt (`heat`: 0 °C × 0,5, 20 °C × 1, 100 °C × 3; echt wären nur + 17 %),
   Kristall löst sich warm schneller; CO₂ löst sich warm schneller, aber es bleibt mehr im Gasraum (Gleichgewicht). Tests: Teilchenzahl bleibt, keine Sprünge, gleichmäßig gemischt, Kristall geordnet und von außen gelöst, Öl bildet geschüttelt Tröpfchen und ist danach wieder oben,
   Gase mischen sich nur ohne Trennwand, Messing wieder im Gitter (beim Erstarren Plätze nach kürzesten Wegen verteilt, Gleiten höchstens ¼ Radius je Schritt – kein Sprung; Wärmebewegung der Schmelze klingt in der letzten Sekunde aus, gleich nach dem Erstarren 1 s sanfter gebremst, `frozeAt`). Ohne Bewegung (reduzierte Bewegung): Knopf zeigt gleich das Ergebnis.
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente; beim Sprudel zusätzlich „entsteht in kleiner Menge“: Kohlensäure, `forms`) | Zählen | Farben („nur im Modell“) |
@@ -341,7 +341,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   5 **Stofftrennung** (trennWahl ×4, trennEigenschaft ×2, trennTipp ×3, trennReihe; `src/quiz/trennen.ts`).
   **Keine Zahleneingabe**: Zählaufgaben werden zur Auswahl (`asChoice`: Fallen → diagnostische Distraktoren, Zahlen aufsteigend); Antippen im Teilchenbild
   (`tippAtome`: Teilchen aus n Atomen, `tippElement`/`tippVerbindung`). Stofftrennung: `trennWahl` (Bild des Gemischs ohne Geräte `MixPic`, Antworten als
-  Bildkarten der Verfahren; 9 Fälle: Eisen/Schwefel → Magnet, Sand/Kies → Sieben, Erbsen/Linsen → Auslesen, abgesetzter Sand → Dekantieren, trübes Wasser →
+  Bildkarten der Verfahren; 9 Fälle: Eisen/Schwefel → Magnet, Sand/Kies → Sieben, rote/weiße Bohnen (gleich groß, nur anders gefärbt) → Auslesen, abgesetzter Sand → Dekantieren, trübes Wasser →
   Filtrieren, Salzwasser → Eindampfen (Salz) bzw. Destillieren (Wasser), Alkohol/Wasser → Destillieren, Filzstift → Chromatografie; jede falsche Wahl mit
   Begründung, Gelöstes durch den Filter = Stolperstein `filter-geloest`), `trennEigenschaft` (Animation des Verfahrens, Eigenschaft wählen: Korngröße,
   Magnetismus, Dichte, Siedetemperatur, Aussehen, Haften am Papier), `trennTipp` (Endbild antippen: Rückstand, Filtrat, Destillat, Kühler, Salz, Eisen, weitester
@@ -698,6 +698,15 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Fachfehler und einheitliche Definitionen** – Messing 2 : 1 statt 60 : 40 (zweiphasig); Ablenker „abwechselnd“ beim erstarrten Messing nicht mehr 1 : 1
+  (regelmäßiges Muster mit gleichen Abständen) und mit Rückmeldung „Zink zufällig auf Plätzen des Kupfergitters, kein festes Verhältnis“ statt „nur in Verbindungen“;
+  Lötzinn (eutektisch, zweiphasig) → Konstantan (Kupfer und Nickel); Auslesen mit roten und weißen Bohnen (gleich groß – Sieben trennt sie nicht) statt Erbsen/Linsen in
+  Bild, Gemischbild, Aufgabe und Lektion; Temperaturregler bei Messing ausgeblendet, Schmelze „über 900 °C“. Definitionen überall gleich: homogen = auch unter dem Mikroskop
+  keine Bestandteile, Verbindung = als Molekül oder im Gitter (Kochsalz ohne „Ionen“), Lösen = Wasserteilchen lagern sich an, Gemischarten in Worten statt s/l/g,
+  „durch Filterpapier“, Dichte statt „leichter/schwerer“, „Phase“ entfernt. Eisenoxid, Calciumcarbonat, Argon aus der Gasflasche; Tipps ohne Lösung (Messing, Masse,
+  Bohnen, Destillat, Reinstoff/Gemisch, Gase, „Schritt 1:“); „bei der Magnettrennung/Chromatografie“. Trennbilder: Trefferflächen werden alle 0,4 s nachgemessen
+  (Fit skaliert per Transform), geteilte Flächen wachsen auf der freien Seite wieder auf 44 px.
 
 - **Quiz-Auswertung passt auf niedrige Handys** – `@lern/quiz` `styles.css`: bei Bildschirmhöhe ≤ 720 px etwas engere Abstände der Auswertung, mit „Lesbar“
   noch enger (Überschrift ohne Außenabstand, Knöpfe näher) – vorher lief sie bei 375 × 667 mit „Lesbar“ bis 9 px über (alle Module). Größere Bildschirme unverändert.

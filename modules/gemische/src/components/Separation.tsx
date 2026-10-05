@@ -18,7 +18,7 @@ export const METHOD_NAME = (m: Method) => ({
 
 /** Was im Bild getrennt wird (für Vorlesen und Aufgabentexte) */
 export const METHOD_MIX = (m: Method) => ({
-  auslesen: tr("Erbsen und Linsen", "peas and lentils"), sieben: tr("Sand und Kies", "sand and gravel"), magnet: tr("Eisenpulver und Schwefel", "iron powder and sulfur"),
+  auslesen: tr("rote und weiße Bohnen", "red and white beans"), sieben: tr("Sand und Kies", "sand and gravel"), magnet: tr("Eisenpulver und Schwefel", "iron powder and sulfur"),
   dekantieren: tr("Sand und Wasser", "sand and water"), filtrieren: tr("Sand und Wasser", "sand and water"), eindampfen: tr("Salzwasser", "salt water"),
   destillieren: tr("Salzwasser", "salt water"), chromatografie: tr("Filzstift-Farbe", "felt-tip ink"),
 })[m];
@@ -47,21 +47,27 @@ const Flame = ({ x, y, t, on = true }: { x: number; y: number; t: number; on?: b
   );
 };
 
+/** Bohne (Nierenform, gleich groß für beide Sorten – nur die Farbe unterscheidet sie) */
+const Bean = ({ x, y, a, cls }: { x: number; y: number; a: number; cls: string }) => (
+  <path className={cls} transform={`translate(${x} ${y}) rotate(${a})`} d="M-6 -.6 Q-6 -4 -2 -3.6 Q0 -2.4 2 -3.6 Q6 -4 6 -.6 Q6 3.6 0 3.6 Q-6 3.6 -6 -.6 Z" />
+);
+
 function auslesen(t: number) {
-  // Teller mit Erbsen (grün, rund) und Linsen (orange, flach); eine Pinzette legt die Erbsen nacheinander in die Schale rechts
-  const peas = Array.from({ length: 6 }, (_, i) => ({ x: 40 + rnd(i) * 70, y: 112 + rnd(i + 9) * 18 }));
-  const lentils = Array.from({ length: 12 }, (_, i) => ({ x: 34 + rnd(i + 30) * 84, y: 110 + rnd(i + 50) * 22, a: rnd(i + 70) * 180 }));
+  // Teller mit roten und weißen Bohnen (gleich groß, gleich schwer – sie unterscheiden sich nur im Aussehen); eine Pinzette legt die roten Bohnen
+  // nacheinander in die Schale rechts
+  const red = Array.from({ length: 6 }, (_, i) => ({ x: 40 + rnd(i) * 70, y: 112 + rnd(i + 9) * 18, a: rnd(i + 20) * 180 }));
+  const white = Array.from({ length: 8 }, (_, i) => ({ x: 34 + rnd(i + 30) * 84, y: 110 + rnd(i + 50) * 22, a: rnd(i + 70) * 180 }));
   const at = (i: number) => {
-    const k = seg(t, .08 + i * .14, .2 + i * .14), tx = 168 + (i % 3) * 14, ty = 128 + Math.floor(i / 3) * 9;
-    return { x: lerp(peas[i].x, tx, k), y: lerp(peas[i].y, ty, k) - Math.sin(k * Math.PI) * 40, moving: k > 0 && k < 1 };
+    const k = seg(t, .08 + i * .14, .2 + i * .14), tx = 166 + (i % 3) * 15, ty = 128 + Math.floor(i / 3) * 10;
+    return { x: lerp(red[i].x, tx, k), y: lerp(red[i].y, ty, k) - Math.sin(k * Math.PI) * 40, a: lerp(red[i].a, 0, k), moving: k > 0 && k < 1 };
   };
-  const mv = peas.map((_, i) => at(i)).find(p => p.moving);
+  const mv = red.map((_, i) => at(i)).find(p => p.moving);
   return (
     <>
       <ellipse className="sp-plate" cx={76} cy={124} rx={58} ry={18} />
       <path className="sp-bowl" d="M140 118 Q140 150 182 150 Q224 150 224 118 Z" data-part="schale" />
-      <g data-part="linsen">{lentils.map((l, i) => <ellipse key={i} className="sp-lentil" cx={l.x} cy={l.y} rx={4.5} ry={2.6} transform={`rotate(${l.a} ${l.x} ${l.y})`} />)}</g>
-      <g data-part="erbsen">{peas.map((_, i) => { const p = at(i); return <circle key={i} className="sp-pea" cx={p.x} cy={p.y} r={5} />; })}</g>
+      <g data-part="bohnen-weiss">{white.map((l, i) => <Bean key={i} x={l.x} y={l.y} a={l.a} cls="sp-bean-white" />)}</g>
+      <g data-part="bohnen-rot">{red.map((_, i) => { const p = at(i); return <Bean key={i} x={p.x} y={p.y} a={p.a} cls="sp-bean-red" />; })}</g>
       {mv && <path className="sp-tool" d={`M${mv.x - 2} ${mv.y - 5} L${mv.x - 10} ${mv.y - 50} M${mv.x + 2} ${mv.y - 5} L${mv.x - 4} ${mv.y - 50}`} />}
     </>
   );
@@ -352,6 +358,19 @@ function measureHits(svg: SVGSVGElement, parts: string[]): Hit[] {
       if (ax < cx) { a.w = Math.min(a.w, mid - a.x); } else { const x1 = a.x + a.w; a.x = Math.max(a.x, mid); a.w = x1 - a.x; }
     }
   }
+  // ist eine geteilte Fläche dabei unter `min` geschrumpft, wächst sie auf der freien Seite wieder auf `min` (nur wenn sie dort niemanden überdeckt)
+  const free = (h: typeof hits[number]) => hits.every(o => o === h || !o.grown || !cut(new DOMRect(h.x, h.y, h.w, h.h), new DOMRect(o.x, o.y, o.w, o.h)));
+  for (const a of hits) {
+    if (!a.grown) continue;
+    if (a.h < min) {
+      const up = { ...a, y: Math.max(0, a.y + a.h - min), h: min }, down = { ...a, h: Math.min(min, H - a.y) };
+      const g = [up, down].find(free); if (g) { a.y = g.y; a.h = g.h; }
+    }
+    if (a.w < min) {
+      const left = { ...a, x: Math.max(0, a.x + a.w - min), w: min }, right = { ...a, w: Math.min(min, W - a.x) };
+      const g = [left, right].find(free); if (g) { a.x = g.x; a.w = g.w; }
+    }
+  }
   return hits.map(({ grown: _g, ...h }) => h).sort((p, q) => q.w * q.h - p.w * p.h);
 }
 
@@ -382,7 +401,9 @@ export function SepScene({ m, t, label, onPick, mark, parts }: { m: Method; t: n
     measure();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     ro?.observe(el);
-    return () => ro?.disconnect();
+    // Fit skaliert per CSS-Transform (löst kein ResizeObserver aus): Größe in px regelmäßig nachmessen, damit Trefferflächen 44 px bleiben
+    const tick = setInterval(measure, 400);
+    return () => { ro?.disconnect(); clearInterval(tick); };
   }, [m, t, tap, key]);
   const sel = (p: string) => `#${id} .sp-shapes [data-part="${p}"]`;
   return (
@@ -427,7 +448,7 @@ export function SepAnim({ m, dur = 6000, still, onEnd, onPick, label }: { m: Met
 }
 
 /** Gemisch vor dem Trennen – ohne Geräte, damit das Bild das Verfahren nicht verrät */
-export function MixPic({ k, label }: { k: "eisen" | "kies" | "erbsen" | "absetzen" | "trueb" | "salz" | "alkohol" | "tinte" | "salzsand"; label: string }) {
+export function MixPic({ k, label }: { k: "eisen" | "kies" | "bohnen" | "absetzen" | "trueb" | "salz" | "alkohol" | "tinte" | "salzsand"; label: string }) {
   const dots = (n: number, cls: string, x0: number, x1: number, y0: number, y1: number, r: number, off = 0) =>
     Array.from({ length: n }, (_, i) => <circle key={cls + i} className={cls} cx={x0 + rnd(i + off) * (x1 - x0)} cy={y0 + rnd(i + off + 50) * (y1 - y0)} r={r} />);
   const glass = (fill: ReactNode) => <>{fill}<Beaker x0={80} y0={40} x1={160} y1={150} /></>;
@@ -435,8 +456,8 @@ export function MixPic({ k, label }: { k: "eisen" | "kies" | "erbsen" | "absetze
     eisen: <><ellipse className="sp-plate" cx={120} cy={110} rx={78} ry={24} />{dots(18, "sp-sulfur", 64, 176, 98, 120, 2.8)}
       {Array.from({ length: 16 }, (_, i) => { const x = 66 + rnd(i + 7) * 108, y = 98 + rnd(i + 17) * 22; return <line key={i} className="sp-iron" x1={x - 3} y1={y} x2={x + 3} y2={y} transform={`rotate(${rnd(i + 27) * 180} ${x} ${y})`} />; })}</>,
     kies: <><ellipse className="sp-plate" cx={120} cy={110} rx={78} ry={24} />{dots(7, "sp-stone", 66, 174, 100, 118, 7, 3)}{dots(36, "sp-sand", 60, 180, 96, 124, 1.8, 11)}</>,
-    erbsen: <><ellipse className="sp-plate" cx={120} cy={110} rx={78} ry={24} />{dots(9, "sp-pea", 66, 174, 98, 122, 5, 5)}
-      {Array.from({ length: 14 }, (_, i) => { const x = 64 + rnd(i + 40) * 112, y = 98 + rnd(i + 60) * 24; return <ellipse key={i} className="sp-lentil" cx={x} cy={y} rx={4.5} ry={2.6} transform={`rotate(${rnd(i + 80) * 180} ${x} ${y})`} />; })}</>,
+    bohnen: <><ellipse className="sp-plate" cx={120} cy={110} rx={78} ry={24} />
+      {Array.from({ length: 18 }, (_, i) => <Bean key={i} x={66 + rnd(i + 40) * 108} y={98 + rnd(i + 60) * 22} a={rnd(i + 80) * 180} cls={i % 2 ? "sp-bean-white" : "sp-bean-red"} />)}</>,
     absetzen: glass(<><rect className="sp-water" x={80} y={64} width={80} height={86} /><path className="sp-sand-layer" d="M80 132 Q120 126 160 132 L160 147 Q160 150 157 150 L83 150 Q80 150 80 147 Z" /></>),
     trueb: glass(<><rect className="sp-muddy" x={80} y={64} width={80} height={86} />{dots(26, "sp-sand", 84, 156, 70, 146, 1.6, 21)}</>),
     salz: glass(<rect className="sp-water" x={80} y={64} width={80} height={86} />),

@@ -202,9 +202,12 @@ export function initial(spec: Spec, seed = 1, arrange: Arrange = "nachher"): Sim
     return done([...mine.map((f, i) => mk(f, low[i], bond)), ...rest.map((f, i) => mk(f, high[i], bond))]);
   }
   if (arrange === "abwechselnd" && state === "fest") {
-    // regelmäßig abwechselnd wie in einem Salzgitter (Schachbrett)
-    const [a, b] = items.map(([f]) => f);
-    return done(cells(grid).slice(0, n).map(c => mk((Math.floor(c / grid.cols) + c % grid.cols) % 2 ? b : a, c, bond)));
+    // regelmäßig geordnet: bei gleich vielen Atomen wie ein Schachbrett, sonst die selteneren Atome in gleichen Abständen (festes Muster)
+    const [[a, na], [b, nb]] = items[0][1] >= items[1][1] ? [items[0], items[1]] : [items[1], items[0]];
+    if (na === nb) return done(cells(grid).slice(0, n).map(c => mk((Math.floor(c / grid.cols) + c % grid.cols) % 2 ? b : a, c, bond)));
+    const step = n / nb;
+    const rare = new Set(Array.from({ length: nb }, (_, i) => Math.floor(i * step)));
+    return done(cells(grid).slice(0, n).map((c, i) => mk(rare.has(i) ? b : a, c, bond)));
   }
   // fest: Gitter von unten gefüllt; Gas und Modell: zufällig verteilt
   const where = state === "fest" ? cells(grid).slice(0, n) : shuffle(cells(grid), r).slice(0, n);

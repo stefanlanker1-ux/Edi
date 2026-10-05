@@ -46,7 +46,7 @@ export const EXAMPLES: Example[] = [
   { id: "alkohol", title: tr("Alkohol und Wasser", "Alcohol and water"), items: [["H2O", 130], ["C2H5OH", 80]], state: "fluessig", before: "schicht", solute: "C2H5OH", type: tr("Lösung", "Solution") },
   { id: "sprudel", title: tr("Sprudelwasser", "Sparkling water"), items: [["H2O", 200], ["CO2", 40]], state: "fluessig", before: "gasraum", solute: "CO2", type: tr("Lösung", "Solution"), note: tr("im Modell viel mehr Kohlendioxid", "far more carbon dioxide in the model"), forms: ["H2CO3"] },
   { id: "oel", title: tr("Öl und Wasser", "Oil and water"), items: [["H2O", 140], ["C12H26", 50]], state: "fluessig", floats: ["C12H26"], note: tr("Öl vereinfacht als Dodecan", "oil simplified as dodecane") },
-  { id: "messing", title: tr("Messing", "Brass"), items: [["Cu", 108], ["Zn", 72]], state: "fest", before: "getrennt", type: tr("Legierung", "Alloy") },
+  { id: "messing", title: tr("Messing", "Brass"), items: [["Cu", 120], ["Zn", 60]], state: "fest", before: "getrennt", type: tr("Legierung", "Alloy") },
   { id: "erdgas", title: tr("Erdgas", "Natural gas"), items: [["CH4", 110], ["C2H6", 20], ["CO2", 10]], state: "gas", before: "getrennt", type: tr("Gasgemisch", "Gas mixture"), note: tr("Anteile vereinfacht", "proportions simplified") },
   { id: "schutzgas", title: tr("Schutzgas zum Schweißen", "Shielding gas for welding"), items: [["Ar", 90], ["CO2", 20]], state: "gas", before: "getrennt", type: tr("Gasgemisch", "Gas mixture") },
   { id: "modell", title: tr("Modellgemisch", "Model mixture"), items: [["He", 25], ["Ar", 35], ["CO2", 45], ["CH4", 65]], state: "modell", before: "getrennt", type: tr("Gasgemisch", "Gas mixture") },

@@ -7,7 +7,7 @@ import { METHOD_NAME, type Method } from "../components/Separation.tsx";
 import type { Task } from "./tasks.ts";
 
 /** Gemisch, wie es vor dem Trennen aussieht (Bild `MixPic`) */
-export type MixKind = "eisen" | "kies" | "erbsen" | "absetzen" | "trueb" | "salz" | "alkohol" | "tinte" | "salzsand";
+export type MixKind = "eisen" | "kies" | "bohnen" | "absetzen" | "trueb" | "salz" | "alkohol" | "tinte" | "salzsand";
 
 interface Case { mix: () => string; goal?: () => string; pic: MixKind; m: Method; wrong: [Method, () => string, string?][]; tip: () => string }
 
@@ -22,11 +22,11 @@ const CASES: Case[] = [
     wrong: [["magnet", () => tr("Sand und Kies sind nicht magnetisch.", "Sand and gravel are not magnetic.")],
       ["eindampfen", () => tr("Eindampfen trennt Gelöstes von Wasser. Hier ist kein Wasser.", "Evaporating separates dissolved things from water. There is no water here.")],
       ["chromatografie", () => tr("Chromatografie trennt Farbstoffe, keine Steine.", "Chromatography separates dyes, not stones.")]] },
-  { mix: () => tr("Erbsen und Linsen", "peas and lentils"), pic: "erbsen", m: "auslesen",
-    tip: () => tr("Die Teile sind groß und sehen verschieden aus.", "The pieces are large and look different."),
-    wrong: [["magnet", () => tr("Erbsen und Linsen sind nicht magnetisch.", "Peas and lentils are not magnetic.")],
-      ["filtrieren", () => tr("Filtrieren trennt Feststoff von Flüssigkeit. Hier ist keine Flüssigkeit.", "Filtering separates a solid from a liquid. There is no liquid here.")],
-      ["destillieren", () => tr("Hier ist keine Flüssigkeit, die verdampfen könnte.", "There is no liquid here that could evaporate.")]] },
+  { mix: () => tr("rote und weiße Bohnen", "red and white beans"), pic: "bohnen", m: "auslesen",
+    tip: () => tr("Schau dir die Teile genau an: Worin unterscheiden sie sich?", "Look at the pieces closely: how do they differ?"),
+    wrong: [["sieben", () => tr("Die Bohnen sind gleich groß – sie bleiben alle zusammen im Sieb.", "The beans are the same size – they all stay in the sieve together.")],
+      ["magnet", () => tr("Bohnen sind nicht magnetisch.", "Beans are not magnetic.")],
+      ["filtrieren", () => tr("Filtrieren trennt Feststoff von Flüssigkeit. Hier ist keine Flüssigkeit.", "Filtering separates a solid from a liquid. There is no liquid here.")]] },
   { mix: () => tr("Wasser, in dem sich Sand abgesetzt hat", "water in which sand has settled"), pic: "absetzen", m: "dekantieren",
     tip: () => tr("Der Sand liegt schon unten. Wie bekommst du das Wasser darüber weg?", "The sand is already at the bottom. How do you get the water above it off?"),
     wrong: [["eindampfen", () => tr("Dann wäre das Wasser weg. Man will es aber abtrennen und behalten.", "Then the water would be gone. But we want to separate and keep it.")],
@@ -86,10 +86,10 @@ const PROP: Record<Method, () => string> = {
   destillieren: () => tr("Siedetemperatur", "Boiling point"), chromatografie: () => tr("Haften am Papier", "Sticking to paper"),
 };
 const PROP_WHY: Record<Method, () => string> = {
-  auslesen: () => tr("Die Teile sehen verschieden aus und sind groß genug zum Greifen.", "The pieces look different and are big enough to pick up."),
+  auslesen: () => tr("Die Teile sehen verschieden aus und sind groß genug zum Greifen.", "The pieces look different and are big enough to pick up by hand."),
   sieben: () => tr("Kleine Körner fallen durch die Maschen, große bleiben liegen.", "Small grains fall through the mesh, large ones stay."),
   magnet: () => tr("Eisen wird vom Magneten angezogen, Schwefel nicht.", "Iron is attracted by the magnet, sulfur is not."),
-  dekantieren: () => tr("Der schwere Sand sinkt ab. Das Wasser darüber gießt man vorsichtig ab.", "The heavy sand sinks. You carefully pour off the water above it."),
+  dekantieren: () => tr("Sand hat eine größere Dichte als Wasser und sinkt ab. Das Wasser darüber gießt man vorsichtig ab.", "Sand has a greater density than water and sinks. You carefully pour off the water above it."),
   filtrieren: () => tr("Feste Körner bleiben im Filter hängen, die Flüssigkeit läuft durch.", "Solid grains get stuck in the filter, the liquid runs through."),
   eindampfen: () => tr("Wasser verdampft, das gelöste Salz bleibt zurück.", "Water evaporates, the dissolved salt stays behind."),
   destillieren: () => tr("Was zuerst siedet, verdampft und wird im Kühler wieder flüssig.", "What boils first evaporates and turns liquid again in the condenser."),
@@ -108,6 +108,9 @@ const PROP_LOOK: Record<Method, () => string> = {
   chromatografie: () => tr("Warum bleiben manche Farbstoffe weiter unten?", "Why do some dyes stay further down?"),
 };
 
+/** Präposition mit Artikel vor dem Verfahren („beim Sieben“, „bei der Magnettrennung“) */
+const BEI: Record<Method, string> = { auslesen: "beim", sieben: "beim", magnet: "bei der", dekantieren: "beim", filtrieren: "beim", eindampfen: "beim", destillieren: "beim", chromatografie: "bei der" };
+
 /** Welche Eigenschaft nutzt dieses Verfahren? Bild = Animation des Verfahrens */
 export function trennEigenschaft(): Task {
   const m = pick<Method>(["auslesen", "sieben", "magnet", "dekantieren", "filtrieren", "eindampfen", "destillieren", "chromatografie"]);
@@ -115,7 +118,7 @@ export function trennEigenschaft(): Task {
   const others = shuffle((Object.keys(PROP) as Method[]).filter(x => PROP[x]() !== right));
   const seen = new Set<string>();
   const wrong = others.filter(x => { const p = PROP[x](); if (seen.has(p)) return false; seen.add(p); return true; }).slice(0, 3)
-    .map(x => dis(PROP[x](), tr(`Das nutzt man beim ${METHOD_TEXT(x)}.`, `That is used in ${METHOD_TEXT(x).toLowerCase()}.`)));
+    .map(x => dis(PROP[x](), tr(`Das nutzt man ${BEI[x]} ${METHOD_TEXT(x)}.`, `That is used in ${METHOD_TEXT(x).toLowerCase()}.`)));
   return {
     ...mc(right, wrong, 3),
     sep: { m, t: -1 },
@@ -145,7 +148,7 @@ const TAPS: TapCase[] = [
     tip: () => tr("Was ist durch das Papier gelaufen?", "What ran through the paper?"), explain: () => tr("Das **Filtrat** ist die klare Flüssigkeit unten im Glas.", "The **filtrate** is the clear liquid at the bottom of the glass.") },
   { m: "destillieren", answer: "destillat", parts: ["destillat", "kolben", "kuehler"], ask: () => tr("Tippe auf das **Destillat**.", "Tap the **distillate**."),
     why: { kolben: () => tr("Im Kolben bleibt das Salzwasser zurück, immer salziger.", "The salt water stays in the flask, saltier and saltier."), kuehler: () => tr("Im Kühler wird der Dampf wieder flüssig. Gesucht ist, wo er sich sammelt.", "In the condenser the vapour turns liquid again. Wanted: where it collects.") },
-    tip: () => tr("Wohin fließt der Dampf, nachdem er abgekühlt ist?", "Where does the vapour flow after it has cooled down?"), explain: () => tr("Das **Destillat** sammelt sich in der Vorlage rechts: sauberes Wasser.", "The **distillate** collects in the receiver on the right: clean water.") },
+    tip: () => tr("Wohin tropft das Wasser, wenn der Dampf abgekühlt ist?", "Where does the water drip once the vapour has cooled down?"), explain: () => tr("Das **Destillat** sammelt sich in der Vorlage rechts: sauberes Wasser.", "The **distillate** collects in the receiver on the right: clean water.") },
   { m: "destillieren", answer: "kuehler", parts: ["kuehler", "destillat", "kolben"], ask: () => tr("Tippe auf den **Kühler**.", "Tap the **condenser**."),
     why: { destillat: () => tr("Das ist das Destillat. Der Kühler liegt davor.", "That is the distillate. The condenser comes before it."), kolben: () => tr("Im Kolben wird erhitzt, nicht gekühlt.", "The flask is heated, not cooled.") },
     tip: () => tr("Wo wird der Dampf wieder flüssig?", "Where does the vapour turn liquid again?"), explain: () => tr("Im **Kühler** wird der Dampf abgekühlt und wieder flüssig.", "In the **condenser** the vapour cools down and turns liquid again.") },

@@ -178,7 +178,7 @@ const K1: GuideStep[] = [
 const K2: GuideStep[] = [
   {
     mode: "worked",
-    say: tr("**Element**: Teilchen aus nur **einer** Atomsorte. **Verbindung**: mehrere Atomsorten fest in einem Teilchen.", "**Element**: particles of only **one** kind of atom. **Compound**: several kinds of atoms firmly in one particle."),
+    say: tr("**Element**: nur **eine** Atomsorte. **Verbindung**: mehrere Atomsorten fest verbunden – als Molekül wie Wasser oder im Gitter wie Kochsalz.", "**Element**: only **one** kind of atom. **Compound**: several kinds of atoms firmly bonded – as a molecule like water or in a lattice like table salt."),
     ask: tr("Element oder Verbindung?", "Element or compound?"),
     visual: () => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} />,
     labels: [{ at: "[data-f=\"Ne\"]", text: tr("Element", "Element"), side: "right" }, { at: "[data-f=\"CO2\"]", text: tr("Verbindung", "Compound"), side: "left" }],
@@ -248,7 +248,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("**Homogen**: überall gleich, keine Grenze zu sehen. **Heterogen**: Teile, Tröpfchen oder Schichten sind zu erkennen.", "**Homogeneous**: the same everywhere, no boundary visible. **Heterogeneous**: pieces, droplets or layers can be seen."),
+    say: tr("**Homogen**: Die Bestandteile sind auch unter dem Mikroskop nicht zu erkennen. **Heterogen**: Mit Auge, Lupe oder Mikroskop sieht man Teile, Tröpfchen oder Schichten.", "**Homogeneous**: the components cannot be seen even under a microscope. **Heterogeneous**: with the eye, a magnifier or a microscope you see pieces, droplets or layers."),
     ask: tr("Ist **Zuckerwasser** homogen oder heterogen?", "Is **sugar water** homogeneous or heterogeneous?"),
     visual: () => <Picture p={ZUCKER} />,
     labels: [{ at: "[data-f=\"C12H22O11\"]", text: tr("Zucker-Molekül", "Sugar molecule"), side: "left" }, { at: "[data-f=\"H2O\"]", text: tr("Wasser-Molekül", "Water molecule"), side: "right" }],
@@ -350,10 +350,10 @@ const K5: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: **Erbsen und Linsen** trennen.", "Complete: separate **peas and lentils**."), answer: M.auslesen(), options: [M.magnet(), M.sieben(), M.auslesen()],
+    ask: tr("Ergänze: **rote und weiße Bohnen** trennen.", "Complete: separate **red and white beans**."), answer: M.auslesen(), options: [M.magnet(), M.sieben(), M.auslesen()],
     visual: () => <Sep m="auslesen" />,
-    lines: [tr("Große Teile, die verschieden aussehen.", "Large pieces that look different."), tr("Mit der Pinzette herausnehmen → {?}", "Take them out with tweezers → {?}")],
-    why: { [M.magnet()]: tr("Erbsen und Linsen sind nicht magnetisch.", "Peas and lentils are not magnetic."), [M.sieben()]: tr("Beide sind groß – sie bleiben zusammen im Sieb.", "Both are large – they stay in the sieve together.") },
+    lines: [tr("Gleich große Teile, die verschieden aussehen.", "Pieces of the same size that look different."), tr("Mit der Pinzette herausnehmen → {?}", "Take them out with tweezers → {?}")],
+    why: { [M.magnet()]: tr("Bohnen sind nicht magnetisch.", "Beans are not magnetic."), [M.sieben()]: tr("Die Bohnen sind gleich groß – sie bleiben alle zusammen im Sieb.", "The beans are the same size – they all stay in the sieve together.") },
     ok: tr("Auslesen: Teile einzeln herausnehmen.", "Picking out: take the pieces out one by one."),
   },
   {
@@ -384,7 +384,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("Gelöstes Salz geht durch jeden Filter. Hier hilft die **Siedetemperatur**: Wasser verdampft, Salz nicht.", "Dissolved salt passes through any filter. Here the **boiling point** helps: water evaporates, salt does not."),
+    say: tr("Gelöstes Salz geht durch Filterpapier. Hier hilft die **Siedetemperatur**: Wasser verdampft, Salz nicht.", "Dissolved salt passes through filter paper. Here the **boiling point** helps: water evaporates, salt does not."),
     ask: tr("Wie bekommt man Salz bzw. Wasser aus Salzwasser?", "How do you get salt or water from salt water?"),
     visual: () => <Sep m="destillieren" />,
     lines: [tr("Nur das Salz gewinnen: erhitzen, bis das Wasser weg ist → **Eindampfen**.", "Get only the salt: heat until the water is gone → **evaporating**."), tr("Auch das Wasser gewinnen: der Dampf wird im **Kühler** wieder flüssig → **Destillieren**.", "Get the water too: the vapour turns liquid in the **condenser** → **distilling**."), tr("Das aufgefangene Wasser heißt **Destillat**.", "The collected water is called the **distillate**.")],
