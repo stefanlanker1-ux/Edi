@@ -318,3 +318,17 @@ test("Tipp und erster Schritt (hint und tip) verraten die Antwort nicht – in j
   }
   assert.deepEqual([...bad], []);
 }, 60_000);
+
+test("Halbstrukturformeln als Text für kleine Bild-Antworten", async () => {
+  const { visFormula } = await import("./visual.tsx");
+  assert.strictEqual(visFormula({ k: "unit", id: "propen" }), "–CH₂–CH(CH₃)–");
+  assert.strictEqual(visFormula({ k: "unit", id: "styrol" }), "–CH₂–CH(C₆H₅)–");
+  assert.strictEqual(visFormula({ k: "unit", id: "vinylchlorid" }), "–CH₂–CHCl–");
+  assert.strictEqual(visFormula({ k: "unit", id: "tfe" }), "–CF₂–CF₂–");
+  assert.strictEqual(visFormula({ k: "unit", id: "mma" }), "–CH₂–C(COOCH₃)(CH₃)–");
+  assert.strictEqual(visFormula({ k: "sat", id: "ethen" }), "CH₃–CH₃");
+  assert.strictEqual(visFormula({ k: "sat", id: "propen" }), "CH₃–CH₂–CH₃");
+  assert.strictEqual(visFormula({ k: "sat", id: "styrol" }), "CH₃–CH₂–C₆H₅");
+  assert.strictEqual(visFormula({ k: "sat", id: "vinylchlorid" }), "CH₃–CH₂Cl");
+  assert.strictEqual(visFormula({ k: "unit", id: "propen", dbl: true }), "–CH₂=CH(CH₃)–");
+});

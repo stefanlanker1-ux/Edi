@@ -209,6 +209,14 @@
 .pm-vis-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
 .pm-vis-pair .mb-svg { width: 100%; height: 100%; }
 .pm-vis-pair.one { grid-template-columns: minmax(0, 1fr); }
+/* sehr flacher Bildplatz (niedrige Handys): Halbstrukturformeln als Text (Schrift wächst nicht mit dem Bild mit) */
+.pm-pair-txt { display: none; margin: 0; text-align: center; font-size: clamp(.8rem, 4.2cqw, 1rem); line-height: 1.5; }
+.pm-pair-txt .nw { white-space: nowrap; }
+@container (max-height: 95px) {
+  .pm-vis-pair.has-txt { display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; }
+  .pm-vis-pair.has-txt > :not(.pm-pair-txt) { display: none; }
+  .pm-vis-pair.has-txt .pm-pair-txt { display: block; }
+}
 .pm-vis-pair:has(.pm-vis-legend) { position: relative; padding-bottom: 1.1em; box-sizing: border-box; }
 .pm-vis-legend { position: absolute; left: 0; right: 0; bottom: 0; font-size: .72rem; line-height: 1.1em; color: var(--muted); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* Platz eher hoch als breit (Handy): Monomere untereinander, jedes in voller Breite – breite Moleküle (HDI, Disäuren) bleiben groß */
@@ -230,11 +238,25 @@
 .pm-pot-bond { stroke: var(--text); stroke-width: 1.4; }
 .pm-pots-cap { font-size: 10px; font-weight: 700; fill: var(--text); }
 .pm-pots-leg { font-size: 8.5px; font-weight: 600; fill: var(--muted); }
+.pm-starters { width: 100%; height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: auto; justify-content: center; gap: 2px; min-height: 0; }
+.pm-starters > .pm-pot { height: 100%; width: auto; aspect-ratio: 250 / 84; max-width: 100%; justify-self: center; }
+.pm-starters-caps { display: grid; grid-template-columns: 1fr 1fr; text-align: center; font-size: .8rem; font-weight: 700; line-height: 1.2; }
+.pm-starters-leg { margin: 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 2px 14px; font-size: .75rem; font-weight: 600; color: var(--muted); line-height: 1.2; }
+.pm-starters-leg span { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.pm-starters-dot { width: 10px; height: 10px; }
 .pm-pot .pm-bead-c { stroke-width: 0.9; }
 /* Antworten als Bild */
 .mc-grid:has(.pm-opt-pic) { grid-template-columns: 1fr 1fr; }
 .pm-opt-pic { display: block; width: 100%; height: clamp(58px, 15vh, 130px); }
 .pm-opt-pic .mb-svg { width: 100%; height: 100%; }
+/* schmale Antwortkarten (zwei Spalten am Handy): Halbstrukturformel als Text statt winziger Zeichnung; Karten flacher, das Bild der Frage wird größer */
+.pm-opt-txt { display: none; }
+@media (max-width: 480px) {
+  .pm-opt-pic.has-txt { height: 48px; }
+  .pm-opt-pic.has-txt > :not(.pm-opt-txt):not(.sr-only) { display: none; }
+  .pm-opt-pic.has-txt > .pm-opt-txt { display: grid; place-items: center; height: 100%; padding: 0 4px 0 22px; font-size: .95rem; font-weight: 700; text-align: center; line-height: 1.2; }
+}
+
 /* Bild-Antworten: Kennbuchstabe klein in der Ecke, das Bild nutzt die ganze Kartenbreite */
 .mc-btn:has(.pm-opt-pic) { position: relative; padding: 6px; }
 .mc-btn:has(.pm-opt-pic) > .mc-key { position: absolute; top: 5px; left: 5px; width: 24px; height: 24px; z-index: 1; }

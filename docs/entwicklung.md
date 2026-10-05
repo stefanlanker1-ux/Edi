@@ -691,6 +691,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: kleine Bildtexte lesbar** – Monomer-Paare in Kurzform (Benzolring als C₆H₄, MDI-Gerüst als Formel, Diepoxid mit „R“); bei sehr flachem Bildplatz
+  (≤ 95 px, `@container`) als Halbstrukturformel-Text ohne hervorgehobene Gruppen; Bild-Antworten (Monomer, Baustein, gesättigt) am Handy (≤ 480 px) als Text
+  (`visFormula`, Test) in flacheren Karten; Gefäßbild „mehr Starter“ mit Beschriftung und Legende als HTML-Text.
+
 - **Polymere: Kapitelfolgen ohne Vorsagen** – in jeder Kapitelfolge jede Fertigkeit höchstens zweimal, dazwischen mindestens zwei andere Aufgaben (K2, K5, K6 umgestellt,
   K1 Bauen vor „Monomer zum Polymer“); K5 zweite Form `epoxidBindungTap` (neue C–N-Bindung im Epoxidharz antippen) statt Wiederholung; nach jeder Antwort eine Regelzeile
   (allgemeine Regel des Schritts oder Erklärung der Aufgabe), die nicht die nächste Antwort enthält (Tests: Abstand, Regelzeile, Vorsagen); Tipps als Denkschritt auch im Feld

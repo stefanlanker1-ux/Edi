@@ -5,7 +5,7 @@
 import type { Grp, Hue, Vinyl } from "./data.ts";
 import { dirOf, type Scene } from "./scene.ts";
 
-export interface Ctx { pre: string; unit?: number; hue?: Hue; /** Kurzform für kleine Bilder: großes Gerüst als „R“ (nur Diepoxid) */ short?: boolean }
+export interface Ctx { pre: string; unit?: number; hue?: Hue; /** Kurzform für kleine Bilder: Gerüst als Formel bzw. „R“ (Benzolring, MDI, Diepoxid) */ short?: boolean }
 
 const sub = (ctx: Ctx, id: string, el: string, x: number, y: number, extra: object = {}) =>
   ({ id: ctx.pre + id, el, x, y, ...(ctx.unit !== undefined ? { unit: ctx.unit } : {}), ...(ctx.hue ? { hue: ctx.hue } : {}), ...extra });

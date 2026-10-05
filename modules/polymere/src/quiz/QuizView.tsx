@@ -14,7 +14,7 @@ import type { Vis } from "./visual.tsx";
 import { MISS } from "./misconceptions.ts";
 import { explainFor } from "./explain.tsx";
 import { LESSONS } from "../lessons.tsx";
-import { VisView, beadsOf } from "./visual.tsx";
+import { VisView, beadsOf, visFormula } from "./visual.tsx";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask, missRecovery: true });
@@ -246,7 +246,7 @@ export function QuizView() {
       heroArt={<span className="hero-pm" aria-hidden="true"><BeadStrip beads={beadsOf(["styrol", "styrol", "styrol", "butadien", "butadien", "butadien"])} active={null} /></span>}
       renderVisual={t => (isBuild(t) ? (t.stage === "worked" ? <BuildAnswer t={t} answered={null} solved /> : null) : isOrder(t) ? (t.stage === "worked" ? <OrderAnswer t={t} answered={null} solved /> : null) : isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
         : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
-      renderOption={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
+      renderOption={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? <span className={`pm-opt-pic${visFormula(t.pics[o]) ? " has-txt" : ""}`}><VisView v={t.pics[o]} opt />{visFormula(t.pics[o]) && <span className="pm-opt-txt" aria-hidden="true">{visFormula(t.pics[o])!.replace(/–(?=.)/g, "–\u200B")}</span>}<span className="sr-only">{o}</span></span> : o)}
       renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
       // Ordnen: die richtigen Plätze stehen an den Bildern – keine eigene Lösungszeile
       solution={t => (isTap(t) || isBuild(t) ? t.sol : null)}

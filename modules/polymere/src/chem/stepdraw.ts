@@ -87,7 +87,11 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
   let xc = x + lw;
   let left = "", right = "";
   const core = m.core;
-  if (core.k === "ring") {
+  if (core.k === "ring" && ctx.short) {
+    // Kurzform für kleine Bilder: Benzolring als Formel C₆H₄
+    const k = A("k", "C", xc + 0.85, y, { text: "C₆H₄" });
+    left = right = k; xc += 1.7;
+  } else if (core.k === "ring") {
     const r = benzene(sc, xc, y, 0, ctx, "r");
     out.push(...r); left = r[0]; right = r[3];
     xc += 1.44;
@@ -122,6 +126,9 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     const o = A("o3", "O", xc - 1, y + 1), h = A("h3", "H", xc - 1, y + 1.8);
     sc.bond(cs[1], o); sc.bond(o, h); sc.autoLp(o, 2, 0);
     ends.push({ fg: "OH", anchor: o, leave: [h], extra: {}, s: 1, branch: true });
+  } else if (core.k === "mdi" && ctx.short) {
+    const k = A("k", "C", xc + 1.7, y, { text: "C₆H₄–CH₂–C₆H₄" });
+    left = right = k; xc += 3.4;
   } else if (core.k === "mdi") {
     const r1 = benzene(sc, xc, y, 0, ctx, "ra");
     const ch2 = A("ch2", "C", xc + 2.44, y);
@@ -166,7 +173,7 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     return { atoms: out, ends, x0: xc - 0.8, x1: xc + 0.8 };
   }
   // Gruppen links und rechts (Kurzformel (CH₂)ₙ ist breit: Gruppe weiter weg)
-  const gap = (k: string) => (sc.at(k).text?.startsWith("(") ? 1.6 : 1);
+  const gap = (k: string) => { const n = sc.at(k).text?.length ?? 0; return n > 3 ? Math.max(1.6, n * 0.13 + 0.6) : 1; };
   const third = ends.splice(0);
   if (m.groups.length >= 2 && gl) ends.push(grp(sc, ctx, left, gl, sc.at(left).x - gap(left), y, -1, "L", out));
   const rightFg = m.groups.length === 1 ? gl : gr;

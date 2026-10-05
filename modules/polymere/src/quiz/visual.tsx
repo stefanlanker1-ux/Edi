@@ -74,7 +74,7 @@ export function MechFrame({ r, acts, keyIndex, label }: { r: Recipe; acts: strin
   const all = snapBox(frame.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
   const pts = (frame.arrows ?? []).flatMap(a => [anchorPt(frame.snap, a.from), anchorPt(frame.snap, a.to)]).filter(p => !!p);
   const crop = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 1.6), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 1.6),
-    y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.3), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.3) } : all;
+    y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
   const box = fitBox(crop, 1.7, 5, 3.0, 0.4);
   // Beschriftungen nur, wenn sie ganz im Ausschnitt liegen (nie abgeschnitten)
   const notes = pose.notes.filter(n => { const q = noteBox(n); return q.x0 >= box.x0 && q.x1 <= box.x1 && q.y0 >= box.y0 && q.y1 <= box.y1; });
@@ -192,27 +192,49 @@ export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
 /** zwei Gefäße vor dem Erwärmen: je 16 Monomere, links 2, rechts 6 Starter-Moleküle (grau) – zeigt die Lage, nicht das Ergebnis */
 export function StartersPic() {
   const L = tr({ few: "wenig Starter", many: "viel Starter", init: "Starter (DBPO)", mono: "Styrol" }, { few: "little initiator", many: "lots of initiator", init: "initiator (DBPO)", mono: "styrene" });
-  const pot = (n: number, ox: number, cap: string) => {
+  const pot = (n: number, ox: number) => {
     const pts = fill([], 16 + n).map(p => p[0]);
     return (
       <g transform={`translate(${ox} 0)`}>
-        <text className="pm-pots-cap" x={60} y={10} textAnchor="middle" dominantBaseline="central">{cap}</text>
-        <g transform="translate(0 16)">
-          <path className="pm-pot-glass" d="M8 5 V74 Q8 79 13 79 H107 Q112 79 112 74 V5" />
-          {pts.map((p, i) => <BeadDot key={i} cx={p[0]} cy={p[1]} r={i < n ? 4 : 3.2} hue={i < n ? "init" : monoHue("styrol")} />)}
-        </g>
+        <path className="pm-pot-glass" d="M8 5 V74 Q8 79 13 79 H107 Q112 79 112 74 V5" />
+        {pts.map((p, i) => <BeadDot key={i} cx={p[0]} cy={p[1]} r={i < n ? 4 : 3.2} hue={i < n ? "init" : monoHue("styrol")} />)}
       </g>
     );
   };
+  const dot = (hue: Parameters<typeof BeadDot>[0]["hue"], r: number) => <svg className="pm-starters-dot" viewBox="-5 -5 10 10" aria-hidden="true"><BeadDot cx={0} cy={0} r={r} hue={hue} /></svg>;
+  // Beschriftung und Legende als Text (wächst nicht mit dem Bild mit – bleibt auch klein gut lesbar)
   return (
-    <svg className="pm-pot" viewBox="0 0 250 114" role="img" aria-label={tr("Zwei Gefäße mit gleich viel Monomer: links wenig, rechts viel Starter", "Two vessels with the same amount of monomer: little initiator on the left, lots on the right")}>
-      {pot(2, 0, L.few)}{pot(6, 130, L.many)}
-      <g transform="translate(0 106)">
-        <BeadDot cx={30} cy={0} r={4} hue="init" /><text className="pm-pots-leg" x={38} y={0} dominantBaseline="central">{L.init}</text>
-        <BeadDot cx={150} cy={0} r={3.2} hue={monoHue("styrol")} /><text className="pm-pots-leg" x={158} y={0} dominantBaseline="central">{L.mono}</text>
-      </g>
-    </svg>
+    <div className="pm-starters" role="img" aria-label={tr("Zwei Gefäße mit gleich viel Monomer: links wenig, rechts viel Starter", "Two vessels with the same amount of monomer: little initiator on the left, lots on the right")}>
+      <div className="pm-starters-caps" aria-hidden="true"><span>{L.few}</span><span>{L.many}</span></div>
+      <svg className="pm-pot" viewBox="0 0 250 84" aria-hidden="true">{pot(2, 0)}{pot(6, 130)}</svg>
+      <p className="pm-starters-leg" aria-hidden="true"><span>{dot("init", 4)} {L.init}</span><span>{dot(monoHue("styrol"), 3.2)} {L.mono}</span></p>
+    </div>
   );
+}
+
+/** Halbstrukturformel eines Monomers – für sehr flache Bildplätze als Text statt Zeichnung */
+const structOf = (id: string): string | undefined => (isVinyl(id) ? vinyl(id).struct : stepMono(id as StepId).struct);
+// ohne Hervorhebung der Gruppen: sonst verriete das Bild, welche Gruppen reagieren
+const structHtml = (x: string) => <span className="nw">{x.replace(/[{}]/g, "")}</span>;
+
+/** Halbstrukturformel als Text für Bild-Antworten (Monomer, Baustein, gesättigtes Gegenstück) – ersetzt die Zeichnung, wo sie zu klein würde */
+export function visFormula(v: Vis): string | undefined {
+  if (!("id" in v) || !isVinyl(v.id) || (v.k !== "mono" && v.k !== "unit" && v.k !== "sat")) return undefined;
+  const m = vinyl(v.id);
+  if (v.k === "mono") return m.struct.replace(/[{}]/g, "");
+  if (m.diene) return v.k === "sat" ? "CH₃–CH₂–CH₂–CH₃" : v.dbl ? "–CH₂=CH–CH=CH₂–" : "–CH₂–CH=CH–CH₂–";
+  const G: Record<string, string> = { CH3: "CH₃", Ph: "C₆H₅", CN: "CN", COOMe: "COOCH₃", OAc: "OCOCH₃" };
+  const n = (k: number) => (k > 1 ? "₀₁₂₃₄₅₆₇₈₉"[k] : "");
+  const carbon = (gs: string[], extraH: number, tail = false) => {
+    const h = gs.filter(x => x === "H").length + extraH;
+    const hal = ["Cl", "F"].map(x => [x, gs.filter(y => y === x).length] as const).filter(([, k]) => k > 0);
+    const subs = gs.filter(x => G[x]).map(x => G[x]);
+    // gesättigtes Gegenstück mit einer Seitengruppe: als Kette weiterschreiben (CH₃–CH₂–C₆H₅)
+    if (tail && subs.length === 1 && !hal.length) return `C${h ? "H" + n(h) : ""}–${subs[0]}`;
+    return `C${h ? "H" + n(h) : ""}${hal.map(([x, k]) => x + n(k)).join("")}${subs.map(x => `(${x})`).join("")}`;
+  };
+  if (v.k === "sat") return `${carbon(m.a, 1)}–${carbon(m.b, 1, true)}`;
+  return `–${carbon(m.a, 0)}${v.dbl ? "=" : "–"}${carbon(m.b, 0)}–`;
 }
 
 /** Legende zur Kurzform des Diepoxids */
@@ -232,9 +254,10 @@ export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
     case "mech": return <MechFrame r={v.r} acts={v.acts} keyIndex={v.key} label={tr("Mechanismus mit Elektronenpfeilen", "Mechanism with electron arrows")} />;
     case "beads": return <div className="pm-vis-beads"><BeadStrip beads={beadsOf(v.seq)} active={null} max={30} /></div>;
     case "pair": return (
-      <div className="pm-vis-pair">
-        <MonomerSvg id={v.a} aspect={0} short={v.a === "badge"} className="pm-vis-svg" />
-        {v.b && <><span className="pm-vis-plus" aria-hidden="true">+</span><MonomerSvg id={v.b} aspect={0} short={v.b === "badge"} className="pm-vis-svg" /></>}
+      <div className={`pm-vis-pair${structOf(v.a) && (!v.b || structOf(v.b)) ? " has-txt" : ""}`}>
+        {structOf(v.a) && (!v.b || structOf(v.b)) && <p className="pm-pair-txt">{structHtml(structOf(v.a)!)}{v.b && <> + {structHtml(structOf(v.b)!)}</>}</p>}
+        <MonomerSvg id={v.a} aspect={0} short={!isVinyl(v.a)} className="pm-vis-svg" />
+        {v.b && <><span className="pm-vis-plus" aria-hidden="true">+</span><MonomerSvg id={v.b} aspect={0} short={!isVinyl(v.b)} className="pm-vis-svg" /></>}
         {(v.a === "badge" || v.b === "badge") && <span className="pm-vis-legend">{R_LEGEND()}</span>}
       </div>
     );
