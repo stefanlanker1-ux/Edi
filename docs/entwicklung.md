@@ -181,6 +181,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Regeln
 - Jedes Modul hat nur zwei Arten von Ansichten: **Experimentieren** (Werkbank: selbst bauen, zeichnen, vorgegebene Beispiele lösen) und **Quiz**, dazu die **Erklärung**
   als Vollbild. Keine eigenen Übungsseiten.
+- **Arbeitsteilung der Agenten**: siehe `docs/agenten.md` (Rollen, Prüfkette Fach – Gestaltung – Realität, Sofort-Warnung).
 - **Experimentieren stellt nie Fragen** – keine Vorhersage-, Auswahl- oder Richtig/falsch-Fragen, kein ✓/✗ zu einer Antwort, keine Punkte. Experimentieren ist freies
   Ausprobieren: Aktion wählen → ansehen; Zustand nur als kurze Kennzeichen, Begründungen auf Abruf (ⓘ). Fragen, Vorhersagen und Rückmeldung zu Antworten gehören
   ausschließlich in **Lernen** (Lektion und Aufgaben) bzw. **Quiz**.
@@ -683,6 +684,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Agenten-Team** – `docs/agenten.md`: Rollen (Master, Programmierer, Didaktiker, Hilfswissenschaftler, Schüler, Chemie-Professor, UI-Designer,
+  Realitätskontrolleur), Ablauf je Änderung und Sofort-Warnung bei Halluzinationen.
 
 - **Regel: Experimentieren stellt nie Fragen; Polymere ohne Vorhersage** – neue Regel (Abschnitt Regeln): Fragen, Vorhersagen und Richtig/falsch-Rückmeldungen
   nur in Lernen bzw. Quiz. Polymere-Experimentieren: Vorhersage-Fragen vor jeder Aktion entfernt (`chem/mech/predict.ts`, Tests, Schalter „Vorher vermuten“,
