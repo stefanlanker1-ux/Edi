@@ -685,6 +685,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Ordnen-Marken unter dem Bild, Überlappungstest über alle Bilder** – nach dem Prüfen stehen ✓ bzw. „richtig: ②“ (und der Name, auf niedrigen Bildschirmen im
+  Blatt „Lösung“) unter der Zeichnung, Legende immer; Zähler „2 / 4“ als eigenes Element; Bilder nie schon am richtigen Platz. Test der Kettenabläufe prüft jetzt alle ruhenden
+  Bilder samt Ladungszeichen: MMA abwechselnd (Estergruppen stoßen nicht mehr aneinander), Li⁺ bei Methanol aus dem Weg, Ziegler-Natta-Aktivierung, H₂ und Übergangszustand
+  ohne Überlappung; Chip „MMA“ statt abgeschnittenem Namen.
 - **Quiz-Paket: Stolpersteine verschwinden nach Wiedersicherwerden** – `missBy` (Fehlvorstellung → Fertigkeiten), `clearMisses` nach jedem Treffer; Tests mit simulierter Uhr
   (auch Fällig-Runde: Fehler → morgen, Treffer → nicht am selben Tag wieder fällig). Polymere: Fällig-Runde nimmt die zehn am längsten überfälligen Fertigkeiten.
 - **Polymere: Ordnen lesbar** – immer Styrol, enger Ausschnitt um die Pfeile, Karten ≥ 136 px bei 375 × 667 (Merksatz dort aus), nach dem Prüfen „richtig: ②“ statt „✗ ②“

@@ -272,7 +272,8 @@ export class ChainMech implements Mech {
   private grow(m: VinylId) {
     const sc = this.sc, v = vinyl(m), k = this.units.length;
     const ctx = { pre: `u${k}`, unit: k, hue: v.hue };
-    const flip = v.diene ? false : this.flipFor();
+    // MMA: Estergruppen abwechselnd oben/unten (sonst stoßen benachbarte Estergruppen aneinander; PMMA ist überwiegend syndiotaktisch)
+    const flip = v.diene ? false : m === "mma" ? this.units.length % 2 === 1 : this.flipFor();
     const first = this.phase === "bereit";
     // Ausschnitt: das Ende und rechts davon
     this.fx = this.xe - 2.6;
@@ -564,7 +565,8 @@ export class ChainMech implements Mech {
     this.fx = this.xe - 2.6;
     const E = sc.at(this.end);
     const mo = methanol(sc, E.x + 3.2, 0);
-    sc.move([this.li], 0, 1.0);
+    // Li⁺ bleibt neben dem Ende, aus dem Weg des Methanols (das von rechts auf der Achse kommt)
+    if (Math.abs(sc.at(this.li).y) < 0.5) sc.set(this.li, { y: 1.1 });
     this.key(80, 650);
     sc.move([mo.me, mo.o, mo.h], -0.8, 0);
     this.key(900, 300, [

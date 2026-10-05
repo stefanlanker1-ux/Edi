@@ -217,8 +217,8 @@ function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: 
               aria-label={done ? `${tr("Bild", "Picture")} ${"ABCD"[i]}: ${t.names[i]}` : `${tr("Bild", "Picture")} ${"ABCD"[i]}${n >= 0 ? `, ${tr("Platz", "position")} ${n + 1}` : ""}`}>
               <span className="pm-order-pic"><OrderPic v={v} /></span>
               {n >= 0 && <span className="pm-order-num" aria-hidden="true">{NUM[n]}</span>}
-              {done && <span className="pm-order-mark" aria-hidden="true">{st === "ok" ? "✓" : `${tr("richtig", "correct")}: ${NUM[right]}`}</span>}
-              {done && <span className="pm-order-name">{t.names[i]}</span>}
+              {/* nach dem Prüfen: Marke und Name in einer Zeile unter der Zeichnung (verdeckt keine Atome) */}
+              {done && <span className="pm-order-foot"><span className="pm-order-mark" aria-hidden="true">{st === "ok" ? "✓" : `${tr("richtig", "correct")}: ${NUM[right]}`}</span><span className="pm-order-name">{t.names[i]}</span></span>}
             </button>
           );
         })}
@@ -226,7 +226,8 @@ function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: 
       {done && answered && <p className="pm-order-legend">{tr("rote Zahl = deine Reihenfolge · richtig: ② = richtiger Platz", "red number = your order · correct: ② = right place")}</p>}
       {!done && (
         <div className="pm-tap-bar">
-          <span className="pm-tap-note">{tr("Bilder der Reihe nach antippen", "Tap the pictures in order")} · <span className="nw">{seq.length}&nbsp;/&nbsp;4</span></span>
+          <span className="pm-tap-note">{tr("Bilder der Reihe nach antippen", "Tap the pictures in order")}</span>
+          <span className="pm-count">{seq.length}&nbsp;/&nbsp;4</span>
           <Button variant="primary" disabled={seq.length < 4} onClick={() => { buzz(); check(); }}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
@@ -253,7 +254,10 @@ export function QuizView() {
       renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
       // Ordnen: die richtigen Plätze stehen an den Bildern – keine eigene Lösungszeile
       solution={t => (isTap(t) || isBuild(t) ? t.sol : null)}
-      feedbackExtra={t => (isTap(t) || isOrder(t) || isBuild(t) ? <p className="pm-sol-exp"><RichText text={t.explain} /></p> : null)}
+      feedbackExtra={t => (isTap(t) || isOrder(t) || isBuild(t) ? <>
+        {isOrder(t) && <ol className="pm-sol-order">{t.correct.map(i => <li key={i}>{t.names[i]}</li>)}</ol>}
+        <p className="pm-sol-exp"><RichText text={t.explain} /></p>
+      </> : null)}
       explain={(level, task) => explainFor(level, task)}
     />
   );

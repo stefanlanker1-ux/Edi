@@ -112,7 +112,7 @@ export class ZnMech implements Mech {
   private activate() {
     const sc = this.sc;
     // Al(C₂H₅)₃ nähert sich, tauscht eine Ethylgruppe gegen das Cl am Titan
-    sc.move(["al", "ale0", "ale1", "ale2"], -1.05, 0);
+    sc.move(["al", "ale0", "ale1", "ale2"], -0.5, 0);
     this.key(300, 900);
     sc.unbond("tti", "tcl4"); sc.unbond("al", "ale0");
     sc.set("ale0", { x: TI_C + 0.25, y: 0, text: "C₂H₅" });
@@ -158,7 +158,7 @@ export class ZnMech implements Mech {
     // Gruppen unten zur Seite drehen (sie würden sonst in Titan und Kette ragen)
     const pre = ids.ca.slice(0, -2);
     const grp = (tag: string) => ids.atoms.filter(i => i.startsWith(pre + tag));
-    if (!v.diene) { sc.rotate(grp("a1"), sc.at(ids.ca), 90); sc.rotate(grp("b1"), sc.at(ids.cb), -90); }
+    if (!v.diene) { sc.rotate(grp("a1"), sc.at(ids.ca), 90); sc.rotate(grp("b1"), sc.at(ids.cb), -130); }
     const all = ids.atoms;
     // erscheint oben rechts
     sc.move(all, 2.1, -1.4);
@@ -289,7 +289,7 @@ export class ZnMech implements Mech {
     sc.add({ id: h1, el: "H", x: 1.6, y: -2.9, op: 0 }); sc.add({ id: h2, el: "H", x: 2.4, y: -2.9, op: 0 });
     sc.bond(h1, h2);
     this.key(80, 600);
-    sc.set(h1, { op: 1, x: 0.25, y: -0.95 }); sc.set(h2, { op: 1, x: 1.05, y: -0.95 });
+    sc.set(h1, { op: 1, x: 0.2, y: -1.15 }); sc.set(h2, { op: 1, x: 0.75, y: -1.75 });
     sc.set("tvac", { op: 0 });
     this.key(800, 300, [
       { from: { b: [h1, h2], off: -0.12 }, to: { b: ["tti", h1], f: 0.5, off: -0.12 }, bend: 0.5 },

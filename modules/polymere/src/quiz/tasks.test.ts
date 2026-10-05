@@ -39,7 +39,7 @@ test("alle Aufgaben gültig und speicherbar", () => {
       }
       if (isOrder(t)) {
         assert.strictEqual(t.cards.length, 4); assert.deepEqual([...t.correct].sort(), [0, 1, 2, 3]);
-        assert.ok(!t.correct.every((x, i) => x === i), "schon geordnet");
+        assert.ok(!t.correct.some((x, i) => x === i), "ein Bild schon am richtigen Platz");
         for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why);
         continue;
       }

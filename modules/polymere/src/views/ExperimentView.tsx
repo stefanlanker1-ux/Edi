@@ -406,11 +406,13 @@ export function ExperimentView() {
       <span className="pm-chip-v">{hue && <i className={`pm-chip-dot hue-${hue}`} />}<span>{typeof value === "string" ? hyph(value) : value}</span></span>
     </button>
   );
+  // lange Namen im Chip als übliches Kürzel (sonst abgeschnitten)
+  const chipName = (id: string) => (id === "mma" ? "MMA" : monoName(id));
   const recipeRow = (
     <div className="pm-recipe">
-      {chip(art === "poly" ? tr("Monomer", "Monomer") : tr("Monomer 1", "Monomer 1"), monoName(recipe.a), () => setTool("mono"), monoHue(recipe.a))}
+      {chip(art === "poly" ? tr("Monomer", "Monomer") : tr("Monomer 1", "Monomer 1"), chipName(recipe.a), () => setTool("mono"), monoHue(recipe.a))}
       {art === "poly"
-        ? chip(tr("Zweites", "Second"), recipe.b ? monoName(recipe.b) : "–", () => setTool("copo"), recipe.b ? monoHue(recipe.b) : undefined)
+        ? chip(tr("Zweites", "Second"), recipe.b ? chipName(recipe.b) : "–", () => setTool("copo"), recipe.b ? monoHue(recipe.b) : undefined)
         : chip(tr("Monomer 2", "Monomer 2"), recipe.b ? monoName(recipe.b) : "–", () => setTool("mono2"), recipe.b ? monoHue(recipe.b) : undefined)}
       {art === "poly" && chip(tr("Verfahren", "Method"), method(recipe.method ?? "dbpo").short, () => setTool("verfahren"))}
     </div>

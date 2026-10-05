@@ -889,8 +889,9 @@ function ordnen(): Task {
   const N = tr(["Starter zerfällt", "erstes Anlagern", "Anlagern an die Kette", stop === "comb" ? "Abbruch: Rekombination" : "Abbruch: Disproportionierung"],
     ["Initiator splits", "first addition", "addition to the chain", stop === "comb" ? "Termination: combination" : "Termination: disproportionation"]);
   // gemischt, aber nie schon in der richtigen Reihenfolge
+  // gemischt, kein Bild auf seinem richtigen Platz
   let perm = shuffle([0, 1, 2, 3]);
-  while (perm.every((x, i) => x === i)) perm = shuffle([0, 1, 2, 3]);
+  while (perm.some((x, i) => x === i)) perm = shuffle([0, 1, 2, 3]);
   const cards = perm.map(i => cards0[i]), names = perm.map(i => N[i]);
   const correct = [0, 1, 2, 3].map(k => perm.indexOf(k));
   return {
