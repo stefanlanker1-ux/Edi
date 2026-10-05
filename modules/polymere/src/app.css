@@ -370,5 +370,5 @@
 /* Ordnen auf niedrigen Bildschirmen: Merksatz aus, damit die vier Bilder groß bleiben */
 @media (max-height: 700px) { .task-card.kind-order .q-lead { display: none; } .pm-order-grid { gap: 4px; } }
 .task-card.kind-order .q-feedback .fb-sol { display: none; }
-/* niedrige Bildschirme: nach dem Prüfen nur die Marke unter dem Bild (Namen der Schritte stehen in der Erklärung) */
-@media (max-height: 700px) { .pm-order.done .pm-order-name { display: none; } }
+/* niedrige Bildschirme: nach dem Prüfen bleiben die Bilder groß – der Grund steht im Blatt „Lösung“, auf der Karte Marke und Name */
+@media (max-height: 700px) { .task-card.kind-order.answered .q-feedback .fb-why { display: none; } .pm-order-legend { font-size: .68rem; } }

@@ -3,7 +3,7 @@
 // manche Antworten sind selbst Bilder (Monomer, Baustein).
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
+import { createQuizStore, diagnose, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, RichText, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { LEVELS, TYPE_NAMES, sameTask, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
@@ -17,7 +17,7 @@ import { LESSONS } from "../lessons.tsx";
 import { VisView, beadsOf } from "./visual.tsx";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 
-export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask });
+export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask, missRecovery: true });
 
 /** richtige Auswahl? einzeln: das Teil; mehrere: genau diese Menge; Paar: zwei benachbarte Teile */
 function tapResult(t: TapTask, sel: string[]) {
@@ -91,12 +91,12 @@ function TapAnswer({ t, answered, submit }: { t: TapTask; answered: Answered | n
         <div className="pm-tap-bar" aria-live="polite">
           {miss ? <span className="pm-tap-note">{tr("Tippbar sind die gepunktet umrandeten Teile.", "Only the parts with a dotted outline can be tapped.")}</span>
             : <span className="pm-tap-note">{tr(`${sel.length} von ${need} gewählt`, `${sel.length} of ${need} chosen`)}</span>}
-          {multi && <Button variant="primary" disabled={!sel.length} onClick={() => { buzz(); submit(tapResult(t, sel)); }}>{tr("Prüfen", "Check")}</Button>}
+          {multi && <Button variant="primary" data-auto="last" disabled={!sel.length} onClick={() => { buzz(); submit(tapResult(t, sel)); }}>{tr("Prüfen", "Check")}</Button>}
         </div>
       )}
       {/* Tastatur und Vorlesen: dieselben Teile als Knöpfe */}
       <div className="sr-only">
-        {t.parts.map((p, i) => <button key={p} type="button" aria-pressed={sel.includes(p)} onClick={() => pickPart(p)}>{t.labels[i]}</button>)}
+        {t.parts.map((p, i) => <button key={p} type="button" {...(i < need ? { "data-auto": "" } : {})} aria-pressed={sel.includes(p)} onClick={() => pickPart(p)}>{t.labels[i]}</button>)}
       </div>
     </div>
   );
@@ -156,7 +156,7 @@ function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: 
         {shown.map((id, i) => {
           const it = item(id);
           return (
-            <button key={i} type="button" data-slot={i} className={`pm-build-slot${it ? " full" : ""}${i === wrongAt ? " wrong" : ""}`} disabled={done}
+            <button key={i} type="button" data-slot={i} data-auto="" className={`pm-build-slot${it ? " full" : ""}${i === wrongAt ? " wrong" : ""}`} disabled={done}
               onClick={() => put(i, seq[i] ? null : cur)}
               aria-label={`${tr("Platz", "Place")} ${i + 1}: ${it ? it.name : tr("leer", "empty")}`}>
               {it ? <BeadIcon it={it} /> : <span className="pm-build-empty" aria-hidden="true" />}
@@ -168,7 +168,7 @@ function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: 
       {!done && (
         <div className="pm-tap-bar" aria-live="polite">
           <span className="pm-tap-note">{hint ? tr("Nochmal antippen = entfernen", "Tap again to remove") : <>{tr("Kügelchen wählen, dann Platz antippen (lange drücken = alle füllen)", "Pick a bead, then tap a place (long press = fill all)")} · <span className="nw">{count}&nbsp;/&nbsp;{t.n}</span></>}</span>
-          <Button variant="primary" disabled={!full} onClick={() => { buzz(); submit?.(buildResult(t, seq as string[])); }}>{tr("Prüfen", "Check")}</Button>
+          <Button variant="primary" data-auto="last" disabled={!full} onClick={() => { buzz(); submit?.(buildResult(t, seq as string[])); }}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
     </div>
@@ -208,12 +208,13 @@ function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: 
   };
   return (
     <div className={`pm-order${done ? " done" : ""}`}>
-      <div className="pm-order-grid">
+      {/* Mindesthöhe für die Prüfung im Browser (check-ui): die vier Bilder bleiben auch nach dem Prüfen lesbar */}
+      <div className="pm-order-grid" data-min-h="230">
         {t.cards.map((v, i) => {
           const n = shown.indexOf(i), right = t.correct.indexOf(i);
           const st = done ? (n === right ? "ok" : "no") : n >= 0 ? "sel" : "";
           return (
-            <button key={i} type="button" className={`pm-order-card ${st}`} onClick={() => tap(i)} disabled={done && !!answered}
+            <button key={i} type="button" data-auto="" className={`pm-order-card ${st}`} onClick={() => tap(i)} disabled={done && !!answered}
               aria-label={done ? `${tr("Bild", "Picture")} ${"ABCD"[i]}: ${t.names[i]}` : `${tr("Bild", "Picture")} ${"ABCD"[i]}${n >= 0 ? `, ${tr("Platz", "position")} ${n + 1}` : ""}`}>
               <span className="pm-order-pic"><OrderPic v={v} /></span>
               {n >= 0 && <span className="pm-order-num" aria-hidden="true">{NUM[n]}</span>}
@@ -228,7 +229,7 @@ function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: 
         <div className="pm-tap-bar">
           <span className="pm-tap-note">{tr("Bilder der Reihe nach antippen", "Tap the pictures in order")}</span>
           <span className="pm-count">{seq.length}&nbsp;/&nbsp;4</span>
-          <Button variant="primary" disabled={seq.length < 4} onClick={() => { buzz(); check(); }}>{tr("Prüfen", "Check")}</Button>
+          <Button variant="primary" data-auto="last" disabled={seq.length < 4} onClick={() => { buzz(); check(); }}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
     </div>
@@ -254,7 +255,8 @@ export function QuizView() {
       renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
       // Ordnen: die richtigen Plätze stehen an den Bildern – keine eigene Lösungszeile
       solution={t => (isTap(t) || isBuild(t) ? t.sol : null)}
-      feedbackExtra={t => (isTap(t) || isOrder(t) || isBuild(t) ? <>
+      feedbackExtra={(t, a) => (isTap(t) || isOrder(t) || isBuild(t) ? <>
+        {!a.ok && diagnose(t, a)?.why && <p className="pm-sol-why"><RichText text={diagnose(t, a)!.why!} /></p>}
         {isOrder(t) && <ol className="pm-sol-order">{t.correct.map(i => <li key={i}>{t.names[i]}</li>)}</ol>}
         <p className="pm-sol-exp"><RichText text={t.explain} /></p>
       </> : null)}

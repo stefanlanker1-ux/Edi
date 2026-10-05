@@ -218,7 +218,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   `src/quiz/misconceptions.ts` der App (`MISS`, Name für Landkarte/Auswertung), `why` = Rückmeldungssatz mit den konkreten Zahlen (steht vor der Erklärung).
   Eingabe-Aufgaben: `traps` (`{ field, value | min }` oder `{ values: {…} }`) auf den gemeldeten `values`; `diagnose(task, answer)` wertet aus.
   Der Store zählt `misses` je Stufe; Landkarte zeigt „Stolpersteine“ (≥ 2×), Auswertung den häufigsten der Runde. `missName` an `QuizScreen` übergeben.
-  `missBy` merkt je Fehlvorstellung die Fertigkeiten; sind alle wieder „sicher“, verschwindet der Stolperstein (`clearMisses`, Test mit simulierter Uhr).
+  Freiwillig (`missRecovery: true` in `createQuizStore`, nur Polymere): `missBy` merkt je Fehlvorstellung die Fertigkeiten; sind alle wieder „sicher“, verschwindet
+  der Stolperstein (`clearMisses`, Test mit simulierter Uhr). Ohne Schalter bleibt alles wie bisher.
   Distraktoren mit Diagnose kommen vor zufälligen; die Tests prüfen Schlüssel, Listenlängen und Fallen-Felder. Rückmeldung nie beschämend, immer mit dem richtigen Weg.
 - Baukasten – neue Module nur aus gemeinsamen Teilen: Build der App über `appConfig(…)` (`scripts/app-vite.ts`, PWA + Einzeldatei + `lizenzen.txt`
   über `scripts/licenses.ts`), `App.tsx` des Moduls = `<LernApp name logo tabs tab onTab storage stufe?>` (`@lern/ui`: Link zur Übersicht,
@@ -677,6 +678,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
 Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"`, `LESBAR=1` und `LOCALE=en-GB`).
+Polymere zusätzlich mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Lernen“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`).
 In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=/opt/pw-browsers/chromium`), Playwright global (`PLAYWRIGHT=…/playwright/index.mjs`); nie `playwright install`.
 Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
 laufen lassen; je Zustand messen (Seite, `.ui-wb`, `.ui-wb-stage`, Aufgabenkarte, Blatt: `scrollHeight/scrollWidth` ≤ `clientHeight/clientWidth`, Bild nicht winzig) und Screenshots ansehen.
@@ -685,6 +687,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ordnen-Bilder bleiben groß, check-ui spielt „Lernen“, Schwächen verteilt** – Polymere: auf niedrigen Bildschirmen steht der Grund nach dem Prüfen im Blatt „Lösung“ (mit
+  Reihenfolge), auf der Karte bleiben Marke und Name; Fertigkeiten „Monomer → Polymer“ / „Polymer → Monomer“; „Schwächen üben“ aus allen schwachen Fertigkeiten, je höchstens
+  zweimal (Test); Kettenwachstum-Rückmeldung „ein Riesenmolekül entsteht nie“. check-ui: `LEARN=…` spielt Lernen Kapitel für Kapitel (`data-auto`, `data-auto="last"`),
+  `data-min-h` meldet zu kleine Bilder, unsichtbare Tastatur-Knöpfe (`.sr-only`) zählen nicht als Tippziel. Quiz-Paket: Stolperstein-Rückbau nur noch freiwillig
+  (`missRecovery`, nur Polymere); ohne Schalter verhalten sich alle Module wie vor a51411c.
 - **Polymere: Kleinigkeiten D48** – Reaktionsart-Frage „zu diesem Monomer“ bei einem Monomer; Riesenmolekül im Gefäß als Netz (kein freies Kügelchen), lange Ketten mit 14 freien
   Monomeren; Mechanismus-Bilder zeigen den Ausschnitt um die Pfeile; K3: eigener Lektionsschritt PE-HD/PE-LD (Ethen), Schritt 1 bleibt bei Propen; HDI/MDI mit Langnamen;
   PP-Frage nennt die Eigenschaft; „Die Seitengruppe bleibt – ein Benzolring“.

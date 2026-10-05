@@ -181,3 +181,17 @@ test("Gelöstes Beispiel unterscheidet sich von der folgenden Aufgabe (Frage, An
   }
   assert.deepEqual([...new Set(bad)], []);
 }, 60_000);
+
+test("Schwächen üben: alle schwachen Fertigkeiten, je höchstens zweimal, keine Frage doppelt", () => {
+  const ids = ["polyName", "doppelbindung", "radikal", "pfeil", "katalysator", "gruppen", "urethan", "klasse"];
+  const stats = Object.fromEntries(ids.map(id => [id, { right: 1, wrong: 2 }]));
+  for (let k = 0; k < 20; k++) {
+    const r = makeRound("us", "weak", stats);
+    const n = new Map<string, number>();
+    for (const t of r) n.set(t.type!, (n.get(t.type!) ?? 0) + 1);
+    assert.ok(n.size >= 5, `nur ${n.size} Fertigkeiten`);
+    assert.ok([...n.values()].every(x => x <= 2));
+  }
+  const few = makeRound("us", "weak", { polyName: { right: 0, wrong: 3 } });
+  assert.ok(few.length <= 2);
+});

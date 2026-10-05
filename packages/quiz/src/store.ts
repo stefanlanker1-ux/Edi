@@ -43,6 +43,8 @@ export interface QuizConfig<T extends BaseTask> {
   seed?: () => Partial<Pick<QuizState<T>, "progress" | "typeStats">>;
   /** Level (Zahl) mit fester Reihenfolge der Aufgabentypen – Wiederholungen werden nur innerhalb des Typs ersetzt */
   fixedOrder?: boolean;
+  /** freiwillig: Stolperstein verschwindet, sobald die Fertigkeiten, in denen er auftrat, wieder sicher sind (merkt dazu `missBy`) */
+  missRecovery?: boolean;
   /** freiwillig: zwei Aufgaben gelten als gleich (gelöstes Beispiel muss sich davon unterscheiden) */
   sameTask?: (a: T, b: T) => boolean;
 }
@@ -137,10 +139,12 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
         if (a.miss) {
           const all = get().misses, m = { ...all[stufe] };
           m[a.miss] = (m[a.miss] ?? 0) + 1;
-          const allBy = get().missBy ?? {}, by = { ...allBy[stufe] };
-          if (type) by[a.miss] = [...new Set([...(by[a.miss] ?? []), type])];
-          set({ misses: { ...all, [stufe]: m }, missBy: { ...allBy, [stufe]: by } });
-        } else if (a.ok && type) {
+          if (cfg.missRecovery) {
+            const allBy = get().missBy ?? {}, by = { ...allBy[stufe] };
+            if (type) by[a.miss] = [...new Set([...(by[a.miss] ?? []), type])];
+            set({ misses: { ...all, [stufe]: m }, missBy: { ...allBy, [stufe]: by } });
+          } else set({ misses: { ...all, [stufe]: m } });
+        } else if (cfg.missRecovery && a.ok && type) {
           const r = clearMisses(get().misses[stufe] ?? {}, (get().missBy ?? {})[stufe] ?? {}, get().skills[stufe] ?? {});
           set({ misses: { ...get().misses, [stufe]: r.misses }, missBy: { ...(get().missBy ?? {}), [stufe]: r.missBy } });
         }
@@ -178,6 +182,6 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
     name: cfg.storageKey,
     version: 1,
     storage: createJSONStorage(() => localStorage),
-    partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, missBy: s.missBy, exams: s.exams, recent: s.recent }),
+    partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, ...(cfg.missRecovery ? { missBy: s.missBy } : {}), exams: s.exams, recent: s.recent }),
   }));
 }

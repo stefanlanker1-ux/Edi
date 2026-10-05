@@ -2,6 +2,8 @@
 // Aufruf: node scripts/check-ui.mjs [site-Ordner] [,modul1,modul2]  (leer = Übersicht)  – Playwright muss erreichbar sein (PLAYWRIGHT=/pfad/node_modules/playwright/index.mjs, Chromium in PLAYWRIGHT_BROWSERS_PATH).
 // LOCALE=en-GB prüft die englische Oberfläche (Standard de-DE).
 // LESBAR=1 prüft zusätzlich mit eingeschalteter Option „Lesbar“ (größere Abstände) – nichts darf dadurch überlaufen.
+// LEARN="pm-k1,us:pm-k1,…" (Schlüssel der erledigten Lektionen) spielt zusätzlich „Lernen“ Kapitel für Kapitel (Lektionen als erledigt markiert): Elemente mit `data-auto` werden der Reihe nach
+// angetippt, zuletzt die mit `data-auto="last"` (z. B. „Prüfen“), sonst die erste Auswahl; geprüft wird vor und nach der Antwort. Elemente mit `data-min-h="N"` müssen mindestens N px hoch sein.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 import http from "node:http";
 import fs from "node:fs";
@@ -40,6 +42,7 @@ async function check(page, app, vp, view) {
       const b = e.getBoundingClientRect();
       if (b.width === 0 || b.height === 0) continue;
       if (b.bottom < 0 || b.top > innerHeight) continue;
+      if (e.closest(".sr-only")) continue; // nur für Tastatur und Vorlesen, unsichtbar
       if (b.width < 43.5 || b.height < 43.5) {
         if (e.classList.contains("pse-cell") || (b.width <= 1 && b.height <= 1)) continue; // PSE ganz sichtbar = bewusste Ausnahme; versteckte Inputs
         // Tippfläche kann durch Padding/Pseudo größer sein: prüfe min-* im Stil
@@ -56,12 +59,16 @@ async function check(page, app, vp, view) {
       if (e.scrollHeight > e.clientHeight + 2 && getComputedStyle(e).overflowY !== "auto" && getComputedStyle(e).overflowY !== "scroll")
         over.push(`${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]} ${e.scrollHeight}>${e.clientHeight}`);
     }
-    return { sw: d.scrollWidth, sh: d.scrollHeight, iw: innerWidth, ih: innerHeight, small, over };
+    // Mindesthöhe (freiwillig je Element): Bilder dürfen nicht unter eine lesbare Größe schrumpfen
+    const tiny = [...document.querySelectorAll("[data-min-h]")].filter(e => e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().height < Number(e.getAttribute("data-min-h")))
+      .map(e => `${String(e.className).split(" ")[0]} ${Math.round(e.getBoundingClientRect().height)} < ${e.getAttribute("data-min-h")}`);
+    return { sw: d.scrollWidth, sh: d.scrollHeight, iw: innerWidth, ih: innerHeight, small, over, tiny };
   });
   if (r.sw > r.iw) note(app, vp, view, `horizontaler Überlauf ${r.sw} > ${r.iw}`);
   if (r.sh > r.ih) note(app, vp, view, `vertikaler Überlauf ${r.sh} > ${r.ih}`);
   for (const s of r.small) note(app, vp, view, `Tippziel < 44: ${s}`);
   for (const o of r.over) note(app, vp, view, `Element überläuft: ${o}`);
+  for (const o of r.tiny) note(app, vp, view, `zu klein: ${o}`);
 }
 
 for (const app of APPS) {
@@ -132,6 +139,38 @@ for (const app of APPS) {
           const weiter = page.locator("button:has-text('Weiter'), button:has-text('Nächste'), button:has-text('Next')").first();
           if (await weiter.count() && await weiter.isVisible()) { try { await weiter.click({ timeout: 800 }); } catch { break; } } else break;
         }
+      }
+    }
+    // Lernen in Kapiteln (freiwillig über LEARN): jede Aufgabe vor und nach der Antwort
+    if (process.env.LEARN) {
+      const ids = process.env.LEARN.split(",");
+      await page.evaluate(ids => { localStorage.setItem("lern-lektionen", JSON.stringify(Object.fromEntries(ids.map(i => [i, true])))); }, ids);
+      await page.reload({ waitUntil: "networkidle" }).catch(() => {});
+      const learn = page.locator("button:visible", { hasText: /^(Lernen|Learn)/ }).first();
+      if (await learn.count()) await learn.click({ timeout: 1500 }).catch(() => {});
+      const levels = await page.locator(".level-card").count();
+      for (let lv = 0; lv < levels; lv++) {
+        try { await learn.click({ timeout: 1500 }); await page.locator(".level-card").nth(lv).click({ timeout: 1500 }); } catch { break; }
+        for (let k = 0; k < 14; k++) {
+          await page.waitForTimeout(250);
+          const ex = page.getByRole("button", { name: /Verstanden|Got it/ });
+          if (await ex.count()) { await ex.first().click().catch(() => {}); continue; }
+          await check(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
+          const auto = page.locator("[data-auto]:not([data-auto=last])"), last = page.locator("[data-auto=last]");
+          const n = await auto.count();
+          if (n || await last.count()) {
+            for (let j = 0; j < n; j++) await auto.nth(j).evaluate(e => e.click()).catch(() => {});
+            for (let j = 0; j < await last.count(); j++) await last.nth(j).evaluate(e => e.click()).catch(() => {});
+          }
+          else await page.locator(".mc-btn").first().click({ timeout: 800 }).catch(() => {});
+          await page.waitForTimeout(400);
+          await check(page, app, vp, `lernen ${lv + 1}/${k + 1} Antwort`);
+          const nx = page.locator(".q-next");
+          if (!(await nx.count())) break;
+          await nx.first().click().catch(() => {});
+        }
+        const back = page.locator("button:has-text('Levelauswahl'), button:has-text('level selection'), button[aria-label*=Levelauswahl], button[aria-label*=level], button[aria-label*=Zurück], button[aria-label*=Back]").first();
+        if (await back.count()) await back.click({ timeout: 800 }).catch(() => {});
       }
     }
     } catch (e) { note(app, vp, "skript", "Abbruch: " + String(e).split("\n")[0].slice(0, 120)); }

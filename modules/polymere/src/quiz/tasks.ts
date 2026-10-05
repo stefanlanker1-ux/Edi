@@ -4,7 +4,7 @@
 // Jede falsche Antwort steht für eine Fehlvorstellung (misconceptions.ts): d(text, schlüssel, rückmeldung).
 
 import { tr } from "@lern/i18n";
-import { buildRound, d, mc, pick, shuffle, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
+import { buildRound, d, mc, pick, shuffle, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { METHODS, method, monoName, stepMono, vinyl, type Hue, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
 import { compat, methodsFor, stepReact } from "../chem/rules.ts";
 import { replay } from "../chem/mech/index.ts";
@@ -825,7 +825,7 @@ function wachstum(): Task {
     kette ? d(SHORT, "kette-spaet", T("So sieht Stufenwachstum aus. Hier wachsen wenige Ketten sehr schnell.", "That is what step growth looks like. Here a few chains grow very fast."))
       : d(LONG, "kette-sofort", T("Beim Stufenwachstum reagieren alle Moleküle. Bei 90 % Umsatz ist kaum noch Monomer übrig.", "In step growth all molecules react. At 90 % conversion hardly any monomer is left.")),
     d(MONO, kette ? "kette-spaet" : "kette-sofort", T("Die Reaktion läuft schon – es sind bereits Ketten entstanden.", "The reaction is already running – chains have already formed.")),
-    d(GIANT, kette ? "kette-spaet" : "kette-sofort", kette ? T("So weit ist es noch nicht – es gibt noch viele einzelne Moleküle.", "It is not that far yet – there are still many separate molecules.")
+    d(GIANT, kette ? "kette-spaet" : "kette-sofort", kette ? T("Beim Kettenwachstum wachsen viele getrennte Ketten – ein einziges Riesenmolekül entsteht nie.", "In chain growth many separate chains grow – a single giant molecule never forms.")
       : T("So weit ist es noch nicht – lange Ketten entstehen erst bei fast 100 % Umsatz.", "Not that far yet – long chains only form at almost 100 % conversion.")),
   ], {
     pics,
@@ -1146,7 +1146,7 @@ const GENS: Record<string, () => Task> = {
 };
 
 export const TYPE_NAMES: Record<string, string> = tr({
-  polyName: "Polymer zum Monomer", monomerVon: "Monomer zum Polymer", baustein: "Monomer in der Kette", doppelbindung: "Zweifachbindung erkennen",
+  polyName: "Monomer → Polymer", monomerVon: "Polymer → Monomer", baustein: "Monomer in der Kette", doppelbindung: "Zweifachbindung erkennen",
   nBedeutung: "Klammer und n", kugelZaehlen: "Bausteine zählen", bausteinWahl: "Baustein wählen", kunststoffAlltag: "Kunststoffe im Alltag",
   schritt: "Start, Wachstum, Abbruch", radikal: "Radikal", pfeil: "Halber Pfeil", startBruch: "Zerfall des Starters", wohinRadikal: "Radikal am Kettenende",
   abbruchArt: "Art des Abbruchs", starterRest: "Starter in der Kette", mehrStarter: "Starter und Kettenlänge",
@@ -1160,7 +1160,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   klasse: "Thermoplast, Elastomer, Duroplast", schmelzen: "Einschmelzen", copolymer: "Copolymere", wachstum: "Ketten- und Stufenwachstum",
   klasseAlltag: "Kunststoffart im Alltag", recycling: "Recycling-Code",
 }, {
-  polyName: "Polymer from monomer", monomerVon: "Monomer from polymer", baustein: "Monomer in the chain", doppelbindung: "Spotting the double bond",
+  polyName: "Monomer → polymer", monomerVon: "Polymer → monomer", baustein: "Monomer in the chain", doppelbindung: "Spotting the double bond",
   nBedeutung: "Bracket and n", kugelZaehlen: "Counting repeat units", bausteinWahl: "Choosing the repeat unit", kunststoffAlltag: "Plastics in everyday life",
   schritt: "Initiation, propagation, termination", radikal: "Radical", pfeil: "Half-headed arrow", startBruch: "Initiator splitting", wohinRadikal: "Radical at the chain end",
   abbruchArt: "Type of termination", starterRest: "Initiator in the chain", mehrStarter: "Initiator and chain length",
@@ -1365,12 +1365,15 @@ function ordered(seq: string[], leads: string[], rules: string[] = []): Task[] {
 export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, due: string[] = []): Task[] {
   if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].leads, RULES[LEVELS[level].id]);
   let ids = level === "mix" ? [...new Set(LEVELS.flatMap(l => l.types))]
-    : level === "weak" ? weakTypes(stats, id => LEVELS.some(l => l.types.includes(id)))
+    // Schwächen: alle schwachen Fertigkeiten (nicht nur drei), je Fertigkeit höchstens zweimal – siehe unten
+    : level === "weak" ? weakAll(stats)
     // fällig: die am längsten überfälligen zuerst (eine Runde fasst höchstens 10 Fertigkeiten; der Rest bleibt fällig)
     : level === "due" ? due.filter(id => GENS[id] && !LATER.includes(id)).slice(0, 10)
     : LEVELS[0].types;
   if (!ids.length) ids = LEVELS[0].types;
-  return buildRound(ids, GENS, 10).map(t => withHint(t, false));
+  // höchstens zwei Aufgaben je Fertigkeit, wenn wenige schwach sind (lieber eine kürzere Runde als dieselbe Frage fünfmal)
+  const count = level === "weak" ? Math.min(10, 2 * ids.length) : 10;
+  return buildRound(ids, GENS, count).map(t => withHint(t, false));
 }
 
 /** Aufgabentypen, deren Kapitel (mit Lektion) noch fehlt – bis dahin in keinem Kapitel und nicht in „Alles gemischt“ */
@@ -1381,6 +1384,15 @@ export function sameTask(a: Task, b: Task): boolean {
   if (a.prompt !== b.prompt) return false;
   if (isBuild(a) || isBuild(b) || isOrder(a) || isOrder(b) || isTap(a) || isTap(b)) return JSON.stringify(a) === JSON.stringify(b);
   return JSON.stringify(a.vis ?? null) === JSON.stringify(b.vis ?? null) && a.options[a.answer] === b.options[b.answer];
+}
+
+/** alle schwachen Fertigkeiten (Fehler, seitdem nicht wieder sicher), schwächste zuerst */
+export function weakAll(stats?: TypeStats): string[] {
+  return Object.entries(stats ?? {})
+    .filter(([id, s]) => s.wrong > 0 && !LATER.includes(id) && LEVELS.some(l => l.types.includes(id)))
+    .map(([id, s]) => ({ id, rate: (s.wrong + 1) / (s.right + s.wrong + 2) }))
+    .sort((a, b) => b.rate - a.rate)
+    .map(x => x.id);
 }
 
 /** für Tests: alle Generatoren */
