@@ -181,6 +181,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Regeln
 - Jedes Modul hat nur zwei Arten von Ansichten: **Experimentieren** (Werkbank: selbst bauen, zeichnen, vorgegebene Beispiele lösen) und **Quiz**, dazu die **Erklärung**
   als Vollbild. Keine eigenen Übungsseiten.
+- **Experimentieren stellt nie Fragen** – keine Vorhersage-, Auswahl- oder Richtig/falsch-Fragen, kein ✓/✗ zu einer Antwort, keine Punkte. Experimentieren ist freies
+  Ausprobieren: Aktion wählen → ansehen; Zustand nur als kurze Kennzeichen, Begründungen auf Abruf (ⓘ). Fragen, Vorhersagen und Rückmeldung zu Antworten gehören
+  ausschließlich in **Lernen** (Lektion und Aufgaben) bzw. **Quiz**.
 - **Bereichsleiste in allen Modulen gleich** (Handy unten, ab 900 px oben in der Kopfzeile): **Erklärung | Quiz | Experimentieren** (Atombau zusätzlich „Periodensystem“/„PSE“
   dahinter). Alle Einträge gleich gestaltet (Zeichen + Wort, aktiver Bereich mit rotem Strich); „Erklärung“ öffnet die Erklärung (kein eigener Bereich) und ist dort
   in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
@@ -531,7 +534,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Polymere (`modules/polymere`)
 - Keine Stufen. Leiste **Lernen | Experimentieren** wie Gemische: Lernen = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
 - **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
-  danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“, „Freie Elektronenpaare“ und „Vorher vermuten“ – der Ablauf selbst
+  danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
   - Polymerisation: Monomer (`VINYLS` in `chem/data.ts`: Ethen, Propen, Styrol, Vinylchlorid, Methylmethacrylat, Acrylnitril, Tetrafluorethen, Isobuten,
     Butadien (Einbau 1,4), Vinylacetat), optional ein zweites (gleichzeitig = statistisches Copolymer; nacheinander = Blöcke nur bei lebenden Ketten, sonst zwei
@@ -573,17 +576,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Bedienung: eine Zeile Aktionen (Start, Monomer als Kügelchen „+ S“, „Abbruch …“ öffnet die Auswahl der Abbruchart), Zurück (spielt die Aktionen ohne Animation
   nach, `replay`), Automatisch (`nextAuto`), am Ende „Produkt“ und „Von vorn“. Statuszeile nur kurze Kennzeichen (Schritt, n, „+ 2 H₂O“, Temperatur, lebend);
   die Begründung eines Fehlschlags steht hinter „ⓘ“ (Blatt). Unter dem Bild die Kette als Kügelchen; Antippen zeigt das Monomer (Strukturformel und Baustein).
-  **Vorhersage** (`chem/mech/predict.ts`, Schalter „Vorher vermuten“ im Werkzeug Ansicht, gespeichert, Standard an): Eine Aktion antippen öffnet statt der
-  Knopfzeile eine Frage mit 2–4 Antworten; die richtige Antwort ergibt sich aus dem Ablauf selbst (Ansatz vorher und nachher nachgespielt).
-  **Erst vermuten, dann beobachten, dann erklären**: nach der Wahl nur ✓ bzw. „Noch nicht“ mit der gewählten (durchgestrichen, ✗) und der richtigen Antwort
-  (✓, gestrichelt grün), dann „Ansehen ▷“ spielt den Ablauf; erst danach die Begründung, „Weiter“ und „Nochmal“. Am Handy ist die Werkzeugleiste währenddessen
-  ausgeblendet (niedrige Handys auch der Umschalter Atome | Kügelchen). Beim Stufenwachstum ist das rechte Kettenende rot gestrichelt markiert.
-  Erste Frage je Aktion: Start (Elektronen der O–O- bzw. C–N-Bindung, BF₃ + Wasser, Ethylgruppe ans Titan), Anlagern (wird eingebaut / keine Reaktion /
-  Kette endet bzw. Titan wird vergiftet – feste Reihenfolge; lebende Ketten + neues Monomer: Block), Abbruch, Verknüpfen (+ H₂O / + HCl / sonst nichts /
-  keine Reaktion), Stufenwachstum (verknüpft / Ende blockiert / keine Reaktion). Zweite Frage: an welches C bindet das Radikal bzw. das positive Ende
-  (CH₂-Ende), Ziegler-Natta warum isotaktisch bzw. wo eingebaut, woher das O im Wasser (Ester), was die dritte Gruppe des Glycerins tut, welche Bindung des
-  Epoxidrings sich öffnet, sonst Nebenprodukt. Jede falsche Antwort hat eine eigene Rückmeldung. Danach läuft die Aktion ohne Frage, „Automatisch“ fragt nie.
-  Antworten gemischt (außer Ergebnis-Skala), dreispaltig nur, wenn kein Wort übersteht. Tests: `predict.test.ts`, `predict-english.test.ts`.
+  Keine Fragen (Regel „Experimentieren stellt nie Fragen“): Eine Aktion antippen spielt den Schritt sofort ab; Vorhersagen gibt es nur in Lernen.
   Ausschnitt: kleine Anhängsel an Fokus-Atomen (–OH, –Cl, Benzolring, höchstens 7 Atome; `expandFocus`) gehören immer ganz ins Bild; was trotzdem
   über den Rand ragt, blendet `MechSvg` aus und endet an einer **Wellenlinie** (halbe Bindung + Welle) – nie ein Atom mitten im Zeichen abgeschnitten. Ringe am Rand verschwinden ganz (samt –OH/–H), nie ein halber Ring.
   Elektronen-Punkte nur am aktiven Ende (Test: nach jeder Aktion 1 Punkt beim Radikal, 2 beim Anion, sonst keiner); beim Zerfall des Starters gleitet das
@@ -690,6 +683,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Regel: Experimentieren stellt nie Fragen; Polymere ohne Vorhersage** – neue Regel (Abschnitt Regeln): Fragen, Vorhersagen und Richtig/falsch-Rückmeldungen
+  nur in Lernen bzw. Quiz. Polymere-Experimentieren: Vorhersage-Fragen vor jeder Aktion entfernt (`chem/mech/predict.ts`, Tests, Schalter „Vorher vermuten“,
+  Stile `.pm-pq*`); eine Aktion spielt sofort ab. Gespeicherter Schalter `predict` wird ignoriert.
 
 - **Polymere: kleine Bildtexte lesbar** – Monomer-Paare in Kurzform (Benzolring als C₆H₄, MDI-Gerüst als Formel, Diepoxid mit „R“); bei sehr flachem Bildplatz
   (≤ 95 px, `@container`) als Halbstrukturformel-Text ohne hervorgehobene Gruppen; Bild-Antworten (Monomer, Baustein, gesättigt) am Handy (≤ 480 px) als Text

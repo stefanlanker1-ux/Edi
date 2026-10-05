@@ -161,28 +161,6 @@
 /* Umsatz als Balken (schwarz auf hell), Ketten, mittlere und größte Länge */
 .pm-rstats { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 8px; min-height: 26px; padding: 0 4px; font-size: .8rem; white-space: nowrap; }
 .pm-rs-l { color: var(--muted); font-weight: 650; }
-/* Vorhersage in der Atom-Ansicht: Frage mit Antworten statt der Knopfzeile, danach Rückmeldung */
-.pm-pq { display: grid; gap: 6px; min-width: 0; }
-.pm-pq-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; align-items: center; }
-.pm-pq-ask { margin: 0; font-size: .9rem; font-weight: 650; line-height: 1.3; }
-.pm-pq-tag { display: inline-block; margin-right: 6px; padding: 0 5px; font-size: .7rem; font-weight: 750; letter-spacing: .02em; text-transform: uppercase;
-  color: var(--signal); border: 1.5px solid var(--signal); border-radius: var(--radius-sm); vertical-align: 1px; }
-.pm-pq-opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.pm-pq-opts.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.pm-pq-opts.c2 > :last-child:nth-child(odd) { grid-column: 1 / -1; }
-.pm-pq-opts.c1 { grid-template-columns: minmax(0, 1fr); }
-.pm-pq-opt { min-width: 0; min-height: 46px; padding: 4px 6px; font: inherit; font-size: .86rem; font-weight: 700; line-height: 1.2; overflow-wrap: normal; hyphens: manual;
-  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
-.pm-pq-opt:active { box-shadow: var(--key-edge-pressed); }
-.pm-pq.done { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); }
-.pm-pq.done.ok { border: 1.5px solid var(--ok); }
-.pm-pq.done.no { border: 1.5px dashed var(--text); }
-.pm-pq-fb { display: grid; gap: 2px; min-width: 0; font-size: .86rem; line-height: 1.3; }
-.pm-pq-fb p { margin: 0; }
-.pm-pq.ok .pm-pq-fb b { color: var(--ok); }
-.pm-pq-right { justify-self: start; padding: 0 6px; font-weight: 750; color: var(--ok); border: 1.5px dashed var(--ok); border-radius: var(--radius-sm); }
-.pm-pq-why { color: var(--text); }
-.pm-pq-next { min-height: 44px; }
 .pm-rs-bar { position: relative; flex: 1 1 60px; max-width: 170px; height: 9px; border: 1.5px solid var(--text); border-radius: 2px; overflow: hidden; }
 .pm-rs-bar i { position: absolute; inset: 0 auto 0 0; background: var(--text); transition: width .3s; }
 .pm-rs-pct { min-width: 3.1em; }
@@ -307,13 +285,6 @@
 .pm-acts-main .pm-act.add:not(.other) { flex: none; }
 .pm-acts-main .pm-act.other { flex: 0 1 auto; }
 .mb-mark { fill: none; stroke: var(--signal); stroke-width: 2.4; stroke-dasharray: 6 5; }
-.pm-view.hide { display: none; }
-.pm-pq-btns { display: flex; gap: 6px; align-items: center; }
-.pm-pq-wrong { color: var(--muted); font-weight: 650; }
-/* Begründung nach dem Ablauf: volle Breite, Knöpfe darunter rechts */
-.pm-pq.done.explain { grid-template-columns: minmax(0, 1fr); }
-.pm-pq.done.explain .pm-pq-btns { justify-content: flex-end; }
-@media (max-height: 700px) { .pm-pq.done.explain { gap: 4px; padding: 4px 8px; } .pm-pq-fb { font-size: .82rem; } }
 .pm-leg-plus { font-size: 12px; font-weight: 800; fill: var(--hue-red-deep); }
 .pm-leg-plus.an { fill: var(--hue-blue-deep); }
 .pm-pot-more { font-size: 9px; font-weight: 800; fill: var(--text); }

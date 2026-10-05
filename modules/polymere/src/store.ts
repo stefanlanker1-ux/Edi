@@ -25,14 +25,12 @@ interface State {
   halos: boolean;
   lp: boolean;
   /** Atom-Ansicht: vor einem Schritt vorhersagen, was passiert */
-  predict: boolean;
   setTab: (t: Tab) => void;
   setArt: (a: Art | null) => void;
   setRecipe: (r: Recipe) => void;
   setView: (v: View) => void;
   setHalos: (b: boolean) => void;
   setLp: (b: boolean) => void;
-  setPredict: (b: boolean) => void;
 }
 
 const validRecipe = (r: Recipe | undefined, art: Art): Recipe => {
@@ -51,25 +49,22 @@ export const useApp = create<State>()(persist(set => ({
   view: "atome",
   halos: true,
   lp: true,
-  predict: true,
   setTab: tab => set({ tab }),
   setArt: art => set({ art }),
   setRecipe: r => set(s => ({ recipes: { ...s.recipes, [r.art]: r } })),
   setView: view => set({ view }),
   setHalos: halos => set({ halos }),
   setLp: lp => set({ lp }),
-  setPredict: predict => set({ predict }),
 }), {
   name: "polymere-v1",
   version: 1,
   storage: createJSONStorage(() => localStorage),
-  partialize: s => ({ art: s.art, recipes: s.recipes, view: s.view, halos: s.halos, lp: s.lp, predict: s.predict }),
+  partialize: s => ({ art: s.art, recipes: s.recipes, view: s.view, halos: s.halos, lp: s.lp }),
   merge: (saved, current) => {
     const m = { ...current, ...(saved as Partial<State>) };
     if (m.art !== null && m.art !== "poly" && m.art !== "kond" && m.art !== "add") m.art = null;
     m.recipes = { poly: validRecipe(m.recipes?.poly, "poly"), kond: validRecipe(m.recipes?.kond, "kond"), add: validRecipe(m.recipes?.add, "add") };
     if (m.view !== "atome" && m.view !== "kugeln") m.view = "atome";
-    if (typeof m.predict !== "boolean") m.predict = true;
     return m;
   },
 }));
