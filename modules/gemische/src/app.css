@@ -269,3 +269,11 @@
 .gm-steps li { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 10px; border: 1.5px solid transparent; border-radius: var(--radius-sm); background: var(--surface-2); font-weight: 700; }
 .gm-steps li b { color: var(--signal); }
 .gm-steps li.open { border-style: dashed; color: var(--muted); }
+
+/* Reihenfolge der Trennschritte: vier lange Antworten – auf niedrigen Handys ohne Bild (sonst wäre es winzig und die letzte Antwort abgeschnitten) */
+@media (max-height: 720px) { .q-visual:has(.q-reihe) { display: none; } }
+/* Aufgabenbild nach der Antwort: auf niedrigen Handys weicht es der Rückmeldung, statt auf wenige Pixel zu schrumpfen */
+@media (max-height: 720px) { .task-card.answered .q-visual:has(.q-gm) { display: none; } }
+/* Lektion: Gerät selbst bedienen – der Lösungsweg geht erst weiter, wenn das Gerät eingeschaltet ist */
+.ui-guide-body:has(.sp-device[data-run="0"]) .ui-guide-next { visibility: hidden; }
+@media (max-height: 880px) and (max-width: 899px) { :root[data-lesbar] .task-card.answered .q-visual:has(.q-gm) { display: none; } }

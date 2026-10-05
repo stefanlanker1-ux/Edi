@@ -24,6 +24,12 @@ export const METHOD_MIX = (m: Method) => ({
 })[m];
 
 const W = 240, H = 170;
+/** Bildausschnitt je Verfahren (Umriss aller Zeitpunkte t ∈ [0, 1] mit etwas Rand): das Gerät füllt das Bild, Teile werden größer */
+const BOX: Record<Method, [number, number, number, number]> = {
+  auslesen: [14, 56, 216, 100], sieben: [34, 30, 170, 128], magnet: [48, 4, 144, 146], dekantieren: [26, 24, 186, 132],
+  filtrieren: [58, 14, 124, 150], eindampfen: [62, 22, 116, 132], destillieren: [16, 2, 204, 162], chromatografie: [58, 18, 124, 146],
+};
+const viewOf = (m: Method) => BOX[m].join(" ");
 const clamp = (x: number) => Math.min(1, Math.max(0, x));
 /** Abschnitt a…b von t auf 0…1, sanft */
 const seg = (t: number, a: number, b: number) => { const x = clamp((t - a) / (b - a)); return x * x * (3 - 2 * x); };
@@ -36,7 +42,8 @@ const beakerPath = (x0: number, y0: number, x1: number, y1: number) => `M${x0 - 
 const Beaker = ({ x0, y0, x1, y1, part }: { x0: number; y0: number; x1: number; y1: number; part?: string }) => <path className="sp-glass" d={beakerPath(x0, y0, x1, y1)} data-part={part} />;
 /** Flamme eines Brenners, flackert leicht */
 const Flame = ({ x, y, t, on = true }: { x: number; y: number; t: number; on?: boolean }) => {
-  if (!on) return null;
+  // aus: nur der Brenner, ohne Flamme
+  if (!on) return <g data-part="flamme"><rect className="sp-burner" x={x - 6} y={y} width={12} height={14} rx={1} /></g>;
   const f = 1 + .08 * Math.sin(t * 90);
   return (
     <g data-part="flamme">
@@ -184,7 +191,9 @@ function eindampfen(t: number, id: string, _alk = false, off = false) {
   const k = seg(t, .05, .9);
   const surf = lerp(86, 101, k); // Spiegel in der Schale (tiefster Punkt bei 101)
   const crystals = Array.from({ length: 14 }, (_, i) => ({ x: 98 + rnd(i) * 44, y: 98 - rnd(i + 4) * 3, on: k > .35 + rnd(i + 8) * .5 }));
-  const steam = [0, 1, 2].map(i => { const ph = (t * 3 + i / 3) % 1; return { x: 104 + i * 16, y: 80 - ph * 50, o: (1 - ph) * (k < .95 ? 1 : 0) }; });
+  // Dampf erst, wenn das Wasser warm ist (nie vor dem Einschalten des Brenners)
+  const warm = off ? 0 : seg(t, .03, .15);
+  const steam = [0, 1, 2].map(i => { const ph = (t * 3 + i / 3) % 1; return { x: 104 + i * 16, y: 80 - ph * 50, o: (1 - ph) * warm * (k < .95 ? 1 : 0) }; });
   return (
     <>
       <g data-part="dampf">{steam.map((s, i) => <path key={i} className="sp-steam" style={{ opacity: s.o }} d={`M${s.x} ${s.y + 14} q-5 -5 0 -9 q5 -5 0 -9`} />)}</g>
@@ -201,11 +210,13 @@ function eindampfen(t: number, id: string, _alk = false, off = false) {
 function destillieren(t: number, id: string, alk = false, off = false) {
   // Destillationsapparatur: Rundkolben mit Salzwasser über dem Brenner, Thermometer am Abzweig, Liebig-Kühler (Kühlwasser
   // im Gegenstrom: unten hinein, oben heraus), Vorlage. Erst steigt die Temperatur auf 100 °C, dann bleibt sie dort:
-  // Wasserdampf zieht in den Kühler, wird dort wieder flüssig und tropft als Destillat in die Vorlage; das Salz bleibt im Kolben.
+  // Wasserdampf zieht in den Kühler, wird dort wieder flüssig und tropft als Destillat in die Vorlage; das Salz bleibt gelöst im Kolben (nie bis zur Trockne).
   // Alkohol und Wasser (`alk`): ein Gemisch siedet nicht bei einer festen Temperatur – sie steigt nach dem Sieden langsam weiter (von etwa 80 °C an)
   const heat = seg(t, 0, .2), k = seg(t, .2, .95), boiling = t > .2 && k < 1;
-  const temp = Math.round(alk ? (t < .2 ? lerp(20, 80, heat) : lerp(80, 92, k)) : lerp(20, 100, heat));
-  const level = lerp(95, 119, k), recv = lerp(160, 140, k);
+  const temp = Math.round(alk ? (t < .2 ? lerp(20, 80, heat) : lerp(80, 90, k)) : lerp(20, 100, heat));
+  // nie bis zur Trockne: Salzwasser bleibt im Kolben (immer salziger), Alkohol und Wasser wird schon bei halb vollem Kolben beendet
+  // (sonst hätte das Destillat wieder fast die Zusammensetzung des Gemischs)
+  const level = lerp(95, alk ? 104 : 110, k), recv = lerp(160, alk ? 151 : 146, k);
   const A = [56, 50], B = [192, 114];
   const len = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / len, uy = (B[1] - A[1]) / len, nx = -uy, ny = ux;
   const at = (s: number, o = 0) => [A[0] + ux * len * s + nx * o, A[1] + uy * len * s + ny * o];
@@ -220,7 +231,6 @@ function destillieren(t: number, id: string, alk = false, off = false) {
     return { x: q[0], y: q[1], wet: s > .5 };
   });
   const bubbles = Array.from({ length: 6 }, (_, i) => { const ph = (t * 4 + rnd(i)) % 1; return { x: 40 + rnd(i + 3) * 20, y: lerp(122, level + 2, ph) }; });
-  const salt = Array.from({ length: 9 }, (_, i) => ({ x: 40 + rnd(i + 30) * 20, y: 121 - rnd(i + 50) * 3 }));
   const drop = { y: lerp(116, recv, (t * 5) % 1), on: boiling && k > .05 };
   const mercury = lerp(6, 30, heat);
   return (
@@ -231,7 +241,6 @@ function destillieren(t: number, id: string, alk = false, off = false) {
       </defs>
       <g data-part="kolben">
         <rect className="sp-water" x={26} y={level} width={48} height={40} clipPath={`url(#${id}-in)`} />
-        {!alk && k > .55 && salt.map((c, i) => <rect key={i} className="sp-salt" x={c.x} y={c.y} width={2.6} height={2.6} style={{ opacity: seg(k, .55 + i * .03, .7 + i * .03) }} />)}
         {boiling && bubbles.map((b, i) => <circle key={i} className="sp-bubble" cx={b.x} cy={b.y} r={1.5} />)}
         <path className="sp-glass" d="M44 83 A22 22 0 1 0 56 83 L56 38 M44 83 L44 38" />
       </g>
@@ -268,7 +277,7 @@ function chromatografie(t: number) {
   const k = seg(t, .04, .96);
   const start = 126, front = lerp(139, 56, k), run = Math.max(0, start - front);
   const dye = (rf: number) => start - run * rf;
-  const spread = run * (.85 - .3), black = clamp(1 - spread / 11), col = 1 - black;
+  const spread = run * (.92 - .16), black = clamp(1 - spread / 11), col = 1 - black;
   const ry = (rf: number) => 3.6 + rf * 2.2 * clamp(run / 60);
   return (
     <>
@@ -276,9 +285,9 @@ function chromatografie(t: number) {
       <rect className="sp-paper-strip" x={108} y={30} width={24} height={126} />
       <rect className="sp-wet" x={108} y={front} width={24} height={156 - front} data-part="front" />
       <line className="sp-start" x1={108} y1={start} x2={132} y2={start} data-part="start" />
-      <ellipse className="sp-dye-yellow" cx={120} cy={dye(.3)} rx={5} ry={ry(.3)} style={{ opacity: col }} data-part="gelb" />
+      <ellipse className="sp-dye-yellow" cx={120} cy={dye(.16)} rx={5} ry={ry(.16)} style={{ opacity: col }} data-part="gelb" />
       <ellipse className="sp-dye-red" cx={120} cy={dye(.55)} rx={5} ry={ry(.55)} style={{ opacity: col }} data-part="rot" />
-      <ellipse className="sp-dye-blue" cx={120} cy={dye(.85)} rx={5} ry={ry(.85)} style={{ opacity: col }} data-part="blau" />
+      <ellipse className="sp-dye-blue" cx={120} cy={dye(.92)} rx={5} ry={ry(.92)} style={{ opacity: col }} data-part="blau" />
       <ellipse className="sp-ink" cx={120} cy={start - run * .55} rx={5} ry={3.6 + spread / 2} style={{ opacity: black }} />
       <rect className="sp-lid" x={64} y={44} width={112} height={4} rx={1} />
       <rect className="sp-clip" x={115} y={26} width={10} height={18} rx={1.5} />
@@ -326,9 +335,10 @@ function visibleBox(svg: SVGSVGElement, e: SVGGraphicsElement): DOMRect | null {
 }
 
 /** Trefferflächen messen: je Teil der sichtbare Umriss, auf mindestens `min` vergrößert, im Bild; überlappende kleine Flächen teilen sich an der Mitte */
-function measureHits(svg: SVGSVGElement, parts: string[]): Hit[] {
+function measureHits(svg: SVGSVGElement, parts: string[], m: Method): Hit[] {
   const ctm = svg.getScreenCTM(), scale = ctm ? Math.hypot(ctm.a, ctm.b) : 1, min = HIT_PX / Math.max(.01, scale);
-  const view = new DOMRect(0, 0, W, H);
+  const [X0, Y0, BW, BH] = BOX[m], X1 = X0 + BW, Y1 = Y0 + BH;
+  const view = new DOMRect(X0, Y0, BW, BH);
   const box = new Map<string, DOMRect>();
   for (const part of parts) {
     for (const e of svg.querySelectorAll<SVGGraphicsElement>(`.sp-shapes [data-part="${part}"]`)) {
@@ -340,14 +350,16 @@ function measureHits(svg: SVGSVGElement, parts: string[]): Hit[] {
     }
   }
   const hits = [...box].map(([part, b]) => {
-    const w = Math.min(W, Math.max(b.width, min)), h = Math.min(H, Math.max(b.height, min));
+    const w = Math.min(BW, Math.max(b.width, min)), h = Math.min(BH, Math.max(b.height, min));
     // vergrößert um die Mitte, aber im Bild
-    const x = Math.min(W - w, Math.max(0, b.x + b.width / 2 - w / 2)), y = Math.min(H - h, Math.max(0, b.y + b.height / 2 - h / 2));
+    const x = Math.min(X1 - w, Math.max(X0, b.x + b.width / 2 - w / 2)), y = Math.min(Y1 - h, Math.max(Y0, b.y + b.height / 2 - h / 2));
     return { part, x, y, w, h, grown: b.width < min || b.height < min };
   });
   // kleine, vergrößerte Flächen, die sich überlappen (Farbflecken übereinander): an der Mitte zwischen den Teilen teilen
+  // (nur bei etwa gleich großen Teilen; ein viel kleineres Teil liegt einfach oben auf dem größeren, z. B. das Salz in der Schale)
+  const area = (h: { w: number; h: number }) => h.w * h.h;
   for (const a of hits) for (const c of hits) {
-    if (a === c || !a.grown || !c.grown) continue;
+    if (a === c || !a.grown || !c.grown || Math.max(area(a), area(c)) > 1.8 * Math.min(area(a), area(c))) continue;
     const ov = cut(new DOMRect(a.x, a.y, a.w, a.h), new DOMRect(c.x, c.y, c.w, c.h));
     if (!ov) continue;
     const ay = a.y + a.h / 2, cy = c.y + c.h / 2, ax = a.x + a.w / 2, cx = c.x + c.w / 2;
@@ -360,15 +372,15 @@ function measureHits(svg: SVGSVGElement, parts: string[]): Hit[] {
     }
   }
   // ist eine geteilte Fläche dabei unter `min` geschrumpft, wächst sie auf der freien Seite wieder auf `min` (nur wenn sie dort niemanden überdeckt)
-  const free = (h: typeof hits[number]) => hits.every(o => o === h || !o.grown || !cut(new DOMRect(h.x, h.y, h.w, h.h), new DOMRect(o.x, o.y, o.w, o.h)));
+  const free = (h: typeof hits[number]) => hits.every(o => o === h || !o.grown || area(o) > 1.8 * area(h) || !cut(new DOMRect(h.x, h.y, h.w, h.h), new DOMRect(o.x, o.y, o.w, o.h)));
   for (const a of hits) {
     if (!a.grown) continue;
     if (a.h < min) {
-      const up = { ...a, y: Math.max(0, a.y + a.h - min), h: min }, down = { ...a, h: Math.min(min, H - a.y) };
+      const up = { ...a, y: Math.max(Y0, a.y + a.h - min), h: min }, down = { ...a, h: Math.min(min, Y1 - a.y) };
       const g = [up, down].find(free); if (g) { a.y = g.y; a.h = g.h; }
     }
     if (a.w < min) {
-      const left = { ...a, x: Math.max(0, a.x + a.w - min), w: min }, right = { ...a, w: Math.min(min, W - a.x) };
+      const left = { ...a, x: Math.max(X0, a.x + a.w - min), w: min }, right = { ...a, w: Math.min(min, X1 - a.x) };
       const g = [left, right].find(free); if (g) { a.x = g.x; a.w = g.w; }
     }
   }
@@ -400,7 +412,7 @@ export function SepScene({ m, t, label, onPick, mark, parts, alk, off }: { m: Me
     const el = svg.current;
     if (!tap || !el) return;
     const measure = () => {
-      const next = measureHits(el, key ? key.split(",") : []);
+      const next = measureHits(el, key ? key.split(",") : [], m);
       setHits(old => (JSON.stringify(old) === JSON.stringify(next) ? old : next));
     };
     measure();
@@ -412,12 +424,12 @@ export function SepScene({ m, t, label, onPick, mark, parts, alk, off }: { m: Me
   }, [m, t, tap, key]);
   const sel = (p: string) => `#${id} .sp-shapes [data-part="${p}"]`;
   return (
-    <svg ref={svg} id={id} className={`sp sp-${m}${tap ? " sp-tap" : ""}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label ?? `${METHOD_NAME(m)}: ${METHOD_MIX(m)}`}
+    <svg ref={svg} id={id} className={`sp sp-${m}${tap ? " sp-tap" : ""}`} viewBox={viewOf(m)} role="img" aria-label={label ?? `${METHOD_NAME(m)}: ${METHOD_MIX(m)}`}
       onClick={onPick ? e => { const p = (e.target as Element).closest("[data-part]")?.getAttribute("data-part"); if (p && live.includes(p)) onPick(p); } : undefined}>
       {tap && live.length > 0 && <style>{`${live.map(p => `${sel(p)}, ${sel(p)} *`).join(", ")} { pointer-events: auto; }`}</style>}
       {tap && <g className="sp-hits">{hits.map(h => <rect key={h.part} className="sp-hit" data-part={h.part} x={h.x} y={h.y} width={h.w} height={h.h} />)}</g>}
       <g className="sp-shapes">{SCENES[m](t, id, alk, off)}</g>
-      {mark && hits.filter(h => h.part === mark).map(h => <rect key="mark" className="sp-mark" x={Math.max(1, h.x - 2)} y={Math.max(1, h.y - 2)} width={Math.min(W - 2, h.w + 4)} height={Math.min(H - 2, h.h + 4)} rx={3} />)}
+      {mark && hits.filter(h => h.part === mark).map(h => <rect key="mark" className="sp-mark" x={h.x - 2} y={h.y - 2} width={h.w + 4} height={h.h + 4} rx={3} />)}
     </svg>
   );
 }
@@ -471,7 +483,7 @@ export function SepDevice({ m, start, alk, dur = 6000, label }: { m: Method; sta
   }, [run, reduced, dur]);
   const busy = run > 0 && t < 1;
   return (
-    <div className="sp-device">
+    <div className="sp-device" data-run={run ? 1 : 0}>
       <div className="sp-wrap"><SepScene m={m} t={t} alk={alk} off={!run} label={label} /></div>
       <Button className="sp-device-btn" variant={run ? "soft" : "primary"} icon={run ? "reset" : "fire"} disabled={busy} onClick={() => { setT(0); setRun(r => r + 1); }}>
         {run ? tr("Nochmal", "Again") : start}

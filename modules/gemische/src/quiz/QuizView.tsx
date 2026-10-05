@@ -73,7 +73,7 @@ export function QuizView() {
       heroArt={<span className="hero-gm" aria-hidden="true"><MiniParticle f="H2O" size={46} /><MiniParticle f="CO2" size={46} /><MiniParticle f="He" size={30} /></span>}
       renderVisual={t => (t.kind === "tap" ? null
         : t.sep ? <div className="q-gm q-sep">{t.sep.t < 0 ? <SepAnim m={t.sep.m} /> : <SepScene m={t.sep.m} t={t.sep.t} />}</div>
-        : t.mixPic ? <div className="q-gm q-sep"><MixPic k={t.mixPic} label={MIX_LABEL()} /></div>
+        : t.mixPic ? <div className={`q-gm q-sep${t.type === "trennReihe" ? " q-reihe" : ""}`}><MixPic k={t.mixPic} label={MIX_LABEL()} /></div>
         : t.pic ? <div className="q-gm"><PicBeaker p={t.pic} /></div> : null)}
       renderOption={(t, o) => {
         if (t.pics?.[o]) return <span className="gm-pic"><PicBeaker p={t.pics[o]} /><span className="sr-only">{describe(t.pics[o])}</span></span>;

@@ -87,7 +87,7 @@ const PROP: Record<Method, () => string> = {
   auslesen: () => tr("Aussehen", "Appearance"), sieben: () => tr("Korngröße", "Grain size"),
   magnet: () => tr("Magnetismus", "Magnetism"), dekantieren: () => tr("Dichte", "Density"),
   filtrieren: () => tr("Korngröße", "Grain size"), eindampfen: () => tr("Siedetemperatur", "Boiling point"),
-  destillieren: () => tr("Siedetemperatur", "Boiling point"), chromatografie: () => tr("Haften am Papier", "Sticking to paper"),
+  destillieren: () => tr("Siedetemperatur", "Boiling point"), chromatografie: () => tr("Löslichkeit und Haften", "Solubility and sticking"),
 };
 const PROP_WHY: Record<Method, () => string> = {
   auslesen: () => tr("Die Teile sehen verschieden aus und sind groß genug zum Greifen.", "The pieces look different and are big enough to pick up by hand."),
@@ -97,7 +97,7 @@ const PROP_WHY: Record<Method, () => string> = {
   filtrieren: () => tr("Feste Körner bleiben im Filter hängen, die Flüssigkeit läuft durch.", "Solid grains get stuck in the filter, the liquid runs through."),
   eindampfen: () => tr("Wasser verdampft, das gelöste Salz bleibt zurück.", "Water evaporates, the dissolved salt stays behind."),
   destillieren: () => tr("Was zuerst siedet, verdampft und wird im Kühler wieder flüssig.", "What boils first evaporates and turns liquid again in the condenser."),
-  chromatografie: () => tr("Die Farbstoffe haften verschieden stark und wandern verschieden weit.", "The dyes stick differently and move different distances."),
+  chromatografie: () => tr("Die Farbstoffe lösen sich verschieden gut im Laufmittel und haften verschieden stark – sie wandern verschieden weit.", "The dyes dissolve differently well in the solvent and stick differently strongly – they move different distances."),
 };
 
 /** Denkschritt zum Bild (nennt weder die Eigenschaft noch ihre Wirkung) */
@@ -165,8 +165,8 @@ const TAPS: TapCase[] = [
     why: { schwefel: () => tr("Schwefel ist nicht magnetisch. Er bleibt liegen.", "Sulfur is not magnetic. It stays behind."), magnet: () => tr("Das ist der Magnet selbst.", "That is the magnet itself.") },
     tip: () => tr("Welcher Stoff wird vom Magneten angezogen?", "Which substance is attracted by the magnet?"), explain: () => tr("**Eisen** wird angezogen, Schwefel bleibt liegen.", "**Iron** is attracted, sulfur stays behind.") },
   { m: "chromatografie", answer: "blau", parts: ["blau", "rot", "gelb"], ask: () => tr("Tippe auf den Farbstoff, der **am weitesten** gewandert ist.", "Tap the dye that moved **the furthest**."),
-    why: { rot: () => tr("Rot ist weiter als Gelb, aber nicht am weitesten.", "Red moved further than yellow, but not the furthest."), gelb: () => tr("Gelb haftet stark am Papier und wandert am wenigsten.", "Yellow sticks strongly to the paper and moves least.") },
-    tip: () => tr("Der Start ist die gestrichelte Linie unten.", "The start is the dashed line at the bottom."), explain: () => tr("**Blau** haftet am schwächsten und wandert am weitesten.", "**Blue** sticks least and moves furthest.") },
+    why: { rot: () => tr("Rot ist weiter als Gelb, aber nicht am weitesten.", "Red moved further than yellow, but not the furthest."), gelb: () => tr("Gelb wird am wenigsten weit mitgenommen.", "Yellow is carried the shortest distance.") },
+    tip: () => tr("Der Start ist die gestrichelte Linie unten.", "The start is the dashed line at the bottom."), explain: () => tr("**Blau** wird am weitesten mitgenommen: Es löst sich gut im Laufmittel und haftet schwach am Papier.", "**Blue** is carried furthest: it dissolves well in the solvent and sticks weakly to the paper.") },
   { m: "dekantieren", answer: "sand", parts: ["sand", "wasser2"], ask: () => tr("Tippe auf den **Bodensatz**.", "Tap the **sediment**."),
     why: { wasser2: () => tr("Das ist das abgegossene Wasser.", "That is the poured-off water.") },
     tip: () => tr("Was hat sich abgesetzt?", "What has settled?"), explain: () => tr("Der **Bodensatz** (Sand) bleibt im Glas, das Wasser wird abgegossen.", "The **sediment** (sand) stays in the glass, the water is poured off.") },
@@ -189,7 +189,7 @@ export function trennTipp(methods: Method[] = K5_METHODS): Task {
 export function trennReihe(): Task {
   const iron = Math.random() < .4;
   const S = (...m: string[]) => m.join(" → ");
-  const L = () => tr("Lösen", "Dissolve"), F = () => METHOD_TEXT("filtrieren"), E = () => METHOD_TEXT("eindampfen"), M = () => tr("Magnet", "Magnet"), Si = () => METHOD_TEXT("sieben");
+  const L = () => tr("Lösen", "Dissolution"), F = () => METHOD_TEXT("filtrieren"), E = () => METHOD_TEXT("eindampfen"), M = () => tr("Magnet", "Magnet"), Si = () => METHOD_TEXT("sieben");
   const right = iron ? S(M(), L(), F(), E()) : S(L(), F(), E());
   return {
     ...mc(right, [

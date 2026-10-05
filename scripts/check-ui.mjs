@@ -2,7 +2,7 @@
 // Aufruf: node scripts/check-ui.mjs [site-Ordner] [,modul1,modul2]  (leer = Übersicht)  – Playwright muss erreichbar sein (PLAYWRIGHT=/pfad/node_modules/playwright/index.mjs, Chromium in PLAYWRIGHT_BROWSERS_PATH).
 // LOCALE=en-GB prüft die englische Oberfläche (Standard de-DE).
 // LESBAR=1 prüft zusätzlich mit eingeschalteter Option „Lesbar“ (größere Abstände) – nichts darf dadurch überlaufen.
-// Antippbare Bilder (svg.sp-tap): jedes Teil (data-part) muss per elementFromPoint erreichbar sein.
+// Antippbare Bilder (svg.sp-tap): jedes Teil (data-part) muss per elementFromPoint erreichbar sein. Aufgabenkarte: kein Knopf ragt heraus, Bild ≥ 24 px hoch.
 // LEARN="pm-k1,us:pm-k1,…" (Schlüssel der erledigten Lektionen) spielt zusätzlich „Lernen“ Kapitel für Kapitel (Lektionen als erledigt markiert): Elemente mit `data-auto` werden der Reihe nach
 // angetippt, zuletzt die mit `data-auto="last"` (z. B. „Prüfen“), sonst die erste Auswahl; geprüft wird vor und nach der Antwort. Elemente mit `data-min-h="N"` müssen mindestens N px hoch sein.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
@@ -59,6 +59,19 @@ async function check(page, app, vp, view) {
     for (const e of document.querySelectorAll(".ui-screen, .wb, .quiz-card, main, [class*=stage], [class*=card]")) {
       if (e.scrollHeight > e.clientHeight + 2 && getComputedStyle(e).overflowY !== "auto" && getComputedStyle(e).overflowY !== "scroll")
         over.push(`${e.tagName.toLowerCase()}.${String(e.className).split(" ")[0]} ${e.scrollHeight}>${e.clientHeight}`);
+    }
+    // Aufgabenkarte: kein Antwortknopf ragt aus der Karte (der Rahmen schneidet ab, ohne Scrollbalken), das Bild der Aufgabe schrumpft nicht unter 24 px Höhe (wäre dann nicht mehr erkennbar)
+    for (const card of document.querySelectorAll(".task-card")) {
+      const cb = card.getBoundingClientRect();
+      for (const b of card.querySelectorAll("button")) {
+        if (b.closest(".sr-only")) continue;
+        const r = b.getBoundingClientRect();
+        if (!r.width || !r.height) continue;
+        if (r.bottom > cb.bottom + 1 || r.top < cb.top - 1 || r.right > cb.right + 1 || r.left < cb.left - 1)
+          over.push(`Knopf „${(b.getAttribute("aria-label") || b.textContent || "").trim().slice(0, 20)}“ ragt aus der Aufgabenkarte`);
+      }
+      const pic = card.querySelector(".q-visual .ui-fit-inner > *");
+      if (pic) { const r = pic.getBoundingClientRect(); if (r.width > 0 && r.height < 24) over.push(`Bild der Aufgabe nur ${Math.round(r.width)}×${Math.round(r.height)} px`); }
     }
     // Mindesthöhe (freiwillig je Element): Bilder dürfen nicht unter eine lesbare Größe schrumpfen
     const tiny = [...document.querySelectorAll("[data-min-h]")].filter(e => e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().height < Number(e.getAttribute("data-min-h")))

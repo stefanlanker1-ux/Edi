@@ -368,7 +368,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Teile mit `data-part` (Ziele für Beschriftung und Antippen). Mit `onPick` (Klasse `sp-tap`) nehmen **nur** die antippbaren Teile Klicks an (`parts` bzw.
   `TAP_PARTS` je Verfahren, z. B. Rückstand, Filtrat, Filterpapier – nie Verzierungen wie der schwarze Startpunkt der Chromatografie, Gefäße oder Hilfslinien),
   dazu unter dem Bild unsichtbare Trefferflächen je Teil: sichtbarer Umriss (`getBBox`, durch den `clipPath` begrenzt, über die Bildschirm-Matrizen in Bild-Einheiten),
-  mindestens 44 × 44 px, nie über das Bild hinaus; überlappende kleine Flächen (Farbflecken) teilen sich an der Mitte; kleinere liegen oben. `mark` umrahmt ein Teil gestrichelt grün (Lösung nach der Antwort im Quiz, in der Lektion nach dem Lösen bzw. pulsierend nach
+  mindestens 44 × 44 px, nie über das Bild hinaus; etwa gleich große, überlappende Flächen (Farbflecken) teilen sich an der Mitte, ein viel kleineres Teil liegt oben auf
+  dem größeren (Salz in der Schale). Bildausschnitt je Verfahren (`BOX`: Umriss aller Zeitpunkte mit Rand) – das Gerät füllt das Bild. Chromatografie: Farbstoffe weit
+  genug auseinander, dass jeder Fleck 44 × 44 px Trefferfläche hat. Eindampfen: Dampf erst bei brennender Flamme; Destillieren nie bis zur Trockne (Salzwasser bleibt
+  im Kolben, Alkohol und Wasser endet bei halb vollem Kolben und etwa 90 °C). `mark` umrahmt ein Teil gestrichelt grün (Lösung nach der Antwort im Quiz, in der Lektion nach dem Lösen bzw. pulsierend nach
   vier Fehlversuchen). `check-ui` prüft in jedem `svg.sp-tap`, dass jedes Teil mit Trefferfläche per `elementFromPoint` erreichbar ist und keine Trefferfläche aus dem Bild ragt
   oder mehr als 40 % des Bilds belegt (sonst zählt Tippen ins Leere als Antwort). Farben nur aus der Palette (`.sp-*` in `app.css`).
   `MixPic` = Gemisch vor dem Trennen ohne Geräte (verrät das Verfahren nicht). Eindeutige `clipPath`-Kennungen je Bild (`useId`).
@@ -705,6 +708,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Kapitel 6 korrigiert, Trennbilder größer** – Eindampfen zeigte schon vor „Brenner an“ Dampf (jetzt erst mit Flamme, Brenner ohne Flamme sichtbar);
+  Destillieren nicht mehr bis zur Trockne; Chromatografie mit zwei Ursachen widerspruchsfrei („am wenigsten weit mitgenommen“, Eigenschaft „Löslichkeit und Haften“);
+  in der Lektion geht der Lösungsweg erst nach dem Einschalten des Geräts weiter; Reihenfolge-Aufgabe und beantwortete Aufgaben mit Teilchenbild auf niedrigen Handys
+  ohne Bild (statt winzig bzw. letzte Antwort abgeschnitten); Bildausschnitt je Verfahren (`BOX`), Trefferflächen aller Teile ≥ 44 × 44 px (gemessen 375 × 667, 360 × 740);
+  Weißgold (Gold mit Palladium). `check-ui`: Antwortknöpfe dürfen nicht aus der Aufgabenkarte ragen, das Aufgabenbild nicht unter 24 px schrumpfen.
 
 - **Gemische: Definitionen Element, Verbindung, Legierung einheitlich; Messing gleichmäßig** – Lektion 2 und Erklärkarte mit den Definitionen „Element: eine Atomsorte –
   als einzelne Atome, Moleküle oder im Gitter“ und „Verbindung: mehrere Atomsorten, fest miteinander verbunden – in Molekülen oder in einem Gitter“; „in einem Teilchen“
