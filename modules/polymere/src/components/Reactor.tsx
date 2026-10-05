@@ -293,7 +293,7 @@ export function ReactorView({ recipe, rkey, store, wake, paused, onStats, onPick
   return (
     <div className="pm-reactor" ref={wrap}>
       <canvas ref={canvas} className="pm-reactor-cv" role="img"
-        aria-label={tr("Reaktor mit Kügelchen: jedes Kügelchen ist ein Baustein, Striche sind Bindungen", "Reactor with beads: each bead is a unit, lines are bonds")}
+        aria-label={tr("Reaktor mit Kügelchen: jedes Kügelchen ist ein Baustein, Striche sind Bindungen", "Reactor with beads: each bead is a repeat unit, lines are bonds")}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} />
     </div>
   );

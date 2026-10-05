@@ -673,6 +673,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Englische Fachbegriffe** – üblicher Schul-Fachwortschatz: propagation (Schritt; chain/step growth nur für die Art des Wachstums), repeat unit,
+  cross-links (bridges), half-headed (fishhook) arrow, vacant site, acyl chloride (acid chloride), random (statistical) copolymer, raw rubber.
 - **Polymere: Fachliche Feinheiten** – Tipp bei „neue Bindung antippen“ verrät die Stelle nicht mehr („Welche Bindung gab es in keinem der beiden Monomere?“);
   vergiftendes Atom genau benannt (O der C=O-Gruppe, N der Nitrilgruppe); Allyl-H-Abriss zeigt das H einzeln, Pfeile beginnen an der C–H-Bindung; Phenol markiert
   nur die drei reaktiven H; K3-Zusammenfassung kationisch ohne „Elektronen schiebend“ als Regel für alle.

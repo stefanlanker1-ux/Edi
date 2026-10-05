@@ -81,7 +81,7 @@ export const beadsOf = (seq: string[]): Bead[] => seq.map((m, i) => ({ kind: "un
 export function StructPic({ s }: { s: StructKind }) {
   const LABEL: Record<StructKind, string> = tr(
     { thermo: "Einzelne, nicht verbundene Ketten", verzweigt: "Verzweigte Ketten", elast: "Ketten mit wenigen Brücken", duro: "Dichtes Netz aus Ketten" },
-    { thermo: "Separate, unconnected chains", verzweigt: "Branched chains", elast: "Chains with a few bridges", duro: "Dense network of chains" },
+    { thermo: "Separate, unconnected chains", verzweigt: "Branched chains", elast: "Chains with a few cross-links", duro: "Dense network of chains" },
   );
   const wave = (y: number, a: number, ph: number) => {
     let d = "";

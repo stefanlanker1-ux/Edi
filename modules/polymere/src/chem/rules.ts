@@ -41,20 +41,20 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
     acrylnitril: { fit: "ok", tact: "atakt", why: T("Die Nitrilgruppe stabilisiert das Radikal am Kettenende.", "The nitrile group stabilises the radical at the chain end.") },
     tfe: { fit: "ok", why: T("Radikale lagern sich an die Zweifachbindung an.", "Radicals add to the double bond."), note: T("technisch in Wasser mit Peroxodisulfat", "made in water with peroxodisulfate") },
     isobuten: { fit: "short", fail: "allyl", why: T("Das Radikal reißt ein H‑Atom von einer CH₃-Gruppe ab. Das neue Radikal ist zu stabil – es entstehen nur sehr kurze Ketten.", "The radical pulls an H atom off a CH₃ group. The new radical is too stable – only very short chains form.") },
-    butadien: { fit: "ok", why: T("Radikale lagern sich an. Ein Teil wird 1,4 eingebaut (C=C in der Kette), ein Teil 1,2.", "Radicals add. Some units are built in 1,4 (C=C in the chain), some 1,2."), note: T("Synthesekautschuk", "synthetic rubber") },
+    butadien: { fit: "ok", why: T("Radikale lagern sich an. Ein Teil wird 1,4 eingebaut (C=C in der Kette), ein Teil 1,2.", "Radicals add. Some repeat units are built in 1,4 (C=C in the chain), some 1,2."), note: T("Synthesekautschuk", "synthetic rubber") },
     vinylacetat: { fit: "ok", tact: "atakt", why: T("Radikale lagern sich an die Zweifachbindung an. So entsteht Holzleim.", "Radicals add to the double bond. This is how wood glue is made.") },
   },
   koord: {
     ethen: { fit: "ok", why: T("Ethen lagert sich an das Titan an und wird zwischen Titan und Kette eingebaut. Die Ketten bleiben unverzweigt.", "Ethene attaches to the titanium and is inserted between titanium and chain. The chains stay unbranched."), note: T("Niederdruck – HDPE, unverzweigt, dicht und fest", "low pressure – HDPE, unbranched, dense and stiff") },
     propen: { fit: "ok", tact: "iso", why: T("Jedes Propen lagert sich gleich herum an das Titan an. Alle CH₃-Gruppen zeigen zur selben Seite: isotaktisch.", "Every propene attaches to the titanium the same way round. All CH₃ groups point to the same side: isotactic.") },
     styrol: { fit: "ok", tact: "iso", why: T("Styrol wird am Titan eingebaut – immer gleich herum. Es entsteht isotaktisches Polystyrol.", "Styrene is inserted at the titanium – always the same way round. Isotactic polystyrene forms.") },
-    vinylchlorid: { fit: "none", fail: "poison", why: T("Das Cl‑Atom bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The Cl atom binds to the titanium with a lone pair. It blocks the free site: the catalyst is poisoned.") },
-    mma: { fit: "none", fail: "poison", why: T("Das O der C=O-Gruppe bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The O of the C=O group binds to the titanium with a lone pair. It blocks the free site: the catalyst is poisoned.") },
+    vinylchlorid: { fit: "none", fail: "poison", why: T("Das Cl‑Atom bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The Cl atom binds to the titanium with a lone pair. It blocks the vacant site: the catalyst is poisoned.") },
+    mma: { fit: "none", fail: "poison", why: T("Das O der C=O-Gruppe bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The O of the C=O group binds to the titanium with a lone pair. It blocks the vacant site: the catalyst is poisoned.") },
     acrylnitril: { fit: "none", fail: "poison", why: T("Das N‑Atom der Nitrilgruppe bindet mit seinem freien Elektronenpaar an das Titan. Der Katalysator ist vergiftet.", "The N atom of the nitrile group binds to the titanium with its lone pair. The catalyst is poisoned.") },
-    tfe: { fit: "none", fail: "poison", why: T("Ein F‑Atom bindet an das Titan und besetzt die freie Stelle. Der Katalysator ist vergiftet.", "An F atom binds to the titanium and blocks the free site. The catalyst is poisoned.") },
+    tfe: { fit: "none", fail: "poison", why: T("Ein F‑Atom bindet an das Titan und besetzt die freie Stelle. Der Katalysator ist vergiftet.", "An F atom binds to the titanium and blocks the vacant site. The catalyst is poisoned.") },
     isobuten: { fit: "none", fail: "bulky", why: T("Zwei CH₃-Gruppen am selben C‑Atom sind zu sperrig. Isobuten wird am Titan nicht eingebaut.", "Two CH₃ groups on the same C atom are too bulky. Isobutene is not inserted at the titanium.") },
     butadien: { fit: "ok", why: T("Butadien wird am Metall 1,4 eingebaut. Mit passendem Katalysator (z. B. Neodym) fast nur cis-1,4: ein Kautschuk wie Naturkautschuk.", "Butadiene is inserted 1,4 at the metal. With a suitable catalyst (e.g. neodymium) almost only cis-1,4: a rubber like natural rubber."), note: "cis-1,4" },
-    vinylacetat: { fit: "none", fail: "poison", why: T("Das O der C=O-Gruppe bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The O of the C=O group binds to the titanium with a lone pair. It blocks the free site: the catalyst is poisoned.") },
+    vinylacetat: { fit: "none", fail: "poison", why: T("Das O der C=O-Gruppe bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The O of the C=O group binds to the titanium with a lone pair. It blocks the vacant site: the catalyst is poisoned.") },
   },
   anion: {
     ethen: { fit: "none", fail: "bounce", why: T("Kaum Reaktion: Keine Gruppe stabilisiert die negative Ladung am Kettenende.", "Hardly any reaction: no group stabilises the negative charge at the chain end.") },
@@ -193,7 +193,7 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
   }
   const kind: CopoKind = seq ? "block" : "stat";
   const named = kind === "block" ? known?.block : known?.stat;
-  const KIND = tr({ stat: "statistisches Copolymer", block: "Blockcopolymer", alt: "alternierendes Copolymer" }, { stat: "statistical copolymer", block: "block copolymer", alt: "alternating copolymer" });
+  const KIND = tr({ stat: "statistisches Copolymer", block: "Blockcopolymer", alt: "alternierendes Copolymer" }, { stat: "random copolymer", block: "block copolymer", alt: "alternating copolymer" });
   return {
     fit: "ok", compat: c,
     why: kind === "block"
@@ -270,7 +270,7 @@ const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klass
   { a: "adipoylchlorid", b: "hexandiamin", p: tr(["PA 6.6", "Polyamid 6.6 (Nylon)", "Strumpfhosen, Seile, Zahnräder, Kabelbinder"], ["PA 6.6", "Polyamide 6.6 (nylon)", "tights, ropes, gear wheels, cable ties"]) },
   { a: "terephthaloylchlorid", b: "phenylendiamin", p: tr(["PPTA", "Aramid (Poly-p-phenylenterephthalamid)", "schusssichere Westen, Feuerwehrkleidung, Seile"], ["PPTA", "Aramid (poly-p-phenylene terephthalamide)", "bulletproof vests, firefighter clothing, ropes"]) },
   { a: "terephthalsaeure", b: "phenylendiamin", p: tr(["PPTA", "Aramid (Poly-p-phenylenterephthalamid)", "schusssichere Westen, Feuerwehrkleidung, Seile"], ["PPTA", "Aramid (poly-p-phenylene terephthalamide)", "bulletproof vests, firefighter clothing, ropes"]),
-    note: tr("technisch aus dem Säurechlorid hergestellt", "made industrially from the acid chloride") },
+    note: tr("technisch aus dem Säurechlorid hergestellt", "made industrially from the acyl chloride") },
   { a: "terephthalsaeure", b: "hexandiamin", p: tr(["PA 6T", "Polyamid 6T", "hitzefeste Bauteile im Motorraum"], ["PA 6T", "Polyamide 6T", "heat-resistant parts in the engine compartment"]) },
   { a: "terephthaloylchlorid", b: "hexandiamin", p: tr(["PA 6T", "Polyamid 6T", "hitzefeste Bauteile im Motorraum"], ["PA 6T", "Polyamide 6T", "heat-resistant parts in the engine compartment"]) },
   { a: "milchsaeure", code: "7", p: tr(["PLA", "Polymilchsäure (Polylactid)", "kompostierbare Becher und Folien, 3D-Druck"], ["PLA", "Poly(lactic acid) (polylactide)", "compostable cups and films, 3D printing"]),

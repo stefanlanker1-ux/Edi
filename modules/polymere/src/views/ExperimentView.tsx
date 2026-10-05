@@ -126,7 +126,7 @@ function ProductCard({ recipe, mech }: { recipe: Recipe; mech: Mech }) {
       <p className="pm-why">{st.fail ?? why}</p>
       {product?.uses && product.uses !== "–" && <p><b>{tr("Verwendung", "Uses")}:</b> {product.uses}</p>}
       {product?.note && <p className="pm-small">{product.note}</p>}
-      {product?.klasse === "elast" && product.struktur !== "vernetzt" && <p className="pm-small">{tr("Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten.", "Rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains.")}</p>}
+      {product?.klasse === "elast" && product.struktur !== "vernetzt" && <p className="pm-small">{tr("Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten.", "Raw rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains.")}</p>}
     </div>
   );
 }
@@ -146,7 +146,7 @@ const PARTICLE_INFO = () => tr<Record<string, string>>(
     dbpo: "Splits into two radicals when heated; CO₂ escapes.", aibn: "Splits into two radicals when heated; N₂ escapes.",
     frag: "Radical from the initiator – it then sits at the start of the chain.", buli: "Starts a chain: the butyl anion adds to the monomer.",
     bf3: "Forms an acid with water; its H⁺ starts the chain.", h: "H⁺ (proton): it adds to a monomer and starts a chain.",
-    ti: "Titanium with a free site: every monomer attaches there and is inserted between titanium and chain.",
+    ti: "Titanium with a vacant site: every monomer attaches there and is inserted between titanium and chain.",
     co2: "Gas from the decomposing initiator.", n2: "Gas from the decomposing initiator.",
     h2o: "By-product of the linking – it rises and is removed.", hcl: "By-product of the linking – it rises and is removed.",
     meoh: "Methanol gives an H⁺ to the chain end – the living chain stops.",
@@ -175,7 +175,7 @@ function BeadLegend({ recipe }: { recipe: Recipe }) {
   const m = recipe.a;
   return (
     <ul className="pm-legend">
-      {([recipe.a, recipe.b].filter(Boolean) as string[]).map(x => <Fragment key={x}>{row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(x)} letter={monoLetter(x)} />, tr(`ein Baustein ${monoName(x)}`, `one unit of ${monoName(x).toLowerCase()}`))}</Fragment>)}
+      {([recipe.a, recipe.b].filter(Boolean) as string[]).map(x => <Fragment key={x}>{row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(x)} letter={monoLetter(x)} />, tr(`ein Baustein ${monoName(x)}`, `one repeat unit of ${monoName(x).toLowerCase()}`))}</Fragment>)}
       {row(<><BeadDot cx={-5} cy={0} r={5} hue={monoHue(m)} /><BeadDot cx={5} cy={0} r={5} hue={monoHue(recipe.b ?? m)} /></>, tr("verbundene Kügelchen = Kette", "joined beads = chain"))}
       {poly && kind !== "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Starter bzw. sein Bruchstück am Kettenanfang", "initiator or its fragment at the chain start"))}
       {kind === "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Ethylgruppe bzw. H am Kettenanfang", "ethyl group or H at the chain start"))}
@@ -548,7 +548,7 @@ export function ExperimentView() {
     { id: "produkt", label: tr("Produkt", "Product"), icon: "grid" as const, content: <ProductCard recipe={recipe} mech={mech.current} /> },
     { id: "ansicht", label: tr("Ansicht", "View"), icon: "screen" as const, content: (
       <div className="pm-switches">
-        <Switch checked={halos} onChange={setHalos}>{tr("Bausteine farbig", "Colour the units")}</Switch>
+        <Switch checked={halos} onChange={setHalos}>{tr("Bausteine farbig", "Colour the repeat units")}</Switch>
         <Switch checked={lp} onChange={setLp}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>
         <Switch checked={predictOn} onChange={v => { setPredict(v); if (!v) setPq(null); }}>{tr("Vorher vermuten", "Predict first")}</Switch>
         <Button variant="soft" icon="reset" onClick={again} disabled={busy || !lastClip.current}>{tr("Letzten Schritt nochmal", "Replay last step")}</Button>

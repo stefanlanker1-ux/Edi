@@ -22,7 +22,7 @@ export const STEP = tr(
   { start: "Start", zerfall: "Zerfall des Starters", saeure: "Säure entsteht", kettenstart: "Kettenstart", wachstum: "Kettenwachstum",
     rekombination: "Abbruch: Rekombination", disproportionierung: "Abbruch: Disproportionierung", methanol: "Abbruch mit Methanol",
     hplus: "Kettenende: H⁺ abgespalten", allyl: "H‑Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette" },
-  { start: "Start", zerfall: "Initiator decomposes", saeure: "Acid forms", kettenstart: "Chain initiation", wachstum: "Chain growth",
+  { start: "Start", zerfall: "Initiator decomposes", saeure: "Acid forms", kettenstart: "Chain initiation", wachstum: "Propagation",
     rekombination: "Termination: combination", disproportionierung: "Termination: disproportionation", methanol: "Termination with methanol",
     hplus: "Chain end: H⁺ split off", allyl: "H atom pulled off", nebenreaktion: "Side reaction", keine: "No reaction", lebend: "living chain" },
 );

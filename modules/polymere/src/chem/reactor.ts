@@ -76,7 +76,7 @@ const EV = tr(
   { zerfall: "Starter zerfällt", start: "Ketten starten", wachstum: "Kettenwachstum", rekombination: "Rekombination", disproportionierung: "Disproportionierung",
     uebertragung: "H⁺ wandert weiter", vergiftet: "Katalysator vergiftet", h2: "Ketten abgelöst (H₂)", methanol: "Abbruch mit Methanol", methanolZu: "Methanol zugegeben", verknuepfung: "Verknüpfung",
     keine: "keine Reaktion", allyl: "H‑Atom abgerissen", neben: "Nebenreaktion", netz: "Netz entsteht" },
-  { zerfall: "Initiator decomposes", start: "Chains start", wachstum: "Chain growth", rekombination: "Combination", disproportionierung: "Disproportionation",
+  { zerfall: "Initiator decomposes", start: "Chains start", wachstum: "Propagation", rekombination: "Combination", disproportionierung: "Disproportionation",
     uebertragung: "H⁺ moves on", vergiftet: "Catalyst poisoned", h2: "Chains released (H₂)", methanol: "Stopped with methanol", methanolZu: "Methanol added", verknuepfung: "Linking",
     keine: "No reaction", allyl: "H atom pulled off", neben: "Side reaction", netz: "Network forms" },
 );

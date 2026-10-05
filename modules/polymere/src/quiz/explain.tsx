@@ -41,20 +41,20 @@ const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
   k1: { vis: [{ k: "mono", id: "propen" }, { k: "unit", id: "propen" }], points: [
     "A **polymer** is a giant molecule made of many **monomers**. Name: poly + monomer.",
     "Monomers for polymerisation have a **C=C double bond**. In the polymer it has become a single bond.",
-    "The **unit** stands in [ ]ₙ. In the **bead model** each unit is one bead.",
+    "The **repeat unit** stands in [ ]ₙ. In the **bead model** each repeat unit is one bead.",
   ] },
   k2: { vis: [{ k: "mech", r: { art: "poly", a: "styrol", method: "dbpo" }, acts: ["heat", "add:styrol"], key: 1 }], points: [
     "**Initiation**: the initiator splits into **radicals** (unpaired electron) on heating.",
-    "**Chain growth**: radical + C=C → new radical at the chain end. Half arrow = one electron.",
+    "**Propagation**: radical + C=C → new radical at the chain end. Half-headed arrow = one electron.",
     "**Termination**: two radicals – **combination** (ends join) or **disproportionation** (H moves).",
   ] },
   k3: { vis: [{ k: "chain", id: "propen", n: 4, tact: "iso" }], points: [
-    "**Ziegler–Natta**: insertion at the **free site** on titanium, the catalyst is not used up.",
+    "**Ziegler–Natta**: insertion at the **vacant site** on titanium, the catalyst is not used up.",
     "O, N, Cl or F atoms **poison** the titanium. Result: unbranched (PE-HD), **isotactic** (PP).",
     "**Anionic**: living chains → block copolymers. **Cationic**: isobutene at −100 °C.",
   ] },
   k4: { vis: [{ k: "pair", a: "terephthalsaeure", b: "ethandiol" }], points: [
-    "**Polycondensation**: groups react, a small molecule leaves (**H₂O**, with acid chloride **HCl**).",
+    "**Polycondensation**: groups react, a small molecule leaves (**H₂O**, with acyl chloride **HCl**).",
     "Acid + alcohol → **ester bond** (polyester, PET). Acid + amine → **amide bond** (nylon).",
     "Two groups per monomer: chain. One: **chain stopper**. Three: **network**.",
   ] },
@@ -64,9 +64,9 @@ const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
     "**Epoxy resin**: the ring opens, each –NH₂ reacts twice → network.",
   ] },
   k6: { vis: [{ k: "struct", s: "elast" }], points: [
-    "**Thermoplastic**: separate chains, meltable. **Elastomer**: a few bridges, stretchy. **Thermoset**: dense network, hard.",
-    "**Copolymers**: statistical, alternating or in **blocks**.",
-    "**Chain growth**: very long chains at once, lots of monomer is left. **Step growth**: long only at the end – at 90 % conversion short chains (about 10 units), hardly any monomer.",
+    "**Thermoplastic**: separate chains, meltable. **Elastomer**: a few cross-links, stretchy. **Thermoset**: dense network, hard.",
+    "**Copolymers**: random, alternating or in **blocks**.",
+    "**Chain growth**: very long chains at once, lots of monomer is left. **Step growth**: long only at the end – at 90 % conversion short chains (about 10 repeat units), hardly any monomer.",
   ] },
 });
 const TOPIC: Record<string, string> = { "pm-k1": "k1", "pm-k2": "k2", "pm-k3": "k3", "pm-k4": "k4", "pm-k5": "k5", "pm-k6": "k6" };

@@ -148,10 +148,10 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
   if (!id.startsWith("add:")) return null;
   const m = id.slice(4), name = monoName(m), res = outcome(before, after, false);
   const zn = kind === "koord";
-  const growOk = zn ? tr(`${name} lagert sich an der freien Stelle am Titan an und wird eingebaut.`, `${name} attaches at the free site on the titanium and is inserted.`)
-    : kind === "radikal" ? tr(`Das Radikal lagert sich an die C=C von ${name} an. Die Kette wächst um einen Baustein.`, `The radical adds to the C=C of ${name.toLowerCase()}. The chain grows by one unit.`)
-    : kind === "anion" ? tr(`Das negative Ende greift die C=C von ${name} an. Die Kette wächst um einen Baustein.`, `The negative end attacks the C=C of ${name.toLowerCase()}. The chain grows by one unit.`)
-    : tr(`Die C=C von ${name} greift das positive Ende an. Die Kette wächst um einen Baustein.`, `The C=C of ${name.toLowerCase()} attacks the positive end. The chain grows by one unit.`);
+  const growOk = zn ? tr(`${name} lagert sich an der freien Stelle am Titan an und wird eingebaut.`, `${name} attaches at the vacant site on the titanium and is inserted.`)
+    : kind === "radikal" ? tr(`Das Radikal lagert sich an die C=C von ${name} an. Die Kette wächst um einen Baustein.`, `The radical adds to the C=C of ${name.toLowerCase()}. The chain grows by one repeat unit.`)
+    : kind === "anion" ? tr(`Das negative Ende greift die C=C von ${name} an. Die Kette wächst um einen Baustein.`, `The negative end attacks the C=C of ${name.toLowerCase()}. The chain grows by one repeat unit.`)
+    : tr(`Die C=C von ${name} greift das positive Ende an. Die Kette wächst um einen Baustein.`, `The C=C of ${name.toLowerCase()} attacks the positive end. The chain grows by one repeat unit.`);
   // lebende Ketten aus dem anderen Monomer + neues Monomer: Block
   const living = kind === "anion" && before.n > 0 && !before.beads.some(b => b.mono === m);
   if (asked === 0 && living && res === "grow") {
@@ -171,7 +171,7 @@ export function predict(r: Recipe, acts: string[], id: string): Prediction | nul
       : zn ? tr(`${name} hat kein Atom mit freiem Elektronenpaar, das das Titan besetzt. Es wird eingebaut.`, `${name} has no atom with a lone pair that blocks the titanium. It is inserted.`)
       : tr("Das Ende bleibt geladen: Die Ladung wandert mit an das neue Ende.", "The end stays charged: the charge moves on to the new end.");
     const noneWhy = kind === "radikal" ? tr(`Das Radikal lagert sich an die C=C von ${name} an.`, `The radical adds to the C=C of ${name.toLowerCase()}.`)
-      : zn ? tr(`${name} passt an die freie Stelle am Titan.`, `${name} fits the free site at the titanium.`)
+      : zn ? tr(`${name} passt an die freie Stelle am Titan.`, `${name} fits the vacant site at the titanium.`)
       : kind === "anion" ? tr(`Das negative Ende greift die C=C von ${name} an.`, `The negative end attacks the C=C of ${name.toLowerCase()}.`)
       : tr(`Die C=C von ${name} greift das positive Ende an.`, `The C=C of ${name.toLowerCase()} attacks the positive end.`);
     const fail = after.fail ?? okText;
@@ -262,7 +262,7 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
       ? tr("Das O des Methanals und zwei H der Phenolringe bilden Wasser H₂O.", "The O of the methanal and two H of the phenol rings form water H₂O.")
       : tr("Das OH der Säuregruppe und ein H der anderen Gruppe bilden Wasser H₂O.", "The OH of the acid group and one H of the other group form water H₂O."))
     : byp === "HCl"
-      ? tr("Das Cl der Säurechlorid-Gruppe und ein H der anderen Gruppe bilden Chlorwasserstoff HCl.", "The Cl of the acid chloride group and one H of the other group form hydrogen chloride HCl.")
+      ? tr("Das Cl der Säurechlorid-Gruppe und ein H der anderen Gruppe bilden Chlorwasserstoff HCl.", "The Cl of the acyl chloride group and one H of the other group form hydrogen chloride HCl.")
       : res === "none"
         ? after.fail ?? tr("Diese Gruppen reagieren nicht miteinander.", "These groups do not react with each other.")
         : tr("Hier wandert nur ein H‑Atom zur anderen Gruppe. Es wird nichts abgespalten.", "Here only one H atom moves to the other group. Nothing splits off.");
@@ -315,7 +315,7 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
     const okText = res === "none" ? after.fail ?? bypOk
       : res === "ends" ? after.note ?? tr("Das neue Molekül hat nur eine reaktive Gruppe – danach ist das Kettenende blockiert.", "The new molecule has only one reactive group – then the chain end is blocked.")
       : id === "dimer" ? tr("Beim Stufenwachstum reagiert jede passende Gruppe – auch die Enden von Ketten.", "In step growth every matching group reacts – chain ends too.")
-      : tr("Die Gruppe des neuen Moleküls passt zur Gruppe am Kettenende. Die Kette wird um einen Baustein länger.", "The group of the new molecule matches the group at the chain end. The chain gets one unit longer.");
+      : tr("Die Gruppe des neuen Moleküls passt zur Gruppe am Kettenende. Die Kette wird um einen Baustein länger.", "The group of the new molecule matches the group at the chain end. The chain gets one repeat unit longer.");
     const blockedWhy = tr("Das neue Molekül hat zwei reaktive Gruppen: Nach der Verknüpfung ist wieder eine frei.", "The new molecule has two reactive groups: after linking one is free again.");
     return q(tr(`${nm} kommt an das rechte Kettenende (markiert). Was passiert?`, `${nm} reaches the right chain end (marked). What happens?`),
       [

@@ -278,7 +278,7 @@ export const isStep = (id: string): id is StepId => STEPS.some(m => m.id === id)
 /** Name der funktionellen Gruppe */
 export const FG_NAME: Record<FG, string> = tr(
   { COOH: "Carboxygruppe", COCl: "Säurechloridgruppe", OH: "Hydroxygruppe", NH2: "Aminogruppe", NCO: "Isocyanatgruppe", EPOX: "Epoxidgruppe", ArH: "H am Ring", CHO: "Aldehydgruppe" },
-  { COOH: "carboxy group", COCl: "acid chloride group", OH: "hydroxy group", NH2: "amino group", NCO: "isocyanate group", EPOX: "epoxide group", ArH: "H on the ring", CHO: "aldehyde group" },
+  { COOH: "carboxy group", COCl: "acyl chloride group", OH: "hydroxy group", NH2: "amino group", NCO: "isocyanate group", EPOX: "epoxide group", ArH: "H on the ring", CHO: "aldehyde group" },
 );
 /** Formel der Gruppe */
 export const FG_FORMULA: Record<FG, string> = { COOH: "–COOH", COCl: "–COCl", OH: "–OH", NH2: "–NH₂", NCO: "–N=C=O", EPOX: "–CH(O)CH₂", ArH: "–H", CHO: "H–CHO" };
