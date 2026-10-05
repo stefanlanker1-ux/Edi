@@ -271,8 +271,8 @@ function stepQuestion(r: Recipe, id: string, asked: number, before: Status, afte
   const acidG = acidCl ? "–COCl" : "–COOH";
   const reacts = link === "ester" ? tr(`Die Gruppen passen zusammen: ${acidG} reagiert mit –OH zur Esterbindung.`, `The groups match: ${acidG} reacts with –OH to form an ester bond.`)
     : link === "amid" ? tr(`Die Gruppen passen zusammen: ${acidG} reagiert mit –NH₂ zur Amidbindung.`, `The groups match: ${acidG} reacts with –NH₂ to form an amide bond.`)
-    : link === "urethan" ? tr("Die Gruppen passen zusammen: –N=C=O reagiert mit –OH zur Urethangruppe.", "The groups match: –N=C=O reacts with –OH to form a urethane group.")
-    : link === "harnstoff" ? tr("Die Gruppen passen zusammen: –N=C=O reagiert mit –NH₂ zur Harnstoffgruppe.", "The groups match: –N=C=O reacts with –NH₂ to form a urea group.")
+    : link === "urethan" ? tr("Die Gruppen passen zusammen: –⁠N=C=O reagiert mit –OH zur Urethangruppe.", "The groups match: –⁠N=C=O reacts with –OH to form a urethane group.")
+    : link === "harnstoff" ? tr("Die Gruppen passen zusammen: –⁠N=C=O reagiert mit –NH₂ zur Harnstoffgruppe.", "The groups match: –⁠N=C=O reacts with –NH₂ to form a urea group.")
     : link === "aminoalkohol" ? tr("Die Gruppen passen zusammen: Die Epoxidgruppe reagiert mit –NH₂.", "The groups match: the epoxide group reacts with –NH₂.")
     : tr("Die Gruppen passen zusammen und reagieren miteinander.", "The groups match and react with each other.");
   const W = {

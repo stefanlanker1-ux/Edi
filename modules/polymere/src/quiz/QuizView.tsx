@@ -50,7 +50,8 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
   // vor der Antwort: alle antippbaren Teile dünn gepunktet umrandet (sichtbar, was tippbar ist), gewählte schwarz
   const marks = solved
     ? [...right.map(id => ({ id, kind: "ok" as const })), ...sel.filter(id => !right.includes(id)).map(id => ({ id, kind: "no" as const }))]
-    : [...(onPick ? t.parts.filter(id => !sel.includes(id)).map(id => ({ id, kind: "can" as const })) : []), ...sel.map(id => ({ id, kind: "sel" as const }))];
+    // die freie Stelle hat ihre eigene Zeichnung (grau gefüllter Kreis) – kein gepunkteter Rahmen, sonst sähe sie aus wie die tippbaren Atome
+    : [...(onPick ? t.parts.filter(id => !sel.includes(id) && !frame.snap.atoms.find(a => a.id === id)?.vac).map(id => ({ id, kind: "can" as const })) : []), ...sel.map(id => ({ id, kind: "sel" as const }))];
   // Trefferkreise mindestens 44 px Durchmesser (Bildmaßstab messen)
   const ref = useRef<HTMLDivElement>(null);
   const [hitR, setHitR] = useState(0.46);

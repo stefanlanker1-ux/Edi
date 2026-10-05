@@ -687,6 +687,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Regel nach der Antwort passt zur Variante (Fachfehler)** – bei Typen mit Varianten (Urethan/Harnstoff, Kunststoffart, Gruppen, Taktizität …) erscheint nach der
+  richtigen Antwort die Erklärung genau dieser Aufgabe, nur bei allgemeinen Regeln (`GENERAL_RULE`) der Merksatz des Schritts (Test). Beschriftung „TiCl₃-Oberfläche“
+  (vier Cl am Oberflächen-Titan, ganz im Bild); freie Stelle grau gefüllt und ohne gepunkteten Antipp-Rahmen; Diepoxid groß; –N=C=O bricht nicht um; Styrol-Kette mit zwei
+  Bausteinen; „Es entsteht ein Netz“; Reaktionsart- und Nebenprodukt-Fragen nennen die Stoffe (keine gleich lautenden Fragen in einer Runde), drittes „Reaktionsart“ in K5
+  ersetzt; PLA „industriell kompostierbar“.
 - **Ordnen-Bilder bleiben groß, check-ui spielt „Lernen“, Schwächen verteilt** – Polymere: auf niedrigen Bildschirmen steht der Grund nach dem Prüfen im Blatt „Lösung“ (mit
   Reihenfolge), auf der Karte bleiben Marke und Name; Fertigkeiten „Monomer → Polymer“ / „Polymer → Monomer“; „Schwächen üben“ aus allen schwachen Fertigkeiten, je höchstens
   zweimal (Test); Kettenwachstum-Rückmeldung „ein Riesenmolekül entsteht nie“. check-ui: `LEARN=…` spielt Lernen Kapitel für Kapitel (`data-auto`, `data-auto="last"`),

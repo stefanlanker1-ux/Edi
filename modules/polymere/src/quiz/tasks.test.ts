@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LATER, LEVELS, PAT, klMiss, sameTask, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
+import { GENERAL_RULE, GENERATORS, LATER, LEVELS, PAT, klMiss, sameTask, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -194,4 +194,16 @@ test("Schwächen üben: alle schwachen Fertigkeiten, je höchstens zweimal, kein
   }
   const few = makeRound("us", "weak", { polyName: { right: 0, wrong: 3 } });
   assert.ok(few.length <= 2);
+});
+
+test("Regel nach der richtigen Antwort passt zur Variante der Aufgabe", () => {
+  const bad = new Set<string>();
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 60; k++) for (const t of makeRound("us", lv)) {
+    if (isTap(t) || isOrder(t) || isBuild(t) || !t.type || GENERAL_RULE.includes(t.type)) continue;
+    const w = t.why?.[t.answer];
+    if (!w) continue;
+    // Variante: die Rückmeldung zur richtigen Antwort ist die Erklärung genau dieser Aufgabe
+    if (w !== t.explain) bad.add(`${t.type}: „${w}“`);
+  }
+  assert.deepEqual([...bad], []);
 });

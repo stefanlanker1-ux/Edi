@@ -22,7 +22,7 @@
 .mb-charge circle { fill: var(--surface); stroke: var(--text); stroke-width: 1.6; }
 .mb-charge path { stroke: var(--text); stroke-width: 1.8; stroke-linecap: round; }
 .mb-e { fill: var(--hue-blue); stroke: var(--hue-blue-deep); stroke-width: 1; }
-.mb-vac { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 4 4; }
+.mb-vac { fill: var(--hue-grey-soft); stroke: var(--text); stroke-width: 2; stroke-dasharray: 6 4; }
 .mb-arrow path { fill: none; stroke: var(--hue-red); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .mb-arrow .mb-arrow-bg { stroke: var(--surface); stroke-width: 6.5; }
 .mb-arrow .mb-head-fill { fill: var(--hue-red); stroke: var(--hue-red); stroke-width: 1; }

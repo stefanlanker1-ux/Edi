@@ -45,7 +45,7 @@ export class ZnMech implements Mech {
     sc.add({ id: "tcl4", el: "Cl", x: 1.15, y: 0 });
     sc.bond("tti", "tcl4");
     triethylAl(sc, 3.7, 0, "al");
-    sc.note({ id: "cryst", x: -1.5, y: 1.55, text: "TiCl₃", tone: "plain" });
+    sc.note({ id: "cryst", x: -1.2, y: 1.6, text: tr("TiCl₃-Oberfläche", "TiCl₃ surface"), tone: "plain" });
   }
 
   monos(): VinylId[] { return [this.recipe.a, this.recipe.b].filter((x): x is VinylId => !!x) as VinylId[]; }

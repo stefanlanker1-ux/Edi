@@ -273,7 +273,7 @@ const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klass
     note: tr("technisch aus dem Säurechlorid hergestellt", "made industrially from the acyl chloride") },
   { a: "terephthalsaeure", b: "hexandiamin", p: tr(["PA 6T", "Polyamid 6T", "hitzefeste Bauteile im Motorraum"], ["PA 6T", "Polyamide 6T", "heat-resistant parts in the engine compartment"]) },
   { a: "terephthaloylchlorid", b: "hexandiamin", p: tr(["PA 6T", "Polyamid 6T", "hitzefeste Bauteile im Motorraum"], ["PA 6T", "Polyamide 6T", "heat-resistant parts in the engine compartment"]) },
-  { a: "milchsaeure", code: "7", p: tr(["PLA", "Polymilchsäure (Polylactid)", "kompostierbare Becher und Folien, 3D-Druck"], ["PLA", "Poly(lactic acid) (polylactide)", "compostable cups and films, 3D printing"]),
+  { a: "milchsaeure", code: "7", p: tr(["PLA", "Polymilchsäure (Polylactid)", "industriell kompostierbare Becher und Folien, 3D-Druck"], ["PLA", "Poly(lactic acid) (polylactide)", "industrially compostable cups and films, 3D printing"]),
     note: tr("technisch meist über das ringförmige Lactid", "made industrially mostly via the ring-shaped lactide") },
   { a: "aminohexansaeure", p: tr(["PA 6", "Polyamid 6", "Fasern, Teppiche, Strümpfe"], ["PA 6", "Polyamide 6", "fibres, carpets, stockings"]),
     note: tr("technisch aus dem ringförmigen Caprolactam", "made industrially from the ring-shaped caprolactam") },
