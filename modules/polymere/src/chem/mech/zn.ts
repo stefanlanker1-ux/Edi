@@ -218,6 +218,8 @@ export class ZnMech implements Mech {
     const sc = this.sc;
     const { ids } = this.build(m, 2.4, -2.4);
     const het = ids.hetero ?? ids.cb;
+    // zuerst in Standardlage neben dem Titan (noch ohne Ausrichtung), dann dreht es sich
+    this.key(80, 500);
     // drehen: das Heteroatom zeigt nach unten zum Titan
     const cx = ids.atoms.reduce((s, i) => s + sc.at(i).x, 0) / ids.atoms.length, cy = ids.atoms.reduce((s, i) => s + sc.at(i).y, 0) / ids.atoms.length;
     const H = sc.at(het);
@@ -225,9 +227,7 @@ export class ZnMech implements Mech {
     sc.rotate(ids.atoms, { x: cx, y: cy }, 90 - ang);
     const H2 = sc.at(het);
     sc.move(ids.atoms, 1.6 - H2.x, -2.3 - H2.y);
-    ids.atoms.forEach(i => sc.set(i, { op: 0 }));
-    this.key(80, 600);
-    ids.atoms.forEach(i => sc.set(i, { op: 1 }));
+    this.key(500, 300);
     const H3 = sc.at(het);
     sc.move(ids.atoms, 0 - H3.x + 0.35, -1.75 - H3.y);
     this.key(500, 300, [{ from: { a: het, ang: 110, r: 0.4 }, to: { a: "tti", ang: -80, r: 0.45 }, bend: 0.4 }]);

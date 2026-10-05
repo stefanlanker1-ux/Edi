@@ -32,12 +32,18 @@ function tapResult(t: TapTask, sel: string[]) {
 /** Bild der Antipp-Aufgabe; nach der Antwort bzw. im gelösten Beispiel ist die Lösung gestrichelt grün markiert */
 function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved: boolean; onPick?: (id: string) => void }) {
   const frame = useMemo(() => tapFrame(t.scene), [t.scene]);
+  // Seitenverhältnis des Bildplatzes (gemessen): der Ausschnitt füllt ihn ganz
+  const [aspect, setAspect] = useState(0);
   const box = useMemo(() => {
-    const at = frame.snap.atoms.filter(a => t.parts.includes(a.id));
+    const ids = new Set([...t.parts.flatMap(p => p.split("|")), ...(t.zoomWith ?? [])]);
+    const at = frame.snap.atoms.filter(a => ids.has(a.id));
     const b = snapBox(frame.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
-    const p = at.length ? { x0: Math.min(b.x0, ...at.map(a => a.x - 0.5)), x1: Math.max(b.x1, ...at.map(a => a.x + 0.5)), y0: Math.min(b.y0, ...at.map(a => a.y - 0.5)), y1: Math.max(b.y1, ...at.map(a => a.y + 0.5)) } : b;
-    return fitBox(p, (p.x1 - p.x0 + 0.9) / (p.y1 - p.y0 + 0.9), 0, 0, 0.45);
-  }, [frame, t.parts]);
+    const m = 1.3;
+    const p = !at.length ? b
+      : t.zoom ? { x0: Math.min(...at.map(a => a.x)) - m, x1: Math.max(...at.map(a => a.x)) + m, y0: Math.min(...at.map(a => a.y)) - m, y1: Math.max(...at.map(a => a.y)) + m }
+      : { x0: Math.min(b.x0, ...at.map(a => a.x - 0.5)), x1: Math.max(b.x1, ...at.map(a => a.x + 0.5)), y0: Math.min(b.y0, ...at.map(a => a.y - 0.5)), y1: Math.max(b.y1, ...at.map(a => a.y + 0.5)) };
+    return fitBox(p, aspect || (p.x1 - p.x0 + 0.9) / (p.y1 - p.y0 + 0.9), 0, 0, 0.45);
+  }, [frame, t.parts, t.zoom, t.zoomWith, aspect]);
   const pose = { ...still(frame.snap), arrows: frame.arrows.map(arrow => ({ arrow, op: 1 })) };
   // Lösung: einzeln/mehrere = `answer`; Paar: ein Beispiel (der erste Baustein) – oder die gewählten, wenn sie stimmen
   const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.mode === "any" ? (sel.length && t.answer.includes(sel[0]) ? sel : t.answer.slice(0, 1)) : t.answer;
@@ -51,7 +57,7 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const upd = () => { const svg = el.querySelector("svg"); if (!svg) return; const r = svg.getBoundingClientRect(); const ppu = Math.min(r.width / (box.x1 - box.x0), r.height / (box.y1 - box.y0)); if (ppu > 0) setHitR(Math.max(0.46, 22 / ppu)); };
+    const upd = () => { if (t.zoom && el.clientWidth && el.clientHeight) { const r = el.clientWidth / el.clientHeight; setAspect(x => (Math.abs(x - r) > 0.05 ? r : x)); } const svg = el.querySelector("svg"); if (!svg) return; const r = svg.getBoundingClientRect(); const ppu = Math.min(r.width / (box.x1 - box.x0), r.height / (box.y1 - box.y0)); if (ppu > 0) setHitR(Math.max(0.46, 22 / ppu)); };
     upd();
     const ro = new ResizeObserver(upd); ro.observe(el);
     return () => ro.disconnect();

@@ -156,6 +156,8 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
     const n = nbs.get(a.id) ?? [], heavy = n.filter(x => !isH(x));
     if (heavy.length === 1 && (isH(a.id) || n.length <= 2)) vmap.set(a.id, Math.min(vmap.get(a.id) ?? 1, vmap.get(heavy[0]) ?? 1));
   }
+  // antippbare Atome bleiben sichtbar, solange sie im Bild liegen (auch wenn ihr Nachbar am Rand ausgeblendet ist)
+  for (const p of pickable ?? []) for (const id of p.split("|")) { const a = at.get(id); if (a) vmap.set(id, vis0(a)); }
   const vis = (a: Atom) => vmap.get(a.id) ?? vis0(a);
   const vb = [box.x0 * U, box.y0 * U, (box.x1 - box.x0) * U, (box.y1 - box.y0) * U].join(" ");
   // Hinterlegung je Baustein
@@ -228,9 +230,11 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
           const [A, B] = m.id.split("|").map(x => at.get(x));
           if (!A || !B) return null;
           const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+          // Bindung als Kapsel zwischen den Atomzeichen (wie die Kreise um Atome), nicht über den Buchstaben
+          const len = Math.max(0.3, Math.hypot(B.x - A.x, B.y - A.y) - 0.4), ang = (Math.atan2(B.y - A.y, B.x - A.x) * 180) / Math.PI;
           return (
             <g key={`mk${m.id}`} className={`mb-pick bond ${m.kind}`} pointerEvents="none">
-              <line x1={A.x * U} y1={A.y * U} x2={B.x * U} y2={B.y * U} />
+              <rect x={(mx - len / 2) * U} y={(my - 0.17) * U} width={len * U} height={0.34 * U} rx={0.17 * U} transform={`rotate(${ang} ${mx * U} ${my * U})`} />
               {(m.kind === "ok" || m.kind === "no") && <text x={mx * U} y={(my - 0.38) * U} dominantBaseline="central" textAnchor="middle">{m.kind === "ok" ? "✓" : "✗"}</text>}
             </g>
           );

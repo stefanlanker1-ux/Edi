@@ -17,6 +17,8 @@ type Extra = { vis?: Vis; pics?: Record<string, Vis>; tip?: string };
 /** Antippen im Bild: `parts` = antippbare Atome (Kennungen), `answer` = richtige Atome; `mode` multi = genau diese Menge, pair = zwei benachbarte
  *  Teile (Reihenfolge von `parts`). Gemeldet: einzeln `pick` (Index), mehrere `n`, `wrong` (erstes falsches Teil, sonst −1), `adj` (benachbart). */
 export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: string[]; labels: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean;
+  /** Ausschnitt nur um die antippbaren Teile (große Atome) und `zoomWith`, Rest am Rand ausgeblendet */
+  zoom?: boolean; zoomWith?: string[];
   /** Lösung in Worten (statt Nummern, die im Bild nicht stehen) */
   sol: string };
 /** Ordnen: `cards` = Bilder in der gezeigten Reihenfolge, `correct` = Kartenindizes in der richtigen Reihenfolge, `names` = Name je Karte (nach der Antwort).
@@ -104,8 +106,15 @@ const PS: Recipe = { art: "poly", a: "styrol", method: "dbpo" };
 /** Beschriftung eines antippbaren Teils (Vorlesen, Tastatur) */
 const partLabel = (el: string, i: number, vac?: boolean) => (vac ? T("freie Stelle", "vacant site") : T(`${el}‑Atom ${i + 1}`, `${el} atom ${i + 1}`));
 const bondLabel = (els: string[], i: number) => T(`Bindung ${i + 1}: ${els.join("–")}`, `Bond ${i + 1}: ${els.join("–")}`);
+/** Teile (Atome oder Bindungen „a|b“) nahe bei den Zielen – für einen großen Ausschnitt um die reagierende Stelle */
+function nearParts(snap: { atoms: { id: string; x: number; y: number }[] }, parts: string[], around: string[], d: number): string[] {
+  const at = new Map(snap.atoms.map(a => [a.id, a]));
+  const pt = (p: string) => { const xs = p.split("|").map(x => at.get(x)!).filter(Boolean); return { x: xs.reduce((s, a) => s + a.x, 0) / xs.length, y: xs.reduce((s, a) => s + a.y, 0) / xs.length }; };
+  const cs = around.map(pt);
+  return parts.filter(p => { const q = pt(p); return cs.some(c => Math.hypot(c.x - q.x, c.y - q.y) <= d); });
+}
 /** Antipp-Aufgabe zusammensetzen; `why(id)` liefert für jedes falsche Teil Schlüssel und Rückmeldung */
-function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; sol: string; prompt: string; hint: string; tip?: string; explain: string;
+function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; zoom?: boolean; zoomWith?: string[]; sol: string; prompt: string; hint: string; tip?: string; explain: string;
   why?: (id: string) => [string, string]; extra?: Trap[] }): TapTask {
   const frame = tapFrame(o.scene), at = new Map(frame.snap.atoms.map(a => [a.id, a]));
   const labels = o.parts.map((id, i) => (id.includes("|") ? bondLabel(id.split("|").map(x => at.get(x)?.text || at.get(x)?.el || "?"), i) : partLabel(at.get(id)?.el ?? "", i, at.get(id)?.vac)));
@@ -115,7 +124,7 @@ function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?:
     const [miss, why] = o.why!(id);
     traps.push({ values: o.mode && o.mode !== "any" ? { wrong: i } : { pick: i }, miss, why });
   });
-  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}),
+  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}), ...(o.zoom ? { zoom: true } : {}), ...(o.zoomWith ? { zoomWith: o.zoomWith } : {}),
     sol: o.sol, prompt: o.prompt, hint: o.hint, explain: o.explain, traps, ...(o.tip ? { tip: o.tip } : {}) };
 }
 
@@ -923,10 +932,13 @@ function schnitt(): Task {
   const bonds = snap.bonds.filter(b => vis.has(b.a) && vis.has(b.b) && heavy(b.a) && heavy(b.b) && !(rings.has(b.a) && rings.has(b.b)) && (b.op ?? 1) > 0.5);
   // neu = zwischen zwei Bausteinen (verschiedene unit) – C–O der Esterbindung bzw. C–N der Amidbindung
   const isNew = (b: { a: string; b: string }) => at.get(b.a)!.unit !== at.get(b.b)!.unit;
-  const parts = bonds.sort((p, q) => (at.get(p.a)!.x + at.get(p.b)!.x) - (at.get(q.a)!.x + at.get(q.b)!.x)).map(b => key(b.a, b.b));
-  const answer = bonds.filter(isNew).map(b => key(b.a, b.b));
+  const all = bonds.sort((p, q) => (at.get(p.a)!.x + at.get(p.b)!.x) - (at.get(q.a)!.x + at.get(q.b)!.x)).map(b => key(b.a, b.b));
+  // Ausschnitt um eine neue Bindung (die mittlere): Bild groß, Nachbarbindungen als Fallen
+  const news = bonds.filter(isNew).map(b => key(b.a, b.b));
+  const parts = nearParts(snap, all, [news[Math.floor((news.length - 1) / 2)]], 1.9);
+  const answer = news.filter(b => parts.includes(b));
   const X = amide ? "N" : "O", link = amide ? T("Amidbindung", "amide bond") : T("Esterbindung", "ester bond");
-  return tapTask({
+  return tapTask({ zoom: true,
     scene, parts, answer, mode: "any", sol: T(`die Bindung vom C der C=O zum ${X}`, `the bond from the C of the C=O to the ${X}`),
     prompt: T("Tippe auf eine Bindung, die bei der Polykondensation neu entstanden ist.", "Tap a bond that formed in the polycondensation."),
     hint: T(`Die farbigen Flächen zeigen die Bausteine. Neu ist eine Bindung zwischen zwei Bausteinen.`, `The coloured areas show the repeat units. A new bond lies between two repeat units.`),
@@ -984,7 +996,8 @@ function freieStelleTap(): Task {
 function giftTap(): Task {
   const m = pick(["vinylchlorid", "mma", "acrylnitril"] as VinylId[]);
   const r: Recipe = { art: "poly", a: m, method: "zn" }, acts = ["act", `add:${m}`];
-  const scene: TapScene = { k: "mech", r, acts, key: arrowKey(r, acts), noArrows: true };
+  // Standardlage: das Monomer steht neben dem Titan, noch nicht zur freien Stelle gedreht (verrät nichts)
+  const scene: TapScene = { k: "mech", r, acts, key: 1, noArrows: true };
   const snap = tapFrame(scene).snap, after = tapAfter(scene);
   const het = after.bonds.find(b => b.k === "coord" && (b.a === "tti" || b.b === "tti"));
   const ans = het ? (het.a === "tti" ? het.b : het.a) : "";
@@ -1018,8 +1031,10 @@ function hTap(): Task {
   const el = (id: string) => snap.atoms.find(a => a.id === id)?.el;
   const vis = visibleAtoms(snap).filter(a => a.el === "H" || a.el === "O");
   const ans = vis.find(a => a.el === "H" && nb(snap, a.id).some(x => el(x) === "O") && nb(after, a.id).some(x => after.atoms.find(y => y.id === x)?.el === "N"))?.id ?? "";
-  const parts = vis.sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
-  return tapTask({
+  const parts = nearParts(snap, vis.sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id), [ans], 3.4);
+  // das N, zu dem das H wandert, gehört ins Bild (die Frage nennt es)
+  const nTo = after.bonds.flatMap(b => (b.a === ans ? [b.b] : b.b === ans ? [b.a] : [])).find(x => after.atoms.find(y => y.id === x)?.el === "N");
+  return tapTask({ zoom: true, ...(nTo ? { zoomWith: [nTo] } : {}),
     scene, parts, answer: [ans], sol: T("das H der –OH-Gruppe, die zur N=C=O-Gruppe zeigt", "the H of the –OH group facing the N=C=O group"),
     prompt: T("Tippe auf das H‑Atom, das gleich zum N wandert.", "Tap the H atom that is about to move to the N."),
     hint: T("Das O der –OH-Gruppe bindet an das C der N=C=O-Gruppe. Sein H geht zum N.", "The O of the –OH group binds to the C of the N=C=O group. Its H goes to the N."),
@@ -1038,10 +1053,11 @@ function wasserTap(): Task {
   const snap = tapFrame(scene).snap, after = tapAfter(scene);
   const gone = new Set(snap.atoms.filter(a => !after.atoms.some(b => b.id === a.id)).map(a => a.id));
   const vis = visibleAtoms(snap).filter(a => a.el === "H" || a.el === "O").sort((p, q) => p.x - q.x || p.y - q.y);
-  const parts = vis.map(a => a.id), answer = parts.filter(id => gone.has(id));
+  const ids = vis.map(a => a.id), answer = ids.filter(id => gone.has(id));
+  const parts = nearParts(snap, ids, answer, 2.6);
   const dbl = (id: string) => snap.bonds.some(b => (b.a === id || b.b === id) && b.o === 2);
   const amine = r.b === "hexandiamin";
-  return tapTask({
+  return tapTask({ zoom: true,
     scene, parts, answer, mode: "multi", sol: T(`das –OH der Säure und das H ${amine ? "des Amins" : "des Alkohols"}`, `the –OH of the acid and the H of the ${amine ? "amine" : "alcohol"}`),
     prompt: T("Tippe die drei Atome an, die zusammen als Wasser abgehen.", "Tap the three atoms that leave together as water."),
     hint: T(`Die Säure gibt OH ab, ${amine ? "das Amin" : "der Alkohol"} ein H.`, `The acid gives off OH, the ${amine ? "amine" : "alcohol"} an H.`),
@@ -1094,7 +1110,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Kettenstopper", netz: "Netz durch drei Gruppen", produkt: "Kunststoff zum Monomer-Paar", abMonomer: "Monomer mit zwei Gruppen", wasserZahl: "Wasser zählen",
   keinNebenprodukt: "Ohne Nebenprodukt", hWandert: "Wanderndes H‑Atom", urethan: "Urethan und Harnstoff", artWahl: "Reaktionsart erkennen",
   epoxid: "Epoxidring", epoxidNetz: "Epoxidharz härtet",
-  bauenHomo: "Kette bauen", bauenCopo: "Copolymer bauen", ordnen: "Schritte ordnen", schnitt: "Neue Bindung antippen", radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Giftiges Atom antippen", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
+  bauenHomo: "Kette bauen", bauenCopo: "Copolymer bauen", ordnen: "Schritte ordnen", schnitt: "Neue Bindung antippen", radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Atom, das das Titan vergiftet", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
   klasse: "Thermoplast, Elastomer, Duroplast", schmelzen: "Einschmelzen", copolymer: "Copolymere", wachstum: "Ketten- und Stufenwachstum",
   klasseAlltag: "Kunststoffart im Alltag", recycling: "Recycling-Code",
 }, {
@@ -1108,7 +1124,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Chain stopper", netz: "Network from three groups", produkt: "Plastic from a monomer pair", abMonomer: "Monomer with two groups", wasserZahl: "Counting water",
   keinNebenprodukt: "No by-product", hWandert: "Moving H atom", urethan: "Urethane and urea", artWahl: "Recognising the reaction type",
   epoxid: "Epoxide ring", epoxidNetz: "Epoxy resin hardens",
-  bauenHomo: "Build a chain", bauenCopo: "Build a copolymer", ordnen: "Order the steps", schnitt: "Tap the new bond", radikalTap: "Tap the radical", freieStelleTap: "Tap the vacant site", giftTap: "Tap the poisoning atom", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a repeat unit",
+  bauenHomo: "Build a chain", bauenCopo: "Build a copolymer", ordnen: "Order the steps", schnitt: "Tap the new bond", radikalTap: "Tap the radical", freieStelleTap: "Tap the vacant site", giftTap: "Atom that poisons the titanium", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a repeat unit",
   klasse: "Thermoplastic, elastomer, thermoset", schmelzen: "Melting down", copolymer: "Copolymers", wachstum: "Chain and step growth",
   klasseAlltag: "Type of plastic in everyday life", recycling: "Recycling code",
 });

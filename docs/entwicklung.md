@@ -621,9 +621,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   wahlweise ohne Pfeile) oder Kettenausschnitt; `parts` = antippbare Atome (stabile Kennungen), `answer` = richtige Atome, Fallen je falschem Teil
   (`pick` bzw. bei mehreren `wrong`, dazu `n`, `adj`); mehrere Atome: antippen schaltet um, „Prüfen“; Lösung danach gestrichelt grün mit ✓, falsch gewählte
   mit ✗; vorher sind alle antippbaren Teile dünn gepunktet umrandet, daneben getippt → kurzer Hinweis, bei mehreren „x von n gewählt“;
-  Trefferkreise mindestens 44 px (Bildmaßstab gemessen); Lösung nach Fehlern in Worten (`sol`), nie als Nummer; unsichtbare Knöpfe für Tastatur und Vorlesen; im gelösten Beispiel zeigt das Bild die markierte Lösung. Aufgaben: K1 `bausteinTap` (zwei benachbarte
+  Trefferkreise mindestens 44 px (Bildmaßstab gemessen); `zoom` (K4, K5): nur Teile nahe der reagierenden Stelle (`nearParts`), Ausschnitt um sie im Seitenverhältnis
+  des Bildplatzes, antippbare Atome bleiben sichtbar, auch wenn ihr Nachbar am Rand ausgeblendet wird; `giftTap` zeigt das Monomer in Standardlage neben dem Titan (noch nicht gedreht); Lösung nach Fehlern in Worten (`sol`), nie als Nummer; unsichtbare Knöpfe für Tastatur und Vorlesen; im gelösten Beispiel zeigt das Bild die markierte Lösung. Aufgaben: K1 `bausteinTap` (zwei benachbarte
   C eines Bausteins, ohne farbige Hinterlegung), K2 `radikalTap` (C mit dem Radikal nach dem Anlagern), K3 `freieStelleTap`, `giftTap` (Cl/O/N am Titan),
   K4 `wasserTap` (drei Atome des Wassers), `schnitt` (Bindung antippen, die neu entstanden ist: C–O bzw. C–N zwischen zwei Bausteinen; Bindungen als Teile „a|b“,
+  als Kapsel zwischen den Atomzeichen markiert: gepunktet vorher, gestrichelt mit ✓/✗ danach,
   `mode: "any"`; **Hydrolyse** in Lektion K4 eingeführt), K5 `hTap` (wanderndes H); die Auswahl-Fassungen bleiben in „Alles gemischt“ (`level(…, more)`).
   **Ordnen** (`kind: "order"`, `OrderAnswer`): K2 `ordnen` am Ende des Kapitels – vier Standbilder mit Pfeilen (Starter zerfällt, erstes Anlagern, Anlagern an
   die Kette, Abbruch durch Rekombination oder Disproportionierung; Styrol, Vinylchlorid, MMA), gemischt, nie schon richtig; Bildausschnitt um die Pfeile, ohne Lichthöfe.
@@ -677,6 +679,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Antippen nachgebessert (2)** – vergiftendes Atom: Monomer in Standardlage (verrät die Lösung nicht mehr), Fertigkeit „Atom, das das Titan vergiftet“;
+  K4/K5 großer Ausschnitt um die reagierende Stelle; Bindungen vorher gepunktet als Kapsel markiert, danach ✓/✗ gestrichelt.
 - **Polymere: Allylradikal bleibt sichtbar** – nach dem Allyl-H-Abriss (Propen/Isobuten radikalisch) bleibt das Allylradikal mit seinem Punkt und der Beschriftung „Allyl-Radikal – sehr beständig“ im Endbild
   (vorher verschwand es, nur Benzol blieb); Test.
 - **Polymere: Kette bauen** – neue Antwortform `build`: K1 Polymer aus 8 Bausteinen bauen (gesättigtes Molekül als Falle), K6 Copolymer nach Auftrag bauen;
