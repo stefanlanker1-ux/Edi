@@ -699,6 +699,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Quiz-Auswertung passt auf niedrige Handys** – `@lern/quiz` `styles.css`: bei Bildschirmhöhe ≤ 720 px etwas engere Abstände der Auswertung, mit „Lesbar“
+  noch enger (Überschrift ohne Außenabstand, Knöpfe näher) – vorher lief sie bei 375 × 667 mit „Lesbar“ bis 9 px über (alle Module). Größere Bildschirme unverändert.
+
 - **Gemische: Trefferflächen der Trennbilder begrenzt, Zählen ohne Erklärsatz** – Trefferflächen aus dem sichtbaren Umriss (clipPath beachtet – beim Dekantieren
   deckte „Wasser“ das ganze Bild und ragte darüber hinaus), im Bild, nur für die antippbaren Teile (`TAP_PARTS`), überlappende Farbflecken an der Mitte geteilt;
   `check-ui` prüft Lage und Größe (≤ 40 % des Bilds). Thermometerzahl in den Verfahrens-Bildkarten ausgeblendet. Zählen: Zeile „Antippen = im Bild markieren“ durch

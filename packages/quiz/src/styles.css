@@ -263,7 +263,14 @@
   .level-list { gap: 6px; }
   .lv-desc { display: none; }
   .lv-skills { margin-top: 2px; }
-  .result-card { padding: 20px 16px; gap: 6px; }
+  .result-card { padding: 16px 16px; gap: 6px; }
+  .result-card .btn-row { margin-top: 8px; }
+}
+/* Auswertung mit „Lesbar“ auf niedrigen Handys (375 × 667): engere Abstände, damit nichts scrollt – sonst unverändert */
+@media (max-height: 720px) {
+  :root[data-lesbar] .result-card { padding: 12px 14px; gap: 4px; }
+  :root[data-lesbar] .result-card h2 { margin: 0; line-height: 1.2; }
+  :root[data-lesbar] .result-card .btn-row { margin-top: 6px; }
 }
 
 /* Menü passt nicht auf den Bildschirm (QuizScreen misst und setzt data-fit): stufenweise kompakter statt scrollen */
