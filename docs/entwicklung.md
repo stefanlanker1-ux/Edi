@@ -677,7 +677,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
-- **Polymere: Allylradikal bleibt sichtbar** – nach dem Allyl-H-Abriss (Propen/Isobuten radikalisch) bleibt das Allylradikal mit seinem Punkt im Endbild
+- **Polymere: Allylradikal bleibt sichtbar** – nach dem Allyl-H-Abriss (Propen/Isobuten radikalisch) bleibt das Allylradikal mit seinem Punkt und der Beschriftung „Allyl-Radikal – sehr beständig“ im Endbild
   (vorher verschwand es, nur Benzol blieb); Test.
 - **Polymere: Kette bauen** – neue Antwortform `build`: K1 Polymer aus 8 Bausteinen bauen (gesättigtes Molekül als Falle), K6 Copolymer nach Auftrag bauen;
   Handeln statt Auswählen, Rückmeldung je gebautem Muster.

@@ -462,6 +462,7 @@ export class ChainMech implements Mech {
     this.key(900, 900);
     // das Allylradikal bleibt im Bild (es ist das Produkt dieses Schritts): beständig, startet kaum eine neue Kette
     sc.unnote("x");
+    sc.note({ id: "allyl", x: M.x - 0.5, y: M.y + 3.0, text: tr("Allyl-Radikal – sehr beständig", "allyl radical – very stable") });
     this.key(0, 0);
     this.edots = [];
     this.phase = "aus";

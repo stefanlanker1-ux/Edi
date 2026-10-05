@@ -281,5 +281,6 @@ test("Allyl-H-Abriss: das Allylradikal (Propen bzw. Isobuten) bleibt im Endbild,
     assert.ok(s.atoms.length > before + 2, `${a}: Monomer fehlt im Endbild`);
     assert.ok(s.atoms.some(x => x.text === "CH₂"), `${a}: CH₂ des Allylradikals fehlt`);
     assert.ok(s.dots.length >= 1, `${a}: Radikal-Punkt fehlt`);
+    assert.ok(s.notes.some(n => /Allyl/.test(n.text)), `${a}: Beschriftung fehlt`);
   }
 });
