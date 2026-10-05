@@ -683,6 +683,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Begriffsprüfung über alle Typen eines Kapitels** – `terms.test.ts` prüft auch die Typen aus `more` (laufen in „Alles gemischt“, „Heute fällig“, „Schwächen üben“);
+  PBT und Aluminiumverbindung/Ethylgruppe in den Lektionen eingeführt; Recycling-Code in keinem Kapitel, bis sein Kapitel kommt (`LATER`).
 - **Polymere: Antippen-Bilder groß vor und nach der Antwort** – kein vorab freigehaltener Platz mehr; enger Ausschnitt (vergiftendes Atom: Monomer + freie Stelle, hohe
   Monomere quer neben dem Titan; K4 nur reagierende Enden), knappe Rückmeldung, Merksatz nach der Antwort ausgeblendet; „Partner …“ sortiert passende nach oben.
 - **Polymere: Begriffe eingeführt, bevor sie abgefragt werden (K1–K4)** – Test `quiz/terms.test.ts` (Fachwörter `GLOSSARY` in Aufgabentexten von Kapitel k müssen fett

@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LEVELS, PAT, klMiss, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
+import { GENERATORS, LATER, LEVELS, PAT, klMiss, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -15,7 +15,7 @@ test("sechs Kapitel mit je zehn Aufgaben und Merksatz", () => {
   }
   for (const id of Object.keys(GENERATORS)) assert.ok(TYPE_NAMES[id], `Name fehlt: ${id}`);
   // jeder Aufgabentyp kommt in einem Kapitel vor
-  for (const id of Object.keys(GENERATORS)) assert.ok(LEVELS.some(l => l.types.includes(id)), `${id} in keinem Kapitel`);
+  for (const id of Object.keys(GENERATORS)) if (!LATER.includes(id)) assert.ok(LEVELS.some(l => l.types.includes(id)), `${id} in keinem Kapitel`);
 });
 
 test("alle Aufgaben gültig und speicherbar", () => {

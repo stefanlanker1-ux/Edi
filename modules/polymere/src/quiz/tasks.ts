@@ -1326,7 +1326,7 @@ export const LEVELS: Level[] = [
   level(3, tr("Katalysatoren und Verfahren", "Catalysts and methods"), tr("Ziegler-Natta, anionisch, kationisch, Taktizität", "Ziegler–Natta, anionic, cationic, tacticity"), K3, ["freieStelle"]),
   level(4, tr("Polykondensation", "Polycondensation"), tr("Funktionelle Gruppen, Wasser abspalten, Ester, Amid, Netz", "Functional groups, splitting off water, ester, amide, network"), K4, ["nebenprodukt", "produkt"]),
   level(5, tr("Polyaddition", "Polyaddition"), tr("Urethan, Harnstoff, Epoxidharz – ohne Nebenprodukt", "Urethane, urea, epoxy resin – without a by-product"), K5, ["hWandert"]),
-  level(6, tr("Struktur und Eigenschaften", "Structure and properties"), tr("Thermoplast, Elastomer, Duroplast, Copolymere", "Thermoplastic, elastomer, thermoset, copolymers"), K6, ["recycling"]),
+  level(6, tr("Struktur und Eigenschaften", "Structure and properties"), tr("Thermoplast, Elastomer, Duroplast, Copolymere", "Thermoplastic, elastomer, thermoset, copolymers"), K6),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `pm-${level}`);
@@ -1362,6 +1362,9 @@ export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, du
   if (!ids.length) ids = LEVELS[0].types;
   return buildRound(ids, GENS, 10).map(t => withHint(t, false));
 }
+
+/** Aufgabentypen, deren Kapitel (mit Lektion) noch fehlt – bis dahin in keinem Kapitel und nicht in „Alles gemischt“ */
+export const LATER = ["recycling"];
 
 /** für Tests: alle Generatoren */
 export const GENERATORS = GENS;

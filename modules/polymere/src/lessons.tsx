@@ -288,7 +288,7 @@ const K2: GuideStep[] = [
     answer: T("ein Bruchstück des Starters", "a fragment of the initiator"), options: [T("ein Bruchstück des Starters", "a fragment of the initiator"), T("ein Radikal", "a radical"), T("nichts", "nothing")],
     why: { [T("ein Radikal", "a radical")]: T("Das Radikal saß am wachsenden Ende – nach dem Abbruch ist es weg.", "The radical sat at the growing end – after termination it is gone."), [T("nichts", "nothing")]: T("Der Starter wird verbraucht und bleibt am Kettenanfang.", "The initiator is used up and stays at the start of the chain.") },
     lines: [T("C₆H₅ aus dem Starter bleibt als **Endgruppe** am Kettenanfang.", "C₆H₅ from the initiator stays at the start of the chain as the **end group**.")],
-    ok: T("Der Starter wird verbraucht – er ist kein **Katalysator**.", "The initiator is used up – it is not a **catalyst**."),
+    ok: T("Der Starter wird verbraucht – er ist kein **Katalysator** (beschleunigt, ohne verbraucht zu werden).", "The initiator is used up – it is not a **catalyst** (speeds up without being used up)."),
   },
 ];
 
@@ -313,7 +313,7 @@ const K3: GuideStep[] = [
     ask: T("Ergänze: Wo lagert sich das nächste Monomer an?", "Complete: where does the next monomer attach?"),
     answer: T("an der freien Stelle", "at the vacant site"), options: [T("an der freien Stelle", "at the vacant site"), T("an einem Radikal", "at a radical"), T("am Chlor-Atom", "at the chlorine atom")],
     visual: () => <MechPlay r={ZN_PP} acts={["act", "add:propen", "add:propen"]} />,
-    lines: [T("Nach dem Einbau ist die Stelle am Titan wieder frei", "After insertion the site on the titanium is free again"), T("Das nächste Monomer kommt {?}", "The next monomer goes {?}")],
+    lines: [T("Eine **Aluminiumverbindung** gibt eine **Ethylgruppe** ans Titan – dort beginnt die Kette", "An **aluminium compound** gives an **ethyl group** to the titanium – the chain starts there"), T("Nach dem Einbau ist die Stelle am Titan wieder frei", "After insertion the site on the titanium is free again"), T("Das nächste Monomer kommt {?}", "The next monomer goes {?}")],
     why: { [T("an einem Radikal", "at a radical")]: T("Hier gibt es kein Radikal – die Kette hängt am Titan.", "There is no radical here – the chain hangs on the titanium."), [T("am Chlor-Atom", "at the chlorine atom")]: T("Die Cl‑Atome halten das Titan, sie reagieren nicht.", "The Cl atoms hold the titanium, they do not react.") },
     ok: T("Jedes Monomer wird am Titan eingebaut.", "Every monomer is inserted at the titanium."),
   },
@@ -415,7 +415,7 @@ const K4: GuideStep[] = [
       T("Terephthalsäure hat zwei –COOH-Gruppen (**Disäure**), Ethandiol zwei –OH-Gruppen (**Diol**).", "Terephthalic acid has two –COOH groups (**diacid**), ethane-1,2-diol two –OH groups (**diol**)."),
       T("–COOH und –OH verknüpfen sich zur **Esterbindung**.", "–COOH and –OH link into an **ester bond**."),
       T("Dabei wird **Wasser** abgespalten.", "**Water** is split off."),
-      T("Viele Esterbindungen in einer Kette: ein **Polyester**, z. B. PET.", "Many ester bonds in one chain: a **polyester**, e.g. PET."),
+      T("Viele Esterbindungen in einer Kette: ein **Polyester**, z. B. PET. Mit Butan-1,4-diol entsteht **PBT**.", "Many ester bonds in one chain: a **polyester**, e.g. PET. With butane-1,4-diol **PBT** forms."),
     ],
     ok: T("Viele Esterbindungen: der Polyester PET.", "Many ester bonds: the polyester PET."),
   },
