@@ -218,6 +218,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   `src/quiz/misconceptions.ts` der App (`MISS`, Name für Landkarte/Auswertung), `why` = Rückmeldungssatz mit den konkreten Zahlen (steht vor der Erklärung).
   Eingabe-Aufgaben: `traps` (`{ field, value | min }` oder `{ values: {…} }`) auf den gemeldeten `values`; `diagnose(task, answer)` wertet aus.
   Der Store zählt `misses` je Stufe; Landkarte zeigt „Stolpersteine“ (≥ 2×), Auswertung den häufigsten der Runde. `missName` an `QuizScreen` übergeben.
+  `missBy` merkt je Fehlvorstellung die Fertigkeiten; sind alle wieder „sicher“, verschwindet der Stolperstein (`clearMisses`, Test mit simulierter Uhr).
   Distraktoren mit Diagnose kommen vor zufälligen; die Tests prüfen Schlüssel, Listenlängen und Fallen-Felder. Rückmeldung nie beschämend, immer mit dem richtigen Weg.
 - Baukasten – neue Module nur aus gemeinsamen Teilen: Build der App über `appConfig(…)` (`scripts/app-vite.ts`, PWA + Einzeldatei + `lizenzen.txt`
   über `scripts/licenses.ts`), `App.tsx` des Moduls = `<LernApp name logo tabs tab onTab storage stufe?>` (`@lern/ui`: Link zur Übersicht,
@@ -684,6 +685,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Quiz-Paket: Stolpersteine verschwinden nach Wiedersicherwerden** – `missBy` (Fehlvorstellung → Fertigkeiten), `clearMisses` nach jedem Treffer; Tests mit simulierter Uhr
+  (auch Fällig-Runde: Fehler → morgen, Treffer → nicht am selben Tag wieder fällig). Polymere: Fällig-Runde nimmt die zehn am längsten überfälligen Fertigkeiten.
 - **Polymere: Ordnen lesbar** – immer Styrol, enger Ausschnitt um die Pfeile, Karten ≥ 136 px bei 375 × 667 (Merksatz dort aus), nach dem Prüfen „richtig: ②“ statt „✗ ②“
   mit Legende, keine doppelte Lösungszeile; Zähler „2 / 4“ bricht nicht um; Formelgruppen (–NH–CO–O– …) brechen nicht am Strich um.
 - **Polymere: keine überlappenden Beschriftungen in Kettenabläufen** – Test über alle Ketten-Ansätze (Schriftfelder je Atom); Li⁺ blendet beim Anrücken des Monomers aus und

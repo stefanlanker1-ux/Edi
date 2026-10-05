@@ -137,3 +137,15 @@ export function weeklyDone(rounds: number[] = [], now = Date.now()): number {
   const start = weekStart(now);
   return rounds.filter(t => t >= start && t <= now).length;
 }
+
+/**
+ * Stolpersteine nach Wiedersicherwerden: Eine Fehlvorstellung verschwindet von der Landkarte, sobald jede Fertigkeit, in der sie
+ * auftrat, wieder mindestens „sicher“ ist. `missBy` = Fehlvorstellung → Fertigkeiten (fehlt bei altem Stand: bleibt stehen).
+ */
+export function clearMisses(misses: Record<string, number>, missBy: Record<string, string[]>, skills: Skills): { misses: Record<string, number>; missBy: Record<string, string[]> } {
+  const m = { ...misses }, by = { ...missBy };
+  for (const [key, types] of Object.entries(by)) {
+    if (types.length && types.every(t => STAGES.indexOf(stageOf(skills[t])) >= STAGES.indexOf("sicher"))) { delete m[key]; delete by[key]; }
+  }
+  return { misses: m, missBy: by };
+}

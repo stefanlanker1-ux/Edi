@@ -162,3 +162,37 @@ test("Schwächen üben verschwindet, sobald die Fertigkeit wieder sicher ist", a
   sk = recordAnswer(sk, false, T0 + 2 * DAY); st = recordStat(st, false, sk.s >= 2);
   assert.deepEqual(weakTypes({ a: st }), ["a"]); // neuer Fehler → wieder Schwäche
 });
+
+test("Stolperstein verschwindet, sobald alle Fertigkeiten, in denen er auftrat, wieder sicher sind (simulierte Uhr)", async () => {
+  const { clearMisses } = await import("../src/skills.ts");
+  let sk: Skills = {};
+  sk.a = recordAnswer(undefined, false, T0); sk.b = recordAnswer(undefined, false, T0);
+  const misses = { x: 2 }, missBy = { x: ["a", "b"] };
+  sk.a = recordAnswer(sk.a, true, T0 + DAY); sk.a = recordAnswer(sk.a, true, T0 + DAY);
+  let r = clearMisses(misses, missBy, sk);
+  assert.deepEqual(r.misses, { x: 2 }); // b ist noch nicht sicher
+  sk.b = recordAnswer(sk.b, true, T0 + DAY); sk.b = recordAnswer(sk.b, true, T0 + 2 * DAY);
+  r = clearMisses(r.misses, r.missBy, sk);
+  assert.deepEqual(r.misses, {}); assert.deepEqual(r.missBy, {});
+  // ohne Zuordnung (alter Stand) bleibt der Stolperstein stehen
+  assert.deepEqual(clearMisses({ y: 3 }, {}, sk).misses, { y: 3 });
+});
+
+test("Fällig-Runde (simulierte Uhr): Fehler heute → morgen fällig, Treffer morgen → in 3 Tagen, nicht sofort wieder fällig", () => {
+  let s = recordAnswer(undefined, true, T0);
+  s = recordAnswer(s, false, T0 + 60_000);
+  assert.strictEqual(s.due, addDays(T0, 1));
+  assert.deepEqual(dueSkills({ d: s }, ["d"], T0 + 120_000), []); // heute nicht mehr fällig
+  assert.deepEqual(dueSkills({ d: s }, ["d"], addDays(T0, 1) + 8 * 3600_000), ["d"]);
+  // in der Fällig-Runde morgen richtig → in 3 Tagen, und am selben Tag nicht noch einmal fällig
+  const t1 = addDays(T0, 1) + 9 * 3600_000;
+  s = recordAnswer(s, true, t1);
+  assert.strictEqual(s.due, addDays(t1, 1)); // erster Treffer nach dem Fehler: Stufe 1
+  s = recordAnswer(recordAnswer(s, true, addDays(t1, 1) + 3600_000), true, addDays(t1, 1) + 7200_000);
+  assert.strictEqual(daysUntilDue(s, addDays(t1, 1) + 7200_000), 3);
+  assert.deepEqual(dueSkills({ d: s }, ["d"], addDays(t1, 1) + 7300_000), []);
+  // dieselbe Fertigkeit in der Runde erst richtig, dann falsch → morgen (richtig)
+  let u = recordAnswer(recordAnswer(undefined, true, T0), true, T0 + 1000);
+  u = recordAnswer(u, false, addDays(T0, 3) + 3600_000);
+  assert.strictEqual(u.due, addDays(T0, 4));
+});

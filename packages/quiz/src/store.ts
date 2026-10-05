@@ -4,7 +4,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { RECENT_MAX, counted, freshRound, recordStat, starsFor, taskKey, type Answered, type BaseTask, type Game, type LevelKey, type LevelProgress, type TypeStats } from "./types.ts";
-import { STAGES, dueSkills, recordAnswer, stageOf, type Exam, type Skills } from "./skills.ts";
+import { STAGES, clearMisses, dueSkills, recordAnswer, stageOf, type Exam, type Skills } from "./skills.ts";
 
 export interface QuizState<T extends BaseTask> {
   games: Record<string, Game<T> | undefined>;
@@ -16,6 +16,8 @@ export interface QuizState<T extends BaseTask> {
   rounds: Record<string, number[] | undefined>;
   /** Fehlvorstellung → wie oft getroffen, je Stufe (Stolpersteine) */
   misses: Record<string, Record<string, number> | undefined>;
+  /** Fehlvorstellung → Fertigkeiten, in denen sie auftrat, je Stufe (Stolperstein verschwindet, sobald alle wieder sicher sind) */
+  missBy: Record<string, Record<string, string[]> | undefined>;
   /** Prüfungstermin je Stufe („Schularbeit am …“), vom Schüler eingetragen */
   exams: Record<string, Exam | undefined>;
   /** zuletzt gestellte Fragen je Stufe (Kennungen, neueste zuletzt) – neue Runden meiden sie */
@@ -91,6 +93,7 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       skills: {},
       rounds: {},
       misses: {},
+      missBy: {},
       exams: {},
       recent: {},
       ...cfg.seed?.(),
@@ -131,7 +134,12 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
         if (a.miss) {
           const all = get().misses, m = { ...all[stufe] };
           m[a.miss] = (m[a.miss] ?? 0) + 1;
-          set({ misses: { ...all, [stufe]: m } });
+          const allBy = get().missBy ?? {}, by = { ...allBy[stufe] };
+          if (type) by[a.miss] = [...new Set([...(by[a.miss] ?? []), type])];
+          set({ misses: { ...all, [stufe]: m }, missBy: { ...allBy, [stufe]: by } });
+        } else if (a.ok && type) {
+          const r = clearMisses(get().misses[stufe] ?? {}, (get().missBy ?? {})[stufe] ?? {}, get().skills[stufe] ?? {});
+          set({ misses: { ...get().misses, [stufe]: r.misses }, missBy: { ...(get().missBy ?? {}), [stufe]: r.missBy } });
         }
         const streak = a.ok ? g.streak + 1 : 0;
         // in Leveln mit Tipp (hintCue) kostet der Tipp keine Punkte – er gehört dort zum Lernweg
@@ -167,6 +175,6 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
     name: cfg.storageKey,
     version: 1,
     storage: createJSONStorage(() => localStorage),
-    partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, exams: s.exams, recent: s.recent }),
+    partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, missBy: s.missBy, exams: s.exams, recent: s.recent }),
   }));
 }

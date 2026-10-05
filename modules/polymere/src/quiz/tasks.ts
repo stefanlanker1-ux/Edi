@@ -1358,7 +1358,8 @@ export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, du
   if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].leads);
   let ids = level === "mix" ? [...new Set(LEVELS.flatMap(l => l.types))]
     : level === "weak" ? weakTypes(stats, id => LEVELS.some(l => l.types.includes(id)))
-    : level === "due" ? due.filter(id => GENS[id] && !LATER.includes(id))
+    // fällig: die am längsten überfälligen zuerst (eine Runde fasst höchstens 10 Fertigkeiten; der Rest bleibt fällig)
+    : level === "due" ? due.filter(id => GENS[id] && !LATER.includes(id)).slice(0, 10)
     : LEVELS[0].types;
   if (!ids.length) ids = LEVELS[0].types;
   return buildRound(ids, GENS, 10).map(t => withHint(t, false));
