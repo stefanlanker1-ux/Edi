@@ -1,6 +1,20 @@
-# Baut die Android-App für den Play Store: signiertes App-Bundle (.aab) als Download unter „Artifacts“.
-# Nur manuell über "Run workflow". Braucht die Secrets UPLOAD_KEYSTORE_BASE64 (Upload-Schlüssel .p12, Base64)
-# und UPLOAD_KEYSTORE_PASSWORD. versionCode = Laufnummer dieses Workflows (steigt bei jedem Lauf automatisch).
+# Baut die Android-App für den Play Store: signiertes App-Bundle (.aab) als Download unter „Artifacts“
+# und lädt es automatisch in die Play Console hoch (Track wählbar; „keiner“ = nur bauen).
+# Nur manuell über "Run workflow". versionCode = Laufnummer dieses Workflows (steigt bei jedem Lauf automatisch).
+#
+# Benötigte Secrets (Settings → Secrets and variables → Actions):
+#   UPLOAD_KEYSTORE_BASE64      Upload-Schlüssel (.p12) als Base64
+#   UPLOAD_KEYSTORE_PASSWORD    Passwort dazu
+#   PLAY_SERVICE_ACCOUNT_JSON   JSON-Schlüssel des Google-Cloud-Service-Kontos für den Play-Upload.
+#                               Einrichtung (einmalig): Google-Cloud-Projekt anlegen, „Google Play Android
+#                               Developer API“ aktivieren, Service-Konto + JSON-Schlüssel erstellen, dann in der
+#                               Play Console unter „Nutzer und Berechtigungen“ die Service-Konto-E-Mail einladen
+#                               und ihr für die App Edi die Release-Berechtigungen geben.
+#
+# Wichtig: Die ALLERERSTE Version einer neuen App muss von Hand in der Play Console hochgeladen werden –
+# erst danach funktioniert der automatische Upload. Solange die App noch nicht veröffentlicht ist,
+# akzeptiert Google nur den Release-Status „draft“ (deshalb ist das die Voreinstellung); nach der
+# Veröffentlichung beim Starten „completed“ wählen, damit der Rollout direkt losläuft.
 name: Android-Release für den Play Store
 
 on:
@@ -10,6 +24,24 @@ on:
         description: "Versionsname, den Nutzer sehen (z. B. 1.0)"
         required: true
         default: "1.0"
+      play_track:
+        description: "Play-Upload: Ziel-Track (keiner = nur bauen)"
+        type: choice
+        required: true
+        default: "internal"
+        options:
+          - internal     # Interner Test
+          - alpha        # Geschlossener Test
+          - production   # Produktion
+          - keiner       # kein Upload, nur .aab bauen
+      play_status:
+        description: "Release-Status (unveröffentlichte App: draft; später: completed)"
+        type: choice
+        required: true
+        default: "draft"
+        options:
+          - draft
+          - completed
 
 permissions:
   contents: read
@@ -29,9 +61,15 @@ jobs:
         env:
           KS: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
           PW: ${{ secrets.UPLOAD_KEYSTORE_PASSWORD }}
+          PLAY: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          TRACK: ${{ inputs.play_track }}
         run: |
           if [ -z "$KS" ] || [ -z "$PW" ]; then
             echo "::error::Secrets UPLOAD_KEYSTORE_BASE64 und UPLOAD_KEYSTORE_PASSWORD fehlen (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          if [ "$TRACK" != "keiner" ] && [ -z "$PLAY" ]; then
+            echo "::error::Secret PLAY_SERVICE_ACCOUNT_JSON fehlt. Entweder anlegen (Einrichtung: siehe Kommentar oben in release.yml) oder den Workflow mit play_track = keiner starten, um nur zu bauen."
             exit 1
           fi
       - uses: actions/checkout@v4
@@ -70,3 +108,13 @@ jobs:
           name: edi-${{ inputs.version_name }}-${{ github.run_number }}
           path: apps/edi/android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
+      - name: In die Play Console hochladen (${{ inputs.play_track }})
+        if: ${{ inputs.play_track != 'keiner' }}
+        uses: r0adkll/upload-google-play@v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: app.edi.lernen
+          releaseFiles: apps/edi/android/app/build/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.play_track }}
+          status: ${{ inputs.play_status }}
+          releaseName: "${{ github.run_number }} (${{ inputs.version_name }})"
