@@ -19,6 +19,8 @@ type Extra = { vis?: Vis; pics?: Record<string, Vis>; tip?: string };
 export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: string[]; labels: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean;
   /** Ausschnitt nur um die antippbaren Teile (große Atome) und `zoomWith`, Rest am Rand ausgeblendet */
   zoom?: boolean; zoomWith?: string[];
+  /** Ausschnitt nur um diese Atome (statt um alle antippbaren Teile) */
+  zoomTo?: string[];
   /** Lösung in Worten (statt Nummern, die im Bild nicht stehen) */
   sol: string };
 /** Ordnen: `cards` = Bilder in der gezeigten Reihenfolge, `correct` = Kartenindizes in der richtigen Reihenfolge, `names` = Name je Karte (nach der Antwort).
@@ -121,7 +123,7 @@ function nearParts(snap: { atoms: { id: string; x: number; y: number }[] }, part
   return parts.filter(p => { const q = pt(p); return cs.some(c => Math.hypot(c.x - q.x, c.y - q.y) <= d); });
 }
 /** Antipp-Aufgabe zusammensetzen; `why(id)` liefert für jedes falsche Teil Schlüssel und Rückmeldung */
-function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; zoom?: boolean; zoomWith?: string[]; sol: string; prompt: string; hint: string; tip?: string; explain: string;
+function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; zoom?: boolean; zoomWith?: string[]; zoomTo?: string[]; sol: string; prompt: string; hint: string; tip?: string; explain: string;
   why?: (id: string) => [string, string]; extra?: Trap[] }): TapTask {
   const frame = tapFrame(o.scene), at = new Map(frame.snap.atoms.map(a => [a.id, a]));
   const labels = o.parts.map((id, i) => (id.includes("|") ? bondLabel(id.split("|").map(x => at.get(x)?.text || at.get(x)?.el || "?"), i) : partLabel(at.get(id)?.el ?? "", i, at.get(id)?.vac)));
@@ -131,7 +133,7 @@ function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?:
     const [miss, why] = o.why!(id);
     traps.push({ values: o.mode && o.mode !== "any" ? { wrong: i } : { pick: i }, miss, why });
   });
-  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}), ...(o.zoom ? { zoom: true } : {}), ...(o.zoomWith ? { zoomWith: o.zoomWith } : {}),
+  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}), ...(o.zoom ? { zoom: true } : {}), ...(o.zoomWith ? { zoomWith: o.zoomWith } : {}), ...(o.zoomTo ? { zoomTo: o.zoomTo } : {}),
     sol: o.sol, prompt: o.prompt, hint: o.hint, explain: o.explain, traps, ...(o.tip ? { tip: o.tip } : {}) };
 }
 
@@ -1047,7 +1049,7 @@ function giftTap(): Task {
   // bei MMA haben beide O freie Paare – gemeint ist das O der C=O-Gruppe (stärker gebunden)
   const who = el === "O" ? T("das O der C=O-Gruppe", "the O of the C=O group") : el === "N" ? T("das N der C≡N-Gruppe", "the N of the C≡N group") : T(`das ${el}‑Atom`, `the ${el} atom`);
   const Who = cap(who);
-  return tapTask({
+  return tapTask({ zoom: true, zoomTo: [...snap.atoms.filter(a => parts.includes(a.id) && a.el !== "H").map(a => a.id), "tvac"],
     scene, parts, answer: [ans], sol: T(`${who} – bindet mit einem freien Elektronenpaar`, `${who} – binds with a lone pair`),
     prompt: T(`${cap(nm(m))} kommt an das Titan. Tippe auf das Atom, das an das Titan bindet und es vergiftet.`, `${cap(nm(m))} reaches the titanium. Tap the atom that binds to the titanium and poisons it.`),
     hint: T("Gesucht ist ein Atom mit freiem Elektronenpaar: Cl, O, N oder F.", "Look for an atom with a lone pair: Cl, O, N or F."),
@@ -1095,7 +1097,7 @@ function wasserTap(): Task {
   const gone = new Set(snap.atoms.filter(a => !after.atoms.some(b => b.id === a.id)).map(a => a.id));
   const vis = visibleAtoms(snap).filter(a => a.el === "H" || a.el === "O").sort((p, q) => p.x - q.x || p.y - q.y);
   const ids = vis.map(a => a.id), answer = ids.filter(id => gone.has(id));
-  const parts = nearParts(snap, ids, answer, 2.6);
+  const parts = nearParts(snap, ids, answer, 1.9);
   const dbl = (id: string) => snap.bonds.some(b => (b.a === id || b.b === id) && b.o === 2);
   const amine = r.b === "hexandiamin";
   return tapTask({ zoom: true,
@@ -1116,7 +1118,7 @@ function bausteinTap(): Task {
   const id = pick(["propen", "vinylchlorid", "styrol"] as VinylId[]);
   const scene: TapScene = { k: "chain", id, n: 3 };
   const parts = [0, 1, 2].flatMap(i => [`k${i}ca`, `k${i}cb`]);
-  return tapTask({
+  return tapTask({ zoom: true,
     scene, parts, answer: [], mode: "pair", halos: false, sol: T("zwei benachbarte C‑Atome der Hauptkette", "two neighbouring C atoms of the main chain"),
     prompt: T("Tippe die **zwei** C‑Atome der Hauptkette an, die zusammen **einen** Baustein bilden.", "Tap the **two** C atoms of the main chain that together form **one** repeat unit."),
     hint: T(`Ein Baustein entsteht aus einem Monomer ${nm(id)}: so viele C‑Atome wie in seiner C=C.`, `One repeat unit comes from one monomer ${nm(id)}: as many C atoms as in its C=C.`),

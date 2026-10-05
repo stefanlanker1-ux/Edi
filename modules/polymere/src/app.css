@@ -354,9 +354,13 @@
 @media (max-height: 760px) { .pm-build.done .pm-build-pool { display: none; } }
 /* Antippen, Ordnen, Bauen: auf der Karte nur Grund und Lösung, die Erklärung steht im Blatt „Lösung“ (das Bild bleibt groß) */
 .task-card.kind-tap:not(.worked) .q-feedback .fb-exp, .task-card.kind-order:not(.worked) .q-feedback .fb-exp, .task-card.kind-build:not(.worked) .q-feedback .fb-exp { display: none; }
-/* Platz für die Rückmeldung schon vor der Antwort freihalten: das Bild ändert seine Größe nach „Prüfen“ nicht */
-.q-body:has(> .pm-tap:not(.done), > .pm-order:not(.done), > .pm-build:not(.done))::after { content: ""; flex: 0 0 66px; }
-.q-body:has(> .pm-tap.single:not(.done))::after { flex-basis: 130px; }
+/* knappe Rückmeldung bei Antippen/Ordnen/Bauen: Kopf, Grund, Lösung eng – das Bild bleibt groß (Erklärung im Blatt „Lösung“) */
+.task-card.kind-tap:not(.worked) .q-feedback, .task-card.kind-order:not(.worked) .q-feedback, .task-card.kind-build:not(.worked) .q-feedback { padding: 6px 10px; }
+.task-card.kind-tap:not(.worked) .fb-head, .task-card.kind-order:not(.worked) .fb-head, .task-card.kind-build:not(.worked) .fb-head { font-size: .95rem; }
+.task-card.kind-tap:not(.worked) .fb-why, .task-card.kind-order:not(.worked) .fb-why, .task-card.kind-build:not(.worked) .fb-why { font-size: .84rem; margin-top: 2px; padding: 1px 0 1px 8px; line-height: 1.3; }
+.task-card.kind-tap:not(.worked) .fb-sol, .task-card.kind-order:not(.worked) .fb-sol, .task-card.kind-build:not(.worked) .fb-sol { font-size: .84rem; margin-top: 2px; }
 .pm-mono.fits { outline: 2px dashed var(--ok); outline-offset: -4px; }
 .pm-fits { font-size: .76rem; font-weight: 750; color: var(--ok); }
 .pm-lesson-note { position: absolute; left: 6px; bottom: 4px; margin: 0; font-size: .78rem; color: var(--muted); }
+/* nach der Antwort ist der Merksatz gelesen: sein Platz gehört dem Bild */
+.task-card.kind-tap.answered:not(.worked) .q-lead, .task-card.kind-order.answered:not(.worked) .q-lead, .task-card.kind-build.answered:not(.worked) .q-lead { display: none; }

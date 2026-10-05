@@ -35,7 +35,7 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
   // Seitenverhältnis des Bildplatzes (gemessen): der Ausschnitt füllt ihn ganz
   const [aspect, setAspect] = useState(0);
   const box = useMemo(() => {
-    const ids = new Set([...t.parts.flatMap(p => p.split("|")), ...(t.zoomWith ?? [])]);
+    const ids = new Set(t.zoomTo ?? [...t.parts.flatMap(p => p.split("|")), ...(t.zoomWith ?? [])]);
     const at = frame.snap.atoms.filter(a => ids.has(a.id));
     const b = snapBox(frame.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
     const m = 1.3;
@@ -43,7 +43,7 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
       : t.zoom ? { x0: Math.min(...at.map(a => a.x)) - m, x1: Math.max(...at.map(a => a.x)) + m, y0: Math.min(...at.map(a => a.y)) - m, y1: Math.max(...at.map(a => a.y)) + m }
       : { x0: Math.min(b.x0, ...at.map(a => a.x - 0.5)), x1: Math.max(b.x1, ...at.map(a => a.x + 0.5)), y0: Math.min(b.y0, ...at.map(a => a.y - 0.5)), y1: Math.max(b.y1, ...at.map(a => a.y + 0.5)) };
     return fitBox(p, aspect || (p.x1 - p.x0 + 0.9) / (p.y1 - p.y0 + 0.9), 0, 0, 0.45);
-  }, [frame, t.parts, t.zoom, t.zoomWith, aspect]);
+  }, [frame, t.parts, t.zoom, t.zoomWith, t.zoomTo, aspect]);
   const pose = { ...still(frame.snap), arrows: frame.arrows.map(arrow => ({ arrow, op: 1 })) };
   // Lösung: einzeln/mehrere = `answer`; Paar: ein Beispiel (der erste Baustein) – oder die gewählten, wenn sie stimmen
   const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.mode === "any" ? (sel.length && t.answer.includes(sel[0]) ? sel : t.answer.slice(0, 1)) : t.answer;

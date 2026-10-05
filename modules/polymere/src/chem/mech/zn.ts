@@ -216,8 +216,14 @@ export class ZnMech implements Mech {
   /** polares Monomer: ein freies Elektronenpaar besetzt die freie Stelle – der Katalysator ist vergiftet */
   private poison(m: VinylId) {
     const sc = this.sc;
-    const { ids } = this.build(m, 2.4, -2.4);
+    const { ids } = this.build(m, 3.0, -1.5);
     const het = ids.hetero ?? ids.cb;
+    // hohe Monomere (MMA) quer legen: im kleinen Bild bleibt alles groß genug
+    {
+      const xs = ids.atoms.map(i => sc.at(i).x), ys = ids.atoms.map(i => sc.at(i).y);
+      if (Math.max(...ys) - Math.min(...ys) > Math.max(...xs) - Math.min(...xs) + 0.5)
+        sc.rotate(ids.atoms, { x: (Math.max(...xs) + Math.min(...xs)) / 2, y: (Math.max(...ys) + Math.min(...ys)) / 2 }, 90);
+    }
     // zuerst in Standardlage neben dem Titan (noch ohne Ausrichtung), dann dreht es sich
     this.key(80, 500);
     // drehen: das Heteroatom zeigt nach unten zum Titan

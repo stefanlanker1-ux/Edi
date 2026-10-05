@@ -621,8 +621,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   wahlweise ohne Pfeile) oder Kettenausschnitt; `parts` = antippbare Atome (stabile Kennungen), `answer` = richtige Atome, Fallen je falschem Teil
   (`pick` bzw. bei mehreren `wrong`, dazu `n`, `adj`); mehrere Atome: antippen schaltet um, „Prüfen“; Lösung danach gestrichelt grün mit ✓, falsch gewählte
   mit ✗; vorher sind alle antippbaren Teile dünn gepunktet umrandet, daneben getippt → kurzer Hinweis, bei mehreren „x von n gewählt“;
-  Trefferkreise mindestens 44 px (Bildmaßstab gemessen); nach der Antwort bleibt das Bild gleich groß (Platz für die Rückmeldung
-  wird vorher freigehalten, die Erklärung steht im Blatt „Lösung“ über `feedbackExtra`, auf der Karte nur Grund und Lösung); `zoom` (K4, K5): nur Teile nahe der reagierenden Stelle (`nearParts`), Ausschnitt um sie im Seitenverhältnis
+  Trefferkreise mindestens 44 px (Bildmaßstab gemessen); Atomschrift ≥ 14 px vor und ≥ 12 px nach der Antwort
+  (375 × 667, 360 × 740): enger Ausschnitt (`zoomTo` bzw. Teile nahe der reagierenden Stelle), knappe Rückmeldung (Grund + Lösung, Merksatz ausgeblendet), Erklärung im
+  Blatt „Lösung“ über `feedbackExtra`; `zoom` (K4, K5): nur Teile nahe der reagierenden Stelle (`nearParts`), Ausschnitt um sie im Seitenverhältnis
   des Bildplatzes, antippbare Atome bleiben sichtbar, auch wenn ihr Nachbar am Rand ausgeblendet wird; `giftTap` zeigt das Monomer in Standardlage neben dem Titan (noch nicht gedreht); Lösung nach Fehlern in Worten (`sol`), nie als Nummer; unsichtbare Knöpfe für Tastatur und Vorlesen; im gelösten Beispiel zeigt das Bild die markierte Lösung. Aufgaben: K1 `bausteinTap` (zwei benachbarte
   C eines Bausteins, ohne farbige Hinterlegung), K2 `radikalTap` (C mit dem Radikal nach dem Anlagern), K3 `freieStelleTap`, `giftTap` (Cl/O/N am Titan),
   K4 `wasserTap` (drei Atome des Wassers), `schnitt` (Bindung antippen, die neu entstanden ist: C–O bzw. C–N zwischen zwei Bausteinen; Bindungen als Teile „a|b“,
@@ -682,6 +683,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Antippen-Bilder groß vor und nach der Antwort** – kein vorab freigehaltener Platz mehr; enger Ausschnitt (vergiftendes Atom: Monomer + freie Stelle, hohe
+  Monomere quer neben dem Titan; K4 nur reagierende Enden), knappe Rückmeldung, Merksatz nach der Antwort ausgeblendet; „Partner …“ sortiert passende nach oben.
 - **Polymere: Begriffe eingeführt, bevor sie abgefragt werden (K1–K4)** – Test `quiz/terms.test.ts` (Fachwörter `GLOSSARY` in Aufgabentexten von Kapitel k müssen fett
   in Lektion/Erklärkarte 1…k stehen, Merksätze zählen nicht); K1 nur Ethen/Propen/Styrol/Vinylchlorid, Kunststoffe mit Grund (auch als Lektionsschritt); Lektionen führen
   gesättigt, Hauptkette, Seitengruppe, Benzolring, DBPO, Elektronenpaar, Endgruppe, Katalysator, PE-HD/PE-LD/Äste, syndiotaktisch, Blockcopolymer, Acrylnitril/Vinylacetat,

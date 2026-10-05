@@ -548,8 +548,11 @@ export function ExperimentView() {
       : { id: "mono2", label: low && recipe.b ? hyph(monoName(recipe.b)) : tr("Monomer 2", "Monomer 2"), title: tr("Monomer 2", "Monomer 2"), icon: "layers" as const, wide: true,
           content: <div className="pm-grid">
             <button type="button" className={`pm-mono none${!recipe.b ? " on" : ""}`} onClick={() => pickB(undefined)}><span className="pm-mono-name">{tr("ohne – Monomer allein", "none – monomer alone")}</span></button>
-            {monoList.map(id => <MonoCard key={id} id={id} active={recipe.b === id} onClick={() => pickB(id)}
-              fits={partners && id !== recipe.a && (() => { const o = stepReact(recipe.a as StepId, id as StepId); return o.struktur !== "none" && o.struktur !== "klein" && o.art === art; })()} />)}
+            {(() => {
+              // nach „Partner …“: passende zuerst
+              const fits = (id: string) => partners && id !== recipe.a && (() => { const o = stepReact(recipe.a as StepId, id as StepId); return o.struktur !== "none" && o.struktur !== "klein" && o.art === art; })();
+              return [...monoList].sort((x, y) => Number(fits(y)) - Number(fits(x))).map(id => <MonoCard key={id} id={id} active={recipe.b === id} onClick={() => pickB(id)} fits={fits(id)} />);
+            })()}
           </div> },
     ...(art === "poly" ? [{ id: "verfahren", label: low ? method(recipe.method ?? "dbpo").short : tr("Verfahren", "Method"), title: tr("Verfahren", "Method"), icon: "fire" as const, wide: true,
       content: <div className="pm-meths">{METHODS.map(m => <MethodCard key={m.id} id={m.id} active={recipe.method === m.id} onClick={() => { buzz(); setRecipe({ ...recipe, method: m.id }); setTool(null); }} />)}</div> }] : []),
