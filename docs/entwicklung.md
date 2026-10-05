@@ -630,6 +630,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Antippen nummeriert ①–④ (Kennziffer rot), nochmal antippen nimmt die Nummer und alle späteren weg, ab vier „Prüfen“; danach je Bild ✓ bzw. ✗ mit dem richtigen
   Platz und Name des Schritts (Bilder dann klein bzw. auf niedrigen Bildschirmen weg). Gemeldet `startFirst`, `termLast`, `addsOk` → Fallen (Start nicht zuerst,
   Abbruch nicht zuletzt, Anlagerungen vertauscht). Vorlesen: vorher „Bild A“, danach mit Name.
+  **Kette bauen** (`kind: "build"`, `BuildAnswer`): Vorrat aus zwei Kügelchen (Name, Formel), darunter 8 Plätze (am Handy 2 × 4); Kügelchen wählen, Platz antippen
+  = setzen, gesetztes antippen = entfernen, Ziehen aus dem Vorrat als Abkürzung; „Prüfen“, wenn alle Plätze voll. Auswertung `buildPattern` (Block = höchstens drei
+  Abschnitte zu je ≥ 2, abwechselnd, zufällig, nur ein Monomer, nicht einbaubares Molekül) → `pat`; erster unpassender Platz gestrichelt mit ✗. K1 `bauenHomo`
+  (Monomer + gesättigtes Gegenstück im Vorrat), K6 `bauenCopo` (Block, alternierend, statistisch).
   „C‑Atom“ usw. mit geschütztem Bindestrich (U+2011, nie „C-⏎Atom“). Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
@@ -673,6 +677,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Kette bauen** – neue Antwortform `build`: K1 Polymer aus 8 Bausteinen bauen (gesättigtes Molekül als Falle), K6 Copolymer nach Auftrag bauen;
+  Handeln statt Auswählen, Rückmeldung je gebautem Muster.
 - **Polymere: Englische Fachbegriffe** – üblicher Schul-Fachwortschatz: propagation (Schritt; chain/step growth nur für die Art des Wachstums), repeat unit,
   cross-links (bridges), half-headed (fishhook) arrow, vacant site, acyl chloride (acid chloride), random (statistical) copolymer, raw rubber.
 - **Polymere: Fachliche Feinheiten** – Tipp bei „neue Bindung antippen“ verrät die Stelle nicht mehr („Welche Bindung gab es in keinem der beiden Monomere?“);

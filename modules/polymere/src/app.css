@@ -331,3 +331,19 @@
 .pm-order.done .pm-order-pic { height: 40px; }
 @media (min-width: 600px) and (min-height: 740px) { .pm-order.done .pm-order-pic { height: 90px; } }
 @media (max-height: 700px), (max-width: 370px) { .pm-order.done .pm-order-pic { display: none; } .pm-order.done .pm-order-card { padding-top: 26px; } }
+/* Kette bauen: Vorrat (zwei Kügelchen mit Name und Formel), darunter die Plätze; am schmalen Handy 2 × 4 */
+.q-body > .pm-build { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-height: 0; }
+.pm-build-pool { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.pm-build-item { display: flex; align-items: center; gap: 6px; min-height: 52px; padding: 4px 6px; text-align: left; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); touch-action: none; }
+.pm-build-item.sel { border: 2.5px solid var(--accent); }
+.pm-build-item:disabled { opacity: 1; box-shadow: none; }
+.pm-build-txt { display: flex; flex-direction: column; min-width: 0; font-size: .8rem; line-height: 1.2; }
+.pm-build-txt span { color: var(--muted); overflow-wrap: anywhere; }
+.pm-build-bead { width: 34px; height: 34px; flex: none; }
+.pm-build-chain { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
+.pm-build-slot { position: relative; min-height: 48px; min-width: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--text); }
+.pm-build-slot + .pm-build-slot::before { content: ""; position: absolute; left: calc(-50% + 15px); right: calc(50% + 17px); top: 50%; border-top: 2px solid var(--text); }
+.pm-build-empty { width: 32px; height: 32px; border: 2px dashed var(--muted); border-radius: 50%; }
+.pm-build-slot.wrong { outline: 2px dashed var(--text); outline-offset: -2px; border-radius: var(--radius-sm); }
+.pm-build-x { position: absolute; top: 0; right: 2px; font-size: .75rem; font-weight: 800; }
+@media (max-width: 420px) { .pm-build-chain { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 6px; } .pm-build-slot:nth-child(4n + 1)::before { display: none; } }

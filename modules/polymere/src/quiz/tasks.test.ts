@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LEVELS, TYPE_NAMES, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
+import { GENERATORS, LEVELS, PAT, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -24,6 +24,19 @@ test("alle Aufgaben gültig und speicherbar", () => {
       assert.ok(t.prompt && t.hint && t.explain, `${t.type}: Texte fehlen`);
       assert.ok(TYPE_NAMES[t.type!], t.type);
       assert.deepEqual(JSON.parse(JSON.stringify(t)), t, "nicht JSON-fähig");
+      if (isBuild(t)) {
+        // Kette bauen: Beispiel ist richtig, jede falsche Bauart hat eine Rückmeldung
+        assert.ok(t.pool.length === 2 && t.n === 8 && t.example.length === 8 && t.sol);
+        assert.ok(buildResult(t, t.example).ok, `${t.type}: Beispiel falsch`);
+        for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why);
+        const [a, b] = t.pool.map(p => p.id);
+        const tries = [Array(8).fill(a), Array(8).fill(b), [a, a, a, a, b, b, b, b], [a, b, a, b, a, b, a, b], [a, b, b, a, b, a, a, b], [a, a, a, b, a, a, a, a]];
+        for (const seq of tries) {
+          const r = buildResult(t, seq);
+          if (!r.ok) assert.ok((t.traps ?? []).some(tr => tr.values?.pat === r.values.pat), `${t.type} ${t.goal}: keine Rückmeldung für ${seq}`);
+        }
+        continue;
+      }
       if (isOrder(t)) {
         assert.strictEqual(t.cards.length, 4); assert.deepEqual([...t.correct].sort(), [0, 1, 2, 3]);
         assert.ok(!t.correct.every((x, i) => x === i), "schon geordnet");
@@ -69,13 +82,13 @@ test("Stufenwachstum bei hohem Umsatz: kaum Monomer, im Mittel 10 Bausteine (bei
   for (const t of ts) {
     assert.match(t.prompt, /90\s% Umsatz/);
     assert.match(t.explain, /10 Bausteine/);
-    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + (isTap(t) || isOrder(t) ? "" : Object.values(t.why ?? {}).join())), t.prompt);
+    assert.ok(!/50\s%|halbe/.test(t.prompt + t.explain + (isTap(t) || isOrder(t) || isBuild(t) ? "" : Object.values(t.why ?? {}).join())), t.prompt);
   }
 }, 60_000);
 
 test("keine Aufgabe zweimal in einem Kapitel (auch nicht mit anders gemischten Antworten)", () => {
   for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 20; k++) {
-    const sig = makeRound("us", lv).map(t => t.prompt + (isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null)));
+    const sig = makeRound("us", lv).map(t => t.prompt + (isBuild(t) ? JSON.stringify(t.pool) + t.goal : isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null)));
     assert.strictEqual(new Set(sig).size, sig.length, `${LEVELS[lv].id}: doppelte Aufgabe`);
   }
 }, 60_000);
@@ -106,4 +119,12 @@ test("Antippen: Rückmeldung passt zum Teil (Benzolring nur bei Ring-Atomen)", a
       assert.strictEqual(/Benzolring/.test(tr.why), rings.includes(id), `${id}: ${tr.why}`);
     }
   }
+});
+
+test("Kette bauen: Muster erkennen (Block auch als Dreiblock, zufällig = weder Block noch abwechselnd)", () => {
+  const t = { kind: "build", goal: "stat", n: 8, example: [], sol: "", prompt: "", hint: "", explain: "",
+    pool: [{ id: "a", ok: true }, { id: "b", ok: true }, { id: "s", ok: false }] } as unknown as Parameters<typeof buildPattern>[0];
+  const p = (x: string) => buildPattern(t, x.split(""));
+  assert.strictEqual(p("aaaabbbb"), PAT.block); assert.strictEqual(p("aabbbbaa"), PAT.block); assert.strictEqual(p("abababab"), PAT.alt);
+  assert.strictEqual(p("abbababa"), PAT.stat); assert.strictEqual(p("aaaaaaab"), PAT.stat); assert.strictEqual(p("aaaaaaaa"), PAT.one); assert.strictEqual(p("aaaasaaa"), PAT.sat);
 });

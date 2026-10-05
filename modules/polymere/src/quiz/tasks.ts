@@ -5,7 +5,7 @@
 
 import { tr } from "@lern/i18n";
 import { buildRound, d, mc, pick, shuffle, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
-import { METHODS, method, monoName, stepMono, vinyl, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
+import { METHODS, method, monoName, stepMono, vinyl, type Hue, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
 import { compat, methodsFor, stepReact } from "../chem/rules.ts";
 import { replay } from "../chem/mech/index.ts";
 import type { Recipe } from "../chem/mech/types.ts";
@@ -22,9 +22,40 @@ export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: 
 /** Ordnen: `cards` = Bilder in der gezeigten Reihenfolge, `correct` = Kartenindizes in der richtigen Reihenfolge, `names` = Name je Karte (nach der Antwort).
  *  Gemeldet: `startFirst`, `termLast`, `addsOk` (je 1 = stimmt). */
 export type OrderTask = BaseTask & Extra & { kind: "order"; cards: Vis[]; names: string[]; correct: number[]; sol: string };
-export type Task = (McTask & Extra) | TapTask | OrderTask;
+/** Kette bauen: `pool` = Vorrat (Kügelchen mit Name und Formel, `ok` = einbaubar), `n` Plätze, `goal` = gesuchter Aufbau; `example` = eine richtige Kette.
+ *  Gemeldet: `pat` (Muster, siehe `PAT`). */
+export type BuildItem = { id: string; name: string; struct: string; hue: Hue; letter: string; ok: boolean };
+export type BuildTask = BaseTask & Extra & { kind: "build"; pool: BuildItem[]; n: number; goal: "homo" | "block" | "alt" | "stat"; example: string[]; sol: string };
+export type Task = (McTask & Extra) | TapTask | OrderTask | BuildTask;
 export const isTap = (t: Task): t is TapTask => t.kind === "tap";
 export const isOrder = (t: Task): t is OrderTask => t.kind === "order";
+export const isBuild = (t: Task): t is BuildTask => t.kind === "build";
+
+/** Muster einer gebauten Kette: 0 richtig (nur bei homo), 1 Block, 2 abwechselnd, 3 zufällig, 4 nur ein Monomer, 5 nicht einbaubares Molekül dabei */
+export const PAT = { ok: 0, block: 1, alt: 2, stat: 3, one: 4, sat: 5 } as const;
+export function buildPattern(t: BuildTask, seq: string[]): number {
+  const bad = new Set(t.pool.filter(p => !p.ok).map(p => p.id));
+  if (seq.some(x => bad.has(x))) return PAT.sat;
+  if (t.goal === "homo") return PAT.ok;
+  if (new Set(seq).size < 2) return PAT.one;
+  const runs: number[] = [];
+  seq.forEach((x, i) => (i && x === seq[i - 1] ? runs[runs.length - 1]++ : runs.push(1)));
+  if (runs.every(r => r === 1)) return PAT.alt;
+  // Blöcke: höchstens drei Abschnitte (Zwei- oder Dreiblock wie SBS), jeder aus mindestens zwei Bausteinen
+  if (runs.length <= 3 && runs.every(r => r >= 2)) return PAT.block;
+  return PAT.stat;
+}
+/** erster Platz, der nicht passt (oder −1) */
+export function buildWrongAt(t: BuildTask, seq: string[]): number {
+  const bad = new Set(t.pool.filter(p => !p.ok).map(p => p.id));
+  const i = seq.findIndex(x => bad.has(x));
+  if (i >= 0 || t.goal !== "alt") return i;
+  return seq.findIndex((x, k) => k > 0 && x === seq[k - 1]);
+}
+export function buildResult(t: BuildTask, seq: string[]): { ok: boolean; values: Record<string, number> } {
+  const pat = buildPattern(t, seq);
+  return { ok: pat === PAT[t.goal === "homo" ? "ok" : t.goal], values: { pat } };
+}
 
 /** Begründung, die mit dem Begriff beginnt („Isotaktisch: …“): Begriff fett, nicht noch einmal davor schreiben */
 const boldLead = (s: string) => {
@@ -725,6 +756,10 @@ function schmelzen(): Task {
   });
 }
 
+const COPO_WHY = (): Record<"stat" | "block" | "alt", string> => tr(
+  { stat: "Statistisch: die Monomere folgen zufällig aufeinander.", block: "Block: erst viele gleiche, dann viele andere.", alt: "Alternierend: immer abwechselnd." },
+  { stat: "Random: the monomers follow in no fixed order.", block: "Block: first many of one, then many of the other.", alt: "Alternating: always taking turns." },
+);
 const COPO = () => tr({ stat: "Statistisches Copolymer", block: "Blockcopolymer", alt: "Alternierendes Copolymer" }, { stat: "Random copolymer", block: "Block copolymer", alt: "Alternating copolymer" });
 
 function copolymer(): Task {
@@ -735,10 +770,7 @@ function copolymer(): Task {
     : kind === "alt" ? Array.from({ length: n }, (_, i) => (i % 2 ? b : a))
     : [a, a, b, a, b, b, b, a, b, a];
   const C = COPO();
-  const WHY: Record<string, string> = tr(
-    { stat: "Statistisch: die Monomere folgen zufällig aufeinander.", block: "Block: erst viele gleiche, dann viele andere.", alt: "Alternierend: immer abwechselnd." },
-    { stat: "Random: the monomers follow in no fixed order.", block: "Block: first many of one, then many of the other.", alt: "Alternating: always taking turns." },
-  );
+  const WHY = COPO_WHY();
   return task(T("Welches Copolymer zeigt die Kügelchen-Kette?", "Which copolymer does the bead chain show?"), C[kind],
     (["stat", "block", "alt"] as const).filter(x => x !== kind).map(x => d(C[x], "copo-verwechselt", WHY[x])), {
       vis: { k: "beads", seq },
@@ -825,6 +857,51 @@ function ordnen(): Task {
       { values: { startFirst: 0 }, miss: "schritt-verwechselt", why: T("Ohne Starter gibt es kein Radikal. Das erste Radikal entsteht beim Zerfall des Starters.", "Without the initiator there is no radical. The first radical forms when the initiator splits.") },
       { values: { termLast: 0 }, miss: "schritt-verwechselt", why: T("Nach dem Abbruch gibt es kein Radikal mehr. Danach kann nichts mehr wachsen.", "After termination there is no radical left. Nothing can grow after it.") },
       { values: { addsOk: 0 }, miss: "radikal-bleibt", why: T("Erst ein Baustein, dann der nächste: Die Kette wird bei jedem Schritt um einen Baustein länger.", "One repeat unit, then the next: the chain gets one repeat unit longer at each step.") },
+    ],
+  };
+}
+
+// ── Kette bauen ────────────────────────────────────────────────────────────────
+
+const plainStruct = (x: string) => x.replace(/[{}]/g, "");
+const vinylItem = (v: VinylId): BuildItem => ({ id: v, name: vinyl(v).name, struct: plainStruct(vinyl(v).struct), hue: vinyl(v).hue, letter: vinyl(v).letter, ok: true });
+const SAT_LETTER: Partial<Record<VinylId, string>> = { ethen: "Ea", propen: "Pa", vinylchlorid: "Ce", styrol: "Eb" };
+
+/** K1: Polymer aus 8 Bausteinen bauen – im Vorrat liegt auch das gesättigte Gegenstück (keine C=C, nicht einbaubar) */
+function bauenHomo(): Task {
+  const v = pick(["propen", "ethen", "vinylchlorid", "styrol"] as VinylId[]);
+  const [satName, satStruct] = SAT[v]!;
+  const pool = shuffle([vinylItem(v), { id: "sat", name: satName, struct: satStruct, hue: (v === "ethen" ? "yellow" : "light") as Hue, letter: SAT_LETTER[v]!, ok: false }]);
+  return {
+    kind: "build", pool, n: 8, goal: "homo", example: Array(8).fill(v),
+    sol: T(`8 × ${vinyl(v).name}`, `8 × ${nm(v)}`),
+    prompt: T(`Baue ${vinyl(v).polymer} aus 8 Bausteinen.`, `Build ${vinyl(v).polymer.toLowerCase()} from 8 repeat units.`),
+    hint: T("Nur Moleküle mit C=C können eingebaut werden.", "Only molecules with a C=C can be built in."),
+    tip: T("Vergleiche die Formeln im Vorrat: Wo steht eine Zweifachbindung?", "Compare the formulas in the store: where is a double bond?"),
+    explain: T(`Jedes Kügelchen ist ein Baustein aus ${vinyl(v).name}. Seine C=C wird zur Einfachbindung in der Kette.`, `Each bead is a repeat unit from ${nm(v)}. Its C=C becomes a single bond in the chain.`),
+    traps: [{ values: { pat: PAT.sat }, miss: "doppelbindung-fehlt", why: T(`${satName} hat keine C=C – es kann nicht eingebaut werden.`, `${satName} has no C=C – it cannot be built in.`) }],
+  };
+}
+
+/** K6: Copolymer bauen – Block, abwechselnd oder zufällig */
+function bauenCopo(): Task {
+  const goal = pick(["block", "alt", "stat"] as const);
+  const [a, b] = pick([["styrol", "butadien"], ["ethen", "propen"], ["styrol", "acrylnitril"]] as [VinylId, VinylId][]);
+  const C = COPO(), WHY = COPO_WHY();
+  const example = goal === "block" ? [a, a, a, a, b, b, b, b] : goal === "alt" ? Array.from({ length: 8 }, (_, i) => (i % 2 ? b : a)) : [a, b, b, a, b, a, a, b];
+  const WHAT = tr({ block: "ein Blockcopolymer", alt: "ein alternierendes Copolymer", stat: "ein statistisches Copolymer" }, { block: "a block copolymer", alt: "an alternating copolymer", stat: "a random copolymer" });
+  const what = WHAT[goal];
+  const pats = { block: PAT.block, alt: PAT.alt, stat: PAT.stat } as const;
+  return {
+    kind: "build", pool: [vinylItem(a), vinylItem(b)], n: 8, goal, example,
+    sol: T(`z. B. ${example.map(x => vinyl(x).letter).join(" ")}`, `e.g. ${example.map(x => vinyl(x).letter).join(" ")}`),
+    prompt: T(`Baue ${what} aus ${vinyl(a).name} und ${vinyl(b).name}.`, `Build ${what} from ${nm(a)} and ${nm(b)}.`),
+    hint: T("Die Farben zeigen die Reihenfolge der Monomere.", "The colours show the order of the monomers."),
+    tip: T(`${C[goal]}: Wie folgen die beiden Monomere aufeinander?`, `${C[goal]}: how do the two monomers follow each other?`),
+    explain: boldLead(WHY[goal]),
+    traps: [
+      ...(["block", "alt", "stat"] as const).filter(x => x !== goal).map(x => ({ values: { pat: pats[x] }, miss: "copo-verwechselt", why: tr(`Das ist ${WHAT[x]}. ${WHY[x]}`, `That is ${WHAT[x]}. ${WHY[x]}`) })),
+      { values: { pat: PAT.one }, miss: "copo-verwechselt", why: T("Nur ein Monomer – das ist kein Copolymer. Ein Copolymer enthält beide.", "Only one monomer – that is not a copolymer. A copolymer contains both.") },
     ],
   };
 }
@@ -1003,7 +1080,7 @@ const GENS: Record<string, () => Task> = {
   gruppen, nebenprodukt, bindungArt, chlorid, paarWahl, stopper, netz, produkt, abMonomer, wasserZahl,
   keinNebenprodukt, hWandert, urethan, artWahl, epoxid, epoxidNetz,
   klasse, schmelzen, copolymer, wachstum, klasseAlltag, recycling,
-  radikalTap, freieStelleTap, giftTap, hTap, wasserTap, bausteinTap, schnitt, ordnen,
+  radikalTap, freieStelleTap, giftTap, hTap, wasserTap, bausteinTap, schnitt, ordnen, bauenHomo, bauenCopo,
 };
 
 export const TYPE_NAMES: Record<string, string> = tr({
@@ -1017,7 +1094,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Kettenstopper", netz: "Netz durch drei Gruppen", produkt: "Kunststoff zum Monomer-Paar", abMonomer: "Monomer mit zwei Gruppen", wasserZahl: "Wasser zählen",
   keinNebenprodukt: "Ohne Nebenprodukt", hWandert: "Wanderndes H‑Atom", urethan: "Urethan und Harnstoff", artWahl: "Reaktionsart erkennen",
   epoxid: "Epoxidring", epoxidNetz: "Epoxidharz härtet",
-  ordnen: "Schritte ordnen", schnitt: "Neue Bindung antippen", radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Giftiges Atom antippen", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
+  bauenHomo: "Kette bauen", bauenCopo: "Copolymer bauen", ordnen: "Schritte ordnen", schnitt: "Neue Bindung antippen", radikalTap: "Radikal antippen", freieStelleTap: "Freie Stelle antippen", giftTap: "Giftiges Atom antippen", hTap: "Wanderndes H antippen", wasserTap: "Wasser abziehen", bausteinTap: "Baustein markieren",
   klasse: "Thermoplast, Elastomer, Duroplast", schmelzen: "Einschmelzen", copolymer: "Copolymere", wachstum: "Ketten- und Stufenwachstum",
   klasseAlltag: "Kunststoffart im Alltag", recycling: "Recycling-Code",
 }, {
@@ -1031,7 +1108,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   stopper: "Chain stopper", netz: "Network from three groups", produkt: "Plastic from a monomer pair", abMonomer: "Monomer with two groups", wasserZahl: "Counting water",
   keinNebenprodukt: "No by-product", hWandert: "Moving H atom", urethan: "Urethane and urea", artWahl: "Recognising the reaction type",
   epoxid: "Epoxide ring", epoxidNetz: "Epoxy resin hardens",
-  ordnen: "Order the steps", schnitt: "Tap the new bond", radikalTap: "Tap the radical", freieStelleTap: "Tap the vacant site", giftTap: "Tap the poisoning atom", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a repeat unit",
+  bauenHomo: "Build a chain", bauenCopo: "Build a copolymer", ordnen: "Order the steps", schnitt: "Tap the new bond", radikalTap: "Tap the radical", freieStelleTap: "Tap the vacant site", giftTap: "Tap the poisoning atom", hTap: "Tap the moving H", wasserTap: "Pull out the water", bausteinTap: "Mark a repeat unit",
   klasse: "Thermoplastic, elastomer, thermoset", schmelzen: "Melting down", copolymer: "Copolymers", wachstum: "Chain and step growth",
   klasseAlltag: "Type of plastic in everyday life", recycling: "Recycling code",
 });
@@ -1048,7 +1125,7 @@ const K1: Step[] = tr([
   ["kugelZaehlen", "Im **Kügelchenmodell** ist jeder Baustein ein Kügelchen."],
   ["baustein", "Aus der Kette zurück zum Monomer: Baustein abschneiden, C=C wieder einsetzen."],
   ["monomerVon", "Der Name verrät das Monomer: **Poly** + Name des Monomers."],
-  ["polyName", "Die Seitengruppe an der Zweifachbindung unterscheidet die Monomere."],
+  ["bauenHomo", "Jetzt baust du selbst eine Kette aus Kügelchen."],
   ["kunststoffAlltag", "Kunststoffe sind Polymere – oft mit Kurzzeichen wie PE, PP, PS, PVC."],
   ["bausteinTap", "Zum Schluss: Kette lesen, Baustein finden, Monomer nennen."],
 ], [
@@ -1059,7 +1136,7 @@ const K1: Step[] = tr([
   ["kugelZaehlen", "In the **bead model** each repeat unit is one bead."],
   ["baustein", "From the chain back to the monomer: cut out a repeat unit, put the C=C back."],
   ["monomerVon", "The name gives away the monomer: **poly** + name of the monomer."],
-  ["polyName", "The side group on the double bond tells the monomers apart."],
+  ["bauenHomo", "Now you build a chain from beads yourself."],
   ["kunststoffAlltag", "Plastics are polymers – often with short codes such as PE, PP, PS, PVC."],
   ["bausteinTap", "Finally: read the chain, find the repeat unit, name the monomer."],
 ]);
@@ -1161,7 +1238,7 @@ const K6: Step[] = tr([
   ["schmelzen", "Nur Thermoplaste lassen sich einschmelzen und neu formen."],
   ["klasseAlltag", "Im Alltag: Was muss der Kunststoff aushalten?"],
   ["copolymer", "**Copolymere** enthalten zwei Monomere: zufällig, abwechselnd oder in Blöcken."],
-  ["copolymer", "Die Kügelchen-Farben zeigen die Reihenfolge."],
+  ["bauenCopo", "Jetzt baust du: Die Farben zeigen die Reihenfolge."],
   ["wachstum", "**Kettenwachstum**: lange Ketten sofort. **Stufenwachstum**: lange Ketten erst am Ende."],
   ["wachstum", "Noch einmal: Kettenwachstum oder Stufenwachstum?"],
   ["recycling", "Recycling-Codes im Dreieck: Die Zahl steht für den Kunststoff."],
@@ -1172,7 +1249,7 @@ const K6: Step[] = tr([
   ["schmelzen", "Only thermoplastics can be melted down and reshaped."],
   ["klasseAlltag", "In everyday life: what does the plastic have to withstand?"],
   ["copolymer", "**Copolymers** contain two monomers: random, alternating or in blocks."],
-  ["copolymer", "The bead colours show the order."],
+  ["bauenCopo", "Now you build: the colours show the order."],
   ["wachstum", "**Chain growth**: long chains at once. **Step growth**: long chains only at the end."],
   ["wachstum", "Once more: chain growth or step growth?"],
   ["recycling", "Recycling codes in the triangle: the number stands for the plastic."],
@@ -1208,7 +1285,7 @@ function withHint(t: Task, cue: boolean): Task {
 function ordered(seq: string[], leads: string[]): Task[] {
   const seen = new Set<string>();
   // gleiche Frage auch bei anderer Reihenfolge der Antworten
-  const sig = (t: Task) => t.prompt + (isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
+  const sig = (t: Task) => t.prompt + (isBuild(t) ? JSON.stringify(t.pool) + t.goal : isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
   return seq.map((id, i) => {
     let t = GENS[id]();
     for (let k = 0; k < 30 && seen.has(sig(t)); k++) t = GENS[id]();

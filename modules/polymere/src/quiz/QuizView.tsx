@@ -6,7 +6,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
-import { LEVELS, TYPE_NAMES, isOrder, isTap, levelId, levelName, makeRound, type OrderTask, type TapTask, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
 import { tapFrame } from "./tap.ts";
 import { MechSvg } from "../components/MechSvg.tsx";
 import { anchorPt, fitBox, snapBox, still } from "../chem/scene.ts";
@@ -15,7 +15,7 @@ import { MISS } from "./misconceptions.ts";
 import { explainFor } from "./explain.tsx";
 import { LESSONS } from "../lessons.tsx";
 import { VisView, beadsOf } from "./visual.tsx";
-import { BeadStrip } from "../components/Beads.tsx";
+import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true });
 
@@ -96,6 +96,71 @@ function TapAnswer({ t, answered, submit }: { t: TapTask; answered: Answered | n
   );
 }
 
+
+const BeadIcon = ({ it }: { it: BuildItem }) => (
+  <svg className="pm-build-bead" viewBox="0 0 30 30" aria-hidden="true"><BeadDot cx={15} cy={15} r={13} hue={it.hue} letter={it.letter} /></svg>
+);
+/** Kette bauen: Kügelchen im Vorrat wählen (oder auf einen Platz ziehen), Platz antippen = setzen, gesetztes antippen = entfernen; „Prüfen“, wenn alle Plätze voll sind */
+function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: Answered | null; submit?: Submit; solved?: boolean }) {
+  const [seq, setSeq] = useState<(string | null)[]>(() => Array(t.n).fill(null));
+  const [cur, setCur] = useState<string | null>(null);
+  const [note, setNote] = useState(false);
+  const done = !!answered || !!solved;
+  const shown = solved && !answered ? t.example : seq;
+  const item = (id: string | null) => t.pool.find(p => p.id === id);
+  const full = seq.every(Boolean);
+  const wrongAt = answered && !answered.ok ? buildWrongAt(t, seq as string[]) : -1;
+  const put = (i: number, id: string | null) => {
+    if (done) return;
+    if (!seq[i] && !id) { setNote(true); return; }
+    buzz(); setNote(false);
+    setSeq(s => s.map((x, k) => (k !== i ? x : x && !id ? null : id ?? null)));
+  };
+  // Ziehen aus dem Vorrat auf einen Platz (Abkürzung): loslassen über einem Platz setzt das Kügelchen
+  const drag = (id: string) => (e: React.PointerEvent) => {
+    if (done) return;
+    setCur(id);
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener("pointerup", up);
+      const el = (document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest<HTMLElement>("[data-slot]");
+      if (el && el.dataset.slot !== undefined && !seq[+el.dataset.slot]) put(+el.dataset.slot, id);
+    };
+    if (e.pointerType !== "mouse" || e.button === 0) window.addEventListener("pointerup", up);
+  };
+  return (
+    <div className={`pm-build${done ? " done" : ""}`}>
+      <div className="pm-build-pool" role="group" aria-label={tr("Vorrat", "Store")}>
+        {t.pool.map(it => (
+          <button key={it.id} type="button" className={`pm-build-item${cur === it.id && !done ? " sel" : ""}`} aria-pressed={cur === it.id} disabled={done}
+            onClick={() => { buzz(); setCur(it.id); setNote(false); }} onPointerDown={drag(it.id)}>
+            <BeadIcon it={it} />
+            <span className="pm-build-txt"><b>{it.name}</b><span>{it.struct}</span></span>
+          </button>
+        ))}
+      </div>
+      <div className="pm-build-chain" role="group" aria-label={tr(`Kette mit ${t.n} Plätzen`, `Chain with ${t.n} places`)}>
+        {shown.map((id, i) => {
+          const it = item(id);
+          return (
+            <button key={i} type="button" data-slot={i} className={`pm-build-slot${it ? " full" : ""}${i === wrongAt ? " wrong" : ""}`} disabled={done}
+              onClick={() => put(i, seq[i] ? null : cur)}
+              aria-label={`${tr("Platz", "Place")} ${i + 1}: ${it ? it.name : tr("leer", "empty")}`}>
+              {it ? <BeadIcon it={it} /> : <span className="pm-build-empty" aria-hidden="true" />}
+              {i === wrongAt && <span className="pm-build-x" aria-hidden="true">✗</span>}
+            </button>
+          );
+        })}
+      </div>
+      {!done && (
+        <div className="pm-tap-bar" aria-live="polite">
+          <span className="pm-tap-note">{note ? tr("Erst ein Kügelchen im Vorrat wählen.", "First choose a bead in the store.") : tr(`${seq.filter(Boolean).length} / ${t.n} Plätze`, `${seq.filter(Boolean).length} / ${t.n} places`)}</span>
+          <Button variant="primary" disabled={!full} onClick={() => { buzz(); submit?.(buildResult(t, seq as string[])); }}>{tr("Prüfen", "Check")}</Button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const NUM = "①②③④";
 /** Ordnen-Bild: Ausschnitt um die Elektronenpfeile (dort passiert der Schritt), ohne Lichthöfe – klein noch lesbar */
 function OrderPic({ v }: { v: Vis }) {
@@ -166,11 +231,11 @@ export function QuizView() {
       missName={id => MISS[id]}
       lesson={l => LESSONS[l]}
       heroArt={<span className="hero-pm" aria-hidden="true"><BeadStrip beads={beadsOf(["styrol", "styrol", "styrol", "butadien", "butadien", "butadien"])} active={null} /></span>}
-      renderVisual={t => (isOrder(t) ? (t.stage === "worked" ? <OrderAnswer t={t} answered={null} solved /> : null) : isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
+      renderVisual={t => (isBuild(t) ? (t.stage === "worked" ? <BuildAnswer t={t} answered={null} solved /> : null) : isOrder(t) ? (t.stage === "worked" ? <OrderAnswer t={t} answered={null} solved /> : null) : isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
         : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
-      renderOption={(t, o) => (!isTap(t) && !isOrder(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
-      renderAnswer={(t, a, submit) => (isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
-      solution={t => (isTap(t) || isOrder(t) ? t.sol : null)}
+      renderOption={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
+      renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
+      solution={t => (isTap(t) || isOrder(t) || isBuild(t) ? t.sol : null)}
       explain={(level, task) => explainFor(level, task)}
     />
   );
