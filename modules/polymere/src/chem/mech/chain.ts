@@ -285,9 +285,15 @@ export class ChainMech implements Mech {
     if (fromTop) sc.move(ids.atoms, -2.0, 0);
     const all = ids.atoms;
     const bonds = v.diene ? [[ids.ca, ids.mid![0]], [ids.mid![1], ids.cb]] : [[ids.ca, ids.cb]];
+    // Seite ohne große Seitengruppe am neuen Ende (dort steht Li⁺)
+    const freeSide = () => (all.reduce((t, i) => t + sc.at(i).y, 0) - sc.at(ids.cb).y * all.length < 0 ? 1 : -1);
+    // Li⁺ blendet aus, solange das Monomer heranrückt, und erscheint am neuen Ende wieder (läuft nie durch Atome)
+    if (kind === "anion" && !first && this.li) sc.set(this.li, { op: 0 });
     this.key(80, 650);
     // nähern
     if (fromTop) sc.move(all, 0, 1.15); else sc.move(all, -1.25, 0);
+    // unsichtbar schon an den späteren Platz (neues Ende nach dem Anrücken um −0,75)
+    if (kind === "anion" && !first && this.li) sc.set(this.li, { x: sc.at(ids.cb).x - 0.75 + 1.3, y: 1.0 * freeSide() });
     const mid = { x: (sc.at(this.end).x + xa) / 2, y: 0 };
     const pi = (a: string, b: string): Arrow => ({ from: { b: [a, b], off: -0.13 }, to: { a: b, ang: 0, r: 0.42 }, half: kind === "radikal", bend: -0.5 });
     const arrows: Arrow[] = [];
@@ -335,7 +341,8 @@ export class ChainMech implements Mech {
     }
     this.key(140, 950);
     // an den Platz rücken
-    if (fromTop) { sc.move(all, 0, 1.45); sc.set(this.li, { x: sc.at(ids.cb).x + 1.25, q: 1, qa: -90 }); }
+    // Li⁺ mit Abstand schräg über dem neuen Ende (nicht auf den Ladungszeichen)
+    if (fromTop) { sc.move(all, 0, 1.45); sc.set(this.li, { x: sc.at(ids.cb).x + 1.3, y: 1.0 * freeSide(), q: 1, qa: -90 }); }
     else sc.move(all, -0.75, 0);
     const E = sc.at(this.end), CA = sc.at(ids.ca), CB = sc.at(ids.cb);
     const bm = { x: (E.x + CA.x) / 2, y: (E.y + CA.y) / 2 };
@@ -352,7 +359,7 @@ export class ChainMech implements Mech {
       const pair = v.diene ? [pd[2], pd[3]] : pd;
       if (v.diene) mergeTo([pd[0], pd[1]], { x: (sc.at(ids.mid![0]).x + sc.at(ids.mid![1]).x) / 2, y: -0.13 });
       sc.dot(pair[0], CB.x + 0.36, -0.1); sc.dot(pair[1], CB.x + 0.36, 0.1);
-      if (!first) sc.set(this.li, { x: CB.x + 1.25 });
+      if (!first) sc.set(this.li, { x: CB.x + 1.3, y: 1.0 * freeSide(), op: 1 });
       sc.set(this.end, { q: 0 });
       sc.set(ids.cb, { q: -1, qa: -45 });
     } else {

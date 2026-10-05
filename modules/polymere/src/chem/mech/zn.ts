@@ -94,11 +94,14 @@ export class ZnMech implements Mech {
   /** Lage aller Bausteine: waagrecht nach rechts, der neueste am Titan */
   private layout() {
     const sc = this.sc;
-    this.units.forEach((u, i) => {
-      const ox = TI_C + 2 * i;
+    // Breite je Baustein aus seinen Atomen (Butadien: vier C der Hauptkette statt zwei)
+    const width = (u: (typeof this.units)[number]) => Math.max(2, Math.round(Math.max(...[...u.rel.values()].map(r => r.x)) + 1));
+    let ox = TI_C;
+    this.units.forEach(u => {
       for (const [id, r] of u.rel) if (sc.has(id)) sc.set(id, { x: ox + r.x, y: r.y });
+      ox += width(u);
     });
-    if (this.endGroup && sc.has(this.endGroup)) sc.set(this.endGroup, { x: TI_C + 2 * this.units.length + (this.endGroup === "eth" ? 0.25 : -0.2), y: 0 });
+    if (this.endGroup && sc.has(this.endGroup)) sc.set(this.endGroup, { x: ox + (this.endGroup === "eth" ? 0.25 : -0.2), y: 0 });
     // weit entfernte Bausteine ausblenden (die Leiste zeigt die ganze Kette)
     this.units.forEach((u, i) => { if (i > 5) for (const id of u.rel.keys()) if (sc.has(id)) sc.remove(id); });
   }
@@ -239,6 +242,12 @@ export class ZnMech implements Mech {
     this.key(500, 300, [{ from: { a: het, ang: 110, r: 0.4 }, to: { a: "tti", ang: -80, r: 0.45 }, bend: 0.4 }]);
     const H4 = sc.at(het);
     sc.move(ids.atoms, -H4.x, -1.4 - H4.y);
+    // stößt ein Teil des Monomers an die Liganden des Titans, spiegeln (senkrechte Achse durch das bindende Atom)
+    {
+      const lig = [...sc.atoms.values()].filter(x => !ids.atoms.includes(x.id) && !x.vac && (x.op ?? 1) > 0.5 && Math.hypot(x.x, x.y) < 2.5);
+      const clash = () => ids.atoms.some(i => { const A = sc.at(i); return lig.some(L => Math.abs(L.x - A.x) < 0.8 && Math.abs(L.y - A.y) < 0.5); });
+      if (clash()) { const hx = sc.at(het).x; ids.atoms.forEach(i => sc.set(i, { x: 2 * hx - sc.at(i).x })); if (clash()) ids.atoms.forEach(i => sc.set(i, { x: 2 * hx - sc.at(i).x })); }
+    }
     sc.bond(het, "tti", 1, "coord");
     const lp = sc.at(het).lp;
     if (lp?.length) {

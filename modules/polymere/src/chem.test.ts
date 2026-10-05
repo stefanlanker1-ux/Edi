@@ -306,3 +306,27 @@ test("Beschriftungen im Bild: ganz im Ausschnitt, Zeilen kurz (passt bei 390 px)
     }
   }
 }, 60_000);
+
+test("Atom-Ansicht: Kettenabläufe ohne überlappende Beschriftungen (Endbild jedes Schritts)", async () => {
+  const { labelHalf } = await import("./chem/scene.ts");
+  const bad: string[] = [];
+  for (const r of recipes()) {
+    if (r.art !== "poly" || r.b) continue;
+    const m = makeMech(r);
+    for (let k = 0; k < 8; k++) {
+      const id = nextAuto(m, r);
+      if (!id) break;
+      m.run(id);
+      const s = m.snap(), at = s.atoms.filter(a => (a.op ?? 1) > 0.5 && (a.text ?? a.el) && !a.vac);
+      const bonded = new Set(s.bonds.map(b => [b.a, b.b].sort().join("|")));
+      for (let i = 0; i < at.length; i++) for (let j = i + 1; j < at.length; j++) {
+        const a = at[i], b = at[j];
+        if (bonded.has([a.id, b.id].sort().join("|"))) continue;
+        // Schriftfelder (halbe Breite je Beschriftung, Höhe ≈ 0,5) dürfen sich nicht überdecken
+        const ox = labelHalf(a) + labelHalf(b) - Math.abs(a.x - b.x), oy = 0.42 - Math.abs(a.y - b.y);
+        if (ox > 0.05 && oy > 0.05) bad.push(`${r.a}/${r.method} ${id}: ${a.text ?? a.el}/${b.text ?? b.el}`);
+      }
+    }
+  }
+  assert.deepEqual([...new Set(bad)].slice(0, 20), []);
+}, 120_000);

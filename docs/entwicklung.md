@@ -683,6 +683,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: keine überlappenden Beschriftungen in Kettenabläufen** – Test über alle Ketten-Ansätze (Schriftfelder je Atom); Li⁺ blendet beim Anrücken des Monomers aus und
+  steht danach mit Abstand auf der freien Seite des neuen Endes; Ziegler-Natta: Butadien-Bausteine mit ihrer echten Breite (Ethylgruppe nicht mehr auf der Kette), vergiftendes
+  Monomer wird gespiegelt, wenn es an die Liganden des Titans stößt.
 - **Polymere: Stoffnamen in der Begriffsprüfung** – `terms.test.ts` prüft auch Stoffnamen (Monomere, gesättigte Gegenstücke): sie müssen in einer Lektion bzw. Erklärkarte
   bis zum Kapitel vorkommen; K1 nennt die gesättigten Gegenstücke, Diamin, Säurechlorid und Acrylglas eingeführt; Recycling-Code auch nicht mehr unter „Heute fällig“.
 - **Polymere: Begriffsprüfung über alle Typen eines Kapitels** – `terms.test.ts` prüft auch die Typen aus `more` (laufen in „Alles gemischt“, „Heute fällig“, „Schwächen üben“);
