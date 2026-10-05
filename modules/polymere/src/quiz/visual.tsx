@@ -8,7 +8,7 @@ import { isVinyl, monoHue, monoLetter, monoName, stepMono, vinyl, type StepId } 
 import { group, vinylUnit } from "../chem/draw.ts";
 import { replay } from "../chem/mech/index.ts";
 import type { Bead, Recipe } from "../chem/mech/types.ts";
-import { Scene, fitBox, snapBox, still, type Snap } from "../chem/scene.ts";
+import { Scene, anchorPt, fitBox, snapBox, still, type Snap } from "../chem/scene.ts";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 import { MonomerSvg, SnapSvg, UnitSvg } from "../components/Formula.tsx";
 import { MechSvg } from "../components/MechSvg.tsx";
@@ -70,7 +70,12 @@ export function MechFrame({ r, acts, keyIndex, label }: { r: Recipe; acts: strin
     return k;
   }, [r, acts, keyIndex]);
   const pose = { ...still(frame.snap), arrows: (frame.arrows ?? []).map(arrow => ({ arrow, op: 1 })) };
-  const box = fitBox(snapBox(frame.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 }, 1.7, 6, 3.4, 0.45);
+  // mit Pfeilen: Ausschnitt um die Pfeile (dort passiert der Schritt), damit die Atome groß bleiben
+  const all = snapBox(frame.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
+  const pts = (frame.arrows ?? []).flatMap(a => [anchorPt(frame.snap, a.from), anchorPt(frame.snap, a.to)]).filter(p => !!p);
+  const crop = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 2.0), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 2.0),
+    y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
+  const box = fitBox(crop, 1.7, 5, 3.0, 0.4);
   return <MechSvg pose={pose} box={box} label={label} className="pm-vis-svg" />;
 }
 
@@ -136,22 +141,22 @@ function potPieces(s: PotKind): Pt[][] {
   if (s === "long") {
     // Kettenwachstum: zwei sehr lange Ketten in Schleifen, die über den Rand hinausgehen (tausende Bausteine), dazu viel freies Monomer
     const ch = [[...line(14, 16, 106, 16, 11, 1.4), ...line(106, 28, 30, 28, 9, 1.4, 2)], [...line(106, 52, 14, 52, 11, 1.4, 1), ...line(14, 64, 90, 64, 9, 1.4, 3)]];
-    return [...ch, ...fill(ch.flat(), 12)];
+    return [...ch, ...fill(ch.flat(), 14)];
   }
   if (s === "short") {
     // Stufenwachstum bei 90 % Umsatz: kurze Ketten (im Mittel etwa 10 Bausteine, hier 6–12), fast kein freies Monomer
     const ch = [line(16, 18, 61, 18, 6, 1.4), line(72, 18, 104, 22, 5, 1.4, 1), line(16, 41, 102, 43, 9, 1.6, 2), line(18, 66, 102, 64, 10, 1.6, 3)];
     return [...ch, ...fill(ch.flat(), 1)];
   }
-  // ein Riesenmolekül: Schlange über vier Reihen
-  const pts: Pt[] = [];
-  for (let r = 0; r < 4; r++) {
-    const y = 15 + r * 16;
-    for (let i = 0; i < 9; i++) pts.push([r % 2 ? 96 - i * 9 : 24 + i * 9, y + 1.4 * Math.sin(i * 1.3 + r)]);
-    if (r < 3) pts.push([r % 2 ? 16 : 104, y + 8]);
-  }
-  return [pts];
+  // ein Riesenmolekül: ein Netz über das ganze Gefäß (siehe GIANT_LINKS), kein freies Kügelchen
+  return [GIANT];
 }
+/** Riesenmolekül: 4 Reihen × 9 Kügelchen, waagrecht verbunden und über senkrechte Brücken zu einem Netz verknüpft */
+const GIANT: Pt[] = Array.from({ length: 36 }, (_, i) => [18 + (i % 9) * 10.5, 15 + Math.floor(i / 9) * 17 + 1.2 * Math.sin(i * 1.7)] as Pt);
+const GIANT_LINKS: [number, number][] = [
+  ...Array.from({ length: 36 }, (_, i) => [i, i + 1] as [number, number]).filter(([i]) => i % 9 !== 8),
+  ...[1, 4, 7, 11, 14, 17, 20, 23, 26].map(i => [i, i + 9] as [number, number]),
+];
 export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
   const LABEL: Record<PotKind, string> = tr(
     { mono: "Nur einzelne Monomere", long: "Sehr lange Ketten und viel Monomer", short: "Kurze Ketten (im Mittel 10 Bausteine), kaum Monomer", giant: "Ein einziges Riesenmolekül" },
@@ -168,7 +173,8 @@ export function PotPic({ s, seq }: { s: PotKind; seq: string[] }) {
       </>}
       {pieces.map((pc, i) => (
         <g key={i}>
-          {pc.slice(1).map((p, j) => <line key={j} className="pm-pot-bond" x1={pc[j][0]} y1={pc[j][1]} x2={p[0]} y2={p[1]} />)}
+          {s === "giant" ? GIANT_LINKS.map(([a, b], j) => <line key={j} className="pm-pot-bond" x1={pc[a][0]} y1={pc[a][1]} x2={pc[b][0]} y2={pc[b][1]} />)
+            : pc.slice(1).map((p, j) => <line key={j} className="pm-pot-bond" x1={pc[j][0]} y1={pc[j][1]} x2={p[0]} y2={p[1]} />)}
           {pc.map((p, j) => { const m = seq[k++ % seq.length]; return <BeadDot key={j} cx={p[0]} cy={p[1]} r={3.2} hue={monoHue(m)} />; })}
         </g>
       ))}

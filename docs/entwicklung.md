@@ -685,6 +685,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Kleinigkeiten D48** – Reaktionsart-Frage „zu diesem Monomer“ bei einem Monomer; Riesenmolekül im Gefäß als Netz (kein freies Kügelchen), lange Ketten mit 14 freien
+  Monomeren; Mechanismus-Bilder zeigen den Ausschnitt um die Pfeile; K3: eigener Lektionsschritt PE-HD/PE-LD (Ethen), Schritt 1 bleibt bei Propen; HDI/MDI mit Langnamen;
+  PP-Frage nennt die Eigenschaft; „Die Seitengruppe bleibt – ein Benzolring“.
 - **Polymere: Merksätze geben Kontext, nicht die Regel; Beispiel ≠ Aufgabe** – 30 Merksätze vor Aufgaben neu (Blickrichtung statt Regel), die Regel erscheint nach der
   richtigen Antwort (Kapitel-Schritt `rule`); Test: kein Wort der richtigen Antwort im Merksatz. Quiz-Paket: `sameTask` (freiwillig) in `createQuizStore` – das gelöste
   Beispiel unterscheidet sich von den Aufgaben der Runde; Polymere: gleiche Frage mit gleichem Bild und gleicher Lösung gilt als gleich (Test).

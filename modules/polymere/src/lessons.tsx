@@ -304,8 +304,6 @@ const K3: GuideStep[] = [
       T("Am Titan sitzt die Kette, daneben eine **freie Stelle** (gestrichelt).", "The chain sits on the titanium, next to it a **vacant site** (dashed)."),
       T("Propen lagert sich dort mit seiner C=C-Bindung an.", "Propene attaches there with its C=C bond."),
       T("Dann rückt es zwischen Titan und Kette: eingebaut.", "Then it moves between titanium and chain: inserted."),
-      T("So wächst PE **unverzweigt**: **PE-HD**, dicht und fest.", "So PE grows **unbranched**: **PE-HD** (HDPE), dense and firm."),
-      T("Radikalisch unter Hochdruck bekommt PE **Äste**: **verzweigtes** **PE-LD**, weniger dicht.", "With radicals under high pressure PE gets **branches**: **branched** **PE-LD** (LDPE), less dense."),
     ],
     ok: T("Die Stelle ist wieder frei – das nächste Monomer kann kommen.", "The site is free again – the next monomer can come."),
   },
@@ -317,6 +315,17 @@ const K3: GuideStep[] = [
     lines: [T("Eine **Aluminiumverbindung** gibt eine **Ethylgruppe** ans Titan – dort beginnt die Kette", "An **aluminium compound** gives an **ethyl group** to the titanium – the chain starts there"), T("Nach dem Einbau ist die Stelle am Titan wieder frei", "After insertion the site on the titanium is free again"), T("Das nächste Monomer kommt {?}", "The next monomer goes {?}")],
     why: { [T("an einem Radikal", "at a radical")]: T("Hier gibt es kein Radikal – die Kette hängt am Titan.", "There is no radical here – the chain hangs on the titanium."), [T("am Chlor-Atom", "at the chlorine atom")]: T("Die Cl‑Atome halten das Titan, sie reagieren nicht.", "The Cl atoms hold the titanium, they do not react.") },
     ok: T("Jedes Monomer wird am Titan eingebaut.", "Every monomer is inserted at the titanium."),
+  },
+  {
+    mode: "worked",
+    say: T("Auch Ethen wird am Titan eingebaut.", "Ethene is inserted at the titanium too."),
+    ask: T("Wie unterscheiden sich die zwei Sorten Polyethen?", "How do the two kinds of polyethene differ?"),
+    visual: () => <MechPlay r={{ art: "poly", a: "ethen", method: "zn" }} acts={["act", "add:ethen"]} />,
+    lines: [
+      T("Am Titan wächst PE **unverzweigt**: **PE-HD**, dicht und fest.", "At the titanium PE grows **unbranched**: **PE-HD** (HDPE), dense and firm."),
+      T("Radikalisch unter **Hochdruck** bekommt PE **Äste**: **verzweigtes** **PE-LD**, weniger dicht.", "With radicals under **high pressure** PE gets **branches**: **branched** **PE-LD** (LDPE), less dense."),
+    ],
+    ok: T("Gleiches Monomer, anderes Verfahren – andere Kette.", "Same monomer, different method – different chain."),
   },
   {
     mode: "worked",
@@ -509,7 +518,7 @@ const K5: GuideStep[] = [
     ask: T("Wie entsteht ein Polyurethan?", "How does a polyurethane form?"),
     visual: () => <MechPlay r={PUR} acts={["join"]} />,
     lines: [
-      T("HDI hat zwei **Isocyanatgruppen** –N=C=O.", "HDI has two **isocyanate groups** –N=C=O."),
+      T("HDI (Hexamethylendiisocyanat) hat zwei **Isocyanatgruppen** –N=C=O.", "HDI (hexamethylene diisocyanate) has two **isocyanate groups** –N=C=O."),
       T("Das H‑Atom der –OH-Gruppe wandert zum N‑Atom.", "The H atom of the –OH group moves to the N atom."),
       T("Das O bindet an das C: **Urethangruppe** –NH–⁠CO–⁠O–⁠.", "The O binds to the C: **urethane group** –NH–⁠CO–⁠O–⁠."),
     ],
@@ -578,7 +587,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: T("Ergänze: MDI + Butan-1,4-diol – welche Reaktionsart?", "Complete: MDI + butane-1,4-diol – which type of reaction?"),
+    ask: T("Ergänze: MDI (Diphenylmethandiisocyanat) + Butan-1,4-diol – welche Reaktionsart?", "Complete: MDI (methylene diphenyl diisocyanate) + butane-1,4-diol – which type of reaction?"),
     answer: T("Polyaddition", "Polyaddition"), options: [T("Polyaddition", "Polyaddition"), T("Polykondensation", "Polycondensation"), T("Polymerisation", "Polymerisation")],
     lines: [T("MDI hat –N=C=O, Butandiol –OH: es entsteht Urethan", "MDI has –N=C=O, butanediol –OH: urethane forms"), T("Kein Nebenprodukt → {?}", "No by-product → {?}")],
     why: { [T("Polykondensation", "Polycondensation")]: T("Dabei ginge ein kleines Molekül ab – hier nicht.", "That would split off a small molecule – not here."), [T("Polymerisation", "Polymerisation")]: T("Polymerisation braucht C=C im Monomer.", "Polymerisation needs C=C in the monomer.") },

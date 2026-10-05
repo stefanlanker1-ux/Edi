@@ -251,15 +251,15 @@ function bausteinWahl(): Task {
   ], {
     vis: { k: "mono", id: v }, pics: Object.fromEntries([right, dbl, other]),
     hint: T("Aus C=C wird C–C. Die Seitengruppe bleibt, wo sie ist.", "C=C becomes C–C. The side group stays where it is."),
-    explain: T(`Monomer ${plain(vinyl(v).struct)} → Baustein mit Einfachbindung. Die Seitengruppe bleibt: ${SIDE[v]}.`, `Monomer ${plain(vinyl(v).struct)} → repeat unit with a single bond. The side group stays: ${SIDE[v]}.`),
+    explain: T(`Monomer ${plain(vinyl(v).struct)} → Baustein mit Einfachbindung. Die Seitengruppe bleibt – ${SIDE[v].replace(/^einen /, "ein ")}.`, `Monomer ${plain(vinyl(v).struct)} → repeat unit with a single bond. The side group stays – ${SIDE[v]}.`),
   });
 }
 
 /** Alltagsgegenstand, der unter den vier Kunststoffen eindeutig zu einem gehört (Rohre z. B. gibt es aus PE und PVC) */
 const EVERYDAY: Record<"ethen" | "propen" | "styrol" | "vinylchlorid", string> = tr(
-  { ethen: "Aus welchem Kunststoff sind die meisten **Plastiktüten**?", propen: "Aus welchem Kunststoff sind oft **Stoßstangen** von Autos?",
+  { ethen: "Aus welchem Kunststoff sind die meisten **Plastiktüten**?", propen: "Aus welchem Kunststoff sind oft **Autoteile**, die fest sein und Wärme aushalten müssen?",
     styrol: "Aus welchem Kunststoff sind weiße **Dämmplatten aus Schaum**?", vinylchlorid: "Aus welchem Kunststoff sind oft **Fensterrahmen**?" },
-  { ethen: "Which plastic are most **plastic bags** made of?", propen: "Which plastic are car **bumpers** often made of?",
+  { ethen: "Which plastic are most **plastic bags** made of?", propen: "Which plastic are **car parts** often made of that must be firm and withstand heat?",
     styrol: "Which plastic are white **foam insulation boards** made of?", vinylchlorid: "Which plastic are **window frames** often made of?" },
 );
 /** Stärke jedes Kunststoffs – Grund für die Verwendung (auch in der Lektion K1) */
@@ -717,7 +717,8 @@ function artWahl(): Task {
     { poly: "Polymerisation braucht eine C=C-Zweifachbindung im Monomer.", kond: "Polykondensation spaltet ein kleines Molekül ab (H₂O, HCl).", add: "Polyaddition verknüpft ohne Nebenprodukt – ein H‑Atom wandert." },
     { poly: "Polymerisation needs a C=C double bond in the monomer.", kond: "Polycondensation splits off a small molecule (H₂O, HCl).", add: "Polyaddition links without a by-product – an H atom moves." },
   );
-  return task(T("Welche Reaktionsart passt zu diesen Monomeren?", "Which type of reaction suits these monomers?"), A[c.art],
+  const one = c.vis.k === "mono";
+  return task(one ? T("Welche Reaktionsart passt zu diesem Monomer?", "Which type of reaction suits this monomer?") : T("Welche Reaktionsart passt zu diesen Monomeren?", "Which type of reaction suits these monomers?"), A[c.art],
     (["poly", "kond", "add"] as const).filter(x => x !== c.art).map(x => d(A[x], x === "poly" ? "kond-doppelbindung" : "art-verwechselt", WHY[x])), {
       vis: c.vis,
       hint: T("C=C → Polymerisation. Säure + Alkohol/Amin → Polykondensation. Isocyanat oder Epoxid → Polyaddition.", "C=C → polymerisation. Acid + alcohol/amine → polycondensation. Isocyanate or epoxide → polyaddition."),
