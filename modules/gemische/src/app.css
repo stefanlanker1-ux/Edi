@@ -4,7 +4,7 @@
 .gm-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; width: 100%; }
 .gm-title { margin: 0; font-size: 1.1rem; font-weight: 800; }
 .gm-num { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
-.gm-note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: .85rem; }
+.gm-note { flex-basis: 100%; margin: 0; color: var(--muted); font-size: .875rem; }
 .gm-controls { display: grid; justify-items: center; gap: 6px; }
 .gm-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
 /* Temperaturregler: eigene Zeile unter den Knöpfen */
@@ -53,11 +53,11 @@
 /* Werkzeug „Farben“: Atomsorten mit Farbe */
 .gm-legend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 12px; }
 .gm-legend li { display: flex; align-items: center; gap: 12px; font-size: 1.02rem; }
-.gm-small { margin: 10px 0 0; color: var(--muted); font-size: .85rem; }
+.gm-small { margin: 10px 0 0; color: var(--muted); font-size: .875rem; }
 .gm-mini { flex: none; overflow: visible; }
 
 /* Werkzeug „Stoffe“: Reinstoffe in Verbindungen | Elemente */
-.gm-cap { margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .78rem; color: var(--signal); }
+.gm-cap { margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; font-size: .875rem; color: var(--signal); }
 .gm-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-top: 2px solid var(--rule); }
 .gm-col { display: grid; align-content: start; gap: 8px; padding: 10px 10px 4px 0; min-width: 0; }
 .gm-col + .gm-col { border-left: 1px solid var(--rule); padding-left: 10px; padding-right: 0; }
@@ -69,21 +69,29 @@
 .gm-sub:active { box-shadow: var(--key-edge-pressed); }
 .gm-sub span { display: grid; min-width: 0; }
 .gm-sub b { font-size: .92rem; line-height: 1.2; overflow-wrap: anywhere; }
-.gm-sub small { color: var(--muted); font-weight: 650; }
+.gm-sub small { color: var(--muted); font-weight: 650; font-size: .875rem; }
 
-/* Werkzeug „Zählen“ */
+/* Werkzeug „Zählen“: reine Anzeige; Stoffe, Verbindungen, Elemente, Atomsorten antippen = im Bild markieren */
 .gm-counts { margin: 0; display: grid; }
-.gm-count-wrap { display: grid; gap: 6px; }
-.gm-count-mode { margin: 0; font-size: .72rem; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.gm-cc { display: flex; gap: 6px; align-items: center; }
-.gm-cc input { width: 4.2em; min-height: 44px; font: inherit; font-size: 1.1rem; font-weight: 800; text-align: center; border: 2px dashed var(--text); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
-.gm-cc input.bad { border-color: var(--bad, var(--signal)); }
-.gm-cc button { min-width: 44px; min-height: 44px; border: 1.5px solid var(--text); border-radius: var(--radius-sm); background: var(--accent); color: var(--on-accent); font-weight: 800; }
-.gm-cc button:disabled { opacity: .4; }
-.gm-cc-ok { color: var(--ok); }
-.gm-counts div { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.gm-count-wrap { display: grid; gap: 4px; }
+.gm-counts > div { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .gm-counts dt { font-weight: 650; }
 .gm-counts dd { margin: 0; font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gm-count-row { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 48px; padding: 4px 10px; margin: 4px 0 0;
+  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); font: inherit; font-weight: 650; text-align: left; }
+.gm-count-row b { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.gm-count-row:active { box-shadow: var(--key-edge-pressed); }
+.gm-count-row:disabled { opacity: .55; box-shadow: none; }
+.gm-count-row[aria-pressed="true"], .gm-mark-chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.gm-marks { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; }
+.gm-mark-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; min-width: 44px; padding: 2px 10px 2px 6px;
+  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); font: inherit; font-weight: 700; }
+.gm-mark-chip:active { box-shadow: var(--key-edge-pressed); }
+/* Statuszeile: Kennzeichen lesbar (≥ 14 px); Markierung aufheben (Taste, nicht Anzeige) */
+.gm-status .ui-tag { font-size: .875rem; }
+.gm-mark-off { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); box-shadow: var(--key-edge); font: inherit; font-size: .875rem; font-weight: 700; white-space: nowrap; }
+.gm-mark-off:active { box-shadow: var(--key-edge-pressed); }
 
 /* Werkzeug „Einteilung“: Stoffe → Reinstoffe | Gemische, darin die Beispiele */
 .gm-tree { display: grid; gap: 8px; }
@@ -124,8 +132,8 @@
 .gm-arten dl { display: grid; margin: 0; }
 .gm-arten dl > div { display: grid; grid-template-columns: 6.5em 1fr; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--border); }
 .gm-arten dl > div.on { outline: 2px solid var(--signal); outline-offset: -2px; }
-.gm-arten dt { font-weight: 800; font-size: .85rem; }
-.gm-arten dd { margin: 0; font-size: .85rem; color: var(--muted); }
+.gm-arten dt { font-weight: 800; font-size: .875rem; }
+.gm-arten dd { margin: 0; font-size: .875rem; color: var(--muted); }
 .gm-art b { color: var(--text); font-weight: 700; }
 .gm-art.cur b { color: var(--signal); }
 .gm-forms { display: grid; gap: 6px; margin-top: 10px; }
@@ -145,7 +153,7 @@
 .gm-bowl.shake { animation: gm-wobble .7s ease-in-out; }
 @keyframes gm-wobble { 20% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } 80% { transform: rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .gm-piece { transition: none; } .gm-bowl.shake { animation: none; } }
-.gm-muesli-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: .85rem; }
+.gm-muesli-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: .875rem; }
 .gm-muesli-key li { display: flex; align-items: center; gap: 4px; }
 .gm-parts { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .gm-parts li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--rule); padding: 6px 0; }
@@ -179,6 +187,15 @@
 .sp { display: block; width: 100%; height: 100%; max-height: 100%; }
 .sp-again { position: absolute; top: 0; right: 0; }
 .sp [data-part] { cursor: inherit; }
+/* Antippen: nur Teile mit data-part nehmen Klicks an (Verzierungen nie), unsichtbare Trefferflächen darunter */
+.sp-tap .sp-shapes * { pointer-events: none; }
+.sp-tap .sp-shapes [data-part], .sp-tap .sp-shapes [data-part] * { pointer-events: auto; }
+.sp-hit { fill: transparent; stroke: none; pointer-events: all; }
+/* Lösung: Teil gestrichelt grün umrahmt (nie nur Farbe: gestrichelter Rahmen), in der Lektion pulsierend */
+.sp-mark { fill: none; stroke: var(--ok); stroke-width: 2; stroke-dasharray: 5 3; pointer-events: none; vector-effect: non-scaling-stroke; }
+.gm-g .sp-mark { animation: sp-pulse 1.2s ease-in-out infinite alternate; }
+@keyframes sp-pulse { from { opacity: 1; } to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .gm-g .sp-mark { animation: none; } }
 .sp-glass, .sp-frame, .sp-dish, .sp-stand { fill: none; stroke: var(--text); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .sp-plate { fill: var(--surface-2, var(--hue-grey-soft)); stroke: var(--rule); stroke-width: 1.5; }
 .sp-bowl { fill: none; stroke: var(--text); stroke-width: 2; }
@@ -233,7 +250,7 @@
 .gm-method { display: grid; grid-template-rows: auto auto; justify-items: center; gap: 2px; width: 100%; }
 .gm-method .sp { width: 100%; height: clamp(36px, 8vh, 84px); }
 .gm-method > span { font-weight: 700; font-size: .9rem; hyphens: manual; overflow-wrap: normal; text-align: center; line-height: 1.15; }
-@media (max-height: 760px), (max-width: 400px) { .gm-method .sp { height: clamp(30px, 6vh, 52px); } .gm-method > span { font-size: .82rem; } }
+@media (max-height: 760px), (max-width: 400px) { .gm-method .sp { height: clamp(30px, 6vh, 52px); } .gm-method > span { font-size: .875rem; } }
 /* Teilchenbilder als Antworten: Höhe begrenzt, damit zwei Reihen auch am Desktop ganz passen */
 .mc-grid:has(.gm-pic) .gm-pic:not(.gm-method) .gm-beaker { width: 100%; height: clamp(56px, 19vh, 170px); }
 @media (max-height: 720px) { .mc-grid:has(.gm-pic) .gm-pic:not(.gm-method) .gm-beaker { height: clamp(50px, 16vh, 120px); } }

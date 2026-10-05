@@ -1,5 +1,6 @@
 import { test, assert } from "vitest";
-import { makeRound, LEVELS, TYPE_NAMES, distinctColors, type Pic, type Task } from "./tasks.ts";
+import { GENS, makeRound, LEVELS, TYPE_NAMES, distinctColors, type Pic, type Task } from "./tasks.ts";
+import { PART_NAME } from "./trennen.ts";
 import { MISS } from "./misconceptions.ts";
 import { analyse, isElement, pictureKind, PICTURE_LABEL } from "../mixtures.ts";
 import { initial } from "../mixing.ts";
@@ -145,7 +146,8 @@ test("Kapitel 1–5: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt
     for (let r = 0; r < 60; r++) {
       const round = makeRound("us", lv);
       assert.deepEqual(round.map(t => t.type), L.seq);
-      assert.deepEqual(round.map(t => t.lead), L.leads);
+      // Merksatz des Platzes – außer die Variante bringt ihren eigenen mit (Bild nach dem Mischen, Trennverfahren mit Ziel)
+      round.forEach((t, i) => { assert.ok(t.lead, `${L.name} ${i}: Merksatz fehlt`); if (!["nachher", "trennWahl"].includes(t.type!)) assert.strictEqual(t.lead, L.leads[i]); });
       const keys = round.map(t => t.prompt + JSON.stringify(t.pic ?? t.pics ?? null));
       assert.strictEqual(new Set(keys).size, keys.length, `doppelt in ${L.name}`);
       for (const t of round) {
@@ -164,3 +166,34 @@ test("Kapitel 1–5: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt
   // Alles gemischt: ohne Merksatz und ohne zugeschnittenen Tipp
   for (const t of all("mix", 20)) assert.ok(!t.hintCue && !("tip" in t) && !t.lead);
 });
+
+// Merksatz (lead) und Tipp (hint/tip) nennen den Blickpunkt, nie die gefragte Aussage: kein Inhaltswort der richtigen Antwort
+const STOP = new Set(["eine", "einer", "einen", "einem", "der", "die", "das", "den", "dem", "des", "und", "mit", "ohne", "nicht", "kein", "keine", "keines", "wird", "werden", "sich", "nur", "sind",
+  "ist", "aus", "zur", "zum", "von", "beim", "alle", "jede", "jeder", "mehr", "aber", "dann", "noch", "auch", "sie", "ihre", "ihren",
+  // Oberbegriff, der in fast jeder Frage und Antwort steht (der Tipp darf ihn als Blickpunkt nennen)
+  "teilchen"]);
+const words = (x: string) => x.replace(/\*\*|⁠/g, "").toLowerCase().split(/[^\p{L}\p{N}₀-₉-]+/u).filter(w => w.length >= 4 && !STOP.has(w));
+const answerText = (t: Task) => (t.kind === "mc" ? (t.pics ? "" : t.options[t.answer]) : t.kind === "tap" ? (t.sep ? PART_NAME[t.answer]?.() ?? t.answer : "") : String(t.answer));
+
+test("Merksatz vor der Aufgabe verrät die Antwort nicht (kein Wort der richtigen Antwort im Merksatz)", () => {
+  const bad = new Set<string>();
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 40; k++) for (const t of makeRound("us", lv)) {
+    if (!t.lead) continue;
+    const lead = new Set(words(t.lead));
+    for (const w of words(answerText(t))) if (lead.has(w)) bad.add(`${LEVELS[lv].id} ${t.type}: „${w}“ in „${t.lead}“`);
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Tipp und erster Schritt (hint und tip) verraten die Antwort nicht – in jedem Generator", () => {
+  const bad = new Set<string>();
+  for (const [id, g] of Object.entries(GENS)) for (let k = 0; k < 60; k++) {
+    const t = g();
+    for (const f of [t.hint, (t as { tip?: string }).tip]) {
+      if (!f) continue;
+      const w = new Set(words(f));
+      for (const a of words(answerText(t))) if (w.has(a)) bad.add(`${id}: „${a}“ in „${f}“`);
+    }
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);

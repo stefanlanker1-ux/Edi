@@ -38,22 +38,22 @@ const CASES: Case[] = [
       ["magnet", () => tr("Sand ist nicht magnetisch.", "Sand is not magnetic.")],
       ["chromatografie", () => tr("Chromatografie trennt Farbstoffe.", "Chromatography separates dyes.")]] },
   { mix: () => tr("Salzwasser", "salt water"), goal: () => tr("das Salz gewinnen", "get the salt"), pic: "salz", m: "eindampfen",
-    tip: () => tr("Wasser verdampft beim Erhitzen, Salz nicht.", "Water evaporates when heated, salt does not."),
+    tip: () => tr("Was passiert mit Salzwasser, wenn du es lange erhitzt?", "What happens to salt water if you heat it for a long time?"),
     wrong: [["filtrieren", () => tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water."), "filter-geloest"],
       ["dekantieren", () => tr("Gelöstes Salz setzt sich nicht ab.", "Dissolved salt does not settle.")],
       ["sieben", () => tr("Gelöstes Salz geht durch jedes Sieb.", "Dissolved salt passes through any sieve.")]] },
   { mix: () => tr("Salzwasser", "salt water"), goal: () => tr("sauberes Wasser gewinnen", "get clean water"), pic: "salz", m: "destillieren",
-    tip: () => tr("Das Wasser soll nicht verloren gehen. Wie fängt man den Wasserdampf auf?", "The water must not be lost. How do you catch the water vapour?"),
+    tip: () => tr("Wohin geht das Wasser beim Erhitzen – und wie bekommst du es zurück?", "Where does the water go when heated – and how do you get it back?"),
     wrong: [["eindampfen", () => tr("Beim Eindampfen geht das Wasser als Dampf verloren.", "When evaporating, the water is lost as vapour.")],
       ["filtrieren", () => tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water."), "filter-geloest"],
       ["dekantieren", () => tr("Gelöstes Salz setzt sich nicht ab.", "Dissolved salt does not settle.")]] },
   { mix: () => tr("Alkohol und Wasser", "alcohol and water"), pic: "alkohol", m: "destillieren",
-    tip: () => tr("Alkohol siedet früher als Wasser.", "Alcohol boils earlier than water."),
+    tip: () => tr("Wird beim Erhitzen beides gleichzeitig zu Dampf?", "Do both turn into vapour at the same time when heated?"),
     wrong: [["filtrieren", () => tr("Beide sind Flüssigkeiten. Beide laufen durch den Filter.", "Both are liquids. Both run through the filter.")],
       ["dekantieren", () => tr("Alkohol und Wasser sind gemischt. Nichts setzt sich ab.", "Alcohol and water are mixed. Nothing settles.")],
       ["magnet", () => tr("Alkohol und Wasser sind nicht magnetisch.", "Alcohol and water are not magnetic.")]] },
   { mix: () => tr("Farbstoffe einer schwarzen Filzstift-Farbe", "dyes of a black felt-tip ink"), pic: "tinte", m: "chromatografie",
-    tip: () => tr("Die Farbstoffe wandern verschieden schnell durch Papier.", "The dyes move through paper at different speeds."),
+    tip: () => tr("Wie bekommst du die Farbstoffe auseinander, die alle gelöst sind?", "How do you get the dyes apart when they are all dissolved?"),
     wrong: [["filtrieren", () => tr("Gelöste Farbstoffe gehen alle zusammen durch den Filter.", "Dissolved dyes all pass through the filter together."), "filter-geloest"],
       ["eindampfen", () => tr("Dann bleiben alle Farbstoffe zusammen zurück.", "Then all the dyes stay behind together.")],
       ["sieben", () => tr("Gelöste Farbstoffe gehen durch jedes Sieb.", "Dissolved dyes pass through any sieve.")]] },
@@ -71,8 +71,9 @@ export function trennWahl(): Task {
     mixPic: c.pic,
     methods: true,
     prompt: tr(`Wie trennt man **${name}**?${goal}`, `How do you separate **${name}**?${goal}`),
-    hint: tr("Welche Eigenschaft unterscheidet die Stoffe? Größe, Magnet, Dichte oder Siedetemperatur?", "Which property tells the substances apart? Size, magnet, density or boiling point?"),
+    hint: tr("Welche Eigenschaft unterscheidet die Stoffe? Daraus folgt das Verfahren.", "Which property tells the substances apart? That gives the method."),
     tip: c.tip(),
+    lead: c.goal ? tr("Was willst du am Ende behalten?", "What do you want to keep in the end?") : tr("Worin unterscheiden sich die Stoffe?", "How do the substances differ?"),
     explain: tr(`**${METHOD_TEXT(c.m)}**: ${PROP_WHY[c.m]()}`, `**${METHOD_TEXT(c.m)}**: ${PROP_WHY[c.m]()}`),
   };
 }
@@ -95,6 +96,18 @@ const PROP_WHY: Record<Method, () => string> = {
   chromatografie: () => tr("Die Farbstoffe haften verschieden stark und wandern verschieden weit.", "The dyes stick differently and move different distances."),
 };
 
+/** Denkschritt zum Bild (nennt weder die Eigenschaft noch ihre Wirkung) */
+const PROP_LOOK: Record<Method, () => string> = {
+  auslesen: () => tr("Woran erkennst du die Teile, die du herausnimmst?", "How do you recognise the pieces you take out?"),
+  sieben: () => tr("Vergleiche die Körner, die liegen bleiben, mit denen, die durchfallen.", "Compare the grains that stay with those that fall through."),
+  magnet: () => tr("Was passiert, wenn der Magnet über das Gemisch fährt?", "What happens when the magnet moves over the mixture?"),
+  dekantieren: () => tr("Warum liegt der Sand unten und das Wasser oben?", "Why is the sand at the bottom and the water on top?"),
+  filtrieren: () => tr("Was bleibt im Papier hängen – und warum passt es nicht durch?", "What gets stuck in the paper – and why does it not fit through?"),
+  eindampfen: () => tr("Was passiert mit jedem Stoff beim Erhitzen?", "What happens to each substance when heated?"),
+  destillieren: () => tr("Was passiert mit jedem Stoff beim Erhitzen?", "What happens to each substance when heated?"),
+  chromatografie: () => tr("Warum bleiben manche Farbstoffe weiter unten?", "Why do some dyes stay further down?"),
+};
+
 /** Welche Eigenschaft nutzt dieses Verfahren? Bild = Animation des Verfahrens */
 export function trennEigenschaft(): Task {
   const m = pick<Method>(["auslesen", "sieben", "magnet", "dekantieren", "filtrieren", "eindampfen", "destillieren", "chromatografie"]);
@@ -108,7 +121,7 @@ export function trennEigenschaft(): Task {
     sep: { m, t: -1 },
     prompt: tr(`**${METHOD_TEXT(m)}**: Welche Eigenschaft der Stoffe wird genutzt?`, `**${METHOD_TEXT(m)}**: which property of the substances is used?`),
     hint: tr("Schau, was im Bild passiert: Was bleibt, was geht weg – und warum?", "Watch what happens in the picture: what stays, what goes – and why?"),
-    tip: PROP_WHY[m](),
+    tip: PROP_LOOK[m](),
     explain: tr(`**${right}**: ${PROP_WHY[m]()}`, `**${right}**: ${PROP_WHY[m]()}`),
   };
 }
@@ -126,28 +139,28 @@ interface TapCase { m: Method; ask: () => string; answer: string; parts: string[
 const TAPS: TapCase[] = [
   { m: "filtrieren", answer: "rueckstand", parts: ["rueckstand", "filtrat", "filter"], ask: () => tr("Tippe auf den **Rückstand**.", "Tap the **residue**."),
     why: { filtrat: () => tr("Das Filtrat ist die Flüssigkeit, die durch den Filter läuft.", "The filtrate is the liquid that runs through the filter."), filter: () => tr("Das ist das Filterpapier. Gesucht ist, was darin hängen bleibt.", "That is the filter paper. Wanted: what gets stuck in it.") },
-    tip: () => tr("Der Rückstand bleibt im Filter liegen.", "The residue stays in the filter."), explain: () => tr("Der **Rückstand** (Sand) bleibt im Filter, das **Filtrat** läuft durch.", "The **residue** (sand) stays in the filter, the **filtrate** runs through.") },
+    tip: () => tr("Was konnte nicht durch das Papier?", "What could not get through the paper?"), explain: () => tr("Der **Rückstand** (Sand) bleibt im Filter, das **Filtrat** läuft durch.", "The **residue** (sand) stays in the filter, the **filtrate** runs through.") },
   { m: "filtrieren", answer: "filtrat", parts: ["filtrat", "rueckstand", "filter"], ask: () => tr("Tippe auf das **Filtrat**.", "Tap the **filtrate**."),
     why: { rueckstand: () => tr("Das ist der Rückstand: Er bleibt im Filter.", "That is the residue: it stays in the filter."), filter: () => tr("Das ist das Filterpapier.", "That is the filter paper.") },
-    tip: () => tr("Das Filtrat ist durch den Filter gelaufen.", "The filtrate has run through the filter."), explain: () => tr("Das **Filtrat** ist die klare Flüssigkeit unten im Glas.", "The **filtrate** is the clear liquid at the bottom of the glass.") },
+    tip: () => tr("Was ist durch das Papier gelaufen?", "What ran through the paper?"), explain: () => tr("Das **Filtrat** ist die klare Flüssigkeit unten im Glas.", "The **filtrate** is the clear liquid at the bottom of the glass.") },
   { m: "destillieren", answer: "destillat", parts: ["destillat", "kolben", "kuehler"], ask: () => tr("Tippe auf das **Destillat**.", "Tap the **distillate**."),
     why: { kolben: () => tr("Im Kolben bleibt das Salzwasser zurück, immer salziger.", "The salt water stays in the flask, saltier and saltier."), kuehler: () => tr("Im Kühler wird der Dampf wieder flüssig. Gesucht ist, wo er sich sammelt.", "In the condenser the vapour turns liquid again. Wanted: where it collects.") },
-    tip: () => tr("Das Destillat tropft am Ende des Kühlers heraus.", "The distillate drips out at the end of the condenser."), explain: () => tr("Das **Destillat** sammelt sich in der Vorlage rechts: sauberes Wasser.", "The **distillate** collects in the receiver on the right: clean water.") },
+    tip: () => tr("Wohin fließt der Dampf, nachdem er abgekühlt ist?", "Where does the vapour flow after it has cooled down?"), explain: () => tr("Das **Destillat** sammelt sich in der Vorlage rechts: sauberes Wasser.", "The **distillate** collects in the receiver on the right: clean water.") },
   { m: "destillieren", answer: "kuehler", parts: ["kuehler", "destillat", "kolben"], ask: () => tr("Tippe auf den **Kühler**.", "Tap the **condenser**."),
     why: { destillat: () => tr("Das ist das Destillat. Der Kühler liegt davor.", "That is the distillate. The condenser comes before it."), kolben: () => tr("Im Kolben wird erhitzt, nicht gekühlt.", "The flask is heated, not cooled.") },
-    tip: () => tr("Im Kühler fließt kaltes Wasser um das Rohr.", "In the condenser cold water flows around the tube."), explain: () => tr("Im **Kühler** wird der Dampf abgekühlt und wieder flüssig.", "In the **condenser** the vapour cools down and turns liquid again.") },
+    tip: () => tr("Wo wird der Dampf wieder flüssig?", "Where does the vapour turn liquid again?"), explain: () => tr("Im **Kühler** wird der Dampf abgekühlt und wieder flüssig.", "In the **condenser** the vapour cools down and turns liquid again.") },
   { m: "eindampfen", answer: "salz", parts: ["salz", "schale"], ask: () => tr("Tippe auf das, was nach dem Eindampfen **übrig bleibt**.", "Tap what is **left over** after evaporating."),
     why: { schale: () => tr("Das ist die Schale. Gesucht ist, was darin zurückbleibt.", "That is the dish. Wanted: what stays in it.") },
-    tip: () => tr("Das Wasser ist als Dampf weg.", "The water has gone as vapour."), explain: () => tr("Das **Salz** bleibt zurück, das Wasser ist verdampft.", "The **salt** stays behind, the water has evaporated.") },
+    tip: () => tr("Was ist beim Erhitzen nicht verdampft?", "What did not evaporate when heated?"), explain: () => tr("Das **Salz** bleibt zurück, das Wasser ist verdampft.", "The **salt** stays behind, the water has evaporated.") },
   { m: "magnet", answer: "eisen", parts: ["eisen", "schwefel", "magnet"], ask: () => tr("Tippe auf den Stoff, der **am Magneten hängt**.", "Tap the substance **hanging on the magnet**."),
     why: { schwefel: () => tr("Schwefel ist nicht magnetisch. Er bleibt liegen.", "Sulfur is not magnetic. It stays behind."), magnet: () => tr("Das ist der Magnet selbst.", "That is the magnet itself.") },
-    tip: () => tr("Schau an die Enden des Magneten.", "Look at the ends of the magnet."), explain: () => tr("**Eisen** wird angezogen, Schwefel bleibt liegen.", "**Iron** is attracted, sulfur stays behind.") },
+    tip: () => tr("Welcher Stoff wird vom Magneten angezogen?", "Which substance is attracted by the magnet?"), explain: () => tr("**Eisen** wird angezogen, Schwefel bleibt liegen.", "**Iron** is attracted, sulfur stays behind.") },
   { m: "chromatografie", answer: "blau", parts: ["blau", "rot", "gelb"], ask: () => tr("Tippe auf den Farbstoff, der **am weitesten** gewandert ist.", "Tap the dye that moved **the furthest**."),
     why: { rot: () => tr("Rot ist weiter als Gelb, aber nicht am weitesten.", "Red moved further than yellow, but not the furthest."), gelb: () => tr("Gelb haftet stark am Papier und wandert am wenigsten.", "Yellow sticks strongly to the paper and moves least.") },
     tip: () => tr("Der Start ist die gestrichelte Linie unten.", "The start is the dashed line at the bottom."), explain: () => tr("**Blau** haftet am schwächsten und wandert am weitesten.", "**Blue** sticks least and moves furthest.") },
   { m: "dekantieren", answer: "sand", parts: ["sand", "wasser2"], ask: () => tr("Tippe auf den **Bodensatz**.", "Tap the **sediment**."),
     why: { wasser2: () => tr("Das ist das abgegossene Wasser.", "That is the poured-off water.") },
-    tip: () => tr("Der Bodensatz liegt unten im ersten Glas.", "The sediment lies at the bottom of the first glass."), explain: () => tr("Der **Bodensatz** (Sand) bleibt im Glas, das Wasser wird abgegossen.", "The **sediment** (sand) stays in the glass, the water is poured off.") },
+    tip: () => tr("Was hat sich abgesetzt?", "What has settled?"), explain: () => tr("Der **Bodensatz** (Sand) bleibt im Glas, das Wasser wird abgegossen.", "The **sediment** (sand) stays in the glass, the water is poured off.") },
 ];
 
 /** Teil im Bild antippen (nach dem Trennen) */
@@ -171,14 +184,14 @@ export function trennReihe(): Task {
   const right = iron ? S(M(), L(), F(), E()) : S(L(), F(), E());
   return {
     ...mc(right, [
-      d(iron ? S(L(), F(), M(), E()) : S(F(), L(), E()), "reihenfolge", iron ? tr("Nach dem Lösen liegen Eisen und Sand zusammen im Filter. Zuerst den Magneten nehmen.", "After dissolving, iron and sand lie together in the filter. Use the magnet first.") : tr("Vor dem Lösen ist das Salz noch fest. Es bleibt mit dem Sand im Filter.", "Before dissolving, the salt is still solid. It stays in the filter with the sand.")),
+      d(iron ? S(L(), E(), M(), F()) : S(F(), L(), E()), "reihenfolge", iron ? tr("Nach dem Eindampfen ist das Salz wieder fest und liegt beim Sand. Ohne Wasser trennt das Filtrieren nichts mehr.", "After evaporating, the salt is solid again and lies with the sand. Without water, filtering separates nothing.") : tr("Vor dem Lösen ist das Salz noch fest. Es bleibt mit dem Sand im Filter.", "Before dissolving, the salt is still solid. It stays in the filter with the sand.")),
       d(iron ? S(M(), L(), E(), F()) : S(L(), E(), F()), "reihenfolge", tr("Nach dem Eindampfen liegen Salz und Sand wieder zusammen.", "After evaporating, salt and sand lie together again.")),
       dis(iron ? S(Si(), M(), E()) : S(Si(), E()), tr("Salz und Sand sind gleich feine Körner. Ein Sieb trennt sie nicht.", "Salt and sand are equally fine grains. A sieve does not separate them.")),
     ], 4),
     mixPic: "salzsand",
     prompt: iron ? tr("**Eisen, Sand und Salz** trennen: In welcher Reihenfolge?", "Separate **iron, sand and salt**: in which order?") : tr("**Salz und Sand** trennen: In welcher Reihenfolge?", "Separate **salt and sand**: in which order?"),
     hint: tr("Salz löst sich in Wasser, Sand nicht. Was hält der Filter zurück?", "Salt dissolves in water, sand does not. What does the filter hold back?"),
-    tip: tr("Erst das Salz lösen. Dann bleibt der Sand im Filter, das Salz ist im Filtrat.", "First dissolve the salt. Then the sand stays in the filter, the salt is in the filtrate."),
+    tip: tr("Salz und Sand sind beide Körner. Was macht nur einer der beiden in Wasser?", "Salt and sand are both grains. What does only one of them do in water?"),
     explain: iron ? tr("Magnet holt das Eisen. Lösen, filtrieren: Sand bleibt im Filter. Eindampfen: Salz bleibt.", "The magnet takes the iron. Dissolve, filter: sand stays in the filter. Evaporate: salt stays.")
       : tr("Lösen, filtrieren: Sand bleibt im Filter. Eindampfen: Salz bleibt zurück.", "Dissolve, filter: sand stays in the filter. Evaporate: salt stays behind."),
   };

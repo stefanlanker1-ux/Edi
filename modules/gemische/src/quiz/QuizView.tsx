@@ -45,12 +45,11 @@ function TapAnswer({ t, answered, submit }: { t: Extract<Task, { kind: "tap" }>;
     buzz();
     submit({ ok: part === t.answer, values: { pick: i } });
   };
-  const sel = (p: string) => (t.sep ? `[data-part="${p}"]` : `[data-f="${p}"]`);
   return (
     <div className={`gm-tap${answered ? " done" : ""}`} id={id}>
-      {answered && <style>{`#${id} ${sel(t.answer)} { outline: 2px dashed var(--ok); outline-offset: 2px; } #${id} ${sel(t.answer)} * { stroke: var(--ok); }`}</style>}
+      {answered && !t.sep && <style>{`#${id} [data-f="${t.answer}"] { outline: 2px dashed var(--ok); outline-offset: 2px; } #${id} [data-f="${t.answer}"] * { stroke: var(--ok); }`}</style>}
       <div className="gm-tap-pic">
-        {t.sep ? <SepScene m={t.sep.m} t={t.sep.t} onPick={choose} /> : t.pic ? <PicBeaker p={t.pic} onPick={choose} /> : null}
+        {t.sep ? <SepScene m={t.sep.m} t={t.sep.t} onPick={choose} mark={answered ? t.answer : undefined} /> : t.pic ? <PicBeaker p={t.pic} onPick={choose} /> : null}
       </div>
       <div className="sr-only">
         {t.parts.map(p => <button key={p} type="button" onClick={() => choose(p)}>{partName(t, p)}</button>)}

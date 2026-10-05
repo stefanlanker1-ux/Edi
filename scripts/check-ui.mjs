@@ -2,6 +2,7 @@
 // Aufruf: node scripts/check-ui.mjs [site-Ordner] [,modul1,modul2]  (leer = Übersicht)  – Playwright muss erreichbar sein (PLAYWRIGHT=/pfad/node_modules/playwright/index.mjs, Chromium in PLAYWRIGHT_BROWSERS_PATH).
 // LOCALE=en-GB prüft die englische Oberfläche (Standard de-DE).
 // LESBAR=1 prüft zusätzlich mit eingeschalteter Option „Lesbar“ (größere Abstände) – nichts darf dadurch überlaufen.
+// Antippbare Bilder (svg.sp-tap): jedes Teil (data-part) muss per elementFromPoint erreichbar sein.
 // LEARN="pm-k1,us:pm-k1,…" (Schlüssel der erledigten Lektionen) spielt zusätzlich „Lernen“ Kapitel für Kapitel (Lektionen als erledigt markiert): Elemente mit `data-auto` werden der Reihe nach
 // angetippt, zuletzt die mit `data-auto="last"` (z. B. „Prüfen“), sonst die erste Auswahl; geprüft wird vor und nach der Antwort. Elemente mit `data-min-h="N"` müssen mindestens N px hoch sein.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
@@ -62,7 +63,25 @@ async function check(page, app, vp, view) {
     // Mindesthöhe (freiwillig je Element): Bilder dürfen nicht unter eine lesbare Größe schrumpfen
     const tiny = [...document.querySelectorAll("[data-min-h]")].filter(e => e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().height < Number(e.getAttribute("data-min-h")))
       .map(e => `${String(e.className).split(" ")[0]} ${Math.round(e.getBoundingClientRect().height)} < ${e.getAttribute("data-min-h")}`);
-    return { sw: d.scrollWidth, sh: d.scrollHeight, iw: innerWidth, ih: innerHeight, small, over, tiny };
+    // Antippbare Bilder (Klasse sp-tap): jedes Teil mit data-part muss an mindestens einer Stelle wirklich getroffen werden
+    // (nichts Unsichtbares oder Verziertes darüber)
+    const blocked = [];
+    for (const svg of document.querySelectorAll("svg.sp-tap")) {
+      const parts = new Set([...svg.querySelectorAll(".sp-shapes [data-part]")].map(e => e.getAttribute("data-part")));
+      for (const part of parts) {
+        let ok = false;
+        for (const e of svg.querySelectorAll(`[data-part="${part}"]`)) {
+          const b = e.getBoundingClientRect();
+          for (let i = 0; i < 7 && !ok; i++) for (let j = 0; j < 7 && !ok; j++) {
+            const hit = document.elementFromPoint(b.left + b.width * (i + .5) / 7, b.top + b.height * (j + .5) / 7);
+            if (hit?.closest("[data-part]")?.getAttribute("data-part") === part && svg.contains(hit)) ok = true;
+          }
+          if (ok) break;
+        }
+        if (!ok) blocked.push(part);
+      }
+    }
+    return { sw: d.scrollWidth, sh: d.scrollHeight, iw: innerWidth, ih: innerHeight, small, over, tiny, blocked };
   });
   if (r.sw > r.iw) note(app, vp, view, `horizontaler Überlauf ${r.sw} > ${r.iw}`);
   if (r.sh > r.ih) {
@@ -73,6 +92,7 @@ async function check(page, app, vp, view) {
   for (const s of r.small) note(app, vp, view, `Tippziel < 44: ${s}`);
   for (const o of r.over) note(app, vp, view, `Element überläuft: ${o}`);
   for (const o of r.tiny) note(app, vp, view, `zu klein: ${o}`);
+  for (const o of r.blocked) note(app, vp, view, `Teil im Bild nicht antippbar: ${o}`);
 }
 
 for (const app of APPS) {

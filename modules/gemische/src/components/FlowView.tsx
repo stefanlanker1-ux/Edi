@@ -97,8 +97,10 @@ function layout(cw: number, ch: number, W: number, H: number): Layout {
 /** Dauer eines Rechenschritts in ms (60 pro Sekunde) */
 const STEP = 1000 / 60;
 
-export function FlowView({ world, motion, version, label, onPick, onFrame, focus, paused = false }: {
+export function FlowView({ world, motion, version, label, onPick, onFrame, focus, mark, paused = false }: {
   world: World; motion: boolean; version: number; label: string;
+  /** markierte Stoffe: nur deren Teilchen kräftig, alle anderen blass (Zählen im Bild nachprüfen) */
+  mark?: string[];
   /** angehalten, solange etwas darüber liegt (z. B. 3D-Modell im Stoff-Blatt) – spart Rechenzeit, die Bewegung geht danach weiter */
   paused?: boolean;
   onPick?: (f: string) => void;
@@ -126,6 +128,10 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   const drawRef = useRef<() => void>(() => {});
   const onFrameRef = useRef(onFrame);
   onFrameRef.current = onFrame;
+  const markRef = useRef(mark);
+  markRef.current = mark;
+  /** gezeichnete (geglättete) Lage je Teilchen – Antippen in der Lupe trifft das Teilchen, das man sieht */
+  const shownRef = useRef(new Map<number, [number, number, number, number]>());
 
   // neue Welt (Mischen beginnt von vorn): Lupe bleibt, wo sie ist (anderes Beispiel = neue Ansicht mit eigener Lupe)
   useEffect(() => { worldRef.current = world; }, [world]);
@@ -140,7 +146,8 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
     const minis = new Map<string, HTMLCanvasElement>();
     // gezeichnete Lage je Teilchen: folgt der gerechneten Lage wie an einer gedämpften Feder (kritisch gedämpft) –
     // glättet das Zittern der Stöße, ohne nachzuschwingen; in der Lupe (8-fach vergrößert) wichtig
-    const shown = new Map<number, [number, number, number, number]>();
+    const shown = shownRef.current;
+    shown.clear();
     const at = (p: { id: number; x: number; y: number }): [number, number] => { const s = shown.get(p.id); return s ? [s[0], s[1]] : [p.x, p.y]; };
     const glide = (dt: number) => {
       // je 1/60 s ein Federschritt (auf langsamen Geräten mehrere pro Bild) – gleich weich bei 30, 60 und 120 Hz
@@ -280,13 +287,16 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
         ctx.beginPath(); ctx.moveTo(tx(0), ty(y)); ctx.lineTo(tx(w.W), ty(y)); ctx.stroke();
       };
       // Teilchen klein (Übersicht): flache Kreise, je Stoff und Drehung (16 Stufen) einmal vorgezeichnet
+      const marked = markRef.current, dim = (f: string) => !!marked && !marked.includes(f);
       const small = () => {
         for (const p of w.ps) {
+          ctx.globalAlpha = dim(p.f) ? .16 : 1;
           const turn = ((Math.round(p.a / (Math.PI / 8)) % 16) + 16) % 16;
           const spr = miniSprite(p.f, turn, k[p.f] * mv);
           const [px, py] = at(p);
           ctx.drawImage(spr, X(px) - spr.width / 2 / dpr, Y(py) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
         }
+        ctx.globalAlpha = 1;
       };
       vessel(X, Y, 1.6);
       small();
@@ -320,8 +330,10 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
         const turn = ((Math.round(p.a / (Math.PI / 16)) % 32) + 32) % 32;
         const spr = bigSprite(p.f, turn, k[p.f] * mz);
         const [px, py] = at(p);
+        ctx.globalAlpha = dim(p.f) ? .16 : 1;
         ctx.drawImage(spr, ZX(px) - spr.width / 2 / dpr, ZY(py) - spr.height / 2 / dpr, spr.width / dpr, spr.height / dpr);
       }
+      ctx.globalAlpha = 1;
       phase(ZX, ZY, 3);
       ctx.restore();
       ctx.strokeStyle = rgb("text"); ctx.lineWidth = 2.5;
@@ -358,7 +370,7 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
   }, [motion, world]);
 
   // ohne Bewegung: neu zeichnen, wenn sich der Zustand ändert
-  useEffect(() => { drawRef.current(); }, [version]);
+  useEffect(() => { drawRef.current(); }, [version, mark]);
 
   const toWorld = (e: PointerEvent) => {
     const L = lay.current, r = canvas.current!.getBoundingClientRect();
@@ -381,7 +393,10 @@ export function FlowView({ world, motion, version, label, onPick, onFrame, focus
       const rl = lensRadius(w), [lx, ly] = lens.current;
       const wx = lx + (p.px - L.zx) / (L.R / rl), wy = ly + (p.py - L.zy) / (L.R / rl);
       let best = null as null | string, bd = Infinity;
-      for (const q of w.ps) { const d = Math.hypot(q.x - wx, q.y - wy); if (d < bd) { bd = d; best = q.f; } }
+      for (const q of w.ps) {
+        const s = shownRef.current.get(q.id), d = Math.hypot((s ? s[0] : q.x) - wx, (s ? s[1] : q.y) - wy);
+        if (d < bd) { bd = d; best = q.f; }
+      }
       // erst beim Loslassen öffnen (click): öffnet das Blatt schon beim Aufsetzen, schließt es der nachfolgende Klick am Handy wieder
       picked.current = best && bd < rl * .5 ? best : null;
       return;

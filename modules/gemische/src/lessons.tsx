@@ -91,7 +91,7 @@ const LUFT: Pic = { mix: [["Ar", 9], ["CO2", 4]], state: "gas" };
 /** Animation eines Trennverfahrens (spielt beim Erscheinen ab) bzw. Standbild mit antippbaren Teilen */
 const Sep = ({ m }: { m: Method }) => <div className="gm-g"><SepAnim m={m} /></div>;
 const SepTap = ({ m, c, target }: { m: Method; c: GuideCtx; target: string }) => (
-  <div className={`gm-g${c.show ? " show-" + target : ""}`}><Fit className="gm-g-pic" min={0.3}><SepScene m={m} t={1} onPick={p => c.pick(p)} /></Fit></div>
+  <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m={m} t={1} onPick={p => c.pick(p)} mark={c.show || c.solved ? target : undefined} /></Fit></div>
 );
 
 const HOM = () => tr("homogenes Gemisch", "homogeneous mixture"), HET = () => tr("heterogenes Gemisch", "heterogeneous mixture"), REIN = () => tr("Reinstoff", "Pure substance");
@@ -115,7 +115,7 @@ const K1: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie viele **Teilchen** sind hier?", "Complete: how many **particles** are here?"), answer: "8", options: ["8", "14", "2"],
+    ask: tr("Ergänze: Wie viele **Teilchen** sind hier?", "Complete: how many **particles** are here?"), answer: "8", options: ["2", "8", "14"],
     visual: () => <Picture p={MIX2} />,
     lines: [tr("Kohlendioxid-Moleküle CO₂: **3**.", "Carbon dioxide molecules CO₂: **3**."), tr("Einzelne Neonatome Ne: **5**.", "Single neon atoms Ne: **5**."), tr("3 + 5 = {?} Teilchen", "3 + 5 = {?} particles")],
     why: { "14": tr("14 sind alle Atome. Ein Molekül zählt als **ein** Teilchen.", "14 is the number of atoms. A molecule counts as **one** particle."), "2": tr("2 sind die Sorten. Zähle jedes Teilchen.", "2 is the number of kinds. Count every particle.") },
@@ -142,7 +142,7 @@ const K1: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie viele **Atomsorten**?", "Complete: how many **kinds of atoms**?"), answer: "3", options: ["3", "2", "9"],
+    ask: tr("Ergänze: Wie viele **Atomsorten**?", "Complete: how many **kinds of atoms**?"), answer: "3", options: ["2", "3", "9"],
     visual: () => <Picture p={{ mix: [["H2O", 3], ["NH3", 2]], state: "modell" }} />,
     lines: [tr("Weiß (H), rot (O), blau (N).", "White (H), red (O), blue (N)."), tr("Atomsorten: {?}", "Kinds of atoms: {?}")],
     why: { "2": tr("2 sind die Teilchensorten (Wasser H₂O, Ammoniak NH₃). Zähle die Farben.", "2 is the number of kinds of particles (water H₂O, ammonia NH₃). Count the colours."), "9": tr("Gleiche Farben zählen nur einmal.", "Identical colours count only once.") },
@@ -158,7 +158,7 @@ const K1: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie viele **Stoffe** sind im Bild?", "Complete: how many **substances** are in the picture?"), answer: "4", options: ["4", "8", "3"],
+    ask: tr("Ergänze: Wie viele **Stoffe** sind im Bild?", "Complete: how many **substances** are in the picture?"), answer: "4", options: ["3", "4", "8"],
     visual: () => <Picture p={SORTEN} />,
     lines: [tr("Sorten: Wasser H₂O, Kohlendioxid CO₂, Kohlenmonoxid CO, Methan CH₄.", "Kinds: water H₂O, carbon dioxide CO₂, carbon monoxide CO, methane CH₄."), tr("Anzahl der Stoffe: {?}", "Number of substances: {?}")],
     why: { "8": tr("8 sind die Teilchen. Gleiche Teilchen = ein Stoff.", "8 is the number of particles. Identical particles = one substance."), "3": tr("3 sind die Atomsorten. Gezählt werden Teilchensorten.", "3 is the number of kinds of atoms. Count kinds of particles.") },
@@ -166,7 +166,7 @@ const K1: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Was ist **zwischen** den Teilchen?", "Your turn: what is **between** the particles?"), answer: tr("Nichts – leerer Raum", "Nothing – empty space"), options: [tr("Nichts – leerer Raum", "Nothing – empty space"), tr("Luft", "Air"), tr("Wasser", "Water")],
+    ask: tr("Jetzt du: Was ist **zwischen** den Teilchen?", "Your turn: what is **between** the particles?"), answer: tr("Nichts – leerer Raum", "Nothing – empty space"), options: [tr("Luft", "Air"), tr("Nichts – leerer Raum", "Nothing – empty space"), tr("Wasser", "Water")],
     visual: () => <Picture p={MIX} />,
     why: { [tr("Luft", "Air")]: tr("Luft besteht selbst aus Teilchen.", "Air itself consists of particles."), [tr("Wasser", "Water")]: tr("Wasser besteht aus diesen Teilchen – dazwischen ist nichts.", "Water consists of these particles – there is nothing in between.") },
     lines: [tr("Alle Stoffe bestehen aus Teilchen – dazwischen ist leerer Raum.", "All substances consist of particles – in between is empty space.")],
@@ -187,7 +187,7 @@ const K2: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Was ist Helium He?", "Complete: what is helium He?"), answer: EL(), options: [EL(), VB()],
+    ask: tr("Ergänze: Was ist Helium He?", "Complete: what is helium He?"), answer: EL(), options: [VB(), EL()],
     visual: () => <Picture p={{ mix: [["H2O", 3], ["He", 4]], state: "modell" }} />,
     lines: [tr("Wasser H₂O: zwei Farben (H, O) → Verbindung.", "Water H₂O: two colours (H, O) → compound."), tr("Helium He: eine Farbe → {?}", "Helium He: one colour → {?}")],
     why: { [VB()]: tr("Eine Verbindung braucht mehrere Atomsorten. Helium hat nur eine.", "A compound needs several kinds of atoms. Helium has only one.") },
@@ -240,7 +240,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Reinstoff oder Gemisch?", "Complete: pure substance or mixture?"), answer: REIN(), options: [REIN(), GM()],
+    ask: tr("Ergänze: Reinstoff oder Gemisch?", "Complete: pure substance or mixture?"), answer: REIN(), options: [GM(), REIN()],
     visual: () => <Picture p={NUR_CO2} />,
     lines: [tr("Alle Teilchen gleich (Kohlendioxid CO₂) → ein Stoff.", "All particles identical (carbon dioxide CO₂) → one substance."), tr("Ein Stoff → {?}", "One substance → {?}")],
     why: { [GM()]: tr("Jedes Teilchen hat zwei Atomsorten – aber alle Teilchen sind gleich. Ein Stoff.", "Each particle has two kinds of atoms – but all particles are identical. One substance.") },
@@ -266,7 +266,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Argon Ar und Kohlendioxid CO₂ haben sich gemischt. Was ist das?", "Your turn: argon Ar and carbon dioxide CO₂ have mixed. What is it?"), answer: HOM(), options: [HOM(), HET(), REIN()],
+    ask: tr("Jetzt du: Argon Ar und Kohlendioxid CO₂ haben sich gemischt. Was ist das?", "Your turn: argon Ar and carbon dioxide CO₂ have mixed. What is it?"), answer: HOM(), options: [HET(), REIN(), HOM()],
     visual: () => <Picture p={LUFT} />,
     why: { [HET()]: tr("Gase mischen sich bis zu den Teilchen – es gibt keine Grenze.", "Gases mix down to the particles – there is no boundary."), [REIN()]: tr("Zwei Teilchensorten – also zwei Stoffe.", "Two kinds of particles – so two substances.") },
     lines: [tr("Zwei Stoffe, überall gleich verteilt → homogen (wie Luft).", "Two substances, spread evenly → homogeneous (like air).")],
@@ -282,7 +282,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: **20 g** Zucker lösen sich in **200 g** Wasser.", "Complete: **20 g** of sugar dissolve in **200 g** of water."), answer: "220 g", options: ["220 g", "200 g", "180 g"],
+    ask: tr("Ergänze: **20 g** Zucker lösen sich in **200 g** Wasser.", "Complete: **20 g** of sugar dissolve in **200 g** of water."), answer: "220 g", options: ["180 g", "200 g", "220 g"],
     visual: () => <Picture p={ZUCKER} />,
     lines: [tr("Wasser: 200 g. Zucker: 20 g – alle Teilchen sind noch da.", "Water: 200 g. Sugar: 20 g – all particles are still there."), tr("Zuckerwasser: {?}", "Sugar water: {?}")],
     why: { "200 g": tr("Der Zucker ist noch da – seine 20 g zählen mit.", "The sugar is still there – its 20 g count too."), "180 g": tr("Beim Lösen geht nichts verloren – addieren, nicht abziehen.", "Nothing is lost when dissolving – add, do not subtract.") },
@@ -290,7 +290,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Ein Tropfen Tinte fällt in Wasser. Niemand rührt um.", "Your turn: a drop of ink falls into water. Nobody stirs."), answer: EVEN(), options: [EVEN(), BOTTOM(), GONE()],
+    ask: tr("Jetzt du: Ein Tropfen Tinte fällt in Wasser. Niemand rührt um.", "Your turn: a drop of ink falls into water. Nobody stirs."), answer: EVEN(), options: [BOTTOM(), GONE(), EVEN()],
     why: { [BOTTOM()]: tr("Die Teilchen bewegen sich in alle Richtungen – auch nach oben.", "The particles move in all directions – upwards too."), [GONE()]: tr("Teilchen verschwinden nicht – sie verteilen sich.", "Particles do not disappear – they spread out.") },
     lines: [tr("Tinten- und Wasserteilchen bewegen sich ständig → die Tinte verteilt sich von selbst.", "Ink and water particles move all the time → the ink spreads out by itself.")],
     ok: tr("Ständige Teilchenbewegung mischt Lösungen und Gase.", "Constant particle motion mixes solutions and gases."),
@@ -308,14 +308,14 @@ const K4: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: **Öl in Wasser**, kräftig geschüttelt.", "Complete: **oil in water**, shaken hard."), answer: tr("Emulsion", "Emulsion"), options: [tr("Emulsion", "Emulsion"), tr("Suspension", "Suspension"), tr("Lösung", "Solution")],
+    ask: tr("Ergänze: **Öl in Wasser**, kräftig geschüttelt.", "Complete: **oil in water**, shaken hard."), answer: tr("Emulsion", "Emulsion"), options: [tr("Lösung", "Solution"), tr("Emulsion", "Emulsion"), tr("Suspension", "Suspension")],
     lines: [tr("Was ist verteilt? Öl – **flüssig**, als Tröpfchen.", "What is spread out? Oil – **liquid**, as droplets."), tr("Worin? Wasser – **flüssig**.", "In what? Water – **liquid**."), tr("Tröpfchen in Flüssigkeit → {?}", "Droplets in a liquid → {?}")],
     why: { [tr("Suspension", "Suspension")]: tr("Suspension heißt: **feste** Körner. Öl ist flüssig.", "Suspension means **solid** grains. Oil is liquid."), [tr("Lösung", "Solution")]: tr("Öl löst sich nicht in Wasser – man sieht Tröpfchen.", "Oil does not dissolve in water – you can see droplets.") },
     ok: tr("Flüssig in flüssig, als Tröpfchen → Emulsion.", "Liquid in liquid, as droplets → emulsion."),
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Welche Art von Gemisch ist **Müsli**?", "Your turn: what type of mixture is **muesli**?"), answer: tr("Gemenge", "Coarse mixture"), options: [tr("Gemenge", "Coarse mixture"), tr("Suspension", "Suspension"), tr("Legierung", "Alloy")],
+    ask: tr("Jetzt du: Welche Art von Gemisch ist **Müsli**?", "Your turn: what type of mixture is **muesli**?"), answer: tr("Gemenge", "Coarse mixture"), options: [tr("Legierung", "Alloy"), tr("Suspension", "Suspension"), tr("Gemenge", "Coarse mixture")],
     visual: () => <div className="gm-g"><MuesliBowl mixed={1} shaking={false} /></div>,
     why: { [tr("Suspension", "Suspension")]: tr("Im Müsli ist keine Flüssigkeit – nur feste Teile.", "There is no liquid in muesli – only solid pieces."), [tr("Legierung", "Alloy")]: tr("Legierungen sind Metalle, bis zu den Atomen gemischt.", "Alloys are metals mixed down to the atoms.") },
     lines: [tr("Fest neben fest, Stücke sichtbar → Gemenge.", "Solid beside solid, pieces visible → coarse mixture.")],
@@ -324,7 +324,7 @@ const K4: GuideStep[] = [
   {
     mode: "free",
     say: tr("„Rein“ heißt auf der Packung: nichts dazugegeben. Chemisch heißt Reinstoff: nur **ein** Stoff.", "On a package “pure” means: nothing added. In chemistry a pure substance means: only **one** substance."),
-    ask: tr("„100 % reiner Orangensaft“ – was ist das chemisch?", "“100 % pure orange juice” – what is it chemically?"), answer: GM(), options: [GM(), REIN()],
+    ask: tr("„100 % reiner Orangensaft“ – was ist das chemisch?", "“100 % pure orange juice” – what is it chemically?"), answer: GM(), options: [REIN(), GM()],
     why: { [REIN()]: tr("Saft enthält Wasser, Zucker, Säuren und Farbstoffe – viele Stoffe.", "Juice contains water, sugar, acids and dyes – many substances.") },
     lines: [tr("Wasser, Zucker, Säuren, Farbstoffe → viele Stoffe → Gemisch.", "Water, sugar, acids, dyes → many substances → mixture.")],
     ok: tr("Ein Gemisch – auch wenn nichts dazugegeben wurde.", "A mixture – even if nothing was added."),
@@ -350,7 +350,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: **Erbsen und Linsen** trennen.", "Complete: separate **peas and lentils**."), answer: M.auslesen(), options: [M.auslesen(), M.magnet(), M.sieben()],
+    ask: tr("Ergänze: **Erbsen und Linsen** trennen.", "Complete: separate **peas and lentils**."), answer: M.auslesen(), options: [M.magnet(), M.sieben(), M.auslesen()],
     visual: () => <Sep m="auslesen" />,
     lines: [tr("Große Teile, die verschieden aussehen.", "Large pieces that look different."), tr("Mit der Pinzette herausnehmen → {?}", "Take them out with tweezers → {?}")],
     why: { [M.magnet()]: tr("Erbsen und Linsen sind nicht magnetisch.", "Peas and lentils are not magnetic."), [M.sieben()]: tr("Beide sind groß – sie bleiben zusammen im Sieb.", "Both are large – they stay in the sieve together.") },
@@ -367,7 +367,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Was läuft durch den Filter?", "Complete: what runs through the filter?"), answer: tr("Filtrat", "Filtrate"), options: [tr("Filtrat", "Filtrate"), tr("Rückstand", "Residue")],
+    ask: tr("Ergänze: Was läuft durch den Filter?", "Complete: what runs through the filter?"), answer: tr("Filtrat", "Filtrate"), options: [tr("Rückstand", "Residue"), tr("Filtrat", "Filtrate")],
     visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="filtrieren" t={1} /></Fit></div>,
     lines: [tr("Oben im Filter: Sand = Rückstand.", "At the top in the filter: sand = residue."), tr("Unten im Glas: {?}", "At the bottom in the glass: {?}")],
     why: { [tr("Rückstand", "Residue")]: tr("Der Rückstand bleibt im Filter liegen.", "The residue stays in the filter.") },
@@ -392,7 +392,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Aus Salzwasser nur das **Salz** gewinnen.", "Complete: get only the **salt** from salt water."), answer: M.eindampfen(), options: [M.eindampfen(), M.filtrieren(), M.sieben()],
+    ask: tr("Ergänze: Aus Salzwasser nur das **Salz** gewinnen.", "Complete: get only the **salt** from salt water."), answer: M.eindampfen(), options: [M.filtrieren(), M.eindampfen(), M.sieben()],
     visual: () => <Sep m="eindampfen" />,
     lines: [tr("Wasser verdampft beim Erhitzen, Salz nicht.", "Water evaporates when heated, salt does not."), tr("Das Wasser darf weg → {?}", "The water may go → {?}")],
     why: { [M.filtrieren()]: tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water."), [M.sieben()]: tr("Gelöstes Salz geht durch jedes Sieb.", "Dissolved salt passes through any sieve.") },
@@ -400,7 +400,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Aus Salzwasser **sauberes Wasser** gewinnen.", "Your turn: get **clean water** from salt water."), answer: M.destillieren(), options: [M.destillieren(), M.eindampfen(), M.filtrieren()],
+    ask: tr("Jetzt du: Aus Salzwasser **sauberes Wasser** gewinnen.", "Your turn: get **clean water** from salt water."), answer: M.destillieren(), options: [M.eindampfen(), M.filtrieren(), M.destillieren()],
     why: { [M.eindampfen()]: tr("Beim Eindampfen geht das Wasser als Dampf verloren.", "When evaporating, the water is lost as vapour."), [M.filtrieren()]: tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water.") },
     lines: [tr("Der Dampf wird im Kühler aufgefangen → Destillat = sauberes Wasser.", "The vapour is caught in the condenser → distillate = clean water.")],
     ok: tr("Destillieren: Das Wasser geht nicht verloren.", "Distilling: the water is not lost."),
@@ -415,7 +415,7 @@ const K5: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welcher Farbstoff haftet **am stärksten**?", "Complete: which dye sticks **most strongly**?"), answer: tr("Gelb", "Yellow"), options: [tr("Gelb", "Yellow"), tr("Blau", "Blue"), tr("Rot", "Red")],
+    ask: tr("Ergänze: Welcher Farbstoff haftet **am stärksten**?", "Complete: which dye sticks **most strongly**?"), answer: tr("Gelb", "Yellow"), options: [tr("Blau", "Blue"), tr("Rot", "Red"), tr("Gelb", "Yellow")],
     visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="chromatografie" t={1} /></Fit></div>,
     lines: [tr("Gelb ist am wenigsten weit gewandert.", "Yellow has moved the least."), tr("Am stärksten haftet: {?}", "Sticks most strongly: {?}")],
     why: { [tr("Blau", "Blue")]: tr("Blau ist am weitesten gewandert – es haftet am schwächsten.", "Blue moved furthest – it sticks least."), [tr("Rot", "Red")]: tr("Rot liegt in der Mitte.", "Red is in the middle.") },

@@ -3,7 +3,7 @@
 // abspielen, an einer Stelle anhalten (Auswahlbild) und prüfen. Teile tragen `data-part` (Rückstand, Filtrat, Destillat …):
 // Ziele für Beschriftungen und für Aufgaben zum Antippen. Farben nur aus der Palette; bei reduzierter Bewegung gleich das Endbild.
 
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { IconButton, useReducedMotion } from "@lern/ui";
 import { tr } from "@lern/i18n";
 
@@ -282,13 +282,62 @@ function chromatografie(t: number) {
 
 const SCENES: Record<Method, (t: number, id: string) => ReactNode> = { auslesen, sieben, magnet, dekantieren, filtrieren, eindampfen, destillieren, chromatografie };
 
-/** Ein Bild des Verfahrens zum Zeitpunkt t (0 vorher … 1 getrennt) */
-export function SepScene({ m, t, label, onPick }: { m: Method; t: number; label?: string; onPick?: (part: string) => void }) {
+/** Trefferfläche eines Teils: sein Umriss, mindestens 44 × 44 px groß (in Bild-Einheiten) */
+interface Hit { part: string; x: number; y: number; w: number; h: number }
+/** kleinste Trefferfläche in px (Tippziel) */
+const HIT_PX = 44;
+
+/**
+ * Ein Bild des Verfahrens zum Zeitpunkt t (0 vorher … 1 getrennt). Mit `onPick` sind die Teile antippbar: nur Elemente mit `data-part`
+ * nehmen Klicks an (Verzierungen wie der schwarze Startpunkt der Chromatografie liegen sonst über den Farbflecken), dazu unter
+ * dem Bild unsichtbare Trefferflächen je Teil (mindestens 44 px; kleinere Teile liegen oben, damit jedes erreichbar bleibt).
+ */
+export function SepScene({ m, t, label, onPick, mark }: { m: Method; t: number; label?: string; onPick?: (part: string) => void;
+  /** Teil gestrichelt grün umrahmen (Lösung nach der Antwort) */
+  mark?: string }) {
   const id = "sp" + useId().replace(/:/g, "");
+  const svg = useRef<SVGSVGElement>(null);
+  const [hits, setHits] = useState<Hit[]>([]);
+  const tap = !!onPick;
+  useLayoutEffect(() => {
+    const el = svg.current;
+    if (!tap || !el) return;
+    const measure = () => {
+      const ctm = el.getScreenCTM(), scale = ctm ? Math.hypot(ctm.a, ctm.b) : 1, min = HIT_PX / Math.max(.01, scale);
+      const box = new Map<string, DOMRect>();
+      for (const e of el.querySelectorAll<SVGGraphicsElement>(".sp-shapes [data-part]")) {
+        const part = e.getAttribute("data-part")!;
+        let b: DOMRect;
+        try { b = e.getBBox(); } catch { continue; }
+        if (!b.width && !b.height) continue;
+        // Lage im Bild: Transformationen der Elternelemente (gekipptes Glas, Magnet) mitnehmen
+        const local = e.getCTM(), root = el.getCTM();
+        if (local && root) {
+          const k = root.inverse().multiply(local);
+          const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(k));
+          const xs = pts.map(q => q.x), ys = pts.map(q => q.y);
+          b = new DOMRect(Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+        }
+        const o = box.get(part);
+        box.set(part, o ? new DOMRect(Math.min(o.x, b.x), Math.min(o.y, b.y), Math.max(o.right, b.right) - Math.min(o.x, b.x), Math.max(o.bottom, b.bottom) - Math.min(o.y, b.y)) : b);
+      }
+      const next = [...box].map(([part, b]) => {
+        const w = Math.max(b.width, min), h = Math.max(b.height, min);
+        return { part, x: b.x + b.width / 2 - w / 2, y: b.y + b.height / 2 - h / 2, w, h };
+      }).sort((p, q) => q.w * q.h - p.w * p.h);
+      setHits(old => (JSON.stringify(old) === JSON.stringify(next) ? old : next));
+    };
+    measure();
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    ro?.observe(el);
+    return () => ro?.disconnect();
+  }, [m, t, tap]);
   return (
-    <svg className={`sp sp-${m}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label ?? `${METHOD_NAME(m)}: ${METHOD_MIX(m)}`}
+    <svg ref={svg} className={`sp sp-${m}${tap ? " sp-tap" : ""}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label ?? `${METHOD_NAME(m)}: ${METHOD_MIX(m)}`}
       onClick={onPick ? e => { const p = (e.target as Element).closest("[data-part]")?.getAttribute("data-part"); if (p) onPick(p); } : undefined}>
-      {SCENES[m](t, id)}
+      {tap && <g className="sp-hits">{hits.map(h => <rect key={h.part} className="sp-hit" data-part={h.part} x={h.x} y={h.y} width={h.w} height={h.h} />)}</g>}
+      <g className="sp-shapes">{SCENES[m](t, id)}</g>
+      {mark && hits.filter(h => h.part === mark).map(h => <rect key="mark" className="sp-mark" x={h.x - 2} y={h.y - 2} width={h.w + 4} height={h.h + 4} rx={3} />)}
     </svg>
   );
 }

@@ -64,8 +64,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   Nie mit freiem Entdecken beginnen. Umsetzung:
   - Erklärung: Schrittarten `worked` / `faded` / `free` (siehe „Erklärung“), automatisch geprüft.
   - Quiz: vor der ersten Aufgabe einer noch nie geübten Fertigkeit ein gelöstes Beispiel, die nächste Aufgabe zeigt den ersten Schritt (siehe „Quiz“).
-  - Werkbank: Start mit einem gelösten Zustand bzw. abnehmender Hilfe (Gemische „Zählen“: Beispiel 1–2 vorgerechnet, 3–5 eine Lücke, ab 6 selbst;
-    Ionenbindung startet mit fertigem CaCl₂; Nomenklatur startet mit gezeichnetem und benanntem Beispiel).
+  - Werkbank: Start mit einem gelösten Zustand (Ionenbindung startet mit fertigem CaCl₂; Nomenklatur startet mit gezeichnetem und benanntem Beispiel);
+    Hilfen zum Selbsttun statt Abfragen (Gemische „Zählen“: alle Zahlen stehen da, Antippen markiert die gezählten Teilchen im Bild).
 - **Begriffe einführen, bevor sie gebraucht werden.** Jedes Fachwort, das in einer Frage, Antwort, einem Tipp oder einer Rückmeldung vorkommt, muss vorher
   **fett** eingeführt sein – in der Erklärung, in der Erklärkarte des Quiz-Levels oder in einem früheren Modul. Nie ein Wort wie „Gemenge“, „Alken“ oder „Stoffklasse“
   benutzen, ohne es mit Beispiel zu erklären („**Gemenge**: feste Stoffe gemischt, z. B. Müsli“). Begriffe aus früheren Modulen oder dem Alltag in `GuideDef.known`.
@@ -296,7 +296,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Kupfer- und Zinkblock. Hauptknopf sagt, was er tut: **Umrühren** (Zucker, Alkohol, 3 s), **Schütteln** (Sprudel, Öl, Reinstoffe), **Wand weg** (Gase), **Schmelzen** (Messing);
   daneben **Von vorn** (Anfang wieder herstellen). Flüssigkeiten lösen und mischen sich auch **von selbst** (langsam; warm schneller) – Rühren/Schütteln beschleunigt.
   Statuszeile: „löst sich · 12 / 30 gelöst“, danach „Lösung · gelöst in 23 s“ (Zeit zum Vergleichen: kalt/warm, gerührt/ruhig); Alkohol „gemischt“, wenn in jedem
-  Drittel der Höhe etwa gleich viel Alkohol ist; Gase, wenn jeder Stoff im Mittel in der Mitte ist.
+  Drittel der Höhe etwa gleich viel Alkohol ist; Gase, wenn jeder Stoff im Mittel in der Mitte ist. Einmal gemischt bleibt die Anzeige „gemischt in x s“ bis „Von vorn“
+  (zufällige Schwankungen der Verteilung lassen sie nicht zurückspringen, Test `views/status.test.ts`). Text der Werkbank ≥ 14 px (auch `Tag`s der Statuszeile).
 - Bewegung (`src/flow.ts`, fließend statt Rasterzellen): Flüssigkeit – Geschwindigkeit ändert sich langsam zufällig, Teilchen stoßen sich ab (Stoßradius je Stoff,
   `SIZE`: Saccharose 1,8 ×, Ethanol 1,3 ×, CO₂ 1,15 × Wasser; gezeichnet nach Größe, `DRAW`), große Moleküle bewegen sich langsamer, Öl hat Auftrieb;
   Gas – geradeaus, Abprall an Wänden, Trennwänden und aneinander; fest – Schwingen um den Gitterplatz.
@@ -345,8 +346,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Begründung, Gelöstes durch den Filter = Stolperstein `filter-geloest`), `trennEigenschaft` (Animation des Verfahrens, Eigenschaft wählen: Korngröße,
   Magnetismus, Dichte, Siedetemperatur, Aussehen, Haften am Papier), `trennTipp` (Endbild antippen: Rückstand, Filtrat, Destillat, Kühler, Salz, Eisen, weitester
   Farbstoff, Bodensatz), `trennReihe` (Salz und Sand bzw. Eisen, Sand, Salz: Magnet → Lösen → Filtrieren → Eindampfen).
-  Über jeder Aufgabe ein **Merksatz** (`leads` → `lead`; weicht dem „Ersten Schritt“ und nach der Antwort am Handy der Rückmeldung). Jede Aufgabe hat einen
-  **zugeschnittenen Tipp** (`tip` → `hint`, `hintCue`). Rückmeldungen begründen mit dem Bild. Sprudel nicht im Lernen (dort reagiert ein Teil zu Kohlensäure).
+  Über jeder Aufgabe ein **Merksatz** (`leads` → `lead`; weicht dem „Ersten Schritt“ und nach der Antwort am Handy der Rückmeldung). Der Merksatz nennt den
+  **Blickpunkt**, nie die gefragte Aussage („Denk daran, woraus Luft und Wasser selbst bestehen.“ statt „Zwischen den Teilchen ist nichts.“); hängt die Aufgabe
+  von einer zufälligen Variante ab (Bild nach dem Mischen, Trennverfahren mit Ziel), setzt der Generator den Merksatz selbst (`lead` der Aufgabe vor dem des Platzes).
+  Merksätze nur in den Kapiteln, nicht in „Alles gemischt“, „Heute fällig“, „Schwächen üben“. Jede Aufgabe hat einen
+  **zugeschnittenen Tipp** (`tip` → `hint`, `hintCue`) als **Denkschritt** („Was konnte nicht durch das Papier?“), nie als Lösungssatz.
+  Tests: kein Inhaltswort (≥ 4 Buchstaben, ohne Stoppwörter) der richtigen Antwort in Merksatz, `hint` oder `tip` – über alle Generatoren und Kapitel. Rückmeldungen begründen mit dem Bild. Sprudel nicht im Lernen (dort reagiert ein Teil zu Kohlensäure).
   Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (zwei Spalten, Höhe begrenzt), Verfahren `sep` (t = −1 Animation, sonst Standbild), Gemisch `mixPic`,
   Verfahren als Bildkarten `methods`. Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
   verschwindet, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag, Gelöstes filtrierbar,
@@ -356,16 +361,22 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   dem Bild des Filtrierens).
 - **Trennverfahren** (`components/Separation.tsx`): Auslesen, Sieben, Magnettrennung, Dekantieren, Filtrieren, Eindampfen, Destillieren, Chromatografie als SVG-Bild,
   das eine reine Funktion des Fortschritts t ist (`SepScene`, 0 = vorher, 1 = getrennt; `SepAnim` spielt ab, „Nochmal“-Knopf, reduzierte Bewegung → Endbild).
-  Teile mit `data-part` (Ziele für Beschriftung und Antippen, dazu unsichtbare größere Trefferflächen). Farben nur aus der Palette (`.sp-*` in `app.css`).
+  Teile mit `data-part` (Ziele für Beschriftung und Antippen). Mit `onPick` (Klasse `sp-tap`) nehmen **nur** Teile mit `data-part` Klicks an (Verzierungen wie der
+  schwarze Startpunkt der Chromatografie lagen sonst über den Farbflecken), dazu unter dem Bild unsichtbare Trefferflächen je Teil (gemessener Umriss, mindestens
+  44 × 44 px, kleinere Teile oben). `mark` umrahmt ein Teil gestrichelt grün (Lösung nach der Antwort im Quiz, in der Lektion nach dem Lösen bzw. pulsierend nach
+  vier Fehlversuchen). `check-ui` prüft in jedem `svg.sp-tap`, dass jedes Teil per `elementFromPoint` erreichbar ist. Farben nur aus der Palette (`.sp-*` in `app.css`).
   `MixPic` = Gemisch vor dem Trennen ohne Geräte (verrät das Verfahren nicht). Eindeutige `clipPath`-Kennungen je Bild (`useId`).
   Sieben: Maschen als Drahtquerschnitte mit sichtbaren Lücken; Sandkörner rutschen zur nächsten Lücke, fallen hindurch und häufen sich in der Schale, Kiesel
   (größer als die Lücke) bleiben liegen. Destillieren: Rundkolben auf Dreifuß über dem Brenner, Thermometer am Abzweig (steigt auf 100 °C und bleibt dort, solange
   Wasser siedet), Liebig-Kühler mit Kühlwasser im Gegenstrom (unten hinein, oben heraus), Dampf wird im Kühler zu Tropfen, Vorlage = Erlenmeyerkolben, Salz bleibt
   im Kolben. Chromatografie: Streifen hängt im abgedeckten Becherglas; der Startpunkt ist schwarz (drei Farbstoffe übereinander), die Laufmittelfront steigt,
   jeder Farbstoff wandert verschieden weit (Gelb, Rot, Blau) – der Punkt läuft auseinander.
-- Zählen in der Werkbank mit abnehmender Hilfe (`Counts` in `views/MixView.tsx`): Beispiel 1–2 vorgerechnet („Vorgemacht“), 3–5 fehlt die Zahl der Stoffe
-  („Ergänze die Lücke“), ab 6 alles selbst („Jetzt du“) – Eingabe mit ✓/✗, nach zwei Fehlversuchen steht die Lösung da; die Teilchenzahl ist immer angegeben.
-- **Lektionen** (`src/lessons.tsx`, `LESSONS[0…4]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe): 1 Teilchen zählen,
+- Zählen in der Werkbank (`Counts` in `views/MixView.tsx`) ist eine **Anzeige zum Nachprüfen, keine Abfrage**: Teilchen, Stoffe, davon Verbindungen und Elemente,
+  Atomsorten stehen immer mit Zahl da. Jeden Stoff, „Verbindungen“, „Elemente“ und jede Atomsorte kann man antippen: dann sind im Gefäß und in der Lupe nur deren
+  Teilchen kräftig, alle anderen blass (`FlowView` `mark`); am Handy schließt sich das Blatt dabei. Die Statuszeile zeigt die Markierung als Taste („◎ CO₂ ✕“ = aufheben).
+  Keine Eingabe, kein ✓/✗, keine Aufforderung.
+- **Lektionen** (`src/lessons.tsx`, `LESSONS[0…4]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe; die richtige Auswahl steht
+  an wechselnden Plätzen, Zahlen aufsteigend – Test: höchstens 40 % an Platz 1): 1 Teilchen zählen,
   Teilchen aus 5 Atomen antippen, Atomsorten an den Farben, Stoffe, leerer Raum · 2 Element/Verbindung, Element antippen, Verbindungen zählen, Kupfer ·
   3 Reinstoff/Gemisch, homogen/heterogen (Zuckerwasser = Lösung, Milch, Gasgemisch), Lösen (Animation), Masse, Tinte · 4 Arten von Gemischen (Suspension,
   Emulsion, Schaum, Gemenge, Legierung fett eingeführt), Öl in Wasser, Müsli, „rein“ · 5 Sieben, Magnettrennung, Auslesen, Filtrieren (Rückstand, Filtrat,
@@ -676,7 +687,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
 Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"`, `LESBAR=1` und `LOCALE=en-GB`).
-Polymere zusätzlich mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Lernen“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`).
+Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Lernen“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`).
 In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=/opt/pw-browsers/chromium`), Playwright global (`PLAYWRIGHT=…/playwright/index.mjs`); nie `playwright install`.
 Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
 laufen lassen; je Zustand messen (Seite, `.ui-wb`, `.ui-wb-stage`, Aufgabenkarte, Blatt: `scrollHeight/scrollWidth` ≤ `clientHeight/clientWidth`, Bild nicht winzig) und Screenshots ansehen.
@@ -684,6 +695,14 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Experimentieren ohne Abfrage, Merksätze und Tipps ohne Lösung, Trennbilder antippbar** – Werkzeug „Zählen“ ohne Eingabe und ✓/✗: alle Zahlen
+  stehen da, Stoffe/Verbindungen/Elemente/Atomsorten antippen markiert deren Teilchen in Gefäß und Lupe (`FlowView` `mark`; Antippen in der Lupe trifft jetzt die
+  gezeichnete Lage). Merksätze aller fünf Kapitel als Blickpunkt (Variante setzt eigenen Merksatz: `nachher`, `trennWahl`), Tipps als Denkschritt (Gemischarten,
+  Trennverfahren, Teile nach dem Trennen, Reihenfolge, Alltag); Tests gegen Inhaltswörter der Antwort. `trennReihe` mit Eisen: Ablenker durch eine wirklich
+  unmögliche Reihenfolge ersetzt (Lösen → Eindampfen → Magnet → Filtrieren). Lektionen: Antwort an wechselnden Plätzen (Test). Trennbilder: Verzierungen nehmen keine
+  Klicks mehr an (die Chromatografie-Lektion ließ sich nicht abschließen), Trefferflächen ≥ 44 px, Lösung gestrichelt grün umrahmt; `check-ui` prüft die Erreichbarkeit
+  jedes Teils. Statuszeile springt nach „gemischt“ nicht zurück. Modul-Text ≥ 14 px.
 
 - **Agenten-Team** – `docs/agenten.md`: Rollen (Master, Programmierer, Didaktiker, Hilfswissenschaftler, Schüler, Chemie-Professor, UI-Designer,
   Realitätskontrolleur), Ablauf je Änderung und Sofort-Warnung bei Halluzinationen.

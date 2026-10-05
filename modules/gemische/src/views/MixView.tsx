@@ -6,7 +6,7 @@
 // Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Arten (Gemischarten-Tabelle), Beispiele.
 
 import { useId, useRef, useState } from "react";
-import { Button, buzz, Icon, IconButton, Tag, tr, useReducedMotion, Workbench } from "@lern/ui";
+import { Button, buzz, Icon, IconButton, Tag, tr, useNarrow, useReducedMotion, Workbench } from "@lern/ui";
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, EXAMPLE_COUNT, MIX_LABEL, MUESLI, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
@@ -73,42 +73,48 @@ function Substances({ ex, onPick }: { ex: Example; onPick: (f: string) => void }
   );
 }
 
+/** Markierung im Bild: Teilchen dieser Stoffe bleiben kräftig, alle anderen werden blass */
+export interface Mark { key: string; label: string; fs: string[] }
+
 /**
- * Zählen mit abnehmender Hilfe: Beispiel 1–2 vollständig gelöst, 3–5 fehlt die Zahl der Stoffe, ab 6 selbst zählen
- * (Teilchen bleiben immer angegeben – bei über hundert Teilchen zählt niemand von Hand).
+ * Zählen als Anzeige zum Nachprüfen (Experimentieren stellt keine Fragen): alle Zahlen stehen da; Stoffe, Verbindungen, Elemente
+ * und Atomsorten lassen sich antippen – dann sind im Gefäß und in der Lupe nur deren Teilchen kräftig, so kann man selbst nachzählen.
+ * Die Teilchenzahl steht immer da (bei über hundert Teilchen zählt niemand von Hand).
  */
-function Counts({ ex, index }: { ex: Example; index: number }) {
+function Counts({ ex, mark, onMark }: { ex: Example; mark: Mark | null; onMark: (m: Mark | null) => void }) {
   const a = analyse(ex.items);
-  const rows: [string, number, boolean][] = [[tr("Teilchen", "Particles"), a.teilchen, false], [tr("Stoffe", "Substances"), a.stoffe.length, index >= 2],
-    [tr("davon Verbindungen", "of which compounds"), a.verbindungen.length, index >= 5], [tr("davon Elemente", "of which elements"), a.elemente.length, index >= 5],
-    [tr("Atomsorten", "Kinds of atoms"), a.atomsorten.length, index >= 5]];
-  const open = rows.filter(r => r[2]).length;
-  return (
-    <div className="gm-count-wrap">
-      <p className="gm-count-mode">{open === 0 ? tr("Vorgemacht", "Worked example") : open === 1 ? tr("Ergänze die Lücke", "Fill in the gap") : tr("Jetzt du: selbst zählen", "Your turn: count yourself")}</p>
-      <dl className="gm-counts">
-        {rows.map(([k, v, hide]) => <div key={`${ex.id}-${k}`}><dt>{k}</dt><dd>{hide ? <CountCheck value={v} label={k} /> : v}</dd></div>)}
-      </dl>
+  const toggle = (m: Mark) => { buzz(); onMark(mark?.key === m.key ? null : m); };
+  const by = (key: string, label: string, fs: string[]): Mark => ({ key, label, fs });
+  const stoff = (f: string) => by(`s:${f}`, toSubscript(f), [f]);
+  const sorte = (el: string) => by(`a:${el}`, el, a.stoffe.filter(f => analyse([[f, 1]]).atomsorten.includes(el)));
+  const chips = (ms: [Mark, string][]) => (
+    <div className="gm-marks">
+      {ms.map(([m, f]) => (
+        <button key={m.key} type="button" className="gm-mark-chip" aria-pressed={mark?.key === m.key} onClick={() => toggle(m)}
+          aria-label={`${m.label}: ${tr("im Bild markieren", "mark in the picture")}`}>
+          <MiniParticle f={f} size={26} /><span>{m.label}</span>
+        </button>
+      ))}
     </div>
   );
-}
-
-/** Zahl selbst eintragen: ✓ zeigt sie, ✗ lässt es nochmal versuchen; nach zwei Fehlversuchen steht die Lösung da */
-function CountCheck({ value, label }: { value: number; label: string }) {
-  const [v, setV] = useState("");
-  const [state, setState] = useState<"open" | "ok" | "bad" | "shown">("open");
-  const [tries, setTries] = useState(0);
-  if (state === "ok" || state === "shown") return <span className={state === "ok" ? "gm-cc-ok" : undefined}>{value}{state === "ok" && " ✓"}</span>;
-  const check = () => {
-    if (Number(v) === value) { setState("ok"); buzz(); return; }
-    const t = tries + 1;
-    setTries(t); setState(t >= 2 ? "shown" : "bad"); setV("");
-  };
+  const row = (m: Mark, title: string, n: number) => (
+    <button type="button" className="gm-count-row" aria-pressed={mark?.key === m.key} disabled={!n} onClick={() => toggle(m)}>
+      <span>{title}</span><b>{n}</b>
+    </button>
+  );
   return (
-    <form className="gm-cc" onSubmit={e => { e.preventDefault(); if (v.trim()) check(); }}>
-      <input inputMode="numeric" value={v} placeholder="?" aria-label={label} onChange={e => setV(e.target.value.replace(/\D/g, ""))} className={state === "bad" ? "bad" : undefined} />
-      <button type="submit" disabled={!v} aria-label={tr("Prüfen", "Check")}>{state === "bad" ? "✗" : "✓"}</button>
-    </form>
+    <div className="gm-count-wrap">
+      <p className="gm-cap">{tr("Antippen = im Bild markieren", "Tap = mark in the picture")}</p>
+      <dl className="gm-counts">
+        <div><dt>{tr("Teilchen", "Particles")}</dt><dd>{a.teilchen}</dd></div>
+        <div className="gm-count-multi"><dt>{tr("Stoffe", "Substances")}</dt><dd>{a.stoffe.length}</dd>{chips(a.stoffe.map(f => [stoff(f), f]))}</div>
+      </dl>
+      {row(by("v", tr("Verbindungen", "Compounds"), a.verbindungen), tr("davon Verbindungen", "of which compounds"), a.verbindungen.length)}
+      {row(by("e", tr("Elemente", "Elements"), a.elemente), tr("davon Elemente", "of which elements"), a.elemente.length)}
+      <dl className="gm-counts">
+        <div className="gm-count-multi"><dt>{tr("Atomsorten", "Kinds of atoms")}</dt><dd>{a.atomsorten.length}</dd>{chips(a.atomsorten.map(el => [sorte(el), el]))}</div>
+      </dl>
+    </div>
   );
 }
 
@@ -201,7 +207,7 @@ function ExampleList({ current, onPick }: { current: number; onPick: (i: number)
 }
 
 /** Zustand für die Anzeige (alle 15 Schritte aus der Welt gelesen) */
-interface Info { bound: number; gas: number; eq: number; aq: number; opened: boolean; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
+export interface Info { bound: number; gas: number; eq: number; aq: number; opened: boolean; sep: boolean; walls: number; melt: boolean; busy: boolean; mixed: boolean; doneAt?: number; t: number }
 function readInfo(w: World, ex: Example): Info {
   let mixed = true;
   if (ex.before === "schicht" && ex.solute) {
@@ -238,7 +244,7 @@ function actionOf(ex: Example, i?: Info): { label: string; icon: "shake" | "fire
 }
 
 /** Statuszeile: höchstens zwei kurze Kennzeichen (bleibt einzeilig, damit sich das Bild nie verschiebt) */
-function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
+export function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
   const k = ex.solute ? ex.items.find(([f]) => f === ex.solute)![1] : 0;
   const time = (verb: string) => (done !== undefined ? `${verb} in ${secs(done)}` : verb);
   if (ex.before === "kristall") return i.bound ? [tr("löst sich", "dissolving"), `${k - i.bound} / ${k} ${DISS()}`] : [tr("Lösung", "Solution"), time(DISS())];
@@ -248,10 +254,11 @@ function statusOf(ex: Example, i: Info, done: number | undefined): string[] {
     if (i.opened) return [i.aq ? tr("offen · perlt aus", "open · fizzing out") : tr("abgestanden", "flat"), `${i.aq} / ${k} ${DISS()}`];
     return [i.gas > i.eq + 1 ? tr("löst sich", "dissolving") : i.gas < i.eq - 1 ? tr("perlt aus", "fizzing out") : tr("Gleichgewicht", "Equilibrium"), `${i.aq} / ${k} ${DISS()}`];
   }
-  if (ex.before === "schicht") return i.mixed ? [tr("Lösung", "Solution"), time(MIXED())] : [MIXING()];
+  // einmal gemischt bleibt gemischt (bis „Von vorn“) – zufällige Schwankungen der Verteilung lassen die Anzeige nicht zurückspringen
+  if (ex.before === "schicht") return i.mixed || done !== undefined ? [tr("Lösung", "Solution"), time(MIXED())] : [MIXING()];
   if (ex.floats?.length) return [i.sep ? tr("2 Schichten", "2 layers") : "Emulsion", HET()];
   if (ex.state === "fest") return i.walls ? [SEP()] : i.melt ? [tr("geschmolzen", "molten")] : [ex.type ?? tr("Legierung", "Alloy"), tr("homogen", "homogeneous")];
-  if (ex.before) return i.walls ? [SEP()] : i.mixed ? [ex.type ?? tr("Gasgemisch", "Gas mixture"), time(MIXED())] : [MIXING()];
+  if (ex.before) return i.walls ? [SEP()] : i.mixed || done !== undefined ? [ex.type ?? tr("Gasgemisch", "Gas mixture"), time(MIXED())] : [MIXING()];
   return MIX_LABEL[mixKind(ex)];
 }
 
@@ -267,6 +274,8 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
   const [version, setVersion] = useState(0);
   const [pick, setPick] = useState<string | null>(null);
   const [tool, setTool] = useState<string | null>(null);
+  const [mark, setMark] = useState<Mark | null>(null);
+  const narrow = useNarrow();
   const worldRef = useRef(world);
   worldRef.current = world;
   const runs = useRef(0);
@@ -332,9 +341,18 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
             {ex.note && <p className="gm-note">{ex.note}</p>}
           </div>
         }
-        stage={<FlowView world={world} motion={!reduced} paused={!!pick} version={version} focus={focus} onFrame={onFrame} onPick={f => { buzz(); setPick(f); }}
+        stage={<FlowView world={world} motion={!reduced} paused={!!pick} version={version} focus={focus} mark={mark?.fs} onFrame={onFrame} onPick={f => { buzz(); setPick(f); }}
           label={`${ex.title}: ${ex.items.map(([f, n]) => `${n} × ${nameOf(f)}`).join(", ")}`} />}
-        status={<div className="gm-status">{statusOf(ex, info, done).map(l => <Tag key={l}>{l}</Tag>)}</div>}
+        status={
+          <div className="gm-status">
+            {(mark ? statusOf(ex, info, done).slice(0, 1) : statusOf(ex, info, done)).map(l => <Tag key={l}>{l}</Tag>)}
+            {mark && (
+              <button type="button" className="gm-mark-off" onClick={() => { buzz(); setMark(null); }} aria-label={`${tr("Markierung aufheben", "Clear marking")}: ${mark.label}`}>
+                <span aria-hidden="true">◎</span> {mark.label} <span aria-hidden="true">✕</span>
+              </button>
+            )}
+          </div>
+        }
         controls={
           <div className="gm-controls">
             <div className="gm-row">
@@ -355,7 +373,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
         }
         tools={[
           { id: "stoffe", label: tr("Stoffe", "Substances"), icon: "molecule", content: <Substances ex={ex} onPick={f => setPick(f)} /> },
-          { id: "zaehlen", label: tr("Zählen", "Count"), icon: "table", content: <Counts ex={ex} index={index} /> },
+          { id: "zaehlen", label: tr("Zählen", "Count"), icon: "table", content: <Counts ex={ex} mark={mark} onMark={m => { setMark(m); if (m && narrow) setTool(null); if (!reduced) return; setVersion(v => v + 1); }} /> },
           { id: "farben", label: tr("Farben", "Colours"), icon: "atom", content: <Legend els={a.atomsorten} /> },
           { id: "einteilung", label: tr("Einteilung", "Classification"), icon: "layers", content: <Einteilung current={index} onPick={i => goTo(i)} /> },
           { id: "arten", label: tr("Arten", "Types"), icon: "beaker", title: tr("Arten von Gemischen", "Types of mixtures"), content: <Arten ex={ex} /> },
