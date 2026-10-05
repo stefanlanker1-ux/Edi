@@ -208,6 +208,11 @@
 .pm-vis-svg { display: block; width: 100%; height: 100%; }
 .pm-vis-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
 .pm-vis-pair .mb-svg { width: 100%; height: 100%; }
+/* Platz eher hoch als breit (Handy): Monomere untereinander, jedes in voller Breite – breite Moleküle (HDI, Disäuren) bleiben groß */
+@container (aspect-ratio < 2.6) {
+  .pm-vis-pair:has(.pm-vis-plus) { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); justify-items: center; gap: 0; }
+  .pm-vis-pair .pm-vis-plus { line-height: 1; }
+}
 .pm-vis-plus { font-size: 1.5rem; font-weight: 800; }
 .pm-vis-beads { display: grid; place-items: center; width: 100%; }
 .pm-vis-beads .pm-strip { width: 100%; max-height: 44px; }
@@ -337,6 +342,9 @@
 .pm-build-item:disabled { opacity: 1; box-shadow: none; }
 .pm-build-txt { display: flex; flex-direction: column; min-width: 0; font-size: .8rem; line-height: 1.2; }
 .pm-build-txt span { color: var(--muted); overflow-wrap: anywhere; }
+/* lange Formeln (Butadien) bleiben einzeilig: Schrift passt sich der Knopfbreite an (Platz neben dem Kügelchen) */
+.pm-build-item { container-type: inline-size; }
+.pm-build-txt span.fx { white-space: nowrap; overflow-wrap: normal; font-size: min(1em, calc((100cqw - 56px) / (var(--n) * .66))); }
 .pm-build-bead { width: 34px; height: 34px; flex: none; }
 .pm-build-chain { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
 .pm-build-slot { position: relative; min-height: 48px; min-width: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--text); }
@@ -372,3 +380,18 @@
 .task-card.kind-order .q-feedback .fb-sol { display: none; }
 /* niedrige Bildschirme: nach dem Prüfen bleiben die Bilder groß – der Grund steht im Blatt „Lösung“, auf der Karte Marke und Name */
 @media (max-height: 700px) { .task-card.kind-order.answered .q-feedback .fb-why { display: none; } .pm-order-legend { font-size: .68rem; } }
+
+/* Kapitelname im Quiz-Kopf: lange Namen am schmalen Handy auf zwei Zeilen statt „Pol…“ */
+@media (max-width: 420px) {
+  .q-prog-lbl { align-items: flex-end; }
+  .q-prog-lbl span:first-child { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; line-height: 1.15; font-size: .74rem; letter-spacing: 0 !important; word-spacing: 0 !important; hyphens: manual; }
+}
+
+/* Auswertung am niedrigen Handy (375 × 667): Sterne, Abstände und Überschrift kleiner, damit alles ohne Scrollen passt */
+@media (max-height: 760px) {
+  .result-card { padding: 12px 14px; gap: 5px; }
+  .result-card .big-stars svg { width: 34px; height: 34px; }
+  .result-card h2 { font-size: 1.2rem; margin: 0; }
+  .result-card .res-line { font-size: 1rem; }
+  .result-card .btn-row { margin-top: 2px; }
+}

@@ -71,7 +71,7 @@ export const CARDS: Record<string, { points: string[]; vis: Vis[] }> = tr({
   ] },
 });
 const TOPIC: Record<string, string> = { "pm-k1": "k1", "pm-k2": "k2", "pm-k3": "k3", "pm-k4": "k4", "pm-k5": "k5", "pm-k6": "k6" };
-const CUE = tr("In diesem Kapitel hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.", "In this chapter the **hint** helps with exactly this task. Tapping the hint costs no points.");
+const CUE = tr("In diesem Kapitel hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.", "In this chapter the **tip** helps with exactly this task. Tapping the tip costs no points.");
 
 export function explainFor(level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[level].id : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;

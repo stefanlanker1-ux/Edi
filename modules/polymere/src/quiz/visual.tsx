@@ -8,7 +8,7 @@ import { isVinyl, monoHue, monoLetter, monoName, stepMono, vinyl, type StepId } 
 import { group, vinylUnit } from "../chem/draw.ts";
 import { replay } from "../chem/mech/index.ts";
 import type { Bead, Recipe } from "../chem/mech/types.ts";
-import { Scene, anchorPt, fitBox, snapBox, still, type Snap } from "../chem/scene.ts";
+import { Scene, anchorPt, fitBox, noteBox, snapBox, still, type Snap } from "../chem/scene.ts";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 import { MonomerSvg, SnapSvg, UnitSvg } from "../components/Formula.tsx";
 import { MechSvg } from "../components/MechSvg.tsx";
@@ -76,7 +76,9 @@ export function MechFrame({ r, acts, keyIndex, label }: { r: Recipe; acts: strin
   const crop = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 2.0), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 2.0),
     y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
   const box = fitBox(crop, 1.7, 5, 3.0, 0.4);
-  return <MechSvg pose={pose} box={box} label={label} className="pm-vis-svg" />;
+  // Beschriftungen nur, wenn sie ganz im Ausschnitt liegen (nie abgeschnitten)
+  const notes = pose.notes.filter(n => { const q = noteBox(n); return q.x0 >= box.x0 && q.x1 <= box.x1 && q.y0 >= box.y0 && q.y1 <= box.y1; });
+  return <MechSvg pose={{ ...pose, notes }} box={box} label={label} className="pm-vis-svg" />;
 }
 
 /** Kügelchen aus Monomer-Kennungen */
@@ -145,7 +147,12 @@ function potPieces(s: PotKind): Pt[][] {
   }
   if (s === "short") {
     // Stufenwachstum bei 90 % Umsatz: kurze Ketten (im Mittel etwa 10 Bausteine, hier 6–12), fast kein freies Monomer
-    const ch = [line(16, 18, 61, 18, 6, 1.4), line(72, 18, 104, 22, 5, 1.4, 1), line(16, 41, 102, 43, 9, 1.6, 2), line(18, 66, 102, 64, 10, 1.6, 3)];
+    // jede Kette zu einer kleinen Schlaufe gelegt (zwei Reihen): kurz neben den Schleifen der langen Ketten, die über den Rand gehen
+    const u = (x0: number, y0: number, n: number): Pt[] => {
+      const top = Math.ceil(n / 2), d = 7.4;
+      return Array.from({ length: n }, (_, i) => (i < top ? [x0 + i * d, y0 + 0.8 * Math.sin(i * 1.3)] : [x0 + (n - 1 - i) * d + (n % 2 ? d / 2 : 0), y0 + 9]) as Pt);
+    };
+    const ch = [u(16, 13, 10), u(62, 15, 12), u(18, 38, 8), u(64, 40, 9), u(16, 61, 11), u(66, 62, 10)];
     return [...ch, ...fill(ch.flat(), 1)];
   }
   // ein Riesenmolekül: ein Netz über das ganze Gefäß (siehe GIANT_LINKS), kein freies Kügelchen
@@ -213,7 +220,8 @@ export function StartersPic() {
 export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
   const asp = opt ? 0 : 1.6;
   switch (v.k) {
-    case "mono": return <MonomerSvg id={v.id} aspect={asp} className="pm-vis-svg" />;
+    // breite Monomere der Stufenreaktionen (Diepoxid, MDI …) im eigenen Seitenverhältnis – in einem Kasten 1,6 : 1 würden sie im flachen Bildplatz winzig
+    case "mono": return <MonomerSvg id={v.id} aspect={isVinyl(v.id) ? asp : 0} className="pm-vis-svg" />;
     case "sat": return <SnapSvg snap={saturatedSnap(v.id)} label={tr("Molekül ohne Zweifachbindung", "Molecule without a double bond")} aspect={asp} className="pm-vis-svg" />;
     case "unit": return v.dbl ? <SnapSvg snap={unitWithDouble(v.id)} label={tr("Baustein mit Zweifachbindung", "Unit with double bond")} aspect={asp} halos className="pm-vis-svg" /> : <UnitSvg id={v.id} aspect={asp} className="pm-vis-svg" />;
     case "chain": return <ChainSvg id={v.id} n={v.n} tact={v.tact} seed={v.seed} />;
@@ -221,8 +229,8 @@ export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
     case "beads": return <div className="pm-vis-beads"><BeadStrip beads={beadsOf(v.seq)} active={null} max={30} /></div>;
     case "pair": return (
       <div className="pm-vis-pair">
-        <MonomerSvg id={v.a} aspect={1.5} className="pm-vis-svg" />
-        {v.b && <><span className="pm-vis-plus" aria-hidden="true">+</span><MonomerSvg id={v.b} aspect={1.5} className="pm-vis-svg" /></>}
+        <MonomerSvg id={v.a} aspect={0} className="pm-vis-svg" />
+        {v.b && <><span className="pm-vis-plus" aria-hidden="true">+</span><MonomerSvg id={v.b} aspect={0} className="pm-vis-svg" /></>}
       </div>
     );
     case "struct": return <StructPic s={v.s} />;

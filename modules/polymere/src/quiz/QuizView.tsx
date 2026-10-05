@@ -2,14 +2,14 @@
 // Aufgaben mit Bildern: Strukturformel, Kettenausschnitt, Mechanismus-Schritt mit Pfeilen, Kügelchen, Kettenbild;
 // manche Antworten sind selbst Bilder (Monomer, Baustein).
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createQuizStore, diagnose, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, RichText, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { LEVELS, TYPE_NAMES, sameTask, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
-import { tapFrame } from "./tap.ts";
+import { tapFrame, tapResult } from "./tap.ts";
 import { MechSvg } from "../components/MechSvg.tsx";
-import { anchorPt, fitBox, snapBox, still } from "../chem/scene.ts";
+import { anchorPt, fitBox, noteBox, snapBox, still } from "../chem/scene.ts";
 import type { Vis } from "./visual.tsx";
 import { MISS } from "./misconceptions.ts";
 import { explainFor } from "./explain.tsx";
@@ -19,15 +19,6 @@ import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask, missRecovery: true });
 
-/** richtige Auswahl? einzeln: das Teil; mehrere: genau diese Menge; Paar: zwei benachbarte Teile */
-function tapResult(t: TapTask, sel: string[]) {
-  const idx = sel.map(p => t.parts.indexOf(p)).sort((a, b) => a - b);
-  const adj = idx.length === 2 && idx[1] - idx[0] === 1 ? 1 : 0;
-  const wrong = t.mode === "pair" ? -1 : idx.find(i => !t.answer.includes(t.parts[i])) ?? -1;
-  const ok = t.mode === "pair" ? idx.length === 2 && adj === 1 : t.mode === "any" ? sel.length === 1 && t.answer.includes(sel[0]) : sel.length === t.answer.length && t.answer.every(a => sel.includes(a));
-  const values: Record<string, number> = t.mode && t.mode !== "any" ? { n: sel.length, wrong, adj } : { pick: idx[0] };
-  return { ok, values };
-}
 
 /** Bild der Antipp-Aufgabe; nach der Antwort bzw. im gelösten Beispiel ist die Lösung gestrichelt grün markiert */
 function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved: boolean; onPick?: (id: string) => void }) {
@@ -44,9 +35,12 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
       : { x0: Math.min(b.x0, ...at.map(a => a.x - 0.5)), x1: Math.max(b.x1, ...at.map(a => a.x + 0.5)), y0: Math.min(b.y0, ...at.map(a => a.y - 0.5)), y1: Math.max(b.y1, ...at.map(a => a.y + 0.5)) };
     return fitBox(p, aspect || (p.x1 - p.x0 + 0.9) / (p.y1 - p.y0 + 0.9), 0, 0, 0.45);
   }, [frame, t.parts, t.zoom, t.zoomWith, t.zoomTo, aspect]);
-  const pose = { ...still(frame.snap), arrows: frame.arrows.map(arrow => ({ arrow, op: 1 })) };
+  // Beschriftungen nur, wenn sie ganz im Ausschnitt liegen (sonst abgeschnitten, z. B. „iCl₃“)
+  const base = still(frame.snap);
+  const inBox = (q: { x0: number; x1: number; y0: number; y1: number }) => q.x0 >= box.x0 && q.x1 <= box.x1 && q.y0 >= box.y0 && q.y1 <= box.y1;
+  const pose = { ...base, notes: base.notes.filter(n => inBox(noteBox(n))), arrows: frame.arrows.map(arrow => ({ arrow, op: 1 })) };
   // Lösung: einzeln/mehrere = `answer`; Paar: ein Beispiel (der erste Baustein) – oder die gewählten, wenn sie stimmen
-  const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.mode === "any" ? (sel.length && t.answer.includes(sel[0]) ? sel : t.answer.slice(0, 1)) : t.answer;
+  const right = t.mode === "pair" ? (tapResult(t, sel).ok ? sel : t.parts.slice(0, 2)) : t.mode === "any" ? (sel.length && t.answer.includes(sel[0]) ? sel : t.answer.slice(0, 1)) : t.answer.map(a => sel.find(p => p !== a && t.same?.[p] === a && !sel.includes(a)) ?? a);
   // vor der Antwort: alle antippbaren Teile dünn gepunktet umrandet (sichtbar, was tippbar ist), gewählte schwarz
   const marks = solved
     ? [...right.map(id => ({ id, kind: "ok" as const })), ...sel.filter(id => !right.includes(id)).map(id => ({ id, kind: "no" as const }))]
@@ -148,7 +142,7 @@ function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: 
           <button key={it.id} type="button" className={`pm-build-item${cur === it.id && !done ? " sel" : ""}`} aria-pressed={cur === it.id} disabled={done}
             onClick={() => { buzz(); setCur(it.id); }} onPointerDown={press(it.id)}>
             <BeadIcon it={it} />
-            <span className="pm-build-txt"><b>{it.name}</b><span>{it.struct}</span></span>
+            <span className="pm-build-txt"><b>{it.name}</b><span className="fx" style={{ "--n": it.struct.length } as CSSProperties}>{it.struct}</span></span>
           </button>
         ))}
       </div>

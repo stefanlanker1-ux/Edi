@@ -22,7 +22,9 @@ export type TapTask = BaseTask & Extra & { kind: "tap"; scene: TapScene; parts: 
   /** Ausschnitt nur um diese Atome (statt um alle antippbaren Teile) */
   zoomTo?: string[];
   /** Lösung in Worten (statt Nummern, die im Bild nicht stehen) */
-  sol: string };
+  sol: string;
+  /** gleichwertige Teile: Teil → Teil der Lösung, das es ersetzen darf (z. B. die zwei H am selben N) */
+  same?: Record<string, string> };
 /** Ordnen: `cards` = Bilder in der gezeigten Reihenfolge, `correct` = Kartenindizes in der richtigen Reihenfolge, `names` = Name je Karte (nach der Antwort).
  *  Gemeldet: `startFirst`, `termLast`, `addsOk` (je 1 = stimmt). */
 export type OrderTask = BaseTask & Extra & { kind: "order"; cards: Vis[]; names: string[]; correct: number[]; sol: string };
@@ -123,17 +125,17 @@ function nearParts(snap: { atoms: { id: string; x: number; y: number }[] }, part
   return parts.filter(p => { const q = pt(p); return cs.some(c => Math.hypot(c.x - q.x, c.y - q.y) <= d); });
 }
 /** Antipp-Aufgabe zusammensetzen; `why(id)` liefert für jedes falsche Teil Schlüssel und Rückmeldung */
-function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; mode?: "multi" | "pair" | "any"; halos?: boolean; zoom?: boolean; zoomWith?: string[]; zoomTo?: string[]; sol: string; prompt: string; hint: string; tip?: string; explain: string;
+function tapTask(o: { scene: TapScene; parts: string[]; answer: string[]; same?: Record<string, string>; mode?: "multi" | "pair" | "any"; halos?: boolean; zoom?: boolean; zoomWith?: string[]; zoomTo?: string[]; sol: string; prompt: string; hint: string; tip?: string; explain: string;
   why?: (id: string) => [string, string]; extra?: Trap[] }): TapTask {
   const frame = tapFrame(o.scene), at = new Map(frame.snap.atoms.map(a => [a.id, a]));
   const labels = o.parts.map((id, i) => (id.includes("|") ? bondLabel(id.split("|").map(x => at.get(x)?.text || at.get(x)?.el || "?"), i) : partLabel(at.get(id)?.el ?? "", i, at.get(id)?.vac)));
   const traps: Trap[] = [...(o.extra ?? [])];
   if (o.why) o.parts.forEach((id, i) => {
-    if (o.answer.includes(id)) return;
+    if (o.answer.includes(id) || o.same?.[id]) return;
     const [miss, why] = o.why!(id);
     traps.push({ values: o.mode && o.mode !== "any" ? { wrong: i } : { pick: i }, miss, why });
   });
-  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}), ...(o.zoom ? { zoom: true } : {}), ...(o.zoomWith ? { zoomWith: o.zoomWith } : {}), ...(o.zoomTo ? { zoomTo: o.zoomTo } : {}),
+  return { kind: "tap", scene: o.scene, parts: o.parts, labels, answer: o.answer, ...(o.mode ? { mode: o.mode } : {}), ...(o.halos === false ? { halos: false } : {}), ...(o.zoom ? { zoom: true } : {}), ...(o.zoomWith ? { zoomWith: o.zoomWith } : {}), ...(o.zoomTo ? { zoomTo: o.zoomTo } : {}), ...(o.same ? { same: o.same } : {}),
     sol: o.sol, prompt: o.prompt, hint: o.hint, explain: o.explain, traps, ...(o.tip ? { tip: o.tip } : {}) };
 }
 
@@ -314,9 +316,9 @@ function radikal(): Task {
 }
 
 function pfeil(): Task {
-  return task(T("Wie viele Elektronen bewegt ein Pfeil mit **halber** Spitze?", "How many electrons does an arrow with a **half** head move?"), "1", [
+  return task(T("Wie viele Elektronen bewegt ein Pfeil mit **halber** Spitze?", "How many electrons does a **half-headed** arrow move?"), "1", [
     d("2", "pfeil-paar", T("Zwei Elektronen (ein Paar) zeigt der volle Pfeil. Der halbe Pfeil zeigt eins.", "Two electrons (a pair) are shown by a full arrow. A half-headed arrow shows one.")),
-    d("0", "pfeil-paar", T("Jeder Pfeil zeigt bewegte Elektronen – der halbe genau eins.", "Every arrow shows moving electrons – the half one exactly one.")),
+    d("0", "pfeil-paar", T("Jeder Pfeil zeigt bewegte Elektronen – der halbe genau eins.", "Every arrow shows moving electrons – the half-headed one exactly one.")),
     d("3", "pfeil-paar", T("Elektronen bewegen sich einzeln oder als Paar – nie zu dritt.", "Electrons move singly or as a pair – never three at once.")),
   ], {
     vis: mech(PS, ["heat"], arrowKey(PS, ["heat"])),
@@ -1109,7 +1111,15 @@ function wasserTap(): Task {
   const parts = nearParts(snap, ids, answer, 1.9);
   const dbl = (id: string) => snap.bonds.some(b => (b.a === id || b.b === id) && b.o === 2);
   const amine = r.b === "hexandiamin";
-  return tapTask({ zoom: true,
+  // am N sitzen zwei H – beide sind gleichwertig, jedes darf als H des Wassers gewählt werden
+  const same: Record<string, string> = {};
+  for (const h of answer) {
+    if (snap.atoms.find(a => a.id === h)?.el !== "H") continue;
+    const nb = snap.bonds.flatMap(b => (b.a === h ? [b.b] : b.b === h ? [b.a] : []))[0];
+    if (snap.atoms.find(a => a.id === nb)?.el !== "N") continue;
+    for (const b of snap.bonds) { const o = b.a === nb ? b.b : b.b === nb ? b.a : ""; if (o && o !== h && parts.includes(o) && snap.atoms.find(a => a.id === o)?.el === "H") same[o] = h; }
+  }
+  return tapTask({ zoom: true, ...(Object.keys(same).length ? { same } : {}),
     scene, parts, answer, mode: "multi", sol: T(`das –OH der Säure und das H ${amine ? "des Amins" : "des Alkohols"}`, `the –OH of the acid and the H of the ${amine ? "amine" : "alcohol"}`),
     prompt: T("Tippe die drei Atome an, die zusammen als Wasser abgehen.", "Tap the three atoms that leave together as water."),
     hint: T(`Die Säure gibt OH ab, ${amine ? "das Amin" : "der Alkohol"} ein H.`, `The acid gives off OH, the ${amine ? "amine" : "alcohol"} an H.`),
@@ -1239,7 +1249,7 @@ const K3: Step[] = tr([
   ["taktisch", "Schau, auf welcher Seite der Kette die Seitengruppen sitzen.", "**Isotaktisch**: alle Seitengruppen auf einer Seite. **Ataktisch**: zufällig."],
   ["taktischVerfahren", "Drei Verfahren, drei Arten von Ketten – welches passt hier?", "Am Titan wird jedes Monomer gleich herum eingebaut – die Kette wird geordnet."],
   ["hdpe", "Polyethen kommt aus zwei Verfahren – mit ganz verschiedenen Ketten.", "Ziegler-Natta: **unverzweigtes** PE-HD. Radikalisch unter hohem Druck: **verzweigtes** PE-LD."],
-  ["lebend", "**Anionisch** (Butyllithium): Die Ketten **leben** weiter, bis Methanol sie beendet."],
+  ["lebend", "Butyllithium startet die Ketten – was ist an ihren Enden besonders?", "**Anionisch** (Butyllithium): Die Ketten **leben** weiter, bis Methanol sie beendet."],
   ["kationisch", "Kationisch heißt: positive Ladung am Kettenende – welche Seitengruppe hilft ihr?", "**Kationisch** (BF₃ und Wasser): CH₃-Gruppen stabilisieren die positive Ladung."],
   ["verfahrenWahl", "Jedes Monomer braucht das passende Verfahren."],
   ["giftTap", "Zum Schluss: Wer vergiftet das Titan – und warum?"],
@@ -1250,7 +1260,7 @@ const K3: Step[] = tr([
   ["taktisch", "Look at which side of the chain the side groups sit on.", "**Isotactic**: all side groups on one side. **Atactic**: random."],
   ["taktischVerfahren", "Three methods, three kinds of chain – which fits here?", "At the titanium each monomer is inserted the same way round – the chain becomes ordered."],
   ["hdpe", "Polyethene comes from two methods – with very different chains.", "Ziegler–Natta: **unbranched** PE-HD. Radical at high pressure: **branched** PE-LD."],
-  ["lebend", "**Anionic** (butyllithium): the chains **stay alive** until methanol stops them."],
+  ["lebend", "Butyllithium starts the chains – what is special about their ends?", "**Anionic** (butyllithium): the chains **stay alive** until methanol stops them."],
   ["kationisch", "Cationic means a positive charge at the chain end – which side group helps it?", "**Cationic** (BF₃ and water): CH₃ groups stabilise the positive charge."],
   ["verfahrenWahl", "Each monomer needs the right method."],
   ["giftTap", "Finally: what poisons the titanium – and why?"],
@@ -1347,7 +1357,9 @@ export const LEVELS: Level[] = [
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `pm-${level}`);
 export const levelName = (level: LevelKey) =>
   level === "mix" ? tr("Alles gemischt", "Everything mixed") : level === "weak" ? tr("Schwächen üben", "Practise weak spots") : level === "due" ? tr("Heute fällig", "Due today")
-    : LEVELS[level].name;
+    : SHORT_NAME()[level];
+/** kurzer Kapitelname für den Quiz-Kopf (schmale Handys, „Lesbar“): ganz lesbar statt „Pol…“ */
+const SHORT_NAME = () => tr(["Monomere", "Radikalisch", "Katalysatoren", "Poly\u00ADkondensation", "Poly\u00ADaddition", "Eigenschaften"], ["Monomers", "Radical", "Catalysts", "Poly\u00ADcondensation", "Poly\u00ADaddition", "Properties"]);
 
 /** kurze Regel nach ✓ bei Antippen, Ordnen und Bauen (eine Zeile; das Bild bleibt groß) */
 const SHORT_RULE = (): Record<string, string> => ({

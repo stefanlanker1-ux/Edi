@@ -48,7 +48,7 @@ test("alle Aufgaben gültig und speicherbar", () => {
         assert.ok(t.parts.length >= 3 && t.labels.length === t.parts.length && t.sol, `${t.type}: Teile`);
         assert.ok(t.mode === "pair" || (t.answer.length > 0 && t.answer.every(a => t.parts.includes(a))), `${t.type}: Lösung fehlt ${t.answer}`);
         for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why, `${t.type}: Falle ohne Schlüssel`);
-        if (t.mode !== "pair") t.parts.forEach((p, i) => { if (!t.answer.includes(p)) assert.ok((t.traps ?? []).some(tr => tr.values?.[t.mode && t.mode !== "any" ? "wrong" : "pick"] === i), `${t.type}: keine Rückmeldung für ${p}`); });
+        if (t.mode !== "pair") t.parts.forEach((p, i) => { if (!t.answer.includes(p) && !t.same?.[p]) assert.ok((t.traps ?? []).some(tr => tr.values?.[t.mode && t.mode !== "any" ? "wrong" : "pick"] === i), `${t.type}: keine Rückmeldung für ${p}`); });
         continue;
       }
       assert.ok(!/undefined|\bNaN\b|\bnull\b|\[object/.test(t.prompt + t.explain + t.hint + t.options.join()), `${t.type}: ${t.prompt} ${t.explain}`);
@@ -176,7 +176,7 @@ test("Merksatz vor der Aufgabe nennt nicht die Regel des Schritts (Schlüsselwö
     radikalTap: ["wieder ein radikal", "radical again"], freieStelleTap: ["freie stelle", "vacant"], hTap: ["wandert", "moves", "h-atom", "h atom"],
     zieglerGift: ["vergiftet", "poison", "polar"], taktischVerfahren: ["geordnet", "ordered", "gleich herum", "same way round"], kationisch: ["ch₃", "stabilis"],
     paarWahl: ["zwei passende", "two matching"], abMonomer: ["verschiedene", "different"], doppelbindung: ["c=c", "zweifachbindung", "double bond"],
-    bausteinWahl: ["einfachbindung", "single bond"], kugelZaehlen: ["baustein", "repeat unit"],
+    bausteinWahl: ["einfachbindung", "single bond"], kugelZaehlen: ["baustein", "repeat unit"], lebend: ["leben", "alive", "methanol"],
   };
   const bad: string[] = [];
   for (const l of LEVELS) l.seq.forEach((id, i) => {
@@ -253,4 +253,20 @@ test("Regel nach der richtigen Antwort passt zur Variante der Aufgabe", () => {
     if (w !== t.explain) bad.add(`${t.type}: „${w}“`);
   }
   assert.deepEqual([...bad], []);
+});
+
+test("Wasser abziehen (Amin): beide H am N gelten, das andere H ist kein falsches Nebenprodukt", async () => {
+  const { tapResult } = await import("./tap.ts");
+  let seen = 0;
+  for (let k = 0; k < 60; k++) {
+    const t = GENERATORS.wasserTap();
+    if (!isTap(t) || !t.same) continue;
+    seen++;
+    for (const [alt, h] of Object.entries(t.same)) {
+      const sel = t.answer.map(a => (a === h ? alt : a));
+      assert.isTrue(tapResult(t, sel).ok, "gleichwertiges H");
+      assert.isFalse(tapResult(t, [...t.answer.filter(a => a !== h), alt, h].slice(0, t.answer.length + 1)).ok, "vier Atome");
+    }
+  }
+  assert.isAbove(seen, 0);
 });

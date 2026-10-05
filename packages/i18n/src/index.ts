@@ -59,7 +59,7 @@ apply();
 
 /** Eigennamen und Wörter, die im Englischen auch mitten im Satz groß bleiben */
 const KEEP_CAPS = new Set(["Bohr", "Hund", "Pauli", "Lewis", "Aufbau", "Avogadro", "Celsius", "Kelvin", "Fahrenheit", "English", "German",
-  "Roman", "Latin", "Greek", "Hill", "Edi", "Newton", "Joule", "Watt", "Pascal"]);
+  "Roman", "Latin", "Greek", "Hill", "Edi", "Newton", "Joule", "Watt", "Pascal", "Ziegler"]);
 /**
  * Englische Schreibweise: Namen mitten im Satz klein („Tap **argon**“, „formula of **sodium nitride**“) – die Daten schreiben
  * Element- und Stoffnamen groß wie im Deutschen. Satzanfänge, Eigennamen, Abkürzungen und Elementsymbole bleiben unverändert.

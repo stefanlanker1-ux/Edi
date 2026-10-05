@@ -65,7 +65,11 @@ async function check(page, app, vp, view) {
     return { sw: d.scrollWidth, sh: d.scrollHeight, iw: innerWidth, ih: innerHeight, small, over, tiny };
   });
   if (r.sw > r.iw) note(app, vp, view, `horizontaler Überlauf ${r.sw} > ${r.iw}`);
-  if (r.sh > r.ih) note(app, vp, view, `vertikaler Überlauf ${r.sh} > ${r.ih}`);
+  if (r.sh > r.ih) {
+    note(app, vp, view, `vertikaler Überlauf ${r.sh} > ${r.ih}`);
+    // freiwillig: Bildschirmfoto jedes Überlaufs (SHOTS=Ordner)
+    if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/${app}-${vp}-${view.replace(/[^\w-]+/g, "_")}.png`, fullPage: true }).catch(() => {});
+  }
   for (const s of r.small) note(app, vp, view, `Tippziel < 44: ${s}`);
   for (const o of r.over) note(app, vp, view, `Element überläuft: ${o}`);
   for (const o of r.tiny) note(app, vp, view, `zu klein: ${o}`);

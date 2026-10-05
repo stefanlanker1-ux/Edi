@@ -114,8 +114,8 @@ const K1: GuideStep[] = [
     ask: T("Ergänze: Welches Polymer entsteht aus Propen?", "Complete: which polymer forms from propene?"),
     answer: T("Polypropen", "Polypropene"), options: [T("Polypropen", "Polypropene"), T("Polyethen", "Polyethene"), T("Propan", "Propane")],
     visual: () => <Pic v={{ k: "mono", id: "propen" }} />,
-    lines: [T("Monomer: Propen", "Monomer: propene"), T("Polymer: Poly + Name des Monomers = {?}", "Polymer: poly + name of the monomer = {?}")],
-    why: { [T("Polyethen", "Polyethene")]: T("Polyethen entsteht aus Ethen – ohne CH₃-Gruppe.", "Polyethene forms from ethene – without a CH₃ group."), [T("Propan", "Propane")]: T("Propan ist das gesättigte Gegenstück zu Propen. Ohne C=C entsteht keine Kette.", "Propane is the saturated partner of propene. Without C=C no chain forms.") },
+    lines: [T("Monomer: Propen", "Monomer: propene"), T("Polymer: Poly + Name des Monomers = {?}", "{?} = poly + name of the monomer")],
+    why: { [T("Polyethen", "Polyethene")]: T("Polyethen entsteht aus Ethen – ohne CH₃-Gruppe.", "Polyethene forms from ethene – without a CH₃ group."), [T("Propan", "Propane")]: T("Propan ist das gesättigte Gegenstück zu Propen. Ohne C=C entsteht keine Kette.", "Propane is the saturated counterpart of propene. Without C=C no chain forms.") },
     ok: T("Propen → Polypropen (PP).", "Propene → polypropene (PP)."),
   },
   {
@@ -125,7 +125,7 @@ const K1: GuideStep[] = [
     visual: () => <Pic v={{ k: "sat", id: "ethen" }} />,
     why: { [T("Styrol", "Styrene")]: T("Styrol hat eine C=C-Bindung – daraus wird Polystyrol.", "Styrene has a C=C bond – it becomes polystyrene."), [T("Vinylchlorid", "Vinyl chloride")]: T("Vinylchlorid hat eine C=C-Bindung – daraus wird PVC.", "Vinyl chloride has a C=C bond – it becomes PVC.") },
     lines: [T("Ethan (im Bild) hat nur Einfachbindungen: Es ist **gesättigt**.", "Ethane (in the picture) has only single bonds: it is **saturated**."),
-      T("Gesättigte Gegenstücke: Ethen – Ethan, Propen – Propan, Styrol – Ethylbenzol, Vinylchlorid – Chlorethan.", "Saturated partners: ethene – ethane, propene – propane, styrene – ethylbenzene, vinyl chloride – chloroethane.")],
+      T("Gesättigte Gegenstücke: Ethen – Ethan, Propen – Propan, Styrol – Ethylbenzol, Vinylchlorid – Chlorethan.", "Saturated counterparts: ethene – ethane, propene – propane, styrene – ethylbenzene, vinyl chloride – chloroethane.")],
     ok: T("Ohne Zweifachbindung keine Polymerisation.", "No double bond, no polymerisation."),
   },
   {
@@ -271,7 +271,7 @@ const K2: GuideStep[] = [
     mode: "faded",
     ask: T("Ergänze: Welcher Abbruch verbindet zwei Ketten zu einer?", "Complete: which termination joins two chains into one?"),
     answer: T("Rekombination", "Combination"), options: [T("Rekombination", "Combination"), T("Disproportionierung", "Disproportionation")],
-    lines: [T("Die beiden Radikal-Elektronen bilden eine Bindung", "The two radical electrons form a bond"), T("Abbruch durch {?}", "Termination by {?}")],
+    lines: [T("Die beiden Radikal-Elektronen bilden eine Bindung", "The two radical electrons form a bond"), T("Abbruch durch {?}", "{?} ends the chain")],
     why: { [T("Disproportionierung", "Disproportionation")]: T("Dabei wandert ein H‑Atom – es bleiben zwei Ketten.", "Here an H atom moves – two chains remain.") },
     ok: T("Rekombination: eine lange Kette.", "Combination: one long chain."),
   },
@@ -556,7 +556,7 @@ const K5: GuideStep[] = [
     mode: "worked",
     say: T("**Epoxidharz**: Die **Epoxidgruppe** ist ein Dreierring aus C, C und O. Der Ring ist **gespannt** – seine Winkel sind nur etwa 60° statt etwa 109,5°.", "**Epoxy resin**: the **epoxide group** is a three-membered ring of C, C and O. The ring is **strained** – its angles are only about 60° instead of about 109.5°."),
     ask: T("Wie härtet ein **Zweikomponentenkleber** (Harz + Härter aus zwei Tuben)?", "How does a **two-part adhesive** (resin + hardener from two tubes) set?"),
-    visual: () => <MechPlay r={EP} acts={["join"]} note={T("R = Rest des Moleküls", "R = rest of the molecule")} />,
+    visual: () => <MechPlay r={EP} acts={["join"]} />,
     lines: [
       T("Das N der Aminogruppe greift ein C‑Atom des Rings an.", "The N of the amino group attacks a C atom of the ring."),
       T("Der Ring öffnet sich, ein H‑Atom wandert zum O.", "The ring opens, an H atom moves to the O."),

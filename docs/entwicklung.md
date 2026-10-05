@@ -690,6 +690,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Runde-31-Befunde** – Wasser abziehen (Säure + Amin): beide H am N gelten (`same` an der Antipp-Aufgabe, `tapResult` in `quiz/tap.ts`, Test), kein falscher
+  Stolperstein mehr; Beschriftungen im Bildausschnitt (Antippen, Mechanismus-Bild) nur, wenn sie ganz hineinpassen (kein „iCl₃“); Quiz-Kopf mit kurzem Kapitelnamen
+  (zwei Zeilen am schmalen Handy, weiche Trennung); Formel im Bausteinknopf einzeilig (Schrift nach Zeichenzahl); kurze Ketten im Gefäßbild als kleine Schlaufen;
+  breite Stufen-Monomere (Diepoxid) und Monomer-Paare im eigenen Seitenverhältnis, Paare bei hohem Bildplatz untereinander; Auswertung bei niedriger Höhe kompakter
+  (Überlauf 375 × 667 behoben); EN: Ziegler groß (`KEEP_CAPS` in `@lern/i18n`), „counterparts“, Lücke am Zeilenanfang (kein „= Polypropene“/„by Combination“), einheitlich
+  „half-headed arrow“ und „tip“; K3-Merksatz „lebend“ ohne Regel; Lektion Epoxid ohne „R = Rest“. check-ui: `SHOTS=Ordner` speichert ein Bild je Überlauf.
+
 - **Polymere: Merksatz und Tipp ohne Lösung, Regel an der Aufgabe** – Merksätze vor der Aufgabe nennen den Blickpunkt statt der gefragten Regel (Radikal, freie Stelle,
   H wandert, Taktizität, kationisch, Gift, AB-Monomer, Paare, C=C, Baustein, Kügelchen; Test mit Schlüsselwörtern je Typ); Tipps als Denkschritt (n, mehr Starter, Netz,
   Reaktionsart, freie Stelle u. a.; Test: kein Wort der richtigen Antwort im Tipp); Regel nach ✓ wird beim Erzeugen an die Aufgabe gebunden (gleich in Kapitel, gemischt,
