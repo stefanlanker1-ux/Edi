@@ -31,9 +31,14 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
   k5: { ex: "", arr: [], sep: "filtrieren", points: [
-    "Jedes Verfahren nutzt eine **Eigenschaft**: Korngröße (**Sieben**, **Filtrieren**), Magnetismus (**Magnet**), Dichte (**Dekantieren**), Siedetemperatur (**Eindampfen**, **Destillieren**).",
+    "Jedes Verfahren nutzt eine **Eigenschaft**: Aussehen (**Auslesen**), Korngröße (**Sieben**, **Filtrieren**), Magnetismus (**Magnet**), Dichte (**Dekantieren**).",
+    "**Dichte**: Sand sinkt in Wasser und bildet den **Bodensatz** – das Wasser darüber abgießen.",
     "Filtrieren: **Rückstand** bleibt im Filter, **Filtrat** läuft durch. Gelöstes geht durch das Filterpapier.",
-    "Destillieren: Dampf wird im **Kühler** flüssig, das **Destillat**. **Chromatografie** trennt Farbstoffe.",
+  ] },
+  k6: { ex: "", arr: [], sep: "destillieren", points: [
+    "Gelöstes trennt man über die **Siedetemperatur**: **Eindampfen** (das Salz bleibt) oder **Destillieren** (auch das Wasser wird aufgefangen).",
+    "Destillieren: Dampf wird im **Kühler** flüssig, das **Destillat**. Alkohol (78 °C) verdampft vor Wasser (100 °C).",
+    "**Chromatografie** trennt Farbstoffe. Manche Gemische brauchen **mehrere Schritte**: lösen, filtrieren, eindampfen.",
   ] },
 }, {
   k1: { ex: "modell", arr: ["nachher"], points: [
@@ -57,12 +62,17 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "“Pure” on a package means: nothing added. A **pure substance** is only **one** substance.",
   ] },
   k5: { ex: "", arr: [], sep: "filtrieren", points: [
-    "Each method uses a **property**: grain size (**sieving**, **filtering**), magnetism (**magnet**), density (**decanting**), boiling point (**evaporating**, **distilling**).",
-    "Filtering: the **residue** stays in the filter, the **filtrate** runs through. Dissolved things pass through the filter paper.",
-    "Distilling: vapour turns liquid in the **condenser**, the **distillate**. **Chromatography** separates dyes.",
+    "Each method uses a **property**: appearance (**hand-picking**), grain size (**sieving**, **filtration**), magnetism (**magnet**), density (**decanting**).",
+    "**Density**: sand sinks in water and forms the **sediment** – pour off the water above it.",
+    "Filtration: the **residue** stays in the filter, the **filtrate** runs through. Dissolved things pass through the filter paper.",
+  ] },
+  k6: { ex: "", arr: [], sep: "destillieren", points: [
+    "Dissolved substances are separated by their **boiling point**: **evaporation** (the salt stays) or **distillation** (the water is collected too).",
+    "Distillation: vapour turns liquid in the **condenser**, the **distillate**. Alcohol (78 °C) evaporates before water (100 °C).",
+    "**Chromatography** separates dyes. Some mixtures need **several steps**: dissolve, filter, evaporate.",
   ] },
 });
-const TOPIC: Record<string, string> = { "gm-k1": "k1", "gm-k2": "k2", "gm-k3": "k3", "gm-k4": "k4", "gm-k5": "k5" };
+const TOPIC: Record<string, string> = { "gm-k1": "k1", "gm-k2": "k2", "gm-k3": "k3", "gm-k4": "k4", "gm-k5": "k5", "gm-k6": "k6" };
 const CUE = tr("In diesem Niveau hilft der **Tipp** genau bei der Aufgabe. Tipp antippen kostet keine Punkte.", "At this stage the **hint** helps with exactly this task. Tapping the hint costs no points.");
 
 export function explainFor(level: LevelKey, task?: Task) {

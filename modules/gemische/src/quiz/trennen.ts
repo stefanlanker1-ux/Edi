@@ -62,8 +62,12 @@ const CASES: Case[] = [
 const METHOD_TEXT = (m: Method) => METHOD_NAME(m);
 
 /** Welches Verfahren trennt dieses Gemisch? Antworten als Bildkarten der Verfahren */
-export function trennWahl(): Task {
-  const c = pick(CASES);
+/** Kapitel 5: Trennen nach Größe, Magnet, Dichte – Kapitel 6: Lösungen trennen (Siedetemperatur, Chromatografie) */
+export const K5_METHODS: Method[] = ["auslesen", "sieben", "magnet", "dekantieren", "filtrieren"];
+export const K6_METHODS: Method[] = ["eindampfen", "destillieren", "chromatografie"];
+
+export function trennWahl(methods: Method[] = K5_METHODS): Task {
+  const c = pick(CASES.filter(x => methods.includes(x.m)));
   const name = c.mix();
   const goal = c.goal ? tr(` Ziel: ${c.goal()}.`, ` Goal: ${c.goal()}.`) : "";
   return {
@@ -112,10 +116,12 @@ const PROP_LOOK: Record<Method, () => string> = {
 const BEI: Record<Method, string> = { auslesen: "beim", sieben: "beim", magnet: "bei der", dekantieren: "beim", filtrieren: "beim", eindampfen: "beim", destillieren: "beim", chromatografie: "bei der" };
 
 /** Welche Eigenschaft nutzt dieses Verfahren? Bild = Animation des Verfahrens */
-export function trennEigenschaft(): Task {
-  const m = pick<Method>(["auslesen", "sieben", "magnet", "dekantieren", "filtrieren", "eindampfen", "destillieren", "chromatografie"]);
+export function trennEigenschaft(methods: Method[] = K5_METHODS): Task {
+  const m = pick(methods);
   const right = PROP[m]();
-  const others = shuffle((Object.keys(PROP) as Method[]).filter(x => PROP[x]() !== right));
+  // falsche Eigenschaften nur aus diesem und früheren Kapiteln (Siedetemperatur kommt erst in Kapitel 6)
+  const pool = methods.some(x => K6_METHODS.includes(x)) ? (Object.keys(PROP) as Method[]) : K5_METHODS;
+  const others = shuffle(pool.filter(x => PROP[x]() !== right));
   const seen = new Set<string>();
   const wrong = others.filter(x => { const p = PROP[x](); if (seen.has(p)) return false; seen.add(p); return true; }).slice(0, 3)
     .map(x => dis(PROP[x](), tr(`Das nutzt man ${BEI[x]} ${METHOD_TEXT(x)}.`, `That is used in ${METHOD_TEXT(x).toLowerCase()}.`)));
@@ -167,8 +173,8 @@ const TAPS: TapCase[] = [
 ];
 
 /** Teil im Bild antippen (nach dem Trennen) */
-export function trennTipp(): Task {
-  const c = pick(TAPS);
+export function trennTipp(methods: Method[] = K5_METHODS): Task {
+  const c = pick(TAPS.filter(x => methods.includes(x.m)));
   return {
     kind: "tap", answer: c.answer, parts: c.parts, sep: { m: c.m, t: 1 },
     traps: c.parts.map((p, i) => (p === c.answer ? null : { values: { pick: i }, miss: "teil-verwechselt", why: c.why[p]() })).filter(x => !!x) as Task["traps"],

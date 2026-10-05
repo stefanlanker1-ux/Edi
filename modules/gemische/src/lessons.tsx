@@ -10,7 +10,7 @@ import { initial, seedOf } from "./mixing.ts";
 import type { Pic } from "./quiz/tasks.ts";
 import { nameOf } from "./mixtures.ts";
 import { tr } from "@lern/i18n";
-import { SepAnim, SepScene, type Method } from "./components/Separation.tsx";
+import { MixPic, SepAnim, SepDevice, SepScene, type Method } from "./components/Separation.tsx";
 import { MiniParticle } from "./views/MixView.tsx";
 
 /** Legende unter jedem Teilchenbild: welches Teilchen zu welchem Stoff gehört (Name und Formel) */
@@ -99,8 +99,9 @@ const HOM = () => tr("homogenes Gemisch", "homogeneous mixture"), HET = () => tr
 const EL = () => tr("Element", "Element"), VB = () => tr("Verbindung", "Compound"), GM = () => tr("Gemisch", "Mixture");
 const EVEN = () => tr("überall gleich gefärbt", "evenly coloured everywhere"), BOTTOM = () => tr("Tinte bleibt unten", "ink stays at the bottom"), GONE = () => tr("Tinte verschwindet", "the ink disappears");
 const M = {
-  sieben: () => tr("Sieben", "Sieving"), magnet: () => tr("Magnettrennung", "Magnetic separation"), auslesen: () => tr("Auslesen", "Picking out"),
-  filtrieren: () => tr("Filtrieren", "Filtering"), eindampfen: () => tr("Eindampfen", "Evaporating"), destillieren: () => tr("Destillieren", "Distilling"),
+  sieben: () => tr("Sieben", "Sieving"), magnet: () => tr("Magnettrennung", "Magnetic separation"), auslesen: () => tr("Auslesen", "Hand-picking"),
+  filtrieren: () => tr("Filtrieren", "Filtration"), eindampfen: () => tr("Eindampfen", "Evaporation"), destillieren: () => tr("Destillieren", "Distillation"),
+  dekantieren: () => tr("Dekantieren", "Decanting"),
 };
 
 // ── 1 Teilchen und Atomsorten ──
@@ -351,7 +352,7 @@ const K4: GuideStep[] = [
   },
 ];
 
-// ── 5 Stofftrennung ──
+// ── 5 Trennen nach Größe, Magnet, Dichte ──
 const K5: GuideStep[] = [
   {
     mode: "worked",
@@ -359,7 +360,7 @@ const K5: GuideStep[] = [
     ask: tr("Wie trennt man **Sand und Kies**?", "How do you separate **sand and gravel**?"),
     visual: () => <Sep m="sieben" />,
     lines: [tr("Kies: große Körner. Sand: feine Körner.", "Gravel: large grains. Sand: fine grains."), tr("Das Sieb lässt nur die feinen Körner durch.", "The sieve only lets the fine grains through."), tr("→ **Sieben** nutzt die **Korngröße**.", "→ **Sieving** uses the **grain size**.")],
-    ok: tr("Große Teile mit der Hand oder Pinzette herausnehmen heißt **Auslesen**.", "Taking large pieces out by hand or with tweezers is called **picking out**."),
+    ok: tr("Große Teile mit der Hand oder Pinzette herausnehmen heißt **Auslesen**.", "Taking large pieces out by hand or with tweezers is called **hand-picking**."),
   },
   {
     mode: "worked",
@@ -374,20 +375,47 @@ const K5: GuideStep[] = [
     visual: () => <Sep m="auslesen" />,
     lines: [tr("Gleich große Teile, die verschieden aussehen.", "Pieces of the same size that look different."), tr("Mit der Pinzette herausnehmen → {?}", "Take them out with tweezers → {?}")],
     why: { [M.magnet()]: tr("Bohnen sind nicht magnetisch.", "Beans are not magnetic."), [M.sieben()]: tr("Die Bohnen sind gleich groß – sie bleiben alle zusammen im Sieb.", "The beans are the same size – they all stay in the sieve together.") },
-    ok: tr("Auslesen: Teile einzeln herausnehmen.", "Picking out: take the pieces out one by one."),
+    ok: tr("Auslesen: Teile einzeln herausnehmen.", "Hand-picking: take the pieces out one by one."),
   },
   {
     mode: "worked",
-    say: tr("Sand in Wasser: Der **Filter** hält die festen Körner zurück.", "Sand in water: the **filter** holds back the solid grains."),
+    say: tr("**Dichte**: wie schwer ein gleich großes Stück eines Stoffs ist.", "**Density**: how heavy an equal-sized piece of a substance is."),
+    ask: tr("Sand in Wasser hat sich abgesetzt. Wie trennt man ihn?", "Sand in water has settled. How do you separate it?"),
+    visual: () => <Sep m="dekantieren" />,
+    lines: [tr("Sand hat eine größere Dichte als Wasser: Er sinkt und bildet den **Bodensatz**.", "Sand has a greater density than water: it sinks and forms the **sediment**."),
+      tr("Öl hat eine kleinere Dichte: Es schwimmt oben.", "Oil has a smaller density: it floats on top."),
+      tr("Das Wasser über dem Bodensatz vorsichtig abgießen: **Dekantieren**.", "Pouring the water off the sediment carefully: **decanting**.")],
+    ok: tr("Dekantieren nutzt die Dichte.", "Decanting uses density."),
+  },
+  {
+    mode: "faded",
+    ask: tr("Ergänze: Der Sand liegt schon unten im Wasser.", "Complete: the sand is already at the bottom of the water."), answer: M.dekantieren(), options: [M.sieben(), M.dekantieren(), M.magnet()],
+    visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="dekantieren" t={0} /></Fit></div>,
+    lines: [tr("Sand: größere Dichte → liegt unten.", "Sand: greater density → lies at the bottom."), tr("Wasser vorsichtig abgießen → {?}", "Pour the water off carefully → {?}")],
+    why: { [M.sieben()]: tr("Das Wasser liefe mit dem Sand durchs Sieb. Der Sand liegt ja schon unten.", "The water would run through the sieve with the sand. The sand is already at the bottom."), [M.magnet()]: tr("Sand ist nicht magnetisch.", "Sand is not magnetic.") },
+    ok: tr("Dekantieren: das Wasser abgießen, der Bodensatz bleibt.", "Decanting: pour off the water, the sediment stays."),
+  },
+  {
+    mode: "free",
+    ask: tr("Jetzt du: Tippe auf den **Bodensatz**.", "Your turn: tap the **sediment**."), answer: "sand",
+    visual: c => <SepTap m="dekantieren" c={c} target="sand" />,
+    why: { "wasser2": tr("Das ist das abgegossene Wasser. Der Bodensatz bleibt im ersten Glas.", "That is the poured-off water. The sediment stays in the first glass.") },
+    tip: tr("Was hat sich am Boden abgesetzt?", "What has settled at the bottom?"),
+    show: tr("So geht's: tippe auf den Sand unten im ersten Glas.", "Here's how: tap the sand at the bottom of the first glass."),
+    ok: tr("Richtig: Der Sand unten im Glas ist der Bodensatz.", "Right: the sand at the bottom of the glass is the sediment."),
+  },
+  {
+    mode: "worked",
+    say: tr("Feiner Sand schwebt noch im Wasser. Das **Filterpapier** hält die festen Körner zurück.", "Fine sand is still floating in the water. The **filter paper** holds back the solid grains."),
     ask: tr("Was passiert beim **Filtrieren**?", "What happens when **filtering**?"),
     visual: () => <Sep m="filtrieren" />,
-    labels: [{ at: "[data-part=\"filtrat\"]", text: tr("Filtrat", "Filtrate"), side: "right" }],
-    lines: [tr("Der Sand bleibt im Filter: der **Rückstand**.", "The sand stays in the filter: the **residue**."), tr("Das Wasser läuft durch: das **Filtrat**.", "The water runs through: the **filtrate**."), tr("Hat sich der Sand schon abgesetzt, gießt man das Wasser ab: **Dekantieren**.", "If the sand has already settled, you pour off the water: **decanting**.")],
+    labels: [{ at: "[data-part=\"filtrat\"]", text: tr("Filtrat", "Filtrate"), side: "right", afterSolved: true }],
+    lines: [tr("Der Sand bleibt im Filter: der **Rückstand**.", "The sand stays in the filter: the **residue**."), tr("Das Wasser läuft durch: das **Filtrat**.", "The water runs through: the **filtrate**.")],
     ok: tr("Filtrieren trennt Feststoff von Flüssigkeit.", "Filtering separates a solid from a liquid."),
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Was läuft durch den Filter?", "Complete: what runs through the filter?"), answer: tr("Filtrat", "Filtrate"), options: [tr("Rückstand", "Residue"), tr("Filtrat", "Filtrate")],
+    ask: tr("Ergänze: Was läuft durch das Filterpapier?", "Complete: what runs through the filter paper?"), answer: tr("Filtrat", "Filtrate"), options: [tr("Rückstand", "Residue"), tr("Filtrat", "Filtrate")],
     visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="filtrieren" t={1} /></Fit></div>,
     lines: [tr("Oben im Filter: Sand = Rückstand.", "At the top in the filter: sand = residue."), tr("Unten im Glas: {?}", "At the bottom in the glass: {?}")],
     why: { [tr("Rückstand", "Residue")]: tr("Der Rückstand bleibt im Filter liegen.", "The residue stays in the filter.") },
@@ -402,35 +430,91 @@ const K5: GuideStep[] = [
     show: tr("So geht's: tippe auf den Sand in der Trichterspitze.", "Here's how: tap the sand in the tip of the funnel."),
     ok: tr("Richtig: Der Sand im Filter ist der Rückstand.", "Right: the sand in the filter is the residue."),
   },
+];
+
+// ── 6 Lösungen trennen ──
+/** Gerät selbst bedienen: Bild bei t = 0, Knopf startet den Ablauf */
+const Device = ({ m, start, alk }: { m: Method; start: string; alk?: boolean }) => <div className="gm-g"><SepDevice m={m} start={start} alk={alk} /></div>;
+/** Schrittkarten einer Trennung in Reihenfolge; `gap` = Platz, der noch offen ist (wird nach dem Lösen gefüllt) */
+function Steps({ steps, gap, c, mix = "salzsand" }: { steps: string[]; gap?: number; c?: GuideCtx; mix?: "salzsand" | "eisensalzsand" }) {
+  return (
+    <div className="gm-g">
+      <div className="gm-g-pic"><MixPic k={mix} label={tr("Gemisch vor dem Trennen", "Mixture before separating")} /></div>
+      <ol className="gm-steps">
+        {steps.map((st, i) => <li key={i} className={i === gap && !c?.solved ? "open" : undefined}><b>{"①②③④"[i]}</b><span>{i === gap && !c?.solved ? "?" : st}</span></li>)}
+      </ol>
+    </div>
+  );
+}
+const BRENNER = () => tr("Brenner an", "Burner on");
+const K6: GuideStep[] = [
   {
     mode: "worked",
-    say: tr("Gelöstes Salz geht durch Filterpapier. Hier hilft die **Siedetemperatur**: Wasser verdampft, Salz nicht.", "Dissolved salt passes through filter paper. Here the **boiling point** helps: water evaporates, salt does not."),
-    ask: tr("Wie bekommt man Salz bzw. Wasser aus Salzwasser?", "How do you get salt or water from salt water?"),
-    visual: () => <Sep m="destillieren" />,
-    lines: [tr("Nur das Salz gewinnen: erhitzen, bis das Wasser weg ist → **Eindampfen**.", "Get only the salt: heat until the water is gone → **evaporating**."), tr("Auch das Wasser gewinnen: der Dampf wird im **Kühler** wieder flüssig → **Destillieren**.", "Get the water too: the vapour turns liquid in the **condenser** → **distilling**."), tr("Das aufgefangene Wasser heißt **Destillat**.", "The collected water is called the **distillate**.")],
-    ok: tr("Eindampfen und Destillieren nutzen die Siedetemperatur.", "Evaporating and distilling use the boiling point."),
+    say: tr("Gelöstes Salz geht durch Filterpapier. Beim Erhitzen verdampft das Wasser, das Salz nicht: **Eindampfen**.", "Dissolved salt passes through filter paper. When heated, the water evaporates but the salt does not: **evaporating**."),
+    ask: tr("Schalte den Brenner an: Was bleibt übrig?", "Switch the burner on: what is left?"),
+    visual: () => <Device m="eindampfen" start={BRENNER()} />,
+    lines: [tr("Das Wasser verdampft und steigt als Dampf auf.", "The water evaporates and rises as vapour."), tr("Das Salz bleibt in der Schale.", "The salt stays in the dish."), tr("→ Eindampfen nutzt die **Siedetemperatur**.", "→ Evaporating uses the **boiling point**.")],
+    ok: tr("Eindampfen: Das Salz bleibt, das Wasser geht verloren.", "Evaporating: the salt stays, the water is lost."),
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Aus Salzwasser nur das **Salz** gewinnen.", "Complete: get only the **salt** from salt water."), answer: M.eindampfen(), options: [M.filtrieren(), M.eindampfen(), M.sieben()],
-    visual: () => <Sep m="eindampfen" />,
-    lines: [tr("Wasser verdampft beim Erhitzen, Salz nicht.", "Water evaporates when heated, salt does not."), tr("Das Wasser darf weg → {?}", "The water may go → {?}")],
-    why: { [M.filtrieren()]: tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water."), [M.sieben()]: tr("Gelöstes Salz geht durch jedes Sieb.", "Dissolved salt passes through any sieve.") },
-    ok: tr("Eindampfen: Das Salz bleibt in der Schale.", "Evaporating: the salt stays in the dish."),
+    ask: tr("Ergänze: Was bleibt nach dem Eindampfen in der Schale?", "Complete: what is left in the dish after evaporating?"), answer: tr("Salz", "Salt"), options: [tr("Wasser", "Water"), tr("Salz", "Salt")],
+    visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="eindampfen" t={1} /></Fit></div>,
+    lines: [tr("Wasser: verdampft beim Erhitzen.", "Water: evaporates when heated."), tr("In der Schale bleibt: {?}", "Left in the dish: {?}")],
+    why: { [tr("Wasser", "Water")]: tr("Das Wasser ist als Dampf aufgestiegen.", "The water has risen as vapour.") },
+    ok: tr("Das Salz verdampft nicht – es bleibt zurück.", "The salt does not evaporate – it stays behind."),
+  },
+  {
+    mode: "worked",
+    say: tr("Beim **Destillieren** fängt man den Dampf auf: Im **Kühler** wird er wieder flüssig.", "When **distilling** you catch the vapour: in the **condenser** it turns liquid again."),
+    ask: tr("Schalte den Brenner an: Wohin geht das Wasser?", "Switch the burner on: where does the water go?"),
+    visual: () => <Device m="destillieren" start={BRENNER()} />,
+    lines: [tr("Das Thermometer steigt auf 100 °C und bleibt dort, solange Wasser siedet.", "The thermometer rises to 100 °C and stays there while water is boiling."),
+      tr("Der Dampf wird im Kühler flüssig und tropft in die Vorlage: das **Destillat**.", "The vapour turns liquid in the condenser and drips into the receiver: the **distillate**."),
+      tr("Das Salz bleibt im Kolben.", "The salt stays in the flask.")],
+    ok: tr("Destillieren: Das Wasser geht nicht verloren.", "Distilling: the water is not lost."),
+  },
+  {
+    mode: "faded",
+    ask: tr("Ergänze: Wie heißt das aufgefangene Wasser?", "Complete: what is the collected water called?"), answer: tr("Destillat", "Distillate"), options: [tr("Rückstand", "Residue"), tr("Destillat", "Distillate"), tr("Filtrat", "Filtrate")],
+    visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="destillieren" t={1} /></Fit></div>,
+    lines: [tr("Der Dampf wird im Kühler flüssig.", "The vapour turns liquid in the condenser."), tr("Er tropft in die Vorlage: {?}", "It drips into the receiver: {?}")],
+    why: { [tr("Rückstand", "Residue")]: tr("Der Rückstand bleibt zurück – hier das Salz im Kolben.", "The residue stays behind – here the salt in the flask."), [tr("Filtrat", "Filtrate")]: tr("Ein Filtrat läuft durch Filterpapier. Hier gibt es keinen Filter.", "A filtrate runs through filter paper. There is no filter here.") },
+    ok: tr("Das Destillat ist das aufgefangene, wieder flüssige Wasser.", "The distillate is the collected water, liquid again."),
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Aus Salzwasser **sauberes Wasser** gewinnen.", "Your turn: get **clean water** from salt water."), answer: M.destillieren(), options: [M.eindampfen(), M.filtrieren(), M.destillieren()],
-    why: { [M.eindampfen()]: tr("Beim Eindampfen geht das Wasser als Dampf verloren.", "When evaporating, the water is lost as vapour."), [M.filtrieren()]: tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water.") },
-    lines: [tr("Der Dampf wird im Kühler aufgefangen → Destillat = sauberes Wasser.", "The vapour is caught in the condenser → distillate = clean water.")],
-    ok: tr("Destillieren: Das Wasser geht nicht verloren.", "Distilling: the water is not lost."),
+    ask: tr("Jetzt du: Aus Salzwasser **sauberes Wasser und Salz** gewinnen.", "Your turn: get **clean water and salt** from salt water."), answer: M.destillieren(), options: [M.eindampfen(), M.filtrieren(), M.destillieren()],
+    visual: () => <div className="gm-g"><div className="gm-g-pic"><MixPic k="salz" label={tr("Salzwasser", "Salt water")} /></div></div>,
+    why: { [M.eindampfen()]: tr("Beim Eindampfen geht das Wasser als Dampf verloren.", "When evaporating, the water is lost as vapour."), [M.filtrieren()]: tr("Gelöstes Salz geht mit dem Wasser durch das Filterpapier.", "Dissolved salt passes through the filter paper with the water.") },
+    lines: [tr("Destillat = sauberes Wasser, im Kolben bleibt das Salz.", "Distillate = clean water, the salt stays in the flask.")],
+    ok: tr("Destillieren: Wasser und Salz – beides bleibt.", "Distilling: water and salt – you keep both."),
+  },
+  {
+    mode: "worked",
+    say: tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C.", "Alcohol boils at 78 °C, water at 100 °C."),
+    ask: tr("Alkohol und Wasser destillieren: Schalte den Brenner an.", "Distil alcohol and water: switch the burner on."),
+    visual: () => <Device m="destillieren" alk start={BRENNER()} />,
+    lines: [tr("Beim Erhitzen verdampft zuerst vor allem Alkohol.", "When heated, mostly alcohol evaporates first."),
+      tr("Das Gemisch siedet nicht bei einer festen Temperatur – sie steigt langsam von etwa 80 °C an.", "The mixture does not boil at one fixed temperature – it rises slowly from about 80 °C."),
+      tr("Das Destillat enthält viel mehr Alkohol als vorher – rein ist es nicht.", "The distillate contains much more alcohol than before – it is not pure.")],
+    ok: tr("Verschiedene Siedetemperaturen trennen zwei Flüssigkeiten.", "Different boiling points separate two liquids."),
+  },
+  {
+    mode: "faded",
+    ask: tr("Ergänze: Was verdampft beim Erhitzen zuerst vor allem?", "Complete: what mostly evaporates first when heated?"), answer: tr("Alkohol", "Alcohol"), options: [tr("Wasser", "Water"), tr("beide gleich", "both the same"), tr("Alkohol", "Alcohol")],
+    visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="destillieren" alk t={1} /></Fit></div>,
+    lines: [tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C.", "Alcohol boils at 78 °C, water at 100 °C."), tr("Zuerst verdampft vor allem: {?}", "Mostly evaporates first: {?}")],
+    why: { [tr("Wasser", "Water")]: tr("Wasser siedet erst bei 100 °C, Alkohol schon bei 78 °C.", "Water only boils at 100 °C, alcohol already at 78 °C."), [tr("beide gleich", "both the same")]: tr("Die Siedetemperaturen sind verschieden: 78 °C und 100 °C.", "The boiling points are different: 78 °C and 100 °C.") },
+    ok: tr("Der Stoff mit der niedrigeren Siedetemperatur verdampft zuerst.", "The substance with the lower boiling point evaporates first."),
   },
   {
     mode: "worked",
     say: tr("Schwarze Filzstift-Farbe ist ein Gemisch aus Farbstoffen.", "Black felt-tip ink is a mixture of dyes."),
-    ask: tr("Was passiert bei der **Chromatografie**?", "What happens in **chromatography**?"),
-    visual: () => <Sep m="chromatografie" />,
-    lines: [tr("Das **Laufmittel** (Wasser) steigt im Papier hoch.", "The **solvent** (water) rises up the paper."), tr("Es nimmt die Farbstoffe mit – verschieden weit.", "It carries the dyes along – different distances."), tr("Wer schwach am Papier haftet, wandert weit.", "Whatever sticks weakly to the paper moves far.")],
+    ask: tr("Starte die **Chromatografie**: Was passiert mit dem schwarzen Punkt?", "Start the **chromatography**: what happens to the black spot?"),
+    visual: () => <Device m="chromatografie" start={tr("Start", "Start")} />,
+    lines: [tr("Das **Laufmittel** (Wasser) steigt im Papier hoch.", "The **solvent** (water) rises up the paper."), tr("Es nimmt die Farbstoffe verschieden weit mit.", "It carries the dyes along different distances."),
+      tr("Ein Farbstoff wandert weit, wenn er sich gut im Laufmittel löst und schwach am Papier haftet.", "A dye travels far if it dissolves well in the solvent and sticks only weakly to the paper.")],
     ok: tr("Aus einem schwarzen Fleck werden mehrere Farben.", "One black spot turns into several colours."),
   },
   {
@@ -439,7 +523,7 @@ const K5: GuideStep[] = [
     visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="chromatografie" t={1} /></Fit></div>,
     lines: [tr("Gelb ist am wenigsten weit gewandert.", "Yellow has moved the least."), tr("Am stärksten haftet: {?}", "Sticks most strongly: {?}")],
     why: { [tr("Blau", "Blue")]: tr("Blau ist am weitesten gewandert – es haftet am schwächsten.", "Blue moved furthest – it sticks least."), [tr("Rot", "Red")]: tr("Rot liegt in der Mitte.", "Red is in the middle.") },
-    ok: tr("Kurzer Weg = starkes Haften.", "Short way = strong sticking."),
+    ok: tr("Kurze Strecke = haftet stark.", "Short distance = sticks strongly."),
   },
   {
     mode: "free",
@@ -450,14 +534,31 @@ const K5: GuideStep[] = [
     show: tr("So geht's: tippe auf den obersten Fleck.", "Here's how: tap the top spot."),
     ok: tr("Blau haftet am schwächsten und wandert am weitesten.", "Blue sticks least and moves furthest."),
   },
+  {
+    mode: "worked",
+    say: tr("Manche Gemische brauchen **mehrere Schritte** nacheinander.", "Some mixtures need **several steps** one after another."),
+    ask: tr("Wie trennt man **Salz und Sand**?", "How do you separate **salt and sand**?"),
+    visual: () => <Steps steps={[tr("Lösen", "Dissolve"), M.filtrieren(), M.eindampfen()]} />,
+    lines: [tr("① Wasser dazu: Salz **löst** sich, Sand nicht.", "① Add water: salt **dissolves**, sand does not."), tr("② **Filtrieren**: Sand bleibt im Filter.", "② **Filtration**: sand stays in the filter."), tr("③ **Eindampfen**: Salz bleibt in der Schale.", "③ **Evaporation**: salt stays in the dish.")],
+    ok: tr("Erst lösen, dann filtrieren, dann eindampfen.", "First dissolve, then filter, then evaporate."),
+  },
+  {
+    mode: "faded",
+    ask: tr("Ergänze: **Eisen, Sand und Salz** trennen.", "Complete: separate **iron, sand and salt**."), answer: M.magnet(), options: [M.sieben(), M.eindampfen(), M.magnet()],
+    visual: c => <Steps steps={[M.magnet(), tr("Wasser dazu", "Add water"), M.filtrieren(), M.eindampfen()]} gap={0} c={c} mix="eisensalzsand" />,
+    lines: [tr("① {?} ② Wasser dazu ③ Filtrieren ④ Eindampfen", "① {?} ② Add water ③ Filtration ④ Evaporation")],
+    why: { [M.sieben()]: tr("Eisen und Sand sind gleich fein.", "Iron and sand are equally fine."), [M.eindampfen()]: tr("Dann wäre noch gar kein Wasser da.", "Then there would be no water yet.") },
+    ok: tr("Zuerst holt der Magnet das Eisen heraus.", "First the magnet takes the iron out."),
+  },
 ];
 
 const T = (de: string, en: string) => tr(de, en);
-/** Lektionen der fünf Kapitel (Index = Level) */
+/** Lektionen der sechs Kapitel (Index = Level) */
 export const LESSONS: GuideDef[] = [
   { title: T("Teilchen und Atomsorten", "Particles and kinds of atoms"), steps: K1, outro: [T("Molekül und einzelnes Atom = ein Teilchen.", "Molecule and single atom = one particle."), T("Farben zeigen Atomsorten, gleiche Teilchen = ein Stoff.", "Colours show kinds of atoms, identical particles = one substance.")] },
-  { title: T("Elemente und Verbindungen", "Elements and compounds"), steps: K2, known: [T("Teilchen", "particle"), T("Stoff", "substance"), T("Atomsorte", "kind of atom")], outro: [T("Element: eine Atomsorte. Verbindung: mehrere in einem Teilchen.", "Element: one kind of atom. Compound: several in one particle.")] },
+  { title: T("Elemente und Verbindungen", "Elements and compounds"), steps: K2, known: [T("Teilchen", "particle"), T("Stoff", "substance"), T("Atomsorte", "kind of atom")], outro: [T("Element: eine Atomsorte. Verbindung: mehrere Atomsorten fest verbunden.", "Element: one kind of atom. Compound: several kinds of atoms firmly bonded.")] },
   { title: T("Reinstoffe und Gemische", "Pure substances and mixtures"), steps: K3, known: [T("Element", "element"), T("Verbindung", "compound")], outro: [T("Reinstoff oder Gemisch, homogen oder heterogen.", "Pure substance or mixture, homogeneous or heterogeneous."), T("Beim Lösen bleiben Teilchen und Masse erhalten.", "When dissolving, particles and mass are conserved.")] },
   { title: T("Gemische im Alltag", "Mixtures in everyday life"), steps: K4, known: [T("Reinstoff", "pure substance"), T("Gemisch", "mixture"), T("Lösung", "solution"), T("homogen", "homogeneous"), T("heterogen", "heterogeneous")], outro: [T("Suspension, Emulsion, Schaum, Gemenge, Legierung.", "Suspension, emulsion, foam, coarse mixture, alloy."), T("„Rein“ auf der Packung ist kein Reinstoff.", "“Pure” on the package is not a pure substance.")] },
-  { title: T("Stofftrennung", "Separating mixtures"), steps: K5, known: [T("Gelb", "Yellow"), T("Blau", "Blue"), T("Rot", "Red")], outro: [T("Sieben, Auslesen, Magnet, Filtrieren, Dekantieren.", "Sieving, picking out, magnet, filtering, decanting."), T("Eindampfen, Destillieren, Chromatografie.", "Evaporating, distilling, chromatography.")] },
+  { title: T("Trennen nach Größe, Magnet, Dichte", "Separating by size, magnet, density"), steps: K5, known: [T("Eigenschaft", "property")], outro: [T("Sieben und Auslesen, Magnettrennung, Dekantieren (Dichte), Filtrieren.", "Sieving and hand-picking, magnetic separation, decanting (density), filtration."), T("Bodensatz, Rückstand und Filtrat erkennen.", "Recognising sediment, residue and filtrate.")] },
+  { title: T("Lösungen trennen", "Separating solutions"), steps: K6, known: [T("Salz", "salt"), T("Wasser", "water"), T("Alkohol", "alcohol"), T("Gelb", "Yellow"), T("Blau", "Blue"), T("Rot", "Red"), T("Rückstand", "residue"), T("Filtrat", "filtrate"), T("Filtrieren", "filtration"), T("Magnettrennung", "magnetic separation"), T("Sieben", "sieving")], outro: [T("Eindampfen und Destillieren nutzen die Siedetemperatur.", "Evaporating and distilling use the boiling point."), T("Chromatografie trennt Farbstoffe; manche Gemische brauchen mehrere Schritte.", "Chromatography separates dyes; some mixtures need several steps.")] },
 ];

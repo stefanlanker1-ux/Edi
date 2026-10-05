@@ -260,3 +260,12 @@
 /* Teilchenbilder als Antworten: Höhe begrenzt, damit zwei Reihen auch am Desktop ganz passen */
 .mc-grid:has(.gm-pic) .gm-pic:not(.gm-method) .gm-beaker { width: 100%; height: clamp(56px, 19vh, 170px); }
 @media (max-height: 720px) { .mc-grid:has(.gm-pic) .gm-pic:not(.gm-method) .gm-beaker { height: clamp(50px, 16vh, 120px); } }
+/* Lernen: Gerät selbst bedienen – Bild füllt den Platz, Knopf darunter */
+.sp-device { display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; gap: 8px; width: 100%; height: 100%; min-height: 0; }
+.sp-device .sp-wrap { width: 100%; height: 100%; }
+/* Lernen: Schritte einer Trennung als Karten in Reihenfolge (offener Platz gestrichelt) */
+.gm-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+/* Anzeige, keine Taste: ruhige Fläche ohne Rahmen; der offene Platz gestrichelt */
+.gm-steps li { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 4px 10px; border: 1.5px solid transparent; border-radius: var(--radius-sm); background: var(--surface-2); font-weight: 700; }
+.gm-steps li b { color: var(--signal); }
+.gm-steps li.open { border-style: dashed; color: var(--muted); }

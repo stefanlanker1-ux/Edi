@@ -4,16 +4,16 @@
 // Ziele für Beschriftungen und für Aufgaben zum Antippen. Farben nur aus der Palette; bei reduzierter Bewegung gleich das Endbild.
 
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { IconButton, useReducedMotion } from "@lern/ui";
+import { Button, IconButton, useReducedMotion } from "@lern/ui";
 import { tr } from "@lern/i18n";
 
 export type Method = "auslesen" | "sieben" | "magnet" | "dekantieren" | "filtrieren" | "eindampfen" | "destillieren" | "chromatografie";
 export const METHODS: Method[] = ["auslesen", "sieben", "magnet", "dekantieren", "filtrieren", "eindampfen", "destillieren", "chromatografie"];
 
 export const METHOD_NAME = (m: Method) => ({
-  auslesen: tr("Auslesen", "Picking out"), sieben: tr("Sieben", "Sieving"), magnet: tr("Magnet\u00adtrennung", "Magnetic separation"),
-  dekantieren: tr("Dekantieren", "Decanting"), filtrieren: tr("Filtrieren", "Filtering"), eindampfen: tr("Eindampfen", "Evaporating"),
-  destillieren: tr("Destillieren", "Distilling"), chromatografie: tr("Chromato\u00adgrafie", "Chromato\u00adgraphy"),
+  auslesen: tr("Auslesen", "Hand-picking"), sieben: tr("Sieben", "Sieving"), magnet: tr("Magnet\u00adtrennung", "Magnetic separation"),
+  dekantieren: tr("Dekantieren", "Decanting"), filtrieren: tr("Filtrieren", "Filtration"), eindampfen: tr("Eindampfen", "Evaporation"),
+  destillieren: tr("Destillieren", "Distillation"), chromatografie: tr("Chromato\u00adgrafie", "Chromato\u00adgraphy"),
 })[m];
 
 /** Was im Bild getrennt wird (für Vorlesen und Aufgabentexte) */
@@ -179,7 +179,7 @@ function filtrieren(t: number) {
   );
 }
 
-function eindampfen(t: number, id: string) {
+function eindampfen(t: number, id: string, _alk = false, off = false) {
   // Salzwasser in der Schale wird erhitzt: Wasser verdampft (Dampf steigt auf), Salzkristalle bleiben zurück
   const k = seg(t, .05, .9);
   const surf = lerp(86, 101, k); // Spiegel in der Schale (tiefster Punkt bei 101)
@@ -193,17 +193,18 @@ function eindampfen(t: number, id: string) {
       <g data-part="salz">{crystals.map((c, i) => c.on && <rect key={i} className="sp-salt" x={c.x - 2} y={c.y - 2} width={4} height={4} />)}</g>
       <path className="sp-dish" d="M78 82 Q120 120 162 82" data-part="schale" />
       <path className="sp-stand" d="M84 110 L156 110 M92 110 L84 150 M148 110 L156 150" />
-      <Flame x={120} y={136} t={t} on={k < .98} />
+      <Flame x={120} y={136} t={t} on={!off && k < .98} />
     </>
   );
 }
 
-function destillieren(t: number, id: string) {
+function destillieren(t: number, id: string, alk = false, off = false) {
   // Destillationsapparatur: Rundkolben mit Salzwasser über dem Brenner, Thermometer am Abzweig, Liebig-Kühler (Kühlwasser
   // im Gegenstrom: unten hinein, oben heraus), Vorlage. Erst steigt die Temperatur auf 100 °C, dann bleibt sie dort:
   // Wasserdampf zieht in den Kühler, wird dort wieder flüssig und tropft als Destillat in die Vorlage; das Salz bleibt im Kolben.
+  // Alkohol und Wasser (`alk`): ein Gemisch siedet nicht bei einer festen Temperatur – sie steigt nach dem Sieden langsam weiter (von etwa 80 °C an)
   const heat = seg(t, 0, .2), k = seg(t, .2, .95), boiling = t > .2 && k < 1;
-  const temp = Math.round(lerp(20, 100, heat));
+  const temp = Math.round(alk ? (t < .2 ? lerp(20, 80, heat) : lerp(80, 92, k)) : lerp(20, 100, heat));
   const level = lerp(95, 119, k), recv = lerp(160, 140, k);
   const A = [56, 50], B = [192, 114];
   const len = Math.hypot(B[0] - A[0], B[1] - A[1]), ux = (B[0] - A[0]) / len, uy = (B[1] - A[1]) / len, nx = -uy, ny = ux;
@@ -230,7 +231,7 @@ function destillieren(t: number, id: string) {
       </defs>
       <g data-part="kolben">
         <rect className="sp-water" x={26} y={level} width={48} height={40} clipPath={`url(#${id}-in)`} />
-        {k > .55 && salt.map((c, i) => <rect key={i} className="sp-salt" x={c.x} y={c.y} width={2.6} height={2.6} style={{ opacity: seg(k, .55 + i * .03, .7 + i * .03) }} />)}
+        {!alk && k > .55 && salt.map((c, i) => <rect key={i} className="sp-salt" x={c.x} y={c.y} width={2.6} height={2.6} style={{ opacity: seg(k, .55 + i * .03, .7 + i * .03) }} />)}
         {boiling && bubbles.map((b, i) => <circle key={i} className="sp-bubble" cx={b.x} cy={b.y} r={1.5} />)}
         <path className="sp-glass" d="M44 83 A22 22 0 1 0 56 83 L56 38 M44 83 L44 38" />
       </g>
@@ -255,7 +256,7 @@ function destillieren(t: number, id: string) {
         <path className="sp-glass" d="M186 118 L186 128 L172 156 Q171 158 174 158 L210 158 Q213 158 212 156 L198 128 L198 118" />
       </g>
       <path className="sp-stand" d="M26 129 L74 129 M32 129 L28 160 M68 129 L72 160" />
-      <Flame x={50} y={150} t={t} on={t < .97} />
+      <Flame x={50} y={150} t={t} on={!off && t < .97} />
     </>
   );
 }
@@ -286,7 +287,7 @@ function chromatografie(t: number) {
   );
 }
 
-const SCENES: Record<Method, (t: number, id: string) => ReactNode> = { auslesen, sieben, magnet, dekantieren, filtrieren, eindampfen, destillieren, chromatografie };
+const SCENES: Record<Method, (t: number, id: string, alk?: boolean, off?: boolean) => ReactNode> = { auslesen, sieben, magnet, dekantieren, filtrieren, eindampfen, destillieren, chromatografie };
 
 /** Trefferfläche eines Teils: sein sichtbarer Umriss, mindestens 44 × 44 px groß (in Bild-Einheiten) */
 interface Hit { part: string; x: number; y: number; w: number; h: number }
@@ -380,7 +381,11 @@ function measureHits(svg: SVGSVGElement, parts: string[]): Hit[] {
  * dazu unter dem Bild unsichtbare Trefferflächen je Teil (sichtbarer Umriss, mindestens 44 px, nie über das Bild hinaus; überlappende
  * kleine Flächen teilen sich an der Mitte).
  */
-export function SepScene({ m, t, label, onPick, mark, parts }: { m: Method; t: number; label?: string; onPick?: (part: string) => void;
+export function SepScene({ m, t, label, onPick, mark, parts, alk, off }: { m: Method; t: number; label?: string; onPick?: (part: string) => void;
+  /** Brenner aus (Gerät selbst bedienen: vor dem Einschalten) */
+  off?: boolean;
+  /** Destillieren: Alkohol und Wasser statt Salzwasser (Temperatur steigt langsam, kein Salz im Kolben) */
+  alk?: boolean;
   /** Teil gestrichelt grün umrahmen (Lösung nach der Antwort) */
   mark?: string;
   /** antippbare Teile (Standard: TAP_PARTS des Verfahrens) */
@@ -411,7 +416,7 @@ export function SepScene({ m, t, label, onPick, mark, parts }: { m: Method; t: n
       onClick={onPick ? e => { const p = (e.target as Element).closest("[data-part]")?.getAttribute("data-part"); if (p && live.includes(p)) onPick(p); } : undefined}>
       {tap && live.length > 0 && <style>{`${live.map(p => `${sel(p)}, ${sel(p)} *`).join(", ")} { pointer-events: auto; }`}</style>}
       {tap && <g className="sp-hits">{hits.map(h => <rect key={h.part} className="sp-hit" data-part={h.part} x={h.x} y={h.y} width={h.w} height={h.h} />)}</g>}
-      <g className="sp-shapes">{SCENES[m](t, id)}</g>
+      <g className="sp-shapes">{SCENES[m](t, id, alk, off)}</g>
       {mark && hits.filter(h => h.part === mark).map(h => <rect key="mark" className="sp-mark" x={Math.max(1, h.x - 2)} y={Math.max(1, h.y - 2)} width={Math.min(W - 2, h.w + 4)} height={Math.min(H - 2, h.h + 4)} rx={3} />)}
     </svg>
   );
@@ -447,8 +452,36 @@ export function SepAnim({ m, dur = 6000, still, onEnd, onPick, label }: { m: Met
   );
 }
 
+/**
+ * Gerät selbst bedienen (Lernen): das Bild steht zuerst bei t = 0, der Knopf (z. B. „Brenner an“) startet den Ablauf; danach „Nochmal“.
+ * Bei reduzierter Bewegung springt das Bild gleich ans Ende.
+ */
+export function SepDevice({ m, start, alk, dur = 6000, label }: { m: Method; start: string; alk?: boolean; dur?: number; label?: string }) {
+  const reduced = useReducedMotion();
+  const [t, setT] = useState(0);
+  const [run, setRun] = useState(0);
+  useEffect(() => {
+    if (!run) return;
+    if (reduced) { setT(1); return; }
+    let raf = 0;
+    const t0 = performance.now();
+    const tick = (now: number) => { const v = Math.min(1, (now - t0) / dur); setT(v); if (v < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [run, reduced, dur]);
+  const busy = run > 0 && t < 1;
+  return (
+    <div className="sp-device">
+      <div className="sp-wrap"><SepScene m={m} t={t} alk={alk} off={!run} label={label} /></div>
+      <Button className="sp-device-btn" variant={run ? "soft" : "primary"} icon={run ? "reset" : "fire"} disabled={busy} onClick={() => { setT(0); setRun(r => r + 1); }}>
+        {run ? tr("Nochmal", "Again") : start}
+      </Button>
+    </div>
+  );
+}
+
 /** Gemisch vor dem Trennen – ohne Geräte, damit das Bild das Verfahren nicht verrät */
-export function MixPic({ k, label }: { k: "eisen" | "kies" | "bohnen" | "absetzen" | "trueb" | "salz" | "alkohol" | "tinte" | "salzsand"; label: string }) {
+export function MixPic({ k, label }: { k: "eisen" | "kies" | "bohnen" | "absetzen" | "trueb" | "salz" | "alkohol" | "tinte" | "salzsand" | "eisensalzsand"; label: string }) {
   const dots = (n: number, cls: string, x0: number, x1: number, y0: number, y1: number, r: number, off = 0) =>
     Array.from({ length: n }, (_, i) => <circle key={cls + i} className={cls} cx={x0 + rnd(i + off) * (x1 - x0)} cy={y0 + rnd(i + off + 50) * (y1 - y0)} r={r} />);
   const glass = (fill: ReactNode) => <>{fill}<Beaker x0={80} y0={40} x1={160} y1={150} /></>;
@@ -465,6 +498,9 @@ export function MixPic({ k, label }: { k: "eisen" | "kies" | "bohnen" | "absetze
     tinte: <><rect className="sp-paper-strip" x={96} y={20} width={48} height={140} /><line className="sp-start" x1={96} y1={130} x2={144} y2={130} /><circle className="sp-ink" cx={120} cy={130} r={6} /></>,
     salzsand: <><ellipse className="sp-plate" cx={120} cy={110} rx={78} ry={24} />{dots(30, "sp-sand", 62, 178, 96, 124, 2, 31)}
       {Array.from({ length: 22 }, (_, i) => <rect key={i} className="sp-salt" x={64 + rnd(i + 90) * 110} y={96 + rnd(i + 120) * 24} width={3.4} height={3.4} />)}</>,
+    eisensalzsand: <><ellipse className="sp-plate" cx={120} cy={110} rx={78} ry={24} />{dots(26, "sp-sand", 62, 178, 96, 124, 2, 31)}
+      {Array.from({ length: 18 }, (_, i) => <rect key={i} className="sp-salt" x={64 + rnd(i + 90) * 110} y={96 + rnd(i + 120) * 24} width={3.4} height={3.4} />)}
+      {Array.from({ length: 14 }, (_, i) => { const x = 66 + rnd(i + 7) * 108, y = 98 + rnd(i + 17) * 22; return <line key={`e${i}`} className="sp-iron" x1={x - 3} y1={y} x2={x + 3} y2={y} transform={`rotate(${rnd(i + 27) * 180} ${x} ${y})`} />; })}</>,
   }[k];
   return <svg className="sp sp-mix" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>{body}</svg>;
 }

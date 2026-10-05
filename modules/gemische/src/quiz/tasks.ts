@@ -7,7 +7,7 @@ import { toSubscript } from "@lern/chem";
 import { buildRound, d, dis, mc, pick, shuffle, validTraps, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { EXAMPLES, PICTURE_LABEL, analyse, elementName, isElement, nameOf, shortName, small, type Before, type PictureKind, type State } from "../mixtures.ts";
 import type { Method } from "../components/Separation.tsx";
-import { trennEigenschaft, trennReihe, trennTipp, trennWahl, type MixKind } from "./trennen.ts";
+import { K5_METHODS, K6_METHODS, trennEigenschaft, trennReihe, trennTipp, trennWahl, type MixKind } from "./trennen.ts";
 import type { Arrange } from "../mixing.ts";
 import { tr } from "@lern/i18n";
 
@@ -519,7 +519,7 @@ const GEMISCHARTEN: Art[] = tr([
   { name: "Granit", ans: "Gemenge", why: "Verschiedene feste Körner nebeneinander.", traps: [["Legierung", "sieht-einheitlich", "Die Körner im Granit sieht man – nicht bis zu den Atomen gemischt."]] },
   { name: "Müsli", ans: "Gemenge", why: "Feste Teile nebeneinander.", traps: [["Suspension", ZUSTAND, "Im Müsli ist keine Flüssigkeit – nur feste Teile."]] },
   { name: "Dunst über dem Teich am Morgen", ans: "Nebel", why: "Flüssige Tröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Rauch hat feste Teilchen, Nebel flüssige Tröpfchen."]] },
-  { name: "Qualm eines Lagerfeuers", ans: "Rauch", why: "Feste Rußstückchen in Luft.", traps: [["Nebel", ZUSTAND, "Nebel hat flüssige Tröpfchen, Rauch feste Teilchen."]] },
+  { name: "Ruß über einer rußenden Kerze", ans: "Rauch", why: "Feste Rußstückchen in Luft.", traps: [["Nebel", ZUSTAND, "Nebel hat flüssige Tröpfchen, Rauch feste Teilchen."]] },
   { name: "Schlagsahne", ans: "Schaum", why: "Luftblasen in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "In Schlagsahne stecken Luftblasen – ein Gas in Flüssigkeit."]] },
   { name: "Seifenschaum", ans: "Schaum", why: "Luftblasen in Seifenwasser.", traps: [["Nebel", ZUSTAND, "Beim Nebel ist die Flüssigkeit im Gas – hier ist es umgekehrt."]] },
   { name: "Essig", ans: "Lösung", why: "Essigsäure ist in Wasser gelöst.", traps: [["Emulsion", "geloest-heterogen", "Essigsäure mischt sich ganz mit Wasser – keine Tröpfchen."]] },
@@ -551,8 +551,8 @@ const GEMISCHARTEN: Art[] = tr([
   { name: "orange juice with pulp", ans: "Suspension", why: "Solid bits in the juice.", traps: [["Emulsion", ZUSTAND, "Pulp is solid – these are bits, not droplets."]] },
   { name: "granite", ans: "Coarse mixture", why: "Different solid grains side by side.", traps: [["Alloy", "sieht-einheitlich", "You can see the grains in granite – not mixed down to the atoms."]] },
   { name: "muesli", ans: "Coarse mixture", why: "Solid pieces side by side.", traps: [["Suspension", ZUSTAND, "There is no liquid in muesli – only solid pieces."]] },
-  { name: "haze over a pond in the morning", ans: "Fog", why: "Liquid droplets in air.", traps: [["Smoke", ZUSTAND, "Smoke has solid particles, fog has liquid droplets."]] },
-  { name: "the fumes of a campfire", ans: "Smoke", why: "Solid bits of soot in air.", traps: [["Fog", ZUSTAND, "Fog has liquid droplets, smoke has solid particles."]] },
+  { name: "mist over a pond in the morning", ans: "Fog", why: "Liquid droplets in air.", traps: [["Smoke", ZUSTAND, "Smoke has solid particles, fog has liquid droplets."]] },
+  { name: "soot above a sooty candle", ans: "Smoke", why: "Solid bits of soot in air.", traps: [["Fog", ZUSTAND, "Fog has liquid droplets, smoke has solid particles."]] },
   { name: "whipped cream", ans: "Foam", why: "Air bubbles in a liquid.", traps: [["Emulsion", ZUSTAND, "Whipped cream contains air bubbles – a gas in a liquid."]] },
   { name: "soap foam", ans: "Foam", why: "Air bubbles in soapy water.", traps: [["Fog", ZUSTAND, "In fog the liquid is in the gas – here it is the other way round."]] },
   { name: "vinegar", ans: "Solution", why: "Acetic acid is dissolved in water.", traps: [["Emulsion", "geloest-heterogen", "Acetic acid mixes completely with water – no droplets."]] },
@@ -1057,7 +1057,8 @@ const RAW: Record<string, () => Task> = {
   homogenBild: homogenOf(e => !!e.ex), homogenKlar: homogenOf(e => e.trap?.[1] === "klar-reinstoff"), homogenSieht: homogenOf(e => e.trap?.[1] === "sieht-einheitlich"),
   artFluessig: gemischartOf(ARTEN.slice(0, 1).concat(ARTEN.slice(3, 5))), artFestGas: gemischartOf([ARTEN[1], ARTEN[2], ARTEN[5]]), artInGas: gemischartOf(ARTEN.slice(6, 9)),
   tippAtome, tippElement: () => tippArt(true), tippVerbindung: () => tippArt(false),
-  trennWahl, trennEigenschaft, trennTipp, trennReihe,
+  trennWahl: () => trennWahl(K5_METHODS), trennEigenschaft: () => trennEigenschaft(K5_METHODS), trennTipp: () => trennTipp(K5_METHODS),
+  loesWahl: () => trennWahl(K6_METHODS), loesEigenschaft: () => trennEigenschaft(K6_METHODS), loesTipp: () => trennTipp(K6_METHODS), trennReihe,
 };
 /** neu würfeln, bis keine zwei Atomsorten ähnliche Farben haben */
 export const GENS: Record<string, () => Task> = Object.fromEntries(Object.entries(RAW).map(([id, gen]) => [id, () => {
@@ -1077,6 +1078,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   artFluessig: "Lösung, Emulsion, Suspension", artFestGas: "Legierung, Gasgemisch, Gemenge", artInGas: "Rauch, Nebel, Schaum",
   tippAtome: "Atome im Teilchen", tippElement: "Element im Bild finden", tippVerbindung: "Verbindung im Bild finden",
   trennWahl: "Trennverfahren wählen", trennEigenschaft: "Genutzte Eigenschaft", trennTipp: "Teile nach dem Trennen", trennReihe: "Reihenfolge der Trennschritte",
+  loesWahl: "Lösungen trennen: Verfahren", loesEigenschaft: "Lösungen trennen: Eigenschaft", loesTipp: "Lösungen trennen: Teile",
 }, {
   teilchen: "Counting particles", stoffe: "Counting substances", reinOderGemisch: "Pure substance or mixture", reinGemisch: "Pure substance, element or compound",
   einordnen: "Element or compound", bildArt: "Classifying a particle picture", bildWahl: "Choosing a particle picture",
@@ -1088,6 +1090,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   artFluessig: "Solution, emulsion, suspension", artFestGas: "Alloy, gas mixture, coarse mixture", artInGas: "Smoke, fog, foam",
   tippAtome: "Atoms in a particle", tippElement: "Finding an element", tippVerbindung: "Finding a compound",
   trennWahl: "Choosing a separation method", trennEigenschaft: "Property used", trennTipp: "Parts after separating", trennReihe: "Order of separation steps",
+  loesWahl: "Separating solutions: method", loesEigenschaft: "Separating solutions: property", loesTipp: "Separating solutions: parts",
 });
 
 /** `seq`: feste Reihenfolge der zehn Aufgaben (leicht → schwer, jede baut auf der vorigen auf), `leads`: Merksatz je Schritt */
@@ -1189,7 +1192,7 @@ const K4: Step[] = tr([
   ["artInGas", "What is spread out, what is the main substance?"],
   ["gemischart", "All together: decide the states, then the name."],
 ]);
-// Kapitel 5: Merksätze setzen die Generatoren je Variante (trennen.ts); hier nur der Ersatz, falls keiner gesetzt ist
+// Kapitel 5 und 6: Merksätze setzen die Generatoren je Variante (trennen.ts); hier nur der Ersatz, falls keiner gesetzt ist
 const K5: Step[] = tr([
   ["trennWahl", "Worin unterscheiden sich die Stoffe?"],
   ["trennEigenschaft", "Schau, was bleibt und was weggeht."],
@@ -1199,7 +1202,7 @@ const K5: Step[] = tr([
   ["trennEigenschaft", "Beobachte das Bild bis zum Ende: Was bleibt, was geht?"],
   ["trennWahl", "Vergleiche die Stoffe: Was ist anders?"],
   ["trennTipp", "Wo ist jeder Stoff am Ende?"],
-  ["trennReihe", "Manche Gemische brauchen mehrere Schritte. Was muss zuerst passieren?"],
+  ["trennEigenschaft", "Was bleibt liegen – und warum gerade das?"],
   ["trennWahl", "Zum Schluss: Worin unterscheiden sich die Stoffe?"],
 ], [
   ["trennWahl", "How do the substances differ?"],
@@ -1210,8 +1213,31 @@ const K5: Step[] = tr([
   ["trennEigenschaft", "Watch the picture to the end: what stays, what goes?"],
   ["trennWahl", "Compare the substances: what is different?"],
   ["trennTipp", "Where is each substance at the end?"],
-  ["trennReihe", "Some mixtures need several steps. What has to happen first?"],
+  ["trennEigenschaft", "What stays behind – and why that one?"],
   ["trennWahl", "Finally: how do the substances differ?"],
+]);
+const K6: Step[] = tr([
+  ["loesWahl", "Worin unterscheiden sich die Stoffe?"],
+  ["loesEigenschaft", "Schau, was beim Erhitzen bzw. Laufen passiert."],
+  ["loesTipp", "Verfolge jeden Stoff von vorher bis nachher."],
+  ["loesWahl", "Welche Eigenschaft unterscheidet die Stoffe?"],
+  ["trennReihe", "Manche Gemische brauchen mehrere Schritte. Was muss zuerst passieren?"],
+  ["loesTipp", "Verfolge jeden Stoff durch das Gerät."],
+  ["loesEigenschaft", "Beobachte das Bild bis zum Ende: Was bleibt, was geht?"],
+  ["loesWahl", "Vergleiche die Stoffe: Was ist anders?"],
+  ["trennReihe", "Welcher Schritt braucht einen anderen vorher?"],
+  ["loesTipp", "Wo ist jeder Stoff am Ende?"],
+], [
+  ["loesWahl", "How do the substances differ?"],
+  ["loesEigenschaft", "Watch what happens when heating or running."],
+  ["loesTipp", "Follow each substance from before to after."],
+  ["loesWahl", "Which property tells the substances apart?"],
+  ["trennReihe", "Some mixtures need several steps. What has to happen first?"],
+  ["loesTipp", "Follow each substance through the apparatus."],
+  ["loesEigenschaft", "Watch the picture to the end: what stays, what goes?"],
+  ["loesWahl", "Compare the substances: what is different?"],
+  ["trennReihe", "Which step needs another one first?"],
+  ["loesTipp", "Where is each substance at the end?"],
 ]);
 const level = (n: number, name: string, desc: string, steps: Step[]): Level => {
   const seq = steps.map(([t]) => t);
@@ -1222,7 +1248,8 @@ export const LEVELS: Level[] = [
   level(2, tr("Elemente und Verbindungen", "Elements and compounds"), tr("Eine Atomsorte oder mehrere in einem Teilchen", "One kind of atom or several in one particle"), K2),
   level(3, tr("Reinstoffe und Gemische", "Pure substances and mixtures"), tr("Ein Stoff oder mehrere, homogen oder heterogen, Lösen", "One substance or several, homogeneous or heterogeneous, dissolving"), K3),
   level(4, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("„Rein“ auf Packungen, Lösung, Emulsion, Suspension …", "“Pure” on packages, solution, emulsion, suspension …"), K4),
-  level(5, tr("Stofftrennung", "Separating mixtures"), tr("Sieben, Magnet, Filtrieren, Eindampfen, Destillieren …", "Sieving, magnet, filtering, evaporating, distilling …"), K5),
+  level(5, tr("Trennen nach Größe, Magnet, Dichte", "Separating by size, magnet, density"), tr("Auslesen, Sieben, Magnet, Dekantieren, Filtrieren", "Hand-picking, sieving, magnet, decanting, filtration"), K5),
+  level(6, tr("Lösungen trennen", "Separating solutions"), tr("Eindampfen, Destillieren, Chromatografie, mehrere Schritte", "Evaporation, distillation, chromatography, several steps"), K6),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `gm-${level}`);

@@ -36,7 +36,7 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
       }
     }
   }
-  assert.strictEqual(LEVELS.length, 5);
+  assert.strictEqual(LEVELS.length, 6);
 });
 
 test("Moleküle aus nur einer Atomsorte nur in der Aufgabe „Element oder Verbindung“ (O₂, N₂ mit Falle element-molekuel), sonst nie", () => {
@@ -137,7 +137,7 @@ test("genug verschiedene Aufgaben je Level (keine Wiederholungen)", () => {
   for (let lv = 0; lv < LEVELS.length; lv++) {
     const keys = new Set(all(lv, 60).map(t => JSON.stringify({ ...t, options: undefined, answer: undefined, why: undefined, miss: undefined })));
     // Stofftrennung: eine feste Zahl echter Fälle (Gemisch → Verfahren, Teile im Bild) statt Zufallsbildern
-    const min = LEVELS[lv].id === "gm-k5" ? 25 : 80;
+    const min = ["gm-k5", "gm-k6"].includes(LEVELS[lv].id) ? 25 : 80;
     assert.ok(keys.size >= min, `${LEVELS[lv].name}: nur ${keys.size} verschiedene Aufgaben`);
   }
 });
@@ -146,8 +146,8 @@ test("keine zwei Atomsorten mit ähnlicher Farbe in einer Aufgabe (z. B. He und 
   for (const t of all("mix", 300)) assert.ok(distinctColors(t), `${t.type}: ${JSON.stringify(t.pic ?? t.pics)}`);
 }, 60_000);
 
-test("Kapitel 1–5: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt, Tipp zugeschnitten", () => {
-  assert.deepEqual(LEVELS.map(l => l.name), ["Teilchen und Atomsorten", "Elemente und Verbindungen", "Reinstoffe und Gemische", "Gemische im Alltag", "Stofftrennung"]);
+test("Kapitel 1–6: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt, Tipp zugeschnitten", () => {
+  assert.deepEqual(LEVELS.map(l => l.name), ["Teilchen und Atomsorten", "Elemente und Verbindungen", "Reinstoffe und Gemische", "Gemische im Alltag", "Trennen nach Größe, Magnet, Dichte", "Lösungen trennen"]);
   for (let lv = 0; lv < LEVELS.length; lv++) {
     const L = LEVELS[lv];
     assert.strictEqual(L.seq.length, 10);
@@ -157,7 +157,7 @@ test("Kapitel 1–5: feste Reihenfolge, Merksatz je Aufgabe, keine Frage doppelt
       const round = makeRound("us", lv);
       assert.deepEqual(round.map(t => t.type), L.seq);
       // Merksatz des Platzes – außer die Variante bringt ihren eigenen mit (Bild nach dem Mischen, Trennverfahren mit Ziel)
-      round.forEach((t, i) => { assert.ok(t.lead, `${L.name} ${i}: Merksatz fehlt`); if (!["nachher", "trennWahl"].includes(t.type!)) assert.strictEqual(t.lead, L.leads[i]); });
+      round.forEach((t, i) => { assert.ok(t.lead, `${L.name} ${i}: Merksatz fehlt`); if (!["nachher", "trennWahl", "loesWahl"].includes(t.type!)) assert.strictEqual(t.lead, L.leads[i]); });
       const keys = round.map(t => t.prompt + JSON.stringify(t.pic ?? t.pics ?? null));
       assert.strictEqual(new Set(keys).size, keys.length, `doppelt in ${L.name}`);
       for (const t of round) {

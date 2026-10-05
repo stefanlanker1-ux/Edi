@@ -334,13 +334,15 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente; beim Sprudel zusätzlich „entsteht in kleiner Menge“: Kohlensäure, `forms`) | Zählen | Farben („nur im Modell“) |
   Einteilung (Stoffe → Reinstoffe/Gemische mit allen Beispielen; niedrige Handys ohne Wurzel) | Arten (verteilter Stoff in Hauptstoff: Gemenge, Legierung, Suspension,
   Lösung, Rauch, Emulsion, Nebel, Schaum, Gasgemisch mit Alltagsbeispiel; aktuelles Beispiel markiert) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
-- **Lernen** (`src/quiz/tasks.ts`, Lektionen `src/lessons.tsx`, Katalog `misconceptions.ts`): fünf Kapitel (`gm-k1` … `gm-k5`) mit je einer Lektion und zehn Aufgaben
+- **Lernen** (`src/quiz/tasks.ts`, Lektionen `src/lessons.tsx`, Katalog `misconceptions.ts`): sechs Kapitel (`gm-k1` … `gm-k6`) mit je einer Lektion und zehn Aufgaben
   in fester Reihenfolge, plus „Alles gemischt“, „Heute fällig“, „Schwächen üben“:
   1 **Teilchen und Atomsorten** (teilchen ×2, tippAtome ×2, atomsorten ×2, stoffe ×2, zwischen, farbe) ·
   2 **Elemente und Verbindungen** (einordnen ×2, tippElement ×2, tippVerbindung ×2, elemente ×2, verbindungen ×2) ·
   3 **Reinstoffe und Gemische** (reinOderGemisch, reinGemisch, bildArt, bildWahl, homogenBild, homogenKlar, wohin, nachher, masse, bewegung – Lösen gehört hierher) ·
   4 **Gemische im Alltag** (alltag ×2, reinAlltag ×2, homogenSieht, artFluessig ×2, artFestGas, artInGas, gemischart) ·
-  5 **Stofftrennung** (trennWahl ×4, trennEigenschaft ×2, trennTipp ×3, trennReihe; `src/quiz/trennen.ts`).
+  5 **Trennen nach Größe, Magnet, Dichte** (trennWahl ×4, trennEigenschaft ×3, trennTipp ×3 – nur Auslesen, Sieben, Magnet, Dekantieren, Filtrieren) ·
+  6 **Lösungen trennen** (loesWahl ×3, loesEigenschaft ×2, loesTipp ×3, trennReihe ×2 – Eindampfen, Destillieren, Chromatografie, mehrere Schritte; `src/quiz/trennen.ts`,
+  `K5_METHODS`/`K6_METHODS`; falsche Eigenschaften in Kapitel 5 nur aus Kapitel 5, „Siedetemperatur“ erst in Kapitel 6).
   **Keine Zahleneingabe**: Zählaufgaben werden zur Auswahl (`asChoice`: Fallen → diagnostische Distraktoren, Zahlen aufsteigend); Antippen im Teilchenbild
   (`tippAtome`: Teilchen aus n Atomen, `tippElement`/`tippVerbindung`). Stofftrennung: `trennWahl` (Bild des Gemischs ohne Geräte `MixPic`, Antworten als
   Bildkarten der Verfahren; 9 Fälle: Eisen/Schwefel → Magnet, Sand/Kies → Sieben, rote/weiße Bohnen (gleich groß, nur anders gefärbt) → Auslesen, abgesetzter Sand → Dekantieren, trübes Wasser →
@@ -380,12 +382,15 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Teilchen kräftig, alle anderen blass (`FlowView` `mark`); am Handy schließt sich das Blatt dabei. Kein Erklärsatz: jede markierbare Zeile und jeder Chip trägt das
   Kennzeichen ◎ (grau, gedrückt in der Farbe der Taste; `aria-label` „… im Bild markieren“). Die Statuszeile zeigt die Markierung als Taste („◎ CO₂ ✕“ = aufheben).
   Keine Eingabe, kein ✓/✗, keine Aufforderung.
-- **Lektionen** (`src/lessons.tsx`, `LESSONS[0…4]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe; die richtige Auswahl steht
+- **Lektionen** (`src/lessons.tsx`, `LESSONS[0…5]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe; die richtige Auswahl steht
   an wechselnden Plätzen, Zahlen aufsteigend – Test: höchstens 40 % an Platz 1): 1 Teilchen zählen,
   Teilchen aus 5 Atomen antippen, Atomsorten an den Farben, Stoffe, leerer Raum · 2 Element/Verbindung, Element antippen, Verbindungen zählen, Kupfer ·
   3 Reinstoff/Gemisch, homogen/heterogen (Zuckerwasser = Lösung, Milch, Gasgemisch), Lösen (Animation), Masse, Tinte · 4 Arten von Gemischen (Suspension,
-  Emulsion, Schaum, Gemenge, Legierung fett eingeführt), Öl in Wasser, Müsli, „rein“ · 5 Sieben, Magnettrennung, Auslesen, Filtrieren (Rückstand, Filtrat,
-  Dekantieren), Rückstand antippen, Eindampfen/Destillieren (Kühler, Destillat, Siedetemperatur), Chromatografie (Laufmittel), weitesten Farbstoff antippen.
+  Emulsion, Schaum, Gemenge, Legierung fett eingeführt), Öl in Wasser, Müsli, „rein“ · 5 Sieben, Magnettrennung, Auslesen (rote/weiße Bohnen), Dichte/Bodensatz/Dekantieren,
+  Bodensatz antippen, Filtrieren (Rückstand, Filtrat), Rückstand antippen · 6 **Gerät selbst bedienen** (`SepDevice`: Bild bei t = 0, Brenner aus, Knopf „Brenner an“ bzw.
+  „Start“ spielt den Ablauf): Eindampfen, Destillieren von Salzwasser (Thermometer 100 °C), Destillieren von Alkohol und Wasser (`alk`: Temperatur steigt langsam von
+  etwa 80 °C an, kein fester Wert; Destillat nie „rein“), Chromatografie (Satz: weit = gut löslich im Laufmittel und schwach haftend), weitesten Farbstoff antippen,
+  mehrere Schritte Salz + Sand (vorgemacht) und Eisen + Sand + Salz (Platz ① ergänzen: Magnet).
   Begriffe früherer Kapitel stehen in `known`.
 
 ## Atombau (`modules/atombau`)
@@ -692,7 +697,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
 Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"`, `LESBAR=1` und `LOCALE=en-GB`).
-Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Lernen“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`).
+Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5,gm-k6"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Lernen“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`).
 In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=/opt/pw-browsers/chromium`), Playwright global (`PLAYWRIGHT=…/playwright/index.mjs`); nie `playwright install`.
 Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
 laufen lassen; je Zustand messen (Seite, `.ui-wb`, `.ui-wb-stage`, Aufgabenkarte, Blatt: `scrollHeight/scrollWidth` ≤ `clientHeight/clientWidth`, Bild nicht winzig) und Screenshots ansehen.
@@ -700,6 +705,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Kapitel 5 geteilt, neues Kapitel 6 „Lösungen trennen“** – Kapitel 5 „Trennen nach Größe, Magnet, Dichte“ (Lektion 9 Schritte, neu Dichte, Bodensatz,
+  Dekantieren), Kapitel 6 `gm-k6` (Lektion 12 Schritte mit selbst bedientem Gerät, Alkohol/Wasser-Destillation, mehrere Schritte; Fertigkeiten `loesWahl`,
+  `loesEigenschaft`, `loesTipp`, `trennReihe`). Bisherige Kennungen und Fortschritt bleiben. Erklärkarte je Kapitel. Englische Verfahrensnamen als Nomen
+  (hand-picking, filtration, evaporation, distillation). Brenner vor dem Einschalten aus. Rauch-Beispiel „Ruß über einer rußenden Kerze“, „mist over a pond“.
 
 - **Gemische: Element-Moleküle O₂ und N₂ eingeführt** – Lektion 2 mit vorgemachtem Kontrast O₂ / CO und halb gelöstem N₂; Aufgabe `einordnen` mit O₂/N₂ (etwa jede
   vierte, Test: in Kapitel 2 mindestens jede dritte Runde) und neuem Stolperstein „Element aus Molekülen für Verbindung gehalten“. Texte: „Flüssigkeit mit gelöstem Stoff

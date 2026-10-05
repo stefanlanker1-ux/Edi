@@ -4,7 +4,7 @@ import { checkGuide } from "@lern/ui";
 import { LESSONS } from "./lessons.tsx";
 
 test("Lektionen", () => {
-  expect(LESSONS.length).toBe(5);
+  expect(LESSONS.length).toBe(6);
   for (const l of LESSONS) expect(checkGuide(l, { lesson: true })).toEqual([]);
 });
 
