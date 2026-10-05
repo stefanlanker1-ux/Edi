@@ -320,7 +320,8 @@
 .pm-order-pic { min-height: 0; display: block; container-type: size; }
 .pm-order-pic svg { width: 100%; height: 100%; display: block; }
 .pm-order-num { position: absolute; top: 2px; left: 6px; font-size: 1.3rem; font-weight: 800; color: var(--signal); }
-.pm-order-mark { position: absolute; top: 2px; right: 6px; font-size: .9rem; font-weight: 800; }
+.pm-order-mark { position: absolute; top: 2px; right: 6px; font-size: .78rem; font-weight: 700; }
+.pm-order-legend { margin: 0; font-size: .72rem; line-height: 1.2; color: var(--muted); text-align: center; }
 .pm-order-card.ok .pm-order-mark { color: var(--ok); }
 .pm-order-name { font-size: .72rem; font-weight: 650; line-height: 1.15; }
 .q-pm:has(.pm-order) { height: auto; }
@@ -364,3 +365,7 @@
 .pm-lesson-note { position: absolute; left: 6px; bottom: 4px; margin: 0; font-size: .78rem; color: var(--muted); }
 /* nach der Antwort ist der Merksatz gelesen: sein Platz gehört dem Bild */
 .task-card.kind-tap.answered:not(.worked) .q-lead, .task-card.kind-order.answered:not(.worked) .q-lead, .task-card.kind-build.answered:not(.worked) .q-lead { display: none; }
+/* Ordnen auf niedrigen Bildschirmen: Merksatz aus, damit die vier Bilder groß bleiben */
+@media (max-height: 700px) { .task-card.kind-order .q-lead { display: none; } .pm-order-grid { gap: 4px; } }
+@media (max-height: 700px) { .pm-order-legend { display: none; } }
+.task-card.kind-order .q-feedback .fb-sol { display: none; }

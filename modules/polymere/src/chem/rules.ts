@@ -219,7 +219,7 @@ export const LINK_SHORT: Record<Link, string> = tr(
   { ester: "Esterbindung", amid: "Amidbindung", urethan: "Urethangruppe", harnstoff: "Harnstoffgruppe", aminoalkohol: "Epoxidring geöffnet", methylen: "CH₂-Brücke" },
   { ester: "ester bond", amid: "amide bond", urethan: "urethane group", harnstoff: "urea group", aminoalkohol: "epoxide ring opened", methylen: "CH₂ bridge" },
 );
-export const LINK_FORMULA: Record<Link, string> = { ester: "–CO–O–", amid: "–CO–NH–", urethan: "–NH–CO–O–", harnstoff: "–NH–CO–NH–", aminoalkohol: "–CH(OH)–CH₂–NH–", methylen: "–CH₂–" };
+export const LINK_FORMULA: Record<Link, string> = { ester: "–CO–⁠O–⁠", amid: "–CO–⁠NH–⁠", urethan: "–NH–⁠CO–⁠O–⁠", harnstoff: "–NH–⁠CO–⁠NH–⁠", aminoalkohol: "–CH(OH)–CH₂–NH–", methylen: "–CH₂–" };
 export const BYP_NAME: Record<"H2O" | "HCl", string> = tr({ H2O: "Wasser (H₂O)", HCl: "Chlorwasserstoff (HCl)" }, { H2O: "water (H₂O)", HCl: "hydrogen chloride (HCl)" });
 
 interface Pair { link: Link; byp: Byp; art: Art }

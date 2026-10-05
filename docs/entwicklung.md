@@ -630,7 +630,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   als Kapsel zwischen den Atomzeichen markiert: gepunktet vorher, gestrichelt mit ✓/✗ danach,
   `mode: "any"`; **Hydrolyse** in Lektion K4 eingeführt), K5 `hTap` (wanderndes H); die Auswahl-Fassungen bleiben in „Alles gemischt“ (`level(…, more)`).
   **Ordnen** (`kind: "order"`, `OrderAnswer`): K2 `ordnen` am Ende des Kapitels – vier Standbilder mit Pfeilen (Starter zerfällt, erstes Anlagern, Anlagern an
-  die Kette, Abbruch durch Rekombination oder Disproportionierung; Styrol, Vinylchlorid, MMA), gemischt, nie schon richtig; Bildausschnitt um die Pfeile, ohne Lichthöfe.
+  die Kette, Abbruch durch Rekombination oder Disproportionierung; immer Styrol), gemischt, nie schon richtig; enger Bildausschnitt um die Pfeile, ohne Lichthöfe;
+  nach dem Prüfen je Karte ✓ bzw. „richtig: ②“, Legende (nicht auf niedrigen Bildschirmen), keine Lösungszeile (die Plätze stehen an den Bildern).
   Antippen nummeriert ①–④ (Kennziffer rot), nochmal antippen nimmt die Nummer und alle späteren weg, ab vier „Prüfen“; danach je Bild ✓ bzw. ✗ mit dem richtigen
   Platz und Name des Schritts (Bilder dann klein bzw. auf niedrigen Bildschirmen weg). Gemeldet `startFirst`, `termLast`, `addsOk` → Fallen (Start nicht zuerst,
   Abbruch nicht zuletzt, Anlagerungen vertauscht). Vorlesen: vorher „Bild A“, danach mit Name.
@@ -683,6 +684,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Ordnen lesbar** – immer Styrol, enger Ausschnitt um die Pfeile, Karten ≥ 136 px bei 375 × 667 (Merksatz dort aus), nach dem Prüfen „richtig: ②“ statt „✗ ②“
+  mit Legende, keine doppelte Lösungszeile; Zähler „2 / 4“ bricht nicht um; Formelgruppen (–NH–CO–O– …) brechen nicht am Strich um.
 - **Polymere: keine überlappenden Beschriftungen in Kettenabläufen** – Test über alle Ketten-Ansätze (Schriftfelder je Atom); Li⁺ blendet beim Anrücken des Monomers aus und
   steht danach mit Abstand auf der freien Seite des neuen Endes; Ziegler-Natta: Butadien-Bausteine mit ihrer echten Breite (Ethylgruppe nicht mehr auf der Kette), vergiftendes
   Monomer wird gespiegelt, wenn es an die Liganden des Titans stößt.

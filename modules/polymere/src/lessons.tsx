@@ -435,7 +435,7 @@ const K4: GuideStep[] = [
     ask: T("Wie entsteht Nylon?", "How does nylon form?"),
     visual: () => <MechPlay r={PA} acts={["join"]} />,
     lines: [
-      T("Adipinsäure + Hexan-1,6-diamin (ein **Diamin**): –CO–NH–.", "Adipic acid + hexane-1,6-diamine (a **diamine**): –CO–NH–."),
+      T("Adipinsäure + Hexan-1,6-diamin (ein **Diamin**): –CO–⁠NH–⁠.", "Adipic acid + hexane-1,6-diamine (a **diamine**): –CO–⁠NH–⁠."),
       T("Auch hier wird Wasser abgespalten – das Polymer heißt **Polyamid**.", "Water is split off here too – the polymer is called **polyamide**."),
       T("Mit **Säurechloriden** (–COCl) geht statt Wasser **HCl** ab.", "With **acyl chlorides** (acid chlorides, –COCl), **HCl** leaves instead of water."),
     ],
@@ -445,7 +445,7 @@ const K4: GuideStep[] = [
     mode: "faded",
     ask: T("Ergänze: Welche Bindung entsteht aus –COOH und –NH₂?", "Complete: which bond forms from –COOH and –NH₂?"),
     answer: T("Amidbindung", "Amide bond"), options: [T("Amidbindung", "Amide bond"), T("Esterbindung", "Ester bond")],
-    lines: [T("–COOH + H₂N– → –CO–NH– + H₂O", "–COOH + H₂N– → –CO–NH– + H₂O"), T("–CO–NH– heißt {?}", "–CO–NH– is called {?}")],
+    lines: [T("–COOH + H₂N– → –CO–⁠NH–⁠ + H₂O", "–COOH + H₂N– → –CO–⁠NH–⁠ + H₂O"), T("–CO–⁠NH–⁠ heißt {?}", "–CO–⁠NH–⁠ is called {?}")],
     why: { [T("Esterbindung", "Ester bond")]: T("Ester entstehen mit –OH. Hier ist es –NH₂.", "Esters form with –OH. Here it is –NH₂.") },
     ok: T("Säure + Amin → Amid.", "Acid + amine → amide."),
   },
@@ -455,7 +455,7 @@ const K4: GuideStep[] = [
     answer: "HCl", options: ["HCl", "H₂O", "Cl₂"],
     visual: () => <Pic v={{ k: "pair", a: "adipoylchlorid", b: "hexandiamin" }} />,
     why: { "H₂O": T("Das Säurechlorid hat Cl statt OH.", "The acyl chloride has Cl instead of OH."), "Cl₂": T("Das Cl verbindet sich mit dem H der Aminogruppe.", "The Cl joins with the H of the amino group.") },
-    lines: [T("–COCl + H₂N– → –CO–NH– + HCl", "–COCl + H₂N– → –CO–NH– + HCl")],
+    lines: [T("–COCl + H₂N– → –CO–⁠NH–⁠ + HCl", "–COCl + H₂N– → –CO–⁠NH–⁠ + HCl")],
     ok: T("Säurechlorid: HCl wird abgespalten.", "Acyl chloride: HCl is split off."),
   },
   {
@@ -511,7 +511,7 @@ const K5: GuideStep[] = [
     lines: [
       T("HDI hat zwei **Isocyanatgruppen** –N=C=O.", "HDI has two **isocyanate groups** –N=C=O."),
       T("Das H‑Atom der –OH-Gruppe wandert zum N‑Atom.", "The H atom of the –OH group moves to the N atom."),
-      T("Das O bindet an das C: **Urethangruppe** –NH–CO–O–.", "The O binds to the C: **urethane group** –NH–CO–O–."),
+      T("Das O bindet an das C: **Urethangruppe** –NH–⁠CO–⁠O–⁠.", "The O binds to the C: **urethane group** –NH–⁠CO–⁠O–⁠."),
     ],
     ok: T("Polyurethan (PUR): Lacke, Schaum, Schuhsohlen.", "Polyurethane (PUR): paints, foam, shoe soles."),
   },
@@ -528,9 +528,9 @@ const K5: GuideStep[] = [
     mode: "faded",
     ask: T("Ergänze: Isocyanat + **Amin** (–NH₂) – welche Gruppe entsteht?", "Complete: isocyanate + **amine** (–NH₂) – which group forms?"),
     answer: T("Harnstoffgruppe", "urea group"), options: [T("Harnstoffgruppe", "urea group"), T("Urethangruppe", "urethane group"), T("Amidbindung", "amide bond")],
-    lines: [T("Das H wandert vom N des Amins zum N des Isocyanats", "The H moves from the N of the amine to the N of the isocyanate"), T("Es entsteht –NH–CO–NH–: die {?}", "–NH–CO–NH– forms: the {?}")],
+    lines: [T("Das H wandert vom N des Amins zum N des Isocyanats", "The H moves from the N of the amine to the N of the isocyanate"), T("Es entsteht –NH–⁠CO–⁠NH–⁠: die {?}", "–NH–⁠CO–⁠NH–⁠ forms: the {?}")],
     why: {
-      [T("Urethangruppe", "urethane group")]: T("Urethan entsteht mit –OH. Mit –NH₂ entsteht Harnstoff: –NH–CO–NH–.", "Urethane forms with –OH. With –NH₂ urea forms: –NH–CO–NH–."),
+      [T("Urethangruppe", "urethane group")]: T("Urethan entsteht mit –OH. Mit –NH₂ entsteht Harnstoff: –NH–⁠CO–⁠NH–⁠.", "Urethane forms with –OH. With –NH₂ urea forms: –NH–⁠CO–⁠NH–⁠."),
       [T("Amidbindung", "amide bond")]: T("Eine Amidbindung entsteht aus –COOH und –NH₂, ohne Isocyanat.", "An amide bond forms from –COOH and –NH₂, without isocyanate."),
     },
     ok: T("Isocyanat + Amin → **Harnstoffgruppe**: Polyharnstoff.", "Isocyanate + amine → **urea group**: polyurea."),

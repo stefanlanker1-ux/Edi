@@ -561,7 +561,7 @@ function chlorid(): Task {
   ], {
     vis: { k: "pair", a: "adipoylchlorid", b: "hexandiamin" },
     hint: T("Das Cl der Säuregruppe und ein H der Aminogruppe gehen weg.", "The Cl of the acid group and an H of the amino group leave."),
-    explain: T("–COCl + H₂N– → –CO–NH– + **HCl**. So entsteht Nylon schon bei Raumtemperatur.", "–COCl + H₂N– → –CO–NH– + **HCl**. This makes nylon even at room temperature."),
+    explain: T("–COCl + H₂N– → –CO–⁠NH–⁠ + **HCl**. So entsteht Nylon schon bei Raumtemperatur.", "–COCl + H₂N– → –CO–⁠NH–⁠ + **HCl**. This makes nylon even at room temperature."),
   });
 }
 
@@ -667,8 +667,8 @@ function keinNebenprodukt(): Task {
   return task(T("Was wird bei dieser Polyaddition abgespalten?", "What is split off in this polyaddition?"), T("Nichts", "Nothing"), [
     d("H₂O", "add-wasser", T("Bei der Polyaddition bleiben alle Atome im Polymer. Nur ein H‑Atom wandert.", "In polyaddition all atoms stay in the polymer. Only an H atom moves.")),
     d("CO₂", "add-wasser", T("CO₂ entsteht nur, wenn Isocyanat mit Wasser reagiert (Schaum).", "CO₂ only forms when isocyanate reacts with water (foam).")),
-    d("N₂", "add-wasser", urea ? T("Die N‑Atome bleiben in der Harnstoffgruppe –NH–CO–NH–. Es entweicht nichts.", "The N atoms stay in the urea group –NH–CO–NH–. Nothing escapes.")
-      : T("Das N bleibt in der Urethangruppe –NH–CO–O–. Es entweicht nichts.", "The N stays in the urethane group –NH–CO–O–. Nothing escapes.")),
+    d("N₂", "add-wasser", urea ? T("Die N‑Atome bleiben in der Harnstoffgruppe –NH–⁠CO–⁠NH–⁠. Es entweicht nichts.", "The N atoms stay in the urea group –NH–⁠CO–⁠NH–⁠. Nothing escapes.")
+      : T("Das N bleibt in der Urethangruppe –NH–⁠CO–⁠O–⁠. Es entweicht nichts.", "The N stays in the urethane group –NH–⁠CO–⁠O–⁠. Nothing escapes.")),
   ], {
     vis: mech(r, ["join"], arrowKey(r, ["join"])),
     hint: T("Addition heißt: zusammenfügen, ohne etwas abzugeben.", "Addition means: joining without giving anything off."),
@@ -685,7 +685,7 @@ function hWandert(): Task {
   ], {
     vis: mech(PUR, ["join"], arrowKey(PUR, ["join"])),
     hint: T("Folge den Pfeilen vom O–H zum N.", "Follow the arrows from O–H to N."),
-    explain: T("–N=C=O + HO– → –**NH**–CO–O–: das **H‑Atom** wandert, die Urethangruppe entsteht.", "–N=C=O + HO– → –**NH**–CO–O–: the **H atom** moves, the urethane group forms."),
+    explain: T("–N=C=O + HO– → –**NH**–CO–⁠O–⁠: das **H‑Atom** wandert, die Urethangruppe entsteht.", "–N=C=O + HO– → –**NH**–CO–⁠O–⁠: the **H atom** moves, the urethane group forms."),
   });
 }
 
@@ -698,7 +698,7 @@ function urethan(): Task {
     d(A, "ester-amid", T("Amidbindungen entstehen aus –COOH und –NH₂.", "Amide bonds form from –COOH and –NH₂.")),
   ], {
     hint: T("Isocyanat + Alkohol → Urethan. Isocyanat + Amin → Harnstoff.", "Isocyanate + alcohol → urethane. Isocyanate + amine → urea."),
-    explain: amin ? T("–NH–CO–NH–: **Harnstoffgruppe** (Polyharnstoff).", "–NH–CO–NH–: **urea group** (polyurea).") : T("–NH–CO–O–: **Urethangruppe** (Polyurethan, PUR).", "–NH–CO–O–: **urethane group** (polyurethane, PUR)."),
+    explain: amin ? T("–NH–⁠CO–⁠NH–⁠: **Harnstoffgruppe** (Polyharnstoff).", "–NH–⁠CO–⁠NH–⁠: **urea group** (polyurea).") : T("–NH–⁠CO–⁠O–⁠: **Urethangruppe** (Polyurethan, PUR).", "–NH–⁠CO–⁠O–⁠: **urethane group** (polyurethane, PUR)."),
   });
 }
 
@@ -880,9 +880,10 @@ function recycling(): Task {
 
 /** K2: vier Standbilder mit Pfeilen (Start, erstes Anlagern, Anlagern an die Kette, Abbruch) in die richtige Reihenfolge bringen */
 function ordnen(): Task {
-  const m = pick(["styrol", "vinylchlorid", "mma"] as VinylId[]);
+  // immer Styrol: wenige Atome je Bild, die Pfeile bleiben lesbar
+  const m: VinylId = "styrol";
   const r: Recipe = { art: "poly", a: m, method: "dbpo" };
-  const stop = m === "mma" || Math.random() < 0.3 ? "disp" : "comb";
+  const stop = Math.random() < 0.3 ? "disp" : "comb";
   const seqs = [["heat"], ["heat", `add:${m}`], ["heat", `add:${m}`, `add:${m}`, `add:${m}`], ["heat", `add:${m}`, `add:${m}`, stop]];
   const cards0 = seqs.map(acts => mech(r, acts, arrowKey(r, acts)));
   const N = tr(["Starter zerfällt", "erstes Anlagern", "Anlagern an die Kette", stop === "comb" ? "Abbruch: Rekombination" : "Abbruch: Disproportionierung"],
@@ -1082,7 +1083,7 @@ function hTap(): Task {
     prompt: T("Tippe auf das H‑Atom, das gleich zum N wandert.", "Tap the H atom that is about to move to the N."),
     hint: T("Das O der –OH-Gruppe bindet an das C der N=C=O-Gruppe. Sein H geht zum N.", "The O of the –OH group binds to the C of the N=C=O group. Its H goes to the N."),
     tip: T("Suche die –OH-Gruppe, die zur N=C=O-Gruppe zeigt.", "Look for the –OH group facing the N=C=O group."),
-    explain: T("Das H der –OH-Gruppe wandert zum N: –NH–CO–O–, die **Urethangruppe**. Nichts wird abgespalten.", "The H of the –OH group moves to the N: –NH–CO–O–, the **urethane group**. Nothing is split off."),
+    explain: T("Das H der –OH-Gruppe wandert zum N: –NH–⁠CO–⁠O–⁠, die **Urethangruppe**. Nichts wird abgespalten.", "The H of the –OH group moves to the N: –NH–⁠CO–⁠O–⁠, the **urethane group**. Nothing is split off."),
     why: id => el(id) === "O" ? ["h-wandert-falsch", T("Das O bleibt und bindet an das C. Gesucht ist das H daran.", "The O stays and binds to the C. The H on it is wanted.")]
       : nb(snap, id).some(x => el(x) === "O") ? ["h-wandert-falsch", T("Diese –OH sitzt am anderen Ende. Es reagiert die –OH, die zur N=C=O-Gruppe zeigt.", "This –OH is at the other end. The –OH facing the N=C=O group reacts.")]
       : ["h-wandert-falsch", T("C–H-Bindungen bleiben. Es wandert das H der –OH-Gruppe.", "C–H bonds stay. The H of the –OH group moves.")],

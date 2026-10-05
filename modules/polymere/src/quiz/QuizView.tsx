@@ -183,9 +183,10 @@ function OrderPic({ v }: { v: Vis }) {
     const f = tapFrame({ k: "mech", r: v.r, acts: v.acts, key: v.key });
     const pts = f.arrows.flatMap(a => [anchorPt(f.snap, a.from), anchorPt(f.snap, a.to)]).filter(p => !!p);
     const all = snapBox(f.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
-    const b = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 1.6), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 1.6),
-      y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
-    return { pose: { ...still(f.snap), arrows: f.arrows.map(arrow => ({ arrow, op: 1 })) }, box: fitBox(b, 1.15, 4.4, 3.8, 0.4) };
+    // eng um die Pfeile (höchstens etwa zehn Atome): klein noch lesbar
+    const b = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 1.15), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 1.15),
+      y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.15), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.15) } : all;
+    return { pose: { ...still(f.snap), arrows: f.arrows.map(arrow => ({ arrow, op: 1 })) }, box: fitBox(b, 1.15, 3.4, 3.0, 0.3) };
   }, [v]);
   if (!pic) return <VisView v={v} />;
   return <MechSvg pose={pic.pose} box={pic.box} label="" halos={false} className="pm-order-svg" />;
@@ -216,15 +217,16 @@ function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: 
               aria-label={done ? `${tr("Bild", "Picture")} ${"ABCD"[i]}: ${t.names[i]}` : `${tr("Bild", "Picture")} ${"ABCD"[i]}${n >= 0 ? `, ${tr("Platz", "position")} ${n + 1}` : ""}`}>
               <span className="pm-order-pic"><OrderPic v={v} /></span>
               {n >= 0 && <span className="pm-order-num" aria-hidden="true">{NUM[n]}</span>}
-              {done && <span className="pm-order-mark" aria-hidden="true">{st === "ok" ? "✓" : `✗ ${NUM[right]}`}</span>}
+              {done && <span className="pm-order-mark" aria-hidden="true">{st === "ok" ? "✓" : `${tr("richtig", "correct")}: ${NUM[right]}`}</span>}
               {done && <span className="pm-order-name">{t.names[i]}</span>}
             </button>
           );
         })}
       </div>
+      {done && answered && <p className="pm-order-legend">{tr("rote Zahl = deine Reihenfolge · richtig: ② = richtiger Platz", "red number = your order · correct: ② = right place")}</p>}
       {!done && (
         <div className="pm-tap-bar">
-          <span className="pm-tap-note">{tr(`Bilder der Reihe nach antippen · ${seq.length} / 4`, `Tap the pictures in order · ${seq.length} / 4`)}</span>
+          <span className="pm-tap-note">{tr("Bilder der Reihe nach antippen", "Tap the pictures in order")} · <span className="nw">{seq.length}&nbsp;/&nbsp;4</span></span>
           <Button variant="primary" disabled={seq.length < 4} onClick={() => { buzz(); check(); }}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
@@ -249,7 +251,8 @@ export function QuizView() {
         : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
       renderOption={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
       renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
-      solution={t => (isTap(t) || isOrder(t) || isBuild(t) ? t.sol : null)}
+      // Ordnen: die richtigen Plätze stehen an den Bildern – keine eigene Lösungszeile
+      solution={t => (isTap(t) || isBuild(t) ? t.sol : null)}
       feedbackExtra={t => (isTap(t) || isOrder(t) || isBuild(t) ? <p className="pm-sol-exp"><RichText text={t.explain} /></p> : null)}
       explain={(level, task) => explainFor(level, task)}
     />
