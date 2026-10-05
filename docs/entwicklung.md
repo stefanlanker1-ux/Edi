@@ -632,9 +632,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Antippen nummeriert ①–④ (Kennziffer rot), nochmal antippen nimmt die Nummer und alle späteren weg, ab vier „Prüfen“; danach je Bild ✓ bzw. ✗ mit dem richtigen
   Platz und Name des Schritts (Bilder dann klein bzw. auf niedrigen Bildschirmen weg). Gemeldet `startFirst`, `termLast`, `addsOk` → Fallen (Start nicht zuerst,
   Abbruch nicht zuletzt, Anlagerungen vertauscht). Vorlesen: vorher „Bild A“, danach mit Name.
-  **Kette bauen** (`kind: "build"`, `BuildAnswer`): Vorrat aus zwei Kügelchen (Name, Formel), darunter 8 Plätze (am Handy 2 × 4); Kügelchen wählen, Platz antippen
-  = setzen, gesetztes antippen = entfernen, Ziehen aus dem Vorrat als Abkürzung; „Prüfen“, wenn alle Plätze voll. Auswertung `buildPattern` (Block = höchstens drei
-  Abschnitte zu je ≥ 2, abwechselnd, zufällig, nur ein Monomer, nicht einbaubares Molekül) → `pat`; erster unpassender Platz gestrichelt mit ✗. K1 `bauenHomo`
+  **Kette bauen** (`kind: "build"`, `BuildAnswer`): Vorrat aus zwei Kügelchen (Name, Formel; das erste ist schon gewählt), darunter 8 Plätze (am Handy 2 × 4 als
+  Schlange: Strich von Platz 4 nach unten zu 5, zweite Zeile läuft zurück); Platz antippen = setzen, gesetztes antippen = entfernen (Hinweis 3 s nach dem ersten),
+  Ziehen aus dem Vorrat bzw. lange Drücken (füllt alle leeren Plätze) als Abkürzung; „Prüfen“, wenn alle Plätze voll; danach Vorrat auf niedrigen Bildschirmen ausgeblendet.
+  Auswertung `buildPattern` (Block = höchstens drei Abschnitte zu je ≥ 2, abwechselnd, zufällig nur mit je ≥ 3 von 8, sonst „fast nur ein Monomer“, nur ein Monomer,
+  nicht einbaubares Molekül) → `pat`, `maj`; Kürzel gesättigter Moleküle in Großbuchstaben (EA, PA, CE, EB – keine Elementsymbole); erster unpassender Platz gestrichelt mit ✗. K1 `bauenHomo`
   (Monomer + gesättigtes Gegenstück im Vorrat), K6 `bauenCopo` (Block, alternierend, statistisch).
   „C‑Atom“ usw. mit geschütztem Bindestrich (U+2011, nie „C-⏎Atom“). Antworttexte kurz (einzeilig auf 375 px). Alltagsfragen nennen Gegenstände, die eindeutig zu einem
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
@@ -679,6 +681,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Kette bauen nachgebessert** – Kügelchen vorgewählt, Bedienzeile, Kette am Handy als Schlange (eine zusammenhängende Kette), „statistisch“ erst ab je 3 von 8
+  (sonst Rückmeldung „Fast nur …“), lange Drücken füllt, Kürzel ohne Verwechslung mit Elementsymbolen.
 - **Polymere: Antippen nachgebessert (2)** – vergiftendes Atom: Monomer in Standardlage (verrät die Lösung nicht mehr), Fertigkeit „Atom, das das Titan vergiftet“;
   K4/K5 großer Ausschnitt um die reagierende Stelle; Bindungen vorher gepunktet als Kapsel markiert, danach ✓/✗ gestrichelt.
 - **Polymere: Allylradikal bleibt sichtbar** – nach dem Allyl-H-Abriss (Propen/Isobuten radikalisch) bleibt das Allylradikal mit seinem Punkt und der Beschriftung „Allyl-Radikal – zu träge zum Weiterwachsen“ im Endbild

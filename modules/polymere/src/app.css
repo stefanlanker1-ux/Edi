@@ -342,8 +342,18 @@
 .pm-build-bead { width: 34px; height: 34px; flex: none; }
 .pm-build-chain { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 2px; }
 .pm-build-slot { position: relative; min-height: 48px; min-width: 44px; display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--text); }
-.pm-build-slot + .pm-build-slot::before { content: ""; position: absolute; left: calc(-50% + 15px); right: calc(50% + 17px); top: 50%; border-top: 2px solid var(--text); }
-.pm-build-empty { width: 32px; height: 32px; border: 2px dashed var(--muted); border-radius: 50%; }
+.pm-build-slot + .pm-build-slot::before { content: ""; position: absolute; left: calc(-50% + 16px); right: calc(50% + 17px); top: 50%; border-top: 2px solid var(--text); }
+.pm-build-empty { width: 34px; height: 34px; box-sizing: border-box; border: 2px dashed var(--muted); border-radius: 50%; }
 .pm-build-slot.wrong { outline: 2px dashed var(--text); outline-offset: -2px; border-radius: var(--radius-sm); }
 .pm-build-x { position: absolute; top: 0; right: 2px; font-size: .75rem; font-weight: 800; }
-@media (max-width: 420px) { .pm-build-chain { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 6px; } .pm-build-slot:nth-child(4n + 1)::before { display: none; } }
+@media (max-width: 420px) {
+  .pm-build-chain { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 6px; }
+  .pm-build-slot:nth-child(n + 5) { grid-row: 2; }
+  .pm-build-slot:nth-child(5) { grid-column: 4; } .pm-build-slot:nth-child(6) { grid-column: 3; } .pm-build-slot:nth-child(7) { grid-column: 2; } .pm-build-slot:nth-child(8) { grid-column: 1; }
+  /* Strich von Platz 4 senkrecht nach unten zu Platz 5, dann läuft die Kette nach links zurück */
+  .pm-build-slot:nth-child(5)::before { left: calc(50% - 1px); right: auto; top: -13px; height: 20px; border-top: 0; border-left: 2px solid var(--text); }
+  .pm-build-slot:nth-child(n + 6)::before { left: calc(50% + 17px); right: calc(-50% + 16px); }
+}
+.pm-tap-note .nw { white-space: nowrap; }
+/* nach dem Prüfen auf niedrigen Bildschirmen: Vorrat weg, Platz für die Rückmeldung */
+@media (max-height: 760px) { .pm-build.done .pm-build-pool { display: none; } }

@@ -33,8 +33,9 @@ export const isTap = (t: Task): t is TapTask => t.kind === "tap";
 export const isOrder = (t: Task): t is OrderTask => t.kind === "order";
 export const isBuild = (t: Task): t is BuildTask => t.kind === "build";
 
-/** Muster einer gebauten Kette: 0 richtig (nur bei homo), 1 Block, 2 abwechselnd, 3 zufällig, 4 nur ein Monomer, 5 nicht einbaubares Molekül dabei */
-export const PAT = { ok: 0, block: 1, alt: 2, stat: 3, one: 4, sat: 5 } as const;
+/** Muster einer gebauten Kette: 0 richtig (nur bei homo), 1 Block, 2 abwechselnd, 3 zufällig, 4 nur ein Monomer, 5 nicht einbaubares Molekül dabei,
+ *  6 fast nur ein Monomer (das andere weniger als 3 von 8) */
+export const PAT = { ok: 0, block: 1, alt: 2, stat: 3, one: 4, sat: 5, few: 6 } as const;
 export function buildPattern(t: BuildTask, seq: string[]): number {
   const bad = new Set(t.pool.filter(p => !p.ok).map(p => p.id));
   if (seq.some(x => bad.has(x))) return PAT.sat;
@@ -45,6 +46,9 @@ export function buildPattern(t: BuildTask, seq: string[]): number {
   if (runs.every(r => r === 1)) return PAT.alt;
   // Blöcke: höchstens drei Abschnitte (Zwei- oder Dreiblock wie SBS), jeder aus mindestens zwei Bausteinen
   if (runs.length <= 3 && runs.every(r => r >= 2)) return PAT.block;
+  // zufällig gemischt nur mit genug von beiden
+  const ids = [...new Set(seq)];
+  if (Math.min(...ids.map(x => seq.filter(y => y === x).length)) < 3) return PAT.few;
   return PAT.stat;
 }
 /** erster Platz, der nicht passt (oder −1) */
@@ -56,7 +60,9 @@ export function buildWrongAt(t: BuildTask, seq: string[]): number {
 }
 export function buildResult(t: BuildTask, seq: string[]): { ok: boolean; values: Record<string, number> } {
   const pat = buildPattern(t, seq);
-  return { ok: pat === PAT[t.goal === "homo" ? "ok" : t.goal], values: { pat } };
+  // häufigeres Monomer (Index im Vorrat) – für die Rückmeldung „Fast nur …“
+  const maj = t.pool.length > 1 && seq.filter(x => x === t.pool[1].id).length > seq.length / 2 ? 1 : 0;
+  return { ok: pat === PAT[t.goal === "homo" ? "ok" : t.goal], values: { pat, maj } };
 }
 
 /** Begründung, die mit dem Begriff beginnt („Isotaktisch: …“): Begriff fett, nicht noch einmal davor schreiben */
@@ -874,7 +880,8 @@ function ordnen(): Task {
 
 const plainStruct = (x: string) => x.replace(/[{}]/g, "");
 const vinylItem = (v: VinylId): BuildItem => ({ id: v, name: vinyl(v).name, struct: plainStruct(vinyl(v).struct), hue: vinyl(v).hue, letter: vinyl(v).letter, ok: true });
-const SAT_LETTER: Partial<Record<VinylId, string>> = { ethen: "Ea", propen: "Pa", vinylchlorid: "Ce", styrol: "Eb" };
+// Kürzel in Großbuchstaben: nie mit einem Elementsymbol verwechselbar (Pa, Ce)
+const SAT_LETTER: Partial<Record<VinylId, string>> = { ethen: "EA", propen: "PA", vinylchlorid: "CE", styrol: "EB" };
 
 /** K1: Polymer aus 8 Bausteinen bauen – im Vorrat liegt auch das gesättigte Gegenstück (keine C=C, nicht einbaubar) */
 function bauenHomo(): Task {
@@ -911,6 +918,7 @@ function bauenCopo(): Task {
     traps: [
       ...(["block", "alt", "stat"] as const).filter(x => x !== goal).map(x => ({ values: { pat: pats[x] }, miss: "copo-verwechselt", why: tr(`Das ist ${WHAT[x]}. ${WHY[x]}`, `That is ${WHAT[x]}. ${WHY[x]}`) })),
       { values: { pat: PAT.one }, miss: "copo-verwechselt", why: T("Nur ein Monomer – das ist kein Copolymer. Ein Copolymer enthält beide.", "Only one monomer – that is not a copolymer. A copolymer contains both.") },
+      ...[a, b].map((x, maj) => ({ values: { pat: PAT.few, maj }, miss: "copo-verwechselt", why: T(`Fast nur ${vinyl(x).name}: Das ist kaum ein Copolymer. Statistisch heißt: beide Monomere oft und zufällig gemischt.`, `Almost only ${nm(x)}: that is hardly a copolymer. Random means: both monomers often and randomly mixed.`) })),
     ],
   };
 }

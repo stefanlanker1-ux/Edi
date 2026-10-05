@@ -30,10 +30,10 @@ test("alle Aufgaben gültig und speicherbar", () => {
         assert.ok(buildResult(t, t.example).ok, `${t.type}: Beispiel falsch`);
         for (const tr of t.traps ?? []) assert.ok(MISS[tr.miss] && tr.why);
         const [a, b] = t.pool.map(p => p.id);
-        const tries = [Array(8).fill(a), Array(8).fill(b), [a, a, a, a, b, b, b, b], [a, b, a, b, a, b, a, b], [a, b, b, a, b, a, a, b], [a, a, a, b, a, a, a, a]];
+        const tries = [Array(8).fill(a), Array(8).fill(b), [a, a, a, a, b, b, b, b], [a, b, a, b, a, b, a, b], [a, b, b, a, b, a, a, b], [a, a, a, b, a, a, a, a], [b, b, a, b, b, b, b, b]];
         for (const seq of tries) {
           const r = buildResult(t, seq);
-          if (!r.ok) assert.ok((t.traps ?? []).some(tr => tr.values?.pat === r.values.pat), `${t.type} ${t.goal}: keine Rückmeldung für ${seq}`);
+          if (!r.ok) assert.ok((t.traps ?? []).some(tr => Object.entries(tr.values ?? {}).every(([k, v]) => r.values[k] === v)), `${t.type} ${t.goal}: keine Rückmeldung für ${seq}`);
         }
         continue;
       }
@@ -126,5 +126,5 @@ test("Kette bauen: Muster erkennen (Block auch als Dreiblock, zufällig = weder 
     pool: [{ id: "a", ok: true }, { id: "b", ok: true }, { id: "s", ok: false }] } as unknown as Parameters<typeof buildPattern>[0];
   const p = (x: string) => buildPattern(t, x.split(""));
   assert.strictEqual(p("aaaabbbb"), PAT.block); assert.strictEqual(p("aabbbbaa"), PAT.block); assert.strictEqual(p("abababab"), PAT.alt);
-  assert.strictEqual(p("abbababa"), PAT.stat); assert.strictEqual(p("aaaaaaab"), PAT.stat); assert.strictEqual(p("aaaaaaaa"), PAT.one); assert.strictEqual(p("aaaasaaa"), PAT.sat);
+  assert.strictEqual(p("abbababa"), PAT.stat); assert.strictEqual(p("aaaaaaab"), PAT.few); assert.strictEqual(p("aabaaaba"), PAT.few); assert.strictEqual(p("aabbbaba"), PAT.stat); assert.strictEqual(p("aaaaaaaa"), PAT.one); assert.strictEqual(p("aaaasaaa"), PAT.sat);
 });

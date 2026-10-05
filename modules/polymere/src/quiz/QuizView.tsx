@@ -2,7 +2,7 @@
 // Aufgaben mit Bildern: Strukturformel, Kettenausschnitt, Mechanismus-Schritt mit Pfeilen, Kügelchen, Kettenbild;
 // manche Antworten sind selbst Bilder (Monomer, Baustein).
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
@@ -109,41 +109,49 @@ const BeadIcon = ({ it }: { it: BuildItem }) => (
 /** Kette bauen: Kügelchen im Vorrat wählen (oder auf einen Platz ziehen), Platz antippen = setzen, gesetztes antippen = entfernen; „Prüfen“, wenn alle Plätze voll sind */
 function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: Answered | null; submit?: Submit; solved?: boolean }) {
   const [seq, setSeq] = useState<(string | null)[]>(() => Array(t.n).fill(null));
-  const [cur, setCur] = useState<string | null>(null);
-  const [note, setNote] = useState(false);
+  // ein Kügelchen ist schon gewählt: Tippen auf einen Platz setzt es sofort
+  const [cur, setCur] = useState<string>(t.pool[0].id);
+  const [hint, setHint] = useState(false);
+  const hinted = useRef(false);
   const done = !!answered || !!solved;
   const shown = solved && !answered ? t.example : seq;
   const item = (id: string | null) => t.pool.find(p => p.id === id);
-  const full = seq.every(Boolean);
+  const full = seq.every(Boolean), count = seq.filter(Boolean).length;
   const wrongAt = answered && !answered.ok ? buildWrongAt(t, seq as string[]) : -1;
+  useEffect(() => { if (!hint) return; const h = setTimeout(() => setHint(false), 3000); return () => clearTimeout(h); }, [hint]);
   const put = (i: number, id: string | null) => {
     if (done) return;
-    if (!seq[i] && !id) { setNote(true); return; }
-    buzz(); setNote(false);
-    setSeq(s => s.map((x, k) => (k !== i ? x : x && !id ? null : id ?? null)));
+    buzz();
+    if (!seq[i] && id && !hinted.current) { hinted.current = true; setHint(true); }
+    setSeq(s => s.map((x, k) => (k !== i ? x : x && !id ? null : id)));
   };
-  // Ziehen aus dem Vorrat auf einen Platz (Abkürzung): loslassen über einem Platz setzt das Kügelchen
-  const drag = (id: string) => (e: React.PointerEvent) => {
-    if (done) return;
+  // Ziehen aus dem Vorrat auf einen Platz (Abkürzung); lange drücken füllt alle leeren Plätze
+  const press = (id: string) => (e: React.PointerEvent) => {
+    if (done || (e.pointerType === "mouse" && e.button !== 0)) return;
     setCur(id);
+    let long = false;
+    const timer = setTimeout(() => { long = true; buzz(); setSeq(s => s.map(x => x ?? id)); }, 650);
     const up = (ev: PointerEvent) => {
-      window.removeEventListener("pointerup", up);
+      clearTimeout(timer);
+      window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", up);
+      if (long) return;
       const el = (document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest<HTMLElement>("[data-slot]");
       if (el && el.dataset.slot !== undefined && !seq[+el.dataset.slot]) put(+el.dataset.slot, id);
     };
-    if (e.pointerType !== "mouse" || e.button === 0) window.addEventListener("pointerup", up);
+    window.addEventListener("pointerup", up); window.addEventListener("pointercancel", up);
   };
   return (
     <div className={`pm-build${done ? " done" : ""}`}>
       <div className="pm-build-pool" role="group" aria-label={tr("Vorrat", "Store")}>
         {t.pool.map(it => (
           <button key={it.id} type="button" className={`pm-build-item${cur === it.id && !done ? " sel" : ""}`} aria-pressed={cur === it.id} disabled={done}
-            onClick={() => { buzz(); setCur(it.id); setNote(false); }} onPointerDown={drag(it.id)}>
+            onClick={() => { buzz(); setCur(it.id); }} onPointerDown={press(it.id)}>
             <BeadIcon it={it} />
             <span className="pm-build-txt"><b>{it.name}</b><span>{it.struct}</span></span>
           </button>
         ))}
       </div>
+      {/* eine Kette: am Handy als Schlange (Plätze 5–8 laufen in der zweiten Zeile zurück, Strich von 4 nach 5) */}
       <div className="pm-build-chain" role="group" aria-label={tr(`Kette mit ${t.n} Plätzen`, `Chain with ${t.n} places`)}>
         {shown.map((id, i) => {
           const it = item(id);
@@ -159,7 +167,7 @@ function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: 
       </div>
       {!done && (
         <div className="pm-tap-bar" aria-live="polite">
-          <span className="pm-tap-note">{note ? tr("Erst ein Kügelchen im Vorrat wählen.", "First choose a bead in the store.") : tr(`${seq.filter(Boolean).length} / ${t.n} Plätze`, `${seq.filter(Boolean).length} / ${t.n} places`)}</span>
+          <span className="pm-tap-note">{hint ? tr("Nochmal antippen = entfernen", "Tap again to remove") : <>{tr("Kügelchen wählen, dann Platz antippen", "Pick a bead, then tap a place")} · <span className="nw">{count}&nbsp;/&nbsp;{t.n}</span></>}</span>
           <Button variant="primary" disabled={!full} onClick={() => { buzz(); submit?.(buildResult(t, seq as string[])); }}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
