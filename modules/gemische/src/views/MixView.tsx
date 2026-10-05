@@ -91,20 +91,20 @@ function Counts({ ex, mark, onMark }: { ex: Example; mark: Mark | null; onMark: 
     <div className="gm-marks">
       {ms.map(([m, f]) => (
         <button key={m.key} type="button" className="gm-mark-chip" aria-pressed={mark?.key === m.key} onClick={() => toggle(m)}
-          aria-label={`${m.label}: ${tr("im Bild markieren", "mark in the picture")}`}>
-          <MiniParticle f={f} size={26} /><span>{m.label}</span>
+          aria-label={tr(`${m.label} im Bild markieren`, `Mark ${m.label} in the picture`)}>
+          <span className="gm-mark-ico" aria-hidden="true">◎</span><MiniParticle f={f} size={26} /><span>{m.label}</span>
         </button>
       ))}
     </div>
   );
   const row = (m: Mark, title: string, n: number) => (
-    <button type="button" className="gm-count-row" aria-pressed={mark?.key === m.key} disabled={!n} onClick={() => toggle(m)}>
-      <span>{title}</span><b>{n}</b>
+    <button type="button" className="gm-count-row" aria-pressed={mark?.key === m.key} disabled={!n} onClick={() => toggle(m)}
+      aria-label={`${title}: ${n}. ${tr(`${m.label} im Bild markieren`, `Mark ${m.label.toLowerCase()} in the picture`)}`}>
+      <span>{title}</span><span className="gm-count-end"><span className="gm-mark-ico" aria-hidden="true">◎</span><b>{n}</b></span>
     </button>
   );
   return (
     <div className="gm-count-wrap">
-      <p className="gm-cap">{tr("Antippen = im Bild markieren", "Tap = mark in the picture")}</p>
       <dl className="gm-counts">
         <div><dt>{tr("Teilchen", "Particles")}</dt><dd>{a.teilchen}</dd></div>
         <div className="gm-count-multi"><dt>{tr("Stoffe", "Substances")}</dt><dd>{a.stoffe.length}</dd>{chips(a.stoffe.map(f => [stoff(f), f]))}</div>

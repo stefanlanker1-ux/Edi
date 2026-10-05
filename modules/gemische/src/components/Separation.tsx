@@ -282,62 +282,116 @@ function chromatografie(t: number) {
 
 const SCENES: Record<Method, (t: number, id: string) => ReactNode> = { auslesen, sieben, magnet, dekantieren, filtrieren, eindampfen, destillieren, chromatografie };
 
-/** Trefferfläche eines Teils: sein Umriss, mindestens 44 × 44 px groß (in Bild-Einheiten) */
+/** Trefferfläche eines Teils: sein sichtbarer Umriss, mindestens 44 × 44 px groß (in Bild-Einheiten) */
 interface Hit { part: string; x: number; y: number; w: number; h: number }
 /** kleinste Trefferfläche in px (Tippziel) */
 const HIT_PX = 44;
 
+/** antippbare Teile je Verfahren (Aufgaben „Tippe auf …“); Hilfslinien wie die Startlinie oder das Gefäß gehören nicht dazu */
+export const TAP_PARTS: Partial<Record<Method, string[]>> = {
+  filtrieren: ["rueckstand", "filtrat", "filter"], destillieren: ["destillat", "kolben", "kuehler"], eindampfen: ["salz", "schale"],
+  magnet: ["eisen", "schwefel", "magnet"], chromatografie: ["blau", "rot", "gelb"], dekantieren: ["sand", "wasser2"],
+};
+
+/** Rechteck-Schnitt (null = leer) */
+const cut = (a: DOMRect, b: DOMRect) => {
+  const x0 = Math.max(a.x, b.x), y0 = Math.max(a.y, b.y), x1 = Math.min(a.right, b.right), y1 = Math.min(a.bottom, b.bottom);
+  return x1 > x0 && y1 > y0 ? new DOMRect(x0, y0, x1 - x0, y1 - y0) : null;
+};
+
+/** sichtbarer Umriss eines Elements im Bild: getBBox, durch clipPath begrenzt, mit den Transformationen der Eltern */
+function visibleBox(svg: SVGSVGElement, e: SVGGraphicsElement): DOMRect | null {
+  let b: DOMRect;
+  // getBBox liefert ein SVGRect ohne right/bottom – als DOMRect weiterrechnen
+  try { const r = e.getBBox(); b = new DOMRect(r.x, r.y, r.width, r.height); } catch { return null; }
+  if (!b.width && !b.height) return null;
+  const clip = e.getAttribute("clip-path")?.match(/url\(#([^)]+)\)/)?.[1];
+  // Form im clipPath (ein Kreis, Pfad oder Rechteck) begrenzt den sichtbaren Teil
+  const shape = clip ? svg.querySelector<SVGGraphicsElement>(`[id="${clip}"] > *`) : null;
+  if (shape) { try { const r = shape.getBBox(), c = cut(b, new DOMRect(r.x, r.y, r.width, r.height)); if (!c) return null; b = c; } catch { /* ohne Begrenzung */ } }
+  // über die Bildschirm-Matrizen: lokal → Bildschirm → Bild-Einheiten (getCTM des äußeren svg ist je Browser verschieden)
+  const local = e.getScreenCTM(), root = svg.getScreenCTM();
+  if (!local || !root) return b;
+  const k = root.inverse().multiply(local);
+  const pts = [[b.x, b.y], [b.right, b.y], [b.x, b.bottom], [b.right, b.bottom]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(k));
+  const xs = pts.map(q => q.x), ys = pts.map(q => q.y);
+  return new DOMRect(Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
+}
+
+/** Trefferflächen messen: je Teil der sichtbare Umriss, auf mindestens `min` vergrößert, im Bild; überlappende kleine Flächen teilen sich an der Mitte */
+function measureHits(svg: SVGSVGElement, parts: string[]): Hit[] {
+  const ctm = svg.getScreenCTM(), scale = ctm ? Math.hypot(ctm.a, ctm.b) : 1, min = HIT_PX / Math.max(.01, scale);
+  const view = new DOMRect(0, 0, W, H);
+  const box = new Map<string, DOMRect>();
+  for (const part of parts) {
+    for (const e of svg.querySelectorAll<SVGGraphicsElement>(`.sp-shapes [data-part="${part}"]`)) {
+      const b = visibleBox(svg, e);
+      const v = b && cut(b, view);
+      if (!v) continue;
+      const o = box.get(part);
+      box.set(part, o ? new DOMRect(Math.min(o.x, v.x), Math.min(o.y, v.y), Math.max(o.right, v.right) - Math.min(o.x, v.x), Math.max(o.bottom, v.bottom) - Math.min(o.y, v.y)) : v);
+    }
+  }
+  const hits = [...box].map(([part, b]) => {
+    const w = Math.min(W, Math.max(b.width, min)), h = Math.min(H, Math.max(b.height, min));
+    // vergrößert um die Mitte, aber im Bild
+    const x = Math.min(W - w, Math.max(0, b.x + b.width / 2 - w / 2)), y = Math.min(H - h, Math.max(0, b.y + b.height / 2 - h / 2));
+    return { part, x, y, w, h, grown: b.width < min || b.height < min };
+  });
+  // kleine, vergrößerte Flächen, die sich überlappen (Farbflecken übereinander): an der Mitte zwischen den Teilen teilen
+  for (const a of hits) for (const c of hits) {
+    if (a === c || !a.grown || !c.grown) continue;
+    const ov = cut(new DOMRect(a.x, a.y, a.w, a.h), new DOMRect(c.x, c.y, c.w, c.h));
+    if (!ov) continue;
+    const ay = a.y + a.h / 2, cy = c.y + c.h / 2, ax = a.x + a.w / 2, cx = c.x + c.w / 2;
+    if (Math.abs(ay - cy) >= Math.abs(ax - cx)) {
+      const mid = (ay + cy) / 2;
+      if (ay < cy) { a.h = Math.min(a.h, mid - a.y); } else { const y1 = a.y + a.h; a.y = Math.max(a.y, mid); a.h = y1 - a.y; }
+    } else {
+      const mid = (ax + cx) / 2;
+      if (ax < cx) { a.w = Math.min(a.w, mid - a.x); } else { const x1 = a.x + a.w; a.x = Math.max(a.x, mid); a.w = x1 - a.x; }
+    }
+  }
+  return hits.map(({ grown: _g, ...h }) => h).sort((p, q) => q.w * q.h - p.w * p.h);
+}
+
 /**
- * Ein Bild des Verfahrens zum Zeitpunkt t (0 vorher … 1 getrennt). Mit `onPick` sind die Teile antippbar: nur Elemente mit `data-part`
- * nehmen Klicks an (Verzierungen wie der schwarze Startpunkt der Chromatografie liegen sonst über den Farbflecken), dazu unter
- * dem Bild unsichtbare Trefferflächen je Teil (mindestens 44 px; kleinere Teile liegen oben, damit jedes erreichbar bleibt).
+ * Ein Bild des Verfahrens zum Zeitpunkt t (0 vorher … 1 getrennt). Mit `onPick` sind die Teile antippbar: nur die antippbaren Teile
+ * (`parts`, sonst `TAP_PARTS`) nehmen Klicks an – Verzierungen wie der schwarze Startpunkt der Chromatografie, Gefäße und Hilfslinien nie –,
+ * dazu unter dem Bild unsichtbare Trefferflächen je Teil (sichtbarer Umriss, mindestens 44 px, nie über das Bild hinaus; überlappende
+ * kleine Flächen teilen sich an der Mitte).
  */
-export function SepScene({ m, t, label, onPick, mark }: { m: Method; t: number; label?: string; onPick?: (part: string) => void;
+export function SepScene({ m, t, label, onPick, mark, parts }: { m: Method; t: number; label?: string; onPick?: (part: string) => void;
   /** Teil gestrichelt grün umrahmen (Lösung nach der Antwort) */
-  mark?: string }) {
+  mark?: string;
+  /** antippbare Teile (Standard: TAP_PARTS des Verfahrens) */
+  parts?: string[] }) {
   const id = "sp" + useId().replace(/:/g, "");
   const svg = useRef<SVGSVGElement>(null);
   const [hits, setHits] = useState<Hit[]>([]);
   const tap = !!onPick;
+  const live = parts ?? TAP_PARTS[m] ?? [];
+  const key = live.join();
   useLayoutEffect(() => {
     const el = svg.current;
     if (!tap || !el) return;
     const measure = () => {
-      const ctm = el.getScreenCTM(), scale = ctm ? Math.hypot(ctm.a, ctm.b) : 1, min = HIT_PX / Math.max(.01, scale);
-      const box = new Map<string, DOMRect>();
-      for (const e of el.querySelectorAll<SVGGraphicsElement>(".sp-shapes [data-part]")) {
-        const part = e.getAttribute("data-part")!;
-        let b: DOMRect;
-        try { b = e.getBBox(); } catch { continue; }
-        if (!b.width && !b.height) continue;
-        // Lage im Bild: Transformationen der Elternelemente (gekipptes Glas, Magnet) mitnehmen
-        const local = e.getCTM(), root = el.getCTM();
-        if (local && root) {
-          const k = root.inverse().multiply(local);
-          const pts = [[b.x, b.y], [b.x + b.width, b.y], [b.x, b.y + b.height], [b.x + b.width, b.y + b.height]].map(([x, y]) => new DOMPoint(x, y).matrixTransform(k));
-          const xs = pts.map(q => q.x), ys = pts.map(q => q.y);
-          b = new DOMRect(Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys));
-        }
-        const o = box.get(part);
-        box.set(part, o ? new DOMRect(Math.min(o.x, b.x), Math.min(o.y, b.y), Math.max(o.right, b.right) - Math.min(o.x, b.x), Math.max(o.bottom, b.bottom) - Math.min(o.y, b.y)) : b);
-      }
-      const next = [...box].map(([part, b]) => {
-        const w = Math.max(b.width, min), h = Math.max(b.height, min);
-        return { part, x: b.x + b.width / 2 - w / 2, y: b.y + b.height / 2 - h / 2, w, h };
-      }).sort((p, q) => q.w * q.h - p.w * p.h);
+      const next = measureHits(el, key ? key.split(",") : []);
       setHits(old => (JSON.stringify(old) === JSON.stringify(next) ? old : next));
     };
     measure();
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
     ro?.observe(el);
     return () => ro?.disconnect();
-  }, [m, t, tap]);
+  }, [m, t, tap, key]);
+  const sel = (p: string) => `#${id} .sp-shapes [data-part="${p}"]`;
   return (
-    <svg ref={svg} className={`sp sp-${m}${tap ? " sp-tap" : ""}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label ?? `${METHOD_NAME(m)}: ${METHOD_MIX(m)}`}
-      onClick={onPick ? e => { const p = (e.target as Element).closest("[data-part]")?.getAttribute("data-part"); if (p) onPick(p); } : undefined}>
+    <svg ref={svg} id={id} className={`sp sp-${m}${tap ? " sp-tap" : ""}`} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label ?? `${METHOD_NAME(m)}: ${METHOD_MIX(m)}`}
+      onClick={onPick ? e => { const p = (e.target as Element).closest("[data-part]")?.getAttribute("data-part"); if (p && live.includes(p)) onPick(p); } : undefined}>
+      {tap && live.length > 0 && <style>{`${live.map(p => `${sel(p)}, ${sel(p)} *`).join(", ")} { pointer-events: auto; }`}</style>}
       {tap && <g className="sp-hits">{hits.map(h => <rect key={h.part} className="sp-hit" data-part={h.part} x={h.x} y={h.y} width={h.w} height={h.h} />)}</g>}
       <g className="sp-shapes">{SCENES[m](t, id)}</g>
-      {mark && hits.filter(h => h.part === mark).map(h => <rect key="mark" className="sp-mark" x={h.x - 2} y={h.y - 2} width={h.w + 4} height={h.h + 4} rx={3} />)}
+      {mark && hits.filter(h => h.part === mark).map(h => <rect key="mark" className="sp-mark" x={Math.max(1, h.x - 2)} y={Math.max(1, h.y - 2)} width={Math.min(W - 2, h.w + 4)} height={Math.min(H - 2, h.h + 4)} rx={3} />)}
     </svg>
   );
 }

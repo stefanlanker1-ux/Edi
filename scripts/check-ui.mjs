@@ -67,7 +67,8 @@ async function check(page, app, vp, view) {
     // (nichts Unsichtbares oder Verziertes darüber)
     const blocked = [];
     for (const svg of document.querySelectorAll("svg.sp-tap")) {
-      const parts = new Set([...svg.querySelectorAll(".sp-shapes [data-part]")].map(e => e.getAttribute("data-part")));
+      // antippbar = Teile mit Trefferfläche (Gefäße, Hilfslinien usw. tragen data-part nur für Beschriftungen)
+      const parts = new Set([...svg.querySelectorAll(".sp-hit")].map(e => e.getAttribute("data-part")));
       for (const part of parts) {
         let ok = false;
         for (const e of svg.querySelectorAll(`[data-part="${part}"]`)) {
@@ -79,6 +80,13 @@ async function check(page, app, vp, view) {
           if (ok) break;
         }
         if (!ok) blocked.push(part);
+      }
+      // unsichtbare Trefferflächen: im Bild und höchstens 40 % der Bildfläche (sonst zählt Tippen ins Leere als Antwort)
+      const sb = svg.getBoundingClientRect();
+      for (const h of svg.querySelectorAll(".sp-hit")) {
+        const b = h.getBoundingClientRect();
+        if (b.left < sb.left - 1 || b.top < sb.top - 1 || b.right > sb.right + 1 || b.bottom > sb.bottom + 1) blocked.push(`${h.getAttribute("data-part")} (Trefferfläche ragt aus dem Bild)`);
+        if (b.width * b.height > .4 * sb.width * sb.height) blocked.push(`${h.getAttribute("data-part")} (Trefferfläche ${Math.round(100 * b.width * b.height / (sb.width * sb.height))} % des Bilds)`);
       }
     }
     return { sw: d.scrollWidth, sh: d.scrollHeight, iw: innerWidth, ih: innerHeight, small, over, tiny, blocked };

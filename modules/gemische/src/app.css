@@ -9,8 +9,8 @@
 .gm-row { display: flex; justify-content: center; align-items: center; gap: 10px; }
 /* Temperaturregler: eigene Zeile unter den Knöpfen */
 .gm-temp { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; color: var(--muted); }
-.gm-temp input { width: clamp(120px, 42vw, 260px); min-height: 44px; accent-color: var(--accent); }
-.gm-temp output { min-width: 4.2em; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+.gm-temp input { width: clamp(100px, 36vw, 260px); min-height: 44px; accent-color: var(--accent); }
+.gm-temp output { min-width: 3.6em; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
 
 /* Gefäß und Lupe (Canvas): füllt die Bühne; Lupe ziehen ohne die Seite zu verschieben */
 .gm-flow { position: relative; width: 100%; height: 100%; min-height: 0; overflow: hidden; touch-action: none; border-radius: var(--radius-sm); }
@@ -83,6 +83,10 @@
 .gm-count-row:active { box-shadow: var(--key-edge-pressed); }
 .gm-count-row:disabled { opacity: .55; box-shadow: none; }
 .gm-count-row[aria-pressed="true"], .gm-mark-chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: none; }
+.gm-count-end { display: inline-flex; align-items: center; gap: 10px; }
+/* Kennzeichen „markierbar“ (wie in der Statuszeile): grau, gedrückt in der Farbe der Taste */
+.gm-mark-ico { font-size: 16px; line-height: 1; color: var(--muted); }
+[aria-pressed="true"] > .gm-mark-ico, [aria-pressed="true"] .gm-mark-ico { color: inherit; }
 .gm-marks { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; }
 .gm-mark-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; min-width: 44px; padding: 2px 10px 2px 6px;
   border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); font: inherit; font-weight: 700; }
@@ -188,8 +192,8 @@
 .sp-again { position: absolute; top: 0; right: 0; }
 .sp [data-part] { cursor: inherit; }
 /* Antippen: nur Teile mit data-part nehmen Klicks an (Verzierungen nie), unsichtbare Trefferflächen darunter */
+.sp-tap { overflow: hidden; }
 .sp-tap .sp-shapes * { pointer-events: none; }
-.sp-tap .sp-shapes [data-part], .sp-tap .sp-shapes [data-part] * { pointer-events: auto; }
 .sp-hit { fill: transparent; stroke: none; pointer-events: all; }
 /* Lösung: Teil gestrichelt grün umrahmt (nie nur Farbe: gestrichelter Rahmen), in der Lektion pulsierend */
 .sp-mark { fill: none; stroke: var(--ok); stroke-width: 2; stroke-dasharray: 5 3; pointer-events: none; vector-effect: non-scaling-stroke; }
@@ -204,6 +208,7 @@
 .sp-stopper { fill: var(--hue-grey); stroke: var(--hue-grey-deep); stroke-width: 1; }
 .sp-thermo { fill: var(--bg); stroke: var(--text); stroke-width: 1.2; }
 .sp-mercury { fill: var(--hue-red); }
+.gm-method .sp-temp { display: none; }
 .sp-temp { font-size: 10px; font-weight: 700; fill: var(--text); font-variant-numeric: tabular-nums; }
 .sp-lid { fill: var(--hue-blue-soft); stroke: var(--text); stroke-width: 1.2; }
 .sp-clip { fill: var(--hue-grey); stroke: var(--hue-grey-deep); stroke-width: 1; }

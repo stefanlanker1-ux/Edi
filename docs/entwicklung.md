@@ -361,10 +361,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   dem Bild des Filtrierens).
 - **Trennverfahren** (`components/Separation.tsx`): Auslesen, Sieben, Magnettrennung, Dekantieren, Filtrieren, Eindampfen, Destillieren, Chromatografie als SVG-Bild,
   das eine reine Funktion des Fortschritts t ist (`SepScene`, 0 = vorher, 1 = getrennt; `SepAnim` spielt ab, „Nochmal“-Knopf, reduzierte Bewegung → Endbild).
-  Teile mit `data-part` (Ziele für Beschriftung und Antippen). Mit `onPick` (Klasse `sp-tap`) nehmen **nur** Teile mit `data-part` Klicks an (Verzierungen wie der
-  schwarze Startpunkt der Chromatografie lagen sonst über den Farbflecken), dazu unter dem Bild unsichtbare Trefferflächen je Teil (gemessener Umriss, mindestens
-  44 × 44 px, kleinere Teile oben). `mark` umrahmt ein Teil gestrichelt grün (Lösung nach der Antwort im Quiz, in der Lektion nach dem Lösen bzw. pulsierend nach
-  vier Fehlversuchen). `check-ui` prüft in jedem `svg.sp-tap`, dass jedes Teil per `elementFromPoint` erreichbar ist. Farben nur aus der Palette (`.sp-*` in `app.css`).
+  Teile mit `data-part` (Ziele für Beschriftung und Antippen). Mit `onPick` (Klasse `sp-tap`) nehmen **nur** die antippbaren Teile Klicks an (`parts` bzw.
+  `TAP_PARTS` je Verfahren, z. B. Rückstand, Filtrat, Filterpapier – nie Verzierungen wie der schwarze Startpunkt der Chromatografie, Gefäße oder Hilfslinien),
+  dazu unter dem Bild unsichtbare Trefferflächen je Teil: sichtbarer Umriss (`getBBox`, durch den `clipPath` begrenzt, über die Bildschirm-Matrizen in Bild-Einheiten),
+  mindestens 44 × 44 px, nie über das Bild hinaus; überlappende kleine Flächen (Farbflecken) teilen sich an der Mitte; kleinere liegen oben. `mark` umrahmt ein Teil gestrichelt grün (Lösung nach der Antwort im Quiz, in der Lektion nach dem Lösen bzw. pulsierend nach
+  vier Fehlversuchen). `check-ui` prüft in jedem `svg.sp-tap`, dass jedes Teil mit Trefferfläche per `elementFromPoint` erreichbar ist und keine Trefferfläche aus dem Bild ragt
+  oder mehr als 40 % des Bilds belegt (sonst zählt Tippen ins Leere als Antwort). Farben nur aus der Palette (`.sp-*` in `app.css`).
   `MixPic` = Gemisch vor dem Trennen ohne Geräte (verrät das Verfahren nicht). Eindeutige `clipPath`-Kennungen je Bild (`useId`).
   Sieben: Maschen als Drahtquerschnitte mit sichtbaren Lücken; Sandkörner rutschen zur nächsten Lücke, fallen hindurch und häufen sich in der Schale, Kiesel
   (größer als die Lücke) bleiben liegen. Destillieren: Rundkolben auf Dreifuß über dem Brenner, Thermometer am Abzweig (steigt auf 100 °C und bleibt dort, solange
@@ -373,7 +375,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   jeder Farbstoff wandert verschieden weit (Gelb, Rot, Blau) – der Punkt läuft auseinander.
 - Zählen in der Werkbank (`Counts` in `views/MixView.tsx`) ist eine **Anzeige zum Nachprüfen, keine Abfrage**: Teilchen, Stoffe, davon Verbindungen und Elemente,
   Atomsorten stehen immer mit Zahl da. Jeden Stoff, „Verbindungen“, „Elemente“ und jede Atomsorte kann man antippen: dann sind im Gefäß und in der Lupe nur deren
-  Teilchen kräftig, alle anderen blass (`FlowView` `mark`); am Handy schließt sich das Blatt dabei. Die Statuszeile zeigt die Markierung als Taste („◎ CO₂ ✕“ = aufheben).
+  Teilchen kräftig, alle anderen blass (`FlowView` `mark`); am Handy schließt sich das Blatt dabei. Kein Erklärsatz: jede markierbare Zeile und jeder Chip trägt das
+  Kennzeichen ◎ (grau, gedrückt in der Farbe der Taste; `aria-label` „… im Bild markieren“). Die Statuszeile zeigt die Markierung als Taste („◎ CO₂ ✕“ = aufheben).
   Keine Eingabe, kein ✓/✗, keine Aufforderung.
 - **Lektionen** (`src/lessons.tsx`, `LESSONS[0…4]`, je Kapitel 4–12 Schritte, vorgemacht → halb gelöst → selbst, keine Zahleneingabe; die richtige Auswahl steht
   an wechselnden Plätzen, Zahlen aufsteigend – Test: höchstens 40 % an Platz 1): 1 Teilchen zählen,
@@ -695,6 +698,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Trefferflächen der Trennbilder begrenzt, Zählen ohne Erklärsatz** – Trefferflächen aus dem sichtbaren Umriss (clipPath beachtet – beim Dekantieren
+  deckte „Wasser“ das ganze Bild und ragte darüber hinaus), im Bild, nur für die antippbaren Teile (`TAP_PARTS`), überlappende Farbflecken an der Mitte geteilt;
+  `check-ui` prüft Lage und Größe (≤ 40 % des Bilds). Thermometerzahl in den Verfahrens-Bildkarten ausgeblendet. Zählen: Zeile „Antippen = im Bild markieren“ durch
+  das Kennzeichen ◎ ersetzt. Temperaturzeile bei 360 px schmaler (ragte 20 px über die Karte).
 
 - **Gemische: Experimentieren ohne Abfrage, Merksätze und Tipps ohne Lösung, Trennbilder antippbar** – Werkzeug „Zählen“ ohne Eingabe und ✓/✗: alle Zahlen
   stehen da, Stoffe/Verbindungen/Elemente/Atomsorten antippen markiert deren Teilchen in Gefäß und Lupe (`FlowView` `mark`; Antippen in der Lupe trifft jetzt die
