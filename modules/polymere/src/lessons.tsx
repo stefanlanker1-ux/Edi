@@ -640,7 +640,7 @@ export const LESSONS: GuideDef[] = [
   { title: T("Radikalische Polymerisation", "Radical polymerisation"), steps: K2,
     outro: [T("Start: Starter zerfällt. Wachstum: Radikal + C=C. Abbruch: Radikal + Radikal.", "Initiation: initiator splits. Growth: radical + C=C. Termination: radical + radical."), T("Halber Pfeil = ein Elektron.", "Half arrow = one electron.")] },
   { title: T("Katalysatoren und Verfahren", "Catalysts and methods"), steps: K3, known: [T("Propen", "Propene")],
-    outro: [T("Ziegler-Natta: Einbau am Titan, Propen isotaktisch; O, N, Cl, F vergiften.", "Ziegler–Natta: insertion at titanium, propene isotactic; O, N, Cl, F poison it."), T("Kationisch: H⁺ startet, Elektronen schiebende Gruppen (Isobuten).", "Cationic: H⁺ starts, electron-pushing groups (isobutene)."), T("Anionisch: lebende Ketten, Blockcopolymere.", "Anionic: living chains, block copolymers.")] },
+    outro: [T("Ziegler-Natta: Einbau am Titan, Propen isotaktisch; O, N, Cl, F vergiften.", "Ziegler–Natta: insertion at titanium, propene isotactic; O, N, Cl, F poison it."), T("Kationisch: H⁺ startet; Gruppen stützen die Ladung (Isobuten: zwei CH₃).", "Cationic: H⁺ starts; groups support the charge (isobutene: two CH₃)."), T("Anionisch: lebende Ketten, Blockcopolymere.", "Anionic: living chains, block copolymers.")] },
   { title: T("Polykondensation", "Polycondensation"), steps: K4,
     outro: [T("Gruppen reagieren, H₂O oder HCl geht ab: Ester, Amid.", "Groups react, H₂O or HCl leaves: ester, amide."), T("Eine Gruppe stoppt, drei Gruppen vernetzen.", "One group stops, three groups cross-link.")] },
   { title: T("Polyaddition", "Polyaddition"), steps: K5, known: ["H"],

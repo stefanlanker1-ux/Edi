@@ -853,7 +853,7 @@ function schnitt(): Task {
     scene, parts, answer, mode: "any", sol: T(`die Bindung vom C der C=O zum ${X}`, `the bond from the C of the C=O to the ${X}`),
     prompt: T("Tippe auf eine Bindung, die bei der Polykondensation neu entstanden ist.", "Tap a bond that formed in the polycondensation."),
     hint: T(`Die farbigen Flächen zeigen die Bausteine. Neu ist eine Bindung zwischen zwei Bausteinen.`, `The coloured areas show the units. A new bond lies between two units.`),
-    tip: T(`Suche die Stelle, an der die Farbe wechselt: C=O auf der einen Seite, ${X} auf der anderen.`, `Look where the colour changes: C=O on one side, ${X} on the other.`),
+    tip: T("Welche Bindung gab es in keinem der beiden Monomere?", "Which bond existed in neither of the two monomers?"),
     explain: T(`Neu ist die Bindung vom C der Säuregruppe zum ${X}: die **${link}**. Rückwärts spaltet Wasser sie wieder – das heißt **Hydrolyse**.`, `New is the bond from the C of the acid group to the ${X}: the **${link}**. Backwards, water splits it again – that is **hydrolysis**.`),
     why: id => {
       const [a, b] = id.split("|").map(x => at.get(x)!);
@@ -913,17 +913,20 @@ function giftTap(): Task {
   const ans = het ? (het.a === "tti" ? het.b : het.a) : "";
   const parts = visibleAtoms(snap).filter(a => a.id.startsWith("n")).sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
   const el = snap.atoms.find(a => a.id === ans)?.el ?? "Cl";
+  // bei MMA haben beide O freie Paare – gemeint ist das O der C=O-Gruppe (stärker gebunden)
+  const who = el === "O" ? T("das O der C=O-Gruppe", "the O of the C=O group") : el === "N" ? T("das N der Nitrilgruppe", "the N of the nitrile group") : T(`das ${el}‑Atom`, `the ${el} atom`);
+  const Who = cap(who);
   return tapTask({
-    scene, parts, answer: [ans], sol: T(`das ${el}‑Atom mit freiem Elektronenpaar`, `the ${el} atom with a lone pair`),
+    scene, parts, answer: [ans], sol: T(`${who} (mit freiem Elektronenpaar)`, `${who} (with a lone pair)`),
     prompt: T(`${cap(nm(m))} kommt an das Titan. Tippe auf das Atom, das an das Titan bindet und es vergiftet.`, `${cap(nm(m))} reaches the titanium. Tap the atom that binds to the titanium and poisons it.`),
     hint: T("Gesucht ist ein Atom mit freiem Elektronenpaar: Cl, O, N oder F.", "Look for an atom with a lone pair: Cl, O, N or F."),
     tip: T("Welches Atom hat freie Elektronenpaare (Striche am Symbol)?", "Which atom has lone pairs (lines at the symbol)?"),
-    explain: T(`Das ${el}‑Atom bindet mit einem freien Elektronenpaar fest an die freie Stelle. Kein Monomer kommt mehr heran: **vergiftet**.`, `The ${el} atom binds firmly to the free site with a lone pair. No monomer can get in any more: **poisoned**.`),
+    explain: T(`${Who} bindet mit einem freien Elektronenpaar an die freie Stelle. Kein Monomer kommt mehr heran: **vergiftet**.`, `${Who} binds to the free site with a lone pair. No monomer can get in any more: **poisoned**.`),
     why: id => {
       const a = snap.atoms.find(x => x.id === id);
-      return a?.el === "C" ? ["zn-polar", T(`Die C=C würde eingebaut. Das ${el} bindet aber fester – mit einem freien Elektronenpaar.`, `The C=C would be inserted. But the ${el} binds more firmly – with a lone pair.`)]
+      return a?.el === "C" ? ["zn-polar", T(`Die C=C würde eingebaut. ${Who} bindet aber fester – mit einem freien Elektronenpaar.`, `The C=C would be inserted. But ${who} binds more firmly – with a lone pair.`)]
         : a?.el === "H" ? ["zn-polar", T("H hat kein freies Elektronenpaar. Suche Cl, O, N oder F.", "H has no lone pair. Look for Cl, O, N or F.")]
-        : ["zn-polar", T(`Auch dieses Atom hat freie Elektronenpaare. Am Titan bindet hier aber das ${el}, das zur freien Stelle zeigt.`, `This atom has lone pairs too. But here the ${el} pointing at the free site binds to the titanium.`)];
+        : ["zn-polar", T(`Auch dieses Atom hat freie Elektronenpaare. Am Titan bindet hier aber ${who}.`, `This atom has lone pairs too. But here ${who} binds to the titanium.`)];
     },
   });
 }

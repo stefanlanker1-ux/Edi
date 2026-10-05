@@ -673,6 +673,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Fachliche Feinheiten** – Tipp bei „neue Bindung antippen“ verrät die Stelle nicht mehr („Welche Bindung gab es in keinem der beiden Monomere?“);
+  vergiftendes Atom genau benannt (O der C=O-Gruppe, N der Nitrilgruppe); Allyl-H-Abriss zeigt das H einzeln, Pfeile beginnen an der C–H-Bindung; Phenol markiert
+  nur die drei reaktiven H; K3-Zusammenfassung kationisch ohne „Elektronen schiebend“ als Regel für alle.
 - **Polymere: Schritte ordnen** – neue Antwortform `order` und Aufgabe `ordnen` am Ende von Kapitel 2: vier Mechanismus-Bilder (Start, zwei Anlagerungen, Abbruch)
   in die richtige Reihenfolge tippen; Abläufe als Kausalkette selbst herstellen statt nur auswählen. Fallen mit Rückmeldung je Fehlerart.
 - **Polymere: Antippen nachgebessert** – sichtbar, was tippbar ist, Rückmeldung bei Tippen daneben, Zähler bei Mehrfachwahl, Tippziele ≥ 44 px, Lösung in

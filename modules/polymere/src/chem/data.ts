@@ -252,7 +252,7 @@ export const STEPS: StepMono[] = [
     ...tr({ name: "6-Aminohexansäure", alt: "ε-Aminocapronsäure" }, { name: "6-Aminohexanoic acid", alt: "ε-aminocaproic acid" }),
   },
   {
-    id: "phenol", struct: "HO–C₆{H₅}", letter: "Ph", hue: "orange", formula: "C6H6O", groups: ["ArH", "ArH", "ArH"], core: { k: "phenol" }, arts: ["kond"],
+    id: "phenol", struct: "HO–C₆H₂{H₃}", letter: "Ph", hue: "orange", formula: "C6H6O", groups: ["ArH", "ArH", "ArH"], core: { k: "phenol" }, arts: ["kond"],
     ...tr({ name: "Phenol", alt: "Hydroxybenzol" }, { name: "Phenol", alt: "hydroxybenzene" }),
   },
   {

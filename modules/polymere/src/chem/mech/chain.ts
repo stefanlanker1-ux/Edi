@@ -430,23 +430,29 @@ export class ChainMech implements Mech {
     // Monomer schräg unten rechts, CH₃-Gruppe zeigt nach oben zum Radikal
     const ids = vinylUnit(sc, v, this.xe + 2.4, 1.9, { pre, unit: k, hue: v.hue }, { dbl: true });
     this.key(80, 650);
-    sc.move(ids.atoms, -1.6, 0);
+    sc.move(ids.atoms, -1.0, 0.3);
     const me = ids.atoms.find(i => sc.at(i).text === "CH₃")!;
     const M = sc.at(me);
+    // das abgerissene H einzeln zeigen (C–H-Strich zum Radikal hin): Pfeile beginnen an der Bindung
     const h = this.id("ha");
-    sc.add({ id: h, el: "H", x: M.x - 0.1, y: M.y - 0.05, op: 0 });
+    const dx = this.xe - M.x, dy = 0 - M.y, dl = Math.hypot(dx, dy) || 1;
+    const hp = { x: M.x + (dx / dl) * 1.0, y: M.y + (dy / dl) * 1.0 };
+    sc.set(me, { text: "CH₂" });
+    sc.add({ id: h, el: "H", x: hp.x, y: hp.y });
+    sc.bond(me, h);
+    this.key(300, 300);
+    const mid = { x: (this.xe + hp.x) / 2, y: (0 + hp.y) / 2 };
     this.key(800, 300, [
-      { from: { d: this.edots[0] }, to: { p: { x: (this.xe + M.x) / 2, y: (0 + M.y) / 2 - 0.2 } }, half: true, bend: -0.5 },
+      { from: { d: this.edots[0] }, to: { p: { x: mid.x - 0.1, y: mid.y - 0.05 } }, half: true, bend: -0.5 },
       // C–H-Bindung bricht: ein Elektron geht mit dem H zur neuen Bindung, eins bleibt am C (neues, beständiges Radikal)
-      { from: { a: me, ang: 200, r: 0.45 }, to: { p: { x: (this.xe + M.x) / 2 + 0.15, y: (0 + M.y) / 2 - 0.05 } }, half: true, bend: 0.5 },
-      { from: { a: me, ang: 200, r: 0.45 }, to: { a: me, ang: -20, r: 0.5 }, half: true, bend: -0.6 },
+      { from: { b: [me, h] }, to: { p: { x: mid.x + 0.1, y: mid.y + 0.05 } }, half: true, bend: 0.5 },
+      { from: { b: [me, h] }, to: { a: me, ang: -20, r: 0.5 }, half: true, bend: -0.6 },
     ]);
-    sc.set(h, { op: 1 });
     this.key(100, 900);
     const E = sc.at(this.end);
+    sc.unbond(me, h);
     sc.set(h, { x: E.x + 0.8, y: E.y });
     sc.bond(this.end, h);
-    sc.set(me, { text: "CH₂" });
     const r = this.edots[0];
     sc.undot(r);
     const nd = this.id("ea");
