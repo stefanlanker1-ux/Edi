@@ -682,6 +682,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Begriffe eingeführt, bevor sie abgefragt werden (K1–K4)** – Test `quiz/terms.test.ts` (Fachwörter `GLOSSARY` in Aufgabentexten von Kapitel k müssen fett
+  in Lektion/Erklärkarte 1…k stehen, Merksätze zählen nicht); K1 nur Ethen/Propen/Styrol/Vinylchlorid, Kunststoffe mit Grund (auch als Lektionsschritt); Lektionen führen
+  gesättigt, Hauptkette, Seitengruppe, Benzolring, DBPO, Elektronenpaar, Endgruppe, Katalysator, PE-HD/PE-LD/Äste, syndiotaktisch, Blockcopolymer, Acrylnitril/Vinylacetat,
+  Disäure/Diol, Polyester, Aminogruppe, Milchsäure/PLA, PA 6, Diepoxid ein; neuer K2-Schritt „mehr Starter“, K4-Schritt AB-Monomer; K3 ohne C≡N-/Acetat-Gift im Quiz, ohne AIBN,
+  ohne „statistisches Copolymer“, neuer Stolperstein `zn-unpolar-gift`; K4 `bindungArt` ohne Urethan.
 - **Polymere: K5/K6 nur Eingeführtes** – Lektion K5 führt Isocyanatgruppe, Harnstoffgruppe (neuer halb gelöster Schritt), Epoxidgruppe, „gespannt“ und Zweikomponentenkleber ein
   (Legende „R = Rest des Moleküls“); K5 ohne Thermoplast/Duroplast; K6 fragt Gegenstände mit ihrer Eigenschaft, Rückmeldung mit dem Ding bzw. mit den gezählten Brücken im Bild;
   Stolpersteine nach dem Paar (richtig, gewählt) mit neuen `elast-duro`, `thermo-duro` (Test); Recycling-Codes nur noch in „Alles gemischt“.

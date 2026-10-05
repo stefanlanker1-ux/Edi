@@ -93,9 +93,10 @@ const SAT: Partial<Record<VinylId, [string, string]>> = tr(
   { ethen: ["Ethane", "CH₃–CH₃"], propen: ["Propane", "CH₃–CH₂–CH₃"], vinylchlorid: ["Chloroethane", "CH₃–CH₂–Cl"], styrol: ["Ethylbenzene", "CH₃–CH₂–C₆H₅"],
     acrylnitril: ["Propanenitrile", "CH₃–CH₂–C≡N"], tfe: ["Tetrafluoroethane", "CHF₂–CHF₂"] },
 );
-const SAT_IDS = Object.keys(SAT) as VinylId[];
+/** nur die in der Lektion eingeführten Monomere (Ethen, Propen, Styrol, Vinylchlorid) */
+const SAT_IDS: VinylId[] = ["ethen", "propen", "styrol", "vinylchlorid"];
 /** einfache Monomere für die ersten Aufgaben (gut erkennbare Gruppe) */
-const EASY: VinylId[] = ["ethen", "propen", "styrol", "vinylchlorid", "acrylnitril", "tfe"];
+const EASY: VinylId[] = ["ethen", "propen", "styrol", "vinylchlorid"];
 const others = (id: string, pool: VinylId[], n: number) => shuffle(pool.filter(x => x !== id)).slice(0, n);
 
 /** erstes Bild mit Elektronenpfeilen im Ablauf der letzten Aktion (bzw. das n-te) */
@@ -143,10 +144,10 @@ function task(prompt: string, correct: string, wrongs: Distractor[], o: { vis?: 
 // ── Kapitel 1: Monomere und Polymere ───────────────────────────────────────────
 
 function polyName(): Task {
-  const v = pick(EASY.concat(["mma", "vinylacetat"]));
+  const v = pick(EASY);
   return task(T("Welches Polymer entsteht aus diesem Monomer?", "Which polymer forms from this monomer?"), poly(v),
     // drei Antworten: das Monomer-Bild bleibt auch auf kleinen Handys groß genug
-    others(v, EASY.concat(["mma", "vinylacetat"]), 2).map(w => d(poly(w), "gruppe-verwechselt",
+    others(v, EASY, 2).map(w => d(poly(w), "gruppe-verwechselt",
       T(`${vinyl(w).polymer} entsteht aus ${vinyl(w).name}. Dort trägt die Zweifachbindung ${SIDE[w]}.`, `${cap(vinyl(w).polymer.toLowerCase())} forms from ${vinyl(w).name.toLowerCase()}. Its double bond carries ${SIDE[w]}.`))),
     {
       vis: { k: "mono", id: v },
@@ -252,23 +253,28 @@ function bausteinWahl(): Task {
   });
 }
 
-/** Alltagsgegenstand, der unter den sechs Kunststoffen eindeutig zu einem gehört (Rohre z. B. gibt es aus PE und PVC) */
-const EVERYDAY: Record<"ethen" | "propen" | "styrol" | "vinylchlorid" | "tfe" | "mma", string> = tr(
+/** Alltagsgegenstand, der unter den vier Kunststoffen eindeutig zu einem gehört (Rohre z. B. gibt es aus PE und PVC) */
+const EVERYDAY: Record<"ethen" | "propen" | "styrol" | "vinylchlorid", string> = tr(
   { ethen: "Aus welchem Kunststoff sind die meisten **Plastiktüten**?", propen: "Aus welchem Kunststoff sind oft **Stoßstangen** von Autos?",
-    styrol: "Aus welchem Kunststoff sind weiße **Dämmplatten aus Schaum**?", vinylchlorid: "Aus welchem Kunststoff sind oft **Fensterrahmen**?",
-    tfe: "Aus welchem Kunststoff ist die **Antihaftschicht** in Pfannen?", mma: "Aus welchem Kunststoff ist **Acrylglas**?" },
+    styrol: "Aus welchem Kunststoff sind weiße **Dämmplatten aus Schaum**?", vinylchlorid: "Aus welchem Kunststoff sind oft **Fensterrahmen**?" },
   { ethen: "Which plastic are most **plastic bags** made of?", propen: "Which plastic are car **bumpers** often made of?",
-    styrol: "Which plastic are white **foam insulation boards** made of?", vinylchlorid: "Which plastic are **window frames** often made of?",
-    tfe: "Which plastic is the **non-stick coating** in pans?", mma: "Which plastic is **acrylic glass**?" },
+    styrol: "Which plastic are white **foam insulation boards** made of?", vinylchlorid: "Which plastic are **window frames** often made of?" },
+);
+/** Stärke jedes Kunststoffs – Grund für die Verwendung (auch in der Lektion K1) */
+export const STRENGTH = (): Record<keyof typeof EVERYDAY, string> => tr(
+  { ethen: "PE ist weich und dehnbar – gut für Folien und Tüten.", propen: "PP ist fester als PE und hält Wärme bis etwa 100 °C aus.",
+    styrol: "PS lässt sich mit Gas zu leichtem Schaum aufblähen – gut zum Dämmen.", vinylchlorid: "PVC ist hart und wetterfest – gut für Fensterrahmen." },
+  { ethen: "PE is soft and stretchy – good for films and bags.", propen: "PP is firmer than PE and takes heat up to about 100 °C.",
+    styrol: "PS can be blown up with gas into light foam – good for insulation.", vinylchlorid: "PVC is hard and weatherproof – good for window frames." },
 );
 
 function kunststoffAlltag(): Task {
   const ids = Object.keys(EVERYDAY) as (keyof typeof EVERYDAY)[];
-  const v = pick(ids);
+  const v = pick(ids), S = STRENGTH();
   return task(EVERYDAY[v], poly(v),
-    others(v, ids, 3).map(w => d(poly(w), "verwendung-verwechselt", T(`${vinyl(w).abbr}: ${vinyl(w).uses}.`, `${vinyl(w).abbr}: ${vinyl(w).uses}.`))), {
-      hint: T("Kunststoffe sind Polymere mit Kurzzeichen: PE, PP, PS, PVC …", "Plastics are polymers with short codes: PE, PP, PS, PVC …"),
-      explain: T(`**${vinyl(v).abbr}**: ${vinyl(v).uses}.`, `**${vinyl(v).abbr}**: ${vinyl(v).uses}.`),
+    others(v, ids, 3).map(w => d(poly(w), "verwendung-verwechselt", S[w as keyof typeof EVERYDAY])), {
+      hint: T("Kunststoffe sind Polymere mit Kurzzeichen: PE, PP, PS, PVC.", "Plastics are polymers with short codes: PE, PP, PS, PVC."),
+      explain: S[v].replace(/^(\w+)/, "**$1**"),
     });
 }
 
@@ -386,7 +392,7 @@ function mehrStarter(): Task {
 // ── Kapitel 3: Katalysatoren und Verfahren ─────────────────────────────────────
 
 const ZN_PP: Recipe = { art: "poly", a: "propen", method: "zn" };
-const POLAR: VinylId[] = ["mma", "vinylchlorid", "acrylnitril", "vinylacetat"];
+const POLAR: VinylId[] = ["mma", "vinylchlorid"];
 const NONPOLAR: VinylId[] = ["ethen", "propen", "styrol", "butadien"];
 const methName = (id: MethodId) => tr(method(id).name, method(id).name);
 
@@ -417,7 +423,7 @@ function freieStelle(): Task {
 function zieglerGift(): Task {
   const v = pick(POLAR);
   return task(T("Welches Monomer **vergiftet** den Ziegler-Natta-Katalysator?", "Which monomer **poisons** the Ziegler–Natta catalyst?"), vinyl(v).name,
-    shuffle(NONPOLAR).slice(0, 3).map(w => d(vinyl(w).name, "zn-polar", T(`${vinyl(w).name} hat kein O-, N-, Cl- oder F‑Atom. Es wird am Titan eingebaut.`, `${vinyl(w).name} has no O, N, Cl or F atom. It is inserted at the titanium.`))), {
+    shuffle(NONPOLAR).slice(0, 3).map(w => d(vinyl(w).name, "zn-unpolar-gift", T(`${vinyl(w).name} hat kein O-, N-, Cl- oder F‑Atom. Es wird am Titan eingebaut.`, `${vinyl(w).name} has no O, N, Cl or F atom. It is inserted at the titanium.`))), {
       hint: T("Atome mit freien Elektronenpaaren (O, N, Cl, F) binden an das Titan.", "Atoms with lone pairs (O, N, Cl, F) bind to the titanium."),
       tip: T("Suche das Monomer mit O, N oder Cl.", "Look for the monomer with O, N or Cl."),
       explain: compat(v, "zn").why,
@@ -467,7 +473,7 @@ function hdpe(): Task {
 function lebend(): Task {
   return task(T("Lebende Polystyrol-Ketten (anionisch) – dann kommt Butadien dazu. Was entsteht?", "Living polystyrene chains (anionic) – then butadiene is added. What forms?"), T("Ein Blockcopolymer", "A block copolymer"), [
     d(T("Zwei getrennte Polymere", "Two separate polymers"), "block-getrennt", T("Das passiert, wenn die Ketten schon abgebrochen sind – etwa radikalisch.", "That happens when the chains have already stopped – for example by radicals.")),
-    d(T("Ein statistisches Copolymer", "A random copolymer"), "copo-verwechselt", T("Statistisch wird es, wenn beide Monomere gleichzeitig da sind.", "It becomes random when both monomers are there at the same time.")),
+    d(T("Nur Polybutadien", "Only polybutadiene"), "block-getrennt", T("Die Styrol-Ketten sind schon da. Butadien wächst an ihre Enden an.", "The styrene chains are already there. Butadiene grows onto their ends.")),
     d(T("Nur Polystyrol", "Only polystyrene"), "block-getrennt", T("Die Ketten leben noch. Butadien lagert sich an ihre Enden an und wird eingebaut.", "The chains are still alive. Butadiene adds to their ends and is built in.")),
   ], {
     vis: { k: "beads", seq: ["styrol", "styrol", "styrol", "styrol", "butadien", "butadien", "butadien", "butadien"] },
@@ -477,7 +483,7 @@ function lebend(): Task {
 }
 
 function kationisch(): Task {
-  const ws = shuffle(["mma", "acrylnitril", "vinylchlorid"] as VinylId[]).slice(0, 2);
+  const ws: VinylId[] = shuffle(["mma", "vinylchlorid"]);
   return task(T("Welches Monomer bildet **kationisch** (BF₃ mit Wasser) lange Ketten?", "Which monomer forms long chains **cationically** (BF₃ with water)?"), vinyl("isobuten").name, [
     ...ws.map(w => d(vinyl(w).name, "kation-polar", compat(w, "bf3").why)),
     d(vinyl("ethen").name, "verfahren-passt-nicht", compat("ethen", "bf3").why),
@@ -488,10 +494,11 @@ function kationisch(): Task {
 }
 
 function verfahrenWahl(): Task {
-  const m = pick(["ethen", "propen", "mma", "vinylchlorid", "isobuten", "acrylnitril"] as VinylId[]);
-  const ok = methodsFor(m);
+  const m = pick(["ethen", "propen", "mma", "vinylchlorid", "isobuten"] as VinylId[]);
+  // AIBN ist in der Lektion nicht eingeführt: nur DBPO als Starter
+  const ok = methodsFor(m).filter(x => x !== "aibn");
   const right = pick(ok);
-  const bad = shuffle(METHODS.map(x => x.id).filter(x => compat(m, x).fit !== "ok")).slice(0, 3);
+  const bad = shuffle(METHODS.map(x => x.id).filter(x => x !== "aibn" && compat(m, x).fit !== "ok")).slice(0, 3);
   return task(T(`Mit welchem Verfahren bildet **${vinyl(m).name}** lange Ketten?`, `Which method makes **${nm(m)}** form long chains?`), methName(right),
     bad.map(b => d(methName(b), compat(m, b).fail === "poison" ? "zn-polar" : "verfahren-passt-nicht", compat(m, b).why)), {
       hint: T("O, N, Cl: Ziegler-Natta wird vergiftet. Zwei CH₃ an einem C: zu sperrig für Titan, aber gut kationisch.", "O, N, Cl: Ziegler–Natta is poisoned. Two CH₃ on one C: too bulky for titanium, but fine cationically."),
@@ -534,10 +541,9 @@ function nebenprodukt(): Task {
 function bindungArt(): Task {
   const amid = Math.random() < 0.5;
   const g = G();
-  const E = T("Esterbindung", "Ester bond"), A = T("Amidbindung", "Amide bond"), U = T("Urethangruppe", "Urethane group");
+  const E = T("Esterbindung", "Ester bond"), A = T("Amidbindung", "Amide bond");
   return task(T(`Welche Bindung entsteht aus ${g.COOH} und ${amid ? g.NH2 : g.OH}?`, `Which bond forms from ${g.COOH} and ${amid ? g.NH2 : g.OH}?`), amid ? A : E, [
     d(amid ? E : A, "ester-amid", amid ? T("Ester entstehen mit –OH. Mit –NH₂ entsteht ein Amid.", "Esters form with –OH. With –NH₂ an amide forms.") : T("Amide entstehen mit –NH₂. Mit –OH entsteht ein Ester.", "Amides form with –NH₂. With –OH an ester forms.")),
-    d(U, "ester-urethan", T("Urethane entstehen aus Isocyanat (–N=C=O) und Alkohol.", "Urethanes form from isocyanate (–N=C=O) and alcohol.")),
     d(T("Zweifachbindung", "Double bond"), "kond-doppelbindung", T("Es entsteht eine Einfachbindung zu O bzw. N. Die C=O gab es schon in der Säuregruppe.", "A single bond to O or N forms. The C=O was already in the acid group.")),
   ], {
     hint: T("Säure + Alkohol → Ester. Säure + Amin → Amid.", "Acid + alcohol → ester. Acid + amine → amide."),
@@ -777,7 +783,7 @@ function schmelzen(): Task {
     d(K.elast, klMiss("thermo", "elast"), T("Die Brücken verhindern das Schmelzen – Gummi lässt sich nicht einschmelzen.", "The cross-links prevent melting – rubber cannot be melted down.")),
   ], {
     hint: T("Nur einzelne Ketten können aneinander vorbeigleiten.", "Only separate chains can slide past each other."),
-    explain: T("**Thermoplaste** (PE, PP, PET …) werden beim Erwärmen weich – gut für Recycling.", "**Thermoplastics** (PE, PP, PET …) soften on heating – good for recycling."),
+    explain: T("**Thermoplaste** (PE, PP, PET …) werden beim Erwärmen weich – man kann sie neu formen.", "**Thermoplastics** (PE, PP, PET …) soften on heating – they can be reshaped."),
   });
 }
 
@@ -828,15 +834,15 @@ function wachstum(): Task {
 
 /** Gegenstände mit ihrer Eigenschaft (kein Fachname in der Frage); Satz zum Ding vor der Definition */
 const ALLTAG = () => tr([
-  { item: "ein Topfgriff, der am heißen Topf hart bleibt", k: "duro" as const, fact: "Der Griff bleibt auch sehr heiß hart.", s: "Der Griff wird auch sehr heiß nie weich und schmilzt nicht – ein **Duroplast** (Phenoplast)." },
-  { item: "eine Arbeitsplatte, die heiße Töpfe aushält", k: "duro" as const, fact: "Die Oberfläche bleibt unter heißen Töpfen hart.", s: "Ihre Oberfläche hält heiße Töpfe aus, ohne weich zu werden – ein **Duroplast** (Melaminharz)." },
+  { item: "ein Topfgriff, der am heißen Topf hart bleibt", k: "duro" as const, fact: "Der Griff bleibt auch sehr heiß hart.", s: "Der Griff wird auch sehr heiß nie weich und schmilzt nicht – ein **Duroplast**." },
+  { item: "eine Arbeitsplatte, die heiße Töpfe aushält", k: "duro" as const, fact: "Die Oberfläche bleibt unter heißen Töpfen hart.", s: "Ihre Oberfläche hält heiße Töpfe aus, ohne weich zu werden – ein **Duroplast**." },
   { item: "ein Autoreifen", k: "elast" as const, fact: "Der Reifen federt und schmilzt nicht.", s: "Ein Reifen federt und schmilzt auf heißer Straße nicht – ein **Elastomer**." },
   { item: "ein Gummiband", k: "elast" as const, fact: "Das Gummiband dehnt sich und springt zurück.", s: "Ein Gummiband lässt sich dehnen und springt zurück – typisch für ein **Elastomer**." },
   { item: "eine PET-Flasche, die man einschmelzen kann", k: "thermo" as const, fact: "Die Flasche lässt sich einschmelzen.", s: "Man kann sie einschmelzen und neu formen – ein **Thermoplast**." },
   { item: "eine Plastiktüte, die man warm verformen kann", k: "thermo" as const, fact: "Die Tüte wird warm weich.", s: "Sie wird warm weich und lässt sich verformen – ein **Thermoplast**." },
 ], [
-  { item: "a pan handle that stays hard on a hot pan", k: "duro" as const, fact: "The handle stays hard even when very hot.", s: "The handle never softens or melts, even when very hot – a **thermoset** (phenolic resin)." },
-  { item: "a worktop that can take hot pans", k: "duro" as const, fact: "The surface stays hard under hot pans.", s: "Its surface takes hot pans without softening – a **thermoset** (melamine resin)." },
+  { item: "a pan handle that stays hard on a hot pan", k: "duro" as const, fact: "The handle stays hard even when very hot.", s: "The handle never softens or melts, even when very hot – a **thermoset**." },
+  { item: "a worktop that can take hot pans", k: "duro" as const, fact: "The surface stays hard under hot pans.", s: "Its surface takes hot pans without softening – a **thermoset**." },
   { item: "a car tyre", k: "elast" as const, fact: "The tyre is springy and does not melt.", s: "A tyre is springy and does not melt on a hot road – an **elastomer**." },
   { item: "a rubber band", k: "elast" as const, fact: "The rubber band stretches and springs back.", s: "A rubber band stretches and springs back – typical of an **elastomer**." },
   { item: "a PET bottle that can be melted down", k: "thermo" as const, fact: "The bottle can be melted down.", s: "It can be melted down and reshaped – a **thermoplastic**." },
@@ -991,7 +997,7 @@ function schnitt(): Task {
 
 /** K2: Folge den Pfeilen – welches C trägt nach dem Anlagern das Radikal? */
 function radikalTap(): Task {
-  const m = pick(["styrol", "vinylchlorid", "acrylnitril"] as VinylId[]);
+  const m = pick(["styrol", "vinylchlorid"] as VinylId[]);
   const r: Recipe = { art: "poly", a: m, method: "dbpo" }, acts = ["heat", `add:${m}`, `add:${m}`];
   const scene: TapScene = { k: "mech", r, acts, key: arrowKey(r, acts) };
   const parts = visibleAtoms(tapFrame(scene).snap).filter(a => a.el === "C").sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
@@ -1029,7 +1035,7 @@ function freieStelleTap(): Task {
 
 /** K3: welches Atom des polaren Monomers vergiftet das Titan? */
 function giftTap(): Task {
-  const m = pick(["vinylchlorid", "mma", "acrylnitril"] as VinylId[]);
+  const m = pick(["vinylchlorid", "mma"] as VinylId[]);
   const r: Recipe = { art: "poly", a: m, method: "zn" }, acts = ["act", `add:${m}`];
   // Standardlage: das Monomer steht neben dem Titan, noch nicht zur freien Stelle gedreht (verrät nichts)
   const scene: TapScene = { k: "mech", r, acts, key: 1, noArrows: true };
@@ -1039,7 +1045,7 @@ function giftTap(): Task {
   const parts = visibleAtoms(snap).filter(a => a.id.startsWith("n")).sort((p, q) => p.x - q.x || p.y - q.y).map(a => a.id);
   const el = snap.atoms.find(a => a.id === ans)?.el ?? "Cl";
   // bei MMA haben beide O freie Paare – gemeint ist das O der C=O-Gruppe (stärker gebunden)
-  const who = el === "O" ? T("das O der C=O-Gruppe", "the O of the C=O group") : el === "N" ? T("das N der Nitrilgruppe", "the N of the nitrile group") : T(`das ${el}‑Atom`, `the ${el} atom`);
+  const who = el === "O" ? T("das O der C=O-Gruppe", "the O of the C=O group") : el === "N" ? T("das N der C≡N-Gruppe", "the N of the C≡N group") : T(`das ${el}‑Atom`, `the ${el} atom`);
   const Who = cap(who);
   return tapTask({
     scene, parts, answer: [ans], sol: T(`${who} – bindet mit einem freien Elektronenpaar`, `${who} – binds with a lone pair`),

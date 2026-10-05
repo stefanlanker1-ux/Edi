@@ -24,6 +24,7 @@ const MISS_DE: Record<string, string> = {
   // Katalysatoren und Verfahren
   "zn-radikal": "Einbau am Titan mit Radikal verwechselt",
   "zn-polar": "Polares Monomer für Ziegler-Natta gehalten",
+  "zn-unpolar-gift": "Unpolares Monomer für Gift gehalten",
   "taktisch-verwechselt": "Taktizität verwechselt",
   "radikal-taktisch": "Radikalische Ketten für geordnet gehalten",
   "verzweigt-dichte": "Verzweigte Ketten für dichter gehalten",
@@ -72,6 +73,7 @@ const MISS_EN: Record<string, string> = {
   "mehr-starter-laenger": "More initiator thought to give longer chains",
   "zn-radikal": "Insertion at titanium confused with a radical",
   "zn-polar": "Polar monomer thought fine for Ziegler–Natta",
+  "zn-unpolar-gift": "Non-polar monomer taken for a poison",
   "taktisch-verwechselt": "Tacticity mixed up",
   "radikal-taktisch": "Radical chains thought to be ordered",
   "verzweigt-dichte": "Branched chains thought to be denser",

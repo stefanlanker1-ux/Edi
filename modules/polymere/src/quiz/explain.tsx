@@ -6,7 +6,8 @@ import { tr } from "@lern/i18n";
 import { LEVELS, type Task } from "./tasks.ts";
 import { VisView, type Vis } from "./visual.tsx";
 
-const TEXT: Record<string, { points: string[]; vis: Vis[] }> = tr({
+/** Text der Erklärkarten je Kapitel (auch Grundlage der Begriffsprüfung) */
+export const CARDS: Record<string, { points: string[]; vis: Vis[] }> = tr({
   k1: { vis: [{ k: "mono", id: "propen" }, { k: "unit", id: "propen" }], points: [
     "Ein **Polymer** ist ein Riesenmolekül aus vielen **Monomeren**. Name: Poly + Monomer.",
     "Monomere der Polymerisation haben eine **C=C-Zweifachbindung**. Im Polymer ist sie zur Einfachbindung geworden.",
@@ -74,7 +75,7 @@ const CUE = tr("In diesem Kapitel hilft der **Tipp** genau bei der Aufgabe. Tipp
 
 export function explainFor(level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[level].id : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;
-  const e = TEXT[TOPIC[id]];
+  const e = CARDS[TOPIC[id]];
   return (
     <div className="explain">
       <ul className="ex-points">{[CUE, ...e.points].map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
