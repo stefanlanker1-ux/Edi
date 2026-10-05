@@ -205,7 +205,7 @@ function doppelbindung(): Task {
     ...sats.map(x => d(SAT[x]![1], "doppelbindung-fehlt", T(`${SAT[x]![0]} hat nur Einfachbindungen.`, `${SAT[x]![0]} has only single bonds.`))),
     d("CH₃–OH", "doppelbindung-fehlt", T("Methanol hat keine C=C-Bindung.", "Methanol has no C=C bond.")),
   ], {
-    hint: T("Polymerisieren können nur Moleküle mit einer C=C-Zweifachbindung.", "Only molecules with a C=C double bond can polymerise."),
+    hint: T("Was braucht ein Molekül, damit es sich an zwei Nachbarn binden kann? Vergleiche die Bindungen zwischen den C‑Atomen.", "What does a molecule need to bond to two neighbours? Compare the bonds between the C atoms."),
     tip: T("Suche das Gleichheitszeichen zwischen zwei C‑Atomen.", "Look for the equals sign between two C atoms."),
     explain: T(`**${plain(vinyl(v).struct)}** hat eine C=C-Bindung. Sie öffnet sich und verbindet die Moleküle zur Kette.`, `**${plain(vinyl(v).struct)}** has a C=C bond. It opens and links the molecules into a chain.`),
   });
@@ -219,7 +219,7 @@ function nBedeutung(): Task {
     d(T("n verschiedene Monomere", "n different monomers"), "name-verwechselt", T("Hier ist es immer derselbe Baustein – nur sehr oft.", "Here it is always the same repeat unit – just very often.")),
   ], {
     vis: { k: "unit", id: v },
-    hint: T("Die Klammer umschließt einen Baustein. Das n zählt, wie oft er vorkommt.", "The bracket encloses one repeat unit. The n counts how often it occurs."),
+    hint: T("Was steht in der Klammer – und was könnte eine Zahl daneben zählen?", "What is inside the bracket – and what might a number next to it count?"),
     explain: T("In [ … ]ₙ steht **ein Baustein**. n ist groß: oft tausende Bausteine in einer Kette.", "[ … ]ₙ contains **one repeat unit**. n is large: often thousands of repeat units in one chain."),
   });
 }
@@ -308,7 +308,7 @@ function radikal(): Task {
     d(T("Molekül mit Zweifachbindung", "Molecule with a double bond"), "doppelbindung-fehlt", T("Das ist das Monomer. Das Radikal greift die Zweifachbindung an.", "That is the monomer. The radical attacks the double bond.")),
   ], {
     vis: lastFrame(PS, ["heat"]),
-    hint: T("Der Punkt am Atom zeigt ein einzelnes Elektron.", "The dot at the atom shows a single electron."),
+    hint: T("Schau, was am Atom ganz rechts sitzt – und zähl die Elektronen dort.", "Look at what sits on the atom on the far right – and count the electrons there."),
     explain: T("Radikal = Teilchen mit **ungepaartem Elektron** (Punkt). Es reagiert sehr leicht.", "Radical = particle with an **unpaired electron** (dot). It reacts very easily."),
   });
 }
@@ -320,7 +320,7 @@ function pfeil(): Task {
     d("3", "pfeil-paar", T("Elektronen bewegen sich einzeln oder als Paar – nie zu dritt.", "Electrons move singly or as a pair – never three at once.")),
   ], {
     vis: mech(PS, ["heat"], arrowKey(PS, ["heat"])),
-    hint: T("Halbe Spitze = ein Elektron, volle Spitze = Elektronenpaar.", "Half head = one electron, full head = electron pair."),
+    hint: T("Schau genau auf die Spitze: ganz oder halb? Erinnere dich an die Lektion.", "Look closely at the head: full or half? Remember the lesson."),
     explain: T("Halber Pfeil: **ein** Elektron. Beim Bruch der O–O-Bindung behält jedes O ein Elektron – zwei Radikale.", "Half-headed arrow: **one** electron. When the O–O bond breaks each O keeps one electron – two radicals."),
   });
 }
@@ -387,7 +387,7 @@ function mehrStarter(): Task {
     d(T("Nichts ändert sich", "Nothing changes"), "mehr-starter-laenger", T("Jedes Starter-Radikal beginnt eine Kette. Mehr Starter heißt mehr Ketten – jede bekommt weniger Monomer.", "Each initiator radical starts a chain. More initiator means more chains – each gets less monomer.")),
   ], {
     vis: { k: "starters" },
-    hint: T("Jedes Radikal startet eine Kette. Das Monomer verteilt sich auf alle Ketten.", "Each radical starts a chain. The monomer is shared among all chains."),
+    hint: T("Was startet jedes Radikal – und wie weit reicht das Monomer dann?", "What does each radical start – and how far does the monomer go then?"),
     explain: T("Mehr Radikale → **mehr Ketten** → jede Kette **kürzer**. Wenig Starter → wenige, lange Ketten.", "More radicals → **more chains** → each chain **shorter**. Little initiator → few, long chains."),
   });
 }
@@ -405,7 +405,7 @@ function katalysator(): Task {
     d(T("Er bildet das Kettenende", "It forms the chain end"), "starter-katalysator", T("Am Ende bleibt der Starter. Der Katalysator gibt die Kette ab und macht weiter.", "The initiator stays at the end. The catalyst releases the chain and carries on.")),
     d(T("Er enthält C=C", "It contains C=C"), "starter-katalysator", T("C=C hat das Monomer. Der Katalysator ist eine Titanverbindung.", "The monomer has the C=C. The catalyst is a titanium compound.")),
   ], {
-    hint: T("Ein Katalysator beschleunigt eine Reaktion und liegt danach unverändert vor.", "A catalyst speeds up a reaction and is unchanged afterwards."),
+    hint: T("Denk daran, was nach der Reaktion vom Starter bzw. vom Titan noch übrig ist.", "Think about what is left of the initiator or the titanium after the reaction."),
     explain: T("**Katalysator**: Am Titan wachsen nacheinander viele Ketten. **Starter**: wird verbraucht.", "**Catalyst**: many chains grow one after another at the titanium. **Initiator**: is used up."),
   });
 }
@@ -418,7 +418,7 @@ function freieStelle(): Task {
     d(T("Am Aluminium", "At the aluminium"), "zn-radikal", T("Das Al hat nur die Ethylgruppe übergeben. Angelagert wird am Titan.", "The Al only handed over the ethyl group. Attachment happens at the titanium.")),
   ], {
     vis: mech(ZN_PP, acts, arrowKey(ZN_PP, acts)),
-    hint: T("Der graue, gestrichelte Kreis am Titan ist die freie Stelle.", "The grey dashed circle on the titanium is the vacant site."),
+    hint: T("Suche am Titan den Platz, an dem noch nichts gebunden ist.", "Find the place on the titanium where nothing is bonded yet."),
     explain: T("Das Monomer lagert sich mit seiner C=C-Bindung an die **freie Stelle** an. Dann wird es zwischen Titan und Kette eingebaut.", "The monomer attaches its C=C bond to the **vacant site**. Then it is inserted between titanium and chain."),
   });
 }
@@ -523,7 +523,7 @@ function gruppen(): Task {
     d(and("C=C", g[gb]), "kond-doppelbindung", T("Diese Monomere haben keine C=C-Bindung. Sie reagieren über ihre Gruppen.", "These monomers have no C=C bond. They react through their groups.")),
   ], {
     vis: { k: "pair", a, b },
-    hint: T("Eine Säuregruppe reagiert mit einer Alkohol- oder Aminogruppe.", "An acid group reacts with an alcohol or amino group."),
+    hint: T("Welche Gruppe trägt jedes Monomer? Können gleiche Gruppen miteinander reagieren?", "Which group does each monomer carry? Can identical groups react with each other?"),
     explain: T(`${g[ga]} + ${g[gb]} → Verknüpfung, dabei wird Wasser abgespalten.`, `${g[ga]} + ${g[gb]} → link, water is split off.`),
   });
 }
@@ -549,7 +549,7 @@ function bindungArt(): Task {
     d(amid ? E : A, "ester-amid", amid ? T("Ester entstehen mit –OH. Mit –NH₂ entsteht ein Amid.", "Esters form with –OH. With –NH₂ an amide forms.") : T("Amide entstehen mit –NH₂. Mit –OH entsteht ein Ester.", "Amides form with –NH₂. With –OH an ester forms.")),
     d(T("Zweifachbindung", "Double bond"), "kond-doppelbindung", T("Es entsteht eine Einfachbindung zu O bzw. N. Die C=O gab es schon in der Säuregruppe.", "A single bond to O or N forms. The C=O was already in the acid group.")),
   ], {
-    hint: T("Säure + Alkohol → Ester. Säure + Amin → Amid.", "Acid + alcohol → ester. Acid + amine → amide."),
+    hint: T("Welches Atom bringt der Partner mit: O oder N? Davon hängt der Name ab.", "Which atom does the partner bring: O or N? The name depends on it."),
     explain: amid ? T("–CO–**NH**–: **Amidbindung** (Polyamid, z. B. Nylon).", "–CO–**NH**–: **amide bond** (polyamide, e.g. nylon).") : T("–CO–**O**–: **Esterbindung** (Polyester, z. B. PET).", "–CO–**O**–: **ester bond** (polyester, e.g. PET)."),
   });
 }
@@ -610,7 +610,7 @@ function netz(): Task {
     d(S.none, "gleiche-gruppen", T(`${stepName(a)} und Glycerin haben passende Gruppen.`, `${cap(stepName(a))} and glycerol have matching groups.`)),
   ], {
     vis: { k: "pair", a, b },
-    hint: T("Drei reaktive Gruppen an einem Monomer verzweigen die Ketten.", "Three reactive groups on one monomer branch the chains."),
+    hint: T("Zähle die reaktiven Gruppen am Glycerin: Wie viele Partner kann es binden?", "Count the reactive groups on glycerol: how many partners can it bind?"),
     explain: stepReact(a, b).why,
   });
 }
@@ -674,7 +674,7 @@ function keinNebenprodukt(): Task {
       : T("Das N bleibt in der Urethangruppe –NH–⁠CO–⁠O–⁠. Es entweicht nichts.", "The N stays in the urethane group –NH–⁠CO–⁠O–⁠. Nothing escapes.")),
   ], {
     vis: mech(r, ["join"], arrowKey(r, ["join"])),
-    hint: T("Addition heißt: zusammenfügen, ohne etwas abzugeben.", "Addition means: joining without giving anything off."),
+    hint: T("Zähl die Atome vorher und nachher: Fehlt am Ende etwas?", "Count the atoms before and after: is anything missing at the end?"),
     explain: urea ? T("**Polyaddition**: Das H der –NH₂-Gruppe wandert zum N des Isocyanats. Kein Nebenprodukt.", "**Polyaddition**: the H of the –NH₂ group moves to the N of the isocyanate. No by-product.")
       : T("**Polyaddition**: Das H der –OH-Gruppe wandert zum N. Kein Nebenprodukt.", "**Polyaddition**: the H of the –OH group moves to the N. No by-product."),
   });
@@ -700,7 +700,7 @@ function urethan(): Task {
     d(E, "ester-urethan", T("Esterbindungen entstehen aus –COOH und –OH.", "Ester bonds form from –COOH and –OH.")),
     d(A, "ester-amid", T("Amidbindungen entstehen aus –COOH und –NH₂.", "Amide bonds form from –COOH and –NH₂.")),
   ], {
-    hint: T("Isocyanat + Alkohol → Urethan. Isocyanat + Amin → Harnstoff.", "Isocyanate + alcohol → urethane. Isocyanate + amine → urea."),
+    hint: T("Welches Atom bringt der Partner des Isocyanats mit: O oder N?", "Which atom does the isocyanate's partner bring: O or N?"),
     explain: amin ? T("–NH–⁠CO–⁠NH–⁠: **Harnstoffgruppe** (Polyharnstoff).", "–NH–⁠CO–⁠NH–⁠: **urea group** (polyurea).") : T("–NH–⁠CO–⁠O–⁠: **Urethangruppe** (Polyurethan, PUR).", "–NH–⁠CO–⁠O–⁠: **urethane group** (polyurethane, PUR)."),
   });
 }
@@ -727,13 +727,13 @@ function artWahl(): Task {
   return task(one ? T(`Welche Reaktionsart passt zu diesem Monomer (${names})?`, `Which type of reaction suits this monomer (${names})?`) : T(`Welche Reaktionsart passt zu ${names}?`, `Which type of reaction suits ${names}?`), A[c.art],
     (["poly", "kond", "add"] as const).filter(x => x !== c.art).map(x => d(A[x], x === "poly" ? "kond-doppelbindung" : "art-verwechselt", WHY[x])), {
       vis: c.vis,
-      hint: T("C=C → Polymerisation. Säure + Alkohol/Amin → Polykondensation. Isocyanat oder Epoxid → Polyaddition.", "C=C → polymerisation. Acid + alcohol/amine → polycondensation. Isocyanate or epoxide → polyaddition."),
+      hint: T("Schau auf die Gruppen: C=C, Säure + Alkohol/Amin oder N=C=O/Epoxid? Wird dabei ein kleines Molekül frei?", "Look at the groups: C=C, acid + alcohol/amine, or N=C=O/epoxide? Is a small molecule released?"),
       explain: boldLead(WHY[c.art]),
     });
 }
 
 function epoxid(): Task {
-  return task(T("Epoxidharz: Was passiert mit dem Epoxidring?", "Epoxy resin: what happens to the epoxide ring?"), T("Öffnet sich, bindet an N", "Opens, binds to N"), [
+  return task(T("Diepoxid + Härter (Amin): Was passiert mit dem Epoxidring?", "Diepoxide + hardener (amine): what happens to the epoxide ring?"), T("Öffnet sich, bindet an N", "Opens, binds to N"), [
     d(T("Spaltet Wasser ab", "Splits off water"), "add-wasser", T("Beim Öffnen des Rings wird nichts abgespalten. Ein H wandert zum O.", "Nothing is split off when the ring opens. An H moves to the O.")),
     d(T("Bleibt unverändert", "Stays unchanged"), "art-verwechselt", T("Der gespannte Dreierring ist die reaktive Stelle.", "The strained three-membered ring is the reactive site.")),
     d(T("Wird zur Zweifachbindung", "Becomes a double bond"), "kond-doppelbindung", T("Der Ring öffnet sich zu Einfachbindungen. Das O wird zur –OH-Gruppe.", "The ring opens into single bonds. The O becomes an –OH group.")),
@@ -791,7 +791,7 @@ function schmelzen(): Task {
     d(K.duro, klMiss("thermo", "duro"), T("Das Netz hält fest zusammen. Beim Erhitzen zersetzt sich ein Duroplast.", "The network holds together. On heating a thermoset decomposes.")),
     d(K.elast, klMiss("thermo", "elast"), T("Die Brücken verhindern das Schmelzen – Gummi lässt sich nicht einschmelzen.", "The cross-links prevent melting – rubber cannot be melted down.")),
   ], {
-    hint: T("Nur einzelne Ketten können aneinander vorbeigleiten.", "Only separate chains can slide past each other."),
+    hint: T("Was hält die Ketten zusammen – und kann Wärme das lösen?", "What holds the chains together – and can heat undo it?"),
     explain: T("**Thermoplaste** (PE, PP, PET …) werden beim Erwärmen weich – man kann sie neu formen.", "**Thermoplastics** (PE, PP, PET …) soften on heating – they can be reshaped."),
   });
 }
@@ -847,15 +847,15 @@ const ALLTAG = () => tr([
   { item: "eine Arbeitsplatte, die heiße Töpfe aushält", k: "duro" as const, fact: "Die Oberfläche bleibt unter heißen Töpfen hart.", s: "Ihre Oberfläche hält heiße Töpfe aus, ohne weich zu werden – ein **Duroplast**." },
   { item: "ein Autoreifen", k: "elast" as const, fact: "Der Reifen federt und schmilzt nicht.", s: "Ein Reifen federt und schmilzt auf heißer Straße nicht – ein **Elastomer**." },
   { item: "ein Gummiband", k: "elast" as const, fact: "Das Gummiband dehnt sich und springt zurück.", s: "Ein Gummiband lässt sich dehnen und springt zurück – typisch für ein **Elastomer**." },
-  { item: "eine PET-Flasche, die man einschmelzen kann", k: "thermo" as const, fact: "Die Flasche lässt sich einschmelzen.", s: "Man kann sie einschmelzen und neu formen – ein **Thermoplast**." },
-  { item: "eine Plastiktüte, die man warm verformen kann", k: "thermo" as const, fact: "Die Tüte wird warm weich.", s: "Sie wird warm weich und lässt sich verformen – ein **Thermoplast**." },
+  { item: "eine PET-Flasche, aus der man Fasern für Fleecepullis macht", k: "thermo" as const, fact: "Die Flasche lässt sich einschmelzen.", s: "Man kann sie einschmelzen und neu formen – ein **Thermoplast**." },
+  { item: "eine Plastiktüte", k: "thermo" as const, fact: "Die Tüte wird warm weich.", s: "Sie wird warm weich und lässt sich verformen – ein **Thermoplast**." },
 ], [
   { item: "a pan handle that stays hard on a hot pan", k: "duro" as const, fact: "The handle stays hard even when very hot.", s: "The handle never softens or melts, even when very hot – a **thermoset**." },
   { item: "a worktop that can take hot pans", k: "duro" as const, fact: "The surface stays hard under hot pans.", s: "Its surface takes hot pans without softening – a **thermoset**." },
   { item: "a car tyre", k: "elast" as const, fact: "The tyre is springy and does not melt.", s: "A tyre is springy and does not melt on a hot road – an **elastomer**." },
   { item: "a rubber band", k: "elast" as const, fact: "The rubber band stretches and springs back.", s: "A rubber band stretches and springs back – typical of an **elastomer**." },
-  { item: "a PET bottle that can be melted down", k: "thermo" as const, fact: "The bottle can be melted down.", s: "It can be melted down and reshaped – a **thermoplastic**." },
-  { item: "a plastic bag that can be shaped when warm", k: "thermo" as const, fact: "The bag softens when warm.", s: "It softens when warm and can be shaped – a **thermoplastic**." },
+  { item: "a PET bottle made into fleece fibres", k: "thermo" as const, fact: "The bottle can be melted down.", s: "It can be melted down and reshaped – a **thermoplastic**." },
+  { item: "a plastic bag", k: "thermo" as const, fact: "The bag softens when warm.", s: "It softens when warm and can be shaped – a **thermoplastic**." },
 ]);
 /** was die gewählte (falsche) Art täte – mit dem Ding zusammen die Rückmeldung */
 const KL_WOULD = () => tr({ thermo: "Ein Thermoplast würde heiß weich werden.", elast: "Ein Elastomer ist dehnbar, schmilzt aber nicht.", duro: "Ein Duroplast ist hart und schmilzt nie." },
@@ -1034,8 +1034,8 @@ function freieStelleTap(): Task {
   return tapTask({
     scene, parts, answer: ["tvac"], sol: T("die freie Stelle am Titan (grauer Kreis)", "the vacant site at the titanium (grey circle)"),
     prompt: T("Tippe auf die Stelle, an der sich das nächste Propen anlagert.", "Tap the place where the next propene attaches."),
-    hint: T("Am Titan gibt es eine Lücke ohne Atom – dort hat ein Monomer Platz.", "There is a gap without an atom at the titanium – a monomer fits there."),
-    tip: T("Suche den gestrichelten Kreis am Titan.", "Look for the dashed circle at the titanium."),
+    hint: T("Suche am Titan den Platz, an dem noch nichts gebunden ist.", "Find the place on the titanium where nothing is bonded yet."),
+    tip: T("Suche am Titan den Platz, an dem noch nichts gebunden ist.", "Find the place on the titanium where nothing is bonded yet."),
     explain: T("Das Propen lagert sich an der **freien Stelle** am Titan an. Dann schiebt es sich zwischen Titan und Kette.", "The propene attaches at the **vacant site** on the titanium. Then it slides in between titanium and chain."),
     why: id => id === "tti" ? ["zn-radikal", T("Richtig am Titan – aber genau an seiner freien Stelle, dem grauen Kreis.", "Right at the titanium – but exactly at its vacant site, the grey circle.")]
       : id === "ale0" ? ["zn-radikal", T("Am Kettenende sitzt hier kein Radikal. Die Kette hängt am Titan.", "There is no radical at the chain end here. The chain hangs on the titanium.")]
@@ -1188,10 +1188,10 @@ type Step = [type: string, lead: string, rule?: string];
 
 const K1: Step[] = tr([
   ["polyName", "Ein **Polymer** ist ein Riesenmolekül aus vielen kleinen Bausteinen, den **Monomeren**."],
-  ["doppelbindung", "Monomere der Polymerisation haben eine **C=C-Zweifachbindung**."],
-  ["bausteinWahl", "In der Kette ist aus C=C eine Einfachbindung geworden. Die Seitengruppe bleibt."],
+  ["doppelbindung", "Nicht jedes Molekül kann zur Kette werden – vergleiche die Bindungen.", "Monomere der Polymerisation haben eine **C=C-Zweifachbindung**."],
+  ["bausteinWahl", "Vergleiche Monomer und Kette: Was ändert sich, was bleibt?", "In der Kette ist aus C=C eine Einfachbindung geworden. Die Seitengruppe bleibt."],
   ["nBedeutung", "Formeln von Polymeren zeigen nur einen kleinen Ausschnitt der riesigen Kette.", "Die Formel zeigt **einen Baustein** in eckigen Klammern. Das n heißt: sehr oft."],
-  ["kugelZaehlen", "Im **Kügelchenmodell** ist jeder Baustein ein Kügelchen."],
+  ["kugelZaehlen", "Zähle sorgfältig – was genau stellt ein Kügelchen dar?", "Im **Kügelchenmodell** ist jeder Baustein ein Kügelchen."],
   ["baustein", "Aus der Kette zurück zum Monomer: Baustein abschneiden, C=C wieder einsetzen."],
   ["monomerVon", "Lies den Namen des Polymers genau.", "Der Name verrät das Monomer: **Poly** + Name des Monomers."],
   ["bauenHomo", "Jetzt baust du selbst eine Kette aus Kügelchen."],
@@ -1199,10 +1199,10 @@ const K1: Step[] = tr([
   ["bausteinTap", "Zum Schluss: Kette lesen, Baustein finden, Monomer nennen."],
 ], [
   ["polyName", "A **polymer** is a giant molecule made of many small building blocks, the **monomers**."],
-  ["doppelbindung", "Monomers for polymerisation have a **C=C double bond**."],
-  ["bausteinWahl", "In the chain C=C has become a single bond. The side group stays."],
+  ["doppelbindung", "Not every molecule can become a chain – compare the bonds.", "Monomers for polymerisation have a **C=C double bond**."],
+  ["bausteinWahl", "Compare monomer and chain: what changes, what stays?", "In the chain C=C has become a single bond. The side group stays."],
   ["nBedeutung", "Polymer formulas show only a small part of the huge chain.", "The formula shows **one repeat unit** in square brackets. The n means: very often."],
-  ["kugelZaehlen", "In the **bead model** each repeat unit is one bead."],
+  ["kugelZaehlen", "Count carefully – what exactly does one bead stand for?", "In the **bead model** each repeat unit is one bead."],
   ["baustein", "From the chain back to the monomer: cut out a repeat unit, put the C=C back."],
   ["monomerVon", "Read the polymer's name carefully.", "The name gives away the monomer: **poly** + name of the monomer."],
   ["bauenHomo", "Now you build a chain from beads yourself."],
@@ -1213,7 +1213,7 @@ const K2: Step[] = tr([
   ["radikal", "Ohne Radikale startet keine Kette – was macht sie so besonders?", "Ein **Radikal** hat ein **ungepaartes Elektron** (Punkt). Es ist sehr reaktiv."],
   ["startBruch", "Erwärmen setzt alles in Gang – schau auf die O–O-Bindung.", "**Start**: Beim Erwärmen bricht die O–O-Bindung des Starters gleichmäßig."],
   ["pfeil", "Pfeile zeigen, wie Elektronen wandern – achte auf die Spitze.", "Ein **halber Pfeil** zeigt, wohin **ein** Elektron wandert."],
-  ["radikalTap", "**Kettenwachstum**: Das Radikal greift C=C an – am neuen Ende sitzt wieder ein Radikal."],
+  ["radikalTap", "Folge den Pfeilen: Wohin wandern die Elektronen der C=C?", "**Kettenwachstum**: Das Radikal greift C=C an – am neuen Ende sitzt wieder ein Radikal."],
   ["schritt", "Die Pfeile zeigen, welcher Schritt es ist.", "Start, Wachstum, Abbruch: Die Pfeile zeigen, welcher Schritt es ist."],
   ["abbruchArt", "Am Ende treffen sich zwei Radikale – folge den Pfeilen.", "**Abbruch**: Zwei Radikale treffen sich – Rekombination oder Disproportionierung."],
   ["starterRest", "Jede Kette hat einen Anfang – schau dir genau an, was dort sitzt.", "Der Starter wird verbraucht: Sein Bruchstück sitzt am Kettenanfang."],
@@ -1224,7 +1224,7 @@ const K2: Step[] = tr([
   ["radikal", "Without radicals no chain starts – what makes them special?", "A **radical** has an **unpaired electron** (dot). It is very reactive."],
   ["startBruch", "Heating gets everything going – look at the O–O bond.", "**Initiation**: on heating, the O–O bond of the initiator breaks evenly."],
   ["pfeil", "Arrows show how electrons move – look at the arrowhead.", "A **half-headed (fishhook) arrow** shows where **one** electron moves."],
-  ["radikalTap", "**Propagation**: the radical attacks C=C – the new end is a radical again."],
+  ["radikalTap", "Follow the arrows: where do the electrons of the C=C go?", "**Propagation**: the radical attacks C=C – the new end is a radical again."],
   ["schritt", "The arrows show which step it is.", "Initiation, propagation, termination: the arrows show which step it is."],
   ["abbruchArt", "At the end two radicals meet – follow the arrows.", "**Termination**: two radicals meet – combination or disproportionation."],
   ["starterRest", "Every chain has a start – look closely at what sits there.", "The initiator is used up: its fragment sits at the start of the chain."],
@@ -1234,24 +1234,24 @@ const K2: Step[] = tr([
 ]);
 const K3: Step[] = tr([
   ["katalysator", "Starter und Katalysator setzen beide eine Polymerisation in Gang – worin unterscheiden sie sich?", "Ein **Katalysator** wird nicht verbraucht. Am Titan wachsen nacheinander viele Ketten."],
-  ["freieStelleTap", "Am Titan gibt es eine **freie Stelle**. Dort lagert sich das Monomer an."],
-  ["zieglerGift", "Polare Monomere binden mit O, N, Cl oder F an das Titan: Der Katalysator ist **vergiftet**."],
+  ["freieStelleTap", "Das Titan hält die Kette – wo hat das nächste Monomer Platz?", "Am Titan gibt es eine **freie Stelle**. Dort lagert sich das Monomer an."],
+  ["zieglerGift", "Das Titan verträgt nicht jedes Monomer – sieh dir die Atome genau an.", "Polare Monomere binden mit O, N, Cl oder F an das Titan: Der Katalysator ist **vergiftet**."],
   ["taktisch", "Schau, auf welcher Seite der Kette die Seitengruppen sitzen.", "**Isotaktisch**: alle Seitengruppen auf einer Seite. **Ataktisch**: zufällig."],
-  ["taktischVerfahren", "Am Titan wird jedes Monomer gleich herum eingebaut – die Kette wird geordnet."],
+  ["taktischVerfahren", "Drei Verfahren, drei Arten von Ketten – welches passt hier?", "Am Titan wird jedes Monomer gleich herum eingebaut – die Kette wird geordnet."],
   ["hdpe", "Polyethen kommt aus zwei Verfahren – mit ganz verschiedenen Ketten.", "Ziegler-Natta: **unverzweigtes** PE-HD. Radikalisch unter hohem Druck: **verzweigtes** PE-LD."],
   ["lebend", "**Anionisch** (Butyllithium): Die Ketten **leben** weiter, bis Methanol sie beendet."],
-  ["kationisch", "**Kationisch** (BF₃ und Wasser): CH₃-Gruppen stabilisieren die positive Ladung."],
+  ["kationisch", "Kationisch heißt: positive Ladung am Kettenende – welche Seitengruppe hilft ihr?", "**Kationisch** (BF₃ und Wasser): CH₃-Gruppen stabilisieren die positive Ladung."],
   ["verfahrenWahl", "Jedes Monomer braucht das passende Verfahren."],
   ["giftTap", "Zum Schluss: Wer vergiftet das Titan – und warum?"],
 ], [
   ["katalysator", "Initiator and catalyst both get a polymerisation going – how do they differ?", "A **catalyst** is not used up. Many chains grow one after another at the titanium."],
-  ["freieStelleTap", "The titanium has a **vacant site**. The monomer attaches there."],
-  ["zieglerGift", "Polar monomers bind to the titanium with O, N, Cl or F: the catalyst is **poisoned**."],
+  ["freieStelleTap", "The titanium holds the chain – where is there room for the next monomer?", "The titanium has a **vacant site**. The monomer attaches there."],
+  ["zieglerGift", "The titanium does not tolerate every monomer – look closely at the atoms.", "Polar monomers bind to the titanium with O, N, Cl or F: the catalyst is **poisoned**."],
   ["taktisch", "Look at which side of the chain the side groups sit on.", "**Isotactic**: all side groups on one side. **Atactic**: random."],
-  ["taktischVerfahren", "At the titanium each monomer is inserted the same way round – the chain becomes ordered."],
+  ["taktischVerfahren", "Three methods, three kinds of chain – which fits here?", "At the titanium each monomer is inserted the same way round – the chain becomes ordered."],
   ["hdpe", "Polyethene comes from two methods – with very different chains.", "Ziegler–Natta: **unbranched** PE-HD. Radical at high pressure: **branched** PE-LD."],
   ["lebend", "**Anionic** (butyllithium): the chains **stay alive** until methanol stops them."],
-  ["kationisch", "**Cationic** (BF₃ and water): CH₃ groups stabilise the positive charge."],
+  ["kationisch", "Cationic means a positive charge at the chain end – which side group helps it?", "**Cationic** (BF₃ and water): CH₃ groups stabilise the positive charge."],
   ["verfahrenWahl", "Each monomer needs the right method."],
   ["giftTap", "Finally: what poisons the titanium – and why?"],
 ]);
@@ -1261,10 +1261,10 @@ const K4: Step[] = tr([
   ["bindungArt", "Wie die neue Bindung heißt, hängt vom Partner der Säure ab.", "Säure + Alkohol → **Esterbindung**. Säure + Amin → **Amidbindung**."],
   ["wasserZahl", "Jede Verknüpfung spaltet genau ein Molekül ab."],
   ["chlorid", "Schau, was statt –OH an der Säuregruppe sitzt.", "Mit **Säurechloriden** (–COCl) wird statt Wasser HCl abgespalten."],
-  ["paarWahl", "Für lange Ketten braucht **jedes** Monomer **zwei** passende Gruppen."],
+  ["paarWahl", "Prüfe bei jedem Paar beide Partner.", "Für lange Ketten braucht **jedes** Monomer **zwei** passende Gruppen."],
   ["stopper", "Ethanol ist kein Diol – zähl seine Gruppen.", "Ein Monomer mit **nur einer** Gruppe beendet die Kette."],
   ["netz", "Glycerin ist kein gewöhnlicher Partner – zähl seine –OH-Gruppen.", "**Drei** reaktive Gruppen (Glycerin) verknüpfen die Ketten zu einem **Netz**."],
-  ["abMonomer", "Zwei **verschiedene** Gruppen in einem Monomer: Es reagiert mit sich selbst."],
+  ["abMonomer", "Manche Monomere brauchen keinen Partner – woran erkennt man sie?", "Zwei **verschiedene** Gruppen in einem Monomer: Es reagiert mit sich selbst."],
   ["schnitt", "Zum Schluss: Wo genau sind die Monomere verknüpft?"],
 ], [
   ["gruppen", "In **polycondensation** **functional groups** react – look at which ones each monomer carries.", "In **polycondensation** **functional groups** react, e.g. –COOH with –OH."],
@@ -1272,15 +1272,15 @@ const K4: Step[] = tr([
   ["bindungArt", "The name of the new bond depends on the acid's partner.", "Acid + alcohol → **ester bond**. Acid + amine → **amide bond**."],
   ["wasserZahl", "Each link splits off exactly one molecule."],
   ["chlorid", "Look at what sits on the acid group instead of –OH.", "With **acyl chlorides** (–COCl), HCl is split off instead of water."],
-  ["paarWahl", "For long chains **each** monomer needs **two** matching groups."],
+  ["paarWahl", "Check both partners in each pair.", "For long chains **each** monomer needs **two** matching groups."],
   ["stopper", "Ethanol is not a diol – count its groups.", "A monomer with **only one** group ends the chain."],
   ["netz", "Glycerol is no ordinary partner – count its –OH groups.", "**Three** reactive groups (glycerol) link the chains into a **network**."],
-  ["abMonomer", "Two **different** groups in one monomer: it reacts with itself."],
+  ["abMonomer", "Some monomers need no partner – how can you tell?", "Two **different** groups in one monomer: it reacts with itself."],
   ["schnitt", "Finally: where exactly are the monomers linked?"],
 ]);
 const K5: Step[] = tr([
   ["keinNebenprodukt", "**Polyaddition** heißt die dritte Reaktionsart – vergleiche sie mit der Polykondensation.", "Bei der **Polyaddition** wird **nichts** abgespalten."],
-  ["hTap", "Ein **H‑Atom wandert** von der –OH-Gruppe zum N‑Atom des Isocyanats."],
+  ["hTap", "Bei der Polyaddition entsteht eine neue Gruppe – folge den Pfeilen.", "Ein **H‑Atom wandert** von der –OH-Gruppe zum N‑Atom des Isocyanats."],
   ["urethan", "Welche zwei Gruppen treffen hier aufeinander?", "Isocyanat + Alkohol → **Urethangruppe**: Polyurethan (PUR)."],
   ["urethan", "Der Partner des Isocyanats entscheidet, wie die neue Gruppe heißt.", "Isocyanat + Amin → **Harnstoffgruppe**: Polyharnstoff."],
   ["artWahl", "Sieh dir die Gruppen der Monomere genau an.", "Polymerisation (C=C), Polykondensation (+ kleines Molekül), Polyaddition (ohne)."],
@@ -1291,7 +1291,7 @@ const K5: Step[] = tr([
   ["artWahl", "Zum Schluss: drei Reaktionsarten unterscheiden."],
 ], [
   ["keinNebenprodukt", "**Polyaddition** is the third type of reaction – compare it with polycondensation.", "In **polyaddition** **nothing** is split off."],
-  ["hTap", "An **H atom moves** from the –OH group to the N atom of the isocyanate."],
+  ["hTap", "In polyaddition a new group forms – follow the arrows.", "An **H atom moves** from the –OH group to the N atom of the isocyanate."],
   ["urethan", "Which two groups meet here?", "Isocyanate + alcohol → **urethane group**: polyurethane (PUR)."],
   ["urethan", "The isocyanate's partner decides what the new group is called.", "Isocyanate + amine → **urea group**: polyurea."],
   ["artWahl", "Look closely at the monomers' groups.", "Polymerisation (C=C), polycondensation (+ small molecule), polyaddition (without)."],
@@ -1329,7 +1329,7 @@ const K6: Step[] = tr([
 /** Schritte, deren Regel für jede Variante gilt (sonst erscheint nach der richtigen Antwort die Erklärung der Aufgabe) */
 export const GENERAL_RULE = ["schritt", "abbruchArt", "artWahl", "copolymer", "wachstum", "bindungArt", "monomerVon", "nBedeutung", "radikal", "startBruch", "pfeil", "starterRest", "katalysator", "hdpe", "chlorid", "stopper", "netz", "keinNebenprodukt", "epoxid", "epoxidNetz", "schmelzen"];
 /** Merksatz mit der Regel je Kapitel-Schritt – erscheint nach der richtigen Antwort */
-const RULES: Record<string, string[]> = {};
+export const RULES: Record<string, string[]> = {};
 const level = (n: number, name: string, desc: string, steps: Step[], more: string[] = []): Level => {
   const seq = steps.map(([t]) => t);
   RULES[`pm-k${n}`] = steps.map(([, , r]) => r ?? "");
@@ -1349,6 +1349,34 @@ export const levelName = (level: LevelKey) =>
   level === "mix" ? tr("Alles gemischt", "Everything mixed") : level === "weak" ? tr("Schwächen üben", "Practise weak spots") : level === "due" ? tr("Heute fällig", "Due today")
     : LEVELS[level].name;
 
+/** kurze Regel nach ✓ bei Antippen, Ordnen und Bauen (eine Zeile; das Bild bleibt groß) */
+const SHORT_RULE = (): Record<string, string> => ({
+  radikalTap: T("Am neuen Kettenende sitzt wieder ein Radikal.", "The new chain end is a radical again."),
+  freieStelleTap: T("Das Monomer lagert sich an der freien Stelle am Titan an.", "The monomer attaches at the vacant site on the titanium."),
+  giftTap: T("O, N, Cl oder F binden an das Titan – der Katalysator ist vergiftet.", "O, N, Cl or F bind to the titanium – the catalyst is poisoned."),
+  hTap: T("Das H der –OH-Gruppe wandert zum N.", "The H of the –OH group moves to the N."),
+  wasserTap: T("–OH der Säure + H des Partners → H₂O.", "–OH of the acid + H of the partner → H₂O."),
+  bausteinTap: T("Ein Baustein = zwei C‑Atome der Hauptkette.", "One repeat unit = two C atoms of the main chain."),
+  schnitt: T("Die neue Bindung verknüpft die Monomere – Wasser kann sie wieder spalten.", "The new bond links the monomers – water can split it again."),
+  ordnen: T("Start → Wachstum → Wachstum → Abbruch.", "Initiation → propagation → propagation → termination."),
+  bauenHomo: T("Ein Monomer: Jedes Kügelchen ist derselbe Baustein.", "One monomer: every bead is the same repeat unit."),
+  bauenCopo: T("Copolymer: zufällig, abwechselnd oder in Blöcken.", "Copolymer: random, alternating or in blocks."),
+});
+
+/** Regel nach der richtigen Antwort – hängt an der Aufgabe (Fertigkeit und Variante), nicht am Platz in der Runde.
+ *  Schritte mit allgemeiner Regel: diese Regel; Typen mit Varianten (Urethan/Harnstoff, Kunststoffart …): die Erklärung der konkreten Aufgabe. */
+export function withRule(t: Task, id: string): Task {
+  if (isTap(t) || isOrder(t) || isBuild(t)) {
+    const r = SHORT_RULE()[id];
+    return r ? { ...t, rule: r } : t;
+  }
+  if (t.why?.[t.answer]) return t;
+  const step = LEVELS.flatMap(l => l.seq.flatMap((x, i) => (x === id && RULES[l.id][i] ? [RULES[l.id][i]] : [])))[0];
+  if (!step) return t;
+  return { ...t, why: { ...t.why, [t.answer]: GENERAL_RULE.includes(id) ? step : t.explain } };
+}
+const GEN_RULED: Record<string, () => Task> = Object.fromEntries(Object.keys(GENS).map(id => [id, () => withRule(GENS[id](), id)]));
+
 /** Tipp: zugeschnitten und hervorgehoben */
 function withHint(t: Task, cue: boolean): Task {
   const { tip, ...rest } = t;
@@ -1356,24 +1384,20 @@ function withHint(t: Task, cue: boolean): Task {
 }
 
 /** Aufgaben in fester Reihenfolge, keine Frage doppelt (gleicher Typ → anderes Beispiel) */
-function ordered(seq: string[], leads: string[], rules: string[] = []): Task[] {
+function ordered(seq: string[], leads: string[]): Task[] {
   const seen = new Set<string>();
   // gleiche Frage auch bei anderer Reihenfolge der Antworten
   const sig = (t: Task) => t.prompt + (isBuild(t) ? JSON.stringify(t.pool) + t.goal : isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
   return seq.map((id, i) => {
-    let t = GENS[id]();
-    for (let k = 0; k < 30 && seen.has(sig(t)); k++) t = GENS[id]();
+    let t = GEN_RULED[id]();
+    for (let k = 0; k < 30 && seen.has(sig(t)); k++) t = GEN_RULED[id]();
     seen.add(sig(t));
-    // Regel als Bestätigung der richtigen Antwort (Auswahl ohne eigene Rückmeldung zur Lösung)
-    // Typen mit Varianten (Urethan/Harnstoff, Kunststoffart …): die Erklärung der konkreten Aufgabe, sonst die allgemeine Regel des Schritts
-    const rule = rules[i] ? (GENERAL_RULE.includes(id) ? rules[i] : t.explain) : "";
-    if (rule && !isTap(t) && !isOrder(t) && !isBuild(t) && !t.why?.[t.answer]) t = { ...t, why: { ...t.why, [t.answer]: rule } };
     return { ...withHint(t, true), type: id, ...(leads[i] ? { lead: leads[i] } : {}) };
   });
 }
 
 export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, due: string[] = []): Task[] {
-  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].leads, RULES[LEVELS[level].id]);
+  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].leads);
   let ids = level === "mix" ? [...new Set(LEVELS.flatMap(l => l.types))]
     // Schwächen: alle schwachen Fertigkeiten (nicht nur drei), je Fertigkeit höchstens zweimal – siehe unten
     : level === "weak" ? weakAll(stats)
@@ -1383,7 +1407,7 @@ export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, du
   if (!ids.length) ids = LEVELS[0].types;
   // höchstens zwei Aufgaben je Fertigkeit, wenn wenige schwach sind (lieber eine kürzere Runde als dieselbe Frage fünfmal)
   const count = level === "weak" ? Math.min(10, 2 * ids.length) : 10;
-  return buildRound(ids, GENS, count).map(t => withHint(t, false));
+  return buildRound(ids, GEN_RULED, count).map(t => withHint(t, false));
 }
 
 /** Aufgabentypen, deren Kapitel (mit Lektion) noch fehlt – bis dahin in keinem Kapitel und nicht in „Alles gemischt“ */

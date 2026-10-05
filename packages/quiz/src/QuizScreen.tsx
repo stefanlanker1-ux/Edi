@@ -453,7 +453,7 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
         {a && (
           <div className={`q-feedback ${a.ok ? "ok" : "bad"}`} role="status">
             <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>
-            {diag?.why && <p className={`fb-why${a.ok ? " ok" : ""}`}><Icon name={a.ok ? "check" : "bulb"} size={18} /><span><RichText text={diag.why} /></span></p>}
+            {(diag?.why || (a.ok && t.rule)) && <p className={`fb-why${a.ok ? " ok" : ""}`}><Icon name={a.ok ? "check" : "bulb"} size={18} /><span><RichText text={diag?.why || t.rule!} /></span></p>}
             {!a.ok && !isMc && p.solution && <div className="fb-sol"><span>{tr("Richtig: ", "Correct: ")}</span>{p.solution(t)}</div>}
             {!a.ok && <p className="fb-exp"><RichText text={t.explain} /></p>}
           </div>

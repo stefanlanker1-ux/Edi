@@ -214,6 +214,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Weitere Bausteine von `QuizScreen`: `renderVisual` (Bild über der Frage, per `Fit`), `renderOption` (eigene Darstellung von Antworten), `renderAnswer` (eigene Antwortform),
   `solution` (Lösung nach Fehlern), `feedbackExtra` (zusätzliches Blatt „Lösung“ nach der Antwort, z. B. Ablauf der Reaktion), `tools` (Hilfsmittel), `explain` (Erklärkarte je Level),
   `lead` an der Aufgabe (Merksatz über der Frage), `hint` (Tipp) und `hintCue` (Tipp-Knopf hervorgehoben, kostet keine Punkte).
+  Optional `rule` an der Aufgabe: kurze Regel nach der richtigen Antwort, wenn die Antwort selbst keine Rückmeldung (`why`) hat (nur gesetzt, wo ein Modul es füllt).
 - Diagnostische Distraktoren: jede falsche Antwort steht für eine Fehlvorstellung. MC: `mc(richtig, [d(text, miss, why), …])` – `miss` = Schlüssel aus
   `src/quiz/misconceptions.ts` der App (`MISS`, Name für Landkarte/Auswertung), `why` = Rückmeldungssatz mit den konkreten Zahlen (steht vor der Erklärung).
   Eingabe-Aufgaben: `traps` (`{ field, value | min }` oder `{ values: {…} }`) auf den gemeldeten `values`; `diagnose(task, answer)` wertet aus.
@@ -616,7 +617,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   der Moleküle Monomer (mittlere Länge = 1/(1 − Umsatz)) / ein Riesenmolekül; **Umsatz** in der Lektion K6 eingeführt), teils mit Bild-Antworten (Ketten- vs. Stufenwachstum als vier Gefäße);
   jede falsche Antwort steht für eine Fehlvorstellung und hat eine Rückmeldung (Test: alle). Begründungen beginnen nicht mit dem Begriff der Antwort,
   wenn er schon fett davorsteht (`boldLead`, Test: kein Wort doppelt). Keine Aufgabe zweimal in einem Kapitel, auch nicht mit anders gemischten Antworten
-  (`ordered`; das gelöste Beispiel im Quiz-Paket vergleicht ebenso ohne Reihenfolge). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
+  (`ordered`; das gelöste Beispiel im Quiz-Paket vergleicht ebenso ohne Reihenfolge). **Regel nach ✓** hängt an der Aufgabe (`withRule` beim Erzeugen, in jeder Runde gleich):
+  allgemeine Regel des Schritts (`GENERAL_RULE`), sonst die Erklärung der Variante; Antippen/Ordnen/Bauen eine kurze Zeile (`SHORT_RULE` → `rule`). Merksatz vor der Aufgabe
+  und Tipp nennen den Blickpunkt, nie die Regel oder die Antwort (Tests: Schlüsselwörter je Typ im Merksatz, Wörter der Antwort im Tipp). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
   Kennbuchstabe klein in der Ecke. „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
   mit Trennlinie und Überschrift über jedem Bild; Pfeil nur bei vorher → nachher. Antippen in der Lektion mit unsichtbaren Trefferkreisen je Atom.
   **Antippen im Bild** (`kind: "tap"`, `quiz/tap.ts`, `TapAnswer` in `quiz/QuizView.tsx`): Szene = Standbild der Atom-Ansicht (Ansatz, Aktionen, Bild des Ablaufs,
@@ -686,6 +689,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Polymere: Merksatz und Tipp ohne Lösung, Regel an der Aufgabe** – Merksätze vor der Aufgabe nennen den Blickpunkt statt der gefragten Regel (Radikal, freie Stelle,
+  H wandert, Taktizität, kationisch, Gift, AB-Monomer, Paare, C=C, Baustein, Kügelchen; Test mit Schlüsselwörtern je Typ); Tipps als Denkschritt (n, mehr Starter, Netz,
+  Reaktionsart, freie Stelle u. a.; Test: kein Wort der richtigen Antwort im Tipp); Regel nach ✓ wird beim Erzeugen an die Aufgabe gebunden (gleich in Kapitel, gemischt,
+  fällig und nach Ersetzen; Test) und erscheint jetzt auch bei Antippen/Ordnen/Bauen (Quiz-Paket: optionales Feld `rule`). PET-Alltagsfrage ohne Klassen-Definition,
+  Epoxid-Frage nennt den Härter.
 
 - **Polymere: Regel nach der Antwort passt zur Variante (Fachfehler)** – bei Typen mit Varianten (Urethan/Harnstoff, Kunststoffart, Gruppen, Taktizität …) erscheint nach der
   richtigen Antwort die Erklärung genau dieser Aufgabe, nur bei allgemeinen Regeln (`GENERAL_RULE`) der Merksatz des Schritts (Test). Beschriftung „TiCl₃-Oberfläche“

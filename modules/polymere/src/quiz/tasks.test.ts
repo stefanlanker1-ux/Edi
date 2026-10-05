@@ -170,6 +170,53 @@ test("Merksatz vor der Aufgabe verrät die Antwort nicht (kein Wort der richtige
   assert.deepEqual([...bad], []);
 }, 60_000);
 
+test("Merksatz vor der Aufgabe nennt nicht die Regel des Schritts (Schlüsselwörter je Typ)", () => {
+  // Schlüsselwörter der Regel, nach der der Schritt fragt (DE und EN)
+  const KEY: Record<string, string[]> = {
+    radikalTap: ["wieder ein radikal", "radical again"], freieStelleTap: ["freie stelle", "vacant"], hTap: ["wandert", "moves", "h-atom", "h atom"],
+    zieglerGift: ["vergiftet", "poison", "polar"], taktischVerfahren: ["geordnet", "ordered", "gleich herum", "same way round"], kationisch: ["ch₃", "stabilis"],
+    paarWahl: ["zwei passende", "two matching"], abMonomer: ["verschiedene", "different"], doppelbindung: ["c=c", "zweifachbindung", "double bond"],
+    bausteinWahl: ["einfachbindung", "single bond"], kugelZaehlen: ["baustein", "repeat unit"],
+  };
+  const bad: string[] = [];
+  for (const l of LEVELS) l.seq.forEach((id, i) => {
+    const lead = (l.leads[i] ?? "").replace(/\*\*|\u2060|\u2011/g, "").toLowerCase();
+    for (const w of KEY[id] ?? []) if (lead.includes(w)) bad.push(`${l.id} ${id}: „${w}“ in „${l.leads[i]}“`);
+  });
+  assert.deepEqual(bad, []);
+});
+
+test("Regel nach der Antwort gehört zur Aufgabe, nicht zum Platz in der Runde (Kapitel, gemischt, fällig, ersetzt)", async () => {
+  const { withExamples } = await import("@lern/quiz");
+  const types = [...new Set(LEVELS.flatMap(l => l.types))];
+  const norm = (x: string) => x.replace(/\*\*|\u2060/g, "").toLowerCase();
+  const bad = new Set<string>();
+  for (let k = 0; k < 20; k++) {
+    const rounds = [...LEVELS.map((_, lv) => withExamples(makeRound("us", lv), {}, () => makeRound("us", lv), sameTask)), makeRound("us", "mix"), makeRound("us", "due", undefined, types)];
+    for (const t of rounds.flat()) {
+      if (isTap(t) || isOrder(t) || isBuild(t)) { if (!t.rule) bad.add(`${t.type}: keine Regel nach ✓`); continue; }
+      const w = t.why?.[t.answer];
+      // Varianten: die Regel nennt die richtige Antwort (Duroplast-Aufgabe → Duroplast-Regel)
+      if (["klasse", "urethan"].includes(t.type!) && (!w || !norm(w).includes(norm(t.options[t.answer]).replace(/gruppe$/, "")))) bad.add(`${t.type}: „${t.options[t.answer]}“ → „${w}“`);
+    }
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Tipp verrät die Antwort nicht (kein Wort der richtigen Antwort in hint/tip)", () => {
+  const STOP = new Set(["eine", "einer", "einen", "einem", "der", "die", "das", "den", "dem", "des", "und", "mit", "ohne", "nicht", "kein", "keine", "wird", "werden", "sich", "nur", "sind", "ist", "aus", "zur", "zum", "von", "beim", "alle", "jede", "jeder", "mehr", "aber", "dann", "noch", "auch", "with", "that", "this", "from", "only", "each", "they", "have", "into"]);
+  // Oberbegriffe, die in fast jeder Frage stehen (der Tipp darf sie als Blickpunkt nennen)
+  for (const w of ["monomer", "monomers", "starter", "initiator"]) STOP.add(w);
+  const words = (x: string) => x.replace(/\*\*|\u2060/g, "").toLowerCase().split(/[^\p{L}\p{N}₀-₉-]+/u).filter(w => w.length >= 4 && !STOP.has(w));
+  const bad = new Set<string>();
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 30; k++) for (const t of makeRound("us", lv)) {
+    if (isTap(t) || isOrder(t) || isBuild(t)) continue;
+    const tip = new Set(words(`${t.hint ?? ""} ${(t as { tip?: string }).tip ?? ""}`));
+    for (const w of words(t.options[t.answer])) if (tip.has(w)) bad.add(`${LEVELS[lv].id} ${t.type}: „${w}“ in „${t.hint}“`);
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
 test("Gelöstes Beispiel unterscheidet sich von der folgenden Aufgabe (Frage, Antworten, Bild)", async () => {
   const { withExamples } = await import("@lern/quiz");
   // gleich = gleiche Frage mit gleichem Bild (andere Antwortauswahl reicht nicht: es wäre dasselbe Monomer)

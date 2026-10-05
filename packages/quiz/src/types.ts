@@ -14,6 +14,8 @@ export interface BaseTask {
   type?: string;
   /** Lob nach einem Treffer, das die Strategie nennt („Ladung zuerst gezählt – genau so geht's.“); sonst neutrales Lob */
   praise?: string;
+  /** kurze Regel nach der richtigen Antwort, wenn die Antwort selbst keine Rückmeldung (`why`) hat (z. B. Antippen, Ordnen) */
+  rule?: string;
   /** Diagnose für Eingabe-Aufgaben: trifft ein eingegebener Wert eine Falle, nennt die Rückmeldung die Fehlvorstellung */
   traps?: Trap[];
   /** Level mit Tipp: der Tipp ist auf die Aufgabe zugeschnitten – Knopf hervorgehoben („Tipp antippen“) */
@@ -186,7 +188,7 @@ export function diagnose(t: BaseTask, a: { ok: boolean; choice?: number; values?
 
 /** Kennung einer Frage (kurze Prüfsumme, FNV-1a) – gleiche Frage, gleiche Kennung, auch wenn die Antwortmöglichkeiten anders gemischt sind */
 export function taskKey(t: BaseTask): string {
-  const { options: _o, answer: _a, why: _w, type: _t, hint: _h, explain: _e, praise: _p, traps: _tr, ...rest } = t as BaseTask & Record<string, unknown>;
+  const { options: _o, answer: _a, why: _w, type: _t, hint: _h, explain: _e, praise: _p, traps: _tr, rule: _r, ...rest } = t as BaseTask & Record<string, unknown>;
   const s = JSON.stringify(rest);
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
