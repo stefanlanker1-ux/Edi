@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { Button, RichText, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
-import { LEVELS, TYPE_NAMES, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, sameTask, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
 import { tapFrame } from "./tap.ts";
 import { MechSvg } from "../components/MechSvg.tsx";
 import { anchorPt, fitBox, snapBox, still } from "../chem/scene.ts";
@@ -17,7 +17,7 @@ import { LESSONS } from "../lessons.tsx";
 import { VisView, beadsOf } from "./visual.tsx";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
 
-export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true });
+export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask });
 
 /** richtige Auswahl? einzeln: das Teil; mehrere: genau diese Menge; Paar: zwei benachbarte Teile */
 function tapResult(t: TapTask, sel: string[]) {

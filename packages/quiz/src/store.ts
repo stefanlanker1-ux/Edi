@@ -43,6 +43,8 @@ export interface QuizConfig<T extends BaseTask> {
   seed?: () => Partial<Pick<QuizState<T>, "progress" | "typeStats">>;
   /** Level (Zahl) mit fester Reihenfolge der Aufgabentypen – Wiederholungen werden nur innerhalb des Typs ersetzt */
   fixedOrder?: boolean;
+  /** freiwillig: zwei Aufgaben gelten als gleich (gelöstes Beispiel muss sich davon unterscheiden) */
+  sameTask?: (a: T, b: T) => boolean;
 }
 
 /** höchstens so viele vorgemachte Beispiele je Runde */
@@ -52,7 +54,7 @@ const MAX_EXAMPLES = 3;
  * Lernen an Beispielen: für jede Fertigkeit der Runde, die noch nie geübt wurde, vor der ersten Aufgabe ein gelöstes
  * Beispiel derselben Art (aus einer zweiten Runde, andere Frage); die erste echte Aufgabe zeigt den ersten Schritt (Tipp).
  */
-export function withExamples<T extends BaseTask>(tasks: T[], skills: Skills, more: () => T[]): T[] {
+export function withExamples<T extends BaseTask>(tasks: T[], skills: Skills, more: () => T[], same?: (a: T, b: T) => boolean): T[] {
   const fresh = [...new Set(tasks.map(t => t.type).filter((x): x is string => !!x && !skills[x]))].slice(0, MAX_EXAMPLES);
   if (!fresh.length) return tasks;
   // Beispiele aus weiteren Runden: so lange ziehen, bis jede neue Fertigkeit eine andere Frage derselben Art hat
@@ -71,7 +73,8 @@ export function withExamples<T extends BaseTask>(tasks: T[], skills: Skills, mor
   for (const t of tasks) {
     if (t.type && fresh.includes(t.type) && !done.has(t.type)) {
       done.add(t.type);
-      const ex = pool.find(o => o.type === t.type && !used.has(key(o)));
+      // `same` (freiwillig, je Modul): strengerer Vergleich, z. B. gleiche Frage mit gleichem Bild trotz anderer Antwortauswahl
+      const ex = pool.find(o => o.type === t.type && !used.has(key(o)) && !(same && tasks.some(x => same(o, x))));
       if (ex) { used.add(key(ex)); out.push({ ...ex, lead: undefined, stage: "worked" }); }
       out.push({ ...t, stage: "faded" });
     } else out.push(t);
@@ -103,7 +106,7 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
         const due = level === "due" ? (dueIds ?? dueSkills(sk, Object.keys(sk), Date.now(), get().exams[stufe])) : undefined;
         const round = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? [], 10, !!cfg.fixedOrder && typeof level === "number");
         // neue Fertigkeiten: erst ein gelöstes Beispiel derselben Art, dann die Aufgabe mit sichtbarem ersten Schritt, danach frei
-        const tasks = level === "due" || level === "weak" ? round : withExamples(round, sk, () => cfg.makeRound(stufe, level, get().typeStats[stufe], due));
+        const tasks = level === "due" || level === "weak" ? round : withExamples(round, sk, () => cfg.makeRound(stufe, level, get().typeStats[stufe], due), cfg.sameTask);
         const game: Game<T> = {
           stufe, level, tasks, i: 0, score: 0, streak: 0, bestStreak: 0, correct: 0, hintUsed: false,
           answers: tasks.map(() => null), startedAt: Date.now(), finished: false,

@@ -685,6 +685,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Merksätze geben Kontext, nicht die Regel; Beispiel ≠ Aufgabe** – 30 Merksätze vor Aufgaben neu (Blickrichtung statt Regel), die Regel erscheint nach der
+  richtigen Antwort (Kapitel-Schritt `rule`); Test: kein Wort der richtigen Antwort im Merksatz. Quiz-Paket: `sameTask` (freiwillig) in `createQuizStore` – das gelöste
+  Beispiel unterscheidet sich von den Aufgaben der Runde; Polymere: gleiche Frage mit gleichem Bild und gleicher Lösung gilt als gleich (Test).
 - **Polymere: Ordnen-Marken unter dem Bild, Überlappungstest über alle Bilder** – nach dem Prüfen stehen ✓ bzw. „richtig: ②“ (und der Name, auf niedrigen Bildschirmen im
   Blatt „Lösung“) unter der Zeichnung, Legende immer; Zähler „2 / 4“ als eigenes Element; Bilder nie schon am richtigen Platz. Test der Kettenabläufe prüft jetzt alle ruhenden
   Bilder samt Ladungszeichen: MMA abwechselnd (Estergruppen stoßen nicht mehr aneinander), Li⁺ bei Methanol aus dem Weg, Ziegler-Natta-Aktivierung, H₂ und Übergangszustand

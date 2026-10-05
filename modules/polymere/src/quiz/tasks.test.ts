@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LATER, LEVELS, PAT, klMiss, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
+import { GENERATORS, LATER, LEVELS, PAT, klMiss, sameTask, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -157,3 +157,27 @@ test("Kunststoffart: Stolperstein nach dem Paar (richtig, gewählt)", () => {
     return;
   }
 });
+
+test("Merksatz vor der Aufgabe verrät die Antwort nicht (kein Wort der richtigen Antwort im Lead)", () => {
+  const STOP = new Set(["eine", "einer", "einen", "einem", "der", "die", "das", "den", "dem", "des", "und", "mit", "ohne", "nicht", "kein", "keine", "wird", "werden", "sich", "nur", "sind", "ist", "aus", "zur", "zum", "von", "beim", "alle", "jede", "jeder", "mehr", "aber", "dann", "noch", "auch"]);
+  const words = (x: string) => x.replace(/\*\*|⁠/g, "").toLowerCase().split(/[^\p{L}\p{N}₀-₉-]+/u).filter(w => w.length >= 4 && !STOP.has(w));
+  const bad = new Set<string>();
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 30; k++) for (const t of makeRound("us", lv)) {
+    if (!t.lead || isTap(t) || isOrder(t) || isBuild(t)) continue;
+    const lead = new Set(words(t.lead));
+    for (const w of words(t.options[t.answer])) if (lead.has(w)) bad.add(`${LEVELS[lv].id} ${t.type}: „${w}“ in „${t.lead}“`);
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Gelöstes Beispiel unterscheidet sich von der folgenden Aufgabe (Frage, Antworten, Bild)", async () => {
+  const { withExamples } = await import("@lern/quiz");
+  // gleich = gleiche Frage mit gleichem Bild (andere Antwortauswahl reicht nicht: es wäre dasselbe Monomer)
+  const sig = (t: Task) => t.prompt + (isBuild(t) ? JSON.stringify(t.pool) + t.goal : isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : JSON.stringify(t.vis ?? null) + t.options[t.answer]);
+  const bad: string[] = [];
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 40; k++) {
+    const r = withExamples(makeRound("us", lv), {}, () => makeRound("us", lv), sameTask);
+    r.forEach((t, i) => { if (t.stage === "worked" && r[i + 1] && sig(t) === sig(r[i + 1])) bad.push(`${LEVELS[lv].id} ${t.type}: ${t.prompt.slice(0, 60)}`); });
+  }
+  assert.deepEqual([...new Set(bad)], []);
+}, 60_000);

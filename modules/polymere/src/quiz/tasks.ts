@@ -1176,16 +1176,17 @@ export const TYPE_NAMES: Record<string, string> = tr({
 
 /** `seq`: feste Reihenfolge der zehn Aufgaben, `leads`: Merksatz je Aufgabe */
 interface Level extends QuizLevel { types: string[]; seq: string[]; leads: string[] }
-type Step = [type: string, lead: string];
+/** Kapitel-Schritt: Aufgabentyp, Merksatz davor (Kontext oder Blickrichtung, nie die Regel), Merksatz danach (die Regel, bei richtiger Antwort) */
+type Step = [type: string, lead: string, rule?: string];
 
 const K1: Step[] = tr([
   ["polyName", "Ein **Polymer** ist ein Riesenmolekül aus vielen kleinen Bausteinen, den **Monomeren**."],
   ["doppelbindung", "Monomere der Polymerisation haben eine **C=C-Zweifachbindung**."],
   ["bausteinWahl", "In der Kette ist aus C=C eine Einfachbindung geworden. Die Seitengruppe bleibt."],
-  ["nBedeutung", "Die Formel zeigt **einen Baustein** in eckigen Klammern. Das n heißt: sehr oft."],
+  ["nBedeutung", "Formeln von Polymeren zeigen nur einen kleinen Ausschnitt der riesigen Kette.", "Die Formel zeigt **einen Baustein** in eckigen Klammern. Das n heißt: sehr oft."],
   ["kugelZaehlen", "Im **Kügelchenmodell** ist jeder Baustein ein Kügelchen."],
   ["baustein", "Aus der Kette zurück zum Monomer: Baustein abschneiden, C=C wieder einsetzen."],
-  ["monomerVon", "Der Name verrät das Monomer: **Poly** + Name des Monomers."],
+  ["monomerVon", "Lies den Namen des Polymers genau.", "Der Name verrät das Monomer: **Poly** + Name des Monomers."],
   ["bauenHomo", "Jetzt baust du selbst eine Kette aus Kügelchen."],
   ["kunststoffAlltag", "Kunststoffe sind Polymere – oft mit Kurzzeichen wie PE, PP, PS, PVC."],
   ["bausteinTap", "Zum Schluss: Kette lesen, Baustein finden, Monomer nennen."],
@@ -1193,133 +1194,136 @@ const K1: Step[] = tr([
   ["polyName", "A **polymer** is a giant molecule made of many small building blocks, the **monomers**."],
   ["doppelbindung", "Monomers for polymerisation have a **C=C double bond**."],
   ["bausteinWahl", "In the chain C=C has become a single bond. The side group stays."],
-  ["nBedeutung", "The formula shows **one repeat unit** in square brackets. The n means: very often."],
+  ["nBedeutung", "Polymer formulas show only a small part of the huge chain.", "The formula shows **one repeat unit** in square brackets. The n means: very often."],
   ["kugelZaehlen", "In the **bead model** each repeat unit is one bead."],
   ["baustein", "From the chain back to the monomer: cut out a repeat unit, put the C=C back."],
-  ["monomerVon", "The name gives away the monomer: **poly** + name of the monomer."],
+  ["monomerVon", "Read the polymer's name carefully.", "The name gives away the monomer: **poly** + name of the monomer."],
   ["bauenHomo", "Now you build a chain from beads yourself."],
   ["kunststoffAlltag", "Plastics are polymers – often with short codes such as PE, PP, PS, PVC."],
   ["bausteinTap", "Finally: read the chain, find the repeat unit, name the monomer."],
 ]);
 const K2: Step[] = tr([
-  ["radikal", "Ein **Radikal** hat ein **ungepaartes Elektron** (Punkt). Es ist sehr reaktiv."],
-  ["startBruch", "**Start**: Beim Erwärmen bricht die O–O-Bindung des Starters gleichmäßig."],
-  ["pfeil", "Ein **halber Pfeil** zeigt, wohin **ein** Elektron wandert."],
+  ["radikal", "Ohne Radikale startet keine Kette – was macht sie so besonders?", "Ein **Radikal** hat ein **ungepaartes Elektron** (Punkt). Es ist sehr reaktiv."],
+  ["startBruch", "Erwärmen setzt alles in Gang – schau auf die O–O-Bindung.", "**Start**: Beim Erwärmen bricht die O–O-Bindung des Starters gleichmäßig."],
+  ["pfeil", "Pfeile zeigen, wie Elektronen wandern – achte auf die Spitze.", "Ein **halber Pfeil** zeigt, wohin **ein** Elektron wandert."],
   ["radikalTap", "**Kettenwachstum**: Das Radikal greift C=C an – am neuen Ende sitzt wieder ein Radikal."],
-  ["schritt", "Start, Wachstum, Abbruch: Die Pfeile zeigen, welcher Schritt es ist."],
-  ["abbruchArt", "**Abbruch**: Zwei Radikale treffen sich – Rekombination oder Disproportionierung."],
-  ["starterRest", "Der Starter wird verbraucht: Sein Bruchstück sitzt am Kettenanfang."],
-  ["abbruchArt", "Rekombination verbindet die Enden. Bei der Disproportionierung wandert ein H‑Atom."],
+  ["schritt", "Die Pfeile zeigen, welcher Schritt es ist.", "Start, Wachstum, Abbruch: Die Pfeile zeigen, welcher Schritt es ist."],
+  ["abbruchArt", "Am Ende treffen sich zwei Radikale – folge den Pfeilen.", "**Abbruch**: Zwei Radikale treffen sich – Rekombination oder Disproportionierung."],
+  ["starterRest", "Jede Kette hat einen Anfang – schau dir genau an, was dort sitzt.", "Der Starter wird verbraucht: Sein Bruchstück sitzt am Kettenanfang."],
+  ["abbruchArt", "Noch einmal: Verbinden die Pfeile die Enden – oder holen sie ein Atom?", "Rekombination verbindet die Enden. Bei der Disproportionierung wandert ein H‑Atom."],
   ["mehrStarter", "Jedes Radikal startet eine Kette – Starter und Monomer bestimmen die Kettenlänge."],
   ["ordnen", "Zum Schluss: die ganze Kette von Start bis Abbruch."],
 ], [
-  ["radikal", "A **radical** has an **unpaired electron** (dot). It is very reactive."],
-  ["startBruch", "**Initiation**: on heating, the O–O bond of the initiator breaks evenly."],
-  ["pfeil", "A **half-headed (fishhook) arrow** shows where **one** electron moves."],
+  ["radikal", "Without radicals no chain starts – what makes them special?", "A **radical** has an **unpaired electron** (dot). It is very reactive."],
+  ["startBruch", "Heating gets everything going – look at the O–O bond.", "**Initiation**: on heating, the O–O bond of the initiator breaks evenly."],
+  ["pfeil", "Arrows show how electrons move – look at the arrowhead.", "A **half-headed (fishhook) arrow** shows where **one** electron moves."],
   ["radikalTap", "**Propagation**: the radical attacks C=C – the new end is a radical again."],
-  ["schritt", "Initiation, propagation, termination: the arrows show which step it is."],
-  ["abbruchArt", "**Termination**: two radicals meet – combination or disproportionation."],
-  ["starterRest", "The initiator is used up: its fragment sits at the start of the chain."],
-  ["abbruchArt", "Combination joins the ends. In disproportionation an H atom moves."],
+  ["schritt", "The arrows show which step it is.", "Initiation, propagation, termination: the arrows show which step it is."],
+  ["abbruchArt", "At the end two radicals meet – follow the arrows.", "**Termination**: two radicals meet – combination or disproportionation."],
+  ["starterRest", "Every chain has a start – look closely at what sits there.", "The initiator is used up: its fragment sits at the start of the chain."],
+  ["abbruchArt", "Once more: do the arrows join the ends – or fetch an atom?", "Combination joins the ends. In disproportionation an H atom moves."],
   ["mehrStarter", "Each radical starts a chain – initiator and monomer decide the chain length."],
   ["ordnen", "Finally: the whole chain from initiation to termination."],
 ]);
 const K3: Step[] = tr([
-  ["katalysator", "Ein **Katalysator** wird nicht verbraucht. Am Titan wachsen nacheinander viele Ketten."],
+  ["katalysator", "Starter und Katalysator setzen beide eine Polymerisation in Gang – worin unterscheiden sie sich?", "Ein **Katalysator** wird nicht verbraucht. Am Titan wachsen nacheinander viele Ketten."],
   ["freieStelleTap", "Am Titan gibt es eine **freie Stelle**. Dort lagert sich das Monomer an."],
   ["zieglerGift", "Polare Monomere binden mit O, N, Cl oder F an das Titan: Der Katalysator ist **vergiftet**."],
-  ["taktisch", "**Isotaktisch**: alle Seitengruppen auf einer Seite. **Ataktisch**: zufällig."],
+  ["taktisch", "Schau, auf welcher Seite der Kette die Seitengruppen sitzen.", "**Isotaktisch**: alle Seitengruppen auf einer Seite. **Ataktisch**: zufällig."],
   ["taktischVerfahren", "Am Titan wird jedes Monomer gleich herum eingebaut – die Kette wird geordnet."],
-  ["hdpe", "Ziegler-Natta: **unverzweigtes** PE-HD. Radikalisch unter hohem Druck: **verzweigtes** PE-LD."],
+  ["hdpe", "Polyethen kommt aus zwei Verfahren – mit ganz verschiedenen Ketten.", "Ziegler-Natta: **unverzweigtes** PE-HD. Radikalisch unter hohem Druck: **verzweigtes** PE-LD."],
   ["lebend", "**Anionisch** (Butyllithium): Die Ketten **leben** weiter, bis Methanol sie beendet."],
   ["kationisch", "**Kationisch** (BF₃ und Wasser): CH₃-Gruppen stabilisieren die positive Ladung."],
   ["verfahrenWahl", "Jedes Monomer braucht das passende Verfahren."],
   ["giftTap", "Zum Schluss: Wer vergiftet das Titan – und warum?"],
 ], [
-  ["katalysator", "A **catalyst** is not used up. Many chains grow one after another at the titanium."],
+  ["katalysator", "Initiator and catalyst both get a polymerisation going – how do they differ?", "A **catalyst** is not used up. Many chains grow one after another at the titanium."],
   ["freieStelleTap", "The titanium has a **vacant site**. The monomer attaches there."],
   ["zieglerGift", "Polar monomers bind to the titanium with O, N, Cl or F: the catalyst is **poisoned**."],
-  ["taktisch", "**Isotactic**: all side groups on one side. **Atactic**: random."],
+  ["taktisch", "Look at which side of the chain the side groups sit on.", "**Isotactic**: all side groups on one side. **Atactic**: random."],
   ["taktischVerfahren", "At the titanium each monomer is inserted the same way round – the chain becomes ordered."],
-  ["hdpe", "Ziegler–Natta: **unbranched** PE-HD. Radical at high pressure: **branched** PE-LD."],
+  ["hdpe", "Polyethene comes from two methods – with very different chains.", "Ziegler–Natta: **unbranched** PE-HD. Radical at high pressure: **branched** PE-LD."],
   ["lebend", "**Anionic** (butyllithium): the chains **stay alive** until methanol stops them."],
   ["kationisch", "**Cationic** (BF₃ and water): CH₃ groups stabilise the positive charge."],
   ["verfahrenWahl", "Each monomer needs the right method."],
   ["giftTap", "Finally: what poisons the titanium – and why?"],
 ]);
 const K4: Step[] = tr([
-  ["gruppen", "Bei der **Polykondensation** reagieren **funktionelle Gruppen**, z. B. –COOH mit –OH."],
+  ["gruppen", "Bei der **Polykondensation** reagieren **funktionelle Gruppen** – schau, welche jedes Monomer trägt.", "Bei der **Polykondensation** reagieren **funktionelle Gruppen**, z. B. –COOH mit –OH."],
   ["wasserTap", "Dabei wird ein kleines Molekül **abgespalten** – meist Wasser."],
-  ["bindungArt", "Säure + Alkohol → **Esterbindung**. Säure + Amin → **Amidbindung**."],
+  ["bindungArt", "Wie die neue Bindung heißt, hängt vom Partner der Säure ab.", "Säure + Alkohol → **Esterbindung**. Säure + Amin → **Amidbindung**."],
   ["wasserZahl", "Jede Verknüpfung spaltet genau ein Molekül ab."],
-  ["chlorid", "Mit **Säurechloriden** (–COCl) wird statt Wasser HCl abgespalten."],
+  ["chlorid", "Schau, was statt –OH an der Säuregruppe sitzt.", "Mit **Säurechloriden** (–COCl) wird statt Wasser HCl abgespalten."],
   ["paarWahl", "Für lange Ketten braucht **jedes** Monomer **zwei** passende Gruppen."],
-  ["stopper", "Ein Monomer mit **nur einer** Gruppe beendet die Kette."],
-  ["netz", "**Drei** reaktive Gruppen (Glycerin) verknüpfen die Ketten zu einem **Netz**."],
+  ["stopper", "Ethanol ist kein Diol – zähl seine Gruppen.", "Ein Monomer mit **nur einer** Gruppe beendet die Kette."],
+  ["netz", "Glycerin ist kein gewöhnlicher Partner – zähl seine –OH-Gruppen.", "**Drei** reaktive Gruppen (Glycerin) verknüpfen die Ketten zu einem **Netz**."],
   ["abMonomer", "Zwei **verschiedene** Gruppen in einem Monomer: Es reagiert mit sich selbst."],
   ["schnitt", "Zum Schluss: Wo genau sind die Monomere verknüpft?"],
 ], [
-  ["gruppen", "In **polycondensation** **functional groups** react, e.g. –COOH with –OH."],
+  ["gruppen", "In **polycondensation** **functional groups** react – look at which ones each monomer carries.", "In **polycondensation** **functional groups** react, e.g. –COOH with –OH."],
   ["wasserTap", "A small molecule is **split off** – usually water."],
-  ["bindungArt", "Acid + alcohol → **ester bond**. Acid + amine → **amide bond**."],
+  ["bindungArt", "The name of the new bond depends on the acid's partner.", "Acid + alcohol → **ester bond**. Acid + amine → **amide bond**."],
   ["wasserZahl", "Each link splits off exactly one molecule."],
-  ["chlorid", "With **acyl chlorides** (–COCl), HCl is split off instead of water."],
+  ["chlorid", "Look at what sits on the acid group instead of –OH.", "With **acyl chlorides** (–COCl), HCl is split off instead of water."],
   ["paarWahl", "For long chains **each** monomer needs **two** matching groups."],
-  ["stopper", "A monomer with **only one** group ends the chain."],
-  ["netz", "**Three** reactive groups (glycerol) link the chains into a **network**."],
+  ["stopper", "Ethanol is not a diol – count its groups.", "A monomer with **only one** group ends the chain."],
+  ["netz", "Glycerol is no ordinary partner – count its –OH groups.", "**Three** reactive groups (glycerol) link the chains into a **network**."],
   ["abMonomer", "Two **different** groups in one monomer: it reacts with itself."],
   ["schnitt", "Finally: where exactly are the monomers linked?"],
 ]);
 const K5: Step[] = tr([
-  ["keinNebenprodukt", "Bei der **Polyaddition** wird **nichts** abgespalten."],
+  ["keinNebenprodukt", "**Polyaddition** heißt die dritte Reaktionsart – vergleiche sie mit der Polykondensation.", "Bei der **Polyaddition** wird **nichts** abgespalten."],
   ["hTap", "Ein **H‑Atom wandert** von der –OH-Gruppe zum N‑Atom des Isocyanats."],
-  ["urethan", "Isocyanat + Alkohol → **Urethangruppe**: Polyurethan (PUR)."],
-  ["urethan", "Isocyanat + Amin → **Harnstoffgruppe**: Polyharnstoff."],
-  ["artWahl", "Polymerisation (C=C), Polykondensation (+ kleines Molekül), Polyaddition (ohne)."],
-  ["epoxid", "**Epoxidharz**: Der gespannte Ring öffnet sich und bindet an die Aminogruppe."],
-  ["epoxidNetz", "Jede –NH₂-Gruppe reagiert zweimal – das Harz wird zum **Netz**."],
+  ["urethan", "Welche zwei Gruppen treffen hier aufeinander?", "Isocyanat + Alkohol → **Urethangruppe**: Polyurethan (PUR)."],
+  ["urethan", "Der Partner des Isocyanats entscheidet, wie die neue Gruppe heißt.", "Isocyanat + Amin → **Harnstoffgruppe**: Polyharnstoff."],
+  ["artWahl", "Sieh dir die Gruppen der Monomere genau an.", "Polymerisation (C=C), Polykondensation (+ kleines Molekül), Polyaddition (ohne)."],
+  ["epoxid", "Zweikomponentenkleber: Harz und Härter werden gemischt – was geschieht mit dem Dreierring?", "**Epoxidharz**: Der gespannte Ring öffnet sich und bindet an die Aminogruppe."],
+  ["epoxidNetz", "Zähl die N–H-Bindungen am Härter: Wie oft kann jede –NH₂-Gruppe reagieren?", "Jede –NH₂-Gruppe reagiert zweimal – das Harz wird zum **Netz**."],
   ["artWahl", "Noch einmal: Welche Reaktionsart passt?"],
-  ["keinNebenprodukt", "Ohne Nebenprodukt bleiben alle Atome im Polymer."],
+  ["keinNebenprodukt", "Schau, wohin jedes Atom der beiden Gruppen geht.", "Ohne Nebenprodukt bleiben alle Atome im Polymer."],
   ["artWahl", "Zum Schluss: drei Reaktionsarten unterscheiden."],
 ], [
-  ["keinNebenprodukt", "In **polyaddition** **nothing** is split off."],
+  ["keinNebenprodukt", "**Polyaddition** is the third type of reaction – compare it with polycondensation.", "In **polyaddition** **nothing** is split off."],
   ["hTap", "An **H atom moves** from the –OH group to the N atom of the isocyanate."],
-  ["urethan", "Isocyanate + alcohol → **urethane group**: polyurethane (PUR)."],
-  ["urethan", "Isocyanate + amine → **urea group**: polyurea."],
-  ["artWahl", "Polymerisation (C=C), polycondensation (+ small molecule), polyaddition (without)."],
-  ["epoxid", "**Epoxy resin**: the strained ring opens and binds to the amino group."],
-  ["epoxidNetz", "Each –NH₂ group reacts twice – the resin becomes a **network**."],
+  ["urethan", "Which two groups meet here?", "Isocyanate + alcohol → **urethane group**: polyurethane (PUR)."],
+  ["urethan", "The isocyanate's partner decides what the new group is called.", "Isocyanate + amine → **urea group**: polyurea."],
+  ["artWahl", "Look closely at the monomers' groups.", "Polymerisation (C=C), polycondensation (+ small molecule), polyaddition (without)."],
+  ["epoxid", "Two-part adhesive: resin and hardener are mixed – what happens to the three-membered ring?", "**Epoxy resin**: the strained ring opens and binds to the amino group."],
+  ["epoxidNetz", "Count the N–H bonds on the hardener: how often can each –NH₂ group react?", "Each –NH₂ group reacts twice – the resin becomes a **network**."],
   ["artWahl", "Once more: which type of reaction fits?"],
-  ["keinNebenprodukt", "Without a by-product all atoms stay in the polymer."],
+  ["keinNebenprodukt", "Look where each atom of the two groups goes.", "Without a by-product all atoms stay in the polymer."],
   ["artWahl", "Finally: tell the three reaction types apart."],
 ]);
 const K6: Step[] = tr([
-  ["klasse", "**Thermoplaste**: einzelne Ketten – beim Erwärmen weich und formbar."],
-  ["klasse", "**Elastomere**: wenige Brücken – dehnbar, springen zurück. **Duroplaste**: dichtes Netz – hart."],
-  ["schmelzen", "Nur Thermoplaste lassen sich einschmelzen und neu formen."],
+  ["klasse", "Kunststoffe unterscheiden sich darin, wie ihre Ketten verbunden sind.", "**Thermoplaste**: einzelne Ketten – beim Erwärmen weich und formbar."],
+  ["klasse", "Achte auf die Brücken: keine, wenige oder viele?", "**Elastomere**: wenige Brücken – dehnbar, springen zurück. **Duroplaste**: dichtes Netz – hart."],
+  ["schmelzen", "Altes Plastik soll neu geformt werden – denk an die Brücken zwischen den Ketten.", "Nur Thermoplaste lassen sich einschmelzen und neu formen."],
   ["klasseAlltag", "Im Alltag: Was muss der Kunststoff aushalten?"],
-  ["copolymer", "**Copolymere** enthalten zwei Monomere: zufällig, abwechselnd oder in Blöcken."],
+  ["copolymer", "Zwei Monomere in einer Kette – die Reihenfolge der Farben zählt.", "**Copolymere** enthalten zwei Monomere: zufällig, abwechselnd oder in Blöcken."],
   ["bauenCopo", "Jetzt baust du: Die Farben zeigen die Reihenfolge."],
-  ["wachstum", "**Kettenwachstum**: lange Ketten sofort. **Stufenwachstum**: lange Ketten erst am Ende."],
+  ["wachstum", "Zwei Arten zu wachsen – vergleiche, was im Gefäß ist.", "**Kettenwachstum**: lange Ketten sofort. **Stufenwachstum**: lange Ketten erst am Ende."],
   ["wachstum", "Noch einmal: Kettenwachstum oder Stufenwachstum?"],
   ["klasse", "Noch einmal: Zähl die Brücken im Bild."],
   ["klasseAlltag", "Zum Schluss: Kunststoffart und Aufbau verbinden."],
 ], [
-  ["klasse", "**Thermoplastics**: separate chains – soft and shapeable when heated."],
-  ["klasse", "**Elastomers**: a few cross-links – stretchy, spring back. **Thermosets**: dense network – hard."],
-  ["schmelzen", "Only thermoplastics can be melted down and reshaped."],
+  ["klasse", "Plastics differ in how their chains are connected.", "**Thermoplastics**: separate chains – soft and shapeable when heated."],
+  ["klasse", "Look at the bridges: none, a few or many?", "**Elastomers**: a few cross-links – stretchy, spring back. **Thermosets**: dense network – hard."],
+  ["schmelzen", "Old plastic is to be reshaped – think of the bridges between the chains.", "Only thermoplastics can be melted down and reshaped."],
   ["klasseAlltag", "In everyday life: what does the plastic have to withstand?"],
-  ["copolymer", "**Copolymers** contain two monomers: random, alternating or in blocks."],
+  ["copolymer", "Two monomers in one chain – the order of the colours matters.", "**Copolymers** contain two monomers: random, alternating or in blocks."],
   ["bauenCopo", "Now you build: the colours show the order."],
-  ["wachstum", "**Chain growth**: long chains at once. **Step growth**: long chains only at the end."],
+  ["wachstum", "Two ways of growing – compare what is in the vessel.", "**Chain growth**: long chains at once. **Step growth**: long chains only at the end."],
   ["wachstum", "Once more: chain growth or step growth?"],
   ["klasse", "Once more: count the cross-links in the picture."],
   ["klasseAlltag", "Finally: connect type of plastic and structure."],
 ]);
 
 /** `more`: Aufgabentypen, die nicht im festen Ablauf stehen, aber zum Kapitel gehören (Auswahl-Fassung von Antipp-Aufgaben – „Alles gemischt“, Wiederholung) */
+/** Merksatz mit der Regel je Kapitel-Schritt – erscheint nach der richtigen Antwort */
+const RULES: Record<string, string[]> = {};
 const level = (n: number, name: string, desc: string, steps: Step[], more: string[] = []): Level => {
   const seq = steps.map(([t]) => t);
+  RULES[`pm-k${n}`] = steps.map(([, , r]) => r ?? "");
   return { id: `pm-k${n}`, name, desc, seq, leads: steps.map(([, l]) => l), tip: true, types: [...new Set([...seq, ...more])] };
 };
 export const LEVELS: Level[] = [
@@ -1343,7 +1347,7 @@ function withHint(t: Task, cue: boolean): Task {
 }
 
 /** Aufgaben in fester Reihenfolge, keine Frage doppelt (gleicher Typ → anderes Beispiel) */
-function ordered(seq: string[], leads: string[]): Task[] {
+function ordered(seq: string[], leads: string[], rules: string[] = []): Task[] {
   const seen = new Set<string>();
   // gleiche Frage auch bei anderer Reihenfolge der Antworten
   const sig = (t: Task) => t.prompt + (isBuild(t) ? JSON.stringify(t.pool) + t.goal : isOrder(t) ? JSON.stringify(t.cards) : isTap(t) ? JSON.stringify(t.scene) : [...t.options].sort().join("|") + JSON.stringify(t.vis ?? null));
@@ -1351,12 +1355,14 @@ function ordered(seq: string[], leads: string[]): Task[] {
     let t = GENS[id]();
     for (let k = 0; k < 30 && seen.has(sig(t)); k++) t = GENS[id]();
     seen.add(sig(t));
+    // Regel als Bestätigung der richtigen Antwort (Auswahl ohne eigene Rückmeldung zur Lösung)
+    if (rules[i] && !isTap(t) && !isOrder(t) && !isBuild(t) && !t.why?.[t.answer]) t = { ...t, why: { ...t.why, [t.answer]: rules[i] } };
     return { ...withHint(t, true), type: id, ...(leads[i] ? { lead: leads[i] } : {}) };
   });
 }
 
 export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, due: string[] = []): Task[] {
-  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].leads);
+  if (typeof level === "number") return ordered(LEVELS[level].seq, LEVELS[level].leads, RULES[LEVELS[level].id]);
   let ids = level === "mix" ? [...new Set(LEVELS.flatMap(l => l.types))]
     : level === "weak" ? weakTypes(stats, id => LEVELS.some(l => l.types.includes(id)))
     // fällig: die am längsten überfälligen zuerst (eine Runde fasst höchstens 10 Fertigkeiten; der Rest bleibt fällig)
@@ -1368,6 +1374,13 @@ export function makeRound(_stufe: string, level: LevelKey, stats?: TypeStats, du
 
 /** Aufgabentypen, deren Kapitel (mit Lektion) noch fehlt – bis dahin in keinem Kapitel und nicht in „Alles gemischt“ */
 export const LATER = ["recycling"];
+
+/** gleiche Aufgabe für das gelöste Beispiel: gleiche Frage mit gleichem Bild und gleicher Lösung (andere Antwortauswahl reicht nicht) */
+export function sameTask(a: Task, b: Task): boolean {
+  if (a.prompt !== b.prompt) return false;
+  if (isBuild(a) || isBuild(b) || isOrder(a) || isOrder(b) || isTap(a) || isTap(b)) return JSON.stringify(a) === JSON.stringify(b);
+  return JSON.stringify(a.vis ?? null) === JSON.stringify(b.vis ?? null) && a.options[a.answer] === b.options[b.answer];
+}
 
 /** für Tests: alle Generatoren */
 export const GENERATORS = GENS;
