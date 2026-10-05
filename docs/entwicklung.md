@@ -683,6 +683,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Stoffnamen in der Begriffsprüfung** – `terms.test.ts` prüft auch Stoffnamen (Monomere, gesättigte Gegenstücke): sie müssen in einer Lektion bzw. Erklärkarte
+  bis zum Kapitel vorkommen; K1 nennt die gesättigten Gegenstücke, Diamin, Säurechlorid und Acrylglas eingeführt; Recycling-Code auch nicht mehr unter „Heute fällig“.
 - **Polymere: Begriffsprüfung über alle Typen eines Kapitels** – `terms.test.ts` prüft auch die Typen aus `more` (laufen in „Alles gemischt“, „Heute fällig“, „Schwächen üben“);
   PBT und Aluminiumverbindung/Ethylgruppe in den Lektionen eingeführt; Recycling-Code in keinem Kapitel, bis sein Kapitel kommt (`LATER`).
 - **Polymere: Antippen-Bilder groß vor und nach der Antwort** – kein vorab freigehaltener Platz mehr; enger Ausschnitt (vergiftendes Atom: Monomer + freie Stelle, hohe

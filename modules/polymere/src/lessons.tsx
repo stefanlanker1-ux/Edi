@@ -124,7 +124,8 @@ const K1: GuideStep[] = [
     answer: T("Ethan", "Ethane"), options: [T("Ethan", "Ethane"), T("Styrol", "Styrene"), T("Vinylchlorid", "Vinyl chloride")],
     visual: () => <Pic v={{ k: "sat", id: "ethen" }} />,
     why: { [T("Styrol", "Styrene")]: T("Styrol hat eine C=C-Bindung – daraus wird Polystyrol.", "Styrene has a C=C bond – it becomes polystyrene."), [T("Vinylchlorid", "Vinyl chloride")]: T("Vinylchlorid hat eine C=C-Bindung – daraus wird PVC.", "Vinyl chloride has a C=C bond – it becomes PVC.") },
-    lines: [T("Ethan (im Bild) hat nur Einfachbindungen: Es ist **gesättigt**.", "Ethane (in the picture) has only single bonds: it is **saturated**.")],
+    lines: [T("Ethan (im Bild) hat nur Einfachbindungen: Es ist **gesättigt**.", "Ethane (in the picture) has only single bonds: it is **saturated**."),
+      T("Gesättigte Gegenstücke: Ethen – Ethan, Propen – Propan, Styrol – Ethylbenzol, Vinylchlorid – Chlorethan.", "Saturated partners: ethene – ethane, propene – propane, styrene – ethylbenzene, vinyl chloride – chloroethane.")],
     ok: T("Ohne Zweifachbindung keine Polymerisation.", "No double bond, no polymerisation."),
   },
   {
@@ -327,7 +328,7 @@ const K3: GuideStep[] = [
       T("Ein O‑Atom bindet an das Titan und besetzt die freie Stelle.", "An O atom binds to the titanium and blocks the vacant site."),
       T("Kein Monomer kommt mehr heran: Der Katalysator ist **vergiftet**.", "No monomer can reach it any more: the catalyst is **poisoned**."),
     ],
-    ok: T("PMMA und PVC macht man darum radikalisch, nicht mit Ziegler-Natta.", "That is why PMMA and PVC are made with radicals, not Ziegler–Natta."),
+    ok: T("PMMA (**Acrylglas**) und PVC macht man darum radikalisch, nicht mit Ziegler-Natta.", "That is why PMMA (**acrylic glass**) and PVC are made with radicals, not Ziegler–Natta."),
   },
   {
     mode: "faded",
@@ -434,9 +435,9 @@ const K4: GuideStep[] = [
     ask: T("Wie entsteht Nylon?", "How does nylon form?"),
     visual: () => <MechPlay r={PA} acts={["join"]} />,
     lines: [
-      T("Adipinsäure + Hexan-1,6-diamin: –CO–NH–.", "Adipic acid + hexane-1,6-diamine: –CO–NH–."),
+      T("Adipinsäure + Hexan-1,6-diamin (ein **Diamin**): –CO–NH–.", "Adipic acid + hexane-1,6-diamine (a **diamine**): –CO–NH–."),
       T("Auch hier wird Wasser abgespalten – das Polymer heißt **Polyamid**.", "Water is split off here too – the polymer is called **polyamide**."),
-      T("Mit Säurechloriden (–COCl) geht statt Wasser **HCl** ab.", "With acyl chlorides (acid chlorides, –COCl), **HCl** leaves instead of water."),
+      T("Mit **Säurechloriden** (–COCl) geht statt Wasser **HCl** ab.", "With **acyl chlorides** (acid chlorides, –COCl), **HCl** leaves instead of water."),
     ],
     ok: T("Nylon ist ein Polyamid (PA 6.6).", "Nylon is a polyamide (PA 6.6)."),
   },
