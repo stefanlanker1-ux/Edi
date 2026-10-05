@@ -73,8 +73,8 @@ export function MechFrame({ r, acts, keyIndex, label }: { r: Recipe; acts: strin
   // mit Pfeilen: Ausschnitt um die Pfeile (dort passiert der Schritt), damit die Atome groß bleiben
   const all = snapBox(frame.snap) ?? { x0: -3, y0: -2, x1: 3, y1: 2 };
   const pts = (frame.arrows ?? []).flatMap(a => [anchorPt(frame.snap, a.from), anchorPt(frame.snap, a.to)]).filter(p => !!p);
-  const crop = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 2.0), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 2.0),
-    y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
+  const crop = pts.length ? { x0: Math.max(all.x0, Math.min(...pts.map(p => p.x)) - 1.6), x1: Math.min(all.x1, Math.max(...pts.map(p => p.x)) + 1.6),
+    y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.3), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.3) } : all;
   const box = fitBox(crop, 1.7, 5, 3.0, 0.4);
   // Beschriftungen nur, wenn sie ganz im Ausschnitt liegen (nie abgeschnitten)
   const notes = pose.notes.filter(n => { const q = noteBox(n); return q.x0 >= box.x0 && q.x1 <= box.x1 && q.y0 >= box.y0 && q.y1 <= box.y1; });
@@ -215,13 +215,17 @@ export function StartersPic() {
   );
 }
 
+/** Legende zur Kurzform des Diepoxids */
+const R_LEGEND = () => tr("R = Rest des Moleküls", "R = rest of the molecule");
+
 /** Bild einer Aufgabe bzw. eines Lektionsschritts */
 /** opt: Bild in einer Antwortkarte – Strukturformeln im eigenen Seitenverhältnis, damit sie die Karte füllen */
 export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
   const asp = opt ? 0 : 1.6;
   switch (v.k) {
     // breite Monomere der Stufenreaktionen (Diepoxid, MDI …) im eigenen Seitenverhältnis – in einem Kasten 1,6 : 1 würden sie im flachen Bildplatz winzig
-    case "mono": return <MonomerSvg id={v.id} aspect={isVinyl(v.id) ? asp : 0} className="pm-vis-svg" />;
+    case "mono": return v.id === "badge" && !opt ? <div className="pm-vis-pair one"><MonomerSvg id={v.id} aspect={0} short className="pm-vis-svg" /><span className="pm-vis-legend">{R_LEGEND()}</span></div>
+      : <MonomerSvg id={v.id} aspect={isVinyl(v.id) ? asp : 0} className="pm-vis-svg" />;
     case "sat": return <SnapSvg snap={saturatedSnap(v.id)} label={tr("Molekül ohne Zweifachbindung", "Molecule without a double bond")} aspect={asp} className="pm-vis-svg" />;
     case "unit": return v.dbl ? <SnapSvg snap={unitWithDouble(v.id)} label={tr("Baustein mit Zweifachbindung", "Unit with double bond")} aspect={asp} halos className="pm-vis-svg" /> : <UnitSvg id={v.id} aspect={asp} className="pm-vis-svg" />;
     case "chain": return <ChainSvg id={v.id} n={v.n} tact={v.tact} seed={v.seed} />;
@@ -229,8 +233,9 @@ export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
     case "beads": return <div className="pm-vis-beads"><BeadStrip beads={beadsOf(v.seq)} active={null} max={30} /></div>;
     case "pair": return (
       <div className="pm-vis-pair">
-        <MonomerSvg id={v.a} aspect={0} className="pm-vis-svg" />
-        {v.b && <><span className="pm-vis-plus" aria-hidden="true">+</span><MonomerSvg id={v.b} aspect={0} className="pm-vis-svg" /></>}
+        <MonomerSvg id={v.a} aspect={0} short={v.a === "badge"} className="pm-vis-svg" />
+        {v.b && <><span className="pm-vis-plus" aria-hidden="true">+</span><MonomerSvg id={v.b} aspect={0} short={v.b === "badge"} className="pm-vis-svg" /></>}
+        {(v.a === "badge" || v.b === "badge") && <span className="pm-vis-legend">{R_LEGEND()}</span>}
       </div>
     );
     case "struct": return <StructPic s={v.s} />;

@@ -18,15 +18,15 @@ export function SnapSvg({ snap, label, aspect = 1.4, halos = false, minW = 3, mi
 }
 
 /** Monomer als Strukturformel */
-export function monomerSnap(id: string): Snap {
+export function monomerSnap(id: string, short = false): Snap {
   const sc = new Scene();
   if (isVinyl(id)) vinylUnit(sc, vinyl(id), 0, 0, { pre: "m" }, { dbl: true });
-  else stepMolecule(sc, id as StepId, 0, 0, { pre: "m" });
+  else stepMolecule(sc, id as StepId, 0, 0, { pre: "m", ...(short ? { short } : {}) });
   return sc.snap();
 }
 
-export function MonomerSvg({ id, aspect, className }: { id: string; aspect?: number; className?: string }) {
-  const snap = useMemo(() => monomerSnap(id), [id]);
+export function MonomerSvg({ id, aspect, className, short }: { id: string; aspect?: number; className?: string; short?: boolean }) {
+  const snap = useMemo(() => monomerSnap(id, short), [id, short]);
   const name = isVinyl(id) ? vinyl(id).name : stepMono(id).name;
   return <SnapSvg snap={snap} label={tr(`Strukturformel von ${name}`, `Structural formula of ${name}`)} aspect={aspect} className={className} />;
 }

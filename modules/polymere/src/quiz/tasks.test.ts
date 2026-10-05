@@ -270,3 +270,51 @@ test("Wasser abziehen (Amin): beide H am N gelten, das andere H ist kein falsche
   }
   assert.isAbove(seen, 0);
 });
+
+test("Kapitelfolge: jede Fertigkeit höchstens 2×, zwischen zwei Vorkommen mindestens zwei andere Aufgaben", () => {
+  const bad: string[] = [];
+  for (const l of LEVELS) {
+    const n = new Map<string, number[]>();
+    l.seq.forEach((id, i) => n.set(id, [...(n.get(id) ?? []), i]));
+    for (const [id, at] of n) {
+      if (at.length > 2) bad.push(`${l.id} ${id} ${at.length}×`);
+      for (let k = 1; k < at.length; k++) if (at[k] - at[k - 1] < 3) bad.push(`${l.id} ${id} an ${at[k - 1] + 1} und ${at[k] + 1}`);
+    }
+  }
+  assert.deepEqual(bad, []);
+});
+
+test("nach jeder Antwort eine Regelzeile, die mehr sagt als die Antwort; sie verrät die nächste Aufgabe nicht", () => {
+  const norm = (x: string) => x.replace(/\*\*|⁠|‑/g, "").toLowerCase().trim();
+  const bad = new Set<string>();
+  for (let lv = 0; lv < LEVELS.length; lv++) for (let k = 0; k < 20; k++) {
+    const r = makeRound("us", lv);
+    r.forEach((t, i) => {
+      const rule = isTap(t) || isOrder(t) || isBuild(t) ? t.rule : t.why?.[t.answer];
+      const ans = isTap(t) || isOrder(t) || isBuild(t) ? "" : norm(t.options[t.answer]);
+      if (!rule || norm(rule).length < ans.length + 12) bad.add(`${LEVELS[lv].id} A${i + 1} ${t.type}: Regel „${rule ?? ""}“`);
+      const nx = r[i + 1];
+      if (rule && nx && !isTap(nx) && !isOrder(nx) && !isBuild(nx)) {
+        const a = norm(nx.options[nx.answer]);
+        if (a.length >= 6 && norm(rule).includes(a)) bad.add(`${LEVELS[lv].id} A${i + 1} → A${i + 2}: „${a}“ steht schon in „${rule}“`);
+      }
+    });
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Tipp und erster Schritt (hint und tip) verraten die Antwort nicht – in jedem Generator", () => {
+  const STOP = new Set(["eine", "einer", "einen", "einem", "der", "die", "das", "den", "dem", "des", "und", "mit", "ohne", "nicht", "kein", "keine", "wird", "werden", "sich", "nur", "sind", "ist", "aus", "zur", "zum", "von", "beim", "alle", "jede", "jeder", "mehr", "aber", "dann", "noch", "auch", "monomer", "starter"]);
+  const words = (x: string) => x.replace(/\*\*|⁠/g, "").toLowerCase().split(/[^\p{L}\p{N}₀-₉-]+/u).filter(w => w.length >= 4 && !STOP.has(w));
+  const bad = new Set<string>();
+  for (const [id, g] of Object.entries(GENERATORS)) for (let k = 0; k < 20; k++) {
+    const t = g();
+    if (isTap(t) || isOrder(t) || isBuild(t)) continue;
+    for (const f of [t.hint, (t as { tip?: string }).tip]) {
+      if (!f) continue;
+      const w = new Set(words(f));
+      for (const a of words(t.options[t.answer])) if (w.has(a)) bad.add(`${id}: „${a}“ in „${f}“`);
+    }
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);

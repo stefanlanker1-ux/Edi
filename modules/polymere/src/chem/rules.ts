@@ -76,7 +76,7 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
     mma: { fit: "none", fail: "bounce", why: T("Die COOCH₃-Gruppe zieht Elektronen ab – eine positive Ladung am Kettenende wäre zu instabil.", "The COOCH₃ group withdraws electrons – a positive charge at the chain end would be too unstable.") },
     acrylnitril: { fit: "none", fail: "bounce", why: T("Die C≡N-Gruppe zieht Elektronen ab – eine positive Ladung am Kettenende wäre zu instabil.", "The C≡N group withdraws electrons – a positive charge at the chain end would be too unstable.") },
     tfe: { fit: "none", fail: "bounce", why: T("Die F‑Atome ziehen Elektronen ab – eine positive Ladung am Kettenende wäre zu instabil.", "The F atoms withdraw electrons – a positive charge at the chain end would be too unstable.") },
-    isobuten: { fit: "ok", why: T("Zwei CH₃-Gruppen stabilisieren die positive Ladung am Kettenende. Bei −100 °C entstehen lange Ketten.", "Two CH₃ groups stabilise the positive charge at the chain end. At −100 °C long chains form."), note: "−100 °C" },
+    isobuten: { fit: "ok", why: T("Zwei CH₃-Gruppen stabilisieren die positive Ladung am Kettenende – so entstehen lange Ketten.", "Two CH₃ groups stabilise the positive charge at the chain end – so long chains form."), note: "−100 °C" },
     butadien: { fit: "short", fail: "short", why: T("Nebenreaktionen verknüpfen und verkürzen die Ketten – kein brauchbarer Kautschuk.", "Side reactions link and shorten the chains – no usable rubber.") },
     vinylacetat: { fit: "none", fail: "side", why: T("Die positive Ladung reagiert mit der Acetatgruppe – eine Nebenreaktion statt einer Kette.", "The positive charge reacts with the acetate group – a side reaction instead of a chain.") },
   },

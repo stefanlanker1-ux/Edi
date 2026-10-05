@@ -129,6 +129,12 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     out.push(...r1, ...r2);
     sc.bond(r1[3], ch2); sc.bond(ch2, r2[0]); H(ch2, -90, "hu"); H(ch2, 90, "hd");
     left = r1[0]; right = r2[3]; xc += 4.88;
+  } else if (core.k === "badge" && ctx.short) {
+    // Kurzform: nur die reagierenden Epoxidgruppen, das Gerüst dazwischen als R
+    const c1 = A("c1", "C", xc - 1, y), r = A("r", "C", xc, y, { text: "R" }), c2 = A("c2", "C", xc + 1, y);
+    sc.bond(c1, r); sc.bond(r, c2);
+    for (const [c, t] of [[c1, "a"], [c2, "b"]] as const) { H(c, -90, `h${t}u`); H(c, 90, `h${t}d`); }
+    left = c1; right = c2; xc += 1;
   } else if (core.k === "badge") {
     // Bisphenol-A-Gerüst als Rest R (Kurzform), daneben –O–CH₂–
     const o1 = A("o1", "O", xc, y), c1 = A("c1", "C", xc - 1, y);

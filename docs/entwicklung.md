@@ -619,7 +619,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   wenn er schon fett davorsteht (`boldLead`, Test: kein Wort doppelt). Keine Aufgabe zweimal in einem Kapitel, auch nicht mit anders gemischten Antworten
   (`ordered`; das gelöste Beispiel im Quiz-Paket vergleicht ebenso ohne Reihenfolge). **Regel nach ✓** hängt an der Aufgabe (`withRule` beim Erzeugen, in jeder Runde gleich):
   allgemeine Regel des Schritts (`GENERAL_RULE`), sonst die Erklärung der Variante; Antippen/Ordnen/Bauen eine kurze Zeile (`SHORT_RULE` → `rule`). Merksatz vor der Aufgabe
-  und Tipp nennen den Blickpunkt, nie die Regel oder die Antwort (Tests: Schlüsselwörter je Typ im Merksatz, Wörter der Antwort im Tipp). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
+  und Tipp nennen den Blickpunkt, nie die Regel oder die Antwort (Tests: Schlüsselwörter je Typ im Merksatz, Wörter der Antwort im Tipp). Kapitelfolge: jede Fertigkeit
+  höchstens 2×, Abstand ≥ 3; die Regelzeile einer Aufgabe enthält nicht die Antwort der nächsten (Tests). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
   Kennbuchstabe klein in der Ecke. „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
   mit Trennlinie und Überschrift über jedem Bild; Pfeil nur bei vorher → nachher. Antippen in der Lektion mit unsichtbaren Trefferkreisen je Atom.
   **Antippen im Bild** (`kind: "tap"`, `quiz/tap.ts`, `TapAnswer` in `quiz/QuizView.tsx`): Szene = Standbild der Atom-Ansicht (Ansatz, Aktionen, Bild des Ablaufs,
@@ -689,6 +690,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Polymere: Kapitelfolgen ohne Vorsagen** – in jeder Kapitelfolge jede Fertigkeit höchstens zweimal, dazwischen mindestens zwei andere Aufgaben (K2, K5, K6 umgestellt,
+  K1 Bauen vor „Monomer zum Polymer“); K5 zweite Form `epoxidBindungTap` (neue C–N-Bindung im Epoxidharz antippen) statt Wiederholung; nach jeder Antwort eine Regelzeile
+  (allgemeine Regel des Schritts oder Erklärung der Aufgabe), die nicht die nächste Antwort enthält (Tests: Abstand, Regelzeile, Vorsagen); Tipps als Denkschritt auch im Feld
+  `tip` (Test über alle Generatoren); K3 Verfahren: MMA/Vinylchlorid nur radikalisch; Abbruch-Regeln konkret (woran man es erkennt); Copolymer-Regel mit allen drei Arten.
+  Bilder: Diepoxid in kleinen Bildern als Kurzform mit „R“ und Legende, Mechanismus-Ausschnitt enger, Taktizität mit vier Bausteinen, ganzes Titan im Gift-Bild.
 
 - **Polymere: Runde-31-Befunde** – Wasser abziehen (Säure + Amin): beide H am N gelten (`same` an der Antipp-Aufgabe, `tapResult` in `quiz/tap.ts`, Test), kein falscher
   Stolperstein mehr; Beschriftungen im Bildausschnitt (Antippen, Mechanismus-Bild) nur, wenn sie ganz hineinpassen (kein „iCl₃“); Quiz-Kopf mit kurzem Kapitelnamen
