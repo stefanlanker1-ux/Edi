@@ -910,7 +910,7 @@ function bauenCopo(): Task {
   const pats = { block: PAT.block, alt: PAT.alt, stat: PAT.stat } as const;
   return {
     kind: "build", pool: [vinylItem(a), vinylItem(b)], n: 8, goal, example,
-    sol: T(`z. B. ${example.map(x => vinyl(x).letter).join(" ")}`, `e.g. ${example.map(x => vinyl(x).letter).join(" ")}`),
+    sol: T(`z. B. ${example.map(x => vinyl(x).letter).join("–")} (Platz 1 bis 8)`, `e.g. ${example.map(x => vinyl(x).letter).join("–")} (places 1 to 8)`),
     prompt: T(`Baue ${what} aus ${vinyl(a).name} und ${vinyl(b).name}.`, `Build ${what} from ${nm(a)} and ${nm(b)}.`),
     hint: T("Die Farben zeigen die Reihenfolge der Monomere.", "The colours show the order of the monomers."),
     tip: T(`${C[goal]}: Wie folgen die beiden Monomere aufeinander?`, `${C[goal]}: how do the two monomers follow each other?`),
@@ -918,7 +918,12 @@ function bauenCopo(): Task {
     traps: [
       ...(["block", "alt", "stat"] as const).filter(x => x !== goal).map(x => ({ values: { pat: pats[x] }, miss: "copo-verwechselt", why: tr(`Das ist ${WHAT[x]}. ${WHY[x]}`, `That is ${WHAT[x]}. ${WHY[x]}`) })),
       { values: { pat: PAT.one }, miss: "copo-verwechselt", why: T("Nur ein Monomer – das ist kein Copolymer. Ein Copolymer enthält beide.", "Only one monomer – that is not a copolymer. A copolymer contains both.") },
-      ...[a, b].map((x, maj) => ({ values: { pat: PAT.few, maj }, miss: "copo-verwechselt", why: T(`Fast nur ${vinyl(x).name}: Das ist kaum ein Copolymer. Statistisch heißt: beide Monomere oft und zufällig gemischt.`, `Almost only ${nm(x)}: that is hardly a copolymer. Random means: both monomers often and randomly mixed.`) })),
+      // „fast nur ein Monomer“: Rückmeldung zur verlangten Art
+      ...[a, b].map((x, maj) => ({ values: { pat: PAT.few, maj }, miss: "copo-verwechselt", why: {
+        stat: T(`Fast nur ${vinyl(x).name}: Das ist kaum ein Copolymer. Statistisch heißt: beide Monomere oft und zufällig gemischt.`, `Almost only ${nm(x)}: that is hardly a copolymer. Random means: both monomers often and randomly mixed.`),
+        block: T(`Fast nur ${vinyl(x).name}: Ein Blockcopolymer hat zwei lange Abschnitte – erst viele von einem, dann viele vom anderen.`, `Almost only ${nm(x)}: a block copolymer has two long sections – first many of one, then many of the other.`),
+        alt: T(`Fast nur ${vinyl(x).name}: Alternierend heißt immer abwechselnd – beide Monomere gleich oft.`, `Almost only ${nm(x)}: alternating means always taking turns – both monomers equally often.`),
+      }[goal] })),
     ],
   };
 }
@@ -1015,16 +1020,16 @@ function giftTap(): Task {
   const who = el === "O" ? T("das O der C=O-Gruppe", "the O of the C=O group") : el === "N" ? T("das N der Nitrilgruppe", "the N of the nitrile group") : T(`das ${el}‑Atom`, `the ${el} atom`);
   const Who = cap(who);
   return tapTask({
-    scene, parts, answer: [ans], sol: T(`${who} (mit freiem Elektronenpaar)`, `${who} (with a lone pair)`),
+    scene, parts, answer: [ans], sol: T(`${who} – bindet mit einem freien Elektronenpaar`, `${who} – binds with a lone pair`),
     prompt: T(`${cap(nm(m))} kommt an das Titan. Tippe auf das Atom, das an das Titan bindet und es vergiftet.`, `${cap(nm(m))} reaches the titanium. Tap the atom that binds to the titanium and poisons it.`),
     hint: T("Gesucht ist ein Atom mit freiem Elektronenpaar: Cl, O, N oder F.", "Look for an atom with a lone pair: Cl, O, N or F."),
     tip: T("Welches Atom hat freie Elektronenpaare (Striche am Symbol)?", "Which atom has lone pairs (lines at the symbol)?"),
-    explain: T(`${Who} bindet mit einem freien Elektronenpaar an die freie Stelle. Kein Monomer kommt mehr heran: **vergiftet**.`, `${Who} binds to the vacant site with a lone pair. No monomer can get in any more: **poisoned**.`),
+    explain: T(`Es besetzt die freie Stelle: Das Titan ist **vergiftet**.`, `It blocks the vacant site: the titanium is **poisoned**.`),
     why: id => {
       const a = snap.atoms.find(x => x.id === id);
-      return a?.el === "C" ? ["zn-polar", T(`Die C=C würde eingebaut. ${Who} bindet aber fester – mit einem freien Elektronenpaar.`, `The C=C would be inserted. But ${who} binds more firmly – with a lone pair.`)]
+      return a?.el === "C" ? ["zn-polar", T(`Die C=C würde eingebaut. ${Who} bindet aber fester.`, `The C=C would be inserted. But ${who} binds more firmly.`)]
         : a?.el === "H" ? ["zn-polar", T("H hat kein freies Elektronenpaar. Suche Cl, O, N oder F.", "H has no lone pair. Look for Cl, O, N or F.")]
-        : ["zn-polar", T(`Auch dieses Atom hat freie Elektronenpaare. Am Titan bindet hier aber ${who}.`, `This atom has lone pairs too. But here ${who} binds to the titanium.`)];
+        : ["zn-polar", T(`Am Titan bindet hier ${who}.`, `Here ${who} binds to the titanium.`)];
     },
   });
 }

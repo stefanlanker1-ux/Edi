@@ -46,7 +46,8 @@ export function ReactorView({ recipe, rkey, store, wake, paused, onStats, onPick
   wake: number;
   paused: boolean;
   onStats: (s: RStats) => void;
-  onPick: (b: RBead) => void;
+  /** angetipptes Kügelchen und Zahl der Bausteine seines Moleküls (1 = noch Monomer) */
+  onPick: (b: RBead, n: number) => void;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -283,8 +284,9 @@ export function ReactorView({ recipe, rkey, store, wake, paused, onStats, onPick
     if (!b) return;
     b.held = false;
     if (!d.moved) {
-      sel.current = { ids: new Set(R.molOf(b.id)), until: performance.now() + 4000 };
-      live.current.onPick(b);
+      const mol = R.molOf(b.id);
+      sel.current = { ids: new Set(mol), until: performance.now() + 4000 };
+      live.current.onPick(b, mol.filter(i => R.bead(i)?.kind === "mono").length);
       if (!live.current.reduced && !live.current.paused) run();
     }
     draw();

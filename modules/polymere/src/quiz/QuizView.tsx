@@ -4,7 +4,7 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
-import { Button, buzz } from "@lern/ui";
+import { Button, RichText, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { LEVELS, TYPE_NAMES, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
 import { tapFrame } from "./tap.ts";
@@ -63,7 +63,7 @@ function TapPic({ t, sel, solved, onPick }: { t: TapTask; sel: string[]; solved:
     return () => ro.disconnect();
   }, [box]);
   return (
-    <div className="pm-tap-pic" ref={ref}>
+    <div className="pm-tap-pic" ref={ref} data-min-h="90">
       <MechSvg pose={pose} box={box} label={t.prompt.replace(/\*\*/g, "")} halos={t.halos !== false} className="pm-tap-svg"
         onPick={onPick} pickable={t.parts} marks={marks} hitR={hitR} />
     </div>
@@ -85,7 +85,7 @@ function TapAnswer({ t, answered, submit }: { t: TapTask; answered: Answered | n
     setSel(s => (s.includes(id) ? s.filter(x => x !== id) : [...s, id]));
   };
   return (
-    <div className={`pm-tap${answered ? " done" : ""}`}>
+    <div className={`pm-tap${multi ? "" : " single"}${answered ? " done" : ""}`}>
       <TapPic t={t} sel={sel} solved={!!answered} onPick={pickPart} />
       {!answered && (multi || miss) && (
         <div className="pm-tap-bar" aria-live="polite">
@@ -110,7 +110,7 @@ const BeadIcon = ({ it }: { it: BuildItem }) => (
 function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: Answered | null; submit?: Submit; solved?: boolean }) {
   const [seq, setSeq] = useState<(string | null)[]>(() => Array(t.n).fill(null));
   // ein Kügelchen ist schon gewählt: Tippen auf einen Platz setzt es sofort
-  const [cur, setCur] = useState<string>(t.pool[0].id);
+  const [cur, setCur] = useState<string>((t.pool.find(p => p.ok) ?? t.pool[0]).id);
   const [hint, setHint] = useState(false);
   const hinted = useRef(false);
   const done = !!answered || !!solved;
@@ -167,7 +167,7 @@ function BuildAnswer({ t, answered, submit, solved }: { t: BuildTask; answered: 
       </div>
       {!done && (
         <div className="pm-tap-bar" aria-live="polite">
-          <span className="pm-tap-note">{hint ? tr("Nochmal antippen = entfernen", "Tap again to remove") : <>{tr("Kügelchen wählen, dann Platz antippen", "Pick a bead, then tap a place")} · <span className="nw">{count}&nbsp;/&nbsp;{t.n}</span></>}</span>
+          <span className="pm-tap-note">{hint ? tr("Nochmal antippen = entfernen", "Tap again to remove") : <>{tr("Kügelchen wählen, dann Platz antippen (lange drücken = alle füllen)", "Pick a bead, then tap a place (long press = fill all)")} · <span className="nw">{count}&nbsp;/&nbsp;{t.n}</span></>}</span>
           <Button variant="primary" disabled={!full} onClick={() => { buzz(); submit?.(buildResult(t, seq as string[])); }}>{tr("Prüfen", "Check")}</Button>
         </div>
       )}
@@ -250,6 +250,7 @@ export function QuizView() {
       renderOption={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? <span className="pm-opt-pic"><VisView v={t.pics[o]} opt /><span className="sr-only">{o}</span></span> : o)}
       renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
       solution={t => (isTap(t) || isOrder(t) || isBuild(t) ? t.sol : null)}
+      feedbackExtra={t => (isTap(t) || isOrder(t) || isBuild(t) ? <p className="pm-sol-exp"><RichText text={t.explain} /></p> : null)}
       explain={(level, task) => explainFor(level, task)}
     />
   );

@@ -128,3 +128,16 @@ test("Kette bauen: Muster erkennen (Block auch als Dreiblock, zufällig = weder 
   assert.strictEqual(p("aaaabbbb"), PAT.block); assert.strictEqual(p("aabbbbaa"), PAT.block); assert.strictEqual(p("abababab"), PAT.alt);
   assert.strictEqual(p("abbababa"), PAT.stat); assert.strictEqual(p("aaaaaaab"), PAT.few); assert.strictEqual(p("aabaaaba"), PAT.few); assert.strictEqual(p("aabbbaba"), PAT.stat); assert.strictEqual(p("aaaaaaaa"), PAT.one); assert.strictEqual(p("aaaasaaa"), PAT.sat);
 });
+
+test("Kette bauen: „fast nur ein Monomer“ antwortet zur verlangten Art", () => {
+  for (let k = 0; k < 60; k++) {
+    const t = GENERATORS.bauenCopo();
+    if (!isBuild(t)) continue;
+    const [a, b] = t.pool.map(p => p.id);
+    const r = buildResult(t, [a, a, a, b, a, a, a, a]);
+    const trap = (t.traps ?? []).find(tr => Object.entries(tr.values ?? {}).every(([x, v]) => r.values[x] === v));
+    assert.ok(trap, t.goal);
+    const want = { stat: /Statistisch/, block: /Blockcopolymer/, alt: /Alternierend/ }[t.goal as "stat" | "block" | "alt"];
+    assert.match(trap!.why, want, `${t.goal}: ${trap!.why}`);
+  }
+});

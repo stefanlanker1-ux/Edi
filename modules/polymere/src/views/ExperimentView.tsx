@@ -75,11 +75,13 @@ function BeadIcon({ id, size = 18 }: { id: string; size?: number }) {
 /** lange zusammengesetzte Namen an den Wortfugen trennbar machen (weiches Trennzeichen) */
 const hyph = (name: string) => name.replace(/([a-zäöü]{3})(säure|dichlorid|chlorid|diamin|diisocyanat|diglycidylether|methacrylat|nitril|acetat|diol)/g, "$1\u00AD$2");
 
-function MonoCard({ id, active, onClick }: { id: string; active: boolean; onClick: () => void }) {
+/** `fits`: passender Partner (nach dem Vorschlag „Partner …“ gestrichelt umrandet mit ✓ „passt“; andere bleiben wählbar) */
+function MonoCard({ id, active, onClick, fits }: { id: string; active: boolean; onClick: () => void; fits?: boolean }) {
   return (
-    <button type="button" className={`pm-mono${active ? " on" : ""}`} aria-pressed={active} onClick={onClick}>
+    <button type="button" className={`pm-mono${active ? " on" : ""}${fits ? " fits" : ""}`} aria-pressed={active} onClick={onClick}>
       <span className="pm-mono-name"><BeadIcon id={id} /><span>{hyph(monoName(id))}</span></span>
       <Struct text={monoStruct(id)} hue={monoHue(id)} />
+      {fits && <span className="pm-fits">✓ {tr("passt", "matches")}</span>}
     </button>
   );
 }
@@ -189,12 +191,13 @@ function BeadLegend({ recipe }: { recipe: Recipe }) {
   );
 }
 
-function MonomerSheet({ id, onClose }: { id: string | null; onClose: () => void }) {
+function MonomerSheet({ id, onClose, chain }: { id: string | null; onClose: () => void; chain?: number }) {
   if (!id) return <Sheet open={false} title="" onClose={onClose}>{null}</Sheet>;
   const v = isVinyl(id) ? vinyl(id) : null, s = !v ? stepMono(id as StepId) : null;
   return (
     <Sheet open={!!id} title={monoName(id)} onClose={onClose}>
       <div className="pm-monoinfo">
+        {chain !== undefined && <p className="pm-monoinfo-chain"><b>{chain > 1 ? tr(`Dieses Molekül: ${chain} Bausteine`, `This molecule: ${chain} repeat units`) : tr("Noch ein einzelnes Monomer", "Still a single monomer")}</b></p>}
         <div className="pm-monoinfo-pic"><MonomerSvg id={id} aspect={1.6} /></div>
         <p><b>{v?.alt ?? s?.alt}</b> · {(v?.formula ?? s!.formula).replace(/\d/g, d => "₀₁₂₃₄₅₆₇₈₉"[+d])}</p>
         {v && <>
@@ -230,6 +233,9 @@ function PredictOptions({ options, onPick }: { options: PredOpt[]; onPick: (i: n
 export function ExperimentView() {
   const { art, setArt, recipes, setRecipe, view, setView, halos, lp, setHalos, setLp, predict: predictOn, setPredict } = useApp();
   const [tool, setTool] = useState<string | null>(null);
+  // nach „Partner …“: passende Partner im Blatt Monomer 2 hervorheben (bis das Blatt wieder zu ist)
+  const [partners, setPartners] = useState(false);
+  useEffect(() => { if (tool !== "mono2") setPartners(false); }, [tool]);
   const [info, setInfo] = useState<string | null>(null);
   const [why, setWhy] = useState(false);
   /** Abbruch: Auswahl der Abbruchart offen */
@@ -281,7 +287,8 @@ export function ExperimentView() {
     if (R) reactor.current = new Reactor(recipe, R.W, R.H);
     setRstats(reactor.current?.stats() ?? null); setRwake(w => w + 1); setRpaused(false);
   };
-  const pickBead = (b: RBead) => { if (b.kind === "mono") setInfo(b.m); else setParticle(b.m); };
+  const [chainN, setChainN] = useState<number | undefined>(undefined);
+  const pickBead = (b: RBead, n: number) => { if (b.kind === "mono") { setChainN(n); setInfo(b.m); } else setParticle(b.m); };
 
   const run = (id: string) => {
     buzz();
@@ -355,7 +362,7 @@ export function ExperimentView() {
         ? <>
             <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : pq?.phase === "watch" ? 1.6 : 1}
               mark={pq && (pq.phase === "ask" || pq.phase === "picked") && art !== "poly" ? st.endAtom : undefined} />
-            {st.beads.length > 0 && <BeadStrip beads={st.beads} active={st.active} onPick={(b: Bead) => b.mono && setInfo(b.mono)} />}
+            {st.beads.length > 0 && <BeadStrip beads={st.beads} active={st.active} onPick={(b: Bead) => { if (b.mono) { setChainN(undefined); setInfo(b.mono); } }} />}
           </>
         : <>
             <ReactorView recipe={recipe} rkey={rkey} store={reactor} wake={rwake} paused={rpaused} onStats={setRstats} onPick={pickBead} />
@@ -439,7 +446,7 @@ export function ExperimentView() {
       const name = KIND_TRY[method(alt).kind];
       return { label: name, go: () => { buzz(); setRecipe({ ...recipe, method: alt }); } };
     }
-    return { label: tr("Partner …", "Partner …"), go: () => { buzz(); setTool("mono2"); } };
+    return { label: tr("Partner …", "Partner …"), go: () => { buzz(); setPartners(true); setTool("mono2"); } };
   })();
   const actBtn = (a: Action) => button(a, compact, false, ask);
   const actRow = view === "atome" && (stopOpen
@@ -541,7 +548,8 @@ export function ExperimentView() {
       : { id: "mono2", label: low && recipe.b ? hyph(monoName(recipe.b)) : tr("Monomer 2", "Monomer 2"), title: tr("Monomer 2", "Monomer 2"), icon: "layers" as const, wide: true,
           content: <div className="pm-grid">
             <button type="button" className={`pm-mono none${!recipe.b ? " on" : ""}`} onClick={() => pickB(undefined)}><span className="pm-mono-name">{tr("ohne – Monomer allein", "none – monomer alone")}</span></button>
-            {monoList.map(id => <MonoCard key={id} id={id} active={recipe.b === id} onClick={() => pickB(id)} />)}
+            {monoList.map(id => <MonoCard key={id} id={id} active={recipe.b === id} onClick={() => pickB(id)}
+              fits={partners && id !== recipe.a && (() => { const o = stepReact(recipe.a as StepId, id as StepId); return o.struktur !== "none" && o.struktur !== "klein" && o.art === art; })()} />)}
           </div> },
     ...(art === "poly" ? [{ id: "verfahren", label: low ? method(recipe.method ?? "dbpo").short : tr("Verfahren", "Method"), title: tr("Verfahren", "Method"), icon: "fire" as const, wide: true,
       content: <div className="pm-meths">{METHODS.map(m => <MethodCard key={m.id} id={m.id} active={recipe.method === m.id} onClick={() => { buzz(); setRecipe({ ...recipe, method: m.id }); setTool(null); }} />)}</div> }] : []),
@@ -566,7 +574,7 @@ export function ExperimentView() {
         status={tags.length ? <div className="pm-status">{tags}</div> : undefined}
         controls={<div className="pm-controls">{pqPanel || <>{recipeRow}{actRow}</>}{rRow}</div>}
         tools={pq && view === "atome" && !wide ? [] : tools} />
-      <MonomerSheet id={info} onClose={() => setInfo(null)} />
+      <MonomerSheet id={info} chain={chainN} onClose={() => setInfo(null)} />
       <Sheet open={legend} title={tr("Legende", "Key")} onClose={() => setLegend(false)}><BeadLegend recipe={recipe} /></Sheet>
       <Sheet open={why && !!whyText} title={whyTitle} onClose={() => setWhy(false)}>
         <p className="pm-why">{whyText}</p>

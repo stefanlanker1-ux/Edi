@@ -621,7 +621,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   wahlweise ohne Pfeile) oder Kettenausschnitt; `parts` = antippbare Atome (stabile Kennungen), `answer` = richtige Atome, Fallen je falschem Teil
   (`pick` bzw. bei mehreren `wrong`, dazu `n`, `adj`); mehrere Atome: antippen schaltet um, „Prüfen“; Lösung danach gestrichelt grün mit ✓, falsch gewählte
   mit ✗; vorher sind alle antippbaren Teile dünn gepunktet umrandet, daneben getippt → kurzer Hinweis, bei mehreren „x von n gewählt“;
-  Trefferkreise mindestens 44 px (Bildmaßstab gemessen); `zoom` (K4, K5): nur Teile nahe der reagierenden Stelle (`nearParts`), Ausschnitt um sie im Seitenverhältnis
+  Trefferkreise mindestens 44 px (Bildmaßstab gemessen); nach der Antwort bleibt das Bild gleich groß (Platz für die Rückmeldung
+  wird vorher freigehalten, die Erklärung steht im Blatt „Lösung“ über `feedbackExtra`, auf der Karte nur Grund und Lösung); `zoom` (K4, K5): nur Teile nahe der reagierenden Stelle (`nearParts`), Ausschnitt um sie im Seitenverhältnis
   des Bildplatzes, antippbare Atome bleiben sichtbar, auch wenn ihr Nachbar am Rand ausgeblendet wird; `giftTap` zeigt das Monomer in Standardlage neben dem Titan (noch nicht gedreht); Lösung nach Fehlern in Worten (`sol`), nie als Nummer; unsichtbare Knöpfe für Tastatur und Vorlesen; im gelösten Beispiel zeigt das Bild die markierte Lösung. Aufgaben: K1 `bausteinTap` (zwei benachbarte
   C eines Bausteins, ohne farbige Hinterlegung), K2 `radikalTap` (C mit dem Radikal nach dem Anlagern), K3 `freieStelleTap`, `giftTap` (Cl/O/N am Titan),
   K4 `wasserTap` (drei Atome des Wassers), `schnitt` (Bindung antippen, die neu entstanden ist: C–O bzw. C–N zwischen zwei Bausteinen; Bindungen als Teile „a|b“,
@@ -681,6 +682,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Bild bleibt groß, Beschriftungen im Bild, Partner, Reaktor** – Antippen/Ordnen/Bauen: Platz für die Rückmeldung ist schon vor der Antwort frei, die Erklärung
+  steht im Blatt „Lösung“ (Bild nach „Prüfen“ ≥ 90 % so hoch wie vorher); Beschriftungen in der Atom-Ansicht mehrzeilig und immer im Ausschnitt (Test); „Partner …“ markiert
+  passende Partner mit „✓ passt“; Reaktor: Antippen nennt die Zahl der Bausteine des Moleküls; „fast nur ein Monomer“ antwortet zur verlangten Copolymer-Art (Test).
 - **Polymere: Kette bauen nachgebessert** – Kügelchen vorgewählt, Bedienzeile, Kette am Handy als Schlange (eine zusammenhängende Kette), „statistisch“ erst ab je 3 von 8
   (sonst Rückmeldung „Fast nur …“), lange Drücken füllt, Kürzel ohne Verwechslung mit Elementsymbolen.
 - **Polymere: Antippen nachgebessert (2)** – vergiftendes Atom: Monomer in Standardlage (verrät die Lösung nicht mehr), Fertigkeit „Atom, das das Titan vergiftet“;

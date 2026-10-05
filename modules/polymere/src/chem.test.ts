@@ -284,3 +284,25 @@ test("Allyl-H-Abriss: das Allylradikal (Propen bzw. Isobuten) bleibt im Endbild,
     assert.ok(s.notes.some(n => /Allyl/.test(n.text)), `${a}: Beschriftung fehlt`);
   }
 });
+
+test("Beschriftungen im Bild: ganz im Ausschnitt, Zeilen kurz (passt bei 390 px)", async () => {
+  const { noteBox, snapBox } = await import("./chem/scene.ts");
+  for (const r of recipes()) {
+    if (r.art === "poly" && r.b) continue;
+    const m = makeMech(r);
+    for (let k = 0; k < 10; k++) {
+      const id = nextAuto(m, r);
+      if (!id) break;
+      const clip = m.run(id);
+      for (const key of [clip[clip.length - 1].snap, m.snap()]) {
+        const b = snapBox(key);
+        for (const n of key.notes) {
+          if ((n.op ?? 1) <= 0.05 || n.bracket || n.text.length <= 4) continue;
+          for (const l of n.text.split("\n")) assert.ok(l.length <= 18, `${JSON.stringify(r)} ${id}: Zeile zu lang „${l}“`);
+          const q = noteBox(n);
+          assert.ok(b && q.x0 >= b.x0 - 1e-9 && q.x1 <= b.x1 + 1e-9 && q.y0 >= b.y0 - 1e-9 && q.y1 <= b.y1 + 1e-9, `${JSON.stringify(r)} ${id}: „${n.text}“ ragt hinaus`);
+        }
+      }
+    }
+  }
+}, 60_000);

@@ -308,8 +308,7 @@
 .mb-pick.can circle { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 2 3; }
 .mb-pick.bond.can rect { stroke: var(--muted); stroke-width: 1.6; stroke-dasharray: 2 3; }
 .pm-tap-note { font-size: .84rem; color: var(--muted); }
-.q-body > .pm-tap.done { min-height: 70px; }
-@media (max-height: 700px) { .q-body > .pm-tap { min-height: 110px; } .q-body > .pm-tap.done { min-height: 56px; } }
+@media (max-height: 700px) { .q-body > .pm-tap { min-height: 110px; } }
 /* Ordnen: vier Bilder 2 × 2, Nummer als rote Kennziffer, nach dem Prüfen ✓ bzw. ✗ mit richtigem Platz (nie nur Farbe) */
 .q-body > .pm-order { flex: 1 1 0; min-height: 160px; display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; }
 .pm-order-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 6px; min-height: 0; }
@@ -325,12 +324,8 @@
 .pm-order-card.ok .pm-order-mark { color: var(--ok); }
 .pm-order-name { font-size: .72rem; font-weight: 650; line-height: 1.15; }
 .q-pm:has(.pm-order) { height: auto; }
-/* nach der Antwort: Bilder klein, Platz für die Rückmeldung */
-.q-body > .pm-order.done { flex: none; min-height: 0; grid-template-rows: auto; }
-.pm-order.done .pm-order-grid, .pm-order.done .pm-order-card { grid-template-rows: auto auto; }
-.pm-order.done .pm-order-pic { height: 40px; }
-@media (min-width: 600px) and (min-height: 740px) { .pm-order.done .pm-order-pic { height: 90px; } }
-@media (max-height: 700px), (max-width: 370px) { .pm-order.done .pm-order-pic { display: none; } .pm-order.done .pm-order-card { padding-top: 26px; } }
+/* nach der Antwort bleiben die Bilder gleich groß; der Name des Schritts liegt unten auf der Karte */
+.pm-order.done .pm-order-name { position: absolute; left: 3px; right: 3px; bottom: 3px; padding: 1px 2px; background: var(--surface); }
 /* Kette bauen: Vorrat (zwei Kügelchen mit Name und Formel), darunter die Plätze; am schmalen Handy 2 × 4 */
 .q-body > .pm-build { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-height: 0; }
 .pm-build-pool { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -357,3 +352,10 @@
 .pm-tap-note .nw { white-space: nowrap; }
 /* nach dem Prüfen auf niedrigen Bildschirmen: Vorrat weg, Platz für die Rückmeldung */
 @media (max-height: 760px) { .pm-build.done .pm-build-pool { display: none; } }
+/* Antippen, Ordnen, Bauen: auf der Karte nur Grund und Lösung, die Erklärung steht im Blatt „Lösung“ (das Bild bleibt groß) */
+.task-card.kind-tap:not(.worked) .q-feedback .fb-exp, .task-card.kind-order:not(.worked) .q-feedback .fb-exp, .task-card.kind-build:not(.worked) .q-feedback .fb-exp { display: none; }
+/* Platz für die Rückmeldung schon vor der Antwort freihalten: das Bild ändert seine Größe nach „Prüfen“ nicht */
+.q-body:has(> .pm-tap:not(.done), > .pm-order:not(.done), > .pm-build:not(.done))::after { content: ""; flex: 0 0 66px; }
+.q-body:has(> .pm-tap.single:not(.done))::after { flex-basis: 130px; }
+.pm-mono.fits { outline: 2px dashed var(--ok); outline-offset: -4px; }
+.pm-fits { font-size: .76rem; font-weight: 750; color: var(--ok); }

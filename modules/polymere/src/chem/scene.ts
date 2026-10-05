@@ -351,9 +351,19 @@ export function expandFocus(s: Snap, max = 7): string[] | undefined {
   return [...f];
 }
 
-/** Ausschnitt eines Schnappschusses: Fokus-Atome (samt kleiner Anhängsel), mindestens über die x-Spanne */
+/** Umriss einer Beschriftung (Zeilen mit „\n“; Zeichenbreite ≈ 0,26 Bindungslängen, Zeilenhöhe ≈ 0,5) */
+export function noteBox(n: Note): Box {
+  const lines = n.text.split("\n"), w = Math.max(...lines.map(l => l.length)) * 0.13 + 0.1, h = lines.length * 0.26 + 0.1;
+  return { x0: n.x - w, x1: n.x + w, y0: n.y - h, y1: n.y + h };
+}
+
+/** Ausschnitt eines Schnappschusses: Fokus-Atome (samt kleiner Anhängsel), mindestens über die x-Spanne; längere Beschriftungen ganz im Bild */
 export function snapBox(s: Snap): Box | null {
-  const b = boxOf(s.atoms, expandFocus(s));
+  let b = boxOf(s.atoms, expandFocus(s));
+  if (b) for (const n of s.notes) if ((n.op ?? 1) > 0.05 && !n.bracket && n.text.length > 4) {
+    const q = noteBox(n);
+    b = { x0: Math.min(b.x0, q.x0), y0: Math.min(b.y0, q.y0), x1: Math.max(b.x1, q.x1), y1: Math.max(b.y1, q.y1) };
+  }
   if (!b || !s.span) return b;
   return { ...b, x0: Math.min(b.x0, s.span[0]), x1: Math.max(b.x1, s.span[1]) };
 }
@@ -364,7 +374,7 @@ export function clipBox(c: Clip): Box | null {
   const grow = (b: Box | null) => { if (b) out = out ? { x0: Math.min(out.x0, b.x0), y0: Math.min(out.y0, b.y0), x1: Math.max(out.x1, b.x1), y1: Math.max(out.y1, b.y1) } : b; };
   for (const k of c) {
     grow(snapBox(k.snap));
-    for (const n of k.snap.notes) if ((n.op ?? 1) > 0.05) grow({ x0: n.x - 0.5, x1: n.x + 0.5, y0: n.y - 0.35, y1: n.y + 0.35 });
+    for (const n of k.snap.notes) if ((n.op ?? 1) > 0.05) grow(n.text.length > 4 && !n.bracket ? noteBox(n) : { x0: n.x - 0.5, x1: n.x + 0.5, y0: n.y - 0.35, y1: n.y + 0.35 });
   }
   return out;
 }

@@ -258,7 +258,11 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
           const h = n.bracket / 2, w = n.text === "[" ? 0.16 : -0.16;
           return <path key={n.id} className="mb-bracket" d={`M${(n.x + w) * U} ${(n.y - h) * U}H${n.x * U}V${(n.y + h) * U}H${(n.x + w) * U}`} opacity={n.op ?? 1} />;
         }
-        return <text key={n.id} className={`mb-note tone-${n.tone ?? "plain"}`} x={n.x * U} y={n.y * U} dominantBaseline="central" textAnchor="middle" opacity={n.op ?? 1}>{n.text}</text>;
+        // mehrzeilig mit „\n“, als Block um n.y zentriert
+        const lines = n.text.split("\n");
+        return <text key={n.id} className={`mb-note tone-${n.tone ?? "plain"}`} x={n.x * U} y={n.y * U} dominantBaseline="central" textAnchor="middle" opacity={n.op ?? 1}>
+          {lines.length === 1 ? n.text : lines.map((l, k) => <tspan key={k} x={n.x * U} dy={k ? "1.15em" : `${-(lines.length - 1) * 0.575}em`}>{l}</tspan>)}
+        </text>;
       })}
       {pose.arrows.map((ar, i) => {
         const p = anchorPt(pose, ar.arrow.from), q = anchorPt(pose, ar.arrow.to);
