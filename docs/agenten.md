@@ -2,6 +2,9 @@
 
 Gilt für alle Module. Jeder Agent hat genau eine Rolle; nur der Programmierer ändert Code, nur der Master veröffentlicht.
 
+**Arbeit nur auf ausdrücklichen Befehl.** Das Team startet nur, wenn ein Auftrag erteilt wird, und arbeitet nur an diesem Auftrag. Keine selbstständigen
+Routinen, Weckrufe oder Folgeaufträge; nach Abschluss des Auftrags hören alle Agenten auf.
+
 ## Rollen
 
 | Rolle | Aufgabe | Liefert |
