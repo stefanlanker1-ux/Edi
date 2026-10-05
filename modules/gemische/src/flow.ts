@@ -251,7 +251,9 @@ export function makeWorld(ex: Spec, seed = 1, phase: "nachher" | "vorher" = "nac
 }
 
 /** Metallschmelze: Wärmebewegung (Stoßstärke, Dämpfung), langsame Wärmeströmung, Druck (gleich dicht, keine Lücken) */
-const JIG = .9, DAMP = .95, CONV = .9, PRESS = 1;
+const JIG = .9, DAMP = .95, CONV = 1.8, PRESS = 1;
+/** Schmelze: Wechsel der Strömungswalzen (Schritte je Phase) – so ist das Zink nach 10 s überall etwa gleich verteilt (Test) */
+const MIX_T = 30;
 /** Schmelzen und wieder Erstarren (Metall): 10 s */
 export const MELT = 600;
 /** Umrühren (Flüssigkeit): 3 s */
@@ -353,10 +355,12 @@ export function stepFlow(w: World) {
         // Strömung, die Gruppen von Atomen verschiebt. So vermischen sich Kupfer und Zink gleichmäßig nach und nach (Diffusion).
         // Gegen Ende (Erstarren) wird die Bewegung ruhiger – kein abrupter Übergang zum Gitter.
         const jig = JIG * Math.min(1, .25 + w.melt / 80);
-        // dazu eine langsame, gleichmäßige Wärmeströmung (warme Schmelze steigt auf, kühlere sinkt) – ohne Stöße
-        const X = Math.PI * p.x / W, Y = Math.PI * p.y / H, s1 = (1 + Math.sin(w.t / 90)) / 2;
-        const u = CONV * (s1 * Math.sin(X) * Math.cos(Y) + (1 - s1) * Math.sin(2 * X) * Math.cos(Y));
-        const v0 = -CONV * H / W * (s1 * Math.cos(X) * Math.sin(Y) + (1 - s1) * 2 * Math.cos(2 * X) * Math.sin(Y));
+        // dazu eine langsame Wärmeströmung (warme Schmelze steigt auf, kühlere sinkt) – ohne Stöße. Die Walzen wechseln ihre Lage
+        // (eine, zwei, verschobene): eine einzelne feste Walze würde den Zinkblock nur im Kreis drehen statt ihn zu verteilen.
+        const X = Math.PI * p.x / W, Y = Math.PI * p.y / H, ph = w.t / MIX_T;
+        const m1 = Math.max(0, Math.sin(ph)) ** 2, m2 = Math.max(0, Math.sin(ph + 2.1)) ** 2, m3 = Math.max(0, Math.sin(ph + 4.2)) ** 2, sum = m1 + m2 + m3 || 1;
+        const u = CONV * (m1 * Math.sin(X) * Math.cos(Y) + m2 * Math.sin(2 * X) * Math.cos(Y) + m3 * Math.sin(X) * Math.cos(2 * Y) * 2) / sum;
+        const v0 = -CONV * H / W * (m1 * Math.cos(X) * Math.sin(Y) + m2 * 2 * Math.cos(2 * X) * Math.sin(Y) + m3 * Math.cos(X) * Math.sin(2 * Y)) / sum;
         const calm = Math.min(1, w.melt / 60, (MELT - w.melt) / 60);
         p.vx = p.vx * DAMP + (r() - .5) * jig + (u - p.vx) * .04 * calm;
         p.vy = p.vy * DAMP + (r() - .5) * jig + (v0 - p.vy) * .04 * calm;

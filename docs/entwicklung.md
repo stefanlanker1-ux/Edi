@@ -317,7 +317,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   **Umrühren/Schütteln** (`agit`, setzt sanft ein und klingt sanft aus): Strömung ohne Stau – Stromfunktion ψ = sin πx · sin πy bzw. zwei Walzen, fließend im Wechsel;
   reicht bis zum Boden bzw. bis zur Oberkante des Kristalls (Test: überall etwa gleich dicht). Beim **Schütteln** zusätzlich kleine,
   ständig wandernde Wirbel (ψ = sin(3πx + a) · sin(3πy + b)). **Schmelze** (Messing, `MELT` 10 s): jedes Atom bewegt sich ungeordnet (Wärmebewegung) und gleitet
-  an den Nachbarn vorbei, dazu eine langsame, gleichmäßige Wärmeströmung ohne Stöße und Druck gegen Lücken – Kupfer und Zink vermischen sich nach und nach, danach Erstarren im Gitter.
+  an den Nachbarn vorbei, dazu eine Wärmeströmung ohne Stöße, deren Walzen ihre Lage wechseln (eine, zwei, verschobene – sonst dreht sich der Zinkblock nur im Kreis), und Druck gegen Lücken – Kupfer und Zink vermischen sich nach und nach, danach Erstarren im Gitter.
   Darstellung (`FlowView`): fester Takt von 60 Rechenschritten/s unabhängig von der Bildrate (60/120 Hz); gezeichnet wird eine Lage, die der gerechneten
   wie an einer kritisch gedämpften Feder folgt (`glide`, je 1/60 s ein Federschritt – glättet das Zittern der Stöße, besonders in der Lupe).
   Zeichenfläche undurchsichtig, am Handy 1,5-fache Pixeldichte (ab 900 px Breite 2-fach).
@@ -705,6 +705,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
+
+- **Gemische: Definitionen Element, Verbindung, Legierung einheitlich; Messing gleichmäßig** – Lektion 2 und Erklärkarte mit den Definitionen „Element: eine Atomsorte –
+  als einzelne Atome, Moleküle oder im Gitter“ und „Verbindung: mehrere Atomsorten, fest miteinander verbunden – in Molekülen oder in einem Gitter“; „in einem Teilchen“
+  nur noch als Bildregel („Im Bild: …“). Legierung = Metall mit anderen Elementen zusammen geschmolzen (nie „nur Metalle“); „bis zu den Atomen gemischt“ nur bei einphasigen
+  Beispielen. Test `definitions.test.ts` sucht die verbotenen Formulierungen in allen Texten (DE/EN). Schmelze Messing: Strömungswalzen wechseln ihre Lage (eine, zwei,
+  verschobene; `MIX_T`), stärker (`CONV` 1,8) – vorher drehte eine Walze den Zinkblock nur im Kreis (Zink je Drittel 13–52 %); Test: nach dem Erstarren jedes Drittel in
+  Breite und Höhe höchstens 13 Prozentpunkte vom Mittel (10 Startwerte).
 
 - **Gemische: Kapitel 5 geteilt, neues Kapitel 6 „Lösungen trennen“** – Kapitel 5 „Trennen nach Größe, Magnet, Dichte“ (Lektion 9 Schritte, neu Dichte, Bodensatz,
   Dekantieren), Kapitel 6 `gm-k6` (Lektion 12 Schritte mit selbst bedientem Gerät, Alkohol/Wasser-Destillation, mehrere Schritte; Fertigkeiten `loesWahl`,

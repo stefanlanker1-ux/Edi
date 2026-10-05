@@ -16,8 +16,8 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Zwischen den Teilchen ist **nichts**. Farbe, fest und flüssig sind Eigenschaften des **Stoffs** – ein einzelnes Teilchen hat sie nicht.",
   ] },
   k2: { ex: "schutzgas", arr: ["nachher"], points: [
-    "**Element:** nur **eine** Atomsorte (He, Cu, O₂).",
-    "**Verbindung:** mehrere Atomsorten fest verbunden – als Molekül (H₂O, CO₂) oder im Gitter (Kochsalz NaCl).",
+    "**Element:** nur **eine** Atomsorte – als einzelne Atome (He), als Moleküle (O₂) oder im Gitter (Cu).",
+    "**Verbindung:** **mehrere** Atomsorten, fest miteinander verbunden – in Molekülen (H₂O, CO₂) oder in einem Gitter (Kochsalz NaCl).",
     "Zähle **Stoffe**, nicht Teilchen: gleiche Teilchen sind ein Stoff.",
   ] },
   k3: { ex: "zucker", arr: ["vorher", "nachher"], points: [
@@ -26,7 +26,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Beim **Lösen** lagern sich Wasserteilchen an und lösen die Teilchen heraus; sie verteilen sich. Nichts verschwindet, die **Masse bleibt gleich**.",
   ] },
   k4: { ex: "messing", arr: ["nachher"], points: [
-    "Homogen: **Lösung** (Flüssigkeit mit gelöstem Stoff), **Legierung** (Metall mit anderen Elementen zusammen geschmolzen), **Gasgemisch** (Gase).",
+    "Homogen: **Lösung** (Flüssigkeit mit gelöstem Stoff), **Legierung** (Metall + andere Elemente, geschmolzen), **Gasgemisch** (Gase).",
     "Heterogen: **Emulsion** (Tröpfchen in Flüssigkeit), **Suspension** (Körner in Flüssigkeit), **Gemenge** (feste Stücke), **Rauch** (fest in Gas), **Nebel** (Tröpfchen in Gas), **Schaum** (Gas in Flüssigkeit).",
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
@@ -47,8 +47,8 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Between the particles there is **nothing**. Colour, solid and liquid are properties of the **substance** – a single particle does not have them.",
   ] },
   k2: { ex: "schutzgas", arr: ["nachher"], points: [
-    "**Element:** only **one** kind of atom (He, Cu, O₂).",
-    "**Compound:** several kinds of atoms firmly bonded – as a molecule (H₂O, CO₂) or in a lattice (table salt NaCl).",
+    "**Element:** only **one** kind of atom – as single atoms (He), as molecules (O₂) or in a lattice (Cu).",
+    "**Compound:** **several** kinds of atoms, firmly bonded together – in molecules (H₂O, CO₂) or in a lattice (table salt NaCl).",
     "Count **substances**, not particles: identical particles are one substance.",
   ] },
   k3: { ex: "zucker", arr: ["vorher", "nachher"], points: [
@@ -57,7 +57,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "When **dissolving**, water particles attach themselves and pull the particles out; they spread out. Nothing disappears, the **mass stays the same**.",
   ] },
   k4: { ex: "messing", arr: ["nachher"], points: [
-    "Homogeneous: **solution** (liquid with a dissolved substance), **alloy** (a metal melted together with other elements), **gas mixture** (gases).",
+    "Homogeneous: **solution** (liquid with a dissolved substance), **alloy** (metal + other elements, melted), **gas mixture** (gases).",
     "Heterogeneous: **emulsion** (droplets in a liquid), **suspension** (grains in a liquid), **coarse mixture** (solid pieces), **smoke** (solid in gas), **fog** (droplets in gas), **foam** (gas in a liquid).",
     "“Pure” on a package means: nothing added. A **pure substance** is only **one** substance.",
   ] },

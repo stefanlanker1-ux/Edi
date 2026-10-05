@@ -180,7 +180,7 @@ const K1: GuideStep[] = [
 const K2: GuideStep[] = [
   {
     mode: "worked",
-    say: tr("**Element**: nur **eine** Atomsorte. **Verbindung**: mehrere Atomsorten fest verbunden – als Molekül wie Wasser oder im **Gitter** wie Kochsalz (NaCl).", "**Element**: only **one** kind of atom. **Compound**: several kinds of atoms firmly bonded – as a molecule like water or in a **lattice** like table salt (NaCl)."),
+    say: tr("**Element**: nur **eine** Atomsorte – als einzelne Atome (Helium He), als Moleküle (Sauerstoff O₂) oder im **Gitter** (Kupfer Cu). **Verbindung**: **mehrere** Atomsorten, fest miteinander verbunden – in Molekülen (Wasser H₂O) oder in einem Gitter (Kochsalz NaCl).", "**Element**: only **one** kind of atom – as single atoms (helium He), as molecules (oxygen O₂) or in a **lattice** (copper Cu). **Compound**: **several** kinds of atoms, firmly bonded together – in molecules (water H₂O) or in a lattice (table salt NaCl)."),
     ask: tr("Element oder Verbindung?", "Element or compound?"),
     visual: () => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} />,
     labels: [{ at: "[data-f=\"Ne\"]", text: tr("Element", "Element"), side: "right" }, { at: "[data-f=\"CO2\"]", text: tr("Verbindung", "Compound"), side: "left" }],
@@ -324,7 +324,7 @@ const K4: GuideStep[] = [
     mode: "worked",
     say: tr("Heterogene Gemische haben eigene Namen. Man fragt: **was** ist verteilt, und **worin**?", "Heterogeneous mixtures have their own names. Ask: **what** is spread out, and **in what**?"),
     ask: tr("Welche Arten von Gemischen gibt es?", "What types of mixtures are there?"),
-    lines: [tr("Feste Körner in Flüssigkeit → **Suspension** (Sand in Wasser).", "Solid grains in a liquid → **suspension** (sand in water)."), tr("Tröpfchen in Flüssigkeit → **Emulsion** (Milch).", "Droplets in a liquid → **emulsion** (milk)."), tr("Gasblasen in Flüssigkeit → **Schaum** (Schlagsahne).", "Gas bubbles in a liquid → **foam** (whipped cream)."), tr("Nur feste Stücke nebeneinander → **Gemenge** (Müsli).", "Only solid pieces side by side → **coarse mixture** (muesli)."), tr("Homogen: Metalle bis zu den Atomen gemischt → **Legierung** (Messing).", "Homogeneous: metals mixed down to the atoms → **alloy** (brass).")],
+    lines: [tr("Feste Körner in Flüssigkeit → **Suspension** (Sand in Wasser).", "Solid grains in a liquid → **suspension** (sand in water)."), tr("Tröpfchen in Flüssigkeit → **Emulsion** (Milch).", "Droplets in a liquid → **emulsion** (milk)."), tr("Gasblasen in Flüssigkeit → **Schaum** (Schlagsahne).", "Gas bubbles in a liquid → **foam** (whipped cream)."), tr("Nur feste Stücke nebeneinander → **Gemenge** (Müsli).", "Only solid pieces side by side → **coarse mixture** (muesli)."), tr("Homogen: ein Metall mit anderen Elementen zusammen geschmolzen → **Legierung** (Messing: Kupfer und Zink).", "Homogeneous: a metal melted together with other elements → **alloy** (brass: copper and zinc).")],
     ok: tr("Zwei Fragen genügen: Was ist verteilt? Worin?", "Two questions are enough: what is spread out? In what?"),
   },
   {
@@ -338,7 +338,7 @@ const K4: GuideStep[] = [
     mode: "free",
     ask: tr("Jetzt du: Welche Art von Gemisch ist **Müsli**?", "Your turn: what type of mixture is **muesli**?"), answer: tr("Gemenge", "Coarse mixture"), options: [tr("Legierung", "Alloy"), tr("Suspension", "Suspension"), tr("Gemenge", "Coarse mixture")],
     visual: () => <div className="gm-g"><MuesliBowl mixed={1} shaking={false} /></div>,
-    why: { [tr("Suspension", "Suspension")]: tr("Im Müsli ist keine Flüssigkeit – nur feste Teile.", "There is no liquid in muesli – only solid pieces."), [tr("Legierung", "Alloy")]: tr("Legierungen sind Metalle, bis zu den Atomen gemischt.", "Alloys are metals mixed down to the atoms.") },
+    why: { [tr("Suspension", "Suspension")]: tr("Im Müsli ist keine Flüssigkeit – nur feste Teile.", "There is no liquid in muesli – only solid pieces."), [tr("Legierung", "Alloy")]: tr("Eine Legierung ist ein Metall, mit anderen Elementen zusammen geschmolzen. Im Müsli sieht man Stücke.", "An alloy is a metal melted together with other elements. In muesli you can see pieces.") },
     lines: [tr("Fest neben fest, Stücke sichtbar → Gemenge.", "Solid beside solid, pieces visible → coarse mixture.")],
     ok: tr("Feste Teile nebeneinander → Gemenge.", "Solid pieces side by side → coarse mixture."),
   },

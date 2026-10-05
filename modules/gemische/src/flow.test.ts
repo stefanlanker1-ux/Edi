@@ -321,3 +321,21 @@ test("Temperatur: je wärmer, desto schneller bewegen sich die Teilchen", () => 
   };
   for (const id of ["wasser", "helium"]) assert.ok(dist(id, 100) > dist(id, 0) * 1.1, id);
 }, 60_000);
+
+test("Messing: nach dem Erstarren ist das Zink überall etwa gleich verteilt (jedes Drittel in Breite und Höhe ± 13 Prozentpunkte)", () => {
+  for (let seed = 1; seed <= 10; seed++) {
+    const w = makeWorld(ex("messing"), seed, "vorher");
+    startMixing(w);
+    let k = 0;
+    while (!settledFlow(w) && k < 2000) { stepFlow(w); k++; }
+    const all = 100 * w.ps.filter(p => p.f === "Zn").length / w.ps.length;
+    for (const ax of ["hx", "hy"] as const) {
+      const L = ax === "hx" ? w.W : w.H;
+      for (let b = 0; b < 3; b++) {
+        const ps = w.ps.filter(p => Math.min(2, Math.floor((p[ax] as number) / L * 3)) === b);
+        const zn = 100 * ps.filter(p => p.f === "Zn").length / ps.length;
+        assert.ok(Math.abs(zn - all) <= 13, `Samen ${seed}, ${ax} Drittel ${b + 1}: ${zn.toFixed(0)} % Zink statt ${all.toFixed(0)} %`);
+      }
+    }
+  }
+}, 120_000);
