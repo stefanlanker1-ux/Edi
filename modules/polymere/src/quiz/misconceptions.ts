@@ -47,6 +47,8 @@ const MISS_DE: Record<string, string> = {
   // Struktur und Eigenschaften
   "netz-schmilzt": "Duroplast für schmelzbar gehalten",
   "elast-thermo": "Elastomer und Thermoplast verwechselt",
+  "elast-duro": "Elastomer und Duroplast verwechselt",
+  "thermo-duro": "Einzelne Ketten für ein Netz gehalten",
   "copo-verwechselt": "Art des Copolymers verwechselt",
   "kette-sofort": "Lange Ketten beim Stufenwachstum sofort erwartet",
   "kette-spaet": "Lange Ketten beim Kettenwachstum erst spät erwartet",
@@ -91,6 +93,8 @@ const MISS_EN: Record<string, string> = {
   "verknuepfungen-gezaehlt": "Counted monomers instead of links",
   "netz-schmilzt": "Thermoset thought to melt",
   "elast-thermo": "Elastomer and thermoplastic mixed up",
+  "elast-duro": "Elastomer and thermoset mixed up",
+  "thermo-duro": "Separate chains taken for a network",
   "copo-verwechselt": "Type of copolymer mixed up",
   "kette-sofort": "Long chains expected early in step growth",
   "kette-spaet": "Long chains expected late in chain growth",

@@ -682,6 +682,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: K5/K6 nur Eingeführtes** – Lektion K5 führt Isocyanatgruppe, Harnstoffgruppe (neuer halb gelöster Schritt), Epoxidgruppe, „gespannt“ und Zweikomponentenkleber ein
+  (Legende „R = Rest des Moleküls“); K5 ohne Thermoplast/Duroplast; K6 fragt Gegenstände mit ihrer Eigenschaft, Rückmeldung mit dem Ding bzw. mit den gezählten Brücken im Bild;
+  Stolpersteine nach dem Paar (richtig, gewählt) mit neuen `elast-duro`, `thermo-duro` (Test); Recycling-Codes nur noch in „Alles gemischt“.
 - **Polymere: Bild bleibt groß, Beschriftungen im Bild, Partner, Reaktor** – Antippen/Ordnen/Bauen: Platz für die Rückmeldung ist schon vor der Antwort frei, die Erklärung
   steht im Blatt „Lösung“ (Bild nach „Prüfen“ ≥ 90 % so hoch wie vorher); Beschriftungen in der Atom-Ansicht mehrzeilig und immer im Ausschnitt (Test); „Partner …“ markiert
   passende Partner mit „✓ passt“; Reaktor: Antippen nennt die Zahl der Bausteine des Moleküls; „fast nur ein Monomer“ antwortet zur verlangten Copolymer-Art (Test).

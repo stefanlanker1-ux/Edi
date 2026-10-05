@@ -1,7 +1,7 @@
 // Aufgaben: speicherbar, Antwort unter den Optionen, keine doppelten Optionen, Bilder zu Bild-Antworten,
 // Fehlvorstellungen aus dem Katalog, jede falsche Antwort mit Rückmeldung, Level-Reihenfolge.
 import { test, assert } from "vitest";
-import { GENERATORS, LEVELS, PAT, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
+import { GENERATORS, LEVELS, PAT, klMiss, TYPE_NAMES, buildPattern, buildResult, isBuild, isOrder, isTap, makeRound, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -139,5 +139,21 @@ test("Kette bauen: „fast nur ein Monomer“ antwortet zur verlangten Art", () 
     assert.ok(trap, t.goal);
     const want = { stat: /Statistisch/, block: /Blockcopolymer/, alt: /Alternierend/ }[t.goal as "stat" | "block" | "alt"];
     assert.match(trap!.why, want, `${t.goal}: ${trap!.why}`);
+  }
+});
+
+test("Kunststoffart: Stolperstein nach dem Paar (richtig, gewählt)", () => {
+  const table: [Parameters<typeof klMiss>[0], Parameters<typeof klMiss>[1], string][] = [
+    ["elast", "duro", "elast-duro"], ["duro", "elast", "elast-duro"], ["thermo", "elast", "elast-thermo"], ["elast", "thermo", "elast-thermo"],
+    ["duro", "thermo", "netz-schmilzt"], ["thermo", "duro", "thermo-duro"],
+  ];
+  for (const [r, c, want] of table) { assert.strictEqual(klMiss(r, c), want, `${r}/${c}`); assert.ok(MISS[want]); }
+  // in den Aufgaben: Gummiband → Duroplast ergibt „Elastomer und Duroplast verwechselt“
+  for (let k = 0; k < 80; k++) {
+    const t = GENERATORS.klasseAlltag();
+    if (isTap(t) || isOrder(t) || isBuild(t) || !/Gummiband/.test(t.prompt)) continue;
+    const i = t.options.indexOf("Duroplast");
+    assert.strictEqual(t.miss?.[i], "elast-duro");
+    return;
   }
 });

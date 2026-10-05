@@ -733,27 +733,37 @@ function epoxidNetz(): Task {
   return task(T("Warum wird Epoxidharz hart und schmilzt nicht mehr?", "Why does epoxy resin become hard and no longer melt?"), T("Ketten bilden ein Netz", "Chains form a network"), [
     d(T("Wasser verdunstet", "Water evaporates"), "add-wasser", T("Es entsteht kein Wasser – alle Atome bleiben im Harz.", "No water forms – all atoms stay in the resin.")),
     d(T("Ketten sind nur sehr lang", "Chains are just very long"), "netz-funktionalitaet", T("Lange einzelne Ketten würden beim Erwärmen weich. Erst das Netz macht hart.", "Long separate chains would soften on heating. Only the network makes it hard.")),
-    d(T("Es kühlt stark ab", "It cools down a lot"), "netz-schmilzt", T("Abkühlen macht nur Thermoplaste fest. Epoxidharz härtet durch die Reaktion – auch warm.", "Cooling only sets thermoplastics. Epoxy resin hardens through the reaction – even when warm.")),
+    d(T("Es kühlt stark ab", "It cools down a lot"), "netz-schmilzt", T("Abkühlen macht nur einzelne Ketten fest. Epoxidharz härtet durch die Reaktion – auch warm.", "Cooling only sets separate chains. Epoxy resin hardens through the reaction – even when warm.")),
   ], {
     vis: { k: "struct", s: "duro" },
     hint: T("Jede –NH₂-Gruppe hat zwei H‑Atome und reagiert zweimal.", "Each –NH₂ group has two H atoms and reacts twice."),
-    explain: T("Diamin mit 4 N–H + Diepoxid → **Netz**: ein Duroplast, z. B. Zweikomponentenkleber.", "Diamine with 4 N–H + diepoxide → **network**: a thermoset, e.g. two-component adhesive."),
+    explain: T("Diamin mit 4 N–H + Diepoxid → **Netz**: hart, schmilzt nicht (Zweikomponentenkleber).", "Diamine with 4 N–H + diepoxide → **network**: hard, does not melt (two-part adhesive)."),
   });
 }
 
 // ── Kapitel 6: Struktur und Eigenschaften ──────────────────────────────────────
 
 const KL = () => tr({ thermo: "Thermoplast", elast: "Elastomer", duro: "Duroplast" }, { thermo: "Thermoplastic", elast: "Elastomer", duro: "Thermoset" });
+type Kl = "thermo" | "elast" | "duro";
+/** Stolperstein nach dem Paar (richtig, gewählt) */
+export const klMiss = (right: Kl, chosen: Kl): string =>
+  (right === "elast" && chosen === "duro") || (right === "duro" && chosen === "elast") ? "elast-duro"
+    : right === "duro" && chosen === "thermo" ? "netz-schmilzt"
+    : right === "thermo" && chosen === "duro" ? "thermo-duro"
+    : "elast-thermo";
 const KL_WHY = () => tr(
   { thermo: "Thermoplast: einzelne Ketten – beim Erwärmen weich und formbar.", elast: "Elastomer: wenige Brücken – dehnbar und springt zurück.", duro: "Duroplast: dichtes Netz – hart, schmilzt nicht." },
   { thermo: "Thermoplastic: separate chains – soft and shapeable when heated.", elast: "Elastomer: a few cross-links – stretchy and springs back.", duro: "Thermoset: dense network – hard, does not melt." },
 );
 
+/** Brücken in den Kettenbildern (StructPic): keine, 4, über 20 */
+const N_BR = { de: { thermo: "keine Brücken", elast: "4 Brücken", duro: "über 20 Brücken" }, en: { thermo: "no cross-links", elast: "4 cross-links", duro: "over 20 cross-links" } } as const;
 function klasse(): Task {
   const k = pick(["thermo", "elast", "duro"] as const);
   const K = KL(), W = KL_WHY();
   return task(T("Welche Kunststoffart zeigt das Bild?", "Which type of plastic does the picture show?"), K[k],
-    (["thermo", "elast", "duro"] as const).filter(x => x !== k).map(x => d(K[x], x === "duro" ? "netz-schmilzt" : "elast-thermo", W[x])), {
+    (["thermo", "elast", "duro"] as const).filter(x => x !== k).map(x => d(K[x], klMiss(k, x),
+      T(`Zähl die Brücken im Bild: hier ${N_BR.de[k]} → ${K[k]}. ${K[x]}: ${N_BR.de[x]}.`, `Count the cross-links in the picture: here ${N_BR.en[k]} → ${K[k].toLowerCase()}. ${K[x]}: ${N_BR.en[x]}.`))), {
       vis: { k: "struct", s: k as StructKind },
       hint: T("Achte auf die Brücken zwischen den Ketten: keine, wenige oder sehr viele.", "Look at the cross-links between the chains: none, a few or very many."),
       explain: boldLead(W[k]),
@@ -763,8 +773,8 @@ function klasse(): Task {
 function schmelzen(): Task {
   const K = KL();
   return task(T("Welche Kunststoffe kann man einschmelzen und neu formen?", "Which plastics can be melted down and reshaped?"), K.thermo, [
-    d(K.duro, "netz-schmilzt", T("Das Netz hält fest zusammen. Beim Erhitzen zersetzt sich ein Duroplast.", "The network holds together. On heating a thermoset decomposes.")),
-    d(K.elast, "elast-thermo", T("Die Brücken verhindern das Schmelzen – Gummi lässt sich nicht einschmelzen.", "The cross-links prevent melting – rubber cannot be melted down.")),
+    d(K.duro, klMiss("thermo", "duro"), T("Das Netz hält fest zusammen. Beim Erhitzen zersetzt sich ein Duroplast.", "The network holds together. On heating a thermoset decomposes.")),
+    d(K.elast, klMiss("thermo", "elast"), T("Die Brücken verhindern das Schmelzen – Gummi lässt sich nicht einschmelzen.", "The cross-links prevent melting – rubber cannot be melted down.")),
   ], {
     hint: T("Nur einzelne Ketten können aneinander vorbeigleiten.", "Only separate chains can slide past each other."),
     explain: T("**Thermoplaste** (PE, PP, PET …) werden beim Erwärmen weich – gut für Recycling.", "**Thermoplastics** (PE, PP, PET …) soften on heating – good for recycling."),
@@ -816,20 +826,32 @@ function wachstum(): Task {
   });
 }
 
+/** Gegenstände mit ihrer Eigenschaft (kein Fachname in der Frage); Satz zum Ding vor der Definition */
+const ALLTAG = () => tr([
+  { item: "ein Topfgriff, der am heißen Topf hart bleibt", k: "duro" as const, fact: "Der Griff bleibt auch sehr heiß hart.", s: "Der Griff wird auch sehr heiß nie weich und schmilzt nicht – ein **Duroplast** (Phenoplast)." },
+  { item: "eine Arbeitsplatte, die heiße Töpfe aushält", k: "duro" as const, fact: "Die Oberfläche bleibt unter heißen Töpfen hart.", s: "Ihre Oberfläche hält heiße Töpfe aus, ohne weich zu werden – ein **Duroplast** (Melaminharz)." },
+  { item: "ein Autoreifen", k: "elast" as const, fact: "Der Reifen federt und schmilzt nicht.", s: "Ein Reifen federt und schmilzt auf heißer Straße nicht – ein **Elastomer**." },
+  { item: "ein Gummiband", k: "elast" as const, fact: "Das Gummiband dehnt sich und springt zurück.", s: "Ein Gummiband lässt sich dehnen und springt zurück – typisch für ein **Elastomer**." },
+  { item: "eine PET-Flasche, die man einschmelzen kann", k: "thermo" as const, fact: "Die Flasche lässt sich einschmelzen.", s: "Man kann sie einschmelzen und neu formen – ein **Thermoplast**." },
+  { item: "eine Plastiktüte, die man warm verformen kann", k: "thermo" as const, fact: "Die Tüte wird warm weich.", s: "Sie wird warm weich und lässt sich verformen – ein **Thermoplast**." },
+], [
+  { item: "a pan handle that stays hard on a hot pan", k: "duro" as const, fact: "The handle stays hard even when very hot.", s: "The handle never softens or melts, even when very hot – a **thermoset** (phenolic resin)." },
+  { item: "a worktop that can take hot pans", k: "duro" as const, fact: "The surface stays hard under hot pans.", s: "Its surface takes hot pans without softening – a **thermoset** (melamine resin)." },
+  { item: "a car tyre", k: "elast" as const, fact: "The tyre is springy and does not melt.", s: "A tyre is springy and does not melt on a hot road – an **elastomer**." },
+  { item: "a rubber band", k: "elast" as const, fact: "The rubber band stretches and springs back.", s: "A rubber band stretches and springs back – typical of an **elastomer**." },
+  { item: "a PET bottle that can be melted down", k: "thermo" as const, fact: "The bottle can be melted down.", s: "It can be melted down and reshaped – a **thermoplastic**." },
+  { item: "a plastic bag that can be shaped when warm", k: "thermo" as const, fact: "The bag softens when warm.", s: "It softens when warm and can be shaped – a **thermoplastic**." },
+]);
+/** was die gewählte (falsche) Art täte – mit dem Ding zusammen die Rückmeldung */
+const KL_WOULD = () => tr({ thermo: "Ein Thermoplast würde heiß weich werden.", elast: "Ein Elastomer ist dehnbar, schmilzt aber nicht.", duro: "Ein Duroplast ist hart und schmilzt nie." },
+  { thermo: "A thermoplastic would soften when hot.", elast: "An elastomer is stretchy but does not melt.", duro: "A thermoset is hard and never melts." });
 function klasseAlltag(): Task {
-  const K = KL(), W = KL_WHY();
-  const c = pick([
-    { item: T("ein Topfgriff aus Phenoplast", "a pan handle made of phenolic resin"), k: "duro" as const },
-    { item: T("ein Autoreifen", "a car tyre"), k: "elast" as const },
-    { item: T("eine PET-Flasche", "a PET bottle"), k: "thermo" as const },
-    { item: T("ein Gummiband", "a rubber band"), k: "elast" as const },
-    { item: T("eine Arbeitsplatte mit Melaminharz-Oberfläche", "a worktop with a melamine resin surface"), k: "duro" as const },
-    { item: T("eine Plastiktüte aus PE", "a plastic bag made of PE"), k: "thermo" as const },
-  ]);
+  const K = KL(), W = KL_WHY(), WOULD = KL_WOULD();
+  const c = pick(ALLTAG());
   return task(T(`Zu welcher Kunststoffart gehört ${c.item}?`, `Which type of plastic is ${c.item}?`), K[c.k],
-    (["thermo", "elast", "duro"] as const).filter(x => x !== c.k).map(x => d(K[x], x === "thermo" && c.k === "duro" ? "netz-schmilzt" : "elast-thermo", W[x])), {
+    (["thermo", "elast", "duro"] as const).filter(x => x !== c.k).map(x => d(K[x], klMiss(c.k, x), `${WOULD[x]} ${c.fact}`)), {
       hint: T("Wird es heiß, muss es formstabil sein? Soll es sich dehnen? Oder schmelzbar sein?", "Must it keep its shape when hot? Should it stretch? Or should it melt?"),
-      explain: boldLead(W[c.k]),
+      explain: `${c.s} ${cap(W[c.k].replace(/^[^:]+: /, ""))}`,
     });
 }
 
@@ -1270,7 +1292,7 @@ const K6: Step[] = tr([
   ["bauenCopo", "Jetzt baust du: Die Farben zeigen die Reihenfolge."],
   ["wachstum", "**Kettenwachstum**: lange Ketten sofort. **Stufenwachstum**: lange Ketten erst am Ende."],
   ["wachstum", "Noch einmal: Kettenwachstum oder Stufenwachstum?"],
-  ["recycling", "Recycling-Codes im Dreieck: Die Zahl steht für den Kunststoff."],
+  ["klasse", "Noch einmal: Zähl die Brücken im Bild."],
   ["klasseAlltag", "Zum Schluss: Kunststoffart und Aufbau verbinden."],
 ], [
   ["klasse", "**Thermoplastics**: separate chains – soft and shapeable when heated."],
@@ -1281,7 +1303,7 @@ const K6: Step[] = tr([
   ["bauenCopo", "Now you build: the colours show the order."],
   ["wachstum", "**Chain growth**: long chains at once. **Step growth**: long chains only at the end."],
   ["wachstum", "Once more: chain growth or step growth?"],
-  ["recycling", "Recycling codes in the triangle: the number stands for the plastic."],
+  ["klasse", "Once more: count the cross-links in the picture."],
   ["klasseAlltag", "Finally: connect type of plastic and structure."],
 ]);
 
@@ -1296,7 +1318,7 @@ export const LEVELS: Level[] = [
   level(3, tr("Katalysatoren und Verfahren", "Catalysts and methods"), tr("Ziegler-Natta, anionisch, kationisch, Taktizität", "Ziegler–Natta, anionic, cationic, tacticity"), K3, ["freieStelle"]),
   level(4, tr("Polykondensation", "Polycondensation"), tr("Funktionelle Gruppen, Wasser abspalten, Ester, Amid, Netz", "Functional groups, splitting off water, ester, amide, network"), K4, ["nebenprodukt", "produkt"]),
   level(5, tr("Polyaddition", "Polyaddition"), tr("Urethan, Harnstoff, Epoxidharz – ohne Nebenprodukt", "Urethane, urea, epoxy resin – without a by-product"), K5, ["hWandert"]),
-  level(6, tr("Struktur und Eigenschaften", "Structure and properties"), tr("Thermoplast, Elastomer, Duroplast, Copolymere", "Thermoplastic, elastomer, thermoset, copolymers"), K6),
+  level(6, tr("Struktur und Eigenschaften", "Structure and properties"), tr("Thermoplast, Elastomer, Duroplast, Copolymere", "Thermoplastic, elastomer, thermoset, copolymers"), K6, ["recycling"]),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `pm-${level}`);

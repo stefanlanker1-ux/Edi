@@ -16,7 +16,7 @@ import { VisView, beadsOf, type Vis } from "./quiz/visual.tsx";
 const T = (de: string, en: string) => tr(de, en);
 
 /** Ablauf der letzten Aktion abspielen (einmal, dann Endbild); „Nochmal“ spielt erneut */
-function MechPlay({ r, acts }: { r: Recipe; acts: string[] }) {
+function MechPlay({ r, acts, note }: { r: Recipe; acts: string[]; note?: string }) {
   const data = useMemo(() => {
     const m = replay(r, acts.slice(0, -1));
     const clip = m.run(acts[acts.length - 1]);
@@ -28,6 +28,7 @@ function MechPlay({ r, acts }: { r: Recipe; acts: string[] }) {
       <MechStage snap={data.snap} snapKey={0} clip={run.on ? data.clip : null} clipKey={run.key} onEnd={() => setRun(x => ({ ...x, on: false }))}
         halos lp label={T("Ablauf in Atomen", "Process in atoms")} />
       <IconButton icon="reset" label={T("Nochmal abspielen", "Play again")} className="pm-lesson-again" onClick={() => setRun(x => ({ key: x.key + 1, on: true }))} />
+      {note && <p className="pm-lesson-note">{note}</p>}
     </div>
   );
 }
@@ -474,7 +475,7 @@ const K5: GuideStep[] = [
     ask: T("Wie entsteht ein Polyurethan?", "How does a polyurethane form?"),
     visual: () => <MechPlay r={PUR} acts={["join"]} />,
     lines: [
-      T("HDI hat zwei Isocyanatgruppen –N=C=O.", "HDI has two isocyanate groups –N=C=O."),
+      T("HDI hat zwei **Isocyanatgruppen** –N=C=O.", "HDI has two **isocyanate groups** –N=C=O."),
       T("Das H‑Atom der –OH-Gruppe wandert zum N‑Atom.", "The H atom of the –OH group moves to the N atom."),
       T("Das O bindet an das C: **Urethangruppe** –NH–CO–O–.", "The O binds to the C: **urethane group** –NH–CO–O–."),
     ],
@@ -490,6 +491,17 @@ const K5: GuideStep[] = [
     ok: T("Nur ein H‑Atom wandert.", "Only an H atom moves."),
   },
   {
+    mode: "faded",
+    ask: T("Ergänze: Isocyanat + **Amin** (–NH₂) – welche Gruppe entsteht?", "Complete: isocyanate + **amine** (–NH₂) – which group forms?"),
+    answer: T("Harnstoffgruppe", "urea group"), options: [T("Harnstoffgruppe", "urea group"), T("Urethangruppe", "urethane group"), T("Amidbindung", "amide bond")],
+    lines: [T("Das H wandert vom N des Amins zum N des Isocyanats", "The H moves from the N of the amine to the N of the isocyanate"), T("Es entsteht –NH–CO–NH–: die {?}", "–NH–CO–NH– forms: the {?}")],
+    why: {
+      [T("Urethangruppe", "urethane group")]: T("Urethan entsteht mit –OH. Mit –NH₂ entsteht Harnstoff: –NH–CO–NH–.", "Urethane forms with –OH. With –NH₂ urea forms: –NH–CO–NH–."),
+      [T("Amidbindung", "amide bond")]: T("Eine Amidbindung entsteht aus –COOH und –NH₂, ohne Isocyanat.", "An amide bond forms from –COOH and –NH₂, without isocyanate."),
+    },
+    ok: T("Isocyanat + Amin → **Harnstoffgruppe**: Polyharnstoff.", "Isocyanate + amine → **urea group**: polyurea."),
+  },
+  {
     mode: "free",
     ask: T("Jetzt du: Was wird bei der Polyaddition abgespalten?", "Your turn: what is split off in polyaddition?"),
     answer: T("nichts", "nothing"), options: [T("nichts", "nothing"), T("Wasser", "water"), "HCl"],
@@ -499,9 +511,9 @@ const K5: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: T("**Epoxidharz**: Ein gespannter Ring aus C, C und O öffnet sich.", "**Epoxy resin**: a strained ring of C, C and O opens."),
-    ask: T("Wie härtet ein Zweikomponentenkleber?", "How does a two-component adhesive harden?"),
-    visual: () => <MechPlay r={EP} acts={["join"]} />,
+    say: T("**Epoxidharz**: Die **Epoxidgruppe** ist ein Dreierring aus C, C und O. Der Ring ist **gespannt** – seine Winkel sind nur etwa 60° statt etwa 109,5°.", "**Epoxy resin**: the **epoxide group** is a three-membered ring of C, C and O. The ring is **strained** – its angles are only about 60° instead of about 109.5°."),
+    ask: T("Wie härtet ein **Zweikomponentenkleber** (Harz + Härter aus zwei Tuben)?", "How does a **two-part adhesive** (resin + hardener from two tubes) set?"),
+    visual: () => <MechPlay r={EP} acts={["join"]} note={T("R = Rest des Moleküls", "R = rest of the molecule")} />,
     lines: [
       T("Das N der Aminogruppe greift ein C‑Atom des Rings an.", "The N of the amino group attacks a C atom of the ring."),
       T("Der Ring öffnet sich, ein H‑Atom wandert zum O.", "The ring opens, an H atom moves to the O."),

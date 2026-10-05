@@ -359,3 +359,4 @@
 .q-body:has(> .pm-tap.single:not(.done))::after { flex-basis: 130px; }
 .pm-mono.fits { outline: 2px dashed var(--ok); outline-offset: -4px; }
 .pm-fits { font-size: .76rem; font-weight: 750; color: var(--ok); }
+.pm-lesson-note { position: absolute; left: 6px; bottom: 4px; margin: 0; font-size: .78rem; color: var(--muted); }
