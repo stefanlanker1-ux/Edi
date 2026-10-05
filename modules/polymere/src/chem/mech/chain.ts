@@ -460,9 +460,9 @@ export class ChainMech implements Mech {
     sc.note({ id: "x", x: M.x + 1.1, y: M.y - 0.5, text: "✗", tone: "bad" });
     this.stepName = STEP.allyl;
     this.key(900, 900);
-    sc.move([...ids.atoms], 1.4, 1.0); ids.atoms.forEach(i => sc.set(i, { op: 0 })); sc.dots.get(nd)!.op = 0;
+    // das Allylradikal bleibt im Bild (es ist das Produkt dieses Schritts): beständig, startet kaum eine neue Kette
+    sc.unnote("x");
     this.key(0, 0);
-    ids.atoms.forEach(i => sc.remove(i)); sc.undot(nd); sc.unnote("x");
     this.edots = [];
     this.phase = "aus";
   }

@@ -135,7 +135,9 @@ test("Atom-Ansicht: Elektronen-Punkte nur am aktiven Ende (keiner bleibt an CO�
       if (!id) break;
       const clip = m.run(id), st = m.status();
       const dots = clip[clip.length - 1].snap.dots.filter(d => (d.op ?? 1) > 0.05).length;
-      const want = st.active === "rad" ? 1 : st.active === "an" && st.n > 0 ? 2 : 0;
+      // Allyl-H-Abriss: das beständige Allylradikal behält seinen Punkt (die Kette ist trotzdem zu Ende)
+      const allyl = r.art === "poly" && compat(r.a as VinylId, r.method as MethodId).fail === "allyl" && id.startsWith("add:");
+      const want = st.active === "rad" || allyl ? 1 : st.active === "an" && st.n > 0 ? 2 : 0;
       assert.strictEqual(dots, want, `${JSON.stringify(r)} nach ${id}: ${dots} Punkte`);
     }
   }
@@ -266,5 +268,18 @@ test("Glycerin: dritte –OH als Ast nach unten, nie in der Hauptkette (Weg Verk
       if (bonded.has([at[i].id, at[j].id].sort().join("|"))) continue;
       assert.ok(Math.hypot(at[i].x - at[j].x, at[i].y - at[j].y) >= 0.6, `${acid}: ${at[i].id}/${at[j].id} überlappen`);
     }
+  }
+});
+
+test("Allyl-H-Abriss: das Allylradikal (Propen bzw. Isobuten) bleibt im Endbild, mit Radikal-Punkt", () => {
+  for (const [a, method] of [["propen", "dbpo"], ["isobuten", "aibn"]] as const) {
+    const m = replay({ art: "poly", a, method }, ["heat"]);
+    const before = m.snap().atoms.length;
+    m.run(`add:${a}`);
+    const s = m.snap();
+    // Starter-Bruchstück + H, dazu das ganze Monomer (3 bzw. 4 C) – nicht nur Benzol
+    assert.ok(s.atoms.length > before + 2, `${a}: Monomer fehlt im Endbild`);
+    assert.ok(s.atoms.some(x => x.text === "CH₂"), `${a}: CH₂ des Allylradikals fehlt`);
+    assert.ok(s.dots.length >= 1, `${a}: Radikal-Punkt fehlt`);
   }
 });
