@@ -90,6 +90,9 @@ const SIDE: Record<VinylId, string> = tr(
   { ethen: "only H atoms", propen: "a CH₃ group", styrol: "a benzene ring", vinylchlorid: "a Cl atom", mma: "a CH₃ and a COOCH₃ group",
     acrylnitril: "a C≡N group", tfe: "four F atoms", isobuten: "two CH₃ groups", butadien: "two double bonds", vinylacetat: "an acetate group" },
 );
+/** Zeile unter dem Monomer-Bild: Name und Merkmal an der Zweifachbindung */
+const monoNote = (v: VinylId) => T(`**${vinyl(v).name}** – die C=C trägt ${SIDE[v]}`, `**${cap(nm(v))}** – the C=C carries ${SIDE[v]}`);
+
 /** gesättigtes Gegenstück (keine Zweifachbindung – kann keine Kette bilden) */
 const SAT: Partial<Record<VinylId, [string, string]>> = tr(
   { ethen: ["Ethan", "CH₃–CH₃"], propen: ["Propan", "CH₃–CH₂–CH₃"], vinylchlorid: ["Chlorethan", "CH₃–CH₂–Cl"], styrol: ["Ethylbenzol", "CH₃–CH₂–C₆H₅"],
@@ -154,9 +157,9 @@ function polyName(): Task {
     others(v, EASY, 2).map(w => d(poly(w), "gruppe-verwechselt",
       T(`${vinyl(w).polymer} entsteht aus ${vinyl(w).name}. Dort trägt die Zweifachbindung ${SIDE[w]}.`, `${cap(vinyl(w).polymer.toLowerCase())} forms from ${vinyl(w).name.toLowerCase()}. Its double bond carries ${SIDE[w]}.`))),
     {
-      vis: { k: "mono", id: v },
+      vis: { k: "mono", id: v, note: monoNote(v) },
       hint: T("Poly heißt viele. Der Name des Polymers enthält den Namen des Monomers.", "Poly means many. The polymer name contains the monomer name."),
-      tip: T(`Achte auf die Gruppe an der Zweifachbindung: ${SIDE[v]}.`, `Look at the group on the double bond: ${SIDE[v]}.`),
+      tip: T("Lies den Namen unter dem Bild. Was kommt beim Polymer davor?", "Read the name under the picture. What goes in front of it for the polymer?"),
       explain: T(`${vinyl(v).name} → **${poly(v)}**: Poly + Name des Monomers.`, `${vinyl(v).name} → **${poly(v)}**: poly + name of the monomer.`),
     });
 }
@@ -253,7 +256,7 @@ function bausteinWahl(): Task {
     d(dbl[0], "doppelbindung-bleibt", T("Zähl die Striche am C: fünf – das geht nicht, C bildet vier Bindungen. Die C=C muss sich öffnen, damit die Bindungen nach außen entstehen.", "Count the lines at the C: five – impossible, C forms four bonds. The C=C has to open so that the outward bonds can form.")),
     d(other[0], "gruppe-verwechselt", T(`Dieser Baustein trägt ${SIDE[w]} – er gehört zu ${vinyl(w).name}.`, `This repeat unit carries ${SIDE[w]} – it belongs to ${nm(w)}.`)),
   ], {
-    vis: { k: "mono", id: v }, pics: Object.fromEntries([right, dbl, other]),
+    vis: { k: "mono", id: v, note: monoNote(v) }, pics: Object.fromEntries([right, dbl, other]),
     hint: T("Aus C=C wird C–C. Die Seitengruppe bleibt, wo sie ist.", "C=C becomes C–C. The side group stays where it is."),
     tip: T(`Das Monomer trägt ${SIDE[v]}. Zähle die Bindungen an jedem C‑Atom: immer genau vier.`, `The monomer carries ${SIDE[v]}. Count the bonds at each C atom: always exactly four.`),
     explain: T(`Monomer ${plain(vinyl(v).struct)} → Baustein mit Einfachbindung. Die Seitengruppe bleibt – ${SIDE[v].replace(/^einen /, "ein ")}.`, `Monomer ${plain(vinyl(v).struct)} → repeat unit with a single bond. The side group stays – ${SIDE[v]}.`),

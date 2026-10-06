@@ -567,6 +567,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Verwendung), Starter/Katalysatoren (Formel, Verfahren) und funktionelle Gruppen sind im Text antippbar, Hilfsmittel „Begriffe“ listet die der Aufgabe. Nicht gezeigt, wo es
   die Antwort wäre (`HIDE`: Monomer bei Monomer ↔ Polymer, Verwendung bei Alltagsfragen; Test: keine Karte aus Frage/Antworten nennt die richtige Antwort).
   Jede Fertigkeit hat einen eigenen Tipp (`tip`, im Kapitel statt des allgemeinen Hinweises) mit den Stoffen der Aufgabe, als Denkschritt.
+  Auch in den Lektionen sind Begriffe antippbar (`GuideDef.terms`, Antwortknöpfe ohne). Monomer-Bilder in Aufgaben tragen eine Zeile mit Name und Merkmal
+  (`Vis.note`: „**Styrol** – die C=C trägt einen Benzolring“); ein Lektionsschritt, der nach Stoffen fragt, zeigt sie vorher mit Namen (`Row`).
 - **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
   danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
@@ -718,6 +720,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Namen im Bild und Begriffe in Lektionen** – Monomer-Bilder mit Name und Merkmal; Lektion K1 zeigt Styrol, Ethan und Vinylchlorid vor der Frage; PVC ausgeschrieben; Begriffe auch in Lektionen antippbar (Blatt schließt die Lektion nicht mehr mit).
 - **Polymere: Begriffe und Tipps beim Üben** – Stoffnamen, Starter und funktionelle Gruppen in Aufgaben antippbar (Karte „Was ist das?“, zentral `TermScope` in `@lern/ui`, `terms` an `QuizScreen`), Hilfsmittel „Begriffe“; zugeschnittener Tipp für alle 38 Fertigkeiten ohne eigenen Tipp; kürzere Rückmeldungen bei „Lebende Ketten“ und PE-HD/PE-LD (Bild bleibt mit „Lesbar“ auf 375 × 667 groß genug).
 - **Alle: überall „Üben“** – Atombau, Ionenbindung, Elektronenpaarbindung, Neutralisation, Nomenklatur und Einheiten: Bereich „Quiz“ heißt „Üben“ (zentral `uebenTab`), Überschriften „Üben · …“, Erklärung endet mit „Zum Üben“; Inhalt unverändert. check-ui findet den Bereich über „Üben“ in der Leiste.
 - **Alle: Bereich „Üben“ zentral** – `uebenTab`/`uebenLabel` in `@lern/ui`; Polymere und Gemische heißen „Üben“ statt „Lernen“ (Inhalt unverändert), Reaktionsgleichungen nutzt denselben Bereich; check-ui sucht „Üben“. Regel: gemeinsame Üben-Bausteine liegen in `packages/`.

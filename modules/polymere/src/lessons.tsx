@@ -60,6 +60,12 @@ const Two = ({ a, b, la, lb, vs }: { a: Vis; b: Vis; la?: string; lb?: string; v
     <figure>{vs && lb && <figcaption>{lb}</figcaption>}<VisView v={b} />{!vs && lb && <figcaption>{lb}</figcaption>}</figure>
   </div>
 );
+/** mehrere Bilder zum Vergleichen, Name über jedem Bild (Handy: untereinander) */
+const Row = ({ items }: { items: [Vis, string][] }) => (
+  <div className="pm-lesson-row">
+    {items.map(([v, l]) => <figure key={l}><figcaption>{l}</figcaption><VisView v={v} /></figure>)}
+  </div>
+);
 const Strips = ({ rows }: { rows: [string, string[]][] }) => (
   <div className="pm-lesson-strips">
     {rows.map(([l, seq]) => <figure key={l}><BeadStrip beads={beadsOf(seq)} active={null} max={20} /><figcaption>{l}</figcaption></figure>)}
@@ -122,9 +128,10 @@ const K1: GuideStep[] = [
     mode: "free",
     ask: T("Jetzt du: Welches Molekül kann **keine** Kette bilden?", "Your turn: which molecule **cannot** form a chain?"),
     answer: T("Ethan", "Ethane"), options: [T("Ethan", "Ethane"), T("Styrol", "Styrene"), T("Vinylchlorid", "Vinyl chloride")],
-    visual: () => <Pic v={{ k: "sat", id: "ethen" }} />,
-    why: { [T("Styrol", "Styrene")]: T("Styrol hat eine C=C-Bindung – daraus wird Polystyrol.", "Styrene has a C=C bond – it becomes polystyrene."), [T("Vinylchlorid", "Vinyl chloride")]: T("Vinylchlorid hat eine C=C-Bindung – daraus wird PVC.", "Vinyl chloride has a C=C bond – it becomes PVC.") },
-    lines: [T("Ethan (im Bild) hat nur Einfachbindungen: Es ist **gesättigt**.", "Ethane (in the picture) has only single bonds: it is **saturated**."),
+    // alle drei Moleküle mit Namen und Strukturformel: gefragt ist nur, wo die C=C fehlt (Namen müssen nicht bekannt sein)
+    visual: () => <Row items={[[{ k: "mono", id: "styrol" }, T("Styrol", "Styrene")], [{ k: "sat", id: "ethen" }, T("Ethan", "Ethane")], [{ k: "mono", id: "vinylchlorid" }, T("Vinylchlorid", "Vinyl chloride")]]} />,
+    why: { [T("Styrol", "Styrene")]: T("Styrol hat eine C=C-Bindung – daraus wird Polystyrol.", "Styrene has a C=C bond – it becomes polystyrene."), [T("Vinylchlorid", "Vinyl chloride")]: T("Vinylchlorid hat eine C=C-Bindung – daraus wird Polyvinylchlorid (PVC).", "Vinyl chloride has a C=C bond – it becomes poly(vinyl chloride) (PVC).") },
+    lines: [T("Ethan hat nur Einfachbindungen: Es ist **gesättigt**.", "Ethane has only single bonds: it is **saturated**."),
       T("Gesättigte Gegenstücke: Ethen – Ethan, Propen – Propan, Styrol – Ethylbenzol, Vinylchlorid – Chlorethan.", "Saturated counterparts: ethene – ethane, propene – propane, styrene – ethylbenzene, vinyl chloride – chloroethane.")],
     ok: T("Ohne Zweifachbindung keine Polymerisation.", "No double bond, no polymerisation."),
   },

@@ -4,6 +4,7 @@
 
 import { useMemo } from "react";
 import { tr } from "@lern/i18n";
+import { RichText } from "@lern/ui";
 import { isVinyl, monoHue, monoLetter, monoName, stepMono, vinyl, type StepId } from "../chem/data.ts";
 import { group, vinylUnit } from "../chem/draw.ts";
 import { replay } from "../chem/mech/index.ts";
@@ -19,7 +20,8 @@ export type StructKind = "thermo" | "verzweigt" | "elast" | "duro";
 export type PotKind = "mono" | "long" | "short" | "giant";
 
 export type Vis =
-  | { k: "mono"; id: string }
+  /** `note`: Zeile unter der Zeichnung (Name und Merkmal, `**fett**` erlaubt) */
+  | { k: "mono"; id: string; note?: string }
   /** gesättigtes Gegenstück eines Monomers (keine Zweifachbindung) */
   | { k: "sat"; id: string }
   | { k: "unit"; id: string; dbl?: boolean }
@@ -247,6 +249,7 @@ export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
   switch (v.k) {
     // breite Monomere der Stufenreaktionen (Diepoxid, MDI …) im eigenen Seitenverhältnis – in einem Kasten 1,6 : 1 würden sie im flachen Bildplatz winzig
     case "mono": return v.id === "badge" && !opt ? <div className="pm-vis-pair one"><MonomerSvg id={v.id} aspect={0} short className="pm-vis-svg" /><span className="pm-vis-legend">{R_LEGEND()}</span></div>
+      : v.note && !opt ? <figure className="pm-vis-cap"><MonomerSvg id={v.id} aspect={isVinyl(v.id) ? asp : 0} className="pm-vis-svg" /><figcaption><RichText text={v.note} /></figcaption></figure>
       : <MonomerSvg id={v.id} aspect={isVinyl(v.id) ? asp : 0} className="pm-vis-svg" />;
     case "sat": return <SnapSvg snap={saturatedSnap(v.id)} label={tr("Molekül ohne Zweifachbindung", "Molecule without a double bond")} aspect={asp} className="pm-vis-svg" />;
     case "unit": return v.dbl ? <SnapSvg snap={unitWithDouble(v.id)} label={tr("Baustein mit Zweifachbindung", "Unit with double bond")} aspect={asp} halos className="pm-vis-svg" /> : <UnitSvg id={v.id} aspect={asp} className="pm-vis-svg" />;

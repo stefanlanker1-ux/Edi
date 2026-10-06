@@ -16,7 +16,7 @@ import { explainFor } from "./explain.tsx";
 import { LESSONS } from "../lessons.tsx";
 import { VisView, beadsOf, visFormula } from "./visual.tsx";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
-import { termsFor } from "./lexicon.tsx";
+import { lexicon, termsFor } from "./lexicon.tsx";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask, missRecovery: true });
 
@@ -243,7 +243,7 @@ export function QuizView() {
       levelId={l => levelId("us", l)}
       typeName={id => TYPE_NAMES[id]}
       missName={id => MISS[id]}
-      lesson={l => LESSONS[l]}
+      lesson={l => ({ ...LESSONS[l], terms: lexicon() })}
       heroArt={<span className="hero-pm" aria-hidden="true"><BeadStrip beads={beadsOf(["styrol", "styrol", "styrol", "butadien", "butadien", "butadien"])} active={null} /></span>}
       renderVisual={t => (isBuild(t) ? (t.stage === "worked" ? <BuildAnswer t={t} answered={null} solved /> : null) : isOrder(t) ? (t.stage === "worked" ? <OrderAnswer t={t} answered={null} solved /> : null) : isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
         : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}

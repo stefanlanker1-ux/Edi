@@ -12,6 +12,7 @@ import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "./components.tsx";
 import { Icon } from "./icons.tsx";
 import { RichText } from "./RichText.tsx";
+import { NoTerms, TermScope, type TermDef } from "./Terms.tsx";
 import { ding } from "./feedback.ts";
 import { buzz } from "./hooks.ts";
 import { Callouts, type Callout } from "./Callouts.tsx";
@@ -63,6 +64,8 @@ export interface GuideDef {
   steps: GuideStep[];
   /** Zusammenfassung am Ende: das kannst du jetzt */
   outro: string[];
+  /** Begriffe (z. B. Stoffnamen), im Text antippbar – Blatt „Was ist das?“ (Terms.tsx); Antwortknöpfe bleiben ohne */
+  terms?: TermDef[];
 }
 
 export const GUIDE_TRIES = 4;
@@ -128,7 +131,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
     if (!open) return;
     history.pushState({ uiGuide: true }, "");
     let popped = false;
-    const onPop = () => { popped = true; close.current(); };
+    // ein Blatt über der Erklärung (Begriff) geht beim Schließen einen Schritt zurück – dann steht der Verlauf wieder auf der Erklärung
+    const onPop = () => { if (history.state?.uiGuide) return; popped = true; close.current(); };
     addEventListener("popstate", onPop);
     return () => { removeEventListener("popstate", onPop); if (!popped && history.state?.uiGuide) history.back(); };
   }, [open]);
@@ -169,8 +173,9 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const solText = typeof step.answer === "number" ? num(step.answer) : step.answer;
 
   return (
-    <dialog ref={ref} className="ui-guide" onClose={onClose} aria-label={`${tr("Erklärung", "Explanation")}: ${def.title}`}>
+    <dialog ref={ref} className="ui-guide" onClose={e => { if (e.target === e.currentTarget) onClose(); /* nicht das Blatt eines Begriffs */ }} aria-label={`${tr("Erklärung", "Explanation")}: ${def.title}`}>
       {open && (
+        <TermScope terms={def.terms ?? []}>
         <div className="ui-guide-in">
           <header className="ui-guide-head">
             <span className="ui-guide-badge"><Icon name="play" size={16} /><span>{tr("Erklärung", "Explanation")}</span></span>
@@ -215,6 +220,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                   <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>
                 )}
                 {step.options && (
+                  <NoTerms>
                   <div className={`ui-guide-opts${step.options.some(o => o.length > 16) ? " long" : step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
                     {step.options.map(o => {
                       const right = solved && o === step.answer, mark = show && o === step.answer;
@@ -225,6 +231,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                       );
                     })}
                   </div>
+                  </NoTerms>
                 )}
                 {step.num && (
                   <form className="ui-guide-num" key={`n${i}`} onSubmit={e => { e.preventDefault(); if (val.trim()) answer(val); }}>
@@ -243,6 +250,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
             </div>
           )}
         </div>
+        </TermScope>
       )}
     </dialog>
   );

@@ -26,7 +26,7 @@ export function Sheet({ open, title, onClose, wide, children }: { open: boolean;
     return () => { removeEventListener("popstate", onPop); if (!popped && history.state?.uiSheet) history.back(); };
   }, [open]);
   return (
-    <dialog ref={ref} className={`ui-sheet${wide ? " wide" : ""}`} onClose={onClose}
+    <dialog ref={ref} className={`ui-sheet${wide ? " wide" : ""}`} onClose={e => { e.stopPropagation(); onClose(); }}
       // Tipp auf den Hintergrund schließt – nicht aber der Klick, der beim Antippen (Touch) gleich nach dem Öffnen nachkommt
       onClick={e => { if (e.target === ref.current && performance.now() - openedAt.current > 400) onClose(); }}>
       {open && (

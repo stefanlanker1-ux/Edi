@@ -399,3 +399,20 @@
 .pm-lex-bead { flex: none; width: 22px; height: 22px; margin-top: 1px; }
 .pm-lex-also { margin: 0; color: var(--muted); font-size: .9rem; }
 .pm-lex-formula { margin: 0; font-weight: 600; }
+
+/* Lektion: mehrere Moleküle zum Vergleichen, Name über jedem Bild; schmal untereinander */
+.pm-lesson-row { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; width: 100%; height: 100%; min-height: 0; }
+.pm-lesson-row figure { margin: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; border-left: 1px solid var(--rule); padding-left: 8px; }
+.pm-lesson-row figure:first-child { border-left: 0; padding-left: 0; }
+.pm-lesson-row figcaption { text-align: center; font-size: .8rem; font-weight: 700; }
+.pm-lesson-row svg { width: 100%; height: 100%; min-height: 0; }
+/* hochkant (Handy): untereinander */
+@container (orientation: portrait) {
+  .pm-lesson-row { grid-auto-flow: row; grid-auto-rows: minmax(0, 1fr); grid-auto-columns: auto; }
+  .pm-lesson-row figure { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 4px; }
+  .pm-lesson-row figure:first-child { border-top: 0; padding-top: 0; }
+}
+
+/* Monomer-Bild mit Zeile darunter (Name und Merkmal) */
+.pm-vis-cap { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; width: 100%; height: 100%; min-height: 0; justify-items: center; }
+.pm-vis-cap figcaption { font-size: .9rem; text-align: center; line-height: 1.3; }
