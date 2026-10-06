@@ -397,12 +397,12 @@ function mehrStarter(): Task {
   return task(T("Was passiert mit mehr Starter (bei gleich viel Monomer)?", "What happens with more initiator (same amount of monomer)?"), T("Mehr, aber kürzere Ketten", "More but shorter chains"), [
     d(T("Längere Ketten", "Longer chains"), "mehr-starter-laenger", T("Mehr Radikale teilen sich das Monomer. Jede Kette bekommt weniger.", "More radicals share the monomer. Each chain gets less.")),
     d(T("Weniger Ketten", "Fewer chains"), "mehr-starter-laenger", T("Jedes Radikal startet eine Kette – mehr Starter, mehr Ketten.", "Each radical starts a chain – more initiator, more chains.")),
-    d(T("Nichts ändert sich", "Nothing changes"), "mehr-starter-laenger", T("Jedes Starter-Radikal beginnt eine Kette. Mehr Starter heißt mehr Ketten – jede bekommt weniger Monomer.", "Each initiator radical starts a chain. More initiator means more chains – each gets less monomer.")),
+    d(T("Nichts ändert sich", "Nothing changes"), "mehr-starter-laenger", T("Mehr Starter, mehr Ketten – jede bekommt weniger Monomer.", "More initiator, more chains – each gets less monomer.")),
   ], {
     vis: { k: "starters" },
     hint: T("Was startet jedes Radikal – und wie weit reicht das Monomer dann?", "What does each radical start – and how far does the monomer go then?"),
     tip: T("Stell dir vor: 100 Monomere, einmal mit 2 und einmal mit 10 Radikalen.", "Imagine 100 monomers, once with 2 and once with 10 radicals."),
-    explain: T("Mehr Radikale → **mehr Ketten** → jede Kette **kürzer**. Wenig Starter → wenige, lange Ketten.", "More radicals → **more chains** → each chain **shorter**. Little initiator → few, long chains."),
+    explain: T("Mehr Radikale → **mehr Ketten** → jede **kürzer**.", "More radicals → **more chains** → each **shorter**."),
   });
 }
 

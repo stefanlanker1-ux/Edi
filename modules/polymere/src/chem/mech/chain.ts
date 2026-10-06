@@ -147,8 +147,9 @@ export class ChainMech implements Mech {
     if (me === "dbpo") {
       this.fx = -5;
       this.key(500, 300, [
-        { from: { b: ["io1", "io2"], off: -0.12 }, to: { a: "io1", ang: -100, r: 0.4 }, half: true, bend: -0.5 },
-        { from: { b: ["io1", "io2"], off: -0.12 }, to: { a: "io2", ang: -80, r: 0.4 }, half: true, bend: 0.5 },
+        // Homolyse: je ein Halbpfeil von der O–O-Bindung schräg nach außen über das eigene O (Spitze neben dem Symbol, nicht darauf)
+        { from: { b: ["io1", "io2"], off: -0.14 }, to: { a: "io1", ang: -135, r: 0.5 }, half: true, bend: 0.8 },
+        { from: { b: ["io1", "io2"], off: -0.14 }, to: { a: "io2", ang: -45, r: 0.5 }, half: true, bend: -0.8 },
       ]);
       sc.unbond("io1", "io2");
       sc.dot("eL", -0.17, 0); sc.dot("eR", 0.17, 0);

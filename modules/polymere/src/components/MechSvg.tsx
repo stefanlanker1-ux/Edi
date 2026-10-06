@@ -3,6 +3,7 @@
 // Atome, freie Elektronenpaare (Striche), Ladungen, Elektronen (Punkte), Pfeile (Elektronenfluss) und kurze Beschriftungen.
 
 import type { ReactNode } from "react";
+import { CurlyArrow } from "@lern/chem-ui";
 import { anchorPt, dirOf, labelHalf, type Atom, type Box, type PBond, type Pose, type Pt } from "../chem/scene.ts";
 
 export const U = 50;
@@ -95,30 +96,6 @@ function BondLines({ b, at, rings, vis }: { b: PBond; at: Map<string, Atom>; rin
   return <>{cutEl}<g className="mb-bond">{out}</g></>;
 }
 
-/** gebogener Pfeil mit Spitze (halber Pfeil = ein Elektron) */
-function ArrowPath({ from, to, half, bend = 0.5, op }: { from: Pt; to: Pt; half?: boolean; bend?: number; op: number }) {
-  const dx = to.x - from.x, dy = to.y - from.y, l = Math.hypot(dx, dy) || 1;
-  const nx = -dy / l, ny = dx / l;
-  // kurze Pfeile trotzdem sichtbar gebogen
-  const off = Math.sign(bend || 1) * Math.max(Math.abs(bend) * l * 0.6, 0.32);
-  const c = { x: (from.x + to.x) / 2 + nx * off, y: (from.y + to.y) / 2 + ny * off };
-  // Richtung am Ende
-  const tx = to.x - c.x, ty = to.y - c.y, tl = Math.hypot(tx, ty) || 1, ux = tx / tl, uy = ty / tl;
-  const h = 0.24, w = 0.13;
-  const p1 = { x: to.x - ux * h + -uy * w, y: to.y - uy * h + ux * w };
-  const p2 = { x: to.x - ux * h - -uy * w, y: to.y - uy * h - ux * w };
-  const side = bend >= 0 ? p2 : p1;
-  return (
-    <g className="mb-arrow" opacity={op}>
-      <path className="mb-arrow-bg" d={`M${from.x * U} ${from.y * U} Q${c.x * U} ${c.y * U} ${to.x * U} ${to.y * U}`} />
-      <path d={`M${from.x * U} ${from.y * U} Q${c.x * U} ${c.y * U} ${to.x * U} ${to.y * U}`} />
-      {half
-        ? <path className="mb-head" d={`M${to.x * U} ${to.y * U} L${side.x * U} ${side.y * U}`} />
-        : <path className="mb-head-fill" d={`M${to.x * U} ${to.y * U} L${p1.x * U} ${p1.y * U} L${p2.x * U} ${p2.y * U} Z`} />}
-    </g>
-  );
-}
-
 export function MechSvg({ pose, box, label, className, onPick, halos = true, lp = true, mark, pickable, marks, hitR }: {
   pose: Pose; box: Box; label: string; className?: string;
   /** Antippen eines Atoms (Kennung) */
@@ -136,6 +113,8 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
   /** Radius der Trefferkreise (Bindungslängen), mindestens 44 px am Bildschirm */
   hitR?: number;
 }) {
+  // beschriftete, sichtbare Atome: Pfeilbögen laufen nicht durch ihre Symbole
+  const avoid = pose.atoms.filter(a => (a.text ?? a.el) !== "" && (a.op ?? 1) > 0.5).map(a => ({ x: a.x, y: a.y, r: 0.27 }));
   const at = new Map(pose.atoms.map(a => [a.id, a]));
   // Atome am Bildrand: ganz drin (1) … draußen (0) – was hinausragt, wird ausgeblendet statt abgeschnitten
   const vis0 = (a: Atom) => {
@@ -158,6 +137,14 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
   }
   // antippbare Atome bleiben sichtbar, solange sie im Bild liegen (auch wenn ihr Nachbar am Rand ausgeblendet ist)
   for (const p of pickable ?? []) for (const id of p.split("|")) { const a = at.get(id); if (a) vmap.set(id, vis0(a)); }
+  // Atome, an denen ein Elektronenpfeil ansetzt (und ihre H‑Atome), ebenso – sonst zeigte der Pfeil ins Leere
+  const apts = pose.arrows.flatMap(ar => [anchorPt(pose, ar.arrow.from), anchorPt(pose, ar.arrow.to)]).filter((q): q is Pt => !!q);
+  // Ringe nicht: ein Ring am Rand bleibt ganz weg (nie ein halber Ring)
+  const inRing = new Set(Object.values(pose.rings).flat());
+  for (const a of pose.atoms) if (!inRing.has(a.id) && apts.some(q => Math.hypot(a.x - q.x, a.y - q.y) < 0.7)) {
+    vmap.set(a.id, vis0(a));
+    for (const h of nbs.get(a.id) ?? []) { const x = at.get(h); if (x && isH(h)) vmap.set(h, vis0(x)); }
+  }
   const vis = (a: Atom) => vmap.get(a.id) ?? vis0(a);
   const vb = [box.x0 * U, box.y0 * U, (box.x1 - box.x0) * U, (box.y1 - box.y0) * U].join(" ");
   // Hinterlegung je Baustein
@@ -266,7 +253,8 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
       })}
       {pose.arrows.map((ar, i) => {
         const p = anchorPt(pose, ar.arrow.from), q = anchorPt(pose, ar.arrow.to);
-        return p && q && ar.op > 0.02 ? <ArrowPath key={i} from={p} to={q} half={ar.arrow.half} bend={ar.arrow.bend} op={ar.op} /> : null;
+        // Elektronenpfeile zentral (@lern/chem-ui): Bogen weicht beschrifteten Atomen aus
+        return p && q && ar.op > 0.02 ? <CurlyArrow key={i} from={p} to={q} half={ar.arrow.half} bend={ar.arrow.bend} opacity={ar.op} scale={U} avoid={avoid} /> : null;
       })}
     </svg>
   );

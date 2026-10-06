@@ -596,6 +596,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Atom-Ansicht** (`chem/scene.ts`, `chem/draw.ts`, `chem/stepdraw.ts`, `chem/mech/*`, `components/MechSvg.tsx`, `components/MechStage.tsx`): Valenzstrichformel
   (Zweifachbindung = zweite Linie daneben, wird beim Einbau ausgeblendet), Bausteine farbig hinterlegt (gleiche Farbe wie ihr Kügelchen), freie Elektronenpaare als
   Striche, Ladungen im Kreis, wandernde Elektronen als Punkte, **Pfeile vor jeder Bewegung** (halbe Spitze = ein Elektron, volle = Elektronenpaar).
+  Die Pfeile zeichnet der zentrale Baustein **`CurlyArrow`** (`@lern/chem-ui`, für jedes Modul mit Mechanismen): gleichmäßiger Bogen (kubisch, symmetrisch),
+  Höhe nach Länge (kurze Pfeile flach statt Kringel), weicht beschrifteten Atomen aus (höherer Bogen, Seite bleibt), gefüllte Spitze bzw. halber Widerhaken außen am Bogen,
+  Strich endet unter der Spitze, Spitze etwa ein Drittel Bindungslänge; blau wie die Elektronen (rot läse sich auf O-Atomen schlecht), Strich so kräftig wie die Bindungen. Atome, an denen ein Pfeil
+  ansetzt, blendet der Bildrand nie aus (sonst zeigte der Pfeil ins Leere; Ringe ausgenommen – nie ein halber Ring). Homolyse O–O: je ein Halbpfeil von der Bindung schräg nach außen über das eigene O.
   Jede Aktion ist ein Ablauf aus Schlüsselbildern (`Key`: Bild, Halten, Bewegen, Pfeile), dazwischen weich überblendet (Lage, Deckkraft, Bindungsordnung).
   Abläufe: radikalisch (Erwärmen: O–O bzw. C–N bricht, jedes Atom behält ein Elektron, CO₂ bzw. N₂ geht ab; Anlagern Monomer für Monomer; Abbruch durch
   Rekombination oder Disproportionierung), anionisch (Butyllithium lagert sich an, Kette lebt, Methanol beendet), kationisch (Säure aus BF₃ und Wasser, Anlagern,
@@ -720,6 +724,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Elektronenpfeile zentral (`CurlyArrow`, `@lern/chem-ui`)** – gleichmäßige Bögen, deutliche gefüllte Spitzen bzw. Widerhaken, blau, so kräftig wie die Bindungen, weichen Atomen aus; Polymere nutzt sie (O–O-Homolyse nach außen, Pfeil-Atome am Rand sichtbar, Polyaddition zeigt das –OH); kürzere Rückmeldung bei „Mehr Starter“.
 - **Polymere: Namen im Bild und Begriffe in Lektionen** – Monomer-Bilder mit Name und Merkmal; Lektion K1 zeigt Styrol, Ethan und Vinylchlorid vor der Frage; PVC ausgeschrieben; Begriffe auch in Lektionen antippbar (Blatt schließt die Lektion nicht mehr mit).
 - **Polymere: Begriffe und Tipps beim Üben** – Stoffnamen, Starter und funktionelle Gruppen in Aufgaben antippbar (Karte „Was ist das?“, zentral `TermScope` in `@lern/ui`, `terms` an `QuizScreen`), Hilfsmittel „Begriffe“; zugeschnittener Tipp für alle 38 Fertigkeiten ohne eigenen Tipp; kürzere Rückmeldungen bei „Lebende Ketten“ und PE-HD/PE-LD (Bild bleibt mit „Lesbar“ auf 375 × 667 groß genug).
 - **Alle: überall „Üben“** – Atombau, Ionenbindung, Elektronenpaarbindung, Neutralisation, Nomenklatur und Einheiten: Bereich „Quiz“ heißt „Üben“ (zentral `uebenTab`), Überschriften „Üben · …“, Erklärung endet mit „Zum Üben“; Inhalt unverändert. check-ui findet den Bereich über „Üben“ in der Leiste.
