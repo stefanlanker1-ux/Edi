@@ -73,3 +73,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
     </>
   );
 }
+
+/** Bereich „Üben“ – einheitlich in allen Modulen (Name, englischer Name, Zeichen an einer Stelle). Der Inhalt bleibt je Modul eigen. */
+export const uebenLabel = () => tr("Üben", "Practise");
+export const uebenTab = <T extends string>(id: T): ShellTab<T> => ({ id, label: uebenLabel(), icon: "target" });

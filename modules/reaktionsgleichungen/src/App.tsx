@@ -1,4 +1,4 @@
-import { LernApp, type ShellTab } from "@lern/ui";
+import { LernApp, uebenTab, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { StartView } from "./views/StartView.tsx";
 import { UebenView } from "./ueben/UebenView.tsx";
@@ -7,7 +7,7 @@ import { tr } from "@lern/i18n";
 // Bereiche: Experimentieren (Start) und Üben – keine Erklärung, kein Quiz
 const TABS: ShellTab<Tab>[] = [
   { id: "start", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
-  { id: "ueben", label: tr("Üben", "Practise"), icon: "target" },
+  uebenTab("ueben"),
 ];
 
 const Logo = () => (

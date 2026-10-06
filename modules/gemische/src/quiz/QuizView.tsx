@@ -1,10 +1,10 @@
-// „Lernen“ der Gemische auf Basis von @lern/quiz: fünf Kapitel, je Kapitel zuerst die Lektion (lessons.tsx), dann zehn Aufgaben.
+// „Üben“ der Gemische auf Basis von @lern/quiz: fünf Kapitel, je Kapitel zuerst die Lektion (lessons.tsx), dann zehn Aufgaben.
 // Aufgaben mit Bildern statt Texteingabe: Teilchenbild, Teilchenbilder als Antworten, Teilchen oder Teile eines Verfahrens antippen,
 // Verfahren als Bildkarten, Animation des Verfahrens. Hilfsmittel „Farben“: alle Atomfarben (verrät nicht, welche vorkommen).
 
 import { useId } from "react";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
-import { buzz } from "@lern/ui";
+import { buzz, uebenLabel } from "@lern/ui";
 import { Beaker } from "../components/Beaker.tsx";
 import { MixPic, SepAnim, SepScene, METHODS, METHOD_NAME } from "../components/Separation.tsx";
 import { MiniParticle, Legend } from "../views/MixView.tsx";
@@ -62,7 +62,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe="us"
-      title={tr("Lernen · Gemische", "Learn · Mixtures")}
+      title={`${uebenLabel()} · ${tr("Gemische", "Mixtures")}`}
       useQuiz={useQuiz}
       levels={LEVELS}
       levelName={levelName}

@@ -59,6 +59,10 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 - Hilfsskripte für einmalige Browser-Prüfungen gehören nicht ins Repository (temporär außerhalb anlegen); dauerhaft nützliche Prüfungen als Test oder in `scripts/`.
 
 ## Didaktik (verbindlich für alle Module)
+- **Bereich „Üben“** (statt „Lernen“ bzw. Erklärung und Quiz): Name, englischer Name („Practise“) und Zeichen kommen zentral aus `@lern/ui`
+  (`uebenTab(id)`, `uebenLabel()`), nie im Modul selbst geschrieben. Was im Bereich geübt wird, gestaltet jedes Modul selbst (Polymere und Gemische: Kapitel mit Lektion
+  und Aufgaben; Reaktionsgleichungen: 3 × 10 Gleichungen je Stufe). **Bausteine des Übens, die mehr als ein Modul nutzt, liegen zentral in `packages/`** (spätestens
+  beim zweiten Modul dorthin verschieben, nicht im Modul kopieren); jede Änderung an einem solchen Baustein wird in allen Modulen geprüft, die ihn nutzen.
 - **Lernen an gelösten Beispielen, dann Hilfe ausblenden** – überall nach demselben Muster: zuerst ein **fertig gelöster Fall** (vorgemacht, Lösungsweg Schritt für Schritt),
   dann ein **halb gelöster** (eine Lücke zum Ergänzen), dann **selbst lösen** – und mit dem nächsten Gedanken wieder von vorn (vorgemacht → halb → frei → vorgemacht …).
   Nie mit freiem Entdecken beginnen. Umsetzung:
@@ -190,7 +194,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
   egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: `quiz`, dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
   `probieren`, `start` – Kennungen und Speicher-Schlüssel nie umbenennen). Der beim Öffnen gezeigte Bereich bleibt die Werkbank.
-- **Lernen statt Erklärung + Quiz** (Gemische und Polymere, Übertragung auf weitere Module folgt): Leiste **Lernen | Experimentieren**. „Lernen“ (Tab-Kennung `quiz`,
+- **Üben in Kapiteln statt Erklärung + Quiz** (Gemische und Polymere): Leiste **Üben | Experimentieren** (Name zentral über `uebenTab`). „Üben“ (Tab-Kennung `quiz`,
   Zeichen Buch) zeigt die **Kapitel** wie die Level-Auswahl des Quiz. Ein Kapitel ist **ein Fluss**: beim ersten Antippen zuerst die **Lektion** des Kapitels
   (geführte Erklärung, vorgemacht → halb gelöst → selbst, 3–12 Schritte, `checkGuide(def, { lesson: true })`), „Zu den Aufgaben“ startet direkt die zehn Aufgaben.
   Danach startet das Kapitel gleich mit den Aufgaben; das Buch-Zeichen neben der Kapitelkarte wiederholt die Lektion. Technisch: `QuizScreen` Prop
@@ -555,7 +559,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   **Mehrfachbindungen** (-en = Alken, -in = Alkin, Nummer, E/Z) · **Alkohole** · **Säuren und Rangfolge**.
 
 ## Polymere (`modules/polymere`)
-- Keine Stufen. Leiste **Lernen | Experimentieren** wie Gemische: Lernen = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
+- Keine Stufen. Leiste **Üben | Experimentieren** wie Gemische: Üben = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
 - **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
   danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
@@ -707,6 +711,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Alle: Bereich „Üben“ zentral** – `uebenTab`/`uebenLabel` in `@lern/ui`; Polymere und Gemische heißen „Üben“ statt „Lernen“ (Inhalt unverändert), Reaktionsgleichungen nutzt denselben Bereich; check-ui sucht „Üben“. Regel: gemeinsame Üben-Bausteine liegen in `packages/`.
 - **Reaktionsgleichungen: Teilchenbild beim Üben einklappbar** – Schalter „Teilchen“ blendet das Kugelbild aus, damit nur Text (Namen, Gleichung, Tipp) dasteht; Standard an.
 - **Reaktionsgleichungen: Üben statt Erklärung und Quiz** – Bereiche Experimentieren | Üben; Üben mit je Stufe 3 × 10 festen Gleichungen (Einfach, Mittel, Schwer),
   nur aus Molekülen, damit nach ✓ die Animation bei jeder Gleichung geht; „Tipp“ mit eigenem Hinweis je Gleichung; Erklärung (`guide.tsx`) und Quiz (`src/quiz/`) entfernt.

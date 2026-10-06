@@ -1,4 +1,4 @@
-import { LernApp, type ShellTab } from "@lern/ui";
+import { LernApp, uebenTab, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { MixView } from "./views/MixView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
@@ -6,8 +6,8 @@ import { LESSON_KEY } from "@lern/quiz";
 import { tr } from "@lern/i18n";
 
 const TABS: ShellTab<Tab>[] = [
-  // Lernen = Lektion und Aufgaben je Kapitel (statt Erklärung und Quiz getrennt)
-  { id: "quiz", label: tr("Lernen", "Learn"), icon: "book" },
+  // Üben = Lektion und Aufgaben je Kapitel (statt Erklärung und Quiz getrennt)
+  uebenTab("quiz"),
   { id: "probieren", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 

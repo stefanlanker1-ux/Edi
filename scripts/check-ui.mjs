@@ -3,7 +3,7 @@
 // LOCALE=en-GB prüft die englische Oberfläche (Standard de-DE).
 // LESBAR=1 prüft zusätzlich mit eingeschalteter Option „Lesbar“ (größere Abstände) – nichts darf dadurch überlaufen.
 // Antippbare Bilder (svg.sp-tap): jedes Teil (data-part) muss per elementFromPoint erreichbar sein. Aufgabenkarte: kein Knopf ragt heraus, Bild ≥ 24 px hoch.
-// LEARN="pm-k1,us:pm-k1,…" (Schlüssel der erledigten Lektionen) spielt zusätzlich „Lernen“ Kapitel für Kapitel (Lektionen als erledigt markiert): Elemente mit `data-auto` werden der Reihe nach
+// LEARN="pm-k1,us:pm-k1,…" (Schlüssel der erledigten Lektionen) spielt zusätzlich „Üben“ Kapitel für Kapitel (Lektionen als erledigt markiert): Elemente mit `data-auto` werden der Reihe nach
 // angetippt, zuletzt die mit `data-auto="last"` (z. B. „Prüfen“), sonst die erste Auswahl; geprüft wird vor und nach der Antwort. Elemente mit `data-min-h="N"` müssen mindestens N px hoch sein.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 import http from "node:http";
@@ -186,12 +186,12 @@ for (const app of APPS) {
         }
       }
     }
-    // Lernen in Kapiteln (freiwillig über LEARN): jede Aufgabe vor und nach der Antwort
+    // Üben in Kapiteln (freiwillig über LEARN): jede Aufgabe vor und nach der Antwort
     if (process.env.LEARN) {
       const ids = process.env.LEARN.split(",");
       await page.evaluate(ids => { localStorage.setItem("lern-lektionen", JSON.stringify(Object.fromEntries(ids.map(i => [i, true])))); }, ids);
       await page.reload({ waitUntil: "networkidle" }).catch(() => {});
-      const learn = page.locator("button:visible", { hasText: /^(Lernen|Learn)/ }).first();
+      const learn = page.locator("button:visible", { hasText: /^(Üben|Practise)/ }).first();
       if (await learn.count()) await learn.click({ timeout: 1500 }).catch(() => {});
       const levels = await page.locator(".level-card").count();
       for (let lv = 0; lv < levels; lv++) {

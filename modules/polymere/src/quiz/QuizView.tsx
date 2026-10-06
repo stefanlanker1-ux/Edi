@@ -1,10 +1,10 @@
-// „Lernen“ der Polymere auf Basis von @lern/quiz: sechs Kapitel, je Kapitel zuerst die Lektion (lessons.tsx), dann zehn Aufgaben.
+// „Üben“ der Polymere auf Basis von @lern/quiz: sechs Kapitel, je Kapitel zuerst die Lektion (lessons.tsx), dann zehn Aufgaben.
 // Aufgaben mit Bildern: Strukturformel, Kettenausschnitt, Mechanismus-Schritt mit Pfeilen, Kügelchen, Kettenbild;
 // manche Antworten sind selbst Bilder (Monomer, Baustein).
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { createQuizStore, diagnose, QuizScreen, type Answered, type Submit } from "@lern/quiz";
-import { Button, RichText, buzz } from "@lern/ui";
+import { Button, RichText, buzz, uebenLabel } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { LEVELS, TYPE_NAMES, sameTask, buildResult, buildWrongAt, isBuild, isOrder, isTap, levelId, levelName, makeRound, type BuildItem, type BuildTask, type OrderTask, type TapTask, type Task } from "./tasks.ts";
 import { tapFrame, tapResult } from "./tap.ts";
@@ -235,7 +235,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe="us"
-      title={tr("Lernen · Polymere", "Learn · Polymers")}
+      title={`${uebenLabel()} · ${tr("Polymere", "Polymers")}`}
       useQuiz={useQuiz}
       levels={LEVELS}
       levelName={levelName}
