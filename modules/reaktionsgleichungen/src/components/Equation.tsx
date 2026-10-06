@@ -7,8 +7,8 @@ import { Sheet, buzz } from "@lern/ui";
 import { toSubscript, type Equation as Eq } from "@lern/chem";
 import { tr } from "@lern/i18n";
 
-/** Größte wählbare Zahl: bis 12, bei kniffligen Gleichungen (Niveau 4) bis 30 */
-export const maxCoef = (r: { niveau: number }) => (r.niveau >= 4 ? 30 : 12);
+/** Größte wählbare Zahl: bis 12, bei kniffligen Gleichungen (Niveau 4) bis 40 (Dodecan braucht 37) */
+export const maxCoef = (r: { niveau: number }) => (r.niveau >= 4 ? 40 : 12);
 
 const MIN = 10;
 

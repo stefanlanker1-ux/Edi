@@ -1,13 +1,13 @@
 import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { StartView } from "./views/StartView.tsx";
-import { QuizView } from "./quiz/QuizView.tsx";
-import { guideFor } from "./guide.tsx";
+import { UebenView } from "./ueben/UebenView.tsx";
 import { tr } from "@lern/i18n";
 
+// Bereiche: Experimentieren (Start) und Üben – keine Erklärung, kein Quiz
 const TABS: ShellTab<Tab>[] = [
-  { id: "quiz", label: "Quiz", icon: "quiz" },
   { id: "start", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
+  { id: "ueben", label: tr("Üben", "Practise"), icon: "target" },
 ];
 
 const Logo = () => (
@@ -25,9 +25,9 @@ const Logo = () => (
 export function App() {
   const { tab, setTab, stufe, setStufe } = useApp();
   return (
-    <LernApp name={tr("Reaktionsgleichungen", "Chemical Equations")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["reaktionsgleichungen-v2", "reaktionsgleichungen-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
+    <LernApp name={tr("Reaktionsgleichungen", "Chemical Equations")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["reaktionsgleichungen-v2", "reaktionsgleichungen-ueben"]} stufe={{ value: stufe, onChange: setStufe }}>
       {tab === "start" && <StartView />}
-      {tab === "quiz" && <QuizView />}
+      {tab === "ueben" && <UebenView />}
     </LernApp>
   );
 }

@@ -13,7 +13,7 @@ export function StartView() {
   const last = si === ids.length - 1;
   return (
     <BalanceCard key={r.id} r={r} coeffs={coeffs[si]} onChange={setStart} onSolved={solvedStart}
-      onNext={() => (last ? setTab("quiz") : pickStart(si + 1))} nextLabel={last ? tr("Zum Quiz", "To the quiz") : tr("Nächstes Beispiel", "Next example")}
+      onNext={() => (last ? setTab("ueben") : pickStart(si + 1))} nextLabel={last ? tr("Zum Üben", "To practice") : tr("Nächstes Beispiel", "Next example")}
       head={
         <div className="rg-head">
           <h2 className="rg-title">{r.title}</h2>

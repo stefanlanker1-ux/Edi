@@ -9,7 +9,7 @@ export const modul: LernModule = {
   desc: "Gleichungen ausgleichen mit der Atombilanz: Kästchen je Atom links und rechts, Koeffizienten setzen, bis jedes Element ✓ zeigt.",
   nameEn: "Chemical Equations",
   descEn: "Balance equations with the atom balance: boxes for each atom on the left and right, set coefficients until every element shows ✓.",
-  storage: ["reaktionsgleichungen-v2", "reaktionsgleichungen-quiz"],
+  storage: ["reaktionsgleichungen-v2", "reaktionsgleichungen-ueben"],
   Card,
   load: () => import("./entry.tsx"),
 };

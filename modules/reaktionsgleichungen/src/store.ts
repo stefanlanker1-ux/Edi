@@ -1,11 +1,12 @@
 // App-State der Reaktionsgleichungen-App. Nicht gespeichert: Stufe (Start immer Unterstufe). Farbschema/Beamer: @lern/ui LernApp.
-// Gespeichert: Stand der Start-Beispiele je Stufe.
+// Gespeichert: Stand der Start-Beispiele je Stufe (`reaktionsgleichungen-v2`) und der Übungen (`reaktionsgleichungen-ueben`).
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { REACTION_BY_ID } from "@lern/chem";
+import type { Lvl } from "./ueben/exercises.ts";
 
-export type Tab = "start" | "quiz";
+export type Tab = "start" | "ueben";
 export type Stufe = "us" | "os";
 
 /** Start-Beispiele – nur Moleküle (mit Teilchenbild). Unterstufe von einer Zahl bis zur Verbrennung,
@@ -72,4 +73,44 @@ export const useApp = create<State>()(persist((set, get) => {
       os: valid(s?.os, STARTS.os) ? s!.os : fresh(STARTS.os),
     } };
   },
+}));
+
+// ── Üben: je Stufe Schwierigkeit und Aufgabe, Zahlen und ✓ je Gleichung ─────────────
+
+
+interface UebenState {
+  lvl: Record<Stufe, Lvl>;
+  /** gewählte Aufgabe je `${stufe}-${lvl}` */
+  at: Record<string, number>;
+  /** gesetzte Zahlen je Gleichung (Kennung) */
+  coeffs: Record<string, number[]>;
+  /** gelöste Gleichungen */
+  done: Record<string, true>;
+  setLvl: (s: Stufe, l: Lvl) => void;
+  setAt: (s: Stufe, l: Lvl, i: number) => void;
+  setCoeff: (id: string, k: number, v: number) => void;
+  setCoeffs: (id: string, c: number[]) => void;
+  solved: (id: string) => void;
+}
+
+export const coeffsOf = (u: Pick<UebenState, "coeffs">, id: string) => {
+  const c = u.coeffs[id], n = ones(id).length;
+  return Array.isArray(c) && c.length === n && c.every(x => Number.isInteger(x) && x >= 1) ? c : ones(id);
+};
+
+export const useUeben = create<UebenState>()(persist((set, get) => ({
+  lvl: { us: "einfach", os: "einfach" },
+  at: {},
+  coeffs: {},
+  done: {},
+  setLvl: (s, l) => set({ lvl: { ...get().lvl, [s]: l } }),
+  setAt: (s, l, i) => set({ at: { ...get().at, [`${s}-${l}`]: i } }),
+  setCoeff: (id, k, v) => set({ coeffs: { ...get().coeffs, [id]: coeffsOf(get(), id).map((x, j) => (j === k ? v : x)) } }),
+  setCoeffs: (id, c) => set({ coeffs: { ...get().coeffs, [id]: c } }),
+  solved: id => set({ done: { ...get().done, [id]: true } }),
+}), {
+  name: "reaktionsgleichungen-ueben",
+  version: 1,
+  storage: createJSONStorage(() => localStorage),
+  partialize: s => ({ lvl: s.lvl, at: s.at, coeffs: s.coeffs, done: s.done }),
 }));

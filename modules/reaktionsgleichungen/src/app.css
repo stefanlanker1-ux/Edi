@@ -56,11 +56,25 @@ button.eq-term:active { transform: scale(.96); }
 .rg-anim { padding: 6px 12px; }
 .rg-anim-box { height: min(62dvh, 560px); min-height: 0; }
 
-/* ── Quiz ───────────────────────────────────────────────────────────────── */
-.q-eq { margin: 0 0 8px; text-align: center; font-size: clamp(1.1rem, 4.5cqw, 1.6rem); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; }
-.bal-answer { display: grid; gap: 14px; justify-items: center; }
-.hero-scale { display: block; width: 100%; height: auto; overflow: visible; }
-.explain .ex-example { margin: 12px 0 0; display: grid; gap: 10px; }
+/* ── Üben: Schwierigkeit, Aufgabe ‹ n / 10 ›, Fortschritt, Tipp ─────────────── */
+.rg-ueben-head { display: grid; gap: 6px; justify-items: stretch; }
+.rg-ueben-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.rg-nav { display: flex; align-items: center; gap: 2px; }
+.rg-nav-btn {
+  width: 44px; height: 44px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  font-size: 1.4rem; font-weight: 800; line-height: 1;
+}
+.rg-nav-btn:disabled { opacity: .35; }
+.rg-nav-n { min-width: 4.2em; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rg-dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.rg-dots span {
+  height: 14px; border: 1.5px solid var(--border); border-radius: 2px; display: grid; place-items: center;
+  font-size: .62rem; font-weight: 800; line-height: 1; color: var(--ok);
+}
+.rg-dots span.done { border-color: var(--ok); }
+.rg-dots span.on { border-color: var(--text); background: var(--text); color: var(--surface); }
+.rg-hint { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: .95rem; line-height: 1.35; }
+.rg-hint .ic { flex: none; margin-top: 1px; color: var(--signal); }
 
 .ms-wrap { width: 100%; height: 100%; min-height: 0; min-width: 0; overflow: hidden; }
 .ms { display: block; width: 100%; height: 100%; max-height: 100%; }
@@ -68,13 +82,9 @@ button.eq-term:active { transform: scale(.96); }
 .ms-box.ok { stroke: var(--ok); stroke-width: .16; }
 .ms-box.bad { stroke: var(--signal); stroke-width: .16; stroke-dasharray: .35 .25; }
 .ms-arrow { fill: var(--text); }
-.q-body > .bal-answer { flex: 1 1 0; min-height: 0; grid-template-rows: minmax(60px, 1fr) auto auto; width: 100%; }
-.bal-scene { min-height: 0; height: 100%; width: 100%; display: grid; }
-.ex-scene { height: clamp(90px, 17vh, 150px); }
 /* niedrige Handys: Titel kleiner, Platz für das Teilchenbild */
 @media (max-height: 720px) { .rg-title { font-size: .95rem; } .rg-wb .ui-wb-stage { gap: 8px; } }
 
-/* ohne Teilchenbild (Salze, Metalle): Wortgleichung */
 
 /* ── Stoff-Info: Namen als Knöpfe (Start: Wortgleichung unter dem Titel), Blatt mit Formel, Strukturformel, 3D ── */
 .rg-names { order: 3; flex-basis: 100%; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: .92rem; }
