@@ -50,9 +50,9 @@ test("Moleküle aus nur einer Atomsorte nur in der Aufgabe „Element oder Verbi
     if (!allowed) assert.ok(!/(^|[^A-Za-z₀-₉])(O₂|O₃|N₂|H₂|Cl₂)(?![A-Za-z₀-₉])/.test(t.prompt + (t.kind === "mc" ? t.options.join() : "")), t.prompt);
   }
   assert.ok(seen > 0, "O₂/N₂-Variante kommt nie vor");
-  // in Kapitel 2 mindestens einmal je drei Runden (im Mittel)
+  // in Kapitel 2 mindestens einmal je drei Runden (im Mittel; tatsächlich etwa 43 %) – 600 Runden, damit Zufall den Test nicht kippt
   let rounds = 0, hit = 0;
-  for (let k = 0; k < 90; k++) { rounds++; if (makeRound("us", 1).some(t => t.type === "einordnen" && t.pic?.mix.some(([f]) => ["O2", "N2"].includes(f)))) hit++; }
+  for (let k = 0; k < 600; k++) { rounds++; if (makeRound("us", 1).some(t => t.type === "einordnen" && t.pic?.mix.some(([f]) => ["O2", "N2"].includes(f)))) hit++; }
   assert.ok(hit / rounds > 1 / 3, `${hit} von ${rounds}`);
 });
 
