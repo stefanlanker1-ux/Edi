@@ -3,6 +3,7 @@
 import { tr } from "./i18n.ts";
 import { useEffect, useRef, type ReactNode } from "react";
 import { IconButton } from "./components.tsx";
+import { NoTerms } from "./termCtx.tsx";
 
 export function Sheet({ open, title, onClose, wide, children }: { open: boolean; title: ReactNode; onClose: () => void; wide?: boolean; children: ReactNode }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -34,7 +35,7 @@ export function Sheet({ open, title, onClose, wide, children }: { open: boolean;
             <h2>{title}</h2>
             <IconButton icon="close" label={tr("Schließen", "Close")} onClick={onClose} />
           </header>
-          <div className="ui-sheet-body">{children}</div>
+          <div className="ui-sheet-body"><NoTerms>{children}</NoTerms></div>
         </div>
       )}
     </dialog>

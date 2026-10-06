@@ -3,7 +3,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import type { StoreApi, UseBoundStore } from "zustand";
-import { Button, Card, Fit, Guide, Icon, IconButton, Note, ResultBar, RichText, Sheet, Stars, Tag, buzz, ding, getLang, tr, type GuideDef, type IconName } from "@lern/ui";
+import { Button, Card, Fit, Guide, Icon, IconButton, NoTerms, Note, ResultBar, RichText, Sheet, Stars, Tag, TermScope, buzz, ding, getLang, tr, type GuideDef, type IconName, type TermDef } from "@lern/ui";
 import { counted, diagnose, starsFor, weakTypes, type Answered, type BaseTask, type Game, type LevelKey, type McTask, type QuizLevel, type Submit } from "./types.ts";
 import type { QuizState } from "./store.ts";
 import { STAGES, dayStart, daysUntilDue, dueSkills, examDays, inExam, stageCounts, stageOf, weeklyDone, type Exam, type Skills, type Stage } from "./skills.ts";
@@ -40,6 +40,19 @@ export interface QuizScreenProps<T extends BaseTask> {
    * die Lektion lässt sich über das Buch-Zeichen neben der Karte wiederholen. Erledigt-Stand in localStorage `LESSON_KEY`.
    */
   lesson?: (level: number) => GuideDef | undefined;
+  /**
+   * Begriffe der Aufgabe (z. B. Stoffnamen): im Text antippbar (Blatt mit kurzer Erklärung). Mit `termsTool` zusätzlich ein Hilfsmittel,
+   * das genau diese Begriffe zeigt – vor der Antwort (`answered` false) also nur Begriffe aus sichtbarem Text. Erklärungen dürfen die Lösung nicht verraten.
+   */
+  terms?: (task: T, answered: boolean) => TermDef[];
+  termsTool?: { label: string; icon: IconName };
+}
+
+/** Begriffe der Aufgabe als Karten untereinander */
+function termTool<T extends BaseTask>(p: QuizScreenProps<T>, terms: TermDef[]): QuizTool[] {
+  if (!p.termsTool || !terms.length) return [];
+  return [{ id: "begriffe", label: p.termsTool.label, icon: p.termsTool.icon,
+    content: <div className="q-terms">{terms.map(d => <section key={d.term} className="q-term"><h3>{d.title}</h3>{d.body}</section>)}</div> }];
 }
 
 /** localStorage-Schlüssel: welche Lektionen schon durchlaufen sind (gehört in `storage` des Moduls) */
@@ -440,7 +453,9 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   if (worked) return <WorkedCard p={p} t={t} onNext={go} last={last} />;
   const extra = a ? p.feedbackExtra?.(t, a) : null;
   const diag = a ? diagnose(t, a) : null;
+  const terms = p.terms?.(t, !!a) ?? [];
   return (
+    <TermScope terms={terms}>
     <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}`}>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt" ref={promptRef} tabIndex={-1}><RichText text={t.prompt} /></p>
@@ -460,12 +475,13 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
         )}
       </div>
       <div className="q-actions" ref={nextRef}>
-        <QuizHelp tools={[...(p.tools?.(t) ?? []), ...(extra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra }] : [])]}
+        <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termTool(p, terms), ...(extra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra }] : [])]}
           hint hintCue={t.hintCue} onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
           read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => `${"ABCD"[i]}: ${o}`) : [])].filter(Boolean).join(". ")} />
         {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
       </div>
     </Card>
+    </TermScope>
   );
 }
 
@@ -475,6 +491,7 @@ function WorkedCard<T extends BaseTask>({ p, t, onNext, last }: { p: QuizScreenP
   const mc = t.kind === "mc" ? (t as unknown as McTask) : null;
   const shown: Answered = { ok: true, gained: 0, choice: mc?.answer };
   return (
+    <TermScope terms={p.terms?.(t, true) ?? []}>
     <Card className={`task-card kind-${t.kind} answered worked`}>
       <p className="q-worked-tag"><Icon name="book" size={16} /> {tr("Vorgemacht – so löst man das", "Worked example – this is how")}</p>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
@@ -492,6 +509,7 @@ function WorkedCard<T extends BaseTask>({ p, t, onNext, last }: { p: QuizScreenP
         <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={onNext}>{last ? tr("Auswertung", "Results") : tr("Verstanden – jetzt du", "Got it – your turn")}</Button>
       </div>
     </Card>
+    </TermScope>
   );
 }
 
@@ -519,6 +537,7 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
     return () => removeEventListener("resize", check);
   });
   return (
+    <NoTerms>
     <div ref={ref} className={`mc-grid${long ? " long" : ""}${one ? " one" : ""}`}>
       {task.options.map((o, i) => {
         const cls = answered ? (i === task.answer ? " right" : i === answered.choice ? " wrong" : " faded") : "";
@@ -530,6 +549,7 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
         );
       })}
     </div>
+    </NoTerms>
   );
 }
 

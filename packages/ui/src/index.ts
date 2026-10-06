@@ -4,6 +4,7 @@ export * from "./Sheet.tsx";
 export * from "./AppShell.tsx";
 export * from "./hooks.ts";
 export * from "./RichText.tsx";
+export * from "./Terms.tsx";
 export * from "./Workbench.tsx";
 export * from "./Fit.tsx";
 export * from "./feedback.ts";

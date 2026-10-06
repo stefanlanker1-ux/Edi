@@ -318,3 +318,9 @@
 .q-help .ui-btn.q-hint-cue { box-shadow: inset 0 0 0 2px var(--signal); color: var(--signal); font-weight: 800; }
 .lv-go { display: flex; align-items: center; gap: 4px; }
 .lv-tip { display: inline-flex; color: var(--signal); }
+
+/* Hilfsmittel „Begriffe“: eine Karte je Begriff, Linien statt Flächen */
+.q-terms { display: grid; gap: 14px; }
+.q-term { display: grid; gap: 6px; padding-top: 12px; border-top: 1px solid var(--border); }
+.q-term:first-child { padding-top: 0; border-top: 0; }
+.q-term h3 { margin: 0; font-size: 1rem; }

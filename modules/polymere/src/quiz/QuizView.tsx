@@ -16,6 +16,7 @@ import { explainFor } from "./explain.tsx";
 import { LESSONS } from "../lessons.tsx";
 import { VisView, beadsOf, visFormula } from "./visual.tsx";
 import { BeadDot, BeadStrip } from "../components/Beads.tsx";
+import { termsFor } from "./lexicon.tsx";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "polymere-quiz", levelId, makeRound, fixedOrder: true, sameTask, missRecovery: true });
 
@@ -256,6 +257,8 @@ export function QuizView() {
         <p className="pm-sol-exp"><RichText text={t.explain} /></p>
       </> : null)}
       explain={(level, task) => explainFor(level, task)}
+      terms={termsFor}
+      termsTool={{ label: tr("Begriffe", "Terms"), icon: "molecule" }}
     />
   );
 }

@@ -222,6 +222,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Weitere Bausteine von `QuizScreen`: `renderVisual` (Bild über der Frage, per `Fit`), `renderOption` (eigene Darstellung von Antworten), `renderAnswer` (eigene Antwortform),
   `solution` (Lösung nach Fehlern), `feedbackExtra` (zusätzliches Blatt „Lösung“ nach der Antwort, z. B. Ablauf der Reaktion), `tools` (Hilfsmittel), `explain` (Erklärkarte je Level),
   `lead` an der Aufgabe (Merksatz über der Frage), `hint` (Tipp) und `hintCue` (Tipp-Knopf hervorgehoben, kostet keine Punkte).
+  **Begriffe** (`terms` an `QuizScreen`, Baustein `TermScope`/`RichText` in `@lern/ui` `Terms.tsx`): Begriffe der Aufgabe (z. B. Stoffnamen) sind in Frage, Merksatz, Tipp und
+  Rückmeldung antippbar (erstes Vorkommen, gepunktet unterstrichen, nur ganze Wörter) und öffnen ein Blatt „Was ist das?“; mit `termsTool` zusätzlich ein Hilfsmittel, das alle
+  Begriffe aus Frage und Antworten auflistet. In Blättern und Antwortknöpfen aus (`NoTerms`). Karten beschreiben nur, was etwas ist – nie, was gefragt ist (Test je Modul).
   Optional `rule` an der Aufgabe: kurze Regel nach der richtigen Antwort, wenn die Antwort selbst keine Rückmeldung (`why`) hat (nur gesetzt, wo ein Modul es füllt).
 - Diagnostische Distraktoren: jede falsche Antwort steht für eine Fehlvorstellung. MC: `mc(richtig, [d(text, miss, why), …])` – `miss` = Schlüssel aus
   `src/quiz/misconceptions.ts` der App (`MISS`, Name für Landkarte/Auswertung), `why` = Rückmeldungssatz mit den konkreten Zahlen (steht vor der Erklärung).
@@ -560,6 +563,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 
 ## Polymere (`modules/polymere`)
 - Keine Stufen. Leiste **Üben | Experimentieren** wie Gemische: Üben = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
+- **Begriffe beim Üben** (`quiz/lexicon.tsx`): alle Monomere (Strukturformel, Kügelchen, ein Satz „Wie Ethen, aber …“, weiterer Name), Kunststoffe (Kurzzeichen, Monomer,
+  Verwendung), Starter/Katalysatoren (Formel, Verfahren) und funktionelle Gruppen sind im Text antippbar, Hilfsmittel „Begriffe“ listet die der Aufgabe. Nicht gezeigt, wo es
+  die Antwort wäre (`HIDE`: Monomer bei Monomer ↔ Polymer, Verwendung bei Alltagsfragen; Test: keine Karte aus Frage/Antworten nennt die richtige Antwort).
+  Jede Fertigkeit hat einen eigenen Tipp (`tip`, im Kapitel statt des allgemeinen Hinweises) mit den Stoffen der Aufgabe, als Denkschritt.
 - **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
   danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
@@ -711,6 +718,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Begriffe und Tipps beim Üben** – Stoffnamen, Starter und funktionelle Gruppen in Aufgaben antippbar (Karte „Was ist das?“, zentral `TermScope` in `@lern/ui`, `terms` an `QuizScreen`), Hilfsmittel „Begriffe“; zugeschnittener Tipp für alle 38 Fertigkeiten ohne eigenen Tipp; kürzere Rückmeldungen bei „Lebende Ketten“ und PE-HD/PE-LD (Bild bleibt mit „Lesbar“ auf 375 × 667 groß genug).
 - **Alle: überall „Üben“** – Atombau, Ionenbindung, Elektronenpaarbindung, Neutralisation, Nomenklatur und Einheiten: Bereich „Quiz“ heißt „Üben“ (zentral `uebenTab`), Überschriften „Üben · …“, Erklärung endet mit „Zum Üben“; Inhalt unverändert. check-ui findet den Bereich über „Üben“ in der Leiste.
 - **Alle: Bereich „Üben“ zentral** – `uebenTab`/`uebenLabel` in `@lern/ui`; Polymere und Gemische heißen „Üben“ statt „Lernen“ (Inhalt unverändert), Reaktionsgleichungen nutzt denselben Bereich; check-ui sucht „Üben“. Regel: gemeinsame Üben-Bausteine liegen in `packages/`.
 - **Reaktionsgleichungen: Teilchenbild beim Üben einklappbar** – Schalter „Teilchen“ blendet das Kugelbild aus, damit nur Text (Namen, Gleichung, Tipp) dasteht; Standard an.

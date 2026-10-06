@@ -369,3 +369,8 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 .ui-guide-bar.parts { display: flex; gap: 4px; background: none; }
 .ui-guide-bar.parts > span { display: block; height: 100%; background: var(--border); }
 .ui-guide-next { justify-self: start; animation: ui-guide-in .3s ease; }
+
+/* Begriff im Fließtext (Terms.tsx): antippbar, gepunktet unterstrichen – Text-Link, keine Knopffläche */
+.ui-term { cursor: pointer; text-decoration: underline dotted; text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.ui-term:hover { text-decoration-style: solid; }
+.ui-term:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }

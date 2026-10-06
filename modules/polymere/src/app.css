@@ -391,3 +391,11 @@
   .result-card .res-line { font-size: 1rem; }
   .result-card .btn-row { margin-top: 2px; }
 }
+
+/* Begriffe (quiz/lexicon.tsx): Strukturformel, ein Satz, weiterer Name */
+.pm-lex-pic { height: 92px; display: flex; justify-content: center; }
+.pm-lex-pic svg { height: 100%; width: auto; max-width: 100%; }
+.pm-lex-what { margin: 0; display: flex; gap: 8px; align-items: flex-start; }
+.pm-lex-bead { flex: none; width: 22px; height: 22px; margin-top: 1px; }
+.pm-lex-also { margin: 0; color: var(--muted); font-size: .9rem; }
+.pm-lex-formula { margin: 0; font-weight: 600; }

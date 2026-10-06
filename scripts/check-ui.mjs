@@ -44,6 +44,7 @@ async function check(page, app, vp, view) {
       if (b.width === 0 || b.height === 0) continue;
       if (b.bottom < 0 || b.top > innerHeight) continue;
       if (e.closest(".sr-only")) continue; // nur für Tastatur und Vorlesen, unsichtbar
+      if (e.classList.contains("ui-term")) continue; // Begriff im Fließtext: Text-Link (Ausnahme für Links im Satz)
       if (b.width < 43.5 || b.height < 43.5) {
         if (e.classList.contains("pse-cell") || (b.width <= 1 && b.height <= 1)) continue; // PSE ganz sichtbar = bewusste Ausnahme; versteckte Inputs
         // Tippfläche kann durch Padding/Pseudo größer sein: prüfe min-* im Stil
