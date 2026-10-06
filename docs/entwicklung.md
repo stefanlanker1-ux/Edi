@@ -487,7 +487,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Üben** (`src/ueben/`): je Stufe drei Schwierigkeiten **Einfach | Mittel | Schwer** mit je 10 festen Gleichungen (`EXERCISES` in `exercises.ts`, 60 verschiedene,
   keine aus dem Experimentieren). Alle nur aus Molekülen (`hasModel`), damit nach ✓ bei jeder Gleichung „Ablauf ansehen“ (Animation) geht; Moleküle, deren Kugelmodell
   nicht jedes Atom zeigt (SF₆, PCl₅), sind deshalb nicht dabei. Gleiche Karte wie im Experimentieren (`BalanceCard`): Teilchenbild, Gleichung, „Prüfen“, nach zwei
-  Fehlversuchen „Lösung“. Kopf: Schwierigkeit (`Segmented`), Aufgabe ‹ n / 10 ›, Fortschritt als 10 Kästchen (✓ gelöst). Knopf **„Tipp“** zeigt einen festen, von Hand
+  Fehlversuchen „Lösung“. Kopf: Schwierigkeit (`Segmented`), Aufgabe ‹ n / 10 ›, Schalter **„Teilchen“** (Kugelbild ein-/ausklappen, dann nur Text; Standard an, nicht gespeichert), Fortschritt als 10 Kästchen (✓ gelöst). Knopf **„Tipp“** zeigt einen festen, von Hand
   geschriebenen Hinweis zu genau dieser Gleichung (`HINTS`, DE/EN) über der Gleichungszeile – er zeigt den Weg (womit beginnen, was zuletzt, wann verdoppeln), nennt aber
   keine gesuchte Zahl vor einem Stoff. Nach der letzten Aufgabe einer Schwierigkeit „Weiter zu Mittel/Schwer“.
   Test `exercises.test.ts`: 3 × 10 je Stufe, eindeutig ausgleichbar, nur Moleküle, Zahlen im Bereich der Auswahl, Hinweise vorhanden, Sätze ≤ 22 Wörter, keine Lösung „2 HF“ im Hinweis.
@@ -707,6 +707,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Reaktionsgleichungen: Teilchenbild beim Üben einklappbar** – Schalter „Teilchen“ blendet das Kugelbild aus, damit nur Text (Namen, Gleichung, Tipp) dasteht; Standard an.
 - **Reaktionsgleichungen: Üben statt Erklärung und Quiz** – Bereiche Experimentieren | Üben; Üben mit je Stufe 3 × 10 festen Gleichungen (Einfach, Mittel, Schwer),
   nur aus Molekülen, damit nach ✓ die Animation bei jeder Gleichung geht; „Tipp“ mit eigenem Hinweis je Gleichung; Erklärung (`guide.tsx`) und Quiz (`src/quiz/`) entfernt.
   42 neue Molekül-Gleichungen in `REACTIONS` mit Stoffnamen (DE/EN); Zahlenauswahl bei Niveau 4 bis 40 (Dodecan).

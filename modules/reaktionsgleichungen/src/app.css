@@ -66,6 +66,11 @@ button.eq-term:active { transform: scale(.96); }
 }
 .rg-nav-btn:disabled { opacity: .35; }
 .rg-nav-n { min-width: 4.2em; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+.rg-model-btn {
+  min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-weight: 700;
+}
+.rg-model-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .rg-dots { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
 .rg-dots span {
   height: 14px; border: 1.5px solid var(--border); border-radius: 2px; display: grid; place-items: center;

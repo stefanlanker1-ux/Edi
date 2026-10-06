@@ -1,9 +1,10 @@
 // Üben: je Stufe drei Schwierigkeiten mit je 10 Gleichungen. Oben Schwierigkeit und Aufgabe (‹ 3 / 10 ›, Fortschritt als Kästchen),
 // darunter dieselbe Karte wie im Experimentieren (Teilchenbild, Gleichung, Prüfen). „Tipp“ zeigt den Hinweis zu genau dieser Gleichung,
-// nach ✓ zeigt „Ablauf ansehen“ die Animation. Zahlen und ✓ bleiben gespeichert.
+// nach ✓ zeigt „Ablauf ansehen“ die Animation. „Teilchen“ klappt das Kugelbild ein (nur Text) und wieder aus – Standard: an.
+// Zahlen und ✓ bleiben gespeichert.
 
 import { REACTION_BY_ID } from "@lern/chem";
-import { Segmented, buzz } from "@lern/ui";
+import { Icon, Segmented, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { useApp, useUeben, coeffsOf } from "../store.ts";
 import { BalanceCard } from "../components/BalanceCard.tsx";
@@ -11,7 +12,7 @@ import { NameLine } from "../components/Substance.tsx";
 import { EXERCISES, HINTS, LVLS, LVL_NAMES, type Lvl } from "./exercises.ts";
 
 export function UebenView() {
-  const stufe = useApp(s => s.stufe);
+  const { stufe, model, setModel } = useApp();
   const u = useUeben();
   const lvl = u.lvl[stufe];
   const ids = EXERCISES[stufe][lvl];
@@ -25,7 +26,7 @@ export function UebenView() {
   const nextLabel = !last ? tr("Nächste Aufgabe", "Next exercise") : nextLvl ? `${tr("Weiter zu", "On to")} ${LVL_NAMES[nextLvl]}` : undefined;
   const doneN = ids.filter(x => u.done[x]).length;
   return (
-    <BalanceCard key={id} r={r} coeffs={coeffs} hint={HINTS[id]}
+    <BalanceCard key={id} r={r} coeffs={coeffs} hint={HINTS[id]} model={model}
       onChange={(k, v) => u.setCoeff(id, k, v)}
       onSolved={() => u.solved(id)}
       onSolution={() => u.setCoeffs(id, r.coeffs)}
@@ -40,6 +41,10 @@ export function UebenView() {
               <span className="rg-nav-n" aria-label={`${tr("Aufgabe", "Exercise")} ${i + 1} / ${ids.length}, ${doneN} ${tr("gelöst", "solved")}`}>{i + 1} / {ids.length}</span>
               <button type="button" className="rg-nav-btn" onClick={() => go(i + 1)} disabled={last} aria-label={tr("Nächste Aufgabe", "Next exercise")}>›</button>
             </div>
+            <button type="button" className="rg-model-btn" aria-pressed={model} onClick={() => { buzz(); setModel(!model); }}
+              aria-label={model ? tr("Teilchenbild ausblenden", "Hide particle model") : tr("Teilchenbild einblenden", "Show particle model")}>
+              <Icon name="molecule" size={18} /> {tr("Teilchen", "Particles")}
+            </button>
           </div>
           <div className="rg-dots" aria-hidden="true">
             {ids.map((x, j) => <span key={x} className={`${j === i ? "on" : ""}${u.done[x] ? " done" : ""}`}>{u.done[x] ? "✓" : ""}</span>)}

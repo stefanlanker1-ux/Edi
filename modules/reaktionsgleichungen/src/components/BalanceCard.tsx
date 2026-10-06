@@ -13,7 +13,7 @@ import { tr } from "@lern/i18n";
 
 const gcdAll = (xs: number[]) => xs.reduce((g, x) => { while (x) [g, x] = [x, g % x]; return g; }, 0);
 
-export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr("Weiter", "Next"), onSolved, onSolution, hint }: {
+export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr("Weiter", "Next"), onSolved, onSolution, hint, model = true }: {
   r: Reaction; coeffs: number[]; onChange: (k: number, v: number) => void;
   head: ReactNode;
   onNext?: () => void; nextLabel?: string;
@@ -22,6 +22,8 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
   onSolution?: () => void;
   /** Hinweis zu dieser Gleichung (Knopf „Tipp“) */
   hint?: string;
+  /** Teilchenbild zeigen (Üben: einklappbar, nur Text) */
+  model?: boolean;
 }) {
   const [checked, setChecked] = useState<string | null>(null);
   const [fails, setFails] = useState<Record<string, number>>({});
@@ -40,7 +42,7 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
   return (
     <Workbench className="rg-wb" tools={[]}
       head={head}
-      stage={hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : null}
+      stage={model && hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : null}
       status={shown ? <>
         {!balanced && unbalancedElements(r, coeffs).map(el => <Tag key={el} tone="signal">≠ {el}</Tag>)}
         {balanced && !ok && <Tag tone="signal">{tr("kürzen :", "simplify ÷")} {g}</Tag>}

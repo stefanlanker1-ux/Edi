@@ -35,9 +35,12 @@ const valid = (s: StartState | undefined, ids: string[]) =>
 interface State {
   tab: Tab;
   stufe: Stufe;
+  /** Üben: Teilchenbild an (Standard) oder nur Text – nicht gespeichert */
+  model: boolean;
   start: Record<Stufe, StartState>;
   setTab: (t: Tab) => void;
   setStufe: (s: Stufe) => void;
+  setModel: (m: boolean) => void;
   pickStart: (i: number) => void;
   setStart: (k: number, v: number) => void;
   solvedStart: () => void;
@@ -48,9 +51,11 @@ export const useApp = create<State>()(persist((set, get) => {
   return {
     tab: "start",
     stufe: "us",
+    model: true,
     start: { us: fresh(STARTS.us), os: fresh(STARTS.os) },
     setTab: tab => set({ tab }),
     setStufe: stufe => set({ stufe }),
+    setModel: model => set({ model }),
     pickStart: si => edit(s => ({ ...s, si })),
     setStart: (k, v) => edit(s => ({ ...s, coeffs: s.coeffs.map((c, i) => (i === s.si ? c.map((x, j) => (j === k ? v : x)) : c)) })),
     solvedStart: () => edit(s => ({ ...s, done: s.done.map((d, i) => d || i === s.si) })),
