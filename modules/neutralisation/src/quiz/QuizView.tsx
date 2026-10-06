@@ -1,7 +1,7 @@
 // Quiz der Neutralisation auf Basis von @lern/quiz. Eigener Aufgabentyp: Neutralisation mit Bausteinen bauen.
 
 import { useState } from "react";
-import { Button, Stepper } from "@lern/ui";
+import { Button, Stepper, uebenLabel } from "@lern/ui";
 import { Formula, pseTool } from "@lern/chem-ui";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { PROTIC_ACIDS, formulaElements, neutralEquation } from "@lern/chem";
@@ -45,7 +45,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe={stufe}
-      title={`Quiz · ${os ? "Level II" : "Level I"}`}
+      title={`${uebenLabel()} · ${os ? "Level II" : "Level I"}`}
       useQuiz={useQuiz}
       levels={LEVELS[stufe]}
       levelName={l => levelName(stufe, l)}

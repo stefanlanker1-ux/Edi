@@ -1,11 +1,11 @@
-import { LernApp, tr, type ShellTab } from "@lern/ui";
+import { LernApp, tr, type ShellTab, uebenTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { DrawView } from "./views/DrawView.tsx";
 import { QuizView } from "./quiz/QuizView.tsx";
 import { GUIDE } from "./guide.tsx";
 
 const TABS: ShellTab<Tab>[] = [
-  { id: "quiz", label: "Quiz", icon: "quiz" },
+  uebenTab("quiz"),
   { id: "zeichnen", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 

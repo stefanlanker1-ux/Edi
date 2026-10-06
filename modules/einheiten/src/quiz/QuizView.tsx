@@ -3,7 +3,7 @@
 // Vorsilben-Skala, Stellenwerttafel, bei zusammengesetzten Einheiten die Einsetz-Kette.
 
 import { useState } from "react";
-import { Button } from "@lern/ui";
+import { Button, uebenLabel } from "@lern/ui";
 import { QuizScreen, createQuizStore, type Answered, type QuizTool, type Submit } from "@lern/quiz";
 import { fmt, parseQ, solve, chainFor, unitName } from "@lern/units";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, tableFor, type Task } from "./tasks.ts";
@@ -98,7 +98,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe={stufe}
-      title="Quiz"
+      title={uebenLabel()}
       useQuiz={useQuiz}
       levels={LEVELS[stufe]}
       levelName={l => levelName(stufe, l)}

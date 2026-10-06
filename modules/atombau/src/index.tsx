@@ -6,9 +6,9 @@ import { Card } from "./card.tsx";
 export const modul: LernModule = {
   id: "atombau",
   name: "Atombau",
-  desc: "Atome aus Protonen, Neutronen und Elektronen bauen, das Periodensystem entdecken und im Quiz üben.",
+  desc: "Atome aus Protonen, Neutronen und Elektronen bauen, das Periodensystem entdecken und üben.",
   nameEn: "Atomic Structure",
-  descEn: "Build atoms from protons, neutrons and electrons, explore the periodic table and practise in the quiz.",
+  descEn: "Build atoms from protons, neutrons and electrons, explore the periodic table and practise.",
   storage: ["atombau-v3", "atombau-quiz"],
   Card,
   load: () => import("./entry.tsx"),

@@ -60,8 +60,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 
 ## Didaktik (verbindlich für alle Module)
 - **Bereich „Üben“** (statt „Lernen“ bzw. Erklärung und Quiz): Name, englischer Name („Practise“) und Zeichen kommen zentral aus `@lern/ui`
-  (`uebenTab(id)`, `uebenLabel()`), nie im Modul selbst geschrieben. Was im Bereich geübt wird, gestaltet jedes Modul selbst (Polymere und Gemische: Kapitel mit Lektion
-  und Aufgaben; Reaktionsgleichungen: 3 × 10 Gleichungen je Stufe). **Bausteine des Übens, die mehr als ein Modul nutzt, liegen zentral in `packages/`** (spätestens
+  (`uebenTab(id)`, `uebenLabel()`), nie im Modul selbst geschrieben. Alle Module haben diesen Bereich (bei den bisherigen Quiz-Modulen heißt nur der Bereich so, der Inhalt ist das bisherige Quiz). Was im Bereich geübt
+  wird, gestaltet jedes Modul selbst (Polymere und Gemische: Kapitel mit Lektion und Aufgaben; Reaktionsgleichungen: 3 × 10 Gleichungen je Stufe; übrige: Quiz-Runden). **Bausteine des Übens, die mehr als ein Modul nutzt, liegen zentral in `packages/`** (spätestens
   beim zweiten Modul dorthin verschieben, nicht im Modul kopieren); jede Änderung an einem solchen Baustein wird in allen Modulen geprüft, die ihn nutzen.
 - **Lernen an gelösten Beispielen, dann Hilfe ausblenden** – überall nach demselben Muster: zuerst ein **fertig gelöster Fall** (vorgemacht, Lösungsweg Schritt für Schritt),
   dann ein **halb gelöster** (eine Lücke zum Ergänzen), dann **selbst lösen** – und mit dem nächsten Gedanken wieder von vorn (vorgemacht → halb → frei → vorgemacht …).
@@ -711,6 +711,7 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Alle: überall „Üben“** – Atombau, Ionenbindung, Elektronenpaarbindung, Neutralisation, Nomenklatur und Einheiten: Bereich „Quiz“ heißt „Üben“ (zentral `uebenTab`), Überschriften „Üben · …“, Erklärung endet mit „Zum Üben“; Inhalt unverändert. check-ui findet den Bereich über „Üben“ in der Leiste.
 - **Alle: Bereich „Üben“ zentral** – `uebenTab`/`uebenLabel` in `@lern/ui`; Polymere und Gemische heißen „Üben“ statt „Lernen“ (Inhalt unverändert), Reaktionsgleichungen nutzt denselben Bereich; check-ui sucht „Üben“. Regel: gemeinsame Üben-Bausteine liegen in `packages/`.
 - **Reaktionsgleichungen: Teilchenbild beim Üben einklappbar** – Schalter „Teilchen“ blendet das Kugelbild aus, damit nur Text (Namen, Gleichung, Tipp) dasteht; Standard an.
 - **Reaktionsgleichungen: Üben statt Erklärung und Quiz** – Bereiche Experimentieren | Üben; Üben mit je Stufe 3 × 10 festen Gleichungen (Einfach, Mittel, Schwer),

@@ -66,7 +66,7 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   stufe?: StufeSwitch<S>;
   /** weitere Knöpfe vor den Standard-Schaltern */
   actions?: ReactNode;
-  /** geführte Erklärung (je Stufe) – Knopf „Erklärung“ links in der Kopfzeile, am Ende geht es zum Quiz */
+  /** geführte Erklärung (je Stufe) – Knopf „Erklärung“ links in der Kopfzeile, am Ende geht es zum Üben */
   guide?: GuideDef;
   children: ReactNode;
 }) {
@@ -106,7 +106,7 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
       </>}>
       {children}
       {guide && <Guide key={`${guide.title}|${stufeValue ?? ""}|${lang}`} def={guide} open={guideOpen} onClose={() => setGuideOpen(false)} onFinish={finish}
-        finishLabel={quizTab ? tr("Zum Quiz", "To the quiz") : tr("Fertig", "Done")} />}
+        finishLabel={quizTab ? tr("Zum Üben", "To practice") : tr("Fertig", "Done")} />}
     </AppShell>
   );
 }

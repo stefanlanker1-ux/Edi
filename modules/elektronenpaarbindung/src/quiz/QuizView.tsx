@@ -1,7 +1,7 @@
 // Quiz auf Basis von @lern/quiz; eigener Aufgabentyp „Molekül bauen“ mit dem Baufeld.
 
 import { useState } from "react";
-import { Button, Tag } from "@lern/ui";
+import { Button, Tag, uebenLabel } from "@lern/ui";
 import { Formula, PseHelp } from "@lern/chem-ui";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { isComplete, identify, elementsIn, elementName, BY_SYMBOL, BY_Z, type Molecule } from "@lern/chem";
@@ -39,7 +39,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe={stufe}
-      title={`Quiz · ${stufe === "us" ? "Level I" : "Level II"}`}
+      title={`${uebenLabel()} · ${stufe === "us" ? "Level I" : "Level II"}`}
       useQuiz={useQuiz}
       levels={LEVELS[stufe]}
       levelName={l => levelName(stufe, l)}

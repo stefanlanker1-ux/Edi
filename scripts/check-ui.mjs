@@ -154,12 +154,12 @@ for (const app of APPS) {
       }
     }
 
-    // Quiz: Runde starten und einige Aufgaben beantworten
-    const quizTab = page.locator("button:has-text('Quiz'):visible").first();
+    // Üben (früher Quiz): Runde starten und einige Aufgaben beantworten
+    const quizTab = page.locator("nav button:visible", { hasText: /^(Üben|Practise)/ }).first();
     if (await quizTab.count()) {
       try { await quizTab.click({ timeout: 2000 }); } catch { /* egal */ }
       await check(page, app, vp, "quiz-menü");
-      const start = page.locator("button:has-text('Start'), button:has-text('Los'), button:has-text('Let'), button:has-text('Runde'), button:has-text('üben'), button:has-text('Üben'), .level-card").first();
+      const start = page.locator("main").locator("button:has-text('Start'), button:has-text('Los'), button:has-text('Let'), button:has-text('Runde'), button:has-text('üben'), button:has-text('Üben'), .level-card").first();
       if (await start.count()) {
         try { await start.click({ timeout: 2000 }); } catch { /* egal */ }
         for (let k = 0; k < 6; k++) {
@@ -191,7 +191,7 @@ for (const app of APPS) {
       const ids = process.env.LEARN.split(",");
       await page.evaluate(ids => { localStorage.setItem("lern-lektionen", JSON.stringify(Object.fromEntries(ids.map(i => [i, true])))); }, ids);
       await page.reload({ waitUntil: "networkidle" }).catch(() => {});
-      const learn = page.locator("button:visible", { hasText: /^(Üben|Practise)/ }).first();
+      const learn = page.locator("nav button:visible", { hasText: /^(Üben|Practise)/ }).first();
       if (await learn.count()) await learn.click({ timeout: 1500 }).catch(() => {});
       const levels = await page.locator(".level-card").count();
       for (let lv = 0; lv < levels; lv++) {

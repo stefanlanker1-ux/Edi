@@ -5,7 +5,7 @@
 import { createQuizStore, NumberAnswer, QuizScreen } from "@lern/quiz";
 import type { Mol } from "../chem/mol.ts";
 import { MolSvg, type View } from "../components/MolSvg.tsx";
-import { Segmented, tr } from "@lern/ui";
+import { Segmented, tr, uebenLabel } from "@lern/ui";
 import { Groups } from "../views/DrawView.tsx";
 import { STEM } from "../chem/rings.ts";
 import { useApp } from "../store.ts";
@@ -56,7 +56,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe="us"
-      title={tr("Quiz · Nomenklatur", "Quiz · Nomenclature")}
+      title={`${uebenLabel()} · ${tr("Nomenklatur", "Nomenclature")}`}
       useQuiz={useQuiz}
       levels={LEVELS}
       levelName={levelName}

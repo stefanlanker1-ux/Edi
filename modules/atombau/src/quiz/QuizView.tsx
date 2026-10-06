@@ -1,6 +1,7 @@
 // Quiz des Atombaus auf dem gemeinsamen Grundgerüst: Levelauswahl → Aufgaben → Auswertung.
 // Eigene Aufgabenformen (PSE tippen, Zahlen, Schalen, Kästchen, Atom bauen) kommen aus answers.tsx.
 
+import { uebenLabel } from "@lern/ui";
 import { QuizScreen, type QuizTool } from "@lern/quiz";
 import { elementsIn } from "@lern/chem";
 import { Bohr, FillScheme, Nuclide, pseTool } from "@lern/chem-ui";
@@ -29,7 +30,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe={stufe}
-      title={`Quiz · ${stufe === "us" ? "Level I" : "Level II"}`}
+      title={`${uebenLabel()} · ${stufe === "us" ? "Level I" : "Level II"}`}
       useQuiz={useQuiz}
       levels={LEVELS[stufe]}
       levelName={l => levelName(stufe, l)}

@@ -189,7 +189,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
               <ul>{def.outro.map((o, k) => <li key={k}><RichText text={o} /></li>)}</ul>
               <div className="ui-guide-end-btns">
                 <Button variant="quiet" icon="reset" onClick={() => { setI(0); reset(); }}>{tr("Noch einmal", "Once more")}</Button>
-                <Button variant="primary" size="lg" iconRight="arrow" onClick={onFinish}>{finishLabel ?? tr("Zum Quiz", "To the quiz")}</Button>
+                <Button variant="primary" size="lg" iconRight="arrow" onClick={onFinish}>{finishLabel ?? tr("Zum Üben", "To practice")}</Button>
               </div>
             </div>
           ) : (

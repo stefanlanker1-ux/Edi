@@ -1,7 +1,7 @@
 // Quiz der Ionenbindung-App auf Basis von @lern/quiz. Eigener Aufgabentyp: Formel mit Bausteinen bauen.
 
 import { useState } from "react";
-import { Button, Stepper } from "@lern/ui";
+import { Button, Stepper, uebenLabel } from "@lern/ui";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { ratio, formula, toSubscript, elementsIn } from "@lern/chem";
 import { pseTool } from "@lern/chem-ui";
@@ -40,7 +40,7 @@ export function QuizView() {
   return (
     <QuizScreen<Task>
       stufe={stufe}
-      title={`Quiz · ${stufe === "us" ? "Level I" : "Level II"}`}
+      title={`${uebenLabel()} · ${stufe === "us" ? "Level I" : "Level II"}`}
       useQuiz={useQuiz}
       levels={LEVELS[stufe]}
       levelName={l => levelName(stufe, l)}
