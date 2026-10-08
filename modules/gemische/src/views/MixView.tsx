@@ -418,7 +418,7 @@ function Muesli({ index }: { index: number }) {
         <div className="gm-controls">
           <div className="gm-row">
             <IconButton icon="back" label={tr("Voriges Beispiel", "Previous example")} onClick={() => goTo(index - 1)} />
-            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}>{mixed ? tr("Auslesen", "Sort out") : tr("Mischen", "Mix")}</Button>
+            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}>{mixed ? tr("Auslesen", "Hand-pick") : tr("Mischen", "Mix")}</Button>
             <IconButton icon="arrow" label={tr("Nächstes Beispiel", "Next example")} onClick={() => goTo(index + 1)} />
           </div>
         </div>

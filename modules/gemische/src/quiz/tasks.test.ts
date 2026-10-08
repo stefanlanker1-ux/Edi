@@ -1,6 +1,7 @@
 import { test, assert } from "vitest";
 import { GENS, makeRound, LEVELS, TYPE_NAMES, distinctColors, type Pic, type Task } from "./tasks.ts";
-import { PART_NAME } from "./trennen.ts";
+import { K5_METHODS, PART_NAME } from "./trennen.ts";
+import { METHODS, METHOD_NAME } from "../components/Separation.tsx";
 import { MISS } from "./misconceptions.ts";
 import { analyse, isElement, pictureKind, PICTURE_LABEL } from "../mixtures.ts";
 import { initial } from "../mixing.ts";
@@ -217,4 +218,196 @@ test("Art des Gemischs: das Antwortwort steht nicht im Namen des Beispiels (sons
     if (name.includes(t.options[t.answer].toLowerCase())) bad.add(t.prompt);
   }
   assert.deepEqual([...bad], []);
+});
+
+// ── Prüfungen gegen gefundene Fehlerarten (Bild ↔ Text, Stolperstein ↔ Antwort, Begriffe, Tipps) ──
+
+/** alle Texte, die Lernende zu einer Aufgabe lesen (ohne Bild-Schlüssel) */
+const textsOf = (t: Task) => [t.prompt, t.hint, t.explain, t.lead ?? "", t.praise ?? "", ...(t.kind === "mc" && !t.pics ? t.options : []),
+  ...(t.kind === "mc" ? Object.values(t.why ?? {}) : []), ...(t.traps ?? []).map(x => x.why)];
+const chapters = (rounds: number) => LEVELS.map((_, lv) => Array.from({ length: rounds }, () => makeRound("us", lv)).flat());
+
+test("Reihenfolge der Trennschritte: das Bild zeigt die Stoffe der Frage (mit Eisen: Eisen im Bild)", () => {
+  let iron = 0;
+  for (let k = 0; k < 200; k++) {
+    const t = GENS.trennReihe();
+    const withIron = /Eisen/.test(t.prompt);
+    if (withIron) iron++;
+    assert.strictEqual(t.mixPic, withIron ? "eisensalzsand" : "salzsand", t.prompt);
+  }
+  assert.ok(iron > 0, "Variante mit Eisen kommt nie vor");
+});
+
+test("Rückmeldungen passen zum Bild: Metallatome im Gitter sind verbunden, einzelne Atome sind keine Moleküle", () => {
+  const bad = new Set<string>();
+  let alloys = 0;
+  for (const t of all("mix", 300)) {
+    if (t.kind !== "mc") continue;
+    for (const [i, w] of Object.entries(t.why ?? {})) {
+      const p = t.pics?.[t.options[Number(i)]] ?? t.pic;
+      if (!p) continue;
+      const lattice = p.state === "fest" && p.mix.length > 1;
+      if (lattice) alloys++;
+      if (lattice && /nicht (miteinander )?verbunden|einzelne Atome/.test(w)) bad.add(`${t.type}: ${w}`);
+    }
+    if (t.pic && t.pic.state !== "fest" && t.pic.mix.some(([f]) => isElement(f))) {
+      for (const o of t.options) if (/Moleküle/.test(o)) bad.add(`${t.type}: Antwort „${o}“ bei einzelnen Atomen`);
+      for (const w of Object.values(t.why ?? {})) if (/Die Moleküle sind/.test(w)) bad.add(`${t.type}: ${w}`);
+    }
+  }
+  assert.ok(alloys > 0, "kein Legierungsbild geprüft");
+  assert.deepEqual([...bad], []);
+});
+
+test("Stolpersteine passen zur gewählten Antwort (z. B. Legierung für Gemenge gehalten ≠ „fein verteilt für homogen“)", () => {
+  const PURE = /^(Reinstoff|Element|Verbindung)/;
+  const HOM = new Set(["homogenes Gemisch", "Lösung", "Legierung", "Gasgemisch"]);
+  const HET = new Set(["heterogenes Gemisch", "Suspension", "Emulsion", "Schaum", "Nebel", "Rauch", "Gemenge"]);
+  const fits: Record<string, (o: string) => boolean> = {
+    "klar-reinstoff": o => PURE.test(o), "nur-elemente-rein": o => PURE.test(o), "alltag-rein": o => PURE.test(o),
+    "sieht-einheitlich": o => HOM.has(o), "entmischt-homogen": o => HOM.has(o), "geloest-heterogen": o => HET.has(o),
+    "legierung-gemenge": o => o === "Gemenge" || o === "Legierung",
+    "verbindung-gemisch": o => /Gemisch/.test(o), "gemisch-verbindung": o => /Verbindung/.test(o), "legierung-verbindung": o => /Verbindung/.test(o),
+    "element-verbindung": o => /Verbindung/.test(o), "verbindung-element": o => /Element/.test(o),
+  };
+  const bad = new Set<string>();
+  for (const t of all("mix", 300)) {
+    if (t.kind !== "mc" || t.pics) continue;
+    for (const [i, m] of Object.entries(t.miss ?? {})) {
+      const o = t.options[Number(i)];
+      if (fits[m] && !/^\d+$/.test(o) && !fits[m](o)) bad.add(`${t.type} ${m}: „${o}“ (${t.prompt})`);
+    }
+  }
+  // Bild nach dem Mischen: „verschwindet“ nur, wenn der Stoff im Bild fehlt; nie „sieht einheitlich aus“
+  for (let k = 0; k < 300; k++) {
+    const t = GENS.nachher();
+    if (t.kind !== "mc" || !t.pics) continue;
+    for (const [i, m] of Object.entries(t.miss ?? {})) {
+      const p = t.pics[t.options[Number(i)]];
+      if (m === "verschwindet" && p.mix.length > 1) bad.add(`nachher verschwindet: ${t.options[Number(i)]}`);
+      if (m === "sieht-einheitlich") bad.add(`nachher sieht-einheitlich: ${t.prompt}`);
+    }
+  }
+  assert.deepEqual([...bad], []);
+});
+
+test("Sprudelwasser nicht im Üben (ein Teil des CO₂ reagiert zu Kohlensäure)", () => {
+  for (const t of [...all("mix", 200), ...chapters(20).flat()]) {
+    assert.ok(!textsOf(t).some(x => /Sprudel|Kohlensäure/.test(x)), t.prompt);
+    assert.ok(!picsOf(t).some(p => p.before === "gasraum"), t.prompt);
+  }
+});
+
+test("Tipps zu Formeln: Atomsorten zählen, nicht Großbuchstaben (C₂H₅OH: vier Großbuchstaben, drei Atomsorten)", () => {
+  const bad = /jeder Großbuchstabe ist|Großbuchstaben zählst|each capital letter is|capital letters do you count/i;
+  for (const l of LEVELS) for (const lead of l.leads) assert.ok(!bad.test(lead), lead);
+  for (const [id, g] of Object.entries(GENS)) for (let k = 0; k < 40; k++) {
+    const t = g() as Task & { tip?: string };
+    for (const x of [t.hint, t.tip ?? ""]) assert.ok(!bad.test(x), `${id}: ${x}`);
+  }
+});
+
+test("Art des Gemischs: eindeutige Beispiele – nichts mit Milch oder Sahne (Emulsion), wenn „Emulsion“ falsch ist", () => {
+  for (let k = 0; k < 400; k++) {
+    const t = GENS.gemischart();
+    if (t.kind !== "mc") continue;
+    const name = t.prompt.match(/\*\*(.+?)\*\*/)?.[1] ?? "";
+    if (t.options[t.answer] !== "Emulsion") assert.ok(!/sahne|milch|kakao/i.test(name), name);
+  }
+});
+
+test("Trennverfahren wählen: Rückmeldungen mit „behalten“ oder „verloren“ nur, wenn die Frage ein Ziel nennt", () => {
+  for (const g of [GENS.trennWahl, GENS.loesWahl]) for (let k = 0; k < 200; k++) {
+    const t = g();
+    if (t.kind !== "mc") continue;
+    if (Object.values(t.why ?? {}).some(w => /behalten|verloren|gewinnen/.test(w))) assert.ok(/Ziel:/.test(t.prompt), t.prompt);
+  }
+});
+
+test("„Rein“ im Alltag: Reinstoff nur bei eindeutigen Beispielen (keine Begründung mit „fast“ oder „so gut wie“)", () => {
+  for (let k = 0; k < 300; k++) {
+    const t = GENS.reinAlltag();
+    if (t.kind === "mc" && t.options[t.answer] === "Reinstoff") assert.ok(!/fast|so gut wie/.test(t.explain), t.explain);
+  }
+});
+
+test("Kapitel 5: falsche Verfahren nur aus Kapitel 5 (Eindampfen, Destillieren, Chromatografie erst in Kapitel 6)", () => {
+  const k5 = new Set(K5_METHODS.map(METHOD_NAME));
+  for (let r = 0; r < 100; r++) for (const t of makeRound("us", 4)) {
+    if (t.type === "trennWahl" && t.kind === "mc") for (const o of t.options) assert.ok(k5.has(o), `${t.prompt}: ${o}`);
+  }
+  for (let k = 0; k < 200; k++) {
+    const t = GENS.trennWahl();
+    if (t.kind === "mc") assert.ok(t.options.length >= 3 && t.options.every(o => k5.has(o)), t.prompt);
+  }
+});
+
+test("Begriffe erst ab dem Kapitel, das sie einführt (z. B. „Legierung“ erst ab Kapitel 4, „Gitter“ ab Kapitel 2)", () => {
+  // Kapitel (Index), ab dem ein Begriff vorkommen darf; „Gemisch“ ist der Name des Moduls und steht schon in Kapitel 2 zur Wahl
+  const FROM: [number, RegExp][] = [
+    [1, /\b(Elemente?n?|Verbindung(en)?|Gitter)\b/],
+    [2, /\b(Reinstoffe?|homogene?[sn]?|heterogene?[sn]?|Lösung)\b/],
+    [3, /\b(Legierung|Gemenge|Suspension|Emulsion|Schaum|Rauch|Nebel)\b/],
+    [4, /\b(Magnet­?trennung|Sieben|Auslesen|Dekantieren|Filtrieren|Filtrat|Rückstand|Bodensatz|Dichte)\b/],
+    [5, /\b(Eindampfen|Destillieren|Destillat|Chromato­?grafie|Siedetemperatur|Kühler|Vorlage|Laufmittel)\b/],
+  ];
+  const bad = new Set<string>();
+  chapters(30).forEach((round, lv) => {
+    for (const t of round) for (const x of textsOf(t)) for (const [from, re] of FROM) {
+      if (lv < from && re.test(x)) bad.add(`${LEVELS[lv].id} ${t.type}: „${x.match(re)![0]}“ in „${x}“`);
+    }
+  });
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Tipps zu „Nach dem Mischen“ sind Fragen (Denkschritt), keine Lösungssätze", () => {
+  for (let r = 0; r < 60; r++) for (const t of makeRound("us", 2)) if (t.type === "nachher") assert.ok(/\?$/.test(t.hint.trim()), t.hint);
+});
+
+test("Merksatz des Platzes passt zu jeder Variante (kein Kristall bei Alkohol, kein Metallgitter ohne Metall, kein Rühren ohne Rühren)", () => {
+  chapters(60).forEach(round => {
+    for (const t of round) {
+      if (!t.lead) continue;
+      const pics = picsOf(t);
+      if (/Kristall/.test(t.lead)) assert.ok(pics.some(p => p.before === "kristall") || /Kristall/.test(t.prompt), `${t.lead} – ${t.prompt}`);
+      if (/Metallgitter/.test(t.lead)) assert.ok(pics.some(p => p.state === "fest"), `${t.lead} – ${t.prompt}`);
+      if (/Rühren/.test(t.lead)) assert.ok(/Rühren/.test(t.prompt), `${t.lead} – ${t.prompt}`);
+    }
+  });
+}, 60_000);
+
+test("Trennverfahren wählen: eigener Merksatz nur mit Ziel, sonst der des Platzes", () => {
+  for (const lv of [4, 5]) for (let r = 0; r < 60; r++) makeRound("us", lv).forEach((t, i) => {
+    if (t.type !== "trennWahl" && t.type !== "loesWahl") return;
+    assert.strictEqual(t.lead, /Ziel:/.test(t.prompt) ? "Was willst du am Ende behalten?" : LEVELS[lv].leads[i], t.prompt);
+  });
+});
+
+test("Homogen oder heterogen: Tipp bei Reinstoffen ohne „im Glas vorstellen“", () => {
+  for (let r = 0; r < 200; r++) for (const t of makeRound("us", 2)) {
+    if (t.type === "homogenBild" && t.kind === "mc" && t.options[t.answer] === "Reinstoff") assert.ok(!/im Glas/.test(t.hint), t.hint);
+  }
+});
+
+test("Reihenfolge der Trennschritte: Schritte heißen wie die Verfahren (Magnettrennung, nicht „Magnet“)", () => {
+  const names = new Set([...METHODS.map(METHOD_NAME), "Lösen"]);
+  for (let k = 0; k < 200; k++) {
+    const t = GENS.trennReihe();
+    if (t.kind === "mc") for (const o of t.options) for (const s of o.split(" → ")) assert.ok(names.has(s), `${s} in ${o}`);
+  }
+});
+
+test("Frage und Lösungsweg beginnen groß", () => {
+  for (const t of [...all("mix", 200), ...chapters(20).flat()]) {
+    for (const x of [t.prompt, t.explain]) assert.ok(!/^[a-zäöüß]/.test(x.replace(/^\*+/, "")), x);
+  }
+});
+
+test("Masse beim Lösen: Auswahl aufsteigend", () => {
+  for (let k = 0; k < 200; k++) {
+    const t = GENS.masse();
+    if (t.kind !== "mc") continue;
+    const ns = t.options.map(o => parseFloat(o));
+    assert.deepEqual(ns, [...ns].sort((a, b) => a - b), t.options.join(", "));
+  }
 });

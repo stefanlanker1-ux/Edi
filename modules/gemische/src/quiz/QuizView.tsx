@@ -1,4 +1,4 @@
-// „Üben“ der Gemische auf Basis von @lern/quiz: fünf Kapitel, je Kapitel zuerst die Lektion (lessons.tsx), dann zehn Aufgaben.
+// „Üben“ der Gemische auf Basis von @lern/quiz: sechs Kapitel, je Kapitel zuerst die Lektion (lessons.tsx), dann zehn Aufgaben.
 // Aufgaben mit Bildern statt Texteingabe: Teilchenbild, Teilchenbilder als Antworten, Teilchen oder Teile eines Verfahrens antippen,
 // Verfahren als Bildkarten, Animation des Verfahrens. Hilfsmittel „Farben“: alle Atomfarben (verrät nicht, welche vorkommen).
 
@@ -79,7 +79,8 @@ export function QuizView() {
         if (t.pics?.[o]) return <span className="gm-pic"><PicBeaker p={t.pics[o]} /><span className="sr-only">{describe(t.pics[o])}</span></span>;
         const m = t.methods ? methodOf(o) : undefined;
         if (m) return <span className="gm-pic gm-method"><SepScene m={m} t={.55} label={o} /><span>{o}</span></span>;
-        return t.type === "gemischart" ? <span className="gm-one">{o}</span> : o;
+        // reiner Text: McAnswer misst daran, ob ein Wort in seine Spalte passt (sonst einspaltig statt „Gasgemisc|h“)
+        return o;
       }}
       renderAnswer={(t, a, submit) => (t.kind === "tap" ? <TapAnswer key={t.prompt + t.parts.join()} t={t} answered={a} submit={submit} /> : null)}
       solution={t => (t.kind === "tap" ? partName(t, t.answer) : t.kind === "num" ? String(t.answer) : null)}

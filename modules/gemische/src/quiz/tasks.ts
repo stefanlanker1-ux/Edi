@@ -26,12 +26,17 @@ const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1
 const names = (fs: string[]) => list(fs.map(f => `${tr(shortName(f), shortName(f).toLowerCase())} (${F(f)})`));
 const nearNums = (x: number, min = 0) => [x + 1, x - 1, x + 2, x - 2, x + 3].filter(v => v >= min).map(String);
 const sum = (m: [string, number][]) => m.reduce((s, [, n]) => s + n, 0);
-/** Satzanfang groß (englische Namen stehen klein in den Daten) */
-const cap = (x: string) => tr(x, x.charAt(0).toUpperCase() + x.slice(1));
+/** Satzanfang groß (Namen stehen auch klein in den Daten: „eine Wolke“, englische Namen) */
+const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+/** englischer Artikel am Satzanfang vor einer Formel, die man buchstabiert: „An H₂O particle“, „A CO₂ particle“ */
+const AN = (f: string) => (/^[AEFHILMNORSX]/.test(f) ? "An" : "A");
 /** Antworttexte Element / Verbindung / Gemisch / Reinstoff */
 const W = tr({ el: "Element", comp: "Verbindung", mix: "Gemisch", pure: "Reinstoff" }, { el: "Element", comp: "Compound", mix: "Mixture", pure: "Pure substance" });
 const MIX_ATOMS = () => tr("Gemisch – verschiedene Atome", "Mixture – different atoms");
 const LATTICE_SAME = (f: string) => tr(`Die ${f}-Atome sind im Gitter verbunden – aber alle gleich. Eine Atomsorte: Element.`, `The ${f} atoms are bonded in a lattice – but all the same. One kind of atom: element.`);
+/** Legierung im Bild für Verbindung gehalten: Die Metallatome sind im Gitter verbunden, aber zufällig verteilt – zwei Elemente, gemischt */
+const ALLOY_MIX = (els: string[]) => tr(`Die Atome sind im Gitter verbunden – aber ${list(els)} sitzen zufällig verteilt, ohne festes Verhältnis. Zwei Elemente, gemischt – keine Verbindung.`,
+  `The atoms are bonded in the lattice – but ${list(els)} sit randomly, with no fixed ratio. Two elements, mixed – not a compound.`);
 const ARRANGE_TEXT: Partial<Record<Arrange, string>> = tr({ vorher: "vorher", gemischt: "gemischt", unten: "unten", oben: "oben", getrennt: "getrennt", abwechselnd: "abwechselnd" },
   { vorher: "before", gemischt: "mixed", unten: "at the bottom", oben: "at the top", getrennt: "separate", abwechselnd: "alternating" });
 /** kurze Beschreibung eines Teilchenbilds (Vorlesen, Schlüssel der Bild-Antworten) */
@@ -54,11 +59,11 @@ function amounts(fs: string[], lo: number, hi: number): [string, number][] {
     if (sum(mix) >= lo && sum(mix) <= hi) return mix;
   }
 }
-/** Legierung aus zwei Metallen, füllt ein Gitter ganz */
+/** Legierung, füllt ein Gitter ganz: Kupfer mit höchstens einem Drittel Zink (Messing, einphasig – Zink zufällig auf Plätzen des
+ *  Kupfergitters). Andere Paare in beliebigem Verhältnis gibt es so nicht (Fe–Zn, Fe–Al, Cu–Al bilden intermetallische Phasen). */
 function alloy(hi: number): [string, number][] {
-  const n = pick(LATTICE.filter(x => x <= hi)), [a, b] = shuffle(METALS);
-  const k = int(2, n - 2);
-  return [[a, k], [b, n - k]];
+  const n = pick(LATTICE.filter(x => x <= hi)), zn = int(2, Math.floor(n / 3));
+  return shuffle<[string, number]>([["Cu", n - zn], ["Zn", zn]]);
 }
 
 /** zufälliges Teilchenbild einer Art (Element, Verbindung, Gemisch aus Elementen/Verbindungen/beidem) */
@@ -179,8 +184,11 @@ function reinOderGemisch(): Task {
   return {
     ...mc(G_OK, [
       d(R_OK, "sorten-uebersehen", tr(`Es gibt ${cnt(a.stoffe.length, "Teilchensorte", "verschiedene Teilchensorten")}: ${names(a.stoffe)}. Das sind mehrere Stoffe.`, `There are ${cnt(a.stoffe.length, "kind of particle", "different kinds of particles")}: ${names(a.stoffe)}. These are several substances.`)),
-      kind === "GE" ? d(tr("Reinstoff – nur einzelne Atome", "Pure substance – only single atoms"), "nur-elemente-rein", tr(`Einzelne Atome verschiedener Sorten sind verschiedene Stoffe: ${names(a.stoffe)}.`, `Single atoms of different kinds are different substances: ${names(a.stoffe)}.`))
-        : d(tr("Reinstoff – lauter Moleküle", "Pure substance – all molecules"), "sorten-uebersehen", tr(`Die Moleküle sind nicht alle gleich: ${names(a.stoffe)} – mehrere Stoffe.`, `The molecules are not all the same: ${names(a.stoffe)} – several substances.`)),
+      kind === "GE" && metalPic(m) ? d(tr("Reinstoff – alles ein Gitter", "Pure substance – all one lattice"), "nur-elemente-rein", tr(`Im Gitter sitzen verschiedene Atome zufällig verteilt: ${names(a.stoffe)}. Das sind mehrere Stoffe.`, `Different atoms sit randomly in the lattice: ${names(a.stoffe)}. These are several substances.`))
+        : kind === "GE" ? d(tr("Reinstoff – nur einzelne Atome", "Pure substance – only single atoms"), "nur-elemente-rein", tr(`Einzelne Atome verschiedener Sorten sind verschiedene Stoffe: ${names(a.stoffe)}.`, `Single atoms of different kinds are different substances: ${names(a.stoffe)}.`))
+        : kind === "GV" ? d(tr("Reinstoff – lauter Moleküle", "Pure substance – all molecules"), "sorten-uebersehen", tr(`Die Moleküle sind nicht alle gleich: ${names(a.stoffe)} – mehrere Stoffe.`, `The molecules are not all the same: ${names(a.stoffe)} – several substances.`))
+        // Atome und Moleküle: gleichmäßig verteilt heißt nicht „ein Stoff“
+        : d(tr("Reinstoff – gleichmäßig verteilt", "Pure substance – evenly spread"), "sorten-uebersehen", tr(`Gleichmäßig verteilt heißt nicht gleich. Es gibt verschiedene Teilchen: ${names(a.stoffe)}.`, `Evenly spread does not mean all the same. There are different particles: ${names(a.stoffe)}.`)),
     ], 3),
     ...base,
     explain: tr(`Verschiedene Teilchen: ${names(a.stoffe)} → **Gemisch**.`, `Different particles: ${names(a.stoffe)} → **mixture**.`),
@@ -211,7 +219,7 @@ function reinGemisch(): Task {
     return {
       ...mc(REIN_V, [
         d(GEMISCH, "verbindung-gemisch", tr(`Alle Teilchen sind gleich (${F(f)}). Im Bild: ein Teilchen mit **mehreren Farben** gehört zu einer Verbindung.`, `All particles are the same (${F(f)}). In the picture: a particle with **several colours** belongs to a compound.`)),
-        d(REIN_E, "verbindung-element", tr(`Ein ${F(f)}-Teilchen enthält ${list(a.atomsorten)} – mehrere Atomsorten, also eine Verbindung.`, `A ${F(f)} particle contains ${list(a.atomsorten)} – several kinds of atoms, so a compound.`)),
+        d(REIN_E, "verbindung-element", tr(`Ein ${F(f)}-Teilchen enthält ${list(a.atomsorten)} – mehrere Atomsorten, also eine Verbindung.`, `${AN(f)} ${F(f)} particle contains ${list(a.atomsorten)} – several kinds of atoms, so a compound.`)),
       ], 3),
       pic: m, ...q,
       explain: tr(`Nur ${shortName(f)}-Teilchen (${F(f)}) → **Reinstoff**. Atomsorten ${list(a.atomsorten)} fest verbunden → **Verbindung**.`, `Only ${shortName(f).toLowerCase()} particles (${F(f)}) → **pure substance**. Kinds of atoms ${list(a.atomsorten)} firmly bonded → **compound**.`),
@@ -223,7 +231,8 @@ function reinGemisch(): Task {
       onlyAtoms
         ? d(REIN_E, "nur-elemente-rein", tr(`${names(a.stoffe)} sind verschiedene Elemente. Mehrere Stoffe ergeben ein Gemisch.`, `${cap(names(a.stoffe))} are different elements. Several substances make a mixture.`))
         : d(REIN_V, "sorten-uebersehen", tr(`Es gibt ${cnt(a.stoffe.length, "Teilchensorte", "verschiedene Teilchensorten")}. Mehrere Stoffe ergeben ein Gemisch.`, `There are ${cnt(a.stoffe.length, "kind of particle", "different kinds of particles")}. Several substances make a mixture.`)),
-      onlyAtoms ? d(REIN_V, "gemisch-verbindung", tr("Die Atome sind nicht miteinander verbunden. Jede Atomsorte ist ein eigener Stoff.", "The atoms are not bonded to each other. Each kind of atom is a substance of its own.")) : REIN_E,
+      onlyAtoms ? d(REIN_V, "gemisch-verbindung", metalPic(m) ? ALLOY_MIX(a.elemente)
+        : tr("Die Atome sind nicht miteinander verbunden. Jede Atomsorte ist ein eigener Stoff.", "The atoms are not bonded to each other. Each kind of atom is a substance of its own.")) : REIN_E,
     ], 3),
     pic: m, ...q,
     hint: tr("Sind alle Teilchen gleich? Verschiedene Teilchen bedeuten verschiedene Stoffe.", "Are all particles the same? Different particles mean different substances."),
@@ -242,12 +251,14 @@ function confuse(actual: PictureKind, said: PictureKind, p: Pic, text: string): 
       ? d(text, "element-verbindung", metalPic(p) ? tr(`Die ${el}-Atome sind im Gitter verbunden – aber alle gleich. Das ist ein Element.`, `The ${el} atoms are bonded in a lattice – but all the same. That is an element.`) : tr(`Nur ${el}-Atome – eine Atomsorte. Das ist ein Element.`, `Only ${el} atoms – one kind of atom. That is an element.`))
       : dis(text, tr("Alle Teilchen sind gleich – also nur ein Stoff.", "All particles are the same – so only one substance."));
     case "V": return said === "E"
-      ? d(text, "verbindung-element", tr(`Ein ${F(v)}-Teilchen enthält ${list(a.atomsorten)} – mehrere Atomsorten: eine Verbindung.`, `A ${F(v)} particle contains ${list(a.atomsorten)} – several kinds of atoms: a compound.`))
+      ? d(text, "verbindung-element", tr(`Ein ${F(v)}-Teilchen enthält ${list(a.atomsorten)} – mehrere Atomsorten: eine Verbindung.`, `${AN(v)} ${F(v)} particle contains ${list(a.atomsorten)} – several kinds of atoms: a compound.`))
       : d(text, "verbindung-gemisch", tr(`Die Atome sind im Teilchen fest verbunden. Alle Teilchen sind gleich (${F(v)}).`, `The atoms are firmly bonded in the particle. All particles are the same (${F(v)}).`));
     case "GE": return said === "E"
       ? d(text, "nur-elemente-rein", tr(`${names(a.elemente)}: verschiedene Elemente. Mehrere Stoffe ergeben ein Gemisch.`, `${cap(names(a.elemente))}: different elements. Several substances make a mixture.`))
-      : said === "V" ? d(text, "gemisch-verbindung", tr("Die Atome sind nicht verbunden. Jede Atomsorte ist ein eigener Stoff.", "The atoms are not bonded. Each kind of atom is a substance of its own."))
-      : d(text, "element-verbindung", tr("Hier sind nur einzelne Atome – das sind Elemente, keine Verbindungen.", "Here there are only single atoms – these are elements, not compounds."));
+      : said === "V" ? d(text, "gemisch-verbindung", metalPic(p) ? ALLOY_MIX(a.elemente) : tr("Die Atome sind nicht verbunden. Jede Atomsorte ist ein eigener Stoff.", "The atoms are not bonded. Each kind of atom is a substance of its own."))
+      : d(text, "element-verbindung", metalPic(p)
+        ? tr(`Im Gitter sitzen ${list(a.elemente)} zufällig verteilt – zwei Elemente, keine Verbindung.`, `${list(a.elemente)} sit randomly in the lattice – two elements, not a compound.`)
+        : tr("Hier sind nur einzelne Atome – das sind Elemente, keine Verbindungen.", "Here there are only single atoms – these are elements, not compounds."));
     case "GV": return said === "V"
       ? d(text, "sorten-uebersehen", tr(`Es gibt verschiedene Moleküle: ${names(a.verbindungen)}. Mehrere Stoffe.`, `There are different molecules: ${names(a.verbindungen)}. Several substances.`))
       : said === "E" ? dis(text, tr("Jedes Molekül hat mehrere Atomsorten – das sind Verbindungen.", "Each molecule has several kinds of atoms – these are compounds."))
@@ -324,7 +335,7 @@ function atomsorten(): Task {
     prompt: tr("Wie viele **Atomsorten** kommen im Bild vor?", "How many **kinds of atoms** appear in the picture?"),
     hint: tr("Jede Atomsorte hat eine eigene Farbe. Zähle die verschiedenen Farben.", "Each kind of atom has its own colour. Count the different colours."),
     tip: tr("Achte nur auf die Kugelfarben, nicht auf die Teilchen. Jede Farbe zählt einmal. **Farben** zeigt die Namen.", "Look only at the sphere colours, not at the particles. Each colour counts once. **Colours** shows the names."),
-    explain: `${tr("Atomsorten", "Kinds of atoms")}: ${list(a.atomsorten.map(el => `${elementName(el)} (${el})`))} → **${n}**.`,
+    explain: `${tr("Atomsorten", "Kinds of atoms")}: ${list(a.atomsorten.map(el => `${tr(elementName(el), elementName(el).toLowerCase())} (${el})`))} → **${n}**.`,
   };
 }
 
@@ -385,17 +396,17 @@ function einordnen(): Task {
         : d(W.comp, "element-verbindung", metal
           ? LATTICE_SAME(f)
           : tr(`${F(f)} besteht nur aus ${f}-Atomen. Eine Verbindung braucht mehrere Atomsorten.`, `${F(f)} consists only of ${f} atoms. A compound needs several kinds of atoms.`)),
-      dis(W.mix, tr("Alle Teilchen sind gleich – ein Reinstoff, kein Gemisch.", "All particles are the same – a pure substance, not a mixture.")),
+      dis(W.mix, tr("Alle Teilchen sind gleich – nur ein Stoff, kein Gemisch.", "All particles are the same – only one substance, not a mixture.")),
     ], 3)
     : mc(W.comp, [
-      d(W.el, "verbindung-element", tr(`Ein ${F(f)}-Teilchen enthält ${list(els)} – mehrere Atomsorten: eine Verbindung.`, `A ${F(f)} particle contains ${list(els)} – several kinds of atoms: a compound.`)),
+      d(W.el, "verbindung-element", tr(`Ein ${F(f)}-Teilchen enthält ${list(els)} – mehrere Atomsorten: eine Verbindung.`, `${AN(f)} ${F(f)} particle contains ${list(els)} – several kinds of atoms: a compound.`)),
       d(W.mix, "verbindung-gemisch", tr("Die Atome sind im Teilchen fest verbunden, alle Teilchen sind gleich – kein Gemisch.", "The atoms are firmly bonded in the particle, all particles are the same – not a mixture.")),
     ], 3);
   return {
     ...opts, pic,
     prompt: tr(`**${name}** (${F(f)}): Element, Verbindung oder Gemisch?`, `**${name}** (${F(f)}): element, compound or mixture?`),
     hint: tr("Wie viele Atomsorten stecken in einem Teilchen?", "How many kinds of atoms are in one particle?"),
-    tip: tr(`Lies die Formel ${F(f)}: Jeder Großbuchstabe ist eine Atomsorte. Wie viele Großbuchstaben zählst du?`, `Read the formula ${F(f)}: each capital letter is a kind of atom. How many capital letters do you count?`),
+    tip: tr(`Lies die Formel ${F(f)}: Jede Atomsorte beginnt mit einem Großbuchstaben. Wie viele verschiedene Atomsorten findest du?`, `Read the formula ${F(f)}: each kind of atom starts with a capital letter. How many different kinds of atoms do you find?`),
     explain: molecule
       ? tr(`${name} ${F(f)}: zwei gleiche Atome (${els[0]}) → eine Atomsorte → **Element**.`, `${name} ${F(f)}: two identical atoms (${els[0]}) → one kind of atom → **element**.`)
       : isElement(f)
@@ -412,15 +423,14 @@ const EVERYDAY: Everyday[] = tr([
   { name: "Öl und Wasser", ans: HETEROGEN, ex: "oel", why: "Öl schwimmt oben, man sieht zwei Schichten.", trap: [HOMOGEN, "entmischt-homogen", "Öl und Wasser mischen sich nicht – sie trennen sich in zwei Schichten."] },
   { name: "Zuckerwasser", ans: HOMOGEN, ex: "zucker", why: "Der Zucker ist gelöst und überall gleich verteilt.", trap: [REIN, "klar-reinstoff", "Klar heißt nicht rein: Zucker und Wasser sind zwei Stoffe."] },
   { name: "Alkohol und Wasser", ans: HOMOGEN, ex: "alkohol", why: "Alkohol und Wasser mischen sich vollständig.", trap: [HETEROGEN, "geloest-heterogen", "Man sieht keine Grenze – die Teilchen sind gleichmäßig gemischt."] },
-  { name: "Sprudelwasser ohne Blasen", ans: HOMOGEN, ex: "sprudel", why: "Das Kohlendioxid ist im Wasser gelöst.", trap: [REIN, "klar-reinstoff", "Im Wasser ist Kohlendioxid gelöst – zwei Stoffe."] },
-  { name: "Messing", ans: HOMOGEN, ex: "messing", why: "Kupfer und Zink sind im Metall gleichmäßig verteilt.", trap: [REIN, "klar-reinstoff", "Messing ist eine Legierung aus Kupfer und Zink – zwei Stoffe."] },
+  { name: "Messing", ans: HOMOGEN, ex: "messing", why: "Kupfer und Zink sind im Metall gleichmäßig verteilt.", trap: [REIN, "nur-elemente-rein", "Messing besteht aus Kupfer und Zink – zwei Stoffe."] },
   { name: "Erdgas", ans: HOMOGEN, ex: "erdgas", why: "Methan, Ethan und Kohlendioxid sind gleichmäßig gemischt.", trap: [REIN, "klar-reinstoff", "Erdgas enthält mehrere Stoffe, man sieht sie nur nicht."] },
   { name: "Schutzgas zum Schweißen", ans: HOMOGEN, ex: "schutzgas", why: "Argon und Kohlendioxid sind gleichmäßig gemischt.", trap: [REIN, "klar-reinstoff", "Argon und Kohlendioxid sind zwei Stoffe, auch wenn man nichts sieht."] },
   { name: "Luft", ans: HOMOGEN, why: "Gase mischen sich immer vollständig.", trap: [REIN, "klar-reinstoff", "Luft besteht aus Stickstoff, Sauerstoff, Argon und mehr."] },
   { name: "Wasser", ans: REIN, ex: "wasser", why: "Alle Teilchen sind gleich: H₂O.", trap: [HOMOGEN, "verbindung-gemisch", "Wasser ist eine Verbindung aus H und O – aber nur ein Stoff."] },
   { name: "Helium im Luftballon", ans: REIN, ex: "helium", why: "Nur Helium-Atome – ein Stoff." },
   { name: "Milch", ans: HETEROGEN, why: "Unter dem Mikroskop sieht man Fetttröpfchen im Wasser.", trap: [HOMOGEN, "sieht-einheitlich", "Milch sieht einheitlich aus, enthält aber winzige Fetttröpfchen."] },
-  { name: "Granit", ans: HETEROGEN, why: "Man sieht verschiedene Körner (Quarz, Feldspat, Glimmer).", trap: [HOMOGEN, "sieht-einheitlich", "Die verschiedenen Körner sind mit freiem Auge zu sehen."] },
+  { name: "Granit", ans: HETEROGEN, why: "Man sieht verschiedene Körner (Quarz, Feldspat, Glimmer)." },
   { name: "Nebel", ans: HETEROGEN, why: "Winzige Wassertröpfchen schweben in der Luft.", trap: [HOMOGEN, "sieht-einheitlich", "Nebel besteht aus Tröpfchen in Luft – nicht überall gleich."] },
   { name: "Sand in Wasser", ans: HETEROGEN, why: "Der Sand löst sich nicht und sinkt ab." },
   { name: "Meerwasser (gefiltert)", ans: HOMOGEN, why: "Das Salz ist im Wasser gelöst.", trap: [REIN, "klar-reinstoff", "Im Meerwasser sind Salze gelöst – kein Reinstoff."] },
@@ -430,7 +440,7 @@ const EVERYDAY: Everyday[] = tr([
   { name: "Essig", ans: HOMOGEN, why: "Essigsäure ist in Wasser gelöst.", trap: [REIN, "klar-reinstoff", "Essig ist klar, enthält aber Essigsäure und Wasser."] },
   { name: "Cola ohne Blasen", ans: HOMOGEN, why: "Zucker, Farbstoffe und Gas sind gelöst.", trap: [HETEROGEN, "geloest-heterogen", "Man sieht keine Teile – alles ist gelöst."] },
   { name: "Weißwein", ans: HOMOGEN, why: "Alkohol, Zucker und Säuren sind im Wasser gelöst.", trap: [REIN, "klar-reinstoff", "Wein ist klar – aber ein Gemisch aus vielen Stoffen."] },
-  { name: "Edelstahl", ans: HOMOGEN, why: "Eisen, Chrom und Nickel sind gleichmäßig gemischt.", trap: [REIN, "klar-reinstoff", "Edelstahl ist eine Legierung aus mehreren Metallen."] },
+  { name: "Edelstahl", ans: HOMOGEN, why: "Eisen, Chrom und Nickel sind gleichmäßig gemischt.", trap: [REIN, "nur-elemente-rein", "Edelstahl enthält Eisen, Chrom und Nickel – mehrere Stoffe."] },
   { name: "Salatdressing aus Öl und Essig", ans: HETEROGEN, why: "Öltröpfchen schwimmen im Essig und trennen sich wieder.", trap: [HOMOGEN, "entmischt-homogen", "Öl und Essig mischen sich nicht – nach einer Weile bilden sich Schichten."] },
   { name: "Kakao mit Pulver am Boden", ans: HETEROGEN, why: "Ungelöstes Pulver sinkt ab.", trap: [HOMOGEN, "sieht-einheitlich", "Am Boden sieht man Pulver – also nicht überall gleich."] },
   { name: "Schlamm", ans: HETEROGEN, why: "Erde schwebt im Wasser und setzt sich ab." },
@@ -441,15 +451,14 @@ const EVERYDAY: Everyday[] = tr([
   { name: "oil and water", ans: HETEROGEN, ex: "oel", why: "Oil floats on top, you can see two layers.", trap: [HOMOGEN, "entmischt-homogen", "Oil and water do not mix – they separate into two layers."] },
   { name: "sugar water", ans: HOMOGEN, ex: "zucker", why: "The sugar is dissolved and spread evenly everywhere.", trap: [REIN, "klar-reinstoff", "Clear does not mean pure: sugar and water are two substances."] },
   { name: "alcohol and water", ans: HOMOGEN, ex: "alkohol", why: "Alcohol and water mix completely.", trap: [HETEROGEN, "geloest-heterogen", "You cannot see a boundary – the particles are evenly mixed."] },
-  { name: "sparkling water without bubbles", ans: HOMOGEN, ex: "sprudel", why: "The carbon dioxide is dissolved in the water.", trap: [REIN, "klar-reinstoff", "Carbon dioxide is dissolved in the water – two substances."] },
-  { name: "brass", ans: HOMOGEN, ex: "messing", why: "Copper and zinc are spread evenly in the metal.", trap: [REIN, "klar-reinstoff", "Brass is an alloy of copper and zinc – two substances."] },
+  { name: "brass", ans: HOMOGEN, ex: "messing", why: "Copper and zinc are spread evenly in the metal.", trap: [REIN, "nur-elemente-rein", "Brass consists of copper and zinc – two substances."] },
   { name: "natural gas", ans: HOMOGEN, ex: "erdgas", why: "Methane, ethane and carbon dioxide are evenly mixed.", trap: [REIN, "klar-reinstoff", "Natural gas contains several substances, you just cannot see them."] },
   { name: "shielding gas for welding", ans: HOMOGEN, ex: "schutzgas", why: "Argon and carbon dioxide are evenly mixed.", trap: [REIN, "klar-reinstoff", "Argon and carbon dioxide are two substances, even if you see nothing."] },
   { name: "air", ans: HOMOGEN, why: "Gases always mix completely.", trap: [REIN, "klar-reinstoff", "Air consists of nitrogen, oxygen, argon and more."] },
   { name: "water", ans: REIN, ex: "wasser", why: "All particles are the same: H₂O.", trap: [HOMOGEN, "verbindung-gemisch", "Water is a compound of H and O – but only one substance."] },
   { name: "helium in a balloon", ans: REIN, ex: "helium", why: "Only helium atoms – one substance." },
   { name: "milk", ans: HETEROGEN, why: "Under the microscope you can see fat droplets in water.", trap: [HOMOGEN, "sieht-einheitlich", "Milk looks uniform but contains tiny fat droplets."] },
-  { name: "granite", ans: HETEROGEN, why: "You can see different grains (quartz, feldspar, mica).", trap: [HOMOGEN, "sieht-einheitlich", "The different grains can be seen with the naked eye."] },
+  { name: "granite", ans: HETEROGEN, why: "You can see different grains (quartz, feldspar, mica)." },
   { name: "fog", ans: HETEROGEN, why: "Tiny water droplets float in the air.", trap: [HOMOGEN, "sieht-einheitlich", "Fog consists of droplets in air – not the same everywhere."] },
   { name: "sand in water", ans: HETEROGEN, why: "The sand does not dissolve and sinks." },
   { name: "seawater (filtered)", ans: HOMOGEN, why: "The salt is dissolved in the water.", trap: [REIN, "klar-reinstoff", "Salts are dissolved in seawater – not a pure substance."] },
@@ -459,7 +468,7 @@ const EVERYDAY: Everyday[] = tr([
   { name: "vinegar", ans: HOMOGEN, why: "Acetic acid is dissolved in water.", trap: [REIN, "klar-reinstoff", "Vinegar is clear but contains acetic acid and water."] },
   { name: "cola without bubbles", ans: HOMOGEN, why: "Sugar, dyes and gas are dissolved.", trap: [HETEROGEN, "geloest-heterogen", "You cannot see any pieces – everything is dissolved."] },
   { name: "white wine", ans: HOMOGEN, why: "Alcohol, sugar and acids are dissolved in water.", trap: [REIN, "klar-reinstoff", "Wine is clear – but a mixture of many substances."] },
-  { name: "stainless steel", ans: HOMOGEN, why: "Iron, chromium and nickel are evenly mixed.", trap: [REIN, "klar-reinstoff", "Stainless steel is an alloy of several metals."] },
+  { name: "stainless steel", ans: HOMOGEN, why: "Iron, chromium and nickel are evenly mixed.", trap: [REIN, "nur-elemente-rein", "Stainless steel contains iron, chromium and nickel – several substances."] },
   { name: "salad dressing of oil and vinegar", ans: HETEROGEN, why: "Oil droplets float in the vinegar and separate again.", trap: [HOMOGEN, "entmischt-homogen", "Oil and vinegar do not mix – after a while layers form."] },
   { name: "cocoa with powder at the bottom", ans: HETEROGEN, why: "Undissolved powder sinks.", trap: [HOMOGEN, "sieht-einheitlich", "You can see powder at the bottom – so not the same everywhere."] },
   { name: "mud", ans: HETEROGEN, why: "Soil floats in the water and settles." },
@@ -475,12 +484,14 @@ const HOMOGEN_TIP: Record<string, string> = tr({
   "geloest-heterogen": "Gelöstes sieht man nicht mehr. Gibt es irgendwo eine Grenze?",
   "entmischt-homogen": "Lass es eine Weile stehen. Bilden sich Schichten?",
   "verbindung-gemisch": "Wie viele verschiedene Teilchen gibt es? Eine Verbindung ist ein Stoff.",
+  "nur-elemente-rein": "Aus wie vielen Elementen besteht es? Und sieht man darin Teile?",
 }, {
   "klar-reinstoff": "Even if you see nothing: list everything that is in it.",
   "sieht-einheitlich": "Think of the microscope: would you see droplets, grains or bubbles there?",
   "geloest-heterogen": "You can no longer see what is dissolved. Is there a boundary anywhere?",
   "entmischt-homogen": "Let it stand for a while. Do layers form?",
   "verbindung-gemisch": "How many different particles are there? A compound is one substance.",
+  "nur-elemente-rein": "How many elements is it made of? And can you see any pieces in it?",
 });
 
 /** Homogen oder heterogen – optional nur Beispiele einer Gruppe (mit Teilchenbild, „klar“, „sieht einheitlich aus“) */
@@ -494,7 +505,9 @@ function homogen(only?: (e: Everyday) => boolean): Task {
     ...(e.ex ? { pic: exPic(e.ex) } : {}),
     prompt: tr(`Was ist **${e.name}**?`, `What is **${e.name}**?`),
     hint: tr("Homogen: Die Bestandteile sind auch unter dem Mikroskop nicht zu erkennen. Heterogen: Mit Auge, Lupe oder Mikroskop sieht man Teile, Tröpfchen oder Schichten.", "Homogeneous: the components cannot be seen even under a microscope. Heterogeneous: with the eye, a magnifier or a microscope you see pieces, droplets or layers."),
-    tip: HOMOGEN_TIP[e.trap?.[1] ?? ""] ?? tr(`Stell dir ${e.name} im Glas vor. Siehst du Teile, Tröpfchen oder Schichten?`, `Imagine ${e.name} in a glass. Do you see pieces, droplets or layers?`),
+    tip: HOMOGEN_TIP[e.trap?.[1] ?? ""] ?? (e.ans === REIN
+      ? tr("Wie viele verschiedene Teilchen stecken darin? Und gibt es Teile oder Schichten?", "How many different particles are in it? And are there pieces or layers?")
+      : tr(`Stell dir ${e.name} im Glas vor. Siehst du Teile, Tröpfchen oder Schichten?`, `Imagine ${e.name} in a glass. Do you see pieces, droplets or layers?`)),
     explain: `${cap(e.name)}: ${because(e.why)} → **${e.ans}**.`,
   };
 }
@@ -505,67 +518,65 @@ const ZUSTAND = "zustand-verwechselt";
 const GEMISCHARTEN: Art[] = tr([
   { name: "Zuckerwasser", ans: "Lösung", why: "Fester Zucker, gelöst in Wasser.", traps: [["Suspension", "geloest-heterogen", "Der Zucker ist gelöst, nicht als Körner verteilt – eine Lösung."]] },
   { name: "Salzwasser", ans: "Lösung", why: "Salz ist in Wasser gelöst.", traps: [["Suspension", "geloest-heterogen", "Das Salz ist gelöst – man sieht keine Körner."]] },
-  { name: "Sprudelwasser ohne Blasen", ans: "Lösung", why: "Das Gas ist im Wasser gelöst.", traps: [["Schaum", "geloest-heterogen", "Ohne Blasen ist das Gas gelöst – kein Schaum."]] },
   { name: "Alkohol und Wasser", ans: "Lösung", why: "Zwei Flüssigkeiten, vollständig gemischt.", traps: [["Emulsion", "geloest-heterogen", "Alkohol und Wasser mischen sich ganz – keine Tröpfchen."]] },
-  { name: "Messing", ans: "Legierung", why: "Zwei Metalle, gleichmäßig gemischt.", traps: [["Gemenge", "sieht-einheitlich", "Kupfer und Zink sind bis zu den Atomen gemischt – eine Legierung."]] },
-  { name: "Bronze", ans: "Legierung", why: "Kupfer und Zinn, zusammen geschmolzen und gleichmäßig gemischt.", traps: [["Gemenge", "sieht-einheitlich", "Kupfer und Zinn sind zusammen geschmolzen und gleichmäßig gemischt – man sieht keine Stücke: eine Legierung."]] },
+  { name: "Messing", ans: "Legierung", why: "Zwei Metalle, gleichmäßig gemischt.", traps: [["Gemenge", "legierung-gemenge", "Kupfer und Zink sind bis zu den Atomen gemischt – eine Legierung."]] },
+  { name: "Bronze", ans: "Legierung", why: "Kupfer und Zinn, zusammen geschmolzen und gleichmäßig gemischt.", traps: [["Gemenge", "legierung-gemenge", "Kupfer und Zinn sind zusammen geschmolzen und gleichmäßig gemischt – man sieht keine Stücke: eine Legierung."]] },
   { name: "Luft", ans: "Gasgemisch", why: "Mehrere Gase, vollständig gemischt.", traps: [["Nebel", ZUSTAND, "Nebel hat Wassertröpfchen. Klare Luft ist nur Gas."]] },
   { name: "Erdgas", ans: "Gasgemisch", why: "Methan, Ethan und andere Gase, gemischt.", traps: [["Rauch", ZUSTAND, "Rauch enthält feste Teilchen. Erdgas ist nur Gas."]] },
   { name: "Milch", ans: "Emulsion", why: "Fetttröpfchen in Wasser.", traps: [["Lösung", "sieht-einheitlich", "Milch sieht einheitlich aus, hat aber Fetttröpfchen."], ["Suspension", ZUSTAND, "Das Fett in Milch ist flüssig – also Tröpfchen, keine Körner."]] },
   { name: "Mayonnaise", ans: "Emulsion", why: "Öltröpfchen in Wasser (mit Ei).", traps: [["Suspension", ZUSTAND, "Öl ist flüssig – also Tröpfchen, keine festen Körner."]] },
   { name: "geschütteltes Öl und Wasser", ans: "Emulsion", why: "Öltröpfchen im Wasser – bis sie wieder aufsteigen.", traps: [["Lösung", "entmischt-homogen", "Öl löst sich nicht in Wasser – es bildet Tröpfchen."], ["Suspension", ZUSTAND, "Öl ist flüssig – Tröpfchen, keine Körner."]] },
-  { name: "Sand in Wasser", ans: "Suspension", why: "Feste Körner in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "Sand ist fest – das sind Körner, keine Tröpfchen."], ["Lösung", "klar-reinstoff", "Sand löst sich nicht – man sieht die Körner."]] },
+  { name: "Sand in Wasser", ans: "Suspension", why: "Feste Körner in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "Sand ist fest – das sind Körner, keine Tröpfchen."], ["Lösung", "entmischt-homogen", "Sand löst sich nicht – man sieht die Körner."]] },
   { name: "Orangensaft mit Fruchtfleisch", ans: "Suspension", why: "Feste Stückchen im Saft.", traps: [["Emulsion", ZUSTAND, "Fruchtfleisch ist fest – das sind Stückchen, keine Tröpfchen."]] },
-  { name: "Granit", ans: "Gemenge", why: "Verschiedene feste Körner nebeneinander.", traps: [["Legierung", "sieht-einheitlich", "Die Körner im Granit sieht man – nicht bis zu den Atomen gemischt."]] },
+  { name: "Granit", ans: "Gemenge", why: "Verschiedene feste Körner nebeneinander.", traps: [["Legierung", "legierung-gemenge", "Die Körner im Granit sieht man – nicht bis zu den Atomen gemischt."]] },
   { name: "Müsli", ans: "Gemenge", why: "Feste Teile nebeneinander.", traps: [["Suspension", ZUSTAND, "Im Müsli ist keine Flüssigkeit – nur feste Teile."]] },
   { name: "Dunst über dem Teich am Morgen", ans: "Nebel", why: "Flüssige Tröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Rauch hat feste Teilchen, Nebel flüssige Tröpfchen."]] },
   { name: "Ruß über einer rußenden Kerze", ans: "Rauch", why: "Feste Rußstückchen in Luft.", traps: [["Nebel", ZUSTAND, "Nebel hat flüssige Tröpfchen, Rauch feste Teilchen."]] },
-  { name: "Schlagsahne", ans: "Schaum", why: "Luftblasen in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "In Schlagsahne stecken Luftblasen – ein Gas in Flüssigkeit."]] },
+  { name: "Eischnee", ans: "Schaum", why: "Luftblasen in geschlagenem Eiweiß.", traps: [["Emulsion", ZUSTAND, "Im Eischnee stecken Luftblasen – ein Gas in Flüssigkeit, keine Tröpfchen."]] },
   { name: "Seifenschaum", ans: "Schaum", why: "Luftblasen in Seifenwasser.", traps: [["Nebel", ZUSTAND, "Beim Nebel ist die Flüssigkeit im Gas – hier ist es umgekehrt."]] },
   { name: "Essig", ans: "Lösung", why: "Essigsäure ist in Wasser gelöst.", traps: [["Emulsion", "geloest-heterogen", "Essigsäure mischt sich ganz mit Wasser – keine Tröpfchen."]] },
-  { name: "Tinte", ans: "Lösung", why: "Farbstoff ist in Wasser gelöst.", traps: [["Suspension", "geloest-heterogen", "Der Farbstoff ist gelöst – es setzt sich nichts ab."]] },
-  { name: "Weißgold (Gold mit Palladium)", ans: "Legierung", why: "Gold und Palladium, gleichmäßig gemischt.", traps: [["Gemenge", "sieht-einheitlich", "Gold und Palladium sind bis zu den Atomen gemischt – eine Legierung."]] },
-  { name: "Konstantan (Kupfer und Nickel)", ans: "Legierung", why: "Kupfer und Nickel, gleichmäßig gemischt.", traps: [["Gemenge", "sieht-einheitlich", "Kupfer und Nickel sind bis zu den Atomen gemischt – eine Legierung."]] },
+  { name: "Füllertinte", ans: "Lösung", why: "Farbstoff ist in Wasser gelöst.", traps: [["Suspension", "geloest-heterogen", "Der Farbstoff ist gelöst – es setzt sich nichts ab."]] },
+  { name: "Weißgold (Gold mit Palladium)", ans: "Legierung", why: "Gold und Palladium, gleichmäßig gemischt.", traps: [["Gemenge", "legierung-gemenge", "Gold und Palladium sind bis zu den Atomen gemischt – eine Legierung."]] },
+  { name: "Konstantan (Kupfer und Nickel)", ans: "Legierung", why: "Kupfer und Nickel, gleichmäßig gemischt.", traps: [["Gemenge", "legierung-gemenge", "Kupfer und Nickel sind bis zu den Atomen gemischt – eine Legierung."]] },
   { name: "Autoabgas ohne Ruß", ans: "Gasgemisch", why: "Mehrere Gase, vollständig gemischt.", traps: [["Rauch", ZUSTAND, "Ohne Ruß sind keine festen Teilchen darin – nur Gase."]] },
   { name: "Salatdressing aus Öl und Essig", ans: "Emulsion", why: "Öltröpfchen im Essig.", traps: [["Lösung", "entmischt-homogen", "Öl löst sich nicht in Essig – es bildet Tröpfchen."]] },
   { name: "Handcreme", ans: "Emulsion", why: "Fetttröpfchen und Wasser, fein verteilt.", traps: [["Lösung", "sieht-einheitlich", "Creme sieht einheitlich aus, besteht aber aus Tröpfchen."]] },
-  { name: "Kakao mit Pulver am Boden", ans: "Suspension", why: "Feste Pulverkörner in Milch.", traps: [["Emulsion", ZUSTAND, "Kakaopulver ist fest – Körner, keine Tröpfchen."]] },
+  { name: "Mehl in kaltem Wasser", ans: "Suspension", why: "Feste Mehlkörnchen in Wasser.", traps: [["Emulsion", ZUSTAND, "Mehl ist fest – Körnchen, keine Tröpfchen."]] },
   { name: "Schlamm", ans: "Suspension", why: "Feste Erdteilchen im Wasser.", traps: [["Emulsion", ZUSTAND, "Erde ist fest – Körner, keine Tröpfchen."]] },
-  { name: "Sand und Kies", ans: "Gemenge", why: "Feste Körner verschiedener Größe.", traps: [["Legierung", "sieht-einheitlich", "Eine Legierung ist ein Metall, mit anderen Elementen zusammen geschmolzen. Hier sieht man Körner."]] },
-  { name: "eine Wolke", ans: "Nebel", why: "Wassertröpfchen in Luft.", traps: [["Rauch", ZUSTAND, "Wolken bestehen aus flüssigen Tröpfchen – nicht aus festen Teilchen."]] },
+  { name: "Sand und Kies", ans: "Gemenge", why: "Feste Körner verschiedener Größe.", traps: [["Legierung", "legierung-gemenge", "Eine Legierung ist ein Metall, mit anderen Elementen zusammen geschmolzen. Hier sieht man Körner."]] },
+  { name: "Sprühstoß aus einer Blumenspritze", ans: "Nebel", why: "Wassertröpfchen schweben in Luft.", traps: [["Rauch", ZUSTAND, "Die Tröpfchen sind flüssig – keine festen Teilchen."]] },
   { name: "Staub in der Luft", ans: "Rauch", why: "Feste Teilchen schweben in Luft.", traps: [["Nebel", ZUSTAND, "Staub ist fest – Nebel hat flüssige Tröpfchen."]] },
   { name: "Bierschaum", ans: "Schaum", why: "Gasblasen in einer Flüssigkeit.", traps: [["Emulsion", ZUSTAND, "Im Schaum stecken Gasblasen, keine Tröpfchen."]] },
 ], [
   { name: "sugar water", ans: "Solution", why: "Solid sugar, dissolved in water.", traps: [["Suspension", "geloest-heterogen", "The sugar is dissolved, not spread as grains – a solution."]] },
   { name: "salt water", ans: "Solution", why: "Salt is dissolved in water.", traps: [["Suspension", "geloest-heterogen", "The salt is dissolved – you cannot see any grains."]] },
-  { name: "sparkling water without bubbles", ans: "Solution", why: "The gas is dissolved in the water.", traps: [["Foam", "geloest-heterogen", "Without bubbles the gas is dissolved – not a foam."]] },
   { name: "alcohol and water", ans: "Solution", why: "Two liquids, completely mixed.", traps: [["Emulsion", "geloest-heterogen", "Alcohol and water mix completely – no droplets."]] },
-  { name: "brass", ans: "Alloy", why: "Two metals, evenly mixed.", traps: [["Coarse mixture", "sieht-einheitlich", "Copper and zinc are mixed down to the atoms – an alloy."]] },
-  { name: "bronze", ans: "Alloy", why: "Copper and tin, melted together and evenly mixed.", traps: [["Coarse mixture", "sieht-einheitlich", "Copper and tin are melted together and evenly mixed – you see no pieces: an alloy."]] },
+  { name: "brass", ans: "Alloy", why: "Two metals, evenly mixed.", traps: [["Coarse mixture", "legierung-gemenge", "Copper and zinc are mixed down to the atoms – an alloy."]] },
+  { name: "bronze", ans: "Alloy", why: "Copper and tin, melted together and evenly mixed.", traps: [["Coarse mixture", "legierung-gemenge", "Copper and tin are melted together and evenly mixed – you see no pieces: an alloy."]] },
   { name: "air", ans: "Gas mixture", why: "Several gases, completely mixed.", traps: [["Fog", ZUSTAND, "Fog has water droplets. Clear air is only gas."]] },
   { name: "natural gas", ans: "Gas mixture", why: "Methane, ethane and other gases, mixed.", traps: [["Smoke", ZUSTAND, "Smoke contains solid particles. Natural gas is only gas."]] },
   { name: "milk", ans: "Emulsion", why: "Fat droplets in water.", traps: [["Solution", "sieht-einheitlich", "Milk looks uniform but has fat droplets."], ["Suspension", ZUSTAND, "The fat in milk is liquid – so droplets, not grains."]] },
   { name: "mayonnaise", ans: "Emulsion", why: "Oil droplets in water (with egg).", traps: [["Suspension", ZUSTAND, "Oil is liquid – so droplets, not solid grains."]] },
   { name: "shaken oil and water", ans: "Emulsion", why: "Oil droplets in water – until they rise again.", traps: [["Solution", "entmischt-homogen", "Oil does not dissolve in water – it forms droplets."], ["Suspension", ZUSTAND, "Oil is liquid – droplets, not grains."]] },
-  { name: "sand in water", ans: "Suspension", why: "Solid grains in a liquid.", traps: [["Emulsion", ZUSTAND, "Sand is solid – these are grains, not droplets."], ["Solution", "klar-reinstoff", "Sand does not dissolve – you can see the grains."]] },
+  { name: "sand in water", ans: "Suspension", why: "Solid grains in a liquid.", traps: [["Emulsion", ZUSTAND, "Sand is solid – these are grains, not droplets."], ["Solution", "entmischt-homogen", "Sand does not dissolve – you can see the grains."]] },
   { name: "orange juice with pulp", ans: "Suspension", why: "Solid bits in the juice.", traps: [["Emulsion", ZUSTAND, "Pulp is solid – these are bits, not droplets."]] },
-  { name: "granite", ans: "Coarse mixture", why: "Different solid grains side by side.", traps: [["Alloy", "sieht-einheitlich", "You can see the grains in granite – not mixed down to the atoms."]] },
+  { name: "granite", ans: "Coarse mixture", why: "Different solid grains side by side.", traps: [["Alloy", "legierung-gemenge", "You can see the grains in granite – not mixed down to the atoms."]] },
   { name: "muesli", ans: "Coarse mixture", why: "Solid pieces side by side.", traps: [["Suspension", ZUSTAND, "There is no liquid in muesli – only solid pieces."]] },
   { name: "mist over a pond in the morning", ans: "Fog", why: "Liquid droplets in air.", traps: [["Smoke", ZUSTAND, "Smoke has solid particles, fog has liquid droplets."]] },
   { name: "soot above a sooty candle", ans: "Smoke", why: "Solid bits of soot in air.", traps: [["Fog", ZUSTAND, "Fog has liquid droplets, smoke has solid particles."]] },
-  { name: "whipped cream", ans: "Foam", why: "Air bubbles in a liquid.", traps: [["Emulsion", ZUSTAND, "Whipped cream contains air bubbles – a gas in a liquid."]] },
+  { name: "whisked egg white", ans: "Foam", why: "Air bubbles in egg white.", traps: [["Emulsion", ZUSTAND, "Whisked egg white contains air bubbles – a gas in a liquid, not droplets."]] },
   { name: "soap foam", ans: "Foam", why: "Air bubbles in soapy water.", traps: [["Fog", ZUSTAND, "In fog the liquid is in the gas – here it is the other way round."]] },
   { name: "vinegar", ans: "Solution", why: "Acetic acid is dissolved in water.", traps: [["Emulsion", "geloest-heterogen", "Acetic acid mixes completely with water – no droplets."]] },
-  { name: "ink", ans: "Solution", why: "Dye is dissolved in water.", traps: [["Suspension", "geloest-heterogen", "The dye is dissolved – nothing settles."]] },
-  { name: "white gold (gold with palladium)", ans: "Alloy", why: "Gold and palladium, evenly mixed.", traps: [["Coarse mixture", "sieht-einheitlich", "Gold and palladium are mixed down to the atoms – an alloy."]] },
-  { name: "constantan (copper and nickel)", ans: "Alloy", why: "Copper and nickel, evenly mixed.", traps: [["Coarse mixture", "sieht-einheitlich", "Copper and nickel are mixed down to the atoms – an alloy."]] },
+  { name: "fountain pen ink", ans: "Solution", why: "Dye is dissolved in water.", traps: [["Suspension", "geloest-heterogen", "The dye is dissolved – nothing settles."]] },
+  { name: "white gold (gold with palladium)", ans: "Alloy", why: "Gold and palladium, evenly mixed.", traps: [["Coarse mixture", "legierung-gemenge", "Gold and palladium are mixed down to the atoms – an alloy."]] },
+  { name: "constantan (copper and nickel)", ans: "Alloy", why: "Copper and nickel, evenly mixed.", traps: [["Coarse mixture", "legierung-gemenge", "Copper and nickel are mixed down to the atoms – an alloy."]] },
   { name: "car exhaust without soot", ans: "Gas mixture", why: "Several gases, completely mixed.", traps: [["Smoke", ZUSTAND, "Without soot there are no solid particles in it – only gases."]] },
   { name: "salad dressing of oil and vinegar", ans: "Emulsion", why: "Oil droplets in the vinegar.", traps: [["Solution", "entmischt-homogen", "Oil does not dissolve in vinegar – it forms droplets."]] },
   { name: "hand cream", ans: "Emulsion", why: "Fat droplets and water, finely spread.", traps: [["Solution", "sieht-einheitlich", "Cream looks uniform but consists of droplets."]] },
-  { name: "cocoa with powder at the bottom", ans: "Suspension", why: "Solid powder grains in milk.", traps: [["Emulsion", ZUSTAND, "Cocoa powder is solid – grains, not droplets."]] },
+  { name: "flour in cold water", ans: "Suspension", why: "Solid grains of flour in water.", traps: [["Emulsion", ZUSTAND, "Flour is solid – grains, not droplets."]] },
   { name: "mud", ans: "Suspension", why: "Solid soil particles in water.", traps: [["Emulsion", ZUSTAND, "Soil is solid – grains, not droplets."]] },
-  { name: "sand and gravel", ans: "Coarse mixture", why: "Solid grains of different sizes.", traps: [["Alloy", "sieht-einheitlich", "An alloy is a metal melted together with other elements. Here you can see grains."]] },
-  { name: "a cloud", ans: "Fog", why: "Water droplets in air.", traps: [["Smoke", ZUSTAND, "Clouds consist of liquid droplets – not of solid particles."]] },
+  { name: "sand and gravel", ans: "Coarse mixture", why: "Solid grains of different sizes.", traps: [["Alloy", "legierung-gemenge", "An alloy is a metal melted together with other elements. Here you can see grains."]] },
+  { name: "a fine spray from a plant mister", ans: "Fog", why: "Water droplets float in air.", traps: [["Smoke", ZUSTAND, "The droplets are liquid – not solid particles."]] },
   { name: "dust in the air", ans: "Smoke", why: "Solid particles float in air.", traps: [["Fog", ZUSTAND, "Dust is solid – fog has liquid droplets."]] },
   { name: "beer foam", ans: "Foam", why: "Gas bubbles in a liquid.", traps: [["Emulsion", ZUSTAND, "Foam contains gas bubbles, not droplets."]] },
 ]);
@@ -663,9 +674,9 @@ function alltag(): Task {
   const others = ["Element", "Verbindung", "Gemisch"].filter(o => o !== s.ans && o !== s.trap?.[0]).map(label);
   return {
     ...mc(label(s.ans), [...(s.trap ? [d(label(s.trap[0]), s.trap[1], s.trap[2])] : []), ...others], 3, s.why),
-    prompt: tr(`**${s.name}**: Reinstoff oder Gemisch? Element oder Verbindung?`, `**${cap(s.name)}**: pure substance or mixture? Element or compound?`),
+    prompt: tr(`**${cap(s.name)}**: Reinstoff oder Gemisch? Element oder Verbindung?`, `**${cap(s.name)}**: pure substance or mixture? Element or compound?`),
     hint: tr("Ein Stoff oder mehrere? Wenn einer: eine Atomsorte oder mehrere?", "One substance or several? If one: one kind of atom or several?"),
-    tip: s.tip ?? (/\(.*[A-Z].*\)/.test(s.name) ? tr("Lies die Formel: Jeder Großbuchstabe ist eine Atomsorte.", "Read the formula: each capital letter is a kind of atom.")
+    tip: s.tip ?? (/\(.*[A-Z].*\)/.test(s.name) ? tr("Lies die Formel: Jede Atomsorte beginnt mit einem Großbuchstaben. Gleiche zählen einmal.", "Read the formula: each kind of atom starts with a capital letter. Identical ones count once.")
       : s.ans === "Gemisch" ? tr(`Zähle auf, was alles in ${s.name} steckt. Mehr als ein Stoff?`, `List everything that is in ${s.name}. More than one substance?`)
       : tr(`Stell dir die Teilchen von ${s.name} vor: Wie viele Atomsorten stecken darin?`, `Imagine the particles of ${s.name}: how many kinds of atoms are in them?`)),
     explain: `${cap(s.name)}: ${because(s.why)} → **${label(s.ans)}**.`,
@@ -680,12 +691,11 @@ const REIN_ALLTAG: { label: string; ans: "Gemisch" | "Reinstoff"; why: string; o
   { label: "„reiner Bienenhonig“", ans: "Gemisch", why: "Honig enthält Zucker, Wasser und viele andere Stoffe." },
   { label: "„reine Bergluft“", ans: "Gemisch", why: "Luft besteht aus Stickstoff, Sauerstoff, Argon und mehr." },
   { label: "„reine Butter“", ans: "Gemisch", why: "Butter enthält Fett, Wasser und Eiweiß." },
-  { label: "„destilliertes Wasser“", ans: "Reinstoff", why: "Beim Destillieren bleiben die gelösten Stoffe zurück. Übrig ist nur H₂O.", other: ["Lösung", "In destilliertem Wasser ist nichts gelöst."] },
+  { label: "„destilliertes Wasser“", ans: "Reinstoff", why: "Das Wasser wurde verdampft und wieder flüssig gemacht. Die gelösten Stoffe blieben zurück – übrig ist nur H₂O.", other: ["Lösung", "In destilliertem Wasser ist nichts gelöst."] },
   { label: "„reiner Apfelsaft“", ans: "Gemisch", why: "Saft enthält Wasser, Zucker, Säuren und Aromastoffe." },
   { label: "„reines Quellwasser“", ans: "Gemisch", why: "Auch Quellwasser enthält gelöste Mineralstoffe." },
   { label: "„Sterlingsilber 925“", ans: "Gemisch", why: "Silber mit Kupfer – eine Legierung." },
   { label: "„reines Kokosfett“", ans: "Gemisch", why: "Fett ist ein Gemisch aus vielen verschiedenen Fetten." },
-  { label: "„Feingold 999,9“", ans: "Reinstoff", why: "Fast nur Gold-Atome – so gut wie ein Reinstoff.", other: ["Legierung", "Eine Legierung wäre Gold mit anderen Metallen. Feingold ist fast reines Gold."] },
 ], [
   { label: "“100 % pure orange juice”", ans: "Gemisch", why: "Juice contains water, sugar, acids and dyes." },
   { label: "“pure mineral water”", ans: "Gemisch", why: "Minerals are dissolved in the water." },
@@ -693,12 +703,11 @@ const REIN_ALLTAG: { label: string; ans: "Gemisch" | "Reinstoff"; why: string; o
   { label: "“pure honey”", ans: "Gemisch", why: "Honey contains sugar, water and many other substances." },
   { label: "“pure mountain air”", ans: "Gemisch", why: "Air consists of nitrogen, oxygen, argon and more." },
   { label: "“pure butter”", ans: "Gemisch", why: "Butter contains fat, water and protein." },
-  { label: "“distilled water”", ans: "Reinstoff", why: "When distilling, the dissolved substances stay behind. Only H₂O is left.", other: ["Solution", "Nothing is dissolved in distilled water."] },
+  { label: "“distilled water”", ans: "Reinstoff", why: "The water was evaporated and turned liquid again. The dissolved substances stayed behind – only H₂O is left.", other: ["Solution", "Nothing is dissolved in distilled water."] },
   { label: "“pure apple juice”", ans: "Gemisch", why: "Juice contains water, sugar, acids and flavourings." },
   { label: "“pure spring water”", ans: "Gemisch", why: "Spring water also contains dissolved minerals." },
   { label: "“sterling silver 925”", ans: "Gemisch", why: "Silver with copper – an alloy." },
   { label: "“pure coconut oil”", ans: "Gemisch", why: "Fat is a mixture of many different fats." },
-  { label: "“fine gold 999.9”", ans: "Reinstoff", why: "Almost only gold atoms – practically a pure substance.", other: ["Alloy", "An alloy would be gold with other metals. Fine gold is almost pure gold."] },
 ]);
 
 function reinAlltag(): Task {
@@ -779,7 +788,7 @@ function masse(): Task {
       d(g(w + z / 2), "masse-aendert", tr("Die Teilchen werden beim Lösen nicht leichter. Die Masse bleibt gleich.", "The particles do not get lighter when dissolving. The mass stays the same.")),
       d(g(w + 2 * z), "masse-aendert", tr(`Beim Lösen kommt nichts dazu. ${solvent} und ${stoff} zusammen wiegen genauso viel.`, `Nothing is added when dissolving. The ${solvent} and ${stoff} together weigh just as much.`)),
     ], 4, `${w} g + ${z} g = ${w + z} g.`),
-    prompt: tr(`In **${w} g** ${solvent} lösen sich **${z} g** ${stoff}. Wie schwer ist ${what} jetzt?`, `**${z} g** of ${stoff} dissolve in **${w} g** of ${solvent}. How heavy is ${what} now?`),
+    prompt: tr(`In **${w} g** ${solvent} lösen sich **${z} g** ${stoff}. Wie schwer ist ${what} jetzt?`, `**${z} g** of ${stoff} dissolves in **${w} g** of ${solvent}. How heavy is ${what} now?`),
     hint: tr("Beim Lösen verschwinden keine Teilchen. Was bedeutet das für die Masse?", "No particles disappear when dissolving. What does that mean for the mass?"),
     tip: tr("Ist nach dem Lösen weniger, gleich viel oder mehr Stoff im Glas?", "After dissolving, is there less, the same or more substance in the glass?"),
     explain: tr(`Alle Teilchen sind noch da: ${w} g + ${z} g = **${w + z} g**.`, `All particles are still there: ${w} g + ${z} g = **${w + z} g**.`),
@@ -810,7 +819,7 @@ function zwischen(): Task {
     pic: exPic(s.ex),
     prompt: tr(`Was ist zwischen ${s.of}?`, `What is between ${s.of}?`),
     hint: tr("Ein Stoff besteht nur aus seinen Teilchen. Was bleibt dann für die Lücken?", "A substance consists only of its particles. What is left for the gaps?"),
-    tip: tr("Auch Luft und Wasserdampf bestehen aus Teilchen. Die passen nicht in die Lücken. Was bleibt übrig?", "Air and water vapour also consist of particles. They do not fit into the gaps. What is left?"),
+    tip: tr("Woraus bestehen Luft und Wasserdampf selbst? Was liegt dann zwischen den Teilchen im Bild?", "What are air and water vapour themselves made of? So what lies between the particles in the picture?"),
     explain: tr("Zwischen den Teilchen ist **nichts** – leerer Raum. Auch Luft besteht aus Teilchen.", "Between the particles there is **nothing** – empty space. Air also consists of particles."),
   };
 }
@@ -876,7 +885,7 @@ function farbe(): Task {
       w: [d("Ja, sonst wäre Wasser nicht flüssig.", "teilchen-wie-stoff", "Flüssig heißt: Die Teilchen gleiten aneinander vorbei. Ein einzelnes Teilchen ist nicht flüssig."),
         d("Ja, sie sind kleine Tröpfchen.", "teilchen-wie-stoff", "Ein Tröpfchen besteht aus unzähligen Teilchen. Ein Teilchen ist kein Tröpfchen.")] },
     { q: "Eis ist fest, Wasser flüssig. Wie unterscheiden sich die Teilchen?", ok: "Gar nicht – nur Anordnung und Bewegung.",
-      w: [d("Die Teilchen im Eis sind hart.", "teilchen-wie-stoff", "Es sind dieselben H₂O-Teilchen. Im Eis sitzen sie nur fest im Gitter."),
+      w: [d("Die Teilchen im Eis sind hart.", "teilchen-wie-stoff", "Es sind dieselben H₂O-Teilchen. Im Eis sitzen sie nur fest an ihren Plätzen."),
         d("Die Teilchen im Eis sind kleiner.", "teilchen-veraendert", "Die Teilchen bleiben gleich groß. Nur ihre Anordnung ändert sich.")] },
   ], [
     { q: "Copper is reddish brown. What colour is a **single copper atom**?", ok: "None – only the substance has a colour.",
@@ -892,7 +901,7 @@ function farbe(): Task {
       w: [d("Yes, otherwise water would not be liquid.", "teilchen-wie-stoff", "Liquid means: the particles slide past each other. A single particle is not liquid."),
         d("Yes, they are tiny droplets.", "teilchen-wie-stoff", "A droplet consists of countless particles. A particle is not a droplet.")] },
     { q: "Ice is solid, water is liquid. How do the particles differ?", ok: "Not at all – only arrangement and movement.",
-      w: [d("The particles in ice are hard.", "teilchen-wie-stoff", "They are the same H₂O particles. In ice they just sit firmly in a lattice."),
+      w: [d("The particles in ice are hard.", "teilchen-wie-stoff", "They are the same H₂O particles. In ice they just sit firmly in their places."),
         d("The particles in ice are smaller.", "teilchen-veraendert", "The particles stay the same size. Only their arrangement changes.")] },
   ]));
   return {
@@ -914,17 +923,17 @@ const NACHHER_LEAD: Record<string, string> = tr({
   oel: "Think of salad dressing left to stand for a while.", messing: "How do the atoms lie after solidifying?", schutzgas: "How do gas particles move?",
 });
 const NACHHER_TIP: Record<string, string> = tr({
-  zucker: "Gelöste Teilchen verteilen sich überall – auch oben. Und es fehlt keines.",
-  alkohol: "Alkohol mischt sich ganz mit Wasser. Es fehlt kein Teilchen.",
+  zucker: "Bewegen sich die Zuckerteilchen nach dem Lösen weiter? Und wie viele sind es in jedem Bild?",
+  alkohol: "Bewegen sich die Alkoholteilchen auch ohne Rühren? Und wie viele sind es in jedem Bild?",
   oel: "Öl schwimmt auf Wasser. Mischt es sich mit ihm?",
   messing: "Bleiben die Atome beim Erstarren dort, wo sie in der Schmelze waren?",
-  schutzgas: "Gasteilchen fliegen ständig umher. Sie bleiben nirgends unter sich.",
+  schutzgas: "Stehen Gasteilchen je still? Wohin kommen sie nach einer Weile?",
 }, {
-  zucker: "Dissolved particles spread everywhere – also at the top. And none is missing.",
-  alkohol: "Alcohol mixes completely with water. No particle is missing.",
+  zucker: "Do the sugar particles keep moving after dissolving? And how many are there in each picture?",
+  alkohol: "Do the alcohol particles move even without stirring? And how many are there in each picture?",
   oel: "Oil floats on water. Does it mix with it?",
   messing: "Do the atoms stay where they were in the melt when it solidifies?",
-  schutzgas: "Gas particles fly around all the time. They never stay among themselves.",
+  schutzgas: "Do gas particles ever stand still? Where do they get to after a while?",
 });
 
 /** Welches Teilchenbild passt nachher? */
@@ -940,7 +949,7 @@ function nachher(): Task {
     zucker: { q: "Zucker hat sich in Wasser gelöst. Welches Bild zeigt das Zuckerwasser?", ok: "Genau: Die Zuckerteilchen sind überall verteilt.", wrong: [
       [p("unten"), "geloest-unten", "Gelöster Zucker verteilt sich überall – nicht nur unten."],
       [p("nachher", water), "verschwindet", "Hier fehlt der Zucker. Er ist noch da – nur gelöst."],
-      [p("vorher"), "verschwindet", "Das ist vorher: Der Zucker ist noch ein Kristall."]] },
+      [p("vorher"), "kristall-bleibt", "Das ist vorher: Der Zucker ist noch ein Kristall. Beim Lösen trennen sich seine Teilchen voneinander."]] },
     alkohol: { q: "Alkohol und Wasser sind gemischt. Welches Bild passt?", ok: "Genau: Die Alkoholteilchen sind überall verteilt.", wrong: [
       [p("oben"), "geloest-heterogen", "Alkohol bleibt nicht als Schicht oben. Er mischt sich ganz mit Wasser."],
       [p("unten"), "geloest-unten", "Alkohol sammelt sich nicht unten. Er verteilt sich überall."],
@@ -949,7 +958,7 @@ function nachher(): Task {
       [p("gemischt"), "oel-mischt", "Öl und Wasser mischen sich nicht. Das Öl steigt wieder auf."],
       [p("unten"), "oel-unten", "Öl schwimmt auf Wasser – es sammelt sich oben, nicht unten."]] },
     messing: { q: "Kupfer und Zink wurden zusammen geschmolzen. Welches Bild zeigt das erstarrte Messing?", ok: "Genau: Die Atome sind zufällig gemischt.", wrong: [
-      [p("getrennt"), "sieht-einheitlich", "Im Messing sind Kupfer und Zink bis zu den Atomen gemischt – nicht in Stücken."],
+      [p("getrennt"), "teilchen-ruhen", "In der Schmelze bewegen sich die Atome und mischen sich. So erstarren sie auch – nicht in Stücken."],
       [p("abwechselnd"), "legierung-verbindung", "Im Messing sitzen die Zinkatome zufällig auf Plätzen des Kupfergitters – ohne festes Muster und ohne festes Verhältnis."]] },
     schutzgas: { q: "Argon und CO₂ wurden gemischt. Welches Bild zeigt das Schutzgas nach einer Weile?", ok: "Genau: Die Gase sind gleichmäßig gemischt.", wrong: [
       [p("getrennt"), "teilchen-ruhen", "Die Gasteilchen bewegen sich ständig. Sie bleiben nicht getrennt."],
@@ -958,7 +967,7 @@ function nachher(): Task {
     zucker: { q: "Sugar has dissolved in water. Which picture shows the sugar water?", ok: "Exactly: the sugar particles are spread everywhere.", wrong: [
       [p("unten"), "geloest-unten", "Dissolved sugar spreads everywhere – not just at the bottom."],
       [p("nachher", water), "verschwindet", "The sugar is missing here. It is still there – only dissolved."],
-      [p("vorher"), "verschwindet", "That is before: the sugar is still a crystal."]] },
+      [p("vorher"), "kristall-bleibt", "That is before: the sugar is still a crystal. When it dissolves, its particles separate from each other."]] },
     alkohol: { q: "Alcohol and water are mixed. Which picture fits?", ok: "Exactly: the alcohol particles are spread everywhere.", wrong: [
       [p("oben"), "geloest-heterogen", "Alcohol does not stay as a layer on top. It mixes completely with water."],
       [p("unten"), "geloest-unten", "Alcohol does not collect at the bottom. It spreads everywhere."],
@@ -967,7 +976,7 @@ function nachher(): Task {
       [p("gemischt"), "oel-mischt", "Oil and water do not mix. The oil rises again."],
       [p("unten"), "oel-unten", "Oil floats on water – it collects at the top, not at the bottom."]] },
     messing: { q: "Copper and zinc were melted together. Which picture shows the solidified brass?", ok: "Exactly: the atoms are randomly mixed.", wrong: [
-      [p("getrennt"), "sieht-einheitlich", "In brass, copper and zinc are mixed down to the atoms – not in chunks."],
+      [p("getrennt"), "teilchen-ruhen", "In the melt the atoms move and mix. They solidify like that too – not in chunks."],
       [p("abwechselnd"), "legierung-verbindung", "In brass the zinc atoms sit randomly on places of the copper lattice – with no fixed pattern and no fixed ratio."]] },
     schutzgas: { q: "Argon and CO₂ were mixed. Which picture shows the shielding gas after a while?", ok: "Exactly: the gases are evenly mixed.", wrong: [
       [p("getrennt"), "teilchen-ruhen", "The gas particles move all the time. They do not stay separate."],
@@ -1033,16 +1042,16 @@ function tippArt(element: boolean): Task {
   };
 }
 
-/** Zahlen nicht eintippen: Zählaufgaben als Auswahl – die Fallen werden diagnostische Distraktoren, Zahlen aufsteigend */
+/** Zahlen nicht eintippen: Zählaufgaben als Auswahl – die Fallen werden diagnostische Distraktoren, Zahlen aufsteigend (auch mit Einheit: Masse) */
 function asChoice(t: Task): Task {
-  if (t.kind === "mc") return t.options.every(o => /^\d+$/.test(o)) ? sortNum(t) : t;
+  if (t.kind === "mc") return t.options.every(o => /^\d+( g)?$/.test(o)) ? sortNum(t) : t;
   if (t.kind !== "num") return t;
   const { traps, answer, ...rest } = t;
   return sortNum({ ...rest, ...mc(String(answer), [...(traps ?? []).map(x => (x.value !== undefined ? d(String(x.value), x.miss, x.why) : null)), ...nearNums(answer, 0)]) } as Task & McTask);
 }
 /** Zahlen-Auswahl aufsteigend (Rückmeldungen wandern mit) */
 function sortNum(m: Task & McTask): Task {
-  const order = m.options.map((_, i) => i).sort((a, b) => Number(m.options[a]) - Number(m.options[b]));
+  const order = m.options.map((_, i) => i).sort((a, b) => parseFloat(m.options[a]) - parseFloat(m.options[b]));
   const remap = <V>(r?: Record<number, V>) => (r ? Object.fromEntries(Object.entries(r).map(([i, v]) => [order.indexOf(Number(i)), v])) as Record<number, V> : undefined);
   const why = remap(m.why), miss = remap(m.miss);
   const { why: _w, miss: _m, ...rest } = m;
@@ -1097,7 +1106,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
 interface Level extends QuizLevel { types: string[]; seq: string[]; leads: string[]; cue: boolean }
 type Step = [type: string, lead: string];
 
-// Lernen in fünf Kapiteln (je Kapitel zuerst die Lektion in lessons.tsx, dann diese zehn Aufgaben): Merksatz je Aufgabe
+// Lernen in sechs Kapiteln (je Kapitel zuerst die Lektion in lessons.tsx, dann diese zehn Aufgaben): Merksatz je Aufgabe
 // Merksatz = Blickpunkt, nie die gefragte Aussage (Test: kein Inhaltswort der richtigen Antwort). Hängt die Aufgabe von einer zufälligen
 // Variante ab (Trennverfahren, Bild nach dem Mischen), setzt der Generator den Merksatz selbst (`lead` der Aufgabe hat Vorrang).
 const K1: Step[] = tr([
@@ -1125,23 +1134,23 @@ const K1: Step[] = tr([
 ]);
 const K2: Step[] = tr([
   ["einordnen", "Wie viele **Atomsorten** stecken in einem Teilchen?"],
-  ["einordnen", "In der Formel ist jeder **Großbuchstabe** eine Atomsorte."],
+  ["einordnen", "In der Formel beginnt jede Atomsorte mit einem **Großbuchstaben**."],
   ["tippElement", "Vergleiche die Farben innerhalb jedes Teilchens."],
   ["tippVerbindung", "Schau in jedes Teilchen: eine Farbe oder mehrere?"],
   ["elemente", "Gefragt sind **Stoffe**, nicht Teilchen."],
   ["verbindungen", "Prüfe jeden Stoff einzeln."],
-  ["tippElement", "Auch ein **Metallgitter** besteht aus Teilchen."],
+  ["tippElement", "Nicht die Zahl der Kugeln zählt, sondern die Zahl der Farben."],
   ["tippVerbindung", "Fest verbundene Atome bilden **ein** Teilchen."],
   ["elemente", "Eine Atomsorte oder mehrere? Für jeden Stoff einzeln."],
   ["verbindungen", "Erst Stoffe finden, dann jeden prüfen."],
 ], [
   ["einordnen", "How many **kinds of atoms** are in one particle?"],
-  ["einordnen", "In a formula each **capital letter** is a kind of atom."],
+  ["einordnen", "In a formula each kind of atom starts with a **capital letter**."],
   ["tippElement", "Compare the colours inside each particle."],
   ["tippVerbindung", "Look into each particle: one colour or several?"],
   ["elemente", "The question is about **substances**, not particles."],
   ["verbindungen", "Check each substance on its own."],
-  ["tippElement", "A **metal lattice** is made of particles too."],
+  ["tippElement", "What counts is the number of colours, not the number of spheres."],
   ["tippVerbindung", "Firmly joined atoms form **one** particle."],
   ["elemente", "One kind of atom or several? For each substance on its own."],
   ["verbindungen", "First find the substances, then check each one."],
@@ -1153,10 +1162,10 @@ const K3: Step[] = tr([
   ["bildWahl", "Prüfe jedes Bild mit denselben zwei Fragen."],
   ["homogenBild", "Stell dir das Mikroskop vor."],
   ["homogenKlar", "Zähle auf, was alles darin steckt – auch wenn man es nicht sieht."],
-  ["wohin", "Denk an die Lektion: Was macht der Kristall im Wasser?"],
+  ["wohin", "Verfolge in Gedanken ein einzelnes Teilchen eine Weile."],
   ["nachher", "Vergleiche: vorher und nach einer Weile."],
   ["masse", "Zähle: Welche Teilchen sind vorher da, welche nachher?"],
-  ["bewegung", "Denk an das Experiment: Was passiert ohne Rühren?"],
+  ["bewegung", "Stell dir die Teilchen unter einer sehr starken Lupe vor."],
 ], [
   ["reinOderGemisch", "Compare the particles with each other."],
   ["reinGemisch", "Two questions: how many substances? How many kinds of atoms in a particle?"],
@@ -1164,10 +1173,10 @@ const K3: Step[] = tr([
   ["bildWahl", "Check every picture with the same two questions."],
   ["homogenBild", "Imagine looking through a microscope."],
   ["homogenKlar", "List everything in it – even what you cannot see."],
-  ["wohin", "Remember the lesson: what happens to the crystal in water?"],
+  ["wohin", "In your mind, follow a single particle for a while."],
   ["nachher", "Compare: before and after a while."],
   ["masse", "Count: which particles are there before, which after?"],
-  ["bewegung", "Think of the experiment: what happens without stirring?"],
+  ["bewegung", "Imagine the particles under a very strong magnifier."],
 ]);
 const K4: Step[] = tr([
   ["alltag", "Im Alltag fehlt das Teilchenbild. Frage: ein Stoff oder mehrere?"],
@@ -1248,7 +1257,7 @@ export const LEVELS: Level[] = [
   level(2, tr("Elemente und Verbindungen", "Elements and compounds"), tr("Eine Atomsorte oder mehrere, fest verbunden", "One kind of atom or several, firmly bonded"), K2),
   level(3, tr("Reinstoffe und Gemische", "Pure substances and mixtures"), tr("Ein Stoff oder mehrere, homogen oder heterogen, Lösen", "One substance or several, homogeneous or heterogeneous, dissolving"), K3),
   level(4, tr("Gemische im Alltag", "Mixtures in everyday life"), tr("„Rein“ auf Packungen, Lösung, Emulsion, Suspension …", "“Pure” on packages, solution, emulsion, suspension …"), K4),
-  level(5, tr("Trennen nach Größe, Magnet, Dichte", "Separating by size, magnet, density"), tr("Auslesen, Sieben, Magnet, Dekantieren, Filtrieren", "Hand-picking, sieving, magnet, decanting, filtration"), K5),
+  level(5, tr("Trennen nach Größe, Magnet, Dichte", "Separating by size, magnet, density"), tr("Auslesen, Sieben, Magnettrennung, Dekantieren, Filtrieren", "Hand-picking, sieving, magnetic separation, decanting, filtration"), K5),
   level(6, tr("Lösungen trennen", "Separating solutions"), tr("Eindampfen, Destillieren, Chromatografie, mehrere Schritte", "Evaporation, distillation, chromatography, several steps"), K6),
 ];
 
