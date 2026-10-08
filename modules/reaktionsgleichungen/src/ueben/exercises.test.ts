@@ -37,6 +37,8 @@ describe("Übungen", () => {
       [...r.left, ...r.right].forEach((f, k) => {
         if (r.coeffs[k] > 1) expect(h, `${id} verrät ${r.coeffs[k]} ${f}`).not.toContain(`${r.coeffs[k]} ${toSubscript(f)}`);
       });
+      // kein Satz, der die Lösung vorwegnimmt („schon ausgeglichen“) oder den Denkschritt erledigt („F₂ bringt 2 F-Atome, jedes HF nur eines“)
+      expect(h, id).not.toMatch(/schon ausgeglichen|already balanced|\bnur eine?s?\b|\bonly one\b/);
     }
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseFormula, balance, isBalanced, unbalancedElements, equationText, REACTIONS, sideCounts, elementsOf, formulaElements } from "../src/reactions.ts";
+import { parseFormula, balance, isBalanced, unbalancedElements, equationText, REACTIONS, sideCounts, elementsOf, formulaElements, SPECIES_NAMES } from "../src/reactions.ts";
 
 describe("parseFormula", () => {
   it("zählt Atome, auch mit Klammern und tiefgestellten Ziffern", () => {
@@ -37,6 +37,19 @@ describe("balance", () => {
     expect(new Set(REACTIONS.map(r => r.id)).size).toBe(REACTIONS.length);
     expect(REACTIONS.length).toBeGreaterThanOrEqual(80);
     for (const s of ["us", "os"]) for (const nv of [1, 2, 3, 4]) expect(REACTIONS.filter(r => r.stufe === s && r.niveau === nv).length, `${s} ${nv}`).toBeGreaterThanOrEqual(6);
+  });
+  it("Unterstufe: Niveau 1 höchstens eine Zahl ≠ 1, Niveau 2 zwei bis drei (2 H₂ + O₂ → 2 H₂O ist Niveau 2)", () => {
+    const n = (r: (typeof REACTIONS)[number]) => r.coeffs.filter(c => c > 1).length;
+    for (const r of REACTIONS.filter(x => x.stufe === "us" && x.niveau === 1)) expect(n(r), r.id).toBeLessThanOrEqual(1);
+    for (const r of REACTIONS.filter(x => x.stufe === "us" && x.niveau === 2)) expect([2, 3], r.id).toContain(n(r));
+  });
+  it("Stoffnamen ohne ungenaue Trivialnamen: CaSO₄ ist nicht Gips (CaSO₄ · 2 H₂O)", () => {
+    expect(SPECIES_NAMES.CaSO4).toBe("Calciumsulfat");
+  });
+  it("Phosphor in der Unterstufe einheitlich als P₄ (nie als einzelnes Atom P neben P₄)", () => {
+    const us = REACTIONS.filter(r => r.stufe === "us").flatMap(r => [...r.left, ...r.right]);
+    expect(us).toContain("P4");
+    expect(us).not.toContain("P");
   });
   it("nennt die Elemente mit falscher Bilanz", () => {
     expect(unbalancedElements({ left: ["H2", "O2"], right: ["H2O"] }, [1, 1, 1])).toEqual(["O"]);

@@ -1,7 +1,7 @@
 // Üben: je Stufe drei Schwierigkeiten mit je 10 Gleichungen. Oben Schwierigkeit und Aufgabe (‹ 3 / 10 ›, Fortschritt als Kästchen),
 // darunter dieselbe Karte wie im Experimentieren (Teilchenbild, Gleichung, Prüfen). „Tipp“ zeigt den Hinweis zu genau dieser Gleichung,
 // nach ✓ zeigt „Ablauf ansehen“ die Animation. „Teilchen“ klappt das Kugelbild ein (nur Text) und wieder aus – Standard: an.
-// Zahlen und ✓ bleiben gespeichert.
+// Zahlen und ✓ bleiben gespeichert. Nach „Lösung“ zählt „Prüfen“ nicht als gelöst (kein ✓); beim Weitergehen beginnt die Gleichung von vorn.
 
 import { REACTION_BY_ID } from "@lern/chem";
 import { Icon, Segmented, buzz } from "@lern/ui";
@@ -29,7 +29,7 @@ export function UebenView() {
     <BalanceCard key={id} r={r} coeffs={coeffs} hint={HINTS[id]} model={model}
       onChange={(k, v) => u.setCoeff(id, k, v)}
       onSolved={() => u.solved(id)}
-      onSolution={() => u.setCoeffs(id, r.coeffs)}
+      onSolution={() => u.showSolution(id, r.coeffs)}
       onNext={onNext} nextLabel={nextLabel}
       head={
         <div className="rg-head rg-ueben-head">

@@ -89,12 +89,15 @@ interface UebenState {
   at: Record<string, number>;
   /** gesetzte Zahlen je Gleichung (Kennung) */
   coeffs: Record<string, number[]>;
-  /** gelöste Gleichungen */
+  /** selbst gelöste Gleichungen (✓) */
   done: Record<string, true>;
+  /** Lösung angesehen: „Prüfen“ zeigt dann nur den Zustand, zählt aber nicht als gelöst; beim Weitergehen beginnt die Gleichung von vorn */
+  peeked: Record<string, true>;
   setLvl: (s: Stufe, l: Lvl) => void;
   setAt: (s: Stufe, l: Lvl, i: number) => void;
   setCoeff: (id: string, k: number, v: number) => void;
-  setCoeffs: (id: string, c: number[]) => void;
+  /** Lösung zeigen („Lösung“ nach zwei Fehlversuchen) */
+  showSolution: (id: string, c: number[]) => void;
   solved: (id: string) => void;
 }
 
@@ -103,19 +106,29 @@ export const coeffsOf = (u: Pick<UebenState, "coeffs">, id: string) => {
   return Array.isArray(c) && c.length === n && c.every(x => Number.isInteger(x) && x >= 1) ? c : ones(id);
 };
 
-export const useUeben = create<UebenState>()(persist((set, get) => ({
-  lvl: { us: "einfach", os: "einfach" },
-  at: {},
-  coeffs: {},
-  done: {},
-  setLvl: (s, l) => set({ lvl: { ...get().lvl, [s]: l } }),
-  setAt: (s, l, i) => set({ at: { ...get().at, [`${s}-${l}`]: i } }),
-  setCoeff: (id, k, v) => set({ coeffs: { ...get().coeffs, [id]: coeffsOf(get(), id).map((x, j) => (j === k ? v : x)) } }),
-  setCoeffs: (id, c) => set({ coeffs: { ...get().coeffs, [id]: c } }),
-  solved: id => set({ done: { ...get().done, [id]: true } }),
-}), {
+export const useUeben = create<UebenState>()(persist((set, get) => {
+  /** beim Weitergehen: Gleichungen mit angesehener Lösung von vorn (Zahlen auf 1), damit sie später selbst gelöst werden können */
+  const leave = () => {
+    const { peeked, coeffs } = get();
+    if (!Object.keys(peeked).length) return {};
+    return { peeked: {}, coeffs: Object.fromEntries(Object.entries(coeffs).filter(([id]) => !peeked[id])) };
+  };
+  return {
+    lvl: { us: "einfach", os: "einfach" },
+    at: {},
+    coeffs: {},
+    done: {},
+    peeked: {},
+    setLvl: (s, l) => set({ lvl: { ...get().lvl, [s]: l }, ...leave() }),
+    setAt: (s, l, i) => set({ at: { ...get().at, [`${s}-${l}`]: i }, ...leave() }),
+    setCoeff: (id, k, v) => set({ coeffs: { ...get().coeffs, [id]: coeffsOf(get(), id).map((x, j) => (j === k ? v : x)) } }),
+    showSolution: (id, c) => set({ coeffs: { ...get().coeffs, [id]: c }, peeked: { ...get().peeked, [id]: true } }),
+    // mit angesehener Lösung zählt „Prüfen“ nicht als selbst gelöst
+    solved: id => { if (!get().peeked[id]) set({ done: { ...get().done, [id]: true } }); },
+  };
+}, {
   name: "reaktionsgleichungen-ueben",
   version: 1,
   storage: createJSONStorage(() => localStorage),
-  partialize: s => ({ lvl: s.lvl, at: s.at, coeffs: s.coeffs, done: s.done }),
+  partialize: s => ({ lvl: s.lvl, at: s.at, coeffs: s.coeffs, done: s.done, peeked: s.peeked }),
 }));

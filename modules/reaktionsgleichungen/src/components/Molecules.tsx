@@ -11,6 +11,11 @@ import { tr } from "@lern/i18n";
 /** Teilchenbild nur, wenn alle Stoffe der Gleichung Moleküle sind */
 export const hasModel = (eq: Equation) => [...eq.left, ...eq.right].every(isMolecular);
 
+const NOBLE = new Set(["He", "Ne", "Ar", "Kr", "Xe", "Rn"]);
+/** Elemente, die die Gleichung als einzelnes Atom schreibt, die aber aus vielen verbundenen Atomen bestehen (Kohlenstoff C, Schwefel S) –
+ *  das Teilchenbild zeigt sie als eine Kugel, das wird als Modell gekennzeichnet */
+export const singleAtoms = (eq: Equation) => [...new Set([...eq.left, ...eq.right].filter(f => /^[A-Z][a-z]?$/.test(f) && !NOBLE.has(f)))];
+
 const PAD = .8, GAP = .45;
 
 /**
@@ -58,6 +63,7 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
   const arrow = across
     ? `M${W + .5} ${H / 2 - .35}h${AR - 1.9}v-.55l1.1 .9-1.1 .9v-.55h-${AR - 1.9}z`
     : `M${W / 2 - .35} ${H + .5}v${AR - 1.9}h-.55l.9 1.1 .9-1.1h-.55v-${AR - 1.9}z`;
+  const single = singleAtoms(eq), list = single.join(tr(" und ", " and "));
   return (
     <div className="ms-wrap" ref={wrap}>
       <svg className="ms" viewBox={across ? `0 0 ${2 * W + AR} ${H}` : `0 0 ${W} ${2 * H + AR}`} role="img" preserveAspectRatio="xMidYMid meet"
@@ -69,6 +75,7 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
         <g className="ms-produkte">{side(n, all.length, ox, oy)}</g>
         <path className="ms-arrow" d={arrow} />
       </svg>
+      {single.length > 0 && <p className="ms-note">{tr(`Modell: ${list} als ${single.length > 1 ? "einzelne Atome" : "einzelnes Atom"} gezeichnet`, `Model: ${list} drawn as ${single.length > 1 ? "single atoms" : "a single atom"}`)}</p>}
     </div>
   );
 }

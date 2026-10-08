@@ -148,7 +148,7 @@ const SPECIES_DE: Record<string, string> = {
   NaHCO3: "Natriumhydrogencarbonat (Natron)", Na2CO3: "Natriumcarbonat (Soda)", "Pb(NO3)2": "Blei(II)-nitrat", KI: "Kaliumiodid", PbI2: "Blei(II)-iodid",
   KNO3: "Kaliumnitrat", H3PO4: "Phosphorsäure", Na3PO4: "Natriumphosphat", HNO3: "Salpetersäure", "Ca(NO3)2": "Calciumnitrat",
   NO2: "Stickstoffdioxid", NaClO: "Natriumhypochlorit", P4: "Phosphor (weiß)", P4O10: "Tetraphosphordecaoxid",
-  "Al2(SO4)3": "Aluminiumsulfat", "Ca3(PO4)2": "Calciumphosphat", CaSO4: "Calciumsulfat (Gips)", CH3OH: "Methanol", MnO2: "Mangan(IV)-oxid (Braunstein)",
+  "Al2(SO4)3": "Aluminiumsulfat", "Ca3(PO4)2": "Calciumphosphat", CaSO4: "Calciumsulfat", CH3OH: "Methanol", MnO2: "Mangan(IV)-oxid (Braunstein)",
   MnCl2: "Mangan(II)-chlorid", "Cu(NO3)2": "Kupfer(II)-nitrat", KMnO4: "Kaliumpermanganat", FeS2: "Eisen(II)-disulfid (Pyrit)", C8H18: "Oktan (Benzin)",
   K2Cr2O7: "Kaliumdichromat", CrCl3: "Chrom(III)-chlorid",
   // Übungen (nur Moleküle)
@@ -179,7 +179,7 @@ const SPECIES_EN: Record<string, string> = {
   NaHCO3: "Sodium hydrogen carbonate (baking soda)", Na2CO3: "Sodium carbonate (soda)", "Pb(NO3)2": "Lead(II) nitrate", KI: "Potassium iodide", PbI2: "Lead(II) iodide",
   KNO3: "Potassium nitrate", H3PO4: "Phosphoric acid", Na3PO4: "Sodium phosphate", HNO3: "Nitric acid", "Ca(NO3)2": "Calcium nitrate",
   NO2: "Nitrogen dioxide", NaClO: "Sodium hypochlorite", P4: "Phosphorus (white)", P4O10: "Tetraphosphorus decaoxide",
-  "Al2(SO4)3": "Aluminium sulfate", "Ca3(PO4)2": "Calcium phosphate", CaSO4: "Calcium sulfate (gypsum)", CH3OH: "Methanol", MnO2: "Manganese(IV) oxide",
+  "Al2(SO4)3": "Aluminium sulfate", "Ca3(PO4)2": "Calcium phosphate", CaSO4: "Calcium sulfate", CH3OH: "Methanol", MnO2: "Manganese(IV) oxide",
   MnCl2: "Manganese(II) chloride", "Cu(NO3)2": "Copper(II) nitrate", KMnO4: "Potassium permanganate", FeS2: "Iron(II) disulfide (pyrite)", C8H18: "Octane (petrol)",
   K2Cr2O7: "Potassium dichromate", CrCl3: "Chromium(III) chloride",
   F2: "Fluorine", HF: "Hydrogen fluoride", Br2: "Bromine", HBr: "Hydrogen bromide", I2: "Iodine", HI: "Hydrogen iodide", CS2: "Carbon disulfide",
@@ -207,7 +207,7 @@ export interface Reaction extends Equation {
   title: string;
   kind: ReactionKind;
   stufe: "us" | "os";
-  /** Schwierigkeit 1–4: 1 = eine Zahl setzen, 2 = zwei bis drei Zahlen, 3 = Verbrennungen/Wortgleichungen, 4 = knifflig (verdoppeln, Redox) */
+  /** Schwierigkeit 1–4 (Unterstufe: 1 = höchstens eine Zahl ≠ 1, 2 = zwei bis drei Zahlen, 3 = Verbrennungen/Metalloxide, 4 = knifflig – verdoppeln; Oberstufe nach Art, siehe REACTIONS) */
   niveau: Niveau;
   /** Koeffizienten links … rechts (kleinste ganze Zahlen) */
   coeffs: number[];
@@ -263,34 +263,34 @@ const O1 = R("os", 1), O2 = R("os", 2), O3 = R("os", 3), O4 = R("os", 4);
 /** Reaktionen der Unter- und Oberstufe nach Niveau – alle mit eindeutiger Lösung */
 export const REACTIONS: Reaction[] = [
   // Unterstufe · Niveau 1: eine Zahl (oder gar keine) setzen
-  U1("knallgas", "Knallgasreaktion", "synthese", ["H2", "O2"], ["H2O"]),
-  U1("mgo", "Magnesium verbrennt", "synthese", ["Mg", "O2"], ["MgO"]),
-  U1("nacl", "Natrium und Chlor", "synthese", ["Na", "Cl2"], ["NaCl"]),
   U1("co2", "Kohle verbrennt", "synthese", ["C", "O2"], ["CO2"]),
   U1("so2", "Schwefel verbrennt", "synthese", ["S", "O2"], ["SO2"]),
   U1("fes", "Eisen und Schwefel", "synthese", ["Fe", "S"], ["FeS"]),
-  U1("cuo", "Kupfer wird schwarz", "synthese", ["Cu", "O2"], ["CuO"]),
   U1("hcl", "Chlorknallgas", "synthese", ["H2", "Cl2"], ["HCl"]),
   U1("zns", "Zink und Schwefel", "synthese", ["Zn", "S"], ["ZnS"]),
   U1("caco3", "Kalk brennen", "analyse", ["CaCO3"], ["CaO", "CO2"]),
-  U1("hgo", "Quecksilberoxid zerlegen", "analyse", ["HgO"], ["Hg", "O2"]),
-  U1("wasser", "Wasser zerlegen (Elektrolyse)", "analyse", ["H2O"], ["H2", "O2"]),
   U1("zn-hcl", "Zink in Salzsäure", "umsetzung", ["Zn", "HCl"], ["ZnCl2", "H2"]),
   U1("mg-hcl", "Magnesium in Salzsäure", "umsetzung", ["Mg", "HCl"], ["MgCl2", "H2"]),
   U1("cuo-h2", "Kupferoxid und Wasserstoff", "umsetzung", ["CuO", "H2"], ["Cu", "H2O"]),
   U1("neutral", "Neutralisation", "umsetzung", ["NaOH", "HCl"], ["NaCl", "H2O"]),
-  // Unterstufe · Niveau 2: zwei bis drei Zahlen
+  U1("ca-h2o", "Calcium in Wasser", "umsetzung", ["Ca", "H2O"], ["Ca(OH)2", "H2"]),
+  // Unterstufe · Niveau 2: zwei bis drei Zahlen (2 H₂ + O₂ → 2 H₂O)
+  U2("knallgas", "Knallgasreaktion", "synthese", ["H2", "O2"], ["H2O"]),
+  U2("mgo", "Magnesium verbrennt", "synthese", ["Mg", "O2"], ["MgO"]),
+  U2("nacl", "Natrium und Chlor", "synthese", ["Na", "Cl2"], ["NaCl"]),
+  U2("cuo", "Kupfer wird schwarz", "synthese", ["Cu", "O2"], ["CuO"]),
+  U2("hgo", "Quecksilberoxid zerlegen", "analyse", ["HgO"], ["Hg", "O2"]),
+  U2("wasser", "Wasser zerlegen (Elektrolyse)", "analyse", ["H2O"], ["H2", "O2"]),
   U2("fe2o3", "Eisen rostet", "synthese", ["Fe", "O2"], ["Fe2O3"]),
   U2("al2o3", "Aluminium verbrennt", "synthese", ["Al", "O2"], ["Al2O3"]),
   U2("alcl3", "Aluminium und Chlor", "synthese", ["Al", "Cl2"], ["AlCl3"]),
   U2("nh3", "Ammoniak-Synthese", "synthese", ["N2", "H2"], ["NH3"]),
-  U2("p2o5", "Phosphor verbrennt", "synthese", ["P", "O2"], ["P2O5"]),
+  U2("p2o5", "Phosphor verbrennt", "synthese", ["P4", "O2"], ["P2O5"]),
   U2("na2o", "Natrium an der Luft", "synthese", ["Na", "O2"], ["Na2O"]),
   U2("h2o2", "Wasserstoffperoxid zerfällt", "analyse", ["H2O2"], ["H2O", "O2"]),
   U2("ag2o", "Silberoxid zerlegen", "analyse", ["Ag2O"], ["Ag", "O2"]),
   U2("na-h2o", "Natrium in Wasser", "umsetzung", ["Na", "H2O"], ["NaOH", "H2"]),
   U2("k-h2o", "Kalium in Wasser", "umsetzung", ["K", "H2O"], ["KOH", "H2"]),
-  U2("ca-h2o", "Calcium in Wasser", "umsetzung", ["Ca", "H2O"], ["Ca(OH)2", "H2"]),
   U2("methan", "Methan verbrennt", "umsetzung", ["CH4", "O2"], ["CO2", "H2O"]),
   U2("mg-co2", "Magnesium brennt in CO₂", "umsetzung", ["Mg", "CO2"], ["MgO", "C"]),
   // Unterstufe · Niveau 3: Verbrennungen und Metalloxide

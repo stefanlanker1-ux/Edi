@@ -1,5 +1,5 @@
 // „Ablauf ansehen“: Knopf, der ein Blatt mit dem animierten Übergang Edukte → Produkte öffnet (ReactionMorph).
-// Nur für ausgeglichene Gleichungen mit Teilchenbild; Start nach ✓, Quiz erst nach der Antwort (verrät sonst die Zahlen).
+// Nur für ausgeglichene Gleichungen mit Teilchenbild; Experimentieren und Üben erst nach ✓ (verrät sonst die Zahlen).
 
 import { useState } from "react";
 import { Button, Sheet, buzz } from "@lern/ui";

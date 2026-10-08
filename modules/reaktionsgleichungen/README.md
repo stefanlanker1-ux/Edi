@@ -1,10 +1,14 @@
 # Reaktionsgleichungen
 
-Reaktionsgleichungen ausgleichen (Level I und II): Die Atombilanz zeigt je Element ein Kästchen pro Atom links (gefüllt) und rechts (umrandet).
-Mit den Zählern unter der Gleichung setzt man die Koeffizienten, bis jede Zeile ✓ zeigt – mit kleinsten ganzen Zahlen.
+Reaktionsgleichungen ausgleichen (Level I und II): Zahl vor einem Stoff antippen und wählen, bis links und rechts von jedem Element
+gleich viele Atome stehen – mit kleinsten ganzen Zahlen. Das Teilchenbild (Kalottenmodell) zeigt so viele Moleküle, wie die Zahlen sagen;
+„Prüfen“ zeigt den Zustand (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`), danach „Ablauf ansehen“ als Animation.
 
-- **Ausgleichen:** 31 typische Reaktionen (Synthese, Analyse, Umsetzung), Stoffnamen, „So geht's“, Auflösen und Zurücksetzen
-- **Quiz:** Atome zählen, Bilanz prüfen, fehlende Zahl, ganze Gleichung ausgleichen, Wortgleichungen – mit Erklärkarten, Tipp, PSE und Fertigkeiten-Stufen
+- **Experimentieren:** je Stufe 5 Beispielreaktionen aus Molekülen (Level I: Knallgas, Chlorknallgas, Ammoniak-Synthese, Methan, Propan; Level II: Gärung, Fotosynthese, Ethanol, Ostwald-Verfahren, Oktan)
+- **Üben:** je Stufe 3 Schwierigkeiten (Einfach, Mittel, Schwer) mit je 10 festen Gleichungen, Tipp je Gleichung, nach zwei Fehlversuchen „Lösung“
+- **Stoff-Info:** Stoffnamen antippen – Summenformel, Art, Strukturformel und 3D-Modell
+
+Die Reaktionen (Gleichung, Stoffnamen, Niveau) liegen in `packages/chem/src/reactions.ts`.
 
 ## Entwickeln
 Modul der App Edi (`apps/edi`), Adresse `#/reaktionsgleichungen`.

@@ -11,8 +11,9 @@ import { atomAt, morphPhase, morphScene } from "./morph.ts";
 
 const DURATION = 3600;
 
+// „Edukte (Ausgangsstoffe)“ – der Fachbegriff mit Alltagswort (das Modul hat keine eigene Erklärung, die ihn einführt)
 const PHASE = () => ({
-  edukte: tr("Edukte", "Reactants"), lockern: tr("Bindungen brechen", "Bonds break"), wandern: tr("Atome ordnen sich neu", "Atoms regroup"),
+  edukte: tr("Edukte (Ausgangsstoffe)", "Reactants (starting substances)"), lockern: tr("Bindungen brechen", "Bonds break"), wandern: tr("Atome ordnen sich neu", "Atoms regroup"),
   binden: tr("Neue Bindungen", "New bonds"), produkte: tr("Produkte", "Products"),
 });
 
@@ -90,7 +91,7 @@ export function ReactionMorph({ eq, coeffs, autoplay = false, controls = true, o
           {t >= 1 && !playing ? tr("Noch einmal", "Again") : tr("Abspielen", "Play")}
         </Button>
         <label className="mo-range">
-          <span>{tr("Edukte", "Reactants")}</span>
+          <span className="mo-end">{tr("Edukte", "Reactants")}<small>{tr("(Ausgangsstoffe)", "(starting substances)")}</small></span>
           <input type="range" min={0} max={100} step={1} value={Math.round(t * 100)} aria-label={tr("Übergang Edukte zu Produkten", "Transition from reactants to products")}
             onChange={e => { cancelAnimationFrame(raf.current); setPlaying(false); setT(Number(e.target.value) / 100); }} />
           <span>{tr("Produkte", "Products")}</span>

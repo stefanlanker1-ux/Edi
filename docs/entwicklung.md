@@ -470,13 +470,18 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Reaktionsgleichungen (`modules/reaktionsgleichungen`)
 - Logik in `packages/chem/src/reactions.ts`: `parseFormula` (Klammern, tiefgestellte Ziffern), `balance` (Nullraum mit Brüchen → kleinste ganze Koeffizienten, `null` bei mehrdeutigen Gleichungen), `isBalanced`, `unbalancedElements`, `equationText` (Koeffizient 1 weglassen, `null` = „?“).
 - Reaktionen in `REACTIONS` mit `stufe` (us/os) und `niveau` 1–4 (`reactionsFor(stufe, …niveaus)`), Titel, Art, Formeln ASCII wie `Ca(OH)2`; Stoffnamen in `SPECIES_NAMES` (jeder Stoff braucht einen Namen).
-  Niveaus: US 1 eine Zahl · 2 mehrere Zahlen · 3 Verbrennungen/Metalloxide · 4 knifflig (halbe Zahl → verdoppeln, Al + HCl); OS 1 Salze/Säuren (Ionen als Block) · 2 Zerfall/Fällung/Neutralisation ·
-  3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 5 Aufgaben).
+  Niveaus: US 1 höchstens eine Zahl ≠ 1 · 2 zwei bis drei Zahlen (2 H₂ + O₂ → 2 H₂O) · 3 Verbrennungen/Metalloxide · 4 knifflig (halbe Zahl → verdoppeln, Al + HCl); OS 1 Salze/Säuren (Ionen als Block) · 2 Zerfall/Fällung/Neutralisation ·
+  3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 6 Aufgaben,
+  US-Niveau 1 und 2 nach der Zahl der Koeffizienten ≠ 1). Phosphor in der Unterstufe einheitlich als weißer Phosphor P₄ (P₄ + 5 O₂ → 2 P₂O₅, P₄ + 6 Cl₂ → 4 PCl₃), nie zugleich als einzelnes P (Test).
+  Stoffnamen ohne ungenaue Trivialnamen (CaSO₄ „Calciumsulfat“, nicht „Gips“ – Gips ist CaSO₄ · 2 H₂O).
 - Aufbau (einfach, wenige Knöpfe): Bereiche **Experimentieren | Üben** – keine Erklärung, kein Quiz (die App startet mit Experimentieren). Experimentieren (Kennung `start`) = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
   nach dem letzten Beispiel „Zum Üben“. Mit `BalanceCard`:
   Titel, Teilchenbild (`MoleculeScene`, Kästen passen sich dem Inhalt an, nebeneinander oder übereinander), Ergebnis erst nach „Prüfen“ (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`,
-  Kastenrahmen grün bzw. rot gestrichelt), Gleichung **immer einzeilig, nie umbrechen** (`EquationRow`: Fit-Text – Schrift passt sich der Breite an, 26 → min. 10 px; jeder Stoff ist ein Tippziel ≥ 44 px, antippen → Zahlenauswahl 1–12, Niveau 4 bis 40), ein Hauptknopf. Keine Werkzeugleiste, kein 3D.
+  Kastenrahmen grün bzw. rot gestrichelt) – bewusste Ausnahme von „Experimentieren stellt nie Fragen … kein ✓/✗“: Ausgleichen ist hier das Werkzeug selbst, „Prüfen“ zeigt nur den
+  **Zustand** der Gleichung als Kennzeichen (wie „✓ neutral“ in Neutralisation), stellt keine Frage, vergibt keine Punkte und zählt keine Fehlversuche (keine „Lösung“ im Experimentieren), Gleichung **immer einzeilig, nie umbrechen** (`EquationRow`: Fit-Text – Schrift passt sich der Breite an, 26 → min. 10 px; jeder Stoff ist ein Tippziel ≥ 44 px, antippen → Zahlenauswahl 1–12, Niveau 4 bis 40), ein Hauptknopf. Keine Werkzeugleiste, kein 3D.
   Teilchenbild nur, wenn alle Stoffe Moleküle aus Nichtmetallen sind (`hasModel` in `Molecules.tsx`, `isMolecular` in `@lern/chem`) – Salze und Metalle nie als Kalotten (sähe aus wie Elektronenpaarbindung); dann bleibt die Bühne leer (Start hat nur Moleküle).
+  Elemente, die die Gleichung als einzelnes Atom schreibt, obwohl im Stoff viele Atome verbunden sind (Kohlenstoff C, Schwefel S), zeichnet das Bild als eine Kugel und kennzeichnet das
+  darunter („Modell: S als einzelnes Atom gezeichnet“, `singleAtoms`, `.ms-note`).
 - Stoff-Info (gemeinsam: `@lern/chem-ui` `Substance.tsx`, hier `components/Substance.tsx`): Stoffnamen sind Knöpfe (Experimentieren und Üben: Wortgleichung unter dem Titel, `NameLine`). Blatt: Summenformel, Art (Molekül mit Atomzahlen, Ionenverbindung mit Ionen,
   Metall, Element), Strukturformel (`layout2D`: Ketten gerade, sonst ebene Zeichnung aus `MOL3D`; Käfige wie P₄O₁₀ nur 3D) und 3D-Modell
   (`Molecule3D` mit `data` aus `MOL3D`).
@@ -486,18 +491,21 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (radialer Verlauf – bewusste Ausnahme vom „keine Verläufe“), Farbfamilien nach CPK aus der Palette (`--hue-*`, Tokens `--atom-X` in `@lern/chem-ui` styles.css; die Tests prüfen Farbtoken, Atomzahlen und Abstände). Formeln nie änderbar.
 - **Ablauf der Reaktion auf Abruf** (`components/AnimSheet.tsx` → `ReactionMorph` in `components/Morph.tsx`, Logik `morph.ts`): Start nach ✓ Knopf „Ablauf ansehen“ in der Statuszeile
   → Blatt mit Gleichung (Zahlen rot) und Animation: Edukt-Moleküle lockern sich (Bindungen brechen) → Atome wandern zum nächstgelegenen Platz gleicher Sorte im Produkt →
-  rücken zusammen (neue Bindungen). Kein Atom verschwindet oder kommt dazu; Atomzahlen je Element stehen darunter. „Abspielen“/„Noch einmal“ und Regler Edukte ↔ Produkte,
-  Abschnittsname als `Tag`. Beim Üben ebenfalls erst nach ✓ (vorher würde sie die Zahlen verraten).
+  rücken zusammen (neue Bindungen). Kein Atom verschwindet oder kommt dazu; Atomzahlen je Element stehen darunter. „Abspielen“/„Noch einmal“ und Regler Edukte ↔ Produkte
+  (links „Edukte (Ausgangsstoffe)“ zweizeilig – das Modul hat keine Erklärung, die den Begriff sonst einführt), Abschnittsname als `Tag` (am Anfang ebenfalls „Edukte (Ausgangsstoffe)“). Beim Üben ebenfalls erst nach ✓ (vorher würde sie die Zahlen verraten).
   Nur für Gleichungen aus Molekülen (`hasModel`). Höhe im Blatt `min(62dvh, 560px)` – auf kleinen Handys hat die Animation in der Karte keinen Platz.
-- Gespeichert: Stand der Start-Beispiele je Stufe (`reaktionsgleichungen-v2`, Version 3 übernimmt den alten Stand der Unterstufe); Üben in `reaktionsgleichungen-ueben` (Schwierigkeit je Stufe, gewählte Aufgabe, gesetzte Zahlen und ✓ je Gleichung).
+- Gespeichert: Stand der Start-Beispiele je Stufe (`reaktionsgleichungen-v2`, Version 3 übernimmt den alten Stand der Unterstufe); Üben in `reaktionsgleichungen-ueben` (Schwierigkeit je Stufe, gewählte Aufgabe, gesetzte Zahlen, ✓ je Gleichung und `peeked` = Lösung angesehen).
   Stufen-Schalter Level I/II (Start immer Level I, nicht gespeichert).
 - **Üben** (`src/ueben/`): je Stufe drei Schwierigkeiten **Einfach | Mittel | Schwer** mit je 10 festen Gleichungen (`EXERCISES` in `exercises.ts`, 60 verschiedene,
   keine aus dem Experimentieren). Alle nur aus Molekülen (`hasModel`), damit nach ✓ bei jeder Gleichung „Ablauf ansehen“ (Animation) geht; Moleküle, deren Kugelmodell
   nicht jedes Atom zeigt (SF₆, PCl₅), sind deshalb nicht dabei. Gleiche Karte wie im Experimentieren (`BalanceCard`): Teilchenbild, Gleichung, „Prüfen“, nach zwei
-  Fehlversuchen „Lösung“. Kopf: Schwierigkeit (`Segmented`), Aufgabe ‹ n / 10 ›, Schalter **„Teilchen“** (Kugelbild ein-/ausklappen, dann nur Text; Standard an, nicht gespeichert), Fortschritt als 10 Kästchen (✓ gelöst). Knopf **„Tipp“** zeigt einen festen, von Hand
-  geschriebenen Hinweis zu genau dieser Gleichung (`HINTS`, DE/EN) über der Gleichungszeile – er zeigt den Weg (womit beginnen, was zuletzt, wann verdoppeln), nennt aber
-  keine gesuchte Zahl vor einem Stoff. Nach der letzten Aufgabe einer Schwierigkeit „Weiter zu Mittel/Schwer“.
-  Test `exercises.test.ts`: 3 × 10 je Stufe, eindeutig ausgleichbar, nur Moleküle, Zahlen im Bereich der Auswahl, Hinweise vorhanden, Sätze ≤ 22 Wörter, keine Lösung „2 HF“ im Hinweis.
+  Fehlversuchen „Lösung“ (`showSolution`): danach zeigt „Prüfen“ zwar „✓ ausgeglichen“ und den Ablauf, die Aufgabe zählt aber **nicht** als selbst gelöst (kein ✓ im Fortschritt);
+  beim Weitergehen (andere Aufgabe oder Schwierigkeit) beginnt die Gleichung von vorn (alle Zahlen 1), damit sie später selbst gelöst werden kann (Test `store.test.ts`). Kopf: Schwierigkeit (`Segmented`), Aufgabe ‹ n / 10 ›, Schalter **„Teilchen“** (Kugelbild ein-/ausklappen, dann nur Text; Standard an, nicht gespeichert), Fortschritt als 10 Kästchen (✓ gelöst). Knopf **„Tipp“** zeigt einen festen, von Hand
+  geschriebenen Hinweis zu genau dieser Gleichung (`HINTS`, DE/EN) über der Gleichungszeile – er zeigt den Weg (womit beginnen, was vergleichen, was zuletzt, wann verdoppeln), nennt aber
+  keine gesuchte Zahl vor einem Stoff und nimmt den Denkschritt nicht vorweg (nicht „F₂ bringt 2 F-Atome, jedes HF nur eines“, sondern „Vergleiche die F-Atome: F₂ links, HF rechts“;
+  nie „schon ausgeglichen“). Nach der letzten Aufgabe einer Schwierigkeit „Weiter zu Mittel/Schwer“.
+  Test `exercises.test.ts`: 3 × 10 je Stufe, eindeutig ausgleichbar, nur Moleküle, Zahlen im Bereich der Auswahl, Hinweise vorhanden, Sätze ≤ 22 Wörter, keine Lösung „2 HF“,
+  kein „nur eines“/„only one“ und kein „schon ausgeglichen“ im Hinweis.
 
 ## Neutralisation (`modules/neutralisation`)
 - Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen wie in der Ionenbindung (Breite = Ladung): Reihe 1 Metall-Ionen (gold), Reihe 2 OH⁻ (blau), Verbindungsstriche = H₂O,
@@ -744,6 +752,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Reaktionsgleichungen: Lösung zählt nicht als gelöst, Tipps ohne Vorwegnahme** – nach „Lösung“ zeigt „Prüfen“ den Zustand, die Aufgabe zählt aber nicht als selbst gelöst;
+  beim Weitergehen beginnt die Gleichung von vorn. Tipps nehmen den Denkschritt nicht vorweg (kein „schon ausgeglichen“, kein „jedes HF nur eines“, Test). US-Niveau 1 = höchstens
+  eine Zahl ≠ 1; Phosphor in der Unterstufe einheitlich P₄; CaSO₄ ohne „Gips“ (Gips ist das Dihydrat); Teilchenbild kennzeichnet C und S als Modell (einzelne Kugel);
+  Ablauf mit „Edukte (Ausgangsstoffe)“; Modulbeschreibung und README aktuell; „Prüfen“ im Experimentieren als Zustandskennzeichen dokumentiert.
 - **Neutralisation: Stufen sauber getrennt, Aufgaben eindeutig** – Level I ohne Perchlorsäure, Hydrogen-Namen, „einprotonig“ und „Formeleinheit“ (auch nicht in Fallen, Tipps,
   Rückmeldungen; Formeleinheit in der Erklärkarte Level II eingeführt). Salz-, Salzname-, Gleichungs- und Bauaufgaben sagen als eigenen Satz, wie viele H⁺ jede Säure abgibt –
   vorher waren bei mehrprotonigen Säuren auch Hydrogensalze richtig, wurden aber als falsch gewertet. -id/-it/-at-Fallen nur aus derselben Familie; Tipp und Rückmeldungen zu

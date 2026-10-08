@@ -6,9 +6,9 @@ import { Card } from "./card.tsx";
 export const modul: LernModule = {
   id: "reaktionsgleichungen",
   name: "Reaktionsgleichungen",
-  desc: "Gleichungen ausgleichen mit der Atombilanz: Kästchen je Atom links und rechts, Koeffizienten setzen, bis jedes Element ✓ zeigt.",
+  desc: "Gleichungen ausgleichen: Zahlen vor die Stoffe setzen, bis links und rechts gleich viele Atome stehen – mit Teilchenbild und Ablauf als Animation.",
   nameEn: "Chemical Equations",
-  descEn: "Balance equations with the atom balance: boxes for each atom on the left and right, set coefficients until every element shows ✓.",
+  descEn: "Balance equations: put numbers in front of the substances until both sides have the same atoms – with a particle model and the reaction as an animation.",
   storage: ["reaktionsgleichungen-v2", "reaktionsgleichungen-ueben"],
   Card,
   load: () => import("./entry.tsx"),
