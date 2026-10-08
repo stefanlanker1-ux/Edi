@@ -415,8 +415,17 @@ export class ChainMech implements Mech {
 
   /** Atome weit links vom Ausschnitt werden entfernt (die Kette ist trotzdem vollständig in der Leiste) */
   private prune() {
-    const lim = this.xe - 11;
-    for (const a of [...this.sc.atoms.values()]) if (a.x < lim) this.sc.remove(a.id);
+    const sc = this.sc, lim = this.xe - 11;
+    // kleine Moleküle (Gegenion) ganz oder gar nicht – nie ein halbes Molekül mit falscher Bindungszahl
+    const seen = new Set<string>();
+    for (const a of [...sc.atoms.values()]) {
+      if (a.x >= lim || seen.has(a.id)) continue;
+      const comp = new Set([a.id]), stack = [a.id];
+      while (stack.length) for (const n of sc.nb(stack.pop()!)) if (!comp.has(n)) { comp.add(n); stack.push(n); }
+      comp.forEach(i => seen.add(i));
+      if (comp.has(this.end)) { for (const i of comp) if (sc.at(i).x < lim) sc.remove(i); }
+      else for (const i of comp) sc.remove(i);
+    }
   }
 
   /** Nebenreaktion am Kettenende: die Ladung bzw. das Radikal geht verloren */
@@ -637,9 +646,18 @@ export class ChainMech implements Mech {
     const h = sc.nb(ca).find(i => sc.at(i).el === "H" && sc.at(i).y < sc.at(ca).y) ?? sc.nb(ca).find(i => sc.at(i).el === "H");
     if (!h) return;
     const [m0, m1] = v.diene ? u.ids.mid! : [cb, cb];
+    // Pfeil 1 außen herum: von der C–H-Bindung (Seite zum Nachbar-C) zur C–C-Bindung (Seite zum H), Bogen weg vom C – nie quer durch das C
+    const out1 = (to: string): Arrow => {
+      const C = sc.at(ca), H = sc.at(h), T = sc.at(to);
+      const offH = Math.sign(-(H.y - C.y) * (T.x - C.x) + (H.x - C.x) * (T.y - C.y)) * 0.12 || 0.12;
+      const offT = Math.sign(-(T.y - C.y) * (H.x - C.x) + (T.x - C.x) * (H.y - C.y)) * 0.14 || -0.14;
+      const a = { x: (C.x + H.x) / 2, y: (C.y + H.y) / 2 }, b = { x: (C.x + T.x) / 2, y: (C.y + T.y) / 2 };
+      const nx = -(b.y - a.y), ny = b.x - a.x, mx = (a.x + b.x) / 2 - C.x, my = (a.y + b.y) / 2 - C.y;
+      return { from: { b: [ca, h], off: offH }, to: { b: [ca, to], off: offT }, bend: nx * mx + ny * my >= 0 ? 0.7 : -0.7 };
+    };
     this.key(800, 300, v.diene
-      ? [{ from: { b: [ca, h], off: -0.12 }, to: { b: [ca, m0], off: -0.14 }, bend: 0.7 }, { from: { b: [m0, m1], off: -0.13 }, to: { b: [m1, cb], off: -0.14 }, bend: 0.6 }]
-      : [{ from: { b: [ca, h], off: -0.12 }, to: { b: [ca, cb], off: -0.14 }, bend: 0.7 }]);
+      ? [out1(m0), { from: { b: [m0, m1], off: -0.13 }, to: { b: [m1, cb], off: -0.14 }, bend: 0.6 }]
+      : [out1(cb)]);
     sc.unbond(ca, h);
     const A = sc.at(ca), B = sc.at(m0);
     const d1 = this.id("dk"), d2 = this.id("dk");

@@ -7,3 +7,10 @@ test("Lektionen", () => {
   expect(LESSONS.length).toBe(6);
   for (const l of LESSONS) expect(checkGuide(l, { lesson: true })).toEqual([]);
 });
+
+test("Lektionen: die richtige Antwort steht an wechselnden Plätzen (höchstens 40 % an Platz 1, ohne vorgemachte Schritte)", () => {
+  const steps = LESSONS.flatMap(l => l.steps).filter(s => s.options?.length && s.answer !== undefined && s.mode !== "worked");
+  const first = steps.filter(s => s.options![0] === String(s.answer)).length;
+  expect(steps.length).toBeGreaterThan(10);
+  expect(first / steps.length).toBeLessThanOrEqual(.4);
+});

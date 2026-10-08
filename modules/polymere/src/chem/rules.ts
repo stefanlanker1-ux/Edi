@@ -99,7 +99,7 @@ export const methodsFor = (m: VinylId): MethodId[] => (["dbpo", "aibn", "zn", "b
 // ── Produkte der Polymerisation ──────────────────────────────────────────────
 
 export type Struktur = "linear" | "verzweigt" | "vernetzt" | "klein";
-export type CopoKind = "stat" | "block" | "alt";
+export type CopoKind = "stat" | "block" | "alt" | "gradient";
 
 export interface Product {
   /** vollständiger Name, z. B. „isotaktisches Polypropen (PP)“ */
@@ -152,7 +152,7 @@ interface Copo { p: [string, string, string]; klasse: Klasse; rubber?: Rubber }
 /** bekannte Copolymere (Paare ungeordnet) */
 const COPOS: { a: VinylId; b: VinylId; stat?: Copo; block?: Copo }[] = [
   { a: "styrol", b: "butadien", stat: { klasse: "elast", rubber: "dien", p: tr(["SBR", "Styrol-Butadien-Kautschuk", "Autoreifen"], ["SBR", "Styrene–butadiene rubber", "car tyres"]) },
-    block: { klasse: "elast", rubber: "tpe", p: tr(["SB", "Styrol-Butadien-Blockcopolymer", "mit drei Blöcken (SBS): Schuhsohlen, Zusatz für Straßenasphalt"], ["SB", "Styrene–butadiene block copolymer", "with three blocks (SBS): shoe soles, additive for road asphalt"]) } },
+    block: { klasse: "elast", rubber: "zweiblock", p: tr(["SB", "Styrol-Butadien-Blockcopolymer", "mit drei Blöcken (SBS): Schuhsohlen, Zusatz für Straßenasphalt"], ["SB", "Styrene–butadiene block copolymer", "with three blocks (SBS): shoe soles, additive for road asphalt"]) } },
   { a: "styrol", b: "acrylnitril", stat: { klasse: "thermo", p: tr(["SAN", "Styrol-Acrylnitril-Copolymer", "Gehäuse, Schüsseln für Küchengeräte"], ["SAN", "Styrene–acrylonitrile copolymer", "housings, bowls for kitchen appliances"]) } },
   { a: "acrylnitril", b: "butadien", stat: { klasse: "elast", rubber: "dien", p: tr(["NBR", "Nitrilkautschuk", "Dichtungen, Schutzhandschuhe"], ["NBR", "Nitrile rubber", "seals, protective gloves"]) } },
   // EPM: Kautschuk ohne C=C in der Kette – vernetzt wird mit Peroxid, nicht mit Schwefel
@@ -173,6 +173,14 @@ function copoClass(a: VinylId, b: VinylId): { klasse: Klasse; rubber?: Rubber } 
  *  Styrol, Butadien → Methylmethacrylat → Acrylnitril; umgekehrt nicht (das Kettenende aus MMA ist zu schwach für Styrol) */
 const ANION_LEVEL: Partial<Record<VinylId, number>> = { styrol: 3, butadien: 3, mma: 2, acrylnitril: 1 };
 export const anionStarts = (end: VinylId, m: VinylId) => (ANION_LEVEL[end] ?? 0) >= (ANION_LEVEL[m] ?? 0);
+
+/** anionisch gleichzeitig: welches Monomer lagert sich zuerst an? Das mit dem schwächeren Kettenende (MMA vor Styrol, Acrylnitril vor MMA);
+ *  Styrol + Butadien (in Kohlenwasserstoff): Butadien viel schneller (r(B) ≈ 12, r(S) ≈ 0,03) – erst Butadien, zum Schluss Styrol */
+export function anionFirst(a: VinylId, b: VinylId): VinylId {
+  const la = ANION_LEVEL[a] ?? 0, lb = ANION_LEVEL[b] ?? 0;
+  if (la !== lb) return la < lb ? a : b;
+  return b === "butadien" ? b : a;
+}
 
 /** zwei Monomere nacheinander: block = Blöcke (anionisch, die Kette lebt und ihr Ende startet das zweite Monomer);
  *  first = das zweite Monomer reagiert nicht mehr (Kettenende zu schwach bzw. Ketten tot, Butyllithium verbraucht);
@@ -214,14 +222,59 @@ const SEP_WHY = (k: MechKind, b: string) => tr(
     anion: "" },
 )[k];
 
+/** Ansatz, in dem ein Monomer mit dem Verfahren keine langen Ketten bildet. Bildet das andere Ketten, entsteht dessen Homopolymer
+ *  (wie in Atom-Ansicht und Reaktor); kein Polymer nur, wenn der Katalysator von Anfang an vergiftet bzw. der Starter vorher verbraucht ist */
+function withFailing(list: VinylId[], me: MethodId, seq: boolean): PolyOutcome {
+  const good = list.filter(m => compat(m, me).fit === "ok");
+  const x = list.find(m => compat(m, me).fit === "none")!, cx = compat(x, me), vx = vinyl(x);
+  const y = list.find(m => m !== x);
+  if (y && cx.fail === "side" && seq && x === list[0])
+    return { fit: "none", failing: x, compat: cx, why: cx.why + tr(` Kommt danach ${vinyl(y).name} dazu, ist kein Starter mehr übrig.`, ` When ${lc(vinyl(y).name)} is added afterwards, no initiator is left.`) };
+  if (!good.length) {
+    // beide passen nicht: kurze Ketten, wenn das andere kurze Ketten bildet
+    const sh = list.find(m => m !== x && compat(m, me).fit === "short");
+    if (sh) return { fit: "short", failing: sh, compat: compat(sh, me), unreacted: x, why: tr(`${vx.name} wird nicht eingebaut. Mit ${vinyl(sh).name}: `, `${vx.name} is not incorporated. With ${lc(vinyl(sh).name)}: `) + compat(sh, me).why };
+    return { fit: cx.fit, failing: x, compat: cx, why: cx.why };
+  }
+  const g = good[0], vg = vinyl(g), cg = compat(g, me);
+  const early = !seq || x === list[0];
+  if (cx.fail === "poison" && early)
+    return { fit: "none", failing: x, compat: cx, why: cx.why + tr(` So wird auch ${vg.name} nicht eingebaut.`, ` So ${lc(vg.name)} is not incorporated either.`) };
+  const product = homoProduct(g, me), P = product.abbr;
+  const live = cg.living ? tr("lebende ", "living ") : "";
+  const why = cx.fail === "poison"
+    ? tr(`Erst wächst ${P}. Dann kommt ${vx.name} dazu: ${cx.why} ${vx.name} wird nicht eingebaut – es bleibt bei ${P}.`,
+      `First ${P} grows. Then ${lc(vx.name)} is added: ${cx.why} The ${lc(vx.name)} is not incorporated – it stays ${P}.`)
+    : cx.fail === "side"
+      ? seq
+        ? tr(`Erst wachsen ${live}${P}-Ketten. Dann reagiert ${vx.name} in einer Nebenreaktion mit den Kettenenden: Die Ketten enden, ${vx.name} wird nicht eingebaut. Es bleibt bei ${P}.`,
+          `First ${live}${P} chains grow. Then ${lc(vx.name)} reacts with the chain ends in a side reaction: the chains stop, the ${lc(vx.name)} is not incorporated. It stays ${P}.`)
+        : tr(`${vx.name} wird nicht eingebaut: Es reagiert in einer Nebenreaktion mit dem Starter und den Kettenenden. Diese Ketten enden früh – es entsteht ${P} mit kürzeren Ketten.`,
+          `${vx.name} is not incorporated: it reacts with the initiator and the chain ends in a side reaction. These chains stop early – ${P} with shorter chains forms.`)
+      : tr(`${vx.name} passt nicht zum Verfahren. ${cx.why} Es entsteht nur ${P}.`, `${vx.name} does not suit this method. ${cx.why} Only ${P} forms.`);
+  return { fit: "ok", compat: cg, unreacted: x, product, why };
+}
+
 /**
  * Polymerisation mit einem oder zwei Monomeren. `seq`: zwei Monomere nacheinander zugeben (Blöcke nur bei lebenden Ketten, deren Ende das zweite Monomer startet).
  */
 export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcome {
   const list = [...new Set(ms)];
-  for (const m of list) {
-    const c = compat(m, me);
-    if (c.fit !== "ok") return { fit: c.fit, failing: m, compat: c, why: c.why };
+  if (list.some(m => compat(m, me).fit === "none")) return withFailing(list, me, seq);
+  const short = list.filter(m => compat(m, me).fit === "short");
+  if (short.length === list.length) { const c0 = compat(short[0], me); return { fit: c0.fit, failing: short[0], compat: c0, why: c0.why }; }
+  if (short.length) {
+    // ein Monomer bildet nur kurze Ketten (Allyl-H, H⁺-Abgabe): wird wenig eingebaut und bremst – vor allem das Homopolymer des anderen
+    const sh = short[0], g = list.find(m => m !== sh)!, vs = vinyl(sh), product = homoProduct(g, me), P = product.abbr;
+    const cs = compat(sh, me);
+    const reason = cs.fail === "allyl"
+      ? tr("Oft reißt das Radikal ein H‑Atom von seiner CH₃-Gruppe ab, und die Kette wächst kaum weiter.", "The radical often pulls an H atom off its CH₃ group, and the chain hardly grows on.")
+      : vs.diene ? tr("Nebenreaktionen am Butadien verknüpfen und verkürzen die Ketten.", "Side reactions at the butadiene link and shorten the chains.")
+        : tr(`An einem ${vs.name}-Ende geht schnell ein H⁺ ab – die Kette endet.`, `A ${lc(vs.name)} chain end quickly gives off an H⁺ – the chain stops.`);
+    return {
+      fit: "ok", compat: compat(g, me), product,
+      why: tr(`${vs.name} wird nur wenig eingebaut und bremst: ${reason} Es entsteht vor allem ${P} mit kürzeren Ketten.`, `${vs.name} is incorporated only a little and slows things down: ${reason} Mostly ${P} with shorter chains forms.`),
+    };
   }
   const c = compat(list[0], me);
   if (list.length === 1) return { fit: "ok", compat: c, product: homoProduct(list[0], me), why: c.why };
@@ -246,6 +299,8 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
       product: {
         name: tr(`Gemisch aus ${va.abbr} und ${vb.abbr}`, `Mixture of ${va.abbr} and ${vb.abbr}`), abbr: `${va.abbr} + ${vb.abbr}`, klasse: both ? "thermo" : "elast",
         struktur: "linear", uses: "–", mix: true,
+        note: tr(`Ist vom ${va.name} noch etwas übrig, bauen die neuen Ketten es mit ein: Sie enthalten dann beide Monomere in zufälliger Folge.`,
+          `If some ${lc(va.name)} is left, the new chains take it up too: they then contain both monomers in random order.`),
       },
     };
   }
@@ -259,10 +314,20 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
         `${vd.name} adds much faster. Its chain end does not start ${lc(vo.name)}: almost only ${vd.abbr} forms.`),
     };
   }
-  const kind: CopoKind = seq ? "block" : "stat";
+  if (!seq && kind0 === "anion") {
+    // gleich starke Kettenenden (Styrol + Butadien): Butadien lagert sich viel schneller an – erst fast nur Butadien, zum Schluss Styrol
+    const [vf, vs] = anionFirst(a, b) === a ? [va, vb] : [vb, va];
+    return {
+      fit: "ok", compat: c,
+      why: tr(`${vf.name} lagert sich viel schneller an als ${vs.name}. Die Ketten wachsen erst fast nur mit ${vf.name}, zum Schluss mit ${vs.name}: ein Gradienten-Copolymer – beinahe ein Blockcopolymer. Statistisch gemischte Ketten entstehen anionisch nur mit einem polaren Zusatz.`,
+        `${vf.name} adds much faster than ${lc(vs.name)}. The chains first grow almost only with ${lc(vf.name)}, at the end with ${lc(vs.name)}: a gradient copolymer – almost a block copolymer. Randomly mixed chains only form anionically with a polar additive.`),
+      product: { name: tr(`Gradienten-Copolymer aus ${vf.name} und ${vs.name}`, `Gradient copolymer of ${lc(vf.name)} and ${lc(vs.name)}`), abbr: `${vf.letter}/${vs.letter}`, ...copoClass(a, b), struktur: "linear", uses: "–", copo: "gradient" },
+    };
+  }
+  const kind = seq ? "block" : "stat";
   const named = kind === "block" ? known?.block : known?.stat;
   const cls = named ? { klasse: named.klasse, ...(named.rubber ? { rubber: named.rubber } : {}) } : copoClass(a, b);
-  const KIND = tr({ stat: "statistisches Copolymer", block: "Blockcopolymer", alt: "alternierendes Copolymer" }, { stat: "random copolymer", block: "block copolymer", alt: "alternating copolymer" });
+  const KIND = tr({ stat: "statistisches Copolymer", block: "Blockcopolymer" }, { stat: "random copolymer", block: "block copolymer" });
   return {
     fit: "ok", compat: c,
     why: kind === "block"
@@ -321,6 +386,8 @@ export interface StepOutcome {
   links?: Link[];
   byps?: ("H2O" | "HCl")[];
   product?: Product;
+  /** Partner, der nicht reagiert (das Monomer mit zwei verschiedenen Gruppen reagiert dann nur mit sich selbst) */
+  unreacted?: StepId;
   why: string;
 }
 
@@ -387,7 +454,7 @@ function noLink(A: StepMono, B: StepMono): string {
     ? tr(`Phenol reagiert mit ${ph[1].name} nur über seine eine –OH-Gruppe: Es entsteht ein kleiner Ester, keine Kette.`, `Phenol reacts with ${lc(ph[1].name)} only through its single –OH group: a small ester forms, no chain.`)
     : tr(`Phenol bildet mit ${ph[1].name} keine Kette: Die H‑Atome am Ring reagieren nur mit Methanal.`, `Phenol forms no chain with ${lc(ph[1].name)}: the H atoms on the ring react only with methanal.`);
   if (me) return has(me[1], "NH2")
-    ? tr("Methanal reagiert zwar auch mit Aminogruppen – zu Harzen wie aus Harnstoff und Methanal. Dieses Modell zeigt Methanal nur mit Phenol.", "Methanal does react with amino groups too – to resins like those from urea and methanal. This model only shows methanal with phenol.")
+    ? tr("Methanal reagiert auch mit Aminogruppen: So entstehen Harnstoff- und Melaminharze (Aminoplaste). Dieses Modell zeigt Methanal nur mit Phenol.", "Methanal also reacts with amino groups: this is how urea and melamine resins (aminoplastics) form. This model only shows methanal with phenol.")
     : tr(`Methanal bildet mit ${me[1].name} keine Kette. In diesem Modell verbrückt Methanal nur Phenol-Ringe.`, `Methanal forms no chain with ${lc(me[1].name)}. In this model methanal only bridges phenol rings.`);
   if ((has(A, "EPOX") && has(B, "OH")) || (has(B, "EPOX") && has(A, "OH")))
     return tr("Epoxidgruppen reagieren mit Hydroxygruppen nur mit Katalysator und Hitze – hier entsteht keine Kette.", "Epoxide groups only react with hydroxy groups with a catalyst and heat – no chain forms here.");
@@ -425,7 +492,11 @@ export function stepReact(a: StepId, b?: StepId): StepOutcome {
   const abA = isAB(a), abB = isAB(b!);
   if (!pair) {
     const self = abA ? A : abB ? B : null;
-    return NONE(noLink(A, B) + (self ? tr(` ${self.name} reagiert dabei nur mit sich selbst.`, ` ${self.name} only reacts with itself.`) : ""));
+    if (!self) return NONE(noLink(A, B));
+    // das Monomer mit zwei verschiedenen Gruppen reagiert trotzdem mit sich selbst: dessen Polymer entsteht (wie im Reaktor)
+    const solo = stepReact(self.id), other = self === A ? B : A;
+    const P = solo.product?.abbr ?? self.name;
+    return { ...solo, unreacted: other.id, why: noLink(A, B) + tr(` ${self.name} reagiert nur mit sich selbst: Es entsteht ${P}.`, ` ${self.name} only reacts with itself: ${P} forms.`) };
   }
   const base = { art: pair.r.art, link: pair.r.link, byp: pair.r.byp, groups: [pair.x, pair.y] as [FG, FG] };
   // alle Verknüpfungen: mit dem Partner und – bei Monomeren mit zwei verschiedenen Gruppen – mit sich selbst

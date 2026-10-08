@@ -213,8 +213,11 @@ test("Stufenwachstum: Monomer mit zwei verschiedenen Gruppen wendet der Kette di
       if (a === b) continue;
       const r: Recipe = { art, a, b };
       const m = makeMech(r);
-      if (!m.actions().some(t => t.id === "join")) continue;
+      assert.ok(m.actions().some(t => t.id === "join"), `${a}+${b}: kein Verknüpfen`);
       m.run("join");
+      // meldet die Karte eine Kette, muss die erste Verknüpfung gelingen (nicht still überspringen)
+      const sr = stepReact(a as StepId, b as StepId);
+      if (sr.struktur !== "none" && !sr.unreacted) assert.ok(m.status().n >= 2 && !m.status().fail, `${a}+${b}: Karte ${sr.struktur}, Atom-Ansicht verknüpft nicht (${m.status().fail ?? ""})`);
       for (let k = 0; k < 4; k++) {
         const st = m.status();
         if (!st.end || st.phase !== "wachsend") break;
@@ -417,18 +420,26 @@ test("Nacheinander ohne lebende Ketten: erst Abbruch, dann neue Kette aus dem zw
     assert.ok(second, `${r.a}/${r.method}: keine zweite Kette`);
     assert.ok(polymerise([r.a, r.b!] as VinylId[], r.method!, true).separate);
   }
-  const R = new Reactor({ art: "poly", a: "styrol", b: "mma", seq: true, method: "dbpo" }, 48, 52, 5);
-  R.run("start"); R.advance(500); R.run("add:mma"); R.advance(900);
-  const mols = new Map<number, Set<string>>();
-  for (const b of R.beads.filter(x => x.kind === "mono")) mols.set(b.mol, new Set([...(mols.get(b.mol) ?? []), b.m]));
-  assert.ok([...mols.values()].every(s => s.size === 1), "Reaktor: Kette aus zwei Monomeren");
+  // Reaktor: die Ketten des ersten Monomers sind beendet, das zweite baut neue Ketten (nicht an die alten)
+  for (const r of [{ art: "poly", a: "styrol", b: "mma", seq: true, method: "dbpo" }, { art: "poly", a: "styrol", b: "mma", seq: true, method: "aibn" },
+    { art: "poly", a: "isobuten", b: "styrol", seq: true, method: "bf3" }, { art: "poly", a: "propen", b: "ethen", seq: true, method: "zn" }] as Recipe[]) {
+    const R = new Reactor(r, 48, 52, 5);
+    R.run("start"); R.advance(600);
+    const old = R.beads.filter(b => b.kind === "mono" && b.nb.length).map(b => b.id);
+    assert.ok(old.length > 3, `${r.a}/${r.method}: erste Ketten`);
+    R.run(`add:${r.b}`); R.advance(900);
+    const oldMols = new Set(old.map(id => R.bead(id)?.mol));
+    const grown = R.beads.filter(b => b.kind === "mono" && b.m === r.b && !b.dead && b.nb.length);
+    assert.ok(grown.length >= 2, `${r.a} → ${r.b} (${r.method}): keine Kette aus ${r.b}`);
+    for (const b of grown) assert.ok(!oldMols.has(b.mol), `${r.a} → ${r.b} (${r.method}): ${r.b} an einer alten Kette`);
+  }
 }, 60_000);
 
-test("Kautschuk: EPM ist Kautschuk ohne C=C (Peroxid), PIB nicht vernetzbar, SB thermoplastisches Elastomer, Dien-Kautschuke vulkanisierbar", () => {
+test("Kautschuk: EPM ist Kautschuk ohne C=C (Peroxid), PIB nicht vernetzbar, SB-Zweiblock (noch kein thermoplastisches Elastomer, das erst SBS), Dien-Kautschuke vulkanisierbar", () => {
   const p = (ms: VinylId[], me: MethodId, seq = false) => polymerise(ms, me, seq).product!;
   assert.deepEqual([p(["ethen", "propen"], "zn").klasse, p(["ethen", "propen"], "zn").rubber], ["elast", "peroxid"]);
   assert.strictEqual(p(["isobuten"], "bf3").rubber, "nein");
-  assert.strictEqual(p(["styrol", "butadien"], "buli", true).rubber, "tpe");
+  assert.strictEqual(p(["styrol", "butadien"], "buli", true).rubber, "zweiblock");
   for (const x of [p(["butadien"], "dbpo"), p(["styrol", "butadien"], "dbpo"), p(["acrylnitril", "butadien"], "dbpo")]) assert.strictEqual(x.rubber, "dien", x.name);
   // Ziegler-Natta mit TiCl₄/Al(C₂H₅)₃: nicht pauschal cis-1,4
   assert.ok(!/cis/i.test(p(["butadien"], "zn").name));
@@ -521,3 +532,134 @@ test("Glycerin: mit Disäure bzw. Säurechlorid (A₂ + B₃) vernetzter Polyest
   assert.ok(sim({ art: "kond", a: "terephthalsaeure", b: "glycerin" }).network, "A₂ + B₃: Netz");
   assert.ok(!sim({ art: "kond", a: "milchsaeure", b: "glycerin" }).network, "AB + B₃: kein Netz");
 }, 60_000);
+
+test("Ein Monomer bildet keine Ketten: das andere ergibt sein Homopolymer (Karte, Atom-Ansicht und Reaktor stimmen überein); kein Polymer nur bei Vergiftung von Anfang an bzw. verbrauchtem Starter", () => {
+  const P = (ms: VinylId[], me: MethodId, seq = false) => polymerise(ms, me, seq);
+  assert.strictEqual(P(["ethen", "isobuten"], "zn").product?.abbr, "PE-HD");
+  assert.strictEqual(P(["ethen", "isobuten"], "zn").unreacted, "isobuten");
+  assert.strictEqual(P(["styrol", "ethen"], "buli").product?.abbr, "PS");
+  assert.strictEqual(P(["ethen", "styrol"], "buli", true).product?.abbr, "PS");
+  assert.strictEqual(P(["ethen", "vinylchlorid"], "zn", true).product?.abbr, "PE-HD");
+  assert.match(P(["ethen", "vinylchlorid"], "zn", true).why, /Erst wächst PE-HD/);
+  // Katalysator von Anfang an vergiftet bzw. Starter vorher verbraucht: kein Polymer
+  assert.isUndefined(P(["vinylchlorid", "ethen"], "zn").product);
+  assert.isUndefined(P(["vinylchlorid", "ethen"], "zn", true).product);
+  assert.isUndefined(P(["vinylchlorid", "styrol"], "buli", true).product);
+  // beide passen nicht, eines bildet kurze Ketten
+  assert.strictEqual(P(["ethen", "propen"], "bf3").fit, "short");
+  // Stufenwachstum: Monomer mit zwei verschiedenen Gruppen + Partner, der nicht reagiert → dessen Polymer
+  const pla = stepReact("milchsaeure", "phenol"), pa6 = stepReact("methanal", "aminohexansaeure");
+  assert.strictEqual(pla.product?.abbr, "PLA"); assert.strictEqual(pla.unreacted, "phenol");
+  assert.strictEqual(pa6.product?.abbr, "PA 6"); assert.strictEqual(pa6.unreacted, "methanal");
+  // Atom-Ansicht: die Kette wächst ohne den Partner, Reaktor: der Partner bleibt frei
+  for (const r of [{ art: "kond", a: "phenol", b: "milchsaeure" }, { art: "kond", a: "aminohexansaeure", b: "methanal" }] as Recipe[]) {
+    const m = makeMech(r);
+    for (let id = nextAuto(m, r), k = 0; id && k < 12; id = nextAuto(m, r), k++) m.run(id);
+    const o = stepReact(r.a as StepId, r.b as StepId);
+    assert.ok(m.status().n >= 3, `${r.a}+${r.b}: Kette wächst nicht`);
+    assert.ok(!m.status().beads.some(b => b.mono === o.unreacted), `${r.a}+${r.b}: ${o.unreacted} in der Kette`);
+    const R = new Reactor(r, 48, 52, 5); R.run("start"); R.advance(900);
+    assert.ok(R.beads.filter(b => b.m === o.unreacted).every(b => !b.nb.length), `${r.a}+${r.b}: Reaktor verknüpft ${o.unreacted}`);
+    assert.ok(R.stats().max >= 3);
+  }
+  // Reaktor und Karte: Kette ⇔ Produkt (bzw. kurze Ketten)
+  const chains = (r: Recipe) => {
+    const R = new Reactor(r, 48, 52, 5); R.run("start"); R.advance(r.seq ? 400 : 700);
+    if (r.seq) { R.run(`add:${r.b}`); R.advance(700); }
+    const by = new Map(R.beads.map(b => [b.id, b]));
+    return R.beads.filter(b => b.kind === "mono" && !b.dead && b.nb.some(j => by.get(j)?.kind === "mono"));
+  };
+  for (const r of [{ a: "ethen", b: "isobuten", method: "zn" }, { a: "vinylchlorid", b: "ethen", method: "zn" }, { a: "ethen", b: "vinylchlorid", seq: true, method: "zn" },
+    { a: "styrol", b: "ethen", method: "buli" }, { a: "isobuten", b: "ethen", method: "bf3" }, { a: "styrol", b: "mma", method: "buli" }].map(x => ({ art: "poly", ...x })) as Recipe[]) {
+    const out = P([r.a, r.b] as VinylId[], r.method!, !!r.seq), c = chains(r);
+    assert.strictEqual(c.length > 0, !!out.product, `${r.a}${r.seq ? "→" : "+"}${r.b}/${r.method}: Reaktor ${c.length} Kettenglieder, Karte ${out.product?.abbr ?? "kein Polymer"}`);
+    if (out.unreacted) assert.ok(!c.some(b => b.m === out.unreacted), `${r.a}+${r.b}/${r.method}: ${out.unreacted} im Reaktor eingebaut`);
+  }
+}, 60_000);
+
+test("Atom-Ansicht: Monomer mit zwei verschiedenen Gruppen als erstes Monomer verknüpft sich mit Disäure bzw. Säurechlorid (Molekül gewendet)", () => {
+  for (const ab of ["milchsaeure", "aminohexansaeure"] as StepId[]) for (const acid of ["terephthalsaeure", "adipinsaeure", "adipoylchlorid", "terephthaloylchlorid"] as StepId[]) {
+    const r: Recipe = { art: "kond", a: ab, b: acid };
+    assert.strictEqual(stepReact(ab, acid).struktur, "linear");
+    const m = replay(r, ["join"]);
+    assert.ok(m.status().n >= 2 && !m.status().fail, `${ab}+${acid}: ${m.status().fail}`);
+  }
+});
+
+test("Anionisch gleichzeitig: Styrol + Butadien ergibt ein Gradienten-Copolymer (Butadien zuerst), Styrol + MMA fast nur PMMA – auch in Atom-Ansicht und Reaktor", () => {
+  const sb = polymerise(["styrol", "butadien"], "buli");
+  assert.strictEqual(sb.product?.copo, "gradient");
+  assert.match(sb.why, /Butadien lagert sich viel schneller an/);
+  assert.match(sb.why, /polaren Zusatz/);
+  const r: Recipe = { art: "poly", a: "styrol", b: "butadien", method: "buli" };
+  const m = makeMech(r);
+  for (let id = nextAuto(m, r), k = 0; id && k < 20; id = nextAuto(m, r), k++) m.run(id);
+  const seq = m.status().beads.filter(b => b.kind === "unit").map(b => b.mono);
+  assert.strictEqual(seq[0], "butadien", seq.join(","));
+  assert.ok(seq.includes("styrol") && seq.lastIndexOf("butadien") < seq.indexOf("styrol"), `Atom-Ansicht: ${seq.join(",")}`);
+  // Reaktor: am Anfang wird fast nur Butadien eingebaut
+  const R = new Reactor(r, 48, 52, 5); R.run("start"); R.advance(120);
+  const used = R.beads.filter(b => b.kind === "mono" && b.nb.length);
+  assert.ok(used.filter(b => b.m === "butadien").length > 3 * used.filter(b => b.m === "styrol").length, "Reaktor: Butadien nicht bevorzugt");
+});
+
+test("Reaktor: Säurechlorid + Milchsäure spaltet HCl und Wasser ab – beide Nebenprodukte gezählt", () => {
+  const R = new Reactor({ art: "kond", a: "adipoylchlorid", b: "milchsaeure" }, 48, 52, 5);
+  R.run("start"); R.advance(1500);
+  const parts = new Map(R.stats().bypParts ?? []);
+  assert.ok((parts.get("HCl") ?? 0) > 0 && (parts.get("H₂O") ?? 0) > 0, JSON.stringify([...parts]));
+  assert.match(stepReact("methanal", "hexandiamin").why, /Aminoplaste/);
+});
+
+test("Formalladung aus Bindungen und freien Elektronenpaaren = gezeichnete Ladung (O, N, Cl, F in allen Bildern; Cl⁻ mit vier Paaren)", () => {
+  const V: Record<string, number> = { O: 6, N: 5, Cl: 7, F: 7 };
+  const bad = new Set<string>();
+  const rs = recipes().filter(r => r.art !== "poly" || !r.b);
+  for (const r of rs) {
+    const m = makeMech(r);
+    for (let id = nextAuto(m, r), k = 0; id && k < 14; id = nextAuto(m, r), k++) {
+      for (const key of m.run(id)) {
+        const s = key.snap;
+        for (const a of s.atoms) {
+          if (!(a.el in V) || !a.lp || (a.op ?? 1) < 0.05 || (a.text !== undefined && a.text !== a.el)) continue;
+          const bs = s.bonds.filter(b => b.a === a.id || b.b === a.id);
+          if (bs.some(b => b.k === "coord" || b.k === "ts") || s.dots.some(d => Math.hypot(d.x - a.x, d.y - a.y) < 0.75)) continue;
+          const fc = V[a.el] - 2 * a.lp.length - bs.reduce((t, b) => t + b.o, 0);
+          if (fc !== (a.q ?? 0)) bad.add(`${r.a}${r.b ? "+" + r.b : ""} ${id}: ${a.el} q ${a.q ?? 0}, Formalladung ${fc}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual([...bad].slice(0, 8), []);
+}, 120_000);
+
+test("Pfeile gut sichtbar: H⁺-Wanderung mit einem Bogen (nicht winzig), Abgangsgruppe – Pfeil endet am abgehenden O bzw. Cl; Ziegler-Natta-Butadien: neue Bindung nicht über ein H; kationisch außen um das C", async () => {
+  const { curlyArrow } = await import("@lern/chem-ui");
+  for (const r of [{ art: "kond", a: "terephthalsaeure", b: "ethandiol" }, { art: "kond", a: "milchsaeure" }, { art: "kond", a: "adipoylchlorid", b: "hexandiamin" }, { art: "kond", a: "adipinsaeure", b: "hexandiamin" }] as Recipe[]) {
+    const clip = replay(r, []).run("join");
+    for (const k of clip.filter(x => x.arrows?.length)) for (const ar of k.arrows!) {
+      const a = anchorPt(k.snap, ar.from)!, b = anchorPt(k.snap, ar.to)!;
+      assert.ok(Math.hypot(b.x - a.x, b.y - a.y) >= 0.55, `${r.a}: Pfeil zu kurz (${Math.hypot(b.x - a.x, b.y - a.y).toFixed(2)})`);
+      // Spitze an einem Atom bzw. einer Bindung, nicht auf einem fremden beschrifteten Atom
+      for (const at of k.snap.atoms) {
+        if ((at.op ?? 1) < 0.5 || !(at.text ?? at.el) || ("a" in ar.to && ar.to.a === at.id) || ("b" in ar.to && ar.to.b.includes(at.id))) continue;
+        assert.ok(Math.hypot(at.x - b.x, at.y - b.y) > 0.3, `${r.a}: Pfeilspitze auf ${at.text ?? at.el}`);
+      }
+    }
+  }
+  const zn = replay({ art: "poly", a: "butadien", method: "zn" }, ["act", "add:butadien"]);
+  const clip = zn.run("add:butadien"), k = clip.find(x => (x.arrows?.length ?? 0) === 3)!;
+  const ts = k.snap.bonds.filter(b => b.k === "ts");
+  for (const b of ts) {
+    const A = k.snap.atoms.find(a => a.id === b.a)!, B = k.snap.atoms.find(a => a.id === b.b)!;
+    for (const h of k.snap.atoms.filter(a => a.el === "H" && a.id !== b.a && a.id !== b.b)) {
+      const t = Math.max(0, Math.min(1, ((h.x - A.x) * (B.x - A.x) + (h.y - A.y) * (B.y - A.y)) / ((B.x - A.x) ** 2 + (B.y - A.y) ** 2)));
+      assert.ok(Math.hypot(A.x + t * (B.x - A.x) - h.x, A.y + t * (B.y - A.y) - h.y) > 0.35, `Ziegler-Natta: Übergangsbindung über ${h.id}`);
+    }
+  }
+  const kat = replay({ art: "poly", a: "isobuten", method: "bf3" }, ["acid", "add:isobuten"]).run("hplus").find(x => x.arrows?.length)!;
+  const ar = kat.arrows![0], C = kat.snap.atoms.find(a => "b" in ar.from && a.id === ar.from.b[0])!;
+  const g = curlyArrow(anchorPt(kat.snap, ar.from)!, anchorPt(kat.snap, ar.to)!, { bend: ar.bend });
+  assert.ok(Math.hypot(g.mid.x - C.x, g.mid.y - C.y) > 0.4, "kationisch: Pfeil läuft durch das C");
+});
+

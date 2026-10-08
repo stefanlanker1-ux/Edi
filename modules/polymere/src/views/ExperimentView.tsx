@@ -22,7 +22,7 @@ const ARTS: Art[] = ["poly", "kond", "add"];
 const KIND_TRY = tr({ radikal: "Radikalisch", anion: "Anionisch", kation: "Kationisch", koord: "Ziegler-Natta" },
   { radikal: "Radical", anion: "Anionic", kation: "Cationic", koord: "Ziegler–Natta" });
 const ART_SHORT: Record<Art, string> = tr({ poly: "Polymeri­sation", kond: "Polykonden­sation", add: "Poly­addition" }, { poly: "Polymeri­sation", kond: "Polycon­densation", add: "Poly­addition" });
-const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "spaltet H₂O bzw. HCl ab", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "splits off H₂O or HCl", add: "no by-product" });
+const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "Nebenprodukt H₂O bzw.\u00A0HCl", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "by-product H₂O or\u00A0HCl", add: "no by-product" });
 
 // ── Kleine Bilder für die Auswahl am Anfang ──
 function ArtPic({ art }: { art: Art }) {
@@ -49,6 +49,7 @@ function ArtPic({ art }: { art: Art }) {
 function Chooser({ onPick }: { onPick: (a: Art) => void }) {
   return (
     <div className="pm-choose">
+      <p className="pm-choose-h">{tr("Art der Reaktion wählen", "Choose the type of reaction")}</p>
       {ARTS.map(a => (
         <button key={a} type="button" className="pm-choose-card" onClick={() => { buzz(); onPick(a); }}>
           <ArtPic art={a} />
@@ -101,21 +102,24 @@ const RUBBER = (): Record<Rubber, { tags: string[]; text: string }> => tr({
   dien: { tags: ["Kautschuk", "Elastomer nach dem Vulkanisieren"], text: "Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten an ihren C=C." },
   peroxid: { tags: ["Kautschuk", "Elastomer nach dem Vernetzen"], text: "Ohne C=C in der Kette vernetzt Schwefel nicht. Peroxide verbinden die Ketten – so wird daraus ein Elastomer." },
   nein: { tags: ["Kautschuk", "nicht vernetzbar"], text: "Ohne C=C in der Kette vernetzen weder Schwefel noch Peroxide: Der Kautschuk bleibt weich und klebrig." },
-  tpe: { tags: ["thermoplastisches Elastomer"], text: "Mit drei Blöcken (SBS) halten die harten Styrol-Blöcke die weichen Butadien-Ketten zusammen – ganz ohne Vulkanisieren. Warm wird es weich und formbar." },
+  zweiblock: { tags: ["Blockcopolymer (zwei Blöcke)"], text: "Ein thermoplastisches Elastomer wird daraus erst mit drei Blöcken (SBS: Styrol → Butadien → Styrol): Die harten Styrol-Blöcke an beiden Enden halten die weichen Butadien-Blöcke zusammen – ohne Vulkanisieren. Mit zwei Blöcken fehlt dieser Halt." },
 }, {
   dien: { tags: ["rubber", "elastomer after vulcanisation"], text: "Raw rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains at their C=C." },
   peroxid: { tags: ["rubber", "elastomer after cross-linking"], text: "Without C=C in the chain, sulfur does not cross-link. Peroxides link the chains – this makes an elastomer." },
   nein: { tags: ["rubber", "cannot be cross-linked"], text: "Without C=C in the chain, neither sulfur nor peroxides cross-link it: the rubber stays soft and sticky." },
-  tpe: { tags: ["thermoplastic elastomer"], text: "With three blocks (SBS), the hard styrene blocks hold the soft butadiene chains together – without vulcanisation. When warm it becomes soft and shapeable." },
+  zweiblock: { tags: ["block copolymer (two blocks)"], text: "It only becomes a thermoplastic elastomer with three blocks (SBS: styrene → butadiene → styrene): the hard styrene blocks at both ends hold the soft butadiene blocks together – without vulcanisation. With two blocks this hold is missing." },
 });
+
+/** Kennzeichen einheitlich mit großem Anfangsbuchstaben (auch auf Englisch: „Living“, „Long, unbranched chains“) */
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function ProductCard({ recipe, mech }: { recipe: Recipe; mech: Mech }) {
   const st = mech.status();
-  let product: Product | undefined, why = "", extra: ReactNode = null, pics: VinylId[] = [];
+  let product: Product | undefined, why = "", extra: ReactNode = null, pics: VinylId[] = [], short = false;
   if (recipe.art === "poly") {
     const ms = [recipe.a, recipe.b].filter(m => m && isVinyl(m)) as VinylId[];
     const out = polymerise(ms, recipe.method ?? "dbpo", !!recipe.seq);
-    product = out.product; why = out.why;
+    product = out.product; why = out.why; short = out.fit === "short";
     pics = productUnits(ms, out);
   } else {
     const out = stepReact(recipe.a as StepId, recipe.b as StepId | undefined);
@@ -132,13 +136,13 @@ function ProductCard({ recipe, mech }: { recipe: Recipe; mech: Mech }) {
     { linear: "long, unbranched chains", verzweigt: "branched chains", vernetzt: "network of chains", klein: "only small molecules" });
   return (
     <div className="pm-product">
-      {product ? <h3>{product.name}</h3> : <h3>{tr("Kein Polymer", "No polymer")}</h3>}
+      {product ? <h3>{product.name}</h3> : <h3>{short ? tr("Nur kurze Ketten", "Only short chains") : tr("Kein Polymer", "No polymer")}</h3>}
       {pics.length > 0 && <div className="pm-product-pic">{pics.map(m => <UnitSvg key={m} id={m} aspect={1.6} />)}</div>}
       {product && <div className="pm-tags">
-        {product.mix ? <Tag>{tr("zwei getrennte Polymere", "two separate polymers")}</Tag>
-          : rub ? rub.tags.map(t => <Tag key={t}>{t}</Tag>)
+        {product.mix ? <Tag>{cap(tr("zwei getrennte Polymere", "two separate polymers"))}</Tag>
+          : rub ? rub.tags.map(t => <Tag key={t}>{cap(t)}</Tag>)
           : <Tag>{KL[product.klasse]}</Tag>}
-        <Tag>{product.star ? tr("sternförmige Moleküle", "star-shaped molecules") : ST[product.struktur]}</Tag>
+        <Tag>{cap(product.star ? tr("sternförmige Moleküle", "star-shaped molecules") : ST[product.struktur])}</Tag>
         {product.code && <Tag>{tr("Recycling-Code", "Recycling code")} {product.code}</Tag>}
       </div>}
       {extra}
@@ -241,6 +245,18 @@ export function ExperimentView() {
   const reduced = useReducedMotion();
   /** niedrige Handys: keine Ansatz-Zeile, die Werkzeugleiste zeigt die Auswahl */
   const low = useMediaQuery("(max-height: 700px)");
+  // Umschalter Atome | Kügelchen liegt über der Bühne (oben rechts): seine Größe, damit die Atom-Ansicht die Ecke bei Bedarf freihält
+  const viewRef = useRef<HTMLDivElement>(null);
+  const [corner, setCorner] = useState<{ w: number; h: number }>({ w: 170, h: 46 });
+  useEffect(() => {
+    const el = viewRef.current;
+    if (!el) return;
+    const upd = () => setCorner(o => { const w = Math.ceil(el.offsetWidth) + 6, h = Math.ceil(el.offsetHeight) + 6; return o.w === w && o.h === h ? o : { w, h }; });
+    upd();
+    const ro = new ResizeObserver(upd);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [art]);
   const recipe = art ? recipes[art] : DEFAULT_RECIPES.poly;
   const rkey = JSON.stringify(recipe);
   // Ablauf: Mechanismus, ausgeführte Aktionen, laufender Clip
@@ -336,13 +352,13 @@ export function ExperimentView() {
   const label = tr(`${ART_NAME[art]} in Atomen`, `${ART_NAME[art]} in atoms`);
   const stage = (
     <div className="pm-stage">
-      <div className="pm-view">
+      <div className="pm-view" ref={viewRef}>
         <Segmented label={tr("Ansicht", "View")} value={view} onChange={v => { buzz(); setView(v); }}
           options={[{ value: "atome", label: tr("Atome", "Atoms") }, { value: "kugeln", label: tr("Kügelchen", "Beads") }]} />
       </div>
       {view === "atome"
         ? <>
-            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : 1} />
+            <MechStage snap={snap} snapKey={ver} clip={clip} clipKey={clipKey} onEnd={ended} halos={halos} lp={lp} label={label} speed={auto ? 1.35 : 1} corner={corner} />
             {st.beads.length > 0 && <BeadStrip beads={st.beads} active={st.active} onPick={(b: Bead) => { if (b.mono) { setChainN(undefined); setInfo(b.mono); } }} />}
           </>
         : <>
@@ -362,22 +378,22 @@ export function ExperimentView() {
   );
   if (view === "kugeln" && rstats) {
     const ev = rstats.phase === "bereit" ? tr("bereit", "ready") : rstats.event ?? (rstats.phase === "fertig" ? tr("fertig", "done") : tr("läuft", "running"));
-    tags.push(<Tag key="e" tone={rstats.phase === "aus" ? "bad" : "plain"}>{rstats.phase === "aus" ? `✗ ${ev}` : ev}</Tag>);
-    if (restarted && rstats.phase === "bereit") tags.push(<Tag key="neu">{tr("neuer Ansatz – von vorn", "new mix – starts again")}</Tag>);
-    if (rstats.living) tags.push(<Tag key="l" tone="ok">{tr("lebend", "living")}</Tag>);
-    if (rstats.network) tags.push(<Tag key="v">{tr("vernetzt", "network")}</Tag>);
+    tags.push(<Tag key="e" tone={rstats.phase === "aus" ? "bad" : "plain"}>{rstats.phase === "aus" ? `✗ ${cap(ev)}` : cap(ev)}</Tag>);
+    if (restarted && rstats.phase === "bereit") tags.push(<Tag key="neu">{cap(tr("neuer Ansatz – von vorn", "new mix – starts again"))}</Tag>);
+    if (rstats.living) tags.push(<Tag key="l" tone="ok">{cap(tr("lebend", "living"))}</Tag>);
+    if (rstats.network) tags.push(<Tag key="v">{cap(tr("vernetzt", "network"))}</Tag>);
     if (rstats.poisoned) tags.push(<Tag key="p" tone="bad">{tr(`${rstats.poisoned} × Ti vergiftet`, `${rstats.poisoned} × Ti poisoned`)}</Tag>);
-    if (rstats.byp) tags.push(<Tag key="b">+ {rstats.byp} {rstats.bypName}</Tag>);
+    if (rstats.byp) tags.push(<Tag key="b">+ {(rstats.bypParts?.length ? rstats.bypParts : [[rstats.bypName ?? "", rstats.byp] as [string, number]]).map(([n, c]) => `${c} ${n}`).join(" + ")}</Tag>);
     if (rstats.released) tags.push(<Tag key="r">{tr(`${rstats.released} abgelöst`, `${rstats.released} released`)}</Tag>);
     if (rstats.why) tags.push(whyBtn(rstats.phase === "aus"));
     tags.push(<button key="leg" type="button" className="pm-why-btn" onClick={() => { buzz(); setLegend(true); }} aria-label={tr("Legende", "Key")}><span className="pm-leg-q" aria-hidden="true">?</span></button>);
   }
   if (view === "atome") {
-    tags.push(<Tag key="s" tone={st.fail ? "bad" : "plain"}>{st.fail ? `✗ ${st.step}` : st.step}</Tag>);
+    tags.push(<Tag key="s" tone={st.fail ? "bad" : "plain"}>{st.fail ? `✗ ${cap(st.step)}` : cap(st.step)}</Tag>);
     if (st.n) tags.push(<Tag key="n">n = {st.n}</Tag>);
     if (st.byp) tags.push(<Tag key="b">+ {st.byp}</Tag>);
     if (st.cond && st.phase !== "init" && !done) tags.push(<Tag key="c">{st.cond}</Tag>);
-    if (st.living) tags.push(<Tag key="l" tone="ok">{tr("lebend", "living")}</Tag>);
+    if (st.living) tags.push(<Tag key="l" tone="ok">{cap(tr("lebend", "living"))}</Tag>);
     if ((st.fail || st.note) && !busy) tags.push(whyBtn(!!st.fail));
   }
 
@@ -517,7 +533,7 @@ export function ExperimentView() {
   ];
 
   const whyText = view === "atome" ? st.fail ?? st.note : rstats?.why;
-  const whyTitle = view === "atome" ? (st.fail ? `✗ ${st.step}` : st.step) : rstats?.event ?? tr("Warum?", "Why?");
+  const whyTitle = view === "atome" ? (st.fail ? `✗ ${cap(st.step)}` : cap(st.step)) : rstats?.event ? cap(rstats.event) : tr("Warum?", "Why?");
 
   return (
     <>

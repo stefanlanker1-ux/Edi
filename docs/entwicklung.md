@@ -717,8 +717,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (Test je Typ mit verbotenen Wendungen).
   Auch in den Lektionen sind Begriffe antippbar (`GuideDef.terms`, Antwortknöpfe ohne). Monomer-Bilder in Aufgaben tragen eine Zeile mit Name und Merkmal
   (`Vis.note`: „**Styrol** – die C=C trägt einen Benzolring“); ein Lektionsschritt, der nach Stoffen fragt, zeigt sie vorher mit Namen (`Row`).
-- **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (drei Karten mit Kügelchen-Bild),
-  danach oben als Umschalter. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
+- **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (Zeile „Art der Reaktion wählen“, darunter
+  drei Karten mit Kügelchen-Bild, oben beginnend – keine Leerfläche darüber; Kennzeile „Nebenprodukt H₂O bzw. HCl“ ohne einzelnes Wort am Zeilenende), danach oben als Umschalter.
+  Kennzeichen (Produktkarte, Statuszeile) einheitlich mit großem Anfangsbuchstaben, auch auf Englisch. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
   - Polymerisation: Monomer (`VINYLS` in `chem/data.ts`: Ethen, Propen, Styrol, Vinylchlorid, Methylmethacrylat, Acrylnitril, Tetrafluorethen, Isobuten,
     Butadien (Einbau 1,4), Vinylacetat), optional ein zweites (gleichzeitig = statistisches Copolymer; nacheinander = Blöcke nur bei lebenden Ketten, sonst zwei
@@ -736,14 +737,20 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   lebende Ketten, außer Acrylnitril (Nebenreaktionen an der C≡N-Gruppe beenden die Ketten nach und nach). **Anionisch nacheinander** (`anionStarts`, `seqKind`):
   ein Kettenende startet nur Monomere mit gleich stark oder stärker stabilisiertem Anion (Reihe Styrol/Butadien → Methylmethacrylat → Acrylnitril) – Styrol → MMA
   ergibt Blöcke, MMA → Styrol nicht (Styrol bleibt übrig, nur PMMA); bei Acrylnitril als erstem Monomer sind die Ketten bis dahin tot. Gleichzeitig anionisch mit
-  verschieden starken Enden setzt sich das Monomer mit dem schwächeren Ende durch (Styrol + MMA → fast nur PMMA). Nacheinander radikalisch, kationisch oder mit
-  Ziegler-Natta: zwei getrennte Polymere (Produkt „Gemisch aus …“, `mix`, Bild beider Wiederholeinheiten). Vinylchlorid, Tetrafluorethen, Vinylacetat anionisch nur Nebenreaktion; kationisch nur mit Elektronen schiebenden Gruppen (Isobuten bei −100 °C,
+  verschieden starken Enden setzt sich das Monomer mit dem schwächeren Ende durch (Styrol + MMA → fast nur PMMA; `anionFirst`); gleich starke Enden (Styrol + Butadien
+  in Kohlenwasserstoff): Butadien lagert sich viel schneller an (r ≈ 12 bzw. 0,03) – **Gradienten-Copolymer** (erst fast nur Butadien, zum Schluss Styrol;
+  statistisches SBR anionisch nur mit polarem Zusatz). Nacheinander radikalisch, kationisch oder mit Ziegler-Natta: zwei getrennte Polymere (Produkt „Gemisch aus …“,
+  `mix`, Bild beider Wiederholeinheiten; Hinweis: übriges erstes Monomer bauen die neuen Ketten mit ein). **Ein Monomer bildet mit dem Verfahren keine Ketten**
+  (`withFailing`): das andere ergibt sein Homopolymer (`unreacted`, z. B. Ethen + Isobuten mit Ziegler-Natta → PE-HD; nacheinander Ethen → Vinylchlorid: erst PE-HD,
+  dann vergiftet); kein Polymer nur, wenn der Katalysator von Anfang an vergiftet ist (gleichzeitig bzw. das giftige zuerst) oder eine Nebenreaktion den Starter vorher
+  verbraucht hat; beide ungeeignet, eines mit kurzen Ketten → „Nur kurze Ketten“; ein Monomer mit kurzen Ketten (Allyl-H, H⁺-Abgabe) neben einem passenden: wird
+  wenig eingebaut, bremst – vor allem das Homopolymer des anderen. Vinylchlorid, Tetrafluorethen, Vinylacetat anionisch nur Nebenreaktion; kationisch nur mit Elektronen schiebenden Gruppen (Isobuten bei −100 °C,
   Styrol); Ethen radikalisch nur unter Hochdruck und verzweigt (PE-LD, Code 4), mit Ziegler-Natta unverzweigt (PE-HD, Code 2); Propen und Styrol mit Ziegler-Natta
   isotaktisch, sonst ataktisch; Butadien mit TiCl₄/Al(C₂H₅)₃ überwiegend 1,4, aber nicht pauschal cis (fast nur cis-1,4 erst mit passendem Katalysator, z. B. Neodym).
   Produkte (`polymerise`) mit Name, Kurzzeichen, Klasse (Thermoplast, Elastomer, Duroplast), Aufbau, Verwendung, Recycling-Code;
   bekannte Copolymere SBR/SB, SAN, NBR, EPM, EVA, SMMA, PVC/VAc. **Kautschuk-Art** (`rubber`, Produktkarte: Kennzeichen und ein Satz): Dien-Kautschuk (BR, SBR,
-  NBR) wird durch Vulkanisieren zum Elastomer (Schwefel an C=C), EPM hat keine C=C (vernetzt mit Peroxiden), PIB ist nicht vernetzbar, SB-Blockcopolymer
-  (SBS) ist ein thermoplastisches Elastomer (ohne Vulkanisieren); Klasse eines unbekannten Copolymers nach `copoClass` (mit Dien bzw. Elastomer-Monomer: Kautschuk).
+  NBR) wird durch Vulkanisieren zum Elastomer (Schwefel an C=C), EPM hat keine C=C (vernetzt mit Peroxiden), PIB ist nicht vernetzbar, SB-Blockcopolymer aus
+  zwei Blöcken: Kennzeichen „Blockcopolymer (zwei Blöcke)“ – thermoplastisches Elastomer erst mit drei Blöcken (SBS: Styrol → Butadien → Styrol); Klasse eines unbekannten Copolymers nach `copoClass` (mit Dien bzw. Elastomer-Monomer: Kautschuk).
   Englische Namen mitten im Satz klein (`lc`, „the chain end made of styrene“). Stufenwachstum (`reactGroups`, `stepReact`): –COOH + –OH → Esterbindung + H₂O,
   –COOH + –NH₂ → Amidbindung + H₂O, –COCl + –OH/–NH₂ → … + HCl, –N=C=O + –OH → Urethangruppe, –N=C=O + –NH₂ → Harnstoffgruppe, Epoxid + –NH₂ → geöffneter
   Ring (ohne Nebenprodukt), Phenol + Methanal → CH₂-Brücke + H₂O. Funktionalität (`functionality(id, partner)`: zählt nur Gruppen, die mit dem Partner reagieren;
@@ -753,8 +760,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   mit Glycerin reagiert – zwei Sterne verbinden sich nie; Produkt „Sternförmig verzweigter Polyester …“, Kennzeichen „sternförmige Moleküle“, schmelzbar, kein
   Duroplast), nie Netz. Disäure bzw. Säurechlorid + Glycerin (A₂ + B₃) bleibt vernetzter Polyester (Duroplast, Netz); verschiedene Verknüpfungen werden alle genannt (`links`, `byps`:
   Milchsäure + Diamin → Ester- und Amidbindung, Polyesteramid). Reagiert nichts, nennt die Begründung den Fall (`noLink`): gleiche Gruppen; Epoxid + –OH bzw.
-  –N=C=O nur mit Katalysator; Phenol + Säurechlorid nur kleiner Ester (eine –OH); Methanal + Amin gibt es (Aminoplaste), im Modell nur mit Phenol; Methanal allein →
-  POM ist eine Polymerisation. Bekannte Produkte: PET, PBT, PEA, PBA, PA 6.6, Aramid,
+  –N=C=O nur mit Katalysator; Phenol + Säurechlorid nur kleiner Ester (eine –OH); Methanal + Aminogruppen gibt Harnstoff- und Melaminharze (Aminoplaste), im Modell nur
+  mit Phenol; Methanal allein → POM ist eine Polymerisation. Reagiert der Partner nicht, aber das AB-Monomer mit sich selbst (Milchsäure + Phenol), entsteht dessen
+  Polymer (PLA bzw. PA 6, `unreacted` = Partner – Atom-Ansicht ohne den Partner, im Reaktor ohne reaktive Gruppen). Bekannte Produkte: PET, PBT, PEA, PBA, PA 6.6, Aramid,
   PA 6T, PLA, PA 6, Phenoplast, PUR, TPU, vernetztes PUR, Polyharnstoff, Epoxidharz, Polyesterharz.
 - **Atom-Ansicht** (`chem/scene.ts`, `chem/draw.ts`, `chem/stepdraw.ts`, `chem/mech/*`, `components/MechSvg.tsx`, `components/MechStage.tsx`): Valenzstrichformel
   (Zweifachbindung = zweite Linie daneben, wird beim Einbau ausgeblendet), Bausteine farbig hinterlegt (gleiche Farbe wie ihr Kügelchen), freie Elektronenpaare als
@@ -767,19 +775,26 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Abläufe: radikalisch (Erwärmen: O–O bzw. C–N bricht, jedes Atom behält ein Elektron, CO₂ bzw. N₂ geht ab; Anlagern Monomer für Monomer; Abbruch durch
   Rekombination oder Disproportionierung), anionisch (Butyllithium lagert sich an, Kette lebt, Methanol beendet; ein Kettenende, das das Monomer nicht starten
   kann: ✗ „zu schwach“), kationisch (Säure aus BF₃ und Wasser, Anlagern, H⁺-Abspaltung; am Butadien-Ende geht das H vom C1 ab → konjugiertes Dien, kein Allen,
-  zwei Pfeile), Ziegler-Natta (Aktivieren, Anlagerung an der freien Stelle, Vierzentren-Übergang, Einbau zwischen Titan und Kette – Butadien mit drei Pfeilen:
-  π-Paar C1=C2 bildet Ti–C1, Paar der Ti–C-Bindung der Kette bildet die Bindung zu C4, π-Paar C3=C4 wird zur neuen C2=C3; Elektronen paarweise –,
+  zwei Pfeile, der erste außen um C1 herum), Ziegler-Natta (Aktivieren, Anlagerung an der freien Stelle, Vierzentren-Übergang, Einbau zwischen Titan und Kette – Butadien mit drei Pfeilen:
+  π-Paar C1=C2 bildet Ti–C1, Paar der Ti–C-Bindung der Kette bildet die Bindung zu C4, π-Paar C3=C4 wird zur neuen C2=C3; Elektronen paarweise; das Butadien liegt
+  dabei höher und etwas links, die H des ersten Ketten-C zeigen nach unten, damit die neue Bindung steil zwischen den H hindurchführt und der Ti–C-Pfeil oberhalb Platz hat –,
   H₂ löst die fertige Kette,
   Vergiftung sichtbar: O/N/Cl/F bindet an das Titan, ✗; Isobuten prallt ab). Nacheinander ohne lebende Ketten (radikalisch, kationisch, Ziegler-Natta): die
   Aktion des zweiten Monomers bricht zuerst ab bzw. löst die Kette und startet eine **neue Kette** aus dem zweiten Monomer (Status `second`; „lebend“ nur bei
   lebenden Enden). Polykondensation zu Ester bzw. Amid als **Additions-Eliminierung in drei Schritten mit Pfeilen**: ① freies Paar des O bzw. N greift das C der
   C=O an, das π-Paar geht zum O; ② Zwischenstufe mit O⁻ und O⁺/N⁺, H⁺ wandert zur –OH der Säure; ③ C=O bildet sich zurück, Wasser geht ab (Säurechlorid: ② Cl⁻
-  geht ab, ③ Cl⁻ nimmt das H⁺ → HCl); Ladungen stets ausgeglichen, H₂O bzw. HCl sinkt beschriftet weg. Polyaddition (H wandert zum N, Urethan- bzw.
+  geht ab, ③ Cl⁻ nimmt das H⁺ → HCl); Ladungen stets ausgeglichen, Cl⁻ mit vier freien Paaren (Test: Formalladung aus Bindungen und freien Paaren = gezeichnete
+  Ladung, alle Bilder), H₂O bzw. HCl sinkt beschriftet weg. Pfeil-Lage (`clearAng`: Richtung mit dem meisten Platz): der zweite Pfeil der H⁺-Wanderung (N–H bzw. O–H → N
+  bzw. O) endet auf der freien Seite, lang genug für einen sichtbaren Bogen; der Pfeil der Abgangsgruppe endet am abgehenden O bzw. Cl auf der vom C abgewandten
+  Seite, das Ladungszeichen weicht ihm aus. Hinter „ⓘ“ steht, was vereinfacht ist (`SIMPLE`: ohne Säurekatalyse bzw. Salz/Zwitterion, Base fängt HCl, Phenoplast nur Bilanz).
+  Monomer mit zwei verschiedenen Gruppen als erstes Monomer: passt nur seine linke Gruppe zum Partner (Milchsäure + Disäure), wird es gewendet. Polyaddition (H wandert zum N, Urethan- bzw.
   Harnstoffgruppe; Epoxidring öffnet sich), Zweierkette (nur wenn beide Monomere lauter gleiche Gruppen haben – mit Milchsäure oder 6-Aminohexansäure wäre
   die Richtung nicht eindeutig), Phenoplast (CH₂-Brücke in **ortho-Stellung** zur –OH, Ringspitze mit –OH oben; Methanal trigonal; nur die Bilanz ohne
   Pfeile – in Wirklichkeit über mehrere Stufen, erst –CH₂OH am Ring, dann die Brücke; Wasser aus dem O des Methanals und je einem ortho-H steigt auf).
   Nicht passende Partner: ✗ und Begründung (gleiche Gruppen, Kettenende blockiert). Automatisch (`nextAuto`) endet: bei Ziegler-Natta nach „+ H₂“ (bei getrennten
-  Ketten nach der zweiten), beim Stufenwachstum, wenn kein Monomer mehr zum Kettenende passt.
+  Ketten nach der zweiten), beim Stufenwachstum, wenn kein Monomer mehr zum Kettenende passt. Ein Monomer, das keine Ketten bildet, zeigt Automatisch einmal
+  (abprallend zuerst, mit Nebenreaktion nach zwei Bausteinen, nacheinander an seiner Stelle) und baut danach mit dem passenden weiter; anionisch gleichzeitig
+  kommt das schnellere Monomer zuerst. Alte Atome weit links fallen nur als ganze kleine Moleküle weg (nie ein halbes Gegenion).
   Polykondensation/Polyaddition beginnen mit dem zweiten Molekül unter dem ersten (hochkant groß genug); passen die Gruppen nicht, bleibt Abstand, ✗ über der Lücke.
   Ringe ganz farbig hinterlegt (kein helles Sechseck innen), Benzolring überall mit drei Zweifachbindungen. Ziegler-Natta „+ H₂“: die fertige Kette
   gleitet sichtbar weg („PP abgelöst“). Nach Rekombination zeigt die Kügelchen-Leiste beide Ketten (Starter-Rest an beiden Enden).
@@ -796,7 +811,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   die zweite Kette steht um 30° gedreht, damit ihre Gruppen nicht auf denen des ersten Kettenendes liegen.
   Kamera (`MechStage`): ein Ablauf beginnt im Ausschnitt seines ersten Bilds und fährt während des ersten Schritts zum ruhigen Ausschnitt des Rests; Ende,
   Zurück und andere Ansätze werden weich angefahren (550 ms), andere Bühnengröße ohne Fahrt. Stufenwachstum: Ausschnitt = Kettenende + Platz für das nächste
-  Molekül (`span`), am Anfang beide Ausgangsstoffe ganz.
+  Molekül (`span`, 7,8 Bindungslängen), am Anfang beide Ausgangsstoffe ganz. **Handy:** Atomzeichen mindestens 14 px – wäre der ganze Inhalt kleiner, zeigt
+  ein Fenster dieser Größe die Reaktionsstelle (Atome an Pfeilen, geladene, hervorgehobene, freie Stelle, Elektronen; `frameFor`), der Rest endet an Wellenlinien
+  (gemessen 360 × 740 und 375 × 667: 14–16 px; nur der Überblick der Ausgangsstoffe vor dem ersten Schritt ≈ 12 px). Kein fester Rand oben mehr: der Umschalter
+  Atome | Kügelchen liegt über der Bühne, `corner` hält seine Ecke nur frei, wenn dort ein Atom läge (erst den Inhalt nach unten rücken, sonst Fläche darunter).
 - **Kügelchen-Ansicht** (`chem/reactor.ts` rein rechnerisch, `components/Reactor.tsx` Canvas): Becherglas mit vielen Molekülen (Kügelchen 6–9 px, Anzahl nach
   Fläche), gedämpfte Zufallsbewegung, Federn zwischen gebundenen Kügelchen, leichte Streckung der Ketten, Abstoßung. Reaktionen bei Berührung mit Wahrscheinlichkeit:
   Kettenwachstum nur an aktiven Enden (gestrichelter Ring: Radikal rot, Anion blau, Kation dunkelrot) – wenige lange Ketten, freies Monomer bleibt bis zum Schluss;
@@ -804,20 +822,25 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Disproportionierung); anionisch starten alle Ketten gleichzeitig und leben, ein zweites Monomer wächst als Block weiter – nur, wenn das Kettenende es starten
   kann (sonst bleibt es frei, Begründung hinter „ⓘ“); Acrylnitril-Ketten enden nach und nach (nicht lebend); Methanol beendet; kationisch wandert
   H⁺ weiter und startet neue Ketten; Ziegler-Natta: Ti-Kügelchen, Einbau zwischen Titan und Kette, „+ H₂“ löst die Ketten, polare Monomere vergiften (✗).
-  Nacheinander ohne lebende Ketten baut das zweite Monomer nie an Ketten aus dem ersten an (eigene Ketten). Kennzeichen „lebend“ nur bei lebenden Enden.
+  Nacheinander ohne lebende Ketten: mit dem zweiten Monomer sind die alten Ketten beendet (radikalisch abgebrochen, kationisch H⁺ abgegeben – es startet neue
+  Ketten, Ziegler-Natta abgelöst), neue Ketten starten (der Starter zerfällt über Stunden: noch mindestens drei Starter-Kügelchen) und bauen das zweite und übriges
+  erstes Monomer ein – nie an die alten Ketten. Ziegler-Natta mit giftigem Monomer im Gefäß beim Aktivieren bzw. als erstem Zusatz: jedes Titan sofort vergiftet.
+  Anionisch gleichzeitig: solange das schnellere Monomer frei ist, lagert sich das andere kaum (MMA vor Styrol: gar nicht) an. Kennzeichen „lebend“ nur bei lebenden Enden.
   Stufenwachstum: jede passende Gruppe zweier Moleküle reagiert, Nebenprodukt steigt als Bläschen auf (Bläschen schieben nichts an), Netz nur, wenn
   `stepReact` eines ergibt (AB-Monomer + Glycerin: verzweigt, kein Netz) und das größte Molekül ≥ 40 % der Bausteine hat. Reaktionspartner in der Nähe driften leicht aufeinander zu (sonst dauert es auf dem Bildschirm zu lange).
   Stufenwachstum langsam genug zum Zusehen (50 % nach etwa 10 s), mittlere Länge folgt 1/(1 − Umsatz); ab 80 % erklärt „ⓘ“, warum lange Ketten fast
   vollständigen Umsatz brauchen (Nebenprodukt entfernen, Vakuum). Methanol fällt sichtbar hinein („Methanol zugegeben“), nur einmal. Legende („?“):
   Baustein, Starter, aktives Ende, Bläschen. Ein neuer Ansatz setzt den Reaktor zurück (Kennzeichen „neuer Ansatz – von vorn“).
-  Anzeige: Umsatz als schwarzer Balken, Ketten bzw. Moleküle, „Ø … Bausteine“ und „längste …“; Kennzeichen (Vorgang, lebend, vernetzt, vergiftet, + H₂O, abgelöst),
+  Anzeige: Umsatz als schwarzer Balken, Ketten bzw. Moleküle, „Ø … Bausteine“ und „längste …“; Kennzeichen (Vorgang, lebend, vernetzt, vergiftet, + H₂O – bei zwei
+  Nebenprodukten beide gezählt, „+ 23 H₂O + 29 HCl“ –, abgelöst),
   Begründung hinter „ⓘ“. Antippen hebt das ganze Molekül hervor und zeigt das Monomer (Starter, Katalysator, Bläschen: kurze Info), Ziehen bewegt ein Kügelchen
   samt Kette. Akku: höchstens 30 Bilder/s, Stillstand bei Ruhe (6 s ohne Reaktion bzw. 3 s, wenn nichts mehr möglich ist), Pause-Knopf, unsichtbare Seite pausiert;
   Bewegung reduziert: Ablauf ohne Zwischenbilder vorausgerechnet. Der Reaktor bleibt beim Wechsel der Ansicht erhalten.
 - **Lernen** (`quiz/tasks.ts`, `lessons.tsx`, `quiz/explain.tsx`, `quiz/visual.tsx`, Katalog `quiz/misconceptions.ts`): sechs Kapitel – Monomere und Polymere;
   radikalische Polymerisation; Katalysatoren und Verfahren (Ziegler-Natta, kationisch mit BF₃ und Wasser am Beispiel Isobuten – „positive Ladung“
   eingeführt –, anionisch); Polykondensation; Polyaddition; Struktur und Eigenschaften (Thermoplast/Elastomer/Duroplast,
-  Copolymere, Ketten- vs. Stufenwachstum, Recycling-Codes). Lektionen spielen die Abläufe der Atom-Ansicht ab („Nochmal“), ein Schritt lässt das Radikal-Atom
+  Copolymere, Ketten- vs. Stufenwachstum; Recycling-Codes stehen nur auf den Produktkarten – die Aufgabe `recycling` bleibt in `LATER`, bis eine Lektion sie einführt).
+  In den Lektionen steht die richtige Auswahl an wechselnden Plätzen (Zahlen aufsteigend; Test: höchstens 40 % an Platz 1, ohne vorgemachte Schritte). Lektionen spielen die Abläufe der Atom-Ansicht ab („Nochmal“), ein Schritt lässt das Radikal-Atom
   antippen; Bilder vorher/nachher am Handy untereinander. Aufgaben alle als Auswahl mit Bild (`Vis` als reine Daten: Monomer, gesättigtes Gegenstück (nur Ethan, Propan,
   Chlorethan … – Styrol hat keins, Ethylbenzol trägt im Benzolring noch C=C), Baustein mit/ohne C=C, Kettenausschnitt iso-/syndio-/ataktisch,
   Mechanismus-Standbild mit Pfeilen (`bare`: ohne Beschriftung des Nebenprodukts, wo sie die Antwort wäre – `nebenprodukt` zeigt das Wasser unbeschriftet), Kügelchen, zwei Monomere, Kettenbild, Gefäß mit Kügelchen:
@@ -859,10 +882,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Kunststoff gehören (Plastiktüte → PE, Stoßstange → PP, Fensterrahmen → PVC; nicht „Rohre“, die es aus PE und PVC gibt).
 - Tests: `chem.test.ts` (Daten, Verträglichkeit, Produkte, alle über 1000 Ansätze der Atom-Ansicht automatisch durchgespielt und per Zurück nachgestellt,
   Reaktor-Ergebnisse: Kettenwachstum mit Restmonomer, lebende Ketten, Vergiftung, PET-Umsatz, Netz, Kettenstopper; AB-Monomer + Partner für alle Paare nie Netz,
-  nie „abwechselnd“; Glycerin mit Disäure/Säurechlorid Netz, mit AB-Monomer Stern ohne Netz; Produktbild = eingebautes Monomer; anionische Reihenfolge in Regeln, Atom-Ansicht und Reaktor; nacheinander ohne lebende Ketten getrennte Ketten; Kautschuk-Arten; Phenoplast-Brücken
+  nie „abwechselnd“, Verknüpfen gelingt immer, wenn die Karte eine Kette meldet; Glycerin mit Disäure/Säurechlorid Netz, mit AB-Monomer Stern ohne Netz; Produktbild = eingebautes Monomer; anionische Reihenfolge in Regeln, Atom-Ansicht und Reaktor; nacheinander ohne lebende Ketten getrennte Ketten, im Reaktor neue Ketten aus dem zweiten Monomer; Kautschuk-Arten; Phenoplast-Brücken
   nur ortho/para; Ziegler-Natta-Butadien drei Pfeile, Elektronen paarweise; kationisch kein Allen; Ester/Amid drei Schritte mit Pfeilen, Ladung ausgeglichen),
-  `quiz/*.test.ts` (Gültigkeit, Katalog, einfache Sprache, Englisch; Tipp in allen Modi zugeschnitten und ohne Lösungswendungen, kein Ethylbenzol, Rückmeldungen
-  `wasserTap`/`freieStelleTap`, Nebenprodukt-Bild unbeschriftet), `guide*.test.ts` (Lektionen auf Deutsch und Englisch).
+  Karte ⇔ Atom-Ansicht ⇔ Reaktor bei einem Monomer ohne Ketten, Gradient Styrol + Butadien, zwei Nebenprodukte im Reaktor, Formalladung in allen Bildern,
+  Pfeil-Lage), `quiz/*.test.ts` (Gültigkeit, Katalog, einfache Sprache, Englisch; Tipp in allen Modi zugeschnitten und ohne Lösungswendungen, kein Ethylbenzol,
+  Rückmeldungen `wasserTap`/`freieStelleTap`, Nebenprodukt-Bild unbeschriftet, Tipps ohne vorweggenommene Antwort), `guide*.test.ts` (Lektionen auf Deutsch und
+  Englisch, Platz der richtigen Auswahl).
 
 ## Einheiten (`modules/einheiten`)
 - Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
@@ -920,6 +945,14 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Nachprüfung Runde 2** – Karte, Atom-Ansicht und Reaktor stimmen überein (Prüfung aller 1262 Ansätze): „nacheinander“ ohne lebende Ketten beendet im Reaktor die alten
+  Ketten und startet neue aus dem zweiten Monomer (vorher wurde es nie eingebaut); ein Monomer, das mit dem Verfahren keine Ketten bildet, ergibt das Homopolymer des anderen
+  statt „Kein Polymer“ (z. B. Ethen + Isobuten mit Ziegler-Natta → PE-HD), kein Polymer nur bei Vergiftung von Anfang an; ein AB-Monomer als erstes Molekül wird gewendet (verknüpfte
+  vorher nicht), mit einem nicht reagierenden Partner entsteht sein eigenes Polymer (PLA, PA 6). SB mit zwei Blöcken ist noch kein thermoplastisches Elastomer (erst SBS);
+  Styrol + Butadien anionisch ergibt ein Gradienten-Copolymer (Butadien zuerst). Cl⁻ mit vier Elektronenpaaren (Test: Formalladung aus Bindungen und Paaren = gezeichnete Ladung).
+  Pfeile neu gelegt (H⁺-Wanderung, Abgangsgruppe, Ziegler-Natta-Butadien, kationisch). Atomzeichen am Handy ≥ 14 px (Zoom auf die Reaktionsstelle; nur die Übersicht der
+  Ausgangsstoffe vor dem ersten Schritt bleibt bei ~12 px). Startauswahl oben, Kennzeichen einheitlich, zwei Nebenprodukte im Reaktor, Hinweis „vereinfacht“ hinter ⓘ; Tipps ohne
+  Antwort; richtige Auswahl der Lektionen an wechselnden Plätzen (vorher fast immer Platz 1; Test höchstens 40 %).
 - **Gemische: Nachprüfung Runde 2** – Verbindung mit festem Zahlenverhältnis (H₂O 2 : 1, NaCl 1 : 1), Legierung mit frei wählbaren Anteilen und „oft homogen“ in Lektionen und
   Erklärkarten (vorher passte die gelehrte Definition von „Verbindung“ auch auf Messing; Test); Messing nach dem Erstarren und Legierungsbilder mit 12 Atomen, „abwechselnd“ als
   regelmäßiges Muster, „getrennt“ als zwei Blöcke, richtiges Bild sichtbar zufällig (Test), höchstens drei Bildantworten untereinander und größer; Kapitel 1 ohne Metallgitter (Gitter

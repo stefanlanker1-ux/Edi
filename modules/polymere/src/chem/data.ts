@@ -24,8 +24,8 @@ export type VinylId = "ethen" | "propen" | "styrol" | "vinylchlorid" | "mma" | "
 /** Eigenschaft des Kunststoffs: Thermoplast (schmilzt), Elastomer (gummiartig, schwach vernetzt), Duroplast (stark vernetzt) */
 export type Klasse = "thermo" | "elast" | "duro";
 /** Kautschuk (Klasse elast, noch unvernetzt): mit C=C in der Kette – mit Schwefel vulkanisierbar (dien); ohne C=C – nur mit Peroxid
- *  vernetzbar (peroxid) bzw. gar nicht (nein, Polyisobuten); thermoplastisches Elastomer aus Blöcken, ohne Vernetzen (tpe) */
-export type Rubber = "dien" | "peroxid" | "nein" | "tpe";
+ *  vernetzbar (peroxid) bzw. gar nicht (nein, Polyisobuten); Blockcopolymer aus zwei Blöcken (zweiblock: thermoplastisches Elastomer erst mit drei Blöcken, SBS) */
+export type Rubber = "dien" | "peroxid" | "nein" | "zweiblock";
 
 export interface Vinyl {
   id: VinylId;

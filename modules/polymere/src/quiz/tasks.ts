@@ -443,7 +443,7 @@ function freieStelle(): Task {
   ], {
     vis: mech(ZN_PP, acts, arrowKey(ZN_PP, acts)),
     hint: T("Sieh dir an, was alles am Titan sitzt – und was dort fehlt.", "Look at everything that sits on the titanium – and what is missing there."),
-    tip: T("Die Cl‑Atome und die Kette sind fest am Ti gebunden. Wo ist noch Platz?", "The Cl atoms and the chain are firmly bonded to Ti. Where is there still room?"),
+    tip: T("Geh einmal rund um das Titan und zähle, was dort schon gebunden ist. Wo könnte ein weiteres Molekül andocken?", "Go once round the titanium and count what is already bonded there. Where could one more molecule dock?"),
     explain: T("Das Monomer lagert sich mit seiner C=C-Bindung an die **freie Stelle** an. Dann wird es zwischen Titan und Kette eingebaut.", "The monomer attaches its C=C bond to the **vacant site**. Then it is inserted between titanium and chain."),
   });
 }
@@ -616,7 +616,7 @@ function paarWahl(): Task {
       : d(pair("adipinsaeure", "hexandiamin"), "ester-amid", T("Säure + Amin ergibt ein Polyamid (Nylon).", "Acid + amine gives a polyamide (nylon).")),
   ], {
     hint: T("Prüfe bei jedem Paar: Wie viele Gruppen hat jedes Monomer – und passen sie zueinander?", "Check each pair: how many groups does each monomer have – and do they fit together?"),
-    tip: T(`Gesucht: zweimal –COOH im einen Monomer, zweimal ${amid ? "–NH₂" : "–OH"} im anderen.`, `Wanted: –COOH twice in one monomer, ${amid ? "–NH₂" : "–OH"} twice in the other.`),
+    tip: T(`Welche zwei Gruppen bilden zusammen eine ${amid ? "Amid" : "Ester"}bindung? Prüfe dann bei jedem Paar, ob jedes Monomer zwei davon trägt.`, `Which two groups form an ${amid ? "amide" : "ester"} bond together? Then check for each pair whether each monomer carries two of them.`),
     explain: amid ? T("Disäure + Diamin → **Polyamid**: Adipinsäure + Hexan-1,6-diamin = PA 6.6 (Nylon).", "Diacid + diamine → **polyamide**: adipic acid + hexane-1,6-diamine = PA 6.6 (nylon).")
       : T("Disäure + Diol → **Polyester**: Terephthalsäure + Ethandiol = PET.", "Diacid + diol → **polyester**: terephthalic acid + ethane-1,2-diol = PET."),
   });
@@ -695,7 +695,7 @@ function wasserZahl(): Task {
   ], {
     vis: { k: "beads", seq: Array.from({ length: n }, (_, i) => (i % 2 ? "ethandiol" : "terephthalsaeure")) },
     hint: T("Ein Wassermolekül je Verknüpfung (je Strich).", "One water molecule per link (per line)."),
-    tip: T(`Zeichne 3 Kügelchen mit Strichen: Wie viele Striche? Und bei ${n}?`, `Draw 3 beads with lines: how many lines? And with ${n}?`),
+    tip: T(`Zähle im Bild die Striche zwischen den ${n} Kügelchen. Wofür steht jeder Strich?`, `Count the lines between the ${n} beads in the picture. What does each line stand for?`),
     explain: T(`${n} Bausteine → ${n - 1} Verknüpfungen → **${n - 1} H₂O**.`, `${n} repeat units → ${n - 1} links → **${n - 1} H₂O**.`),
   });
 }

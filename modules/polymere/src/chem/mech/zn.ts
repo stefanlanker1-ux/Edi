@@ -115,6 +115,15 @@ export class ZnMech implements Mech {
     this.units.forEach((u, i) => { if (i > 5) for (const id of u.rel.keys()) if (sc.has(id)) sc.remove(id); });
   }
 
+  /** Pfeil vom Bindungspaar a–c zur neuen Bindung c···d, oberhalb von c (Seite zum anderen Ende), Bogen weg von c */
+  private over(a: string, c: string, d: string): Arrow {
+    const sc = this.sc, A = sc.at(a), C = sc.at(c), D = sc.at(d);
+    const side = (P: { x: number; y: number }, Q: { x: number; y: number }, R: { x: number; y: number }) => Math.sign(-(Q.y - P.y) * (R.x - P.x) + (Q.x - P.x) * (R.y - P.y)) || 1;
+    const p = { x: (A.x + C.x) / 2, y: (A.y + C.y) / 2 }, q = { x: C.x + (D.x - C.x) * 0.4, y: C.y + (D.y - C.y) * 0.4 };
+    const nx = -(q.y - p.y), ny = q.x - p.x, mx = (p.x + q.x) / 2 - C.x, my = (p.y + q.y) / 2 - C.y;
+    return { from: { b: [a, c], off: 0.13 * side(A, C, D) }, to: { b: [c, d], f: 0.4, off: 0.13 * side(C, D, A) }, bend: nx * mx + ny * my >= 0 ? 0.6 : -0.6 };
+  }
+
   /** erstes C‑Atom der Kette (am Titan) */
   private first(): string { return this.units[0]?.ids.ca ?? this.endGroup; }
 
@@ -186,14 +195,20 @@ export class ZnMech implements Mech {
     this.key(700, 700);
     // Vierring: Ti···C_a und C_b···C1 bilden sich
     sc.remove("pi");
-    // Butadien liegt über der ganzen Kette: etwas höher, damit seine C‑Atome nicht an die H der Kette stoßen
-    sc.move(all, 0, v.diene ? 0.25 : 0.45);
+    // Butadien liegt über der ganzen Kette: höher und etwas nach links, damit die neue Bindung C4···C1 steil zwischen den H der Kette
+    // hindurchführt (nicht über ein H) und darüber Platz für den Pfeil bleibt
+    sc.move(all, v.diene ? -0.6 : 0, v.diene ? -0.45 : 0.45);
     const c1 = this.first();
+    // Butadien: die H am ersten Ketten-C zeigen im Übergang nach unten (oben entsteht die neue Bindung); `layout` legt sie danach zurück
+    if (v.diene) {
+      const C = sc.at(c1), hs = sc.nb(c1).filter(i => sc.at(i).el === "H").sort((a, b) => sc.at(a).x - sc.at(b).x);
+      hs.forEach((h, i) => { const a = ((hs.length === 1 ? 90 : i === 0 ? 120 : 60) * Math.PI) / 180, r = Math.hypot(sc.at(h).x - C.x, sc.at(h).y - C.y); sc.set(h, { x: C.x + r * Math.cos(a), y: C.y + r * Math.sin(a) }); });
+    }
     sc.bond("tti", ids.ca, 1, "ts");
     sc.bond(v.diene ? ids.cb : ids.cb, c1, 1, "ts");
     this.key(900, 300, [
       { from: { b: [ids.ca, v.diene ? ids.mid![0] : ids.cb], off: 0.13 }, to: { b: ["tti", ids.ca], f: 0.55, off: -0.12 }, bend: -0.5 },
-      { from: { b: ["tti", c1], off: -0.13 }, to: { b: [c1, ids.cb], f: 0.5, off: 0.12 }, bend: 0.5 },
+      v.diene ? this.over("tti", c1, ids.cb) : { from: { b: ["tti", c1], off: -0.13 }, to: { b: [c1, ids.cb], f: 0.5, off: 0.12 }, bend: 0.5 },
       // Butadien (Einbau 1,4): die zweite π-Bindung wandert in die Mitte (C2=C3) – sonst fehlte am C2 eine Bindung
       ...(v.diene ? [{ from: { b: [ids.mid![1], ids.cb], off: -0.13 }, to: { b: [ids.mid![0], ids.mid![1]], off: -0.14 }, bend: 0.6 } as Arrow] : []),
     ]);

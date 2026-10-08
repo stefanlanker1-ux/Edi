@@ -1,7 +1,7 @@
 // Mechanismus zum Ansatz wählen, Abläufe ohne Animation nachspielen (Zurück, Wiederherstellen) und „Automatisch“.
 
 import { method, stepMono, vinyl, type FG, type VinylId } from "../data.ts";
-import { compat, reactGroups, seqKind } from "../rules.ts";
+import { anionFirst, compat, reactGroups, seqKind } from "../rules.ts";
 import { ChainMech } from "./chain.ts";
 import { StepMech } from "./step.ts";
 import { ZnMech } from "./zn.ts";
@@ -29,18 +29,34 @@ export function nextAuto(m: Mech, r: Recipe): string | null {
   const adds = acts.filter(a => a.kind === "add");
   const target = r.art === "poly" ? (r.b ? 6 : 5) : 5;
   if (r.art === "poly") {
-    // Monomer, das nicht reagiert, nur einmal zeigen – dann Ende
-    if (st.fail) return null;
+    const me = r.method ?? "dbpo";
+    // Monomer, das keine Ketten bildet: einmal zeigen (abprallend zuerst, mit Nebenreaktion nach zwei Bausteinen), sonst nur das andere
+    const bad = [r.a, r.b].find(m => m && compat(m as VinylId, me).fit === "none") as VinylId | undefined;
+    const badKind = bad && compat(bad, me).fail;
+    if (st.fail) {
+      // nach dem Fehlschlag weiter mit dem passenden Monomer – außer es kommt erst danach (nacheinander) oder es gibt keins
+      const good = bad && !(r.seq && bad === r.b) ? adds.find(a => a.mono !== bad && compat(a.mono as VinylId, me).fit !== "none") : undefined;
+      return good && st.n < target ? good.id : null;
+    }
     // nacheinander ohne lebende Ketten: je Monomer eine eigene Kette aus drei Bausteinen, dazwischen Abbruch bzw. Ablösen
     const sep = !!(r.b && r.seq && r.b !== r.a && seqKind(r.a as VinylId, r.b as VinylId, r.method ?? "dbpo") === "separate");
     // Ziegler-Natta: nach dem Ablösen der (letzten) Kette ist der Ablauf fertig – der Katalysator könnte weitere Ketten bilden
     if ((st.done ?? 0) >= (sep ? 2 : 1) && !st.n) return null;
     if (st.n < (sep ? target / 2 : target) && adds.length) {
-      const ms = adds.map(a => a.mono as VinylId);
-      if (ms.length === 1) return adds[0].id;
+      let pool = adds;
+      if (bad && adds.some(a => a.mono !== bad)) {
+        const show = r.seq ? (bad === r.a ? st.n === 0 : st.n >= target / 2) : badKind === "side" ? st.n === 2 : st.n === 0;
+        pool = adds.filter(a => (a.mono === bad) === show);
+      }
+      if (pool.length === 1) return pool[0].id;
       // nacheinander: Block aus a, dann Block aus b; gleichzeitig: zufällig (fest gewürfelt)
-      const pick = r.seq ? (st.n < target / 2 ? r.a : r.b!) : ((st.n * 7 + 3) % 5 < 3 ? r.a : r.b!);
-      return adds.find(a => a.mono === pick)?.id ?? adds[0].id;
+      let pick = r.seq ? (st.n < target / 2 ? r.a : r.b!) : ((st.n * 7 + 3) % 5 < 3 ? r.a : r.b!);
+      if (!r.seq && r.b && r.b !== r.a && method(me).kind === "anion" && !bad) {
+        // anionisch gleichzeitig: das schnellere Monomer zuerst (MMA vor Styrol; Butadien vor Styrol), das andere erst zum Schluss
+        const f = anionFirst(r.a as VinylId, r.b as VinylId);
+        pick = st.n < target - 2 ? f : f === r.a ? r.b : r.a;
+      }
+      return pool.find(a => a.mono === pick)?.id ?? pool[0].id;
     }
     const stop = acts.find(a => a.kind === "stop");
     return stop && st.n >= 1 ? stop.id : null;

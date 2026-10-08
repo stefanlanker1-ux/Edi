@@ -118,7 +118,7 @@ const K1: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Welches Polymer entsteht aus Propen?", "Complete: which polymer forms from propene?"),
-    answer: T("Polypropen", "Polypropene"), options: [T("Polypropen", "Polypropene"), T("Polyethen", "Polyethene"), T("Propan", "Propane")],
+    answer: T("Polypropen", "Polypropene"), options: [T("Polyethen", "Polyethene"), T("Polypropen", "Polypropene"), T("Propan", "Propane")],
     visual: () => <Pic v={{ k: "mono", id: "propen" }} />,
     lines: [T("Monomer: Propen", "Monomer: propene"), T("Polymer: Poly + Name des Monomers = {?}", "{?} = poly + name of the monomer")],
     why: { [T("Polyethen", "Polyethene")]: T("Polyethen entsteht aus Ethen – ohne CH₃-Gruppe.", "Polyethene forms from ethene – without a CH₃ group."), [T("Propan", "Propane")]: T("Propan ist das gesättigte Gegenstück zu Propen. Ohne C=C entsteht keine Kette.", "Propane is the saturated counterpart of propene. Without C=C no chain forms.") },
@@ -127,7 +127,7 @@ const K1: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Welches Molekül kann **keine** Kette bilden?", "Your turn: which molecule **cannot** form a chain?"),
-    answer: T("Ethan", "Ethane"), options: [T("Ethan", "Ethane"), T("Styrol", "Styrene"), T("Vinylchlorid", "Vinyl chloride")],
+    answer: T("Ethan", "Ethane"), options: [T("Styrol", "Styrene"), T("Vinylchlorid", "Vinyl chloride"), T("Ethan", "Ethane")],
     // alle drei Moleküle mit Namen und Strukturformel: gefragt ist nur, wo die C=C fehlt (Namen müssen nicht bekannt sein)
     visual: () => <Row items={[[{ k: "mono", id: "styrol" }, T("Styrol", "Styrene")], [{ k: "sat", id: "ethen" }, T("Ethan", "Ethane")], [{ k: "mono", id: "vinylchlorid" }, T("Vinylchlorid", "Vinyl chloride")]]} />,
     why: { [T("Styrol", "Styrene")]: T("Styrol hat eine C=C-Bindung – daraus wird Polystyrol.", "Styrene has a C=C bond – it becomes polystyrene."), [T("Vinylchlorid", "Vinyl chloride")]: T("Vinylchlorid hat eine C=C-Bindung – daraus wird Polyvinylchlorid (PVC).", "Vinyl chloride has a C=C bond – it becomes poly(vinyl chloride) (PVC).") },
@@ -160,7 +160,7 @@ const K1: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Welcher Baustein gehört zu Polystyrol?", "Your turn: which repeat unit belongs to polystyrene?"),
-    answer: "–CH₂–CH(C₆H₅)–", options: ["–CH₂–CH(C₆H₅)–", "CH₂=CH–C₆H₅", "–CH₂–CH(CH₃)–"],
+    answer: "–CH₂–CH(C₆H₅)–", options: ["CH₂=CH–C₆H₅", "–CH₂–CH(CH₃)–", "–CH₂–CH(C₆H₅)–"],
     visual: () => <Pic v={{ k: "mono", id: "styrol" }} />,
     why: { "CH₂=CH–C₆H₅": T("Das ist das Monomer: C=C ist noch da.", "That is the monomer: C=C is still there."), "–CH₂–CH(CH₃)–": T("Die CH₃-Gruppe gehört zu Polypropen.", "The CH₃ group belongs to polypropene.") },
     lines: [T("C=C öffnet sich, der **Benzolring** C₆H₅ bleibt.", "C=C opens, the **benzene ring** C₆H₅ stays.")],
@@ -234,7 +234,7 @@ const K2: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Wo sitzt nach dem Anlagern das Radikal?", "Complete: where is the radical after adding?"),
-    answer: T("am neuen Kettenende", "at the new chain end"), options: [T("am neuen Kettenende", "at the new chain end"), T("am Starter", "on the initiator"), T("nirgends", "nowhere")],
+    answer: T("am neuen Kettenende", "at the new chain end"), options: [T("am Starter", "on the initiator"), T("am neuen Kettenende", "at the new chain end"), T("nirgends", "nowhere")],
     visual: () => <MechPlay r={PS} acts={["heat", "add:styrol", "add:styrol"]} />,
     lines: [T("Ein Elektron der Zweifachbindung bleibt übrig", "One electron of the double bond is left over"), T("Das Radikal sitzt jetzt {?}", "The radical now sits {?}")],
     why: { [T("am Starter", "on the initiator")]: T("Das Starter-Elektron steckt jetzt in der neuen Bindung.", "The initiator electron is now in the new bond."), [T("nirgends", "nowhere")]: T("Es bleibt ein ungepaartes Elektron übrig – die Kette wächst weiter.", "An unpaired electron is left – the chain keeps growing.") },
@@ -277,7 +277,7 @@ const K2: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Welcher Abbruch verbindet zwei Ketten zu einer?", "Complete: which termination joins two chains into one?"),
-    answer: T("Rekombination", "Combination"), options: [T("Rekombination", "Combination"), T("Disproportionierung", "Disproportionation")],
+    answer: T("Rekombination", "Combination"), options: [T("Disproportionierung", "Disproportionation"), T("Rekombination", "Combination")],
     lines: [T("Die beiden Radikal-Elektronen bilden eine Bindung", "The two radical electrons form a bond"), T("Abbruch durch {?}", "{?} ends the chain")],
     why: { [T("Disproportionierung", "Disproportionation")]: T("Dabei wandert ein H‑Atom – es bleiben zwei Ketten.", "Here an H atom moves – two chains remain.") },
     ok: T("Rekombination: eine lange Kette.", "Combination: one long chain."),
@@ -293,7 +293,7 @@ const K2: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Was sitzt am Anfang jeder fertigen Kette?", "Your turn: what sits at the start of every finished chain?"),
-    answer: T("ein Bruchstück des Starters", "a fragment of the initiator"), options: [T("ein Bruchstück des Starters", "a fragment of the initiator"), T("ein Radikal", "a radical"), T("nichts", "nothing")],
+    answer: T("ein Bruchstück des Starters", "a fragment of the initiator"), options: [T("ein Radikal", "a radical"), T("ein Bruchstück des Starters", "a fragment of the initiator"), T("nichts", "nothing")],
     why: { [T("ein Radikal", "a radical")]: T("Das Radikal saß am wachsenden Ende – nach dem Abbruch ist es weg.", "The radical sat at the growing end – after termination it is gone."), [T("nichts", "nothing")]: T("Der Starter wird verbraucht und bleibt am Kettenanfang.", "The initiator is used up and stays at the start of the chain.") },
     lines: [T("C₆H₅ aus dem Starter bleibt als **Endgruppe** am Kettenanfang.", "C₆H₅ from the initiator stays at the start of the chain as the **end group**.")],
     ok: T("Der Starter wird verbraucht – er ist kein **Katalysator** (beschleunigt, ohne verbraucht zu werden).", "The initiator is used up – it is not a **catalyst** (speeds up without being used up)."),
@@ -317,7 +317,7 @@ const K3: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Wo lagert sich das nächste Monomer an?", "Complete: where does the next monomer attach?"),
-    answer: T("an der freien Stelle", "at the vacant site"), options: [T("an der freien Stelle", "at the vacant site"), T("an einem Radikal", "at a radical"), T("am Cl‑Atom", "at the Cl atom")],
+    answer: T("an der freien Stelle", "at the vacant site"), options: [T("an einem Radikal", "at a radical"), T("am Cl‑Atom", "at the Cl atom"), T("an der freien Stelle", "at the vacant site")],
     visual: () => <MechPlay r={ZN_PP} acts={["act", "add:propen", "add:propen"]} />,
     lines: [T("Eine **Aluminiumverbindung** gibt eine **Ethylgruppe** ans Titan – dort beginnt die Kette", "An **aluminium compound** gives an **ethyl group** to the titanium – the chain starts there"), T("Nach dem Einbau ist die Stelle am Titan wieder frei", "After insertion the site on the titanium is free again"), T("Das nächste Monomer kommt {?}", "The next monomer goes {?}")],
     why: { [T("an einem Radikal", "at a radical")]: T("Hier gibt es kein Radikal – die Kette hängt am Titan.", "There is no radical here – the chain hangs on the titanium."), [T("am Cl‑Atom", "at the Cl atom")]: T("Die Cl‑Atome halten das Titan, sie reagieren nicht.", "The Cl atoms hold the titanium, they do not react.") },
@@ -359,7 +359,7 @@ const K3: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Welches Monomer kann man mit Ziegler-Natta polymerisieren?", "Your turn: which monomer can be polymerised with Ziegler–Natta?"),
-    answer: T("Propen", "Propene"), options: [T("Propen", "Propene"), T("Acrylnitril", "Acrylonitrile"), T("Vinylacetat", "Vinyl acetate")],
+    answer: T("Propen", "Propene"), options: [T("Acrylnitril", "Acrylonitrile"), T("Vinylacetat", "Vinyl acetate"), T("Propen", "Propene")],
     why: { [T("Acrylnitril", "Acrylonitrile")]: T("Das N‑Atom der C≡N-Gruppe vergiftet das Titan.", "The N atom of the C≡N group poisons the titanium."), [T("Vinylacetat", "Vinyl acetate")]: T("Die O‑Atome der Acetatgruppe vergiften das Titan.", "The O atoms of the acetate group poison the titanium.") },
     lines: [T("Propen hat nur C- und H‑Atome.", "Propene has only C and H atoms."), T("**Acrylnitril** (C≡N-Gruppe) und **Vinylacetat** (**Acetatgruppe**) vergiften wie MMA.", "**Acrylonitrile** (C≡N group) and **vinyl acetate** (**acetate group**) poison like MMA.")],
     ok: T("Propen, Ethen, Styrol, Butadien: ohne O, N, Cl, F.", "Propene, ethene, styrene, butadiene: without O, N, Cl, F."),
@@ -380,7 +380,7 @@ const K3: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Wie ist diese Kette gebaut?", "Complete: how is this chain built?"),
-    answer: T("isotaktisch", "isotactic"), options: [T("isotaktisch", "isotactic"), T("ataktisch", "atactic")],
+    answer: T("isotaktisch", "isotactic"), options: [T("ataktisch", "atactic"), T("isotaktisch", "isotactic")],
     visual: () => <Pic v={{ k: "chain", id: "styrol", n: 4, tact: "iso" }} />,
     lines: [T("Alle Benzolringe zeigen nach oben", "All benzene rings point upwards"), T("Also: {?}", "So: {?}")],
     why: { [T("ataktisch", "atactic")]: T("Ataktisch wären die Ringe zufällig oben und unten.", "Atactic would have the rings randomly above and below.") },
@@ -413,7 +413,7 @@ const K3: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Lebende Styrol-Ketten + Butadien ergeben …", "Complete: living styrene chains + butadiene give …"),
-    answer: T("ein Blockcopolymer", "a block copolymer"), options: [T("ein Blockcopolymer", "a block copolymer"), T("zwei getrennte Polymere", "two separate polymers")],
+    answer: T("ein Blockcopolymer", "a block copolymer"), options: [T("zwei getrennte Polymere", "two separate polymers"), T("ein Blockcopolymer", "a block copolymer")],
     visual: () => <Strips rows={[["", ["styrol", "styrol", "styrol", "styrol", "styrol", "butadien", "butadien", "butadien", "butadien"]]]} />,
     lines: [T("Die Ketten leben noch – Butadien wächst an jede Kette", "The chains are still alive – butadiene grows onto each chain"), T("Ergebnis: {?}", "Result: {?}")],
     why: { [T("zwei getrennte Polymere", "two separate polymers")]: T("Getrennt wird es nur, wenn die Ketten schon abgebrochen sind.", "It only becomes separate when the chains have already stopped.") },
@@ -439,7 +439,7 @@ const K4: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Was wird bei –COOH + –OH abgespalten?", "Complete: what is split off from –COOH + –OH?"),
-    answer: "H₂O", options: ["H₂O", "H₂", "CO₂"],
+    answer: "H₂O", options: ["H₂", "H₂O", "CO₂"],
     visual: () => <MechPlay r={PET} acts={["join", "add:terephthalsaeure"]} />,
     lines: [T("Von –COOH geht OH weg, von –OH ein H", "OH leaves –COOH, H leaves –OH"), T("OH + H = {?}", "OH + H = {?}")],
     why: { "H₂": T("Das O‑Atom aus der Säuregruppe geht mit ab.", "The O atom from the acid group leaves as well."), "CO₂": T("Das C‑Atom bleibt in der Kette.", "The C atom stays in the chain.") },
@@ -468,7 +468,7 @@ const K4: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Adipinsäuredichlorid + Hexan-1,6-diamin – was wird abgespalten?", "Your turn: adipoyl chloride + hexane-1,6-diamine – what is split off?"),
-    answer: "HCl", options: ["HCl", "H₂O", "Cl₂"],
+    answer: "HCl", options: ["H₂O", "HCl", "Cl₂"],
     visual: () => <Pic v={{ k: "pair", a: "adipoylchlorid", b: "hexandiamin" }} />,
     why: { "H₂O": T("Das Säurechlorid hat Cl statt OH.", "The acyl chloride has Cl instead of OH."), "Cl₂": T("Das Cl verbindet sich mit dem H der Aminogruppe.", "The Cl joins with the H of the amino group.") },
     lines: [T("–COCl + H₂N– → –CO–⁠NH–⁠ + HCl", "–COCl + H₂N– → –CO–⁠NH–⁠ + HCl")],
@@ -489,7 +489,7 @@ const K4: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Was entsteht aus Adipinsäure und Glycerin?", "Complete: what forms from adipic acid and glycerol?"),
-    answer: T("ein Netz", "a network"), options: [T("ein Netz", "a network"), T("lange Ketten", "long chains"), T("kleine Moleküle", "small molecules")],
+    answer: T("ein Netz", "a network"), options: [T("lange Ketten", "long chains"), T("kleine Moleküle", "small molecules"), T("ein Netz", "a network")],
     lines: [T("Glycerin hat 3 reaktive Gruppen", "Glycerol has 3 reactive groups"), T("3 Gruppen verknüpfen die Ketten. Es entsteht {?}", "3 groups link the chains. The result is {?}")],
     why: { [T("lange Ketten", "long chains")]: T("Die dritte Gruppe verknüpft die Ketten untereinander.", "The third group links the chains to each other."), [T("kleine Moleküle", "small molecules")]: T("Beide Monomere haben mehrere Gruppen – es wird groß.", "Both monomers have several groups – it gets big.") },
     ok: T("Polyesterharz: ein Netz.", "Polyester resin: a network."),
@@ -534,7 +534,7 @@ const K5: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Welches Atom wandert?", "Complete: which atom moves?"),
-    answer: "H", options: ["H", "O", "N"],
+    answer: "H", options: ["O", "N", "H"],
     visual: () => <MechPlay r={PUR} acts={["join", "add:hdi"]} />,
     lines: [T("–OH gibt sein H ab und behält das O", "–OH gives off its H and keeps the O"), T("Es wandert: {?}", "It moves: {?}")],
     why: { "O": T("Das O bleibt und bindet an das C‑Atom.", "The O stays and binds to the C atom."), "N": T("Das N nimmt das H auf – es wandert nicht.", "The N takes up the H – it does not move.") },
@@ -543,7 +543,7 @@ const K5: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Isocyanat + **Amin** (–NH₂) – welche Gruppe entsteht?", "Complete: isocyanate + **amine** (–NH₂) – which group forms?"),
-    answer: T("Harnstoffgruppe", "urea group"), options: [T("Harnstoffgruppe", "urea group"), T("Urethangruppe", "urethane group"), T("Amidbindung", "amide bond")],
+    answer: T("Harnstoffgruppe", "urea group"), options: [T("Urethangruppe", "urethane group"), T("Harnstoffgruppe", "urea group"), T("Amidbindung", "amide bond")],
     lines: [T("Das H wandert vom N des Amins zum N des Isocyanats", "The H moves from the N of the amine to the N of the isocyanate"), T("Es entsteht –NH–⁠CO–⁠NH–⁠: die {?}", "–NH–⁠CO–⁠NH–⁠ forms: the {?}")],
     why: {
       [T("Urethangruppe", "urethane group")]: T("Urethan entsteht mit –OH. Mit –NH₂ entsteht Harnstoff: –NH–⁠CO–⁠NH–⁠.", "Urethane forms with –OH. With –NH₂ urea forms: –NH–⁠CO–⁠NH–⁠."),
@@ -554,7 +554,7 @@ const K5: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Was wird bei der Polyaddition abgespalten?", "Your turn: what is split off in polyaddition?"),
-    answer: T("nichts", "nothing"), options: [T("nichts", "nothing"), T("Wasser", "water"), "HCl"],
+    answer: T("nichts", "nothing"), options: [T("Wasser", "water"), T("nichts", "nothing"), "HCl"],
     why: { [T("Wasser", "water")]: T("Wasser geht bei der Polykondensation ab, nicht hier.", "Water leaves in polycondensation, not here."), HCl: T("HCl geht nur bei Säurechloriden ab.", "HCl only leaves with acyl chlorides.") },
     lines: [T("Alle Atome bleiben im Polymer.", "All atoms stay in the polymer.")],
     ok: T("Addition: nur zusammenfügen.", "Addition: only joining."),
@@ -575,7 +575,7 @@ const K5: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Wie oft reagiert eine –NH₂-Gruppe mit Epoxidgruppen?", "Complete: how often does an –NH₂ group react with epoxide groups?"),
-    answer: T("zweimal", "twice"), options: [T("zweimal", "twice"), T("einmal", "once")],
+    answer: T("zweimal", "twice"), options: [T("einmal", "once"), T("zweimal", "twice")],
     lines: [T("–NH₂ hat zwei H‑Atome", "–NH₂ has two H atoms"), T("Jedes H kann wandern → {?}", "Each H can move → {?}")],
     why: { [T("einmal", "once")]: T("Nach der ersten Reaktion bleibt noch ein H am N.", "After the first reaction one H is still left on the N.") },
     ok: T("Darum entsteht ein Netz.", "That is why a network forms."),
@@ -595,7 +595,7 @@ const K5: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: MDI (Diphenylmethandiisocyanat) + Butan-1,4-diol – welche Reaktionsart?", "Complete: MDI (methylene diphenyl diisocyanate) + butane-1,4-diol – which type of reaction?"),
-    answer: T("Polyaddition", "Polyaddition"), options: [T("Polyaddition", "Polyaddition"), T("Polykondensation", "Polycondensation"), T("Polymerisation", "Polymerisation")],
+    answer: T("Polyaddition", "Polyaddition"), options: [T("Polykondensation", "Polycondensation"), T("Polymerisation", "Polymerisation"), T("Polyaddition", "Polyaddition")],
     lines: [T("MDI hat –⁠N=C=O, Butandiol –OH: es entsteht Urethan", "MDI has –⁠N=C=O, butanediol –OH: urethane forms"), T("Kein Nebenprodukt → {?}", "No by-product → {?}")],
     why: { [T("Polykondensation", "Polycondensation")]: T("Dabei ginge ein kleines Molekül ab – hier nicht.", "That would split off a small molecule – not here."), [T("Polymerisation", "Polymerisation")]: T("Polymerisation braucht C=C im Monomer.", "Polymerisation needs C=C in the monomer.") },
     ok: T("Isocyanat + Alkohol: Polyaddition.", "Isocyanate + alcohol: polyaddition."),
@@ -640,7 +640,7 @@ const K6: GuideStep[] = [
   {
     mode: "free",
     ask: T("Jetzt du: Ein Topfgriff darf am heißen Topf nicht weich werden. Welche Kunststoffart?", "Your turn: a pan handle must not soften on a hot pan. Which type of plastic?"),
-    answer: T("Duroplast", "Thermoset"), options: [T("Duroplast", "Thermoset"), T("Thermoplast", "Thermoplastic"), T("Elastomer", "Elastomer")],
+    answer: T("Duroplast", "Thermoset"), options: [T("Thermoplast", "Thermoplastic"), T("Elastomer", "Elastomer"), T("Duroplast", "Thermoset")],
     why: { [T("Thermoplast", "Thermoplastic")]: T("Ein Thermoplast würde am heißen Topf weich.", "A thermoplastic would soften on the hot pan."), [T("Elastomer", "Elastomer")]: T("Ein Elastomer ist weich und dehnbar – kein fester Griff.", "An elastomer is soft and stretchy – not a firm handle.") },
     lines: [T("Hitzefest und hart: dichtes Netz.", "Heat-resistant and hard: dense network.")],
     ok: T("Topfgriffe sind oft aus Duroplast (Phenoplast).", "Pan handles are often made of thermoset (phenolic resin)."),
@@ -664,7 +664,7 @@ const K6: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Welches Copolymer ist das?", "Complete: which copolymer is this?"),
-    answer: T("Blockcopolymer", "Block copolymer"), options: [T("Blockcopolymer", "Block copolymer"), T("statistisches Copolymer", "random copolymer")],
+    answer: T("Blockcopolymer", "Block copolymer"), options: [T("statistisches Copolymer", "random copolymer"), T("Blockcopolymer", "Block copolymer")],
     visual: () => <Strips rows={[["", ["ethen", "ethen", "ethen", "ethen", "ethen", "propen", "propen", "propen", "propen", "propen"]]]} />,
     lines: [T("Erst 5 graue, dann 5 blaue Kügelchen", "First 5 grey, then 5 blue beads"), T("→ {?}", "→ {?}")],
     why: { [T("statistisches Copolymer", "random copolymer")]: T("Statistisch wären die Farben gemischt.", "Random would have the colours mixed.") },

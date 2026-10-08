@@ -417,3 +417,12 @@ test("Abgespaltenes Molekül: Bild zeigt das Wasser (ohne Beschriftung, die die 
     assert.ok(s.atoms.some(a => a.el === "O" && nb(a.id).length === 2 && nb(a.id).every(x => s.atoms.find(y => y.id === x)?.el === "H")), "kein Wasser im Bild");
   }
 });
+
+test("Tipps nehmen die Antwort nicht vorweg (Wasser zählen, freie Stelle, Paar wählen)", () => {
+  for (let k = 0; k < 20; k++) {
+    const t = GENERATORS.wasserZahl() as { tip?: string; options: string[]; answer: number };
+    assert.ok(!t.tip!.includes(t.options[t.answer]), t.tip);
+  }
+  assert.ok(!/Platz\?|noch Platz/.test((GENERATORS.freieStelle() as { tip?: string }).tip!));
+  assert.ok(!/zweimal –COOH/.test((GENERATORS.paarWahl() as { tip?: string }).tip!));
+});

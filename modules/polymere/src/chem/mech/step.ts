@@ -17,6 +17,22 @@ export const STEP_STEP = tr(
 
 interface Mol { mol: StepMol; ids: StepId[] }
 
+/** was die Atom-Ansicht vereinfacht (hinter „ⓘ“) */
+const SIMPLE = () => tr(
+  {
+    ester: "Vereinfacht: Gezeigt sind die drei Hauptschritte (Angriff, H⁺ wandert, Wasser geht ab). In Wirklichkeit braucht die Veresterung Wärme und eine Säure als Katalysator.",
+    amid: "Vereinfacht: Gezeigt sind die drei Hauptschritte (Angriff, H⁺ wandert, Wasser geht ab). In Wirklichkeit gibt die –COOH ihr H⁺ zuerst an die –NH₂ ab (ein Salz); erst beim Erhitzen entsteht die Amidbindung.",
+    chlorid: "Vereinfacht: Gezeigt sind die drei Hauptschritte (Angriff, Cl⁻ geht ab, H⁺ wandert). In Wirklichkeit fängt meist eine zugesetzte Base das HCl ab.",
+    pf: "Vereinfacht: Gezeigt ist nur die Bilanz. In Wirklichkeit bindet Methanal zuerst als –CH₂OH an den Ring; erst danach entsteht die CH₂-Brücke (mit Säure oder Base als Katalysator).",
+  },
+  {
+    ester: "Simplified: the three main steps are shown (attack, H⁺ moves, water leaves). In reality esterification needs heat and an acid as catalyst.",
+    amid: "Simplified: the three main steps are shown (attack, H⁺ moves, water leaves). In reality the –COOH first gives its H⁺ to the –NH₂ (a salt); only on heating does the amide bond form.",
+    chlorid: "Simplified: the three main steps are shown (attack, Cl⁻ leaves, H⁺ moves). In reality an added base usually takes up the HCl.",
+    pf: "Simplified: only the overall result is shown. In reality methanal first binds to the ring as –CH₂OH; only then does the CH₂ bridge form (with an acid or base as catalyst).",
+  },
+);
+
 /** Gruppen in Formelschreibweise */
 const FG_TEXT = (): Record<FG, string> => ({ COOH: "–COOH", COCl: "–COCl", OH: "–OH", NH2: "–NH₂", NCO: "–N=C=O", EPOX: tr("eine Epoxidgruppe", "an epoxide group"), ArH: "Ar–H", CHO: "–CHO" });
 /** Begründung, wenn das neue Molekül nicht an das Kettenende passt – mit den Gruppen genau dieser Stelle */
@@ -53,6 +69,8 @@ export class StepMech implements Mech {
   private seq = 0;
   private a: StepId;
   private b: StepId;
+  /** Partner, der nicht reagiert (das Monomer mit zwei verschiedenen Gruppen reagiert dann nur mit sich selbst) */
+  private idle?: StepId;
   private fx = -99;
   /** Breite des Ausschnitts (Kettenende + Platz für das nächste Molekül) */
   private fw = 8.2;
@@ -60,6 +78,9 @@ export class StepMech implements Mech {
   constructor(public recipe: Recipe) {
     this.a = recipe.a as StepId;
     this.b = (recipe.b ?? recipe.a) as StepId;
+    // reagiert der Partner nicht, beginnt die Kette mit dem Monomer, das mit sich selbst reagiert (Milchsäure + Phenol → PLA)
+    this.idle = recipe.b ? stepReact(this.a, this.b).unreacted : undefined;
+    if (this.idle === this.a) [this.a, this.b] = [this.b, this.a];
     const sc = this.sc;
     if (this.isPhenoplast()) {
       // Phenol – Methanal – Phenol: Methanal über der Lücke, der zweite Ring rechts daneben (wie kurz vor dem Verknüpfen)
@@ -76,7 +97,14 @@ export class StepMech implements Mech {
       this.fw = Math.max(...xs) + 0.2 - this.fx;
       return;
     }
-    const A = stepMolecule(sc, this.a, 0, 0, this.ctx(this.a));
+    let A = stepMolecule(sc, this.a, 0, 0, this.ctx(this.a));
+    // passt nur die linke Gruppe zum zweiten Monomer (Milchsäure + Disäure: –OH links), wird das erste Molekül gewendet
+    const fitsB = (e?: End) => !!e && stepMono(this.b).groups.some(g => reactGroups(e.fg, g));
+    if (!fitsB(A.ends.find(e => e.s === 1 && !e.branch)) && fitsB(A.ends.find(e => e.s === -1 && !e.branch))) {
+      const m: Mol = { mol: A, ids: [this.a] };
+      this.mirror(m);
+      A = m.mol;
+    }
     this.units.push(this.a);
     this.right = A.ends.find(e => e.s === 1 && !e.branch) ?? null;
     this.addBranches(A.ends, 0, [this.a]);
@@ -93,8 +121,8 @@ export class StepMech implements Mech {
   /** Ausschnitt: Kettenende links, Platz für das nächste Molekül rechts */
   private aim() {
     if (!this.right) return;
-    this.fx = this.sc.at(this.right.anchor).x - 3.4;
-    this.fw = 8.2;
+    this.fx = this.sc.at(this.right.anchor).x - 3.2;
+    this.fw = 7.8;
   }
 
   private isPhenoplast() { return (this.a === "phenol" && this.b === "methanal") || (this.a === "methanal" && this.b === "phenol"); }
@@ -116,7 +144,7 @@ export class StepMech implements Mech {
     if (this.pending) return [{ id: "join", kind: "start", label: tr("Verknüpfen", "Link") }];
     const out: Action[] = [];
     if (this.isPhenoplast()) out.push({ id: "add:pf", kind: "add", pair: ["methanal", "phenol"], label: tr("+ Methanal + Phenol", "+ methanal + phenol") });
-    else for (const m of [...new Set([this.a, this.b])]) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${stepMono(m).name}` });
+    else for (const m of [...new Set([this.a, this.b])].filter(x => x !== this.idle)) out.push({ id: `add:${m}`, kind: "add", mono: m, label: `+ ${stepMono(m).name}` });
     // Ast an der dritten –OH des Glycerins (mit dem Partner, dessen Gruppe dazu passt)
     const free = this.branches.find(b => !b.used);
     const bm = free && [this.a, this.b].find(m => m !== "glycerin" && stepMono(m).groups.some(g => reactGroups(free.end.fg, g)));
@@ -244,7 +272,7 @@ export class StepMech implements Mech {
       this.key(0, 0);
       all.forEach(i => sc.remove(i));
       sc.unnote("x");
-      if (initial) this.phase = "aus";
+      if (initial) this.phase = this.idle ? "wachsend" : "aus";
       return;
     }
     this.fail = undefined;
@@ -262,6 +290,7 @@ export class StepMech implements Mech {
     this.addBranches(m.mol.ends, this.units.length, m.ids);
     this.units.push(...m.ids);
     this.stepName = dimer ? STEP_STEP.zwei : LINK_SHORT[r.link];
+    this.note = acyl ? SIMPLE()[R.fg === "COCl" || L.fg === "COCl" ? "chlorid" : r.link === "amid" ? "amid" : "ester"] : undefined;
     this.key(700, 900);
     this.release();
     // neues rechtes Ende
@@ -383,12 +412,12 @@ export class StepMech implements Mech {
   }
 
   /** H‑Atom h an Atom x in Richtung `prefer` legen – liegt dort schon ein Atom zu nah, in die freieste Richtung (30°-Schritte) */
-  private freeH(h: string, x: string, prefer: number) {
+  private freeH(h: string, x: string, prefer: number, minD = 0.75) {
     const sc = this.sc, X = sc.at(x);
     const others = [...sc.atoms.values()].filter(a => a.id !== h && a.id !== x && (a.op ?? 1) > 0.05 && (a.text ?? a.el) !== "");
     const score = (a: number) => { const q = { x: X.x + 0.8 * Math.cos((a * Math.PI) / 180), y: X.y + 0.8 * Math.sin((a * Math.PI) / 180) }; return { q, d: Math.min(...others.map(o => Math.hypot(o.x - q.x, o.y - q.y))) }; };
     let best = score(prefer);
-    if (best.d < 0.75) for (let a = 0; a < 360; a += 30) { const t = score(a); if (t.d > best.d + 0.05) best = t; }
+    if (best.d < minD) for (let a = 0; a < 360; a += 30) { const t = score(a); if (t.d > best.d + 0.05) best = t; }
     sc.set(h, best.q);
   }
 
@@ -406,7 +435,8 @@ export class StepMech implements Mech {
     if (ha) sc.set(ha, spot(far));
     // H am O⁺/N⁺ schräg zur Seite der abgehenden Gruppe (so bleibt Platz für die Pfeile der H⁺-Wanderung)
     const CC = sc.at(c), NU = sc.at(nu), side = Math.sign((NU.x - CC.x) * (LO.y - CC.y) - (NU.y - CC.y) * (LO.x - CC.x)) || 1;
-    this.freeH(hn, nu, this.ang(c, nu) + 60 * side);
+    // (etwas Gedränge ist erlaubt: sonst rückte das H zu nah an die –OH der Säure, und der Pfeil der H⁺-Wanderung würde winzig)
+    this.freeH(hn, nu, this.ang(c, nu) + 60 * side, 0.5);
     // O⁻: Ladung zur Seite des Nucleophils (auf der anderen Seite setzt der Pfeil ③ an)
     sc.set(od, { q: -1 }); sc.autoLp(od, 3, this.ang(c, od)); sc.set(od, { qa: this.sideAng(this.ang(c, od), { x: -away.x, y: -away.y }) });
     sc.set(nu, { q: 1 });
@@ -414,14 +444,28 @@ export class StepMech implements Mech {
     sc.set(nu, { qa: this.freeAng(nu) });
     if (ha) sc.autoLp(lo, 2, w);
     // Pfeile erst kurz vor dem jeweiligen Bild anlegen (die Wölbung richtet sich nach der Lage in diesem Bild)
-    const transfer = (to: string): Arrow[] => [
-      this.bulge({ from: { a: to, ang: this.ang(to, hn), r: 0.34 }, to: { a: hn, ang: this.ang(hn, to), r: 0.27 } }, c, 0.45),
-      this.bulge({ from: { b: [nu, hn], off: this.sideOff(nu, hn, this.unit(sc.at(hn), sc.at(to), true), 0.12) }, to: { a: nu, ang: this.sideAng(this.ang(nu, hn), this.unit(sc.at(hn), sc.at(to), true)), r: 0.42 } }, hn),
-    ];
-    const elim = (): Arrow[] => [
-      this.bulge({ from: { a: od, ang: this.sideAng(this.ang(c, od), away), r: 0.42 }, to: { b: [c, od], off: this.sideOff(c, od, away) } }, c),
-      this.bulge({ from: { b: [c, lo], f: 0.35, off: this.sideOff(c, lo, away) }, to: { a: lo, ang: this.sideAng(w + 180, away, 90), r: sc.at(lo).el === "Cl" ? 0.62 : 0.46 } }, lo),
-    ];
+    // H⁺ wandert: Paar von `to` zum H; Bindungspaar N–H bzw. O–H zum N bzw. O – es endet auf der freien Seite, weit genug vom H,
+    // damit der Pfeil auch am Handy als Bogen zu sehen ist (nicht als winziger Haken)
+    const transfer = (to: string): Arrow[] => {
+      const th = this.ang(nu, hn);
+      const end = this.clearAng(nu, [th + 90, th - 90, th + 135, th - 135, th + 180], 0.44);
+      const dir = this.dirOf(end);
+      return [
+        this.bulge({ from: { a: to, ang: this.ang(to, hn), r: 0.34 }, to: { a: hn, ang: this.ang(hn, to), r: 0.27 } }, c, 0.45),
+        this.bulge({ from: { b: [nu, hn], f: 0.62, off: this.sideOff(nu, hn, dir, 0.12) }, to: { a: nu, ang: end, r: 0.44 } }, nu, 0.6),
+      ];
+    };
+    // C=O bildet sich zurück; das Bindungspaar C–O bzw. C–Cl geht ganz an das abgehende Atom – der Pfeil endet dort auf der vom C abgewandten Seite
+    const elim = (): Arrow[] => {
+      const wl = this.ang(c, lo), cl = sc.at(lo).el === "Cl";
+      const end = this.clearAng(lo, [wl + 70, wl - 70, wl + 100, wl - 100, wl + 40, wl - 40], cl ? 0.62 : 0.46);
+      // Ladungszeichen nicht dorthin, wo der Pfeil endet
+      if (sc.at(lo).q) sc.set(lo, { qa: this.clearAng(lo, [end + 180, end + 135, end - 135, end + 90, end - 90], 0.5, end) });
+      return [
+        this.bulge({ from: { a: od, ang: this.sideAng(this.ang(c, od), away), r: 0.42 }, to: { b: [c, od], off: this.sideOff(c, od, away) } }, c),
+        this.bulge({ from: { b: [c, lo], f: 0.4, off: this.sideOff(c, lo, this.dirOf(end)) }, to: { a: lo, ang: end, r: cl ? 0.62 : 0.46 } }, lo, 0.55),
+      ];
+    };
     const neutralNu = () => { sc.set(nu, { q: 0 }); sc.autoLp(nu, isN ? 1 : 2, this.ang(nu, c) + 180); };
     if (!chloride) {
       // ② H⁺ wandert vom O⁺/N⁺ zur –OH der Säure
@@ -441,7 +485,8 @@ export class StepMech implements Mech {
       this.key(900, 300, elim());
       sc.unbond(c, lo); sc.order(c, od, 2);
       sc.set(od, { q: 0 }); sc.autoLp(od, 2, this.ang(c, od));
-      sc.set(lo, { ...spot(w), q: -1, qa: w + 45, lp: [w - 45, w + 135, w - 135] });
+      // Cl⁻: vier freie Elektronenpaare (Formalladung −1), Ladungszeichen schräg dazwischen
+      sc.set(lo, { ...spot(w), q: -1, qa: w + 135, lp: [w, w + 90, w + 180, w - 90] });
       // ③ Cl⁻ nimmt das H⁺ vom N⁺ bzw. O⁺
       this.key(900, 300, transfer(lo));
       sc.unbond(nu, hn); sc.bond(lo, hn);
@@ -465,6 +510,27 @@ export class StepMech implements Mech {
     this.byp++;
   }
 
+  private dirOf(a: number) { return { x: Math.cos((a * Math.PI) / 180), y: Math.sin((a * Math.PI) / 180) }; }
+
+  /** Richtung (Grad) um ein Atom, in der ein Punkt im Abstand r am meisten Platz hat: weg von den eigenen Bindungen, freien Paaren und dem
+   *  Ladungszeichen und von anderen beschrifteten Atomen (z. B. CH₃ neben der abgehenden –OH). `avoid`: weitere belegte Richtung */
+  private clearAng(id: string, cands: number[], r: number, avoid?: number) {
+    const sc = this.sc, A = sc.at(id);
+    const own = [...sc.bondAngles(id), ...(A.lp ?? []), ...(A.q && avoid === undefined ? [A.qa ?? 0] : []), ...(avoid !== undefined ? [avoid] : [])];
+    const near = new Set(sc.nb(id));
+    const others = [...sc.atoms.values()].filter(o => o.id !== id && (o.op ?? 1) > 0.05 && (o.text ?? o.el) !== "");
+    let best = cands[0], bestS = -Infinity;
+    for (const a of cands) {
+      const d = this.dirOf(a), P = { x: A.x + r * d.x, y: A.y + r * d.y };
+      const gap = Math.min(180, ...own.map(u => Math.abs(((a - u + 540) % 360) - 180)));
+      // Gedränge: jedes Atom in der Nähe zählt (näher = mehr), Nachbarn etwas mehr
+      const crowd = others.reduce((t, o) => t + Math.max(0, 1.4 - Math.hypot(o.x - P.x, o.y - P.y) + (near.has(o.id) ? 0.2 : 0)), 0);
+      const sc0 = Math.min(gap, 70) / 70 - crowd;
+      if (sc0 > bestS + 1e-6) { bestS = sc0; best = a; }
+    }
+    return best;
+  }
+
   /** freie Richtung (Grad) für das Ladungszeichen: größter Abstand zu Bindungen und freien Paaren */
   private freeAng(id: string) {
     const used = [...this.sc.bondAngles(id), ...(this.sc.at(id).lp ?? [])];
@@ -474,10 +540,6 @@ export class StepMech implements Mech {
     return best;
   }
 
-  private unit(a: { x: number; y: number }, b: { x: number; y: number }, flip = false) {
-    const l = Math.hypot(b.x - a.x, b.y - a.y) || 1, k = flip ? -1 : 1;
-    return { x: (k * (b.x - a.x)) / l, y: (k * (b.y - a.y)) / l };
-  }
 
   /** x des verknüpfenden Atoms des neuen Moleküls nach der Verknüpfung */
   private placeX(R: End, L: End): number {
@@ -652,6 +714,7 @@ export class StepMech implements Mech {
     this.bypIds.push(o, ha, hb);
     this.units.push(...m.ids);
     this.stepName = LINK_SHORT.methylen;
+    this.note = SIMPLE().pf;
     this.key(700, 900);
     this.release(-1.2);
     this.right = m.mol.ends.find(e => e.fg === "ArH" && e.s === 1) ?? null;

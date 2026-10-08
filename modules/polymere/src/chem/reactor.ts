@@ -14,7 +14,7 @@
 
 import { tr } from "@lern/i18n";
 import { method, monoName, stepMono, type FG, type MechKind, type StepId, type VinylId } from "./data.ts";
-import { anionStarts, compat, functionality, reactGroups, seqKind, stepReact } from "./rules.ts";
+import { anionFirst, anionStarts, compat, functionality, polymerise, reactGroups, seqKind, stepReact } from "./rules.ts";
 import { rng } from "./mech/chain.ts";
 import type { Action, Recipe } from "./mech/types.ts";
 
@@ -64,6 +64,8 @@ export interface RStats {
   /** abgespaltene Nebenprodukt-Moleküle */
   byp: number;
   bypName?: string;
+  /** Nebenprodukte je Art (Säurechlorid + Milchsäure: HCl und H₂O) */
+  bypParts?: [string, number][];
   /** fertige Ketten am Katalysator (Ziegler-Natta) */
   released: number;
   /** letzter Vorgang (Kennzeichen) */
@@ -77,10 +79,10 @@ export interface RStats {
 const EV = tr(
   { zerfall: "Starter zerfällt", start: "Ketten starten", wachstum: "Kettenwachstum", rekombination: "Rekombination", disproportionierung: "Disproportionierung",
     uebertragung: "H⁺ wandert weiter", vergiftet: "Katalysator vergiftet", h2: "Ketten abgelöst (H₂)", methanol: "Abbruch mit Methanol", methanolZu: "Methanol zugegeben", verknuepfung: "Verknüpfung",
-    keine: "keine Reaktion", allyl: "H‑Atom abgerissen", neben: "Nebenreaktion", netz: "Netz entsteht" },
+    keine: "keine Reaktion", allyl: "H‑Atom abgerissen", neben: "Nebenreaktion", netz: "Netz entsteht", neu: "neue Ketten starten" },
   { zerfall: "Initiator decomposes", start: "Chains start", wachstum: "Propagation", rekombination: "Combination", disproportionierung: "Disproportionation",
     uebertragung: "H⁺ moves on", vergiftet: "Catalyst poisoned", h2: "Chains released (H₂)", methanol: "Stopped with methanol", methanolZu: "Methanol added", verknuepfung: "Linking",
-    keine: "No reaction", allyl: "H atom pulled off", neben: "Side reaction", netz: "Network forms" },
+    keine: "No reaction", allyl: "H atom pulled off", neben: "Side reaction", netz: "Network forms", neu: "New chains start" },
 );
 
 /** Wahrscheinlichkeiten je Berührung bzw. Schritt */
@@ -134,6 +136,12 @@ export class Reactor {
   private partners = new Map<FG, FG[]>();
   /** Stufenwachstum: entsteht nach den Regeln ein Netz? */
   private netPossible = false;
+  /** Stufenwachstum: Partner, der nicht reagiert (das andere Monomer reagiert nur mit sich selbst) */
+  private idleStep?: string;
+  /** Nebenprodukte je Art */
+  private bypKinds = new Map<string, number>();
+  /** freie Monomere je Art (anionisch gleichzeitig: das schnellere Monomer zuerst) */
+  private free = new Map<string, number>();
 
   constructor(public recipe: Recipe, W: number, H: number, seed = 7) {
     this.W = W; this.H = H;
@@ -143,7 +151,9 @@ export class Reactor {
     if (this.kind === "step") {
       const gs = [...new Set(this.monos.flatMap(m => stepMono(m).groups))];
       for (const x of gs) this.partners.set(x, gs.filter(y => reactGroups(x, y)));
-      this.netPossible = stepReact(recipe.a as StepId, recipe.b as StepId | undefined).struktur === "vernetzt";
+      const out = stepReact(recipe.a as StepId, recipe.b as StepId | undefined);
+      this.netPossible = out.struktur === "vernetzt";
+      this.idleStep = out.unreacted;
       this.fillStep();
     } else this.fillChain();
   }
@@ -202,7 +212,7 @@ export class Reactor {
     const partner = step ? this.partnerGroup(m) : null;
     for (let i = 0; i < n; i++) {
       const b = this.place({ kind: "mono", m, r: R_MONO }, where);
-      if (step) b.fg = stepMono(m).groups.flatMap(g => (g === "NH2" && partner === "EPOX" ? ["NH2", "NH2"] as FG[] : [g]));
+      if (step) b.fg = m === this.idleStep ? [] : stepMono(m).groups.flatMap(g => (g === "NH2" && partner === "EPOX" ? ["NH2", "NH2"] as FG[] : [g]));
     }
   }
 
@@ -310,16 +320,18 @@ export class Reactor {
         if (k === "koord" && b.kind === "cat") b.act = "ti";
       }
       this.event = k === "radikal" ? EV.zerfall : k === "step" ? undefined : EV.start;
+      if (k === "koord") this.poisonAll();
       return;
     }
     if (id.startsWith("add:")) {
       const m = id.slice(4);
-      if (m === this.pendingB) this.pendingB = null;
+      if (m === this.pendingB) { this.pendingB = null; if (this.started && this.sepSeq()) this.restart(); }
       const n = clamp(Math.round(this.area() * (this.kind === "step" ? 0.012 : 0.02)), 10, 40);
       const before = this.beads.length;
       this.spawn(m, n, "top");
       for (const b of this.beads.slice(before)) this.groups0 += b.fg?.length ?? 0;
       this.lastEvent = this.t;
+      if (k === "koord" && compat(m as VinylId, "zn").fail === "poison" && !this.beads.some(b => b.kind === "cat" && !b.dead && b.nb.length)) this.poisonAll();
       return;
     }
     if (id === "meoh") {
@@ -339,6 +351,51 @@ export class Reactor {
       this.event = EV.h2;
       this.lastEvent = this.t;
     }
+  }
+
+  /** nacheinander, Ketten nicht lebend: bis das zweite Monomer da ist, sind die Ketten des ersten längst beendet bzw. abgelöst;
+   *  neue Ketten starten (Starter zerfällt weiter, H⁺ aus der Übertragung, frei gewordenes Titan) – mit dem zweiten und übrigem ersten Monomer */
+  private restart() {
+    const k = this.kind;
+    for (const b of this.beads) {
+      if (b.kind !== "mono" || !b.act || b.dead) continue;
+      b.act = undefined;
+      if (k === "kation") { const h = this.add({ kind: "init", m: "h", r: 0.7, x: b.x + 1.2, y: b.y }); h.act = "kat"; }
+    }
+    if (k === "radikal") {
+      // der Starter zerfällt über Stunden: es ist immer noch welcher da
+      const me = this.recipe.method ?? "dbpo";
+      const left = this.beads.filter(b => b.kind === "init" && b.m === me).length;
+      for (let i = left; i < 3; i++) this.place({ kind: "init", m: me, r: R_INIT }, "top");
+    }
+    if (k === "koord") {
+      for (const ti of this.beads.filter(b => b.kind === "cat" && !b.dead)) {
+        const c = ti.nb.map(j => this.byId.get(j)!).find(x => x.kind === "mono");
+        if (c) { this.unbond(ti, c); this.released++; c.vx += 0.3; }
+      }
+    }
+    this.why = this.polyWhy();
+    this.fire(EV.neu);
+  }
+
+  /** Katalysator vergiftet, sobald ein Monomer mit O, N, Cl oder F im Gefäß ist: jedes freie Titan bindet eines (der Einbau ist viel langsamer) */
+  private poisonAll() {
+    const poison = this.beads.filter(b => b.kind === "mono" && !b.nb.length && !b.dead && compat(b.m as VinylId, "zn").fail === "poison");
+    if (!poison.length) return;
+    for (const ti of this.beads.filter(b => b.kind === "cat" && !b.dead)) {
+      const n = poison.filter(p => !p.dead).sort((x, y) => Math.hypot(x.x - ti.x, x.y - ti.y) - Math.hypot(y.x - ti.x, y.y - ti.y))[0];
+      if (!n) break;
+      ti.dead = true; ti.act = undefined; n.dead = true;
+      this.bond(ti, n);
+    }
+    this.why = this.polyWhy() ?? compat(poison[0].m as VinylId, "zn").why;
+    this.fire(EV.vergiftet);
+  }
+
+  /** Begründung aus den Regeln (zwei Monomere: was entsteht und warum) */
+  private polyWhy(): string | undefined {
+    if (this.kind === "step") return undefined;
+    return polymerise(this.monos as VinylId[], this.recipe.method ?? "dbpo", !!this.recipe.seq).why;
   }
 
   // ── Simulation ──
@@ -489,6 +546,10 @@ export class Reactor {
 
   private reactChain() {
     const rnd = this.rand;
+    if (this.kind === "anion" && this.monos.length > 1) {
+      this.free.clear();
+      for (const b of this.beads) if (b.kind === "mono" && !b.nb.length && !b.dead) this.free.set(b.m, (this.free.get(b.m) ?? 0) + 1);
+    }
     // Starter zerfällt beim Erwärmen: zwei Radikale (Bruchstücke) + Gas
     if (this.heat && this.kind === "radikal") {
       for (const b of this.beads.filter(x => x.kind === "init" && (x.m === "dbpo" || x.m === "aibn"))) {
@@ -538,7 +599,6 @@ export class Reactor {
   /** kann das Kettenende (Baustein end, sonst Starter bzw. leeres Titan) das Monomer m einbauen? */
   private canGrow(end: RBead | undefined, m: string): boolean {
     if (!end || end.kind !== "mono") return true;
-    if (this.sepSeq() && end.m !== m) return false;
     if (this.kind === "anion" && !anionStarts(end.m as VinylId, m as VinylId)) {
       if (!this.why) this.why = tr(`Das Kettenende aus ${monoName(end.m)} ist zu schwach, um ${monoName(m)} zu starten.`, `The chain end made of ${monoName(end.m).toLowerCase()} is too weak to start ${monoName(m).toLowerCase()}.`);
       return false;
@@ -552,6 +612,7 @@ export class Reactor {
     const c = compat(n.m as VinylId, this.recipe.method ?? "dbpo");
     if (c.fit !== "none" && !this.canGrow(e, n.m)) return false;
     if (c.fit === "none") {
+      if (!this.why) this.why = this.polyWhy();
       if (c.fail === "side" && rnd() < KP * 0.6) {
         // Nebenreaktion: Starter bzw. Kettenende reagiert mit dem Monomer und ist danach verbraucht
         this.bond(e, n); e.act = undefined; n.dead = true;
@@ -562,6 +623,14 @@ export class Reactor {
       return false;
     }
     if (rnd() >= KP) return false;
+    if (this.kind === "anion" && !this.recipe.seq && this.monos.length > 1) {
+      // anionisch gleichzeitig: solange das schnellere Monomer da ist, lagert sich das andere kaum (MMA vor Styrol: gar nicht) an
+      const other = this.monos.find(x => x !== n.m) as VinylId;
+      if (compat(other, "buli").fit === "ok" && anionFirst(n.m as VinylId, other) === other && (this.free.get(other) ?? 0) > 0) {
+        const same = anionStarts(n.m as VinylId, other) && anionStarts(other, n.m as VinylId);
+        if (!same || rnd() >= 0.015) return false;
+      }
+    }
     this.bond(e, n);
     n.act = e.act; e.act = undefined;
     this.fire(EV.wachstum);
@@ -598,7 +667,7 @@ export class Reactor {
       this.why = c.why; this.fire(EV.vergiftet);
       return true;
     }
-    if (c.fit !== "ok") { if (!this.why) this.why = c.why; return false; }
+    if (c.fit !== "ok") { if (!this.why) this.why = this.polyWhy() ?? c.why; return false; }
     // Einbau zwischen Titan und Kette
     const c0 = ti.nb.map(j => this.byId.get(j)!).find(x => x.kind === "mono");
     if (!this.canGrow(c0, n.m)) return false;
@@ -629,6 +698,8 @@ export class Reactor {
         if (pair.byp && (!cho || !cho.fg?.length)) {
           this.add({ kind: "byp", m: pair.byp === "HCl" ? "hcl" : "h2o", r: R_GAS, x: (a.x + n.x) / 2, y: (a.y + n.y) / 2 - 0.5 });
           this.bypCount++;
+          const bn = pair.byp === "HCl" ? "HCl" : "H₂O";
+          this.bypKinds.set(bn, (this.bypKinds.get(bn) ?? 0) + 1);
         }
         this.fire(EV.verknuepfung);
         break;
@@ -728,6 +799,7 @@ export class Reactor {
     return {
       phase, conv, chains, avg, max, active, living, network, poisoned,
       byp: this.bypCount, bypName: step ? (stepReact(this.recipe.a as StepId, this.recipe.b as StepId | undefined).byp === "HCl" ? "HCl" : "H₂O") : undefined,
+      bypParts: [...this.bypKinds.entries()],
       released: this.released, event: ev, why, hist,
     };
   }
