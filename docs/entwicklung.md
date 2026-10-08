@@ -103,6 +103,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 - **Barrierearm**: richtig/falsch nie nur über Farbe (zusätzlich ✓/✗, Muster, gestrichelt), Tippziele ≥ 44 px, Tastatur bedienbar, `aria-label` für Bilder und Knöpfe,
   Schalter „Lesbar“ (mehr Abstände), Klang standardmäßig aus, Vorlesen im Quiz (nur mit einer Stimme des Geräts, `localService` – eine Netzwerkstimme
   schickte den Text an einen fremden Dienst; ohne lokale Stimme kein Knopf), „Zum Inhalt springen“ setzt nur den Fokus (die Adresse bleibt).
+  Antworten als Bild: Vorlesen und Screenreader sagen nie den Antworttext, wenn er die Lösung nennt („Monomer Propen“, der Name zur gesuchten Formel) –
+  `optionLabel` an `QuizScreen` liefert eine neutrale Beschriftung (z. B. die Formel, so viel wie das Bild zeigt) oder "" = nur „Antwort A“; das Bild selbst ist dann für Screenreader verborgen.
 
 ## Lernprinzipien, Motivation, Oberfläche (Begründung der Regeln)
 Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach entscheiden:
@@ -132,7 +134,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Richtig lösen im Browser**: jede Aufgabenart jedes Levels (beide Stufen) im Browser richtig beantworten – muss ✓ geben (fängt Fehler zwischen Daten und Antwortform).
 - **Falsch lösen**: jede falsche Auswahl liefert eine Rückmeldung, nach den Fehlversuchen erscheint die Lösung, nichts läuft über.
 - **Lernende über mehrere Tage** (simulierte Uhr): Fehler am nächsten Morgen fällig, dann nach 3 und 7 Tagen; Wochenziel zählt; Neuladen mitten in der Runde setzt
-  bei derselben Aufgabe fort; Stufenwechsel verliert nichts; Zurück-Taste schließt jedes Blatt.
+  bei derselben Aufgabe fort; Stufenwechsel verliert nichts; „Zurück“ schließt jedes Blatt (im Browser; Android-App siehe „Android-Zurück-Taste“).
 - **Erklärungen durchspielen** (alle Schritte, alle Größen), **Animationen** bis zum Ende laufen lassen und Zwischenbilder ansehen (Sprünge, Zittern, Überlappungen).
 - **Texte durchsehen**: alle erzeugten Texte einer Runde ausgeben und lesen (Grammatik, Einzahl/Mehrzahl, Artikel, nicht eingeführte Begriffe, englische Fassung).
 - Neue Prüfungen, die einen echten Fehler gefunden haben, als Test ins Repository übernehmen.
@@ -147,7 +149,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   - `faded`: Lösungsweg mit **genau einer Lücke** `{?}`; die Lücke darf die gesuchte Zahl nicht schon enthalten; nach dem Lösen wird sie gefüllt.
   - `free`: selbst lösen; `lines` (optional) erscheinen erst nach der richtigen Antwort.
   - Reihenfolge: jedes Kapitel (und der erste Schritt) beginnt `worked`; `faded` nur nach `worked`/`faded`; `free` nur nach `faded`/`free`.
-- Jeder nicht vorgemachte Schritt verlangt eine Handlung: Auswahl (`options`), Zahl (`num`, mit Einheit) oder ein Ziel im Bild antippen (`visual` ruft `pick(id)`),
+- Jeder nicht vorgemachte Schritt verlangt eine Handlung: Auswahl (`options`), Zahl (`num`, mit Einheit; Trennzeichen wie in der Sprache – `readNumber` in `@lern/i18n`:
+  Deutsch „1.000“ = 1000 und „0,25“, Englisch „1,000“ und „0.25“, Leerzeichen-Gruppen immer; gleiche Regel wie `parseAnswer` in `@lern/units` und `NumberAnswer`;
+  `checkGuide` prüft, dass jede übliche Schreibweise der Antwort als richtig gilt) oder ein Ziel im Bild antippen (`visual` ruft `pick(id)`),
   mit den Bausteinen der App (Bohrmodell, PSE, Ionenwand, Lewis-Formel, Teilchenbild, Pfeilkette, Orbitale in 3D …).
   Falsch → Rückmeldung zum Denkfehler (`why`, **jede** falsche Auswahl hat eine), sonst Denkanstoß zum Vorgehen (`tip`, Pflicht bei Zahl und Antippen, nennt die Lösung nicht);
   ab dem 2. Versuch Rückmeldung + Tipp, dazu „Versuch x von 4“; nach 4 Versuchen wird die Lösung markiert (`show`, gestrichelt grün, pulsierend) und muss selbst angetippt werden.
@@ -232,9 +236,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   gemeldet als `values.pick` (Index), Fallen `traps: [{ values: { pick }, miss, why }]`; nach der Antwort ist die Lösung gestrichelt grün markiert; für Tastatur
   und Vorlesen dieselben Teile als unsichtbare Knöpfe.
 - **Gelöstes Beispiel im Quiz** (`withExamples` in `packages/quiz/src/store.ts`): vor der ersten Aufgabe jeder Fertigkeit der Runde, die noch nie geübt wurde,
-  steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, höchstens 3 je Runde, Schlüssel = ganze Aufgabe als JSON):
+  steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, höchstens 3 je Runde, andere Frage = andere `taskKey` – Daten und richtige Antwort, andere Ablenker zählen nicht):
   `stage: "worked"` → Karte `WorkedCard` mit Frage, markierter Lösung, „1. Tipp 2. Erklärung“ und Knopf „Verstanden – jetzt du“; zählt nicht für Punkte und Statistik (`counted`).
   Die erste echte Aufgabe dieser Fertigkeit bekommt `stage: "faded"`: der erste Schritt (der Tipp) steht unter der Frage (`.q-first`, kostet nichts; dort kein Tipp-Knopf, der Store zieht dafür auch keine Punkte ab).
+  Tipp und erster Schritt sind immer ganz zu lesen, ohne das Bild zu zerdrücken: passen sie nicht in die Karte (Inhalt liefe über, Bild abgeschnitten oder niedriger als 56 px, ein Element unter seiner Mindesthöhe `data-min-h` –
+  `crowded` in `QuizScreen.tsx`, gemessen beim Erscheinen), stehen sie in einem Blatt; „Tipp“ öffnet es wieder (kostet nur beim ersten Mal), statt des ersten Schritts steht
+  „Schritt 1“ in der Leiste.
   Nicht in „Heute fällig“ und „Schwächen üben“. Damit das Beispiel passt, muss jeder Aufgabentyp genug verschiedene Aufgaben erzeugen.
 - Weitere Bausteine von `QuizScreen`: `renderVisual` (Bild über der Frage, per `Fit`), `renderOption` (eigene Darstellung von Antworten), `renderAnswer` (eigene Antwortform),
   `solution` (Lösung nach Fehlern), `feedbackExtra` (zusätzliches Blatt „Lösung“ nach der Antwort, z. B. Ablauf der Reaktion), `tools` (Hilfsmittel), `explain` (Erklärkarte je Level),
@@ -271,14 +278,22 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Signalrot nur für die Oberfläche. Ausnahme: Kreidetafel (Einheiten). ✓ immer grün (`--ok`), nie rot.
 - **Nie scrollen** (Handy 390 × 844 und 375 × 667, Desktop): jede Ansicht füllt genau den Bildschirm (`--screen-h`, Klasse `ui-screen`).
   Freies Ausprobieren = `Workbench` (`@lern/ui`): Bühne füllt den Platz, Hauptbedienung direkt darunter (`controls`), alles Weitere in der Werkzeugleiste (`tools`) –
-  am Handy öffnet jedes Werkzeug ein Blatt (Zurück-Taste schließt es: `useBackClose`, eigener Verlaufseintrag mit neuer Kennung je Öffnen – auch nach Neuladen
-  genügt ein „Zurück“, ein Blatt über einem Blatt bzw. über der Erklärung schließt nur sich), breit (≥ 900 px) stehen die Werkzeuge als Register daneben. Nie mehrere Bereiche gleichzeitig offen.
+  am Handy öffnet jedes Werkzeug ein Blatt („Zurück“ im Browser schließt es: `useBackClose`, eigener Verlaufseintrag mit neuer Kennung je Öffnen; ein Blatt über einem
+  Blatt bzw. über der Erklärung schließt nur sich; Schließen und Öffnen im selben Durchlauf übernimmt den Eintrag statt ihn zurückzunehmen; ein Eintrag, der vom
+  Neuladen stehen blieb, wird beim Start einmal zurückgenommen – Tests `back.test.ts`), breit (≥ 900 px) stehen die Werkzeuge als Register daneben. Nie mehrere Bereiche gleichzeitig offen.
+  **Android-Zurück-Taste**: Capacitor leitet sie ohne `@capacitor/app` nicht an die WebView weiter – in der Android-App schließt sie deshalb die App, auch bei offenem Blatt.
+  Abhilfe (noch nicht umgesetzt, braucht eine Entscheidung bzw. einen Android-Build zum Prüfen): entweder `@capacitor/app` mit `App.addListener("backButton", e => e.canGoBack ? history.back() : App.exitApp())`
+  oder ohne neue Abhängigkeit in `MainActivity` ein `OnBackPressedCallback`, der `getBridge().getWebView().goBack()` aufruft, solange `canGoBack()` gilt.
+  Beschriftungen der Werkzeugleiste nie abgeschnitten: passt eine nicht in ihre Spalte (schmales Handy, Englisch, „Lesbar“), stehen die Werkzeuge in zwei Reihen (`Workbench` misst, `data-wrap`).
   Übungen/Quiz: Aufgabe = ein Bildschirm (Frage, Bild passt sich per `Fit` an, Antwort, kurze Rückmeldung, „Weiter“ immer sichtbar); Lösungsweg und Hilfsmittel als Blatt.
+  Leiste unter der Aufgabe: jedes Hilfsmittel mit ganzer Beschriftung, nichts überdeckt sich – passt sie nicht neben „Weiter“ (viele Hilfsmittel, Englisch, „Lesbar“),
+  steht „Weiter“ in einer eigenen Zeile darunter. Nach der Antwort darf das Bild kleiner werden (`Fit` bis 0,25); wäre es dann noch abgeschnitten oder niedriger als 56 px
+  (`Fit` setzt `data-cut`, `minHeight`), fällt es ganz weg statt als Rest. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
   Prüfen im Browser (z. B. Playwright): in allen Ansichten, Werkzeugen und Quizaufgaben darf weder die Seite noch Werkbank/Aufgabenkarte überlaufen, und nichts darf von einem
   Rahmen mit `overflow: hidden` abgeschnitten werden (Gleichungen, Formeln). Breiten: 390 × 844, 375 × 667, dazu schmale Android-Handys 360 × 740 und 412 × 915
   (Quiz ab ≤ 370 px Breite kompakt wie bei niedrigen Bildschirmen). Nie mitten im Wort umbrechen: Auswahl-Antworten stehen nur zweispaltig, wenn jedes Wort
-  in seine Spalte passt (`McAnswer` misst, sonst einspaltig); im kompaktesten Menü (Stufe 5) stehen Sterne über Tipp und Pfeil, damit Level-Namen breit genug bleiben.
+  in seine Spalte passt (`McAnswer` misst jedes Wort jedes Textstücks im Knopf, auch bei eigener Darstellung, sonst einspaltig); im kompaktesten Menü (Stufe 5) stehen Sterne über Tipp und Pfeil, damit Level-Namen breit genug bleiben.
 - Knopf oder Anzeige – auf einen Blick: alles Antippbare sieht aus wie eine Taste (dunkler Rahmen `--rule`, Unterkante `--key-edge`,
   gedrückt `--key-edge-pressed`; neue Knopf-Klassen bekommen beides), Anzeigen haben keinen Rahmen, nur eine ruhige Fläche (`Tag`, `Chip`, Ergebnis).
   Beantwortete Auswahl verliert die Unterkante.
@@ -292,7 +307,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   „Kohlendioxid“, „Kohlenmonoxid“, „Oktan“, „Gesetz der Massenerhaltung“, Gemischarten mit Aggregatzuständen (Lösung s/l, Emulsion l/l …).
 - Tipps verraten die Lösung nicht und passen zur Aufgabe (z. B. Tipp je Reaktionstyp); jede falsche Antwort bekommt eine Rückmeldung, wo möglich mit Katalog-Schlüssel.
 - Multiple Choice: `mc(richtig, falsche)` aus `@lern/quiz`; falsche Antworten möglichst als diagnostische Distraktoren – `d(text, miss, why)` mit Katalog-Schlüssel
-  (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen). `mc` bevorzugt Optionen mit Diagnose.
+  (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen). Sind es mehr Ablenker als Plätze, wählt `mc` zuerst die mit
+  Stolperstein (`d`), dann die nur mit Rückmeldung (`dis`), dann den Rest – je Gruppe zufällig (Test `mc.test.ts`).
 - Quiz-Hilfsmittel je Aufgabe über `tools` von `QuizScreen` (`QuizHelp`): z. B. PSE mit den Elementen der Aufgabe markiert (`PseHelp` in `@lern/chem-ui`, Elemente per `elementsIn(prompt)` aus `@lern/chem`).
   Hilfsmittel dürfen die Lösung nicht direkt verraten (PSE nur Angaben eines gedruckten PSE: Z, Gruppe, Periode, Atommasse).
 - **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf DE/EN in der Kopfzeile
@@ -950,7 +966,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
 Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"`, `LESBAR=1` und `LOCALE=en-GB`).
-Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5,gm-k6"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Lernen“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`).
+Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5,gm-k6"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Üben“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`;
+tippt weitere Antworten bzw. Teile im Bild an, bis „Weiter“ erscheint, und meldet ein Kapitel mit weniger als zehn geprüften Aufgaben).
+check-ui meldet außerdem: sich überdeckende Tippziele, abgeschnittene oder herausragende Knopf-Beschriftungen (gewollte Auslassungspunkte ausgenommen), Wörter in
+Antwortknöpfen über zwei Zeilen (weicher Trennstrich und Nullbreite-Leerzeichen sind Trennstellen), abgeschnittene Aufgabenbilder; vor jeder Antwort drückt es „Tipp“ bzw.
+„Schritt 1“ und prüft, dass Tipp bzw. erster Schritt ganz zu lesen sind und das Bild daneben ≥ 56 px hoch bleibt;
+es schließt offene Blätter und die Erklärung selbst und gibt Chromium eine lokale Prüfstimme, damit „Vorlesen“ wie auf Geräten in der Leiste steht.
 In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=/opt/pw-browsers/chromium`), Playwright global (`PLAYWRIGHT=…/playwright/index.mjs`); nie `playwright install`.
 Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
 laufen lassen; je Zustand messen (Seite, `.ui-wb`, `.ui-wb-stage`, Aufgabenkarte, Blatt: `scrollHeight/scrollWidth` ≤ `clientHeight/clientWidth`, Bild nicht winzig) und Screenshots ansehen.
@@ -959,6 +980,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Gemeinsame Pakete, Skripte: Nachprüfung Runde 2** – Tipp und „Erster Schritt“ sind immer ganz lesbar (vorher ragten sie aus der Aufgabenfläche, und das Aufgabenbild wurde bei
+  niedrigen Handys bis auf 18 px zerdrückt): passen sie nicht, öffnen sie als Blatt; sie stauchen weder Bild noch Antwortfläche unter ihre Mindesthöhe. Quiz-Werkzeugleiste ohne
+  Überlappung mit „Weiter“ und ohne abgeschnittene Beschriftungen; Lesetext im Quiz ≥ 14 px (Level-Beschreibung, Rückmeldung). Zahlschritte der Erklärungen lesen Zahlen nach
+  Sprache („1.000“ im Deutschen = 1000). Vorlesen bei Bild-Antworten neutral („Antwort A …“, Bilder ohne Lösung im Namen). Zurück-Taste ohne Wettlauf (Schließen und Öffnen im selben
+  Durchlauf), kein toter Verlaufseintrag nach Neuladen; Erklärungs-Ring mit beiden Sprachnamen. Auswertung scrollt nie (viele lange Fertigkeitsnamen: kompakter, zuletzt „Neue Stufen (n)“
+  als Blatt). `mc` wählt beim Kürzen zuerst Ablenker mit Stolperstein; gelöstes Beispiel ist nie dieselbe Frage wie eine Aufgabe der Runde (Vergleich über `taskKey`; vorher bis 169 von
+  450). Lizenzen in der Einzeldatei mit „--“. check-ui: spielt in LEARN jede Aufgabe bis „Weiter“, prüft Tipp und ersten Schritt, Überlappungen, abgeschnittene Beschriftungen und Wortbrüche.
 - **Atombau, Ionenbindung, Elektronenpaarbindung, `@lern/chem`: Nachprüfung Runde 2** – Polarität: ΔEN an einer Stelle gerundet (`enDelta`; NOCl galt durch Rundung als unpolar),
   kleine Restdipole polar (ClCN, BrCN, CBrCl₃; die Schwelle 0,2 gilt nur noch für den Dipolpfeil), „schwach polar“ auch aus Bindungen mit kleinem ΔEN außer C–H (CH₃I, H₂C=S, CH₃SH),
   konjugierte Einfachbindungen eben und s-trans (Glyoxal unpolar), Allen mit senkrechten Endgruppen; Hydrazin im 3D-Modell gauche statt anti (`mol3d.py`, Dipol 1,75 D real).

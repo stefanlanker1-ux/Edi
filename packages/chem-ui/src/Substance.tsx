@@ -90,6 +90,18 @@ const KIND: Record<SubstanceKind, string | null> = tr(
   { molekuel: "Moleküle", ionen: "Ionen", metall: "Metallgitter", atome: "einzelne Atome", element: null },
   { molekuel: "Molecules", ionen: "Ions", metall: "Metal lattice", atome: "Single atoms", element: null });
 
+/**
+ * Elemente, die in Gleichungen nur mit dem Symbol stehen, obwohl der Stoff anders gebaut ist: woraus er wirklich besteht.
+ * Kohlenstoff (Grafit, Diamant): ein Gitter aus fest verbundenen C-Atomen. Schwefel: ringförmige Moleküle S₈.
+ */
+export function elementParticles(f: string): string[] | undefined {
+  const T: Record<string, [string, string][]> = {
+    C: [["Atome im Gitter verbunden", "Atoms bonded in a lattice"], ["in Gleichungen: C", "in equations: C"]],
+    S: [["Moleküle S₈", "S₈ molecules"], ["in Gleichungen vereinfacht: S", "simplified to S in equations"]],
+  };
+  return T[f]?.map(([de, en]) => tr(de, en));
+}
+
 function Facts({ s }: { s: SubstanceInfo }) {
   return (
     <div className="sub-facts">
@@ -97,6 +109,7 @@ function Facts({ s }: { s: SubstanceInfo }) {
       <div className="ui-tags">
         <Tag>{s.klass === "element" ? tr("Element", "Element") : tr("Verbindung", "Compound")}</Tag>
         {KIND[s.kind] && <Tag>{KIND[s.kind]}</Tag>}
+        {s.kind === "element" && elementParticles(s.f)?.map(t => <Tag key={t}>{t}</Tag>)}
         {s.kind === "molekuel" && s.parts.map(([el, n]) => <Tag key={el}>{n} {el}</Tag>)}
         {s.kind === "ionen" && s.ions && s.ions.map(ion => <Tag key={ion.id}>{ionText(ion)}</Tag>)}
       </div>

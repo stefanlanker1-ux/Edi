@@ -27,7 +27,7 @@
   .quiz-hero { display: none; }
   .level-list { gap: 8px; }
   .level-card { padding: 10px 12px; gap: 12px; }
-  .lv-desc { font-size: .8rem; }
+  .lv-desc { font-size: .875rem; } /* Lesetext ≥ 14 px */
   .lv-num { width: 38px; height: 38px; font-size: 1.05rem; }
   .resume { padding: 12px 14px; }
 }
@@ -93,7 +93,9 @@
 .answer-boxes > .answer-fill { min-height: 100px; }
 .box-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: .92rem; }
 .q-hint { display: flex; gap: 10px; padding: 8px 12px; border-radius: var(--radius-md); background: var(--warn-soft); font-size: .95rem; }
-.q-hint .ic { color: var(--signal); }
+.q-hint .ic, .q-hint-sheet .ic { color: var(--signal); flex: none; }
+/* Tipp bzw. erster Schritt im Blatt (passte nicht in die Karte) */
+.q-hint-sheet { display: flex; gap: 10px; margin: 0; line-height: 1.45; hyphens: auto; }
 /* neue Fertigkeit: vorgemachtes Beispiel (zählt nicht) und erster Schritt bei der nächsten Aufgabe */
 .q-worked-tag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: .78rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; color: var(--text); }
 .task-card.worked { border-style: dashed; }
@@ -117,8 +119,11 @@
 .q-stones h3 .ic { color: var(--signal); }
 .res-stone { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; color: var(--signal); font-weight: 700; font-size: .92rem; }
 .res-stone .ic { flex: none; }
-.q-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex: none; }
-.q-help { display: flex; gap: 2px; min-width: 0; flex: 1 1 auto; }
+/* Hilfsmittel und „Weiter“: jede Beschriftung ganz, nichts überdeckt sich – passt nicht alles in eine Zeile (viele Hilfsmittel, Englisch, „Lesbar“),
+   rutscht „Weiter“ in eine eigene Zeile darunter (rechts), bei sehr vielen Hilfsmitteln brechen auch diese um */
+.q-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; flex: none; }
+.q-help { display: flex; flex-wrap: wrap; gap: 2px; min-width: 0; flex: 0 1 auto; }
+.q-help .ui-btn { flex: none; }
 @media (max-width: 599px) {
   .q-help .ui-btn { flex-direction: column; gap: 1px; min-height: 52px; padding: 4px 6px; font-size: .7rem; min-width: 48px; }
   .q-actions .ui-btn-primary { min-width: 0; padding-inline: 16px; }
@@ -134,7 +139,7 @@
 .ex-bohr { width: 180px; aspect-ratio: 1; }
 .ex-example figcaption { font-size: .9rem; color: var(--muted); text-align: center; }
 .q-actions .ui-btn-primary { margin-left: auto; min-width: 140px; flex: none; }
-/* Handy: „Weiter“ darf schmaler werden, sonst überdeckt es bei vier Hilfsmitteln die letzte Beschriftung (Einheiten, 375 px) */
+/* Handy: „Weiter“ und Hilfsmittel enger, damit sie möglichst noch in eine Zeile passen (sonst steht „Weiter“ darunter) */
 @media (max-width: 599px) {
   .q-actions .ui-btn.ui-btn-primary { min-width: 0; padding-inline: 14px; }
   .q-help:has(> :nth-child(4)) .ui-btn { min-width: 44px; padding-inline: 3px; }
@@ -157,8 +162,8 @@
   .q-body { gap: 8px; }
   .q-prompt { font-size: 1rem; }
   .mc-btn { min-height: 46px; padding: 6px 10px; font-size: .95rem; }
-  .fb-exp { font-size: .86rem; }
-  .fb-why { font-size: .86rem; margin-top: 3px; padding: 2px 0 2px 8px; line-height: 1.35; }
+  .fb-exp { font-size: .875rem; } /* Lesetext ≥ 14 px */
+  .fb-why { font-size: .875rem; margin-top: 3px; padding: 2px 0 2px 8px; line-height: 1.35; }
   .fb-sol { margin-top: 2px; font-size: .92rem; }
   .q-feedback { padding: 8px 12px; }
   .fb-head { font-size: 1rem; }
@@ -171,13 +176,15 @@
   .ab-controls .ui-stepper.stack { gap: 0; }
   .q-lead { font-size: .88rem; line-height: 1.3; }
 }
-/* Merksatz weicht dem „Ersten Schritt“ (der ist genauer und steht an derselben Stelle) */
-.task-card:has(.q-first) .q-lead { display: none; }
+/* Merksatz weicht dem „Ersten Schritt“ (der ist genauer und steht an derselben Stelle bzw. hinter „Schritt 1“) */
+.task-card.faded .q-lead { display: none; }
 /* Handys: nach der Antwort weicht der Merksatz der Rückmeldung, das Bild darf ganz klein werden (nie scrollen) */
 @media (max-height: 900px) {
   .task-card.answered .q-lead { display: none; }
   .task-card.answered .q-body > .q-visual { min-height: 0; }
 }
+/* … passt es dann selbst verkleinert nicht mehr (Fit meldet data-cut: abgeschnitten oder niedriger als 56 px), fällt es nach der Antwort ganz weg – kein Bildrest */
+.task-card.answered .q-body > .q-visual:has(> .ui-fit[data-cut]) { display: none; }
 
 /* ── Fertigkeiten: Wochenziel, Stufen-Marken, Landkarte ─────────────────── */
 .quiz-menu { gap: 10px; }
@@ -240,8 +247,23 @@
 .q-map[data-fit="2"] { gap: 6px; } .q-map[data-fit="2"] li { min-height: 23px; font-size: .8rem; line-height: 1.25; } .q-map[data-fit="2"] h3 { font-size: .9rem; margin: 0; }
 .q-map[data-fit="2"] .q-map-legend { font-size: .74rem; }
 .res-ups { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
-.res-up { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: .86rem; font-weight: 700; }
+.res-up { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: .875rem; font-weight: 700; }
 .res-up.st-gemeistert { border-color: var(--signal); color: var(--signal); }
+.res-up .sk { flex: none; }
+.res-ups-sum { display: none; }
+.res-ups-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; justify-items: start; }
+/* Auswertung passt nicht auf den Bildschirm (Result misst, data-fit): stufenweise kompakter statt scrollen – 1 enger, ohne Punktezeile;
+   2 neue Stufen je einzeilig (zu lange Namen mit …); 3 statt der Liste ein Knopf „Neue Stufen (n)“ mit Blatt; 4 kleinere Sterne und Überschrift */
+.res-wrap:is([data-fit="1"], [data-fit="2"], [data-fit="3"], [data-fit="4"]) .result-card { gap: 4px; padding-top: 12px; padding-bottom: 12px; }
+.res-wrap:is([data-fit="1"], [data-fit="2"], [data-fit="3"], [data-fit="4"]) .res-sub { display: none; }
+.res-wrap:is([data-fit="1"], [data-fit="2"], [data-fit="3"], [data-fit="4"]) .btn-row { margin-top: 4px; }
+.res-wrap:is([data-fit="2"], [data-fit="3"], [data-fit="4"]) .result-card { grid-template-columns: minmax(0, 1fr); }
+.res-wrap:is([data-fit="2"], [data-fit="3"], [data-fit="4"]) :is(.res-ups, .res-up) { min-width: 0; max-width: 100%; }
+.res-wrap:is([data-fit="2"], [data-fit="3"], [data-fit="4"]) .res-up-n { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.res-wrap:is([data-fit="3"], [data-fit="4"]) .res-ups { display: none; }
+.res-wrap:is([data-fit="3"], [data-fit="4"]) .res-ups-sum { display: inline-flex; }
+.res-wrap[data-fit="4"] .big-stars .ic { width: 34px; height: 34px; }
+.res-wrap[data-fit="4"] .result-card h2 { font-size: 1.2rem; margin: 0; }
 @media (max-width: 599px) { .lv-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
 /* Flache Desktop-Fenster (z. B. 1280 × 800): Menü mit „Weiterspielen“ und 4 Levels bleibt auf einem Bildschirm */
 @media (min-width: 600px) and (max-height: 840px) {

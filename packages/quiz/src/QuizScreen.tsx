@@ -22,6 +22,11 @@ export interface QuizScreenProps<T extends BaseTask> {
   renderVisual?: (task: T) => ReactNode;
   /** eigene Darstellung einer MC-Antwort (z. B. Gleichung einzeilig mit Fit-Text); ohne = Text */
   renderOption?: (task: T, option: string) => ReactNode;
+  /**
+   * Antwort als Bild: was Vorlesen und Screenreader statt des Antworttexts sagen – der Antworttext (Schlüssel des Bilds) nennt dort oft die Lösung.
+   * Eine Beschreibung, die nicht mehr verrät als das Bild (z. B. die Formel), oder "" = nur „Antwort A“. undefined = Antworttext (keine Bild-Antwort).
+   */
+  optionLabel?: (task: T, option: string) => string | undefined;
   /** Antwortbereich für Aufgaben, die nicht "mc" sind */
   renderAnswer?: (task: T, answered: Answered | null, submit: Submit) => ReactNode;
   /** Lösung für die Rückmeldung bei Nicht-mc-Aufgaben */
@@ -150,8 +155,12 @@ function useCanSpeak(): boolean {
   }, () => !!localVoice(voices()), () => false);
 }
 
-export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, answered, explain, read }: {
+export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, hintAgain, firstStep, answered, explain, read }: {
   tools?: QuizTool[]; hint?: boolean; hintCue?: boolean; onHint?: () => void; hintUsed?: boolean; answered: boolean; explain?: ReactNode;
+  /** der Tipp steht in einem Blatt (passte nicht in die Karte): „Tipp“ bleibt nach dem ersten Mal aktiv und öffnet das Blatt wieder (kostet nichts mehr) */
+  hintAgain?: boolean;
+  /** der erste Schritt steht in einem Blatt (passte nicht über die Frage): Knopf „Schritt 1“ öffnet es */
+  firstStep?: () => void;
   /** Text zum Vorlesen (Aufgabe) – Knopf erscheint nur, wenn das Gerät vorlesen kann */
   read?: string;
 }) {
@@ -162,8 +171,10 @@ export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, answered
     <>
       <span className="q-help">
         {read && canSpeak && <Button variant="quiet" icon="sound" aria-label={tr("Aufgabe vorlesen", "Read task aloud")} onClick={() => speak(read)}>{tr("Vorlesen", "Read aloud")}</Button>}
-        {hint && !answered && <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={onHint} disabled={hintUsed}
+        {hint && !answered && <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={onHint} disabled={hintUsed && !hintAgain}
           aria-label={hintCue ? tr("Tipp zu dieser Aufgabe", "Tip for this task") : undefined}>{tr("Tipp", "Tip")}</Button>}
+        {firstStep && !answered && <Button variant="quiet" icon="bulb" className="q-hint-cue" onClick={firstStep}
+          aria-label={tr("Erster Schritt", "First step")}>{tr("Schritt 1", "Step 1")}</Button>}
         {tools.map(t => <Button key={t.id} variant="quiet" icon={t.icon} onClick={() => setOpen(t.id)}>{t.label}</Button>)}
         {explain && <Button variant="quiet" icon="book" onClick={() => setOpen("explain")}>{tr("Erklärung", "Explanation")}</Button>}
       </span>
@@ -476,6 +487,25 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const lost = () => !document.activeElement || document.activeElement === document.body || (document.activeElement as HTMLButtonElement).disabled;
   useEffect(() => { if (game.i > 0 && lost()) promptRef.current?.focus({ preventScroll: true }); }, []);
   useEffect(() => { if (a && lost()) nextRef.current?.querySelector<HTMLButtonElement>(".q-next")?.focus({ preventScroll: true }); }, [!!a]);
+  // erster Schritt sichtbar: der Tipp steht schon da – kein Tipp-Knopf (er kostete sonst Punkte für etwas, das schon zu sehen ist)
+  const faded = t.stage === "faded";
+  // Tipp und erster Schritt ganz lesbar, ohne das Bild zu zerdrücken: passen sie nicht in die Karte (Inhalt liefe über, Bild abgeschnitten
+  // oder niedriger als MIN_PIC), stehen sie in einem Blatt – „Tipp“ bzw. „Schritt 1“ öffnet es (wieder). Gemessen beim Erscheinen,
+  // nicht bei jeder Größenänderung (sonst spränge der Tipp beim Tippen, wenn die Tastatur die Ansicht verkleinert).
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [aside, setAside] = useState({ hint: false, first: false });
+  const [sheet, setSheet] = useState<"hint" | "first" | null>(null);
+  const hintInline = game.hintUsed && !faded && !a && !aside.hint;
+  const firstInline = faded && !a && !aside.first;
+  // eben „Tipp“ gedrückt: passt er nicht, geht sein Blatt gleich auf (nach dem Neuladen nicht – dann erst auf „Tipp“)
+  const tookHint = useRef(false);
+  useLayoutEffect(() => {
+    const took = tookHint.current;
+    tookHint.current = false;
+    if (!(hintInline || firstInline) || !bodyRef.current || !crowded(bodyRef.current)) return;
+    setAside(s => ({ hint: s.hint || hintInline, first: s.first || firstInline }));
+    if (took && hintInline) setSheet("hint");
+  });
   const isMc = t.kind === "mc";
   const worked = t.stage === "worked";
   const visual = p.renderVisual?.(t);
@@ -483,19 +513,18 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const extra = a ? p.feedbackExtra?.(t, a) : null;
   const diag = a ? diagnose(t, a) : null;
   const terms = p.terms?.(t, !!a) ?? [];
-  // erster Schritt sichtbar: der Tipp steht schon da – kein Tipp-Knopf (er kostete sonst Punkte für etwas, das schon zu sehen ist)
-  const faded = t.stage === "faded";
   return (
     <TermScope terms={terms}>
-    <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}`}>
+    <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}${faded && !a ? " faded" : ""}`}>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt" ref={promptRef} tabIndex={-1}><RichText text={t.prompt} /></p>
       {/* neue Fertigkeit, zweite Begegnung: erster Schritt steht unter der Frage (verdeckt keine Antwortfläche) */}
-      {faded && !a && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
-      <div className="q-body">
-        {visual && <div className="q-visual"><Fit>{visual}</Fit></div>}
-        {isMc ? <McAnswer task={t as unknown as McTask} answered={a} submit={submit} renderOption={p.renderOption && (o => p.renderOption!(t, o))} /> : p.renderAnswer?.(t, a, submit)}
-        {game.hintUsed && !faded && !a && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
+      {firstInline && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
+      <div className="q-body" ref={bodyRef}>
+        {/* nach der Antwort darf das Bild kleiner werden; wäre es dann noch abgeschnitten oder winzig, fällt es weg (styles.css) */}
+        {visual && <div className="q-visual"><Fit min={a ? 0.25 : undefined} minHeight={a ? MIN_PIC : undefined}>{visual}</Fit></div>}
+        {isMc ? <McAnswer task={t as unknown as McTask} answered={a} submit={submit} renderOption={p.renderOption && (o => p.renderOption!(t, o))} optionLabel={p.optionLabel && (o => p.optionLabel!(t, o))} /> : p.renderAnswer?.(t, a, submit)}
+        {hintInline && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
         {a && (
           <div className={`q-feedback ${a.ok ? "ok" : "bad"}`} role="status">
             <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed && !faded, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>
@@ -507,13 +536,33 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
       </div>
       <div className="q-actions" ref={nextRef}>
         <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termTool(p, terms), ...(extra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra }] : [])]}
-          hint={!faded} hintCue={t.hintCue} onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
-          read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => `${"ABCD"[i]}: ${o}`) : [])].filter(Boolean).join(". ")} />
+          hint={!faded} hintCue={t.hintCue} onHint={() => { if (game.hintUsed) setSheet("hint"); else { tookHint.current = true; takeHint(p.stufe); } }} hintUsed={game.hintUsed} hintAgain={aside.hint}
+          firstStep={faded && aside.first ? () => setSheet("first") : undefined} answered={!!a} explain={p.explain?.(game.level, t)}
+          read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => spokenOption(o, i, p.optionLabel?.(t, o))) : [])].filter(Boolean).join(". ")} />
         {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
       </div>
+      <Sheet open={!a && (sheet === "hint" ? aside.hint : sheet === "first" && aside.first)} title={sheet === "first" ? tr("Erster Schritt", "First step") : tr("Tipp", "Tip")}
+        onClose={() => setSheet(null)}>
+        <p className="q-hint-sheet"><Icon name="bulb" /><span><RichText text={t.hint} /></span></p>
+      </Sheet>
     </Card>
     </TermScope>
   );
+}
+
+/** Mindesthöhe eines Aufgabenbilds in px: niedriger gestaucht ist es nicht mehr zu erkennen */
+const MIN_PIC = 56;
+/** Reicht der Platz der Karte nicht? Inhalt läuft über, ein Element mit `data-min-h` (Mindesthöhe des Moduls, z. B. eine Antwortfläche) ist niedriger,
+ *  oder das Bild ist in der Höhe so gestaucht, dass es abgeschnitten (Fit-Minimum 0,4) oder niedriger als MIN_PIC wäre.
+ *  Gerechnet wird mit den Maßen selbst, nicht mit Fits Ergebnis (das steht im selben Durchlauf noch aus). */
+function crowded(body: HTMLElement): boolean {
+  if (body.scrollHeight > body.clientHeight + 1) return true;
+  for (const e of body.querySelectorAll<HTMLElement>("[data-min-h]")) if (e.getBoundingClientRect().height < Number(e.dataset.minH) - 0.5) return true;
+  const o = body.querySelector<HTMLElement>(":scope > .q-visual > .ui-fit"), i = o?.firstElementChild as HTMLElement | null;
+  if (!o || !i || !o.clientWidth) return false;
+  const h = Math.max(1, i.scrollHeight), sv = o.clientHeight / h;
+  if (sv >= 1) return false;
+  return sv < 0.4 || h * Math.min(sv, o.clientWidth / Math.max(1, i.scrollWidth)) < MIN_PIC;
 }
 
 /** Vorgemachtes Beispiel einer neuen Fertigkeit: Frage, Lösung markiert, Lösungsweg – zählt nicht, weiter mit „Jetzt du“ */
@@ -528,8 +577,8 @@ function WorkedCard<T extends BaseTask>({ p, t, onNext, last }: { p: QuizScreenP
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt"><RichText text={t.prompt} /></p>
       <div className="q-body">
-        {visual && <div className="q-visual"><Fit>{visual}</Fit></div>}
-        {mc ? <McAnswer task={mc} answered={shown} submit={() => {}} renderOption={p.renderOption && (o => p.renderOption!(t, o))} />
+        {visual && <div className="q-visual"><Fit min={0.25} minHeight={MIN_PIC}>{visual}</Fit></div>}
+        {mc ? <McAnswer task={mc} answered={shown} submit={() => {}} renderOption={p.renderOption && (o => p.renderOption!(t, o))} optionLabel={p.optionLabel && (o => p.optionLabel!(t, o))} />
           : p.solution && <div className="fb-sol"><span>{tr("Lösung: ", "Solution: ")}</span>{p.solution(t)}</div>}
         <div className="q-feedback ok q-worked-way">
           <p className="fb-exp"><b>1.</b><span><RichText text={t.hint} /></span></p>
@@ -544,7 +593,36 @@ function WorkedCard<T extends BaseTask>({ p, t, onNext, last }: { p: QuizScreenP
   );
 }
 
-export function McAnswer({ task, answered, submit, renderOption }: { task: McTask; answered: Answered | null; submit: Submit; renderOption?: (option: string) => ReactNode }) {
+/** Läuft ein Wort in `el` über mehrere Zeilen (Umbruch mitten im Wort)? Wörter = Zeichenfolgen ohne Leerzeichen, Bindestrich, Gedankenstrich, „/“,
+ *  weichen Trennstrich und Nullbreite-Leerzeichen (dort umzubrechen ist erlaubt); Text in Zeichnungen (SVG), unsichtbarer Text für Screenreader
+ *  und `skip` zählen nicht. */
+export function wordBroken(el: Element, skip?: Element | null): boolean {
+  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  const r = document.createRange();
+  // Zeile eines Zeichens: das letzte Rechteck seines Bereichs (nach einem Umbruch am weichen Trennstrich zählt Chromium den Strich zum nächsten Zeichen)
+  const line = (n: Node, i: number, len: number) => {
+    r.setStart(n, i); r.setEnd(n, i + len);
+    const rs = [...r.getClientRects()].filter(x => x.width > 0);
+    return rs.length ? Math.round(rs[rs.length - 1].top) : null;
+  };
+  for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+    if (n.parentElement?.closest("svg, .sr-only") || skip?.contains(n)) continue;
+    for (const m of (n.textContent ?? "").matchAll(/[^\s\-‐–—/\u00AD\u200B]+/g)) {
+      const first = [...m[0]][0], last = [...m[0]].pop()!;
+      if (line(n, m.index!, first.length) !== line(n, m.index! + m[0].length - last.length, last.length)) return true;
+    }
+  }
+  return false;
+}
+
+/** Antwort zum Vorlesen: „A: Text“, bei Bild-Antworten die neutrale Beschriftung bzw. nur „A: Bild“ */
+export const spokenOption = (o: string, i: number, label?: string) => `${"ABCD"[i]}: ${label === undefined ? o : label || tr("Bild", "picture")}`;
+
+export function McAnswer({ task, answered, submit, renderOption, optionLabel }: {
+  task: McTask; answered: Answered | null; submit: Submit; renderOption?: (option: string) => ReactNode;
+  /** Bild-Antwort: neutrale Beschriftung für Screenreader statt des Antworttexts (siehe `QuizScreenProps.optionLabel`) */
+  optionLabel?: (option: string) => string | undefined;
+}) {
   const long = task.options.some(o => o.length > 22);
   // zweispaltig nur, wenn jede Antwort in ihre Spalte passt (schmale Handys: „Kohlensäure“ ragte hinaus) – sonst einspaltig
   const ref = useRef<HTMLDivElement>(null);
@@ -554,14 +632,9 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || one) return;
-    // ein einzelnes Wort, das nicht in seine Spalte passt, bräche mitten im Wort um („Thermoplas|t“) – dann ebenfalls einspaltig
-    const split = (b: HTMLElement) => {
-      const s = b.lastElementChild, n = s?.firstChild;
-      if (!s || !n || s.childNodes.length !== 1 || n.nodeType !== Node.TEXT_NODE || /\s/.test(n.textContent ?? "")) return false;
-      const r = document.createRange();
-      r.selectNodeContents(n);
-      return new Set([...r.getClientRects()].map(x => Math.round(x.top))).size > 1;
-    };
+    // ein Wort, das nicht in seine Spalte passt, bräche mitten im Wort um („Thermoplas|t“) – dann ebenfalls einspaltig.
+    // Gemessen wird jedes Wort jedes Textstücks im Knopf (auch bei eigener Darstellung, fett gesetzten Teilen, Formeln)
+    const split = (b: HTMLElement) => wordBroken(b, b.querySelector(".mc-key"));
     const check = () => { if ([...el.querySelectorAll<HTMLElement>(".mc-btn")].some(b => b.scrollWidth > b.clientWidth + 1 || split(b))) setNarrow(true); };
     check();
     addEventListener("resize", check);
@@ -575,12 +648,23 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
         return (
           <button key={i} type="button" className={`mc-btn${cls}`} disabled={!!answered} onClick={() => submit({ ok: i === task.answer, choice: i })}>
             <span className="mc-key" aria-hidden="true">{answered && i === task.answer ? "✓" : answered && i === answered.choice ? "✗" : "ABCD"[i]}</span>
-            {renderOption ? <span className="mc-own">{renderOption(o)}</span> : <span className={long ? "mono" : undefined}>{o}</span>}
+            {renderOption ? <OwnOption label={optionLabel?.(o)} i={i}>{renderOption(o)}</OwnOption> : <span className={long ? "mono" : undefined}>{o}</span>}
           </button>
         );
       })}
     </div>
     </NoTerms>
+  );
+}
+
+/** eigene Darstellung einer Antwort; mit Beschriftung (Bild-Antwort) liest der Screenreader nur „Antwort A: …“, nicht die Beschriftungen im Bild */
+function OwnOption({ label, i, children }: { label?: string; i: number; children: ReactNode }) {
+  if (label === undefined) return <span className="mc-own">{children}</span>;
+  return (
+    <>
+      <span className="mc-own" aria-hidden="true">{children}</span>
+      <span className="sr-only">{tr("Antwort", "Answer")} {"ABCD"[i]}{label ? `: ${label}` : ""}</span>
+    </>
   );
 }
 
@@ -601,16 +685,25 @@ function Result<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game: 
   const missCount: Record<string, number> = {};
   for (const a of game.answers) if (a?.miss) missCount[a.miss] = (missCount[a.miss] ?? 0) + 1;
   const stone = Object.entries(missCount).sort((a, b) => b[1] - a[1]).map(([k]) => p.missName?.(k)).find(Boolean);
+  // nie scrollen, auch mit vielen langen Fertigkeitsnamen (360 × 740, „Lesbar“): stufenweise kompakter (styles.css, data-fit) – zuletzt stehen
+  // die neuen Stufen nur noch als Knopf „Neue Stufen (n)“ mit Blatt da
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const [upsOpen, setUpsOpen] = useState(false);
+  useFitSteps(wrapRef, 4, [ups.length, wrong.length, !!stone, !!game.newBest, getLang()]);
+  const upItem = (u: { type: string; stage: Stage }) => <><i className={`sk sk-${u.stage}`} /> <span className="res-up-n">{name(u.type)}: {stageName(u.stage)}</span></>;
   return (
-    <div className="quiz-wrap">
+    <div className="quiz-wrap res-wrap" ref={wrapRef}>
       <Card className="result-card">
         <div className="big-stars"><Stars value={s} size={46} /></div>
         <h2>{msg}</h2>
         <p className="res-line"><b>{game.correct}</b> {tr("von", "of")} {total} {tr("richtig", "correct")} · <b>{Math.round((game.correct / total) * 100)} %</b> · {time}</p>
         {ups.length > 0 && (
-          <p className="res-ups">
-            {ups.map(u => <span key={u.type} className={`res-up st-${u.stage}`}><i className={`sk sk-${u.stage}`} /> {name(u.type)}: {stageName(u.stage)}</span>)}
-          </p>
+          <>
+            <p className="res-ups">
+              {ups.map(u => <span key={u.type} className={`res-up st-${u.stage}`}>{upItem(u)}</span>)}
+            </p>
+            <Button variant="quiet" icon="star" className="res-ups-sum" onClick={() => setUpsOpen(true)}>{tr("Neue Stufen", "New stages")} ({ups.length})</Button>
+          </>
         )}
         {stone && <p className="res-stone"><Icon name="x" size={16} /> {tr("Stolperstein", "Stumbling block")}: {stone}</p>}
         {game.newBest && <p className="new-best"><Icon name="trophy" size={18} /> {tr("Neuer Rekord", "New record")}: {game.score} {tr("Punkte", "points")}</p>}
@@ -621,6 +714,11 @@ function Result<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game: 
         </div>
         {wrong.length > 0 && <Button variant="quiet" icon="book" onClick={() => setReview(true)}>{tr("Zum Wiederholen", "To review")} ({wrong.length})</Button>}
       </Card>
+      {ups.length > 0 && (
+        <Sheet open={upsOpen} title={tr("Neue Stufen", "New stages")} onClose={() => setUpsOpen(false)}>
+          <ul className="res-ups-list">{ups.map(u => <li key={u.type} className={`res-up st-${u.stage}`}>{upItem(u)}</li>)}</ul>
+        </Sheet>
+      )}
       <Sheet open={review} title={tr("Zum Wiederholen", "To review")} onClose={() => setReview(false)}>
         <ol className="review">
           {wrong.map(({ t }, i) => (

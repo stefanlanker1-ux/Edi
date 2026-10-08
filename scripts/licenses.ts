@@ -71,7 +71,8 @@ export function licensePlugin(): Plugin {
       order: "post",
       handler(html) {
         if (!single) return html;
-        const text = licenseReport(collectLicenses(root, false)).replace(/--/g, "- -");
+        // nur entschärfen, was in einem Kommentar nicht stehen darf („-->“, „--!>“, „<!--“) – sonst bleibt der Text wörtlich (die Übersicht zeigt ihn an)
+        const text = licenseReport(collectLicenses(root, false)).replace(/--(!?>)/g, "- -$1").replace(/<!--/g, "<!- -");
         return html.replace(/<\/html>\s*$/, `</html>\n<!--\n${text}\n-->\n`);
       },
     },

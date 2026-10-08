@@ -7,7 +7,7 @@
 // Lernen an Beispielen mit Ausblenden der Hilfe: jedes Kapitel beginnt mit einem vorgemachten Fall (Lösungsweg Zeile für Zeile),
 // dann ein halb gelöster (eine Lücke im Lösungsweg) und dann selbst lösen – und wieder von vorn mit dem nächsten Gedanken.
 
-import { num, tr } from "./i18n.ts";
+import { num, readNumber, tr } from "./i18n.ts";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "./components.tsx";
 import { Icon } from "./icons.tsx";
@@ -70,8 +70,8 @@ export interface GuideDef {
 
 export const GUIDE_TRIES = 4;
 
-/** Zahl aus der Eingabe (Komma oder Punkt) */
-export const parseNum = (s: string) => Number(s.trim().replace(/\s/g, "").replace(",", "."));
+/** Zahl aus der Eingabe – Tausender- und Dezimaltrennzeichen wie in der Sprache („1.000“ bzw. „1,000“ = 1000), siehe `readNumber` */
+export const parseNum = (s: string) => readNumber(s);
 
 /** Prüft eine Antwort gegen den Schritt (Zahlen tolerant gegenüber Komma/Punkt) */
 export function isRight(step: GuideStep, a: string | number): boolean {

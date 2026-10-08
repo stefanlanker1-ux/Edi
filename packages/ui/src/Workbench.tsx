@@ -2,9 +2,10 @@
 //   Handy/Tablet: Bühne füllt den Bildschirm, darunter eine Werkzeugleiste; jedes Werkzeug öffnet ein Blatt.
 //   Breit (≥ 900 px): Bühne links, die Werkzeuge als Register rechts daneben (immer sichtbar).
 // Werkzeuge ohne `content` sind reine Aktionen (z. B. „Leeren“) und bleiben in der Leiste.
+// Passt eine Beschriftung nicht in ihre Spalte, steht die Leiste in zwei Reihen (`data-wrap`) – nie abgeschnitten.
 
 import { tr } from "./i18n.ts";
-import { useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Icon, type IconName } from "./icons.tsx";
 import { Panel } from "./components.tsx";
 import { Sheet } from "./Sheet.tsx";
@@ -41,6 +42,20 @@ export function Workbench({ head, stage, status, controls, tools, className, lab
   const panels = tools.filter(t => t.content !== undefined);
   const bar = narrow ? tools : tools.filter(t => t.content === undefined);
   const sheet = narrow ? panels.find(t => t.id === open) : undefined;
+  // Beschriftungen nie abgeschnitten: passt eine nicht in ihre Spalte (schmales Handy, Englisch, „Lesbar“), stehen die Werkzeuge in zwei Reihen
+  const barRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = barRef.current;
+    if (!el) return;
+    const fit = () => {
+      delete el.dataset.wrap;
+      const cut = [...el.querySelectorAll<HTMLElement>(".ui-wb-tool > span")].some(s => s.scrollWidth > s.clientWidth + 1 || s.scrollHeight > s.clientHeight + 2);
+      if (cut) { el.dataset.wrap = ""; el.style.setProperty("--wb-cols", String(Math.ceil(el.children.length / 2))); }
+    };
+    fit();
+    addEventListener("resize", fit);
+    return () => removeEventListener("resize", fit);
+  });
   return (
     <div className={`ui-wb${side === "left" ? " side-left" : ""}${className ? " " + className : ""}`}>
       <section className="ui-card ui-wb-stage">
@@ -49,7 +64,7 @@ export function Workbench({ head, stage, status, controls, tools, className, lab
         {status && <div className="ui-wb-status">{status}</div>}
         {controls && <div className="ui-wb-controls">{controls}</div>}
         {bar.length > 0 && (
-          <div className={`ui-wb-tools${bar.length >= 5 ? " many" : ""}`} role="toolbar" aria-label={label ?? tr("Werkzeuge", "Tools")}>
+          <div ref={barRef} className={`ui-wb-tools${bar.length >= 5 ? " many" : ""}`} role="toolbar" aria-label={label ?? tr("Werkzeuge", "Tools")}>
             {bar.map(t => (
               <button key={t.id} type="button" className={`ui-wb-tool${t.pressed ? " pressed" : ""}`} disabled={t.disabled}
                 aria-pressed={t.pressed} aria-haspopup={t.content !== undefined ? "dialog" : undefined}

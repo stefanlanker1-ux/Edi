@@ -3,6 +3,17 @@
 // danach halb gelöst, dann frei (vorgemacht → halb → frei → vorgemacht …; mehrere halbe oder freie hintereinander erlaubt).
 
 import type { GuideDef } from "./Guide.tsx";
+import { readNumber, type Lang } from "./i18n.ts";
+
+/** übliche Schreibweisen einer Zahl je Sprache: ohne Gruppen, mit Tausenderpunkt bzw. -komma, mit Leerzeichen; Dezimalkomma bzw. -punkt */
+export function typedForms(n: number): [Lang, string][] {
+  if (/e/i.test(String(n))) return []; // Zehnerpotenzen tippt man so nicht
+  const [ip, fp] = String(Math.abs(n)).split(".");
+  const sign = n < 0 ? "-" : "";
+  const group = (sep: string) => ip.replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+  const de = (g: string) => sign + g + (fp ? `,${fp}` : ""), en = (g: string) => sign + g + (fp ? `.${fp}` : "");
+  return [["de", de(ip)], ["de", de(group("."))], ["de", de(group(" "))], ["en", en(ip)], ["en", en(group(","))], ["en", en(group(" "))]];
+}
 
 /** Sätze mit mehr als `max` Wörtern (Aufzählungen mit Doppelpunkt/Gleichheitszeichen zählen als ein Satz je Teil) */
 export function longGuideSentences(text: string, max = 22): string[] {
@@ -91,6 +102,8 @@ export function checkGuide(def: GuideDef, opts: { lesson?: boolean } = {}): stri
     if (s.tip && typeof s.answer === "number" && new RegExp(`(^|[^0-9,\\p{L}])${String(s.answer).replace(".", ",")}([^0-9,\\p{L}]|$)`, "u").test(s.tip)) out.push(`${at}: Tipp verrät die Lösung`);
     if (s.num) {
       if (typeof s.answer !== "number" || !Number.isFinite(s.answer)) out.push(`${at}: Zahl-Antwort fehlt`);
+      // so tippen Lernende die Zahl: jede übliche Schreibweise der Sprache muss als richtig gelten („1.000“ ist auf Deutsch 1000, nie 1)
+      else for (const [l, text] of typedForms(s.answer)) if (Math.abs(readNumber(text, l) - s.answer) > 1e-9) out.push(`${at}: Eingabe „${text}“ (${l}) wird nicht als ${s.answer} gelesen`);
       for (const k of Object.keys(s.why ?? {})) if (!Number.isFinite(Number(k)) || Number(k) === s.answer) out.push(`${at}: Rückmeldung „${k}“ ist keine falsche Zahl`);
     }
     if (!s.options && !s.num && !s.visual) out.push(`${at}: Antippen ohne Bild`);

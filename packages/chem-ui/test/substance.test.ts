@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { REACTIONS, MOL3D, ionText } from "@lern/chem";
-import { layout2D, substanceInfo } from "../src/Substance.tsx";
+import { elementParticles, layout2D, substanceInfo } from "../src/Substance.tsx";
 
 const ALL = [...new Set(REACTIONS.flatMap(r => [...r.left, ...r.right]))];
 
@@ -48,4 +48,12 @@ test("Element oder Verbindung, Teilchenart", () => {
   assert.strictEqual(k("H2O2"), "verbindung/molekuel");
   assert.strictEqual(k("C12H26"), "verbindung/molekuel");
   assert.strictEqual(k("NaCl"), "verbindung/ionen");
+});
+
+test("Elemente nur mit Symbol (C, S): die Stoff-Info sagt, woraus der Stoff wirklich besteht", () => {
+  // jedes Element ohne eigene Teilchenart in den Reaktionen hat eine Angabe
+  for (const f of ALL) if (substanceInfo(f).kind === "element") assert.ok(elementParticles(f)?.length, f);
+  assert.deepEqual(elementParticles("S"), ["Moleküle S₈", "in Gleichungen vereinfacht: S"]);
+  assert.deepEqual(elementParticles("C"), ["Atome im Gitter verbunden", "in Gleichungen: C"]);
+  assert.strictEqual(elementParticles("O2"), undefined);
 });

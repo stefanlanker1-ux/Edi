@@ -141,7 +141,8 @@ export const dis = (text: string, why: string): Distractor => ({ text, why });
 
 /**
  * Multiple-Choice-Aufgabe aus richtiger Antwort und Distraktoren (Duplikate werden entfernt).
- * Distraktoren mit Diagnose kommen zuerst dran; `rightWhy` ist der Bestätigungssatz zur richtigen Antwort.
+ * Sind es mehr als Plätze, kommen zuerst Distraktoren mit Stolperstein (`d`, `miss`) dran, dann solche mit Rückmeldung (`dis`), dann der Rest –
+ * je Gruppe zufällig; so fällt keine Falle mit Stolperstein weg, solange Platz ist. `rightWhy` ist der Bestätigungssatz zur richtigen Antwort.
  * `why`/`miss` je Options-Index (nur gesetzte Einträge, JSON-fähig).
  */
 export function mc(correct: string, wrongs: Distractor[], n = 4, rightWhy?: string): Pick<McTask, "kind" | "options" | "answer" | "why" | "miss"> {
@@ -152,8 +153,8 @@ export function mc(correct: string, wrongs: Distractor[], n = 4, rightWhy?: stri
     if (!x || !x.text || seen.has(x.text)) continue;
     seen.add(x.text); list.push(x);
   }
-  const diag = shuffle(list.filter(x => x.miss || x.why)), plain = shuffle(list.filter(x => !x.miss && !x.why));
-  const chosen = [...diag, ...plain].slice(0, n - 1);
+  const keyed = shuffle(list.filter(x => x.miss)), told = shuffle(list.filter(x => !x.miss && x.why)), plain = shuffle(list.filter(x => !x.miss && !x.why));
+  const chosen = [...keyed, ...told, ...plain].slice(0, n - 1);
   const all = shuffle([{ text: correct, why: rightWhy } as Diag, ...chosen]);
   const why: Record<number, string> = {}, miss: Record<number, string> = {};
   all.forEach((x, i) => { if (x.why) why[i] = x.why; if (x.miss) miss[i] = x.miss; });
@@ -269,9 +270,10 @@ export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly
   return first.map((slot, at) => {
     let [best, a] = pick(at);
     // nur schon gestellte Fragen dieses Typs gezogen: einmal je Runde gezielt weitersuchen – der Zufall kann neue übersehen haben
+    // (doppelt so geduldig wie die erste Suche: bei kleinem Vorrat bringen auch mehrere Runden in Folge zufällig nichts Neues)
     if (a >= 0 && !searched) {
       searched = true;
-      for (let i = 0, stale = 0; i < extra * 3 && a >= 0 && stale < STALE && !late(); i++) {
+      for (let i = 0, stale = 0; i < extra * 3 && a >= 0 && stale < 2 * STALE && !late(); i++) {
         stale = add(make()).some(c => fits(c, at)) ? 0 : stale + 1;
         [best, a] = pick(at);
       }

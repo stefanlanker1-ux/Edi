@@ -122,7 +122,8 @@ test("Suche begrenzt: bei erschöpftem Vorrat nur wenige weitere Runden erzeugen
   for (const opts of [{ keepType: true, samePlace: true }, { keepType: true }, {}]) {
     let calls = 0;
     freshRound(() => { calls++; return ["a", "a", "a"].map(pickSmall); }, recent, 10, opts);
-    assert.ok(calls <= 11, `${JSON.stringify(opts)}: ${calls} Runden erzeugt (vorher bis zu 41)`);
+    // erste Runde + erste Suche (5 ohne Neues) + gezielte Suche (10 ohne Neues) – vorher bis zu 41
+    assert.ok(calls <= 16, `${JSON.stringify(opts)}: ${calls} Runden erzeugt (vorher bis zu 41)`);
   }
 });
 

@@ -17,7 +17,7 @@ export function Sheet({ open, title, onClose, wide, children }: { open: boolean;
     if (open && !d.open) { d.showModal(); openedAt.current = performance.now(); }
     if (!open && d.open) d.close();
   }, [open]);
-  // Zurück-Taste (Android, Browser) schließt das Blatt statt die App zu verlassen
+  // „Zurück“ (Browser, Zurück-Geste) schließt das Blatt statt die Seite zu verlassen – Android-App: siehe useBackClose
   useBackClose(open, onClose, "uiSheet");
   return (
     <dialog ref={ref} className={`ui-sheet${wide ? " wide" : ""}`} aria-labelledby={open ? titleId : undefined} onClose={e => { e.stopPropagation(); onClose(); }}

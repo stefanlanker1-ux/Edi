@@ -65,7 +65,9 @@ export function QuizView() {
       missName={id => MISS[id]}
       heroArt={<svg viewBox="0 0 120 60" width="120" height="60" aria-hidden="true"><polyline points="10,40 35,22 60,40 85,22 110,40" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" /></svg>}
       renderVisual={t => (t.mol ? <div className="q-og"><QuizMol mol={t.mol} /></div> : null)}
-      renderOption={(t, o) => (t.mols?.[o] ? <span className="og-opt"><QuizMol mol={t.mols[o]} small /><span className="sr-only">{o}</span></span> : o)}
+      renderOption={(t, o) => (t.mols?.[o] ? <span className="og-opt"><QuizMol mol={t.mols[o]} small /></span> : o)}
+      // Strukturformel als Antwort: der Antworttext ist der Name (= die Lösung) – vorgelesen wird nur „Antwort A“
+      optionLabel={(t, o) => (t.mols?.[o] ? "" : undefined)}
       renderAnswer={(t, a, submit) => (t.kind === "num" ? <NumberAnswer key={t.prompt + JSON.stringify(t.mol?.bonds)} answer={t.answer} answered={a} submit={submit} max={30} /> : null)}
       solution={t => (t.kind === "num" ? String(t.answer) : null)}
       explain={(level, task) => explainFor(level, task)}

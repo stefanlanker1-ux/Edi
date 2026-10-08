@@ -54,6 +54,9 @@ export interface StufeSwitch<S extends string> {
 
 const US_OS = [{ value: "us", label: "Level I", short: "I" }, { value: "os", label: "Level II", short: "II" }];
 
+/** „Einheiten umrechnen“ → „Einheiten“, „Einheiten umrechnen“ */
+const wordPrefixes = (n?: string) => (n ? n.split(" ").map((_, i, w) => w.slice(0, i + 1).join(" ")) : []);
+
 /** localStorage-Schlüssel „Erklärung ganz durchlaufen“ – mit der sprachunabhängigen Kennung des Moduls */
 export const guideDoneKey = (id: string) => `lern-erklaert-${id}`;
 
@@ -103,7 +106,9 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   // Knopf hervorgehoben, bis die Erklärung einmal ganz durchlaufen ist (je Modul, nur auf diesem Gerät)
   const modul = useContext(CurrentModul);
   const doneKey = guideDoneKey(modul?.id ?? name);
-  const [fresh, setFresh] = useState(() => !guideDone(doneKey, [name, modul?.name, modul?.nameEn]));
+  // frühere Schlüssel: Name der App in einer der beiden Sprachen – hier bekannt sind der aktuelle Name und die Namen des Moduls (auch ihr Anfang:
+  // „Einheiten“ aus „Einheiten umrechnen“)
+  const [fresh, setFresh] = useState(() => !guideDone(doneKey, [name, ...wordPrefixes(modul?.name), ...wordPrefixes(modul?.nameEn)]));
   const quizTab = tabs.find(t => t.id === "quiz");
   const finish = () => {
     try { localStorage.setItem(doneKey, "1"); } catch { /* egal */ }

@@ -3,27 +3,37 @@
 
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
-export function Fit({ children, className, min = 0.4 }: { children: ReactNode; className?: string; min?: number }) {
+export function Fit({ children, className, min = 0.4, minHeight = 0 }: {
+  children: ReactNode; className?: string;
+  /** kleinster Verkleinerungsfaktor */
+  min?: number;
+  /** verkleinert niedriger als so viele Pixel: zu klein, um etwas zu erkennen – wie abgeschnitten (data-cut) */
+  minHeight?: number;
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
-  const [t, setT] = useState({ k: 1, y: 0 });
+  const [t, setT] = useState({ k: 1, y: 0, cut: false });
   useLayoutEffect(() => {
     const o = outer.current, i = inner.current;
     if (!o || !i) return;
     const update = () => {
+      // ausgeblendet (display: none): Stand behalten, sonst schaltete das Ausblenden sich selbst wieder ab
+      if (!o.clientWidth && !o.clientHeight) return;
       const h = Math.max(1, i.scrollHeight);
       const s = Math.min(1, o.clientWidth / Math.max(1, i.scrollWidth), o.clientHeight / h);
       const k = Number.isFinite(s) && s > 0 ? Math.max(min, s) : 1;
-      setT({ k, y: Math.max(0, (o.clientHeight - h * k) / 2) });
+      // passt der Inhalt selbst verkleinert nicht (bzw. nur unter minHeight): data-cut am Rahmen – wer Fit nutzt, kann das Bild dann ganz
+      // ausblenden statt einen Rest zu zeigen
+      setT({ k, y: Math.max(0, (o.clientHeight - h * k) / 2), cut: Number.isFinite(s) && (s < min || (s < 1 && h * k < minHeight)) });
     };
     update();
     if (typeof ResizeObserver === "undefined") return;
     const ro = new ResizeObserver(update);
     ro.observe(o); ro.observe(i);
     return () => ro.disconnect();
-  }, [min]);
+  }, [min, minHeight]);
   return (
-    <div ref={outer} className={`ui-fit${className ? " " + className : ""}`}>
+    <div ref={outer} className={`ui-fit${className ? " " + className : ""}`} data-cut={t.cut || undefined}>
       <div ref={inner} className="ui-fit-inner" style={{ transform: `translateY(${t.y}px)${t.k < 1 ? ` scale(${t.k})` : ""}` }}>{children}</div>
     </div>
   );

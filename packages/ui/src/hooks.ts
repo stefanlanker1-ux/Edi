@@ -1,7 +1,45 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 
+// ── Zurück schließt Blätter ────────────────────────────────────────────────────
+// Jedes offene Blatt bzw. die Erklärung hat einen eigenen Verlaufseintrag `{ [kind]: Kennung, overlay: true }`. Im Browser (auch am Handy
+// und mit der Zurück-Geste) geht „Zurück“ dorthin zurück und schließt so das Blatt. In der Android-App erreicht die Zurück-Taste den Verlauf
+// erst, wenn sie an die WebView weitergeleitet wird (siehe docs/entwicklung.md, „Android-Zurück-Taste“).
+
+/** Kennung des Eintrags, dessen Blatt gerade geschlossen wurde und dessen `history.back()` noch aussteht */
+let closing: string | null = null;
+const stateOf = () => (typeof history === "undefined" ? null : (history.state as Record<string, unknown> | null));
+
+/** Eintrag für ein geöffnetes Blatt: neu – oder der eben geschlossene wird übernommen (Schließen und Öffnen im selben Durchlauf, z. B. Blatt-Wechsel,
+ *  Neuaufbau in React StrictMode); sonst nähme das nachlaufende `back()` dem neuen Blatt seinen Eintrag und schlösse es sofort */
+export function openBackEntry(kind: string): string {
+  const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  const st = stateOf();
+  if (closing && st?.overlay && Object.values(st).includes(closing)) { closing = null; history.replaceState({ [kind]: id, overlay: true }, ""); }
+  else history.pushState({ [kind]: id, overlay: true }, "");
+  return id;
+}
+
+/** Blatt ohne „Zurück“ geschlossen (Schließen-Knopf, Ende): den eigenen Eintrag wieder entfernen – erst nach dem laufenden Durchlauf,
+ *  damit ein gleich danach geöffnetes Blatt ihn übernehmen kann */
+export function closeBackEntry(kind: string, id: string) {
+  if (stateOf()?.[kind] !== id) return;
+  closing = id;
+  queueMicrotask(() => {
+    if (closing !== id) return;
+    closing = null;
+    if (stateOf()?.[kind] === id) history.back();
+  });
+}
+
+/** Beim Start: Eintrag eines Blatts, das vor dem Neuladen offen war, gehört zu keinem Blatt mehr – einmal zurück, sonst bräuchte „Zurück“ später einen Schritt mehr */
+export function dropStaleBackEntry() {
+  const st = stateOf();
+  if (st && (st.overlay || "uiSheet" in st || "uiGuide" in st)) history.back();
+}
+dropStaleBackEntry();
+
 /**
- * Zurück-Taste (Android, Browser) schließt ein offenes Blatt bzw. die Erklärung, statt die App zu verlassen: eigener Verlaufseintrag je Öffnen
+ * Zurück schließt ein offenes Blatt bzw. die Erklärung, statt die Seite zu verlassen: eigener Verlaufseintrag je Öffnen
  * (`kind` = Name im Verlaufszustand). Steht der Verlauf nach „Zurück“ wieder auf dem eigenen Eintrag (ein Blatt darüber wurde geschlossen), bleibt es offen.
  * Die Kennung ist je Öffnen neu: ein Eintrag, der nach dem Neuladen stehen blieb, gehört zu keinem Blatt mehr.
  */
@@ -10,13 +48,11 @@ export function useBackClose(open: boolean, onClose: () => void, kind: string) {
   close.current = onClose;
   useEffect(() => {
     if (!open) return;
-    const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-    history.pushState({ [kind]: id }, "");
+    const id = openBackEntry(kind);
     let popped = false;
-    const mine = () => (history.state as Record<string, unknown> | null)?.[kind] === id;
-    const onPop = () => { if (mine()) return; popped = true; close.current(); };
+    const onPop = () => { if (stateOf()?.[kind] === id) return; popped = true; close.current(); };
     addEventListener("popstate", onPop);
-    return () => { removeEventListener("popstate", onPop); if (!popped && mine()) history.back(); };
+    return () => { removeEventListener("popstate", onPop); if (!popped) closeBackEntry(kind, id); };
   }, [open, kind]);
 }
 

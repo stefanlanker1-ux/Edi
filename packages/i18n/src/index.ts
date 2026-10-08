@@ -55,6 +55,23 @@ export const tr = <T,>(de: T, en: T): T => (lang === "en" ? en : de);
 /** Zahl im Format der Sprache (Komma bzw. Punkt) */
 export const num = (s: string | number) => (lang === "en" ? String(s).replace(",", ".") : String(s).replace(".", ","));
 
+/**
+ * Eingetippte Zahl lesen (NaN, wenn es keine ist) – Trennzeichen wie in der Sprache der Oberfläche, gleiche Regel wie `parseAnswer` in @lern/units:
+ * Deutsch „.“ = Tausenderpunkt, „,“ = Dezimalkomma („1.000“ = 1000, nie 1); Englisch umgekehrt („1,000“ = 1000, „1.5“ = 1,5);
+ * Leerzeichen-Gruppen („10 000“) gehen immer. Eindeutige andere Schreibweisen gelten weiter („0.5“, „1.250,5“, „0,25“).
+ */
+export function readNumber(input: string, l: Lang = lang): number {
+  let s = input.trim().replace(/[\s   ']/g, "").replace(/[−–]/g, "-");
+  // Tausender-Gruppen der Sprache: erste Gruppe 1–3 Ziffern ohne führende 0, dann je genau drei Ziffern
+  const groups = (sep: string, dec: string) => new RegExp(`^-?[1-9]\\d{0,2}(\\${sep}\\d{3})+(\\${dec}\\d*)?$`);
+  if (l === "en") { if (groups(",", ".").test(s)) s = s.replace(/,/g, ""); }
+  else if (groups(".", ",").test(s)) s = s.replace(/\./g, "");
+  // Tausenderpunkte in eindeutiger Form (mehrere Punkte oder Punkt und Komma): 40.000.000, 1.250,5
+  if (/^-?\d{1,3}(\.\d{3})+(,\d*)?$/.test(s) && (/\..*\./.test(s) || s.includes(","))) s = s.replace(/\./g, "");
+  s = s.replace(",", ".");
+  return /^-?(\d+\.?\d*|\.\d+)$/.test(s) ? Number(s) : NaN;
+}
+
 apply();
 
 /** Eigennamen und Wörter, die im Englischen auch mitten im Satz groß bleiben */

@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@lern/ui";
-import { tr } from "@lern/ui";
+import { readNumber, tr } from "@lern/ui";
 import type { Answered, Submit } from "./types.ts";
 
-/** Zahl als Eingabe: ganze Zahl (Standard) oder Dezimalzahl mit Komma oder Punkt, optional mit Einheit dahinter.
+/** Zahl als Eingabe: ganze Zahl (Standard) oder Dezimalzahl (Komma bzw. Punkt wie in der Sprache), optional mit Einheit dahinter.
  *  Meldet `values.n` – Fallen (`traps`) der Aufgabe prüfen dieses Feld. */
 export function NumberAnswer({ answer, answered, submit, unit, decimal = false, max = 999, equal = (a, b) => a === b, format = String }: {
   answer: number; answered: Answered | null; submit: Submit;
@@ -20,7 +20,8 @@ export function NumberAnswer({ answer, answered, submit, unit, decimal = false, 
 }) {
   const [v, setV] = useState("");
   const shown = answered?.values ? format(answered.values.n) : v;
-  const parse = (s: string) => Number(s.trim().replace(",", "."));
+  // Trennzeichen wie in der Sprache: „1.000“ (Deutsch) bzw. „1,000“ (Englisch) = 1000
+  const parse = (s: string) => readNumber(s);
   const ready = v.trim() !== "" && !Number.isNaN(parse(v));
   return (
     <form className="num-answer" onSubmit={e => {
