@@ -107,7 +107,10 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       start: (stufe, level, dueIds) => {
         const sk = get().skills[stufe] ?? {};
         const due = level === "due" ? (dueIds ?? dueSkills(sk, Object.keys(sk), Date.now(), get().exams[stufe])) : undefined;
-        const round = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? [], 10, !!cfg.fixedOrder && typeof level === "number");
+        // feste Reihenfolge: Platz und Typ bleiben; „Heute fällig“/„Schwächen üben“: jede gewählte Fertigkeit bleibt drin, auch wenn ihr Vorrat erschöpft ist
+        const fixed = !!cfg.fixedOrder && typeof level === "number";
+        const round = freshRound(() => cfg.makeRound(stufe, level, get().typeStats[stufe], due), get().recent[stufe] ?? [], 10,
+          { keepType: fixed || level === "due" || level === "weak", samePlace: fixed });
         // neue Fertigkeiten: erst ein gelöstes Beispiel derselben Art, dann die Aufgabe mit sichtbarem ersten Schritt, danach frei
         const tasks = level === "due" || level === "weak" ? round : withExamples(round, sk, () => cfg.makeRound(stufe, level, get().typeStats[stufe], due), cfg.sameTask);
         const game: Game<T> = {

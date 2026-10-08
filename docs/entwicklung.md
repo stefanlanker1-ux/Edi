@@ -218,10 +218,13 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Optional: Level mit Tipp (`QuizLevel.tip` = Glühbirne an der Karte, Aufgabe `hintCue` = Tipp-Knopf hervorgehoben, Tipp kostet keine Punkte) und feste Reihenfolge (`fixedOrder`).
   Fertigkeiten (`skills.ts`): neu → geübt → sicher (2 Treffer in Folge) → gemeistert (Treffer nach ≥ 7 Tagen Abstand); Wiederholung nach 1-3-7-14-30 Tagen
   (Abstand wächst nur mit einem Treffer an einem neuen Tag, fällig ab Mitternacht des Fälligkeitstags), Fehler = morgen wieder fällig. Level "due" = „Heute fällig“; „Schwächen üben“ = Fertigkeiten mit Fehlern, die seitdem nicht wieder sicher sind (`recordStat`). Menü zeigt Wochenziel (3 Runden), Stufen je Level und die Landkarte (Blatt); Auswertung nennt Trefferquote, Zeit
-  und erreichte Stufen. Keine Wiederholungen: der Store merkt sich die zuletzt gestellten Fragen (`recent`, Prüfsumme `taskKey`, 400 je Stufe; ohne Antworten, ohne alles, was am
-  Antwort-Index hängt – `why`, `miss` – und ohne `stage`, `lead`, `hintCue`, Tipp, Erklärung: dieselbe Frage hat bei jeder Mischung dieselbe Kennung, Test),
-  `freshRound` nimmt je Platz eine neue Frage desselben Typs, sonst eines anderen Typs des Levels, erst danach die am längsten zurückliegende; bei fester Reihenfolge
-  (`fixedOrder`) nur Fragen, die für denselben Platz erzeugt wurden (dort hängt z. B. der Merksatz am Platz, Test). „Nochmal“ nach „Heute fällig“ bzw.
+  und erreichte Stufen. Keine Wiederholungen: der Store merkt sich die zuletzt gestellten Fragen (`recent`, Prüfsumme `taskKey`, 400 je Stufe; mit der richtigen Antwort
+  als Text – gleicher Fragetext mit anderer Lösung ist eine andere Frage –, ohne alles, was am Antwort-Index hängt (`why`, `miss`), und ohne `stage`, `lead`, `hintCue`,
+  Tipp, Erklärung: dieselbe Frage hat bei jeder Mischung dieselbe Kennung, Test). `freshRound` nimmt je Platz eine neue Frage desselben Typs; ist der Vorrat eines Typs
+  erschöpft, bekommt höchstens ein Platz je Runde eine neue Frage eines anderen Typs, sonst kommt die am längsten zurückliegende (keine Fertigkeit verschwindet aus ihrem Level).
+  `keepType` (feste Reihenfolge, „Heute fällig“, „Schwächen üben“): nie den Typ tauschen – jede gewählte bzw. fällige Fertigkeit bleibt in der Runde (Test);
+  `samePlace` (feste Reihenfolge): nur Fragen dieses Platzes oder mit gleichem Typ und gleichem Merksatz (Test). Die Suche nach neuen Fragen ist begrenzt
+  (Abbruch, wenn erzeugte Runden nacheinander nichts Neues bringen, höchstens 250 ms) – der Rundenstart bleibt flüssig. „Nochmal“ nach „Heute fällig“ bzw.
   „Schwächen üben“ nur, solange noch etwas fällig bzw. schwach ist (`pending`), sonst nur „Zur Levelauswahl“. Sprache: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Schuld.
   Prüfungstermin (`Exam`, Blatt „Schularbeit“ im Menü, trägt der Lernende selbst ein, bleibt auf dem Gerät): bis dahin Abstand höchstens halbe Restzeit
   (`examInterval`, `effectiveDue`), neue Fertigkeiten zuerst fällig, Menü zeigt Countdown und „x / n sicher“; nach dem Tag löscht sich der Termin.
@@ -871,6 +874,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Quiz: Wiederholungsschutz ohne Nebenwirkungen** – die Nachprüfung der vorigen Änderung fand drei Rückschritte: „Heute fällig“/„Schwächen üben“ ließen fällige Fertigkeiten
+  mit kleinem Vorrat ganz weg (Typtausch), verschiedene Fragen mit gleichem Text und anderer Lösung hatten dieselbe Kennung (Fertigkeiten verschwanden aus ihrem Level), und der
+  Rundenstart in Nomenklatur Level 1 dauerte nach einigen Runden bis 3 s. Jetzt: `taskKey` enthält die richtige Antwort als Text (unabhängig von der Mischung); `freshRound` mit
+  `keepType` (feste Reihenfolge, „Heute fällig“, „Schwächen üben“: nie Typtausch, bei erschöpftem Vorrat die älteste Frage dieser Fertigkeit) und `samePlace` (gleicher Platz oder
+  gleicher Typ mit gleichem Merksatz); in Leveln ohne feste Reihenfolge höchstens ein Typtausch je Runde; Suche begrenzt (höchstens 250 ms). Simulation über alle Module und Level:
+  keine fällige Fertigkeit fehlt, kein Typ unter 40 % seines Erwartungswerts, Rundenstart im Mittel ≤ 244 ms.
 - **Atombau, Ionenbindung, Elektronenpaarbindung, `@lern/chem`: Fachfehler und Begriffe** – Elektronenkonfiguration ist jetzt der gemessene Grundzustand (Tabelle der 13 Ausnahmen
   bis Z = 86: Cr, Cu, Nb, Mo, Ru, Rh, Pd, Ag, La, Ce, Gd, Pt, Au; vorher z. B. Cu 2,8,17,2 statt 2,8,18,1) mit Kennzeichen „Ausnahme“; Kationen aus dem Grundzustand
   (Cu⁺ [Ar] 3d¹⁰, Fe²⁺ [Ar] 3d⁶); Aufgaben zum Aufbauprinzip fragen keine Ausnahme-Elemente; Ionen mit Edelgas-Elektronenzahl als [Ne]/[Ar]/[Kr] (wie in der Erklärung).

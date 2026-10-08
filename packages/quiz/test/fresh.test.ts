@@ -87,3 +87,50 @@ test("feste Reihenfolge: ersetzte Fragen kommen vom selben Platz – der Merksat
     }
   }
 });
+
+test("taskKey: gleicher Fragetext mit anderer richtiger Antwort ist eine andere Frage", () => {
+  const q = (right: string) => ({ ...mc(right, ["K⁺", "Ca²⁺", "S²⁻", "Cl⁻"].filter(x => x !== right)), prompt: "Welches Ion hat so viele Elektronen wie das Edelgas Argon?", hint: "", explain: "" });
+  assert.notStrictEqual(taskKey(q("K⁺")), taskKey(q("Ca²⁺")));
+  assert.strictEqual(taskKey(q("K⁺")), taskKey(q("K⁺")));
+  // Eingabe-Aufgaben: die gesuchte Zahl zählt ebenfalls
+  assert.notStrictEqual(taskKey({ kind: "num", prompt: "Wie viele?", hint: "", explain: "", answer: 3 } as BaseTask), taskKey({ kind: "num", prompt: "Wie viele?", hint: "", explain: "", answer: 4 } as BaseTask));
+});
+
+// kleiner Vorrat: Typ „a“ hat nur zwei Fragen, beide zuletzt gestellt; „b“ hat viele
+const small = () => [0, 1].map(n => ({ kind: "mc", type: "a", prompt: `a ${n}`, hint: "", explain: "" }) as BaseTask);
+const pickSmall = (type: string): BaseTask => (type === "a" ? small()[Math.floor(Math.random() * 2)] : { ...gen("b")(), prompt: `b ${Math.floor(Math.random() * 1000)}` });
+
+test("„Heute fällig“ (keepType): eine fällige Fertigkeit mit erschöpftem Vorrat bleibt in der Runde – die am längsten zurückliegende Frage", () => {
+  const recent = [taskKey(small()[1]), taskKey(small()[0])]; // a 1 am längsten her
+  for (let r = 0; r < 50; r++) {
+    const round = freshRound(() => ["a", "b", "a", "b"].map(pickSmall), recent, 10, { keepType: true });
+    assert.deepEqual(round.map(t => t.type), ["a", "b", "a", "b"]);
+    assert.strictEqual(round[0].prompt, "a 1");
+  }
+});
+
+test("Level ohne feste Reihenfolge: ein erschöpfter Typ verliert höchstens einen Platz je Runde", () => {
+  const recent = small().map(taskKey);
+  for (let r = 0; r < 50; r++) {
+    const round = freshRound(() => ["a", "b", "a", "b", "a", "b"].map(pickSmall), recent, 10);
+    assert.ok(round.filter(t => t.type === "a").length >= 2, round.map(t => t.type).join());
+  }
+});
+
+test("Suche begrenzt: bei erschöpftem Vorrat nur wenige weitere Runden erzeugen (Rundenstart bleibt schnell)", () => {
+  const recent = small().map(taskKey);
+  for (const opts of [{ keepType: true, samePlace: true }, { keepType: true }, {}]) {
+    let calls = 0;
+    freshRound(() => { calls++; return ["a", "a", "a"].map(pickSmall); }, recent, 10, opts);
+    assert.ok(calls <= 11, `${JSON.stringify(opts)}: ${calls} Runden erzeugt (vorher bis zu 41)`);
+  }
+});
+
+test("feste Reihenfolge ohne Merksatz: Fragen desselben Typs von anderen Plätzen sind erlaubt (größerer Vorrat)", () => {
+  // drei Plätze desselben Typs, je Platz nur zwei mögliche Fragen – zusammen sechs
+  const make = () => [0, 1, 2].map(i => ({ kind: "mc", type: "s", prompt: `s ${2 * i + Math.floor(Math.random() * 2)}`, hint: "", explain: "" }) as BaseTask);
+  let recent: string[] = [];
+  const asked: string[] = [];
+  for (let r = 0; r < 2; r++) { const round = freshRound(make, recent, 20, true); for (const t of round) { asked.push(t.prompt); recent = [...recent, taskKey(t)]; } }
+  assert.strictEqual(new Set(asked).size, 6, asked.join(" | "));
+});
