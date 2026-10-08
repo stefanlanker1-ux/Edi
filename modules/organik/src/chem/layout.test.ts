@@ -3,6 +3,7 @@ import { EXAMPLES, exampleMol } from "./examples.ts";
 import { name } from "./naming.ts";
 import { addRing, append, connect, cycleBond, replace, start } from "./edit.ts";
 import type { Mol } from "./mol.ts";
+import { smilesMol } from "./smiles.ts";
 
 const minDist = (m: Mol) => {
   let d = Infinity;
@@ -23,6 +24,16 @@ describe("Beispiele", () => {
     }
   });
   test("keine doppelten Beispiele", () => expect(new Set(all).size).toBe(all.length));
+});
+
+describe("Gedrängte Moleküle", () => {
+  // vorher lagen Halogene übereinander (Perchlorhexan 0,35, Heptachlorbutan 0,52)
+  test.each([
+    "ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)Cl", "ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)Cl", "ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C",
+    "FC(F)(F)C(F)(F)C(F)(F)C(F)(F)F", "BrC(Br)(Br)C(Br)(Br)Br", "CC(C)(C)C(C)(C)C(C)(C)C(C)(C)C", "OC(=O)C(C)(C)C(O)C(O)C(O)C",
+  ])("%s: Atome mit Abstand", s => {
+    expect(minDist(smilesMol(s))).toBeGreaterThan(0.7);
+  });
 });
 
 describe("Zeichnen", () => {

@@ -1,5 +1,5 @@
 // Zeichnen und benennen: Zeichenfläche als Bühne, darunter Stifte (Elemente, Ringe), Modus und Namensleiste.
-// Werkzeuge: Beispiele | Lösungsweg | Gruppen (Prioritäten) | Ansicht Lewis/Gerüst | 3D (nur App) | Rückgängig | Neu.
+// Werkzeuge: Beispiele | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht Lewis/Gerüst | 3D (nur App) | Rückgängig | Neu.
 
 import { useMemo, useState } from "react";
 import { Button, RichText, Segmented, Sheet, Tag, tr, Workbench, type WorkbenchTool } from "@lern/ui";
@@ -146,11 +146,12 @@ export function DrawView() {
   const res = useMemo(() => name(mol), [mol]);
   const [active, setActive] = useState<string | null>(null);
   const [show3d, setShow3d] = useState(false);
+  // sieben Werkzeuge: auf schmalen Handys zweizeilig, deshalb weiche Trennstellen (U+00AD) in den langen Wörtern
   const tools: WorkbenchTool[] = [
-    { id: "beispiele", label: tr("Beispiele", "Examples"), icon: "molecule", wide: true, content: <Examples onPick={() => setActive(null)} /> },
-    { id: "weg", label: tr("Schritte", "Steps"), title: tr("Benennen Schritt für Schritt", "Naming step by step"), icon: "book", content: <Steps res={res} /> },
-    { id: "gruppen", label: tr("Gruppen", "Groups"), title: tr("Funktionelle Gruppen nach Rang", "Functional groups by rank"), icon: "table", wide: true, content: <Groups /> },
-    { id: "ansicht", label: view === "lewis" ? "Lewis" : tr("Gerüst", "Skeletal"), icon: "bond", onClick: () => setView(view === "lewis" ? "skelett" : "lewis") },
+    { id: "beispiele", label: tr("Bei\u00ADspiele", "Exam\u00ADples"), title: tr("Beispiele", "Examples"), icon: "molecule", wide: true, content: <Examples onPick={() => setActive(null)} /> },
+    { id: "weg", label: tr("Schrit\u00ADte", "Steps"), title: tr("Benennen Schritt für Schritt", "Naming step by step"), icon: "book", content: <Steps res={res} /> },
+    { id: "gruppen", label: tr("Grup\u00ADpen", "Groups"), title: tr("Funktionelle Gruppen nach Rang", "Functional groups by rank"), icon: "table", wide: true, content: <Groups /> },
+    { id: "ansicht", label: view === "lewis" ? "Lewis" : tr("Gerüst", "Skel\u00ADetal"), icon: "bond", onClick: () => setView(view === "lewis" ? "skelett" : "lewis") },
     // räumliche Lage: hinterlegte Struktur, sonst mit dem Kraftfeld berechnet
     { id: "3d", label: "3D", icon: "cube", onClick: () => setShow3d(true), disabled: !mol.atoms.length },
     { id: "zurueck", label: tr("Zurück", "Undo"), icon: "back", onClick: undo, disabled: !past.length },

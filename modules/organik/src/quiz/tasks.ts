@@ -81,7 +81,9 @@ function reverseWhy(r: NameOk, x: NonNullable<NameOk["reverse"]>): string {
   }
   if (x.rule === "alpha") return tr(`Von beiden Seiten gleiche Nummern. Dann entscheidet das Alphabet: ${prefixWord(x.prefix!)} bekommt die ${R}.`,
     `Both ends give the same numbers. Then the alphabet decides: ${prefixWord(x.prefix!)} gets ${R}.`);
-  return tr("Bei Wahl bekommt Z die kleinere Nummer.", "If there is a choice, Z gets the lower number.");
+  if (x.rule === "z") return tr(`Bei Wahl bekommt Z die kleinere Nummer: ${R} statt ${W}.`, `If there is a choice, Z gets the lower number: ${R} instead of ${W}.`);
+  // „count“ (meiste Vorsilben) kommt bei derselben Kette in Gegenrichtung nicht vor – allgemeine Regel als Rückfall
+  return tr("Von der anderen Seite gezählt sind die Nummern nicht die kleinsten.", "Counted from the other end, the numbers are not the lowest.");
 }
 
 /** falsche Namen aus der Benennung selbst – je ein typischer Fehler */
@@ -162,7 +164,7 @@ function stamm(): Task {
     ...mc(r.name, wrong, 4, `${tr("Genau", "Exactly")}: ${n} C → ${r.name}.`),
     mol: m,
     prompt: tr("Wie heißt dieses Alkan?", "What is the name of this alkane?"),
-    hint: tr("Zähle die C-Atome: Meth 1, Eth 2, Prop 3, But 4, Pent 5 …", "Count the C atoms: meth 1, eth 2, prop 3, but 4, pent 5 …"),
+    hint: tr("Zähle nur die C-Atome. Welcher Stamm gehört zu dieser Zahl?", "Count only the C atoms. Which stem belongs to that number?"),
     explain: tr(`Die Kette hat **${n} C** → **${r.name}**.`, `The chain has **${n} C** → **${r.name}**.`),
   };
 }
@@ -309,7 +311,7 @@ function klasse(): Task {
     ol: ["saeure", "ether", "al"], al: ["on", "ol", "saeure"], on: ["al", "ether", "ester"],
     saeure: ["ol", "ester", "al"], amin: ["ol", "ether", "al"], ester: ["ether", "saeure", "on"], ether: ["ol", "ester", "on"],
   };
-  const wrong = near[cls].map(w => d(CLASS_OF[w], "klasse", `${CLASS_WHY[w]} ${CLASS_WHY[cls]}`));
+  const wrong = near[cls].map(w => d(CLASS_OF[w], "klasse", CLASS_WHY[w]));
   return {
     ...mc(right, wrong, 4, `${tr("Genau", "Exactly")}: ${CLASS_WHY[cls]}`),
     mol: m,
@@ -332,7 +334,7 @@ function endung(): Task {
     ...mc(SUFFIX[g], wrong, 4, `${tr("Genau", "Exactly")}: ${KIND_INFO[G_KIND[g]].label} → ${SUFFIX[g]}.`),
     mol: m,
     prompt: tr("Welche Endung bekommt der Name?", "Which ending does the name get?"),
-    hint: tr("OH → -ol, CHO → -al, C=O in der Kette → -on, COOH → -säure, NH₂ → -amin.", "OH → -ol, CHO → -al, C=O in the chain → -one, COOH → -oic acid, NH₂ → -amine."),
+    hint: tr("Bestimme zuerst die Gruppe: Was hängt am C außer C und H?", "First identify the group: what is attached to the C besides C and H?"),
     explain: `${KIND_INFO[G_KIND[g]].label} ${KIND_INFO[G_KIND[g]].group} → ${tr("Endung", "ending")} **${SUFFIX[g]}**: ${ok(m)!.name}.`,
   };
 }
@@ -437,7 +439,7 @@ function prio(): Task {
     ...mc(`${right.label} ${right.group}`, [...wrong, ...fill], 4, tr(`Genau: ${right.label} hat den höchsten Rang → ${right.suffix}.`, `Exactly: ${right.label.toLowerCase()} has the highest rank → ${right.suffix}.`)),
     mol: m,
     prompt: tr("Welche Gruppe bestimmt die **Endung**?", "Which group determines the **ending**?"),
-    hint: tr("Rangfolge: Säure vor Aldehyd vor Keton vor Alkohol vor Amin.", "Priority: acid before aldehyde before ketone before alcohol before amine."),
+    hint: tr("Benenne zuerst jede Gruppe im Molekül. Dann vergleiche ihre Plätze in der Rangfolge.", "First name each group in the molecule. Then compare their places in the order of rank."),
     explain: tr(`Höchster Rang: **${right.label}** → Endung **${right.suffix}**. Name: ${r.name}.`, `Highest rank: **${right.label.toLowerCase()}** → ending **${right.suffix}**. Name: ${r.name}.`),
   };
 }
@@ -447,7 +449,8 @@ function mehrere(): Task {
   const { m, r } = multiMol();
   const extra: Distractor[] = [];
   const kinds = new Set(r.prefixes.map(p => p.name));
-  const lower: Kind[] = (["on", "ol", "amin"] as Kind[]).filter(k => kinds.has({ on: "oxo", ol: "hydroxy", amin: "amino" }[k as "on"]));
+  // falsche Rangfolge als Name – nicht bei Säuren (die COOH-Gruppe würde zu „1-Hydroxy-…-1-oxo“, so benennt sie niemand)
+  const lower: Kind[] = r.principal === "saeure" ? [] : (["on", "ol", "amin"] as Kind[]).filter(k => kinds.has({ on: "oxo", ol: "hydroxy", amin: "amino" }[k as "on"]));
   for (const k of lower) {
     const w = ok(m, { principal: k });
     if (w && w.name !== r.name) extra.push(d(w.name, "prio", tr(`${KIND_INFO[r.principal!].label} geht vor ${KIND_INFO[k].label}. Diese Gruppe gibt die Endung ${KIND_INFO[r.principal!].suffix}.`, `${KIND_INFO[r.principal!].label} ranks before ${KIND_INFO[k].label.toLowerCase()}. This group gives the ending ${KIND_INFO[r.principal!].suffix}.`)));
@@ -551,7 +554,7 @@ export const TYPE_NAMES: Record<string, string> = tr({
   mehrere: "Mehrere Gruppen", struktur: "Name → Formel",
 }, {
   stamm: "Stem names", kette: "Longest chain", alkan: "Branched alkanes", alken: "Alkenes and alkynes", lage: "Position of the multiple bond", ez: "E/Z isomerism",
-  klasse: "Compound classes", endung: "Endings", gruppen: "One functional group", ester: "Esters", prio: "Priority of groups",
+  klasse: "Compound classes", endung: "Endings", gruppen: "One functional group", ester: "Esters", prio: "Order of rank of groups",
   mehrere: "Several groups", struktur: "Name → formula",
 });
 
@@ -561,7 +564,7 @@ export const LEVELS: Level[] = [
   level(1, tr("Alkane", "Alkanes"), tr("Stammnamen, längste Kette, Äste mit Nummern", "Stem names, longest chain, numbered branches"), ["stamm", "stamm", "kette", "kette", "alkan", "kette", "alkan", "stamm", "alkan", "alkan"]),
   level(2, tr("Doppel- und Dreifachbindung", "Double and triple bonds"), tr("-en und -in, Nummer der Mehrfachbindung, E/Z", "-ene and -yne, number of the multiple bond, E/Z"), ["alken", "lage", "ez", "alken", "lage", "ez", "alken", "alkan", "ez", "alken"]),
   level(3, tr("Funktionelle Gruppen", "Functional groups"), tr("Stoffklassen, Endungen, Alkohole bis Ester", "Compound classes, endings, alcohols to esters"), ["klasse", "endung", "klasse", "gruppen", "endung", "gruppen", "klasse", "ester", "gruppen", "ester"]),
-  level(4, tr("Mehrere Gruppen", "Several groups"), tr("Rangfolge, Vorsilben, vom Namen zur Formel", "Priority, prefixes, from name to formula"), ["prio", "mehrere", "prio", "struktur", "mehrere", "prio", "struktur", "mehrere", "struktur", "mehrere"]),
+  level(4, tr("Mehrere Gruppen", "Several groups"), tr("Rangfolge, Vorsilben, vom Namen zur Formel", "Order of rank, prefixes, from name to formula"), ["prio", "mehrere", "prio", "struktur", "mehrere", "prio", "struktur", "mehrere", "struktur", "mehrere"]),
 ];
 
 export const levelId = (_stufe: string, level: LevelKey) => (typeof level === "number" ? LEVELS[level].id : `og-${level}`);

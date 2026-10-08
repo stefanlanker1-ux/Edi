@@ -30,7 +30,7 @@ export const MISS: Record<string, string> = tr({
   "ez": "Mixed up E and Z",
   "endung": "Mixed up the ending of the group",
   "c-gruppe": "Did not count the C of the group",
-  "prio": "Mixed up the priority of the groups",
+  "prio": "Mixed up the order of rank of the groups",
   "klasse": "Mixed up the compound class",
   "ester-teile": "Swapped the acid and alkyl parts of the ester",
   "formel-lesen": "Translated the name into the wrong formula",

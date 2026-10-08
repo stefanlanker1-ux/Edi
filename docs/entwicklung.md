@@ -619,24 +619,31 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Logik in `src/chem/`: `mol.ts` (Graph ohne H, Wertigkeit, NO₂ als Baustein mit einer Bindung), `rings.ts` (nur Einzelringe: Cycloalkane, Benzen,
   Heterocyclen mit einem O/S/N: Oxolan, Thiolan, Pyrrolidin, Oxan, Thian, Piperidin, Furan, Thiophen, Pyrrol, Pyridin …; kondensierte Ringe, Ringe über 30 Atome
   und Dreifachbindungen im Ring → eigene Meldung), `naming.ts` (Stämme bis 30 C, längere Ketten → Meldung „zu lang für diese App“; mehr Bindungen als die Wertigkeit
-  → Meldung; ranghöchste Gruppe (im Code `principal`) nach Rang Säure > Ester > Amid > Nitril > Aldehyd > Keton > Alkohol > Thiol > Amin; Stammsystem nach IUPAC 2013: meiste Hauptgruppen,
+  → Meldung; ranghöchste Gruppe (im Code `principal`) nach Rang Säure > Ester > Amid > Nitril > Aldehyd > Keton > Alkohol > Thiol > Amin; Stammsystem nach IUPAC 2013: meiste ranghöchste Gruppen,
   Ring vor Kette, Ring mit N vor O vor S vor Carbocyclus, größerer Ring, längste Kette (C der Gruppe in der Kette vor „-carbonsäure“), meiste Mehrfach-, dann Doppelbindungen;
-  Nummern: Hauptgruppe, Mehrfachbindungen, Doppelbindungen, dann meiste Vorsilben, Vorsilben, alphabetisch erste, Z vor E; gleiche Buchstaben: kleinere Nummern zuerst
+  Nummern: ranghöchste Gruppe, Mehrfachbindungen, Doppelbindungen, dann meiste Vorsilben, Vorsilben, alphabetisch erste, Z vor E; gleiche Buchstaben: kleinere Nummern zuerst
   (1-Methylbutyl vor 2-Methylbutyl). Vorsilben rekursiv: (1-Methylethyl), Acetyloxy, (Dimethylamino), Methoxycarbonyl, Piperidin-1-yl; Klammern außen ( ) → [ ] → { } → ( );
   ohne Nummern steht eine Vorsilbe, die selbst Substituenten tragen kann, hinter einer anderen in Klammern (Chlor(methoxy)methan, [Ethyl(methyl)amino]);
-  N, N′, N″ an mehreren Aminen; > 2 COOH an einer Kette → -carbonsäure; Ester „Säure + Alkyl + ester“, verschiedene Alkylreste mit Nummern (Butandisäure-1-ethyl-4-methylester),
+  N, N′, N″ an mehreren Aminen; > 2 COOH an einer Kette → -carbonsäure; Ester „Säure + Alkyl + ester“, verschiedene Alkylreste mit Nummern (Butandisäure-1-ethyl-4-methylester;
+  weiterer Name Alkyl…oat: ein Alkylrest ohne Klammer – 2-Methylpropylacetat –, verschiedene Alkylreste nur ohne Vorsilben am Säureteil – 1-Ethyl-4-methylbutandioat,
+  nicht „4-Ethyl-1-methyl-2-methylbutandioat“),
   gleichwertige Säureteile (Diacetat eines Diols): bestes Stammsystem, dann alphabetisch; Nummern weglassen nur, wenn eindeutig: Ethanol, Propen, Methylcyclohexan, Butansäure;
-  Keten C=C=O → Meldung). Varianten für das Quiz über `NameOptions` (andere Seite, kürzere Kette, nicht alphabetisch, ohne di/tri, andere Hauptgruppe);
-  „andere Seite“ liefert in `reverse` die Regel, nach der die beste Richtung gewinnt (Hauptgruppe, Mehrfach-/Doppelbindung, Vorsilben, Alphabet, Z), mit beiden Nummernfolgen.
+  Keten C=C=O → Meldung). Varianten für das Quiz über `NameOptions` (andere Seite, kürzere Kette, nicht alphabetisch, ohne di/tri, andere ranghöchste Gruppe);
+  „andere Seite“ liefert in `reverse` die Regel, nach der die beste Richtung gewinnt (ranghöchste Gruppe, Mehrfach-/Doppelbindung, Vorsilben, Alphabet, Z), mit beiden Nummernfolgen.
   Englisch: `nameEnOrder` bestimmt Reihenfolge und Nummern mit den englischen Vorsilben (ethyl vor ethynyl, propyl vor prop-2-ynyl; deutsch Ethinyl vor Ethyl),
   `english.ts` übersetzt danach Teil für Teil; verschiedene Alkylreste eines Esters alphabetisch (4-ethyl 1-methyl 2-methylbutanedioate).
   Stoffklassen: C=O im Ring neben dem Heteroatom = Lacton/Lactam/Thiolacton (Name wie Keton, -on; Lösungsweg sagt es), OH am Benzolring = Phenol, OH am Heteroaromaten
   kein Alkohol (Klassen Heterocyclus, Aromat), OH an C=C = Enol, Cycloalken nur bei C=C zwischen zwei Atomen desselben Rings (exocyclisch = Alken), Thioether.
-  Lösungsweg: „Ranghöchste Gruppe: …“; Heterocyclus ohne Gruppe: „Der Ring mit Heteroatom hat einen eigenen Namen.“
+  Lösungsweg: „Ranghöchste Gruppe: …“; Heterocyclus ohne Gruppe: „Der Ring mit Heteroatom hat einen eigenen Namen.“ „Nummerieren“ (`numberingSteps`) nennt die Regel,
+  nach der die beste Nummerierung gegen die nächstbeste gewinnt (`reverseRule`), mit beiden Nummern; was von beiden Seiten gleich ist, steht davor („Die ranghöchste Gruppe
+  hat von beiden Seiten C3. Dann entscheidet der Ast: 2 statt 4.“, Alphabet, Z); Heterocyclus: „Das Heteroatom im Ring hat immer die Nummer 1. Weiter so zählen, dass …“;
+  Name ohne Nummern (Ethanol, Phenol): „Die Nummer steht nicht im Namen: Er ist auch ohne eindeutig.“ Benzolring mit einer Gruppe: „Statt Benzenol heißt es Phenol
+  (eingeführter Name).“ Ester: Säureteil, Alkylteil (ohne Bindestrich).
   Zahlwörter für gleiche Teile bis 99 (`MULT`/`MULT_X` in `rings.ts`: … deca, undeca, dodeca, icosa, henicosa, docosa, triaconta …; Tetradecachlorhexan).
   Endungen in Sätzen (Lösungsweg, Quiz-Texte, Erklärung, Erklärkarten) mit geschütztem Bindestrich U+2011 (`keepEnding`), damit „-in“ nie am Zeilenende
-  getrennt wird; Namen und Antworten bleiben unverändert.
-  `layout.ts` (Zickzack 120°, Ringe als Vielecke, Start am fernsten C; an C=C nie eine gerade Linie und nie beide Gruppen auf derselben Seite, sonst wäre E/Z nicht ablesbar),
+  getrennt wird, und nach „–“ vor Formeln mit Wortverbinder U+2060 (–COO–, –OH); Namen und Antworten bleiben unverändert.
+  `layout.ts` (Zickzack 120°, Ringe als Vielecke, Start am fernsten C; an C=C nie eine gerade Linie und nie beide Gruppen auf derselben Seite, sonst wäre E/Z nicht ablesbar;
+  Endatome an gedrängten Stellen – Halogene, Äste, =O – in die 15°-Richtung mit dem größten Abstand, `spreadLeaves`: Perchlorhexan ≥ 0,7 Bindungslängen),
   `edit.ts` (Anhängen, Ziehen, Ring schließen, Bindung 1→2→3, Tauschen, Löschen), `smiles.ts` (Kurzschreibweise für Beispiele/Tests, E/Z mit / und \).
   Der Test prüft u. a. alle Beispiele, Namen unabhängig von der Atomreihenfolge (Zufallsmoleküle) und die Laufzeit.
 - E/Z (`stereo.ts`): Rangfolge der Gruppen an jedem C der Doppelbindung nach CIP (Ordnungszahl, Sphäre für Sphäre, Mehrfachbindungen und Ringschlüsse als Duplikate),
@@ -655,11 +662,14 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Zeichnen: Atom antippen = Stift anhängen, in der Lewis-Formel ein H antippen = Stift genau dort anhängen, vom Atom ziehen = neue Bindung, im Modus Tauschen ziehen = Atom verschieben; Meldung oben sagt, warum etwas nicht geht (Wertigkeit voll …), Erfolg vibriert kurz; Knopf „Ordnen“ zeichnet neu im Zickzack; in 30°-Schritten, auf ein Atom ziehen = Ring schließen; Stifte C O N S + zuletzt gewählter
   (Mehr: F Cl Br I NO₂, Benzolring, Sechs-, Fünfring); Modus Anfügen | Tauschen | Löschen (Löschen/Tauschen: Atome gestrichelt markiert). Fester Maßstab (Bindung ≈ 56 px, Tippziele ≥ 48 px), das Bild verschiebt bzw. verkleinert sich nur,
   wenn die Zeichnung nicht passt; Bindung/H zählen nur, wenn der Finger auf demselben Ziel aufsetzt und loslässt. Lewis-Formel (alle H, freie Elektronenpaare als Striche) oder Gerüstformel.
-  Name erst nach „Benennen“, danach live; Knopf „Farbe“ (gespeichert): jeder Teil des Namens hat eine Farbe – Stamm blau, Hauptgruppe rot, jede Vorsilbe
-  (Methyl, Ethyl, Hydroxy, Oxo …) und der Alkylteil des Esters eigene –, dieselbe Farbe im Namen und an den Atomen der Formel (`NamePart`/`groupsByKey` aus naming.ts, `components/colors.ts`); Hauptkette hinterlegt, Nummern rot, Hauptgruppe markiert. Werkzeuge: Beispiele (nach Stoffklasse) | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht | 3D | Zurück | Neu.
+  Name erst nach „Benennen“, danach live; Knopf „Farbe“ (gespeichert): jeder Teil des Namens hat eine Farbe – Stamm blau, ranghöchste Gruppe rot, jede Vorsilbe
+  (Methyl, Ethyl, Hydroxy, Oxo …) und der Alkylteil des Esters eigene –, dieselbe Farbe im Namen und an den Atomen der Formel (`NamePart`/`groupsByKey` aus naming.ts, `components/colors.ts`); Hauptkette hinterlegt, Nummern rot, ranghöchste Gruppe markiert. Werkzeuge: Beispiele (nach Stoffklasse) | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht | 3D | Zurück | Neu;
+  lange Beschriftungen mit weichen Trennstellen U+00AD (Bei|spiele, Schrit|te, Grup|pen; Exam|ples, Skel|etal), bei 360 px zweizeilig statt abgeschnitten.
+  Läge ein Atom unter „Farbe“ oder „Ordnen“, bleibt oben ein Streifen frei (`covered`, `TOP` in `Editor.tsx`) – höchstens so hoch, dass Bindungen dadurch nicht
+  unter 45 px schrumpfen (Tippziel ≥ 44 px); sonst kein Streifen, damit nichts unnötig kleiner wird.
   Stifte auch bei 360 px Breite (mit „Lesbar“) mindestens 44 × 44 px in einer Reihe.
   Start: Gerüstformel, Farbe an, Beispiel 2-Methyl-3-oxohexansäure mit Name (`START` im Store; ältere Stände einmal umgestellt).
-  Name in Farbe = farbige, kräftige Schrift (keine hinterlegte Fläche); Stamm blau, Hauptgruppe rot, Vorsilben grün/violett/grünblau …
+  Name in Farbe = farbige, kräftige Schrift (keine hinterlegte Fläche); Stamm blau, ranghöchste Gruppe rot, Vorsilben grün/violett/grünblau …
   Gespeichert (`organik-v1`): Zeichnung, Stift, Ansicht, Name sichtbar, Farbe.
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): stamm, kette (Zahl), alkan, alken, lage (Zahl), klasse, endung, gruppen, ester, prio, mehrere, struktur (Name → Formel,
   Antworten als Gerüstformel). Falsche Namen kommen aus der Benennung selbst. Hilfsmittel: Groß (Formel bildschirmfüllend), Regeln (Stämme nicht bei stamm, Rangfolge nicht bei klasse/endung/prio).
@@ -667,7 +677,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   andere Seite nennt die entscheidende Regel mit den Nummern („Das C der –CHO-Gruppe ist immer C1.“, „Dann entscheidet das Alphabet: Ethyl bekommt die 3.“,
   „2,5,5 statt 3,3,6. Der erste Unterschied entscheidet.“), ohne di/tri und nicht alphabetisch mit den Vorsilben der Aufgabe; andere Gruppe an derselben Stelle
   ändert nur die Gruppe (Aldehyd/Säure nur am Kettenende); Name → Formel: COOH bleibt ganz, Stolperstein nach dem Unterschied der Namen (nummer, zaehlen, endung,
-  sonst formel-lesen). Level 4 mit Oxo-Vorsilben (=O neben Säure oder Aldehyd).
+  sonst formel-lesen). Level 4 mit Oxo-Vorsilben (=O neben Säure oder Aldehyd); falsche Rangfolge als Name nicht bei Säuren (sonst „1-Hydroxy-…-1-oxo…“).
+  Tipps sind Denkschritte ohne Zuordnung und ohne Rangfolge (endung: „Bestimme zuerst die Gruppe …“, prio: „Benenne zuerst jede Gruppe … Plätze in der Rangfolge“,
+  stamm: „Welcher Stamm gehört zu dieser Zahl?“; Test). klasse: Rückmeldung beschreibt die gewählte Klasse, die Erklärung die richtige (kein Satz doppelt).
   Level: 1 Alkane (Stämme bis Dec, längste Kette, Äste) · 2 Doppel- und Dreifachbindung (Alken/Alkin, Lage, E/Z) · 3 Funktionelle Gruppen (Stoffklassen, Endungen, Ester) ·
   4 Mehrere Gruppen (Rangfolge, Vorsilben, Name → Formel); feste Reihenfolge je Level. Erklärkarten (`quiz/explain.tsx`) führen ein, was die Erklärung nicht hat
   (Hept … Dec, Alken/Alkin, Stoffklasse, Ordnungszahl bei E/Z, Chlor-/Amino-Vorsilben; Level 3 alle Klassen fett mit Gruppe: Alkohol, Aldehyd, Keton, Carbonsäure, Amin,
@@ -675,7 +687,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (englisch „principal group“) statt „Hauptgruppe“, das im Atombau die Gruppe im PSE ist.
 - Erklärung (22 Schritte, keine Stufen): **Alkane** (Stamm, Methan … Hexan) · **Äste und Nummern** (Hauptkette, Ast, Methyl, Nummerierung vom nahen Ende) ·
   **Mehrfachbindungen** (-en = Alken, -in = Alkin, Nummer, E/Z) · **Alkohole** (halb gelöst ohne Aldehyd/Keton, die erst später kommen) · **Säuren und Rangfolge**
-  (Carbonsäure, Aldehyd, Keton, Amin, Vorsilbe und ranghöchste Gruppe fett eingeführt).
+  (Carbonsäure, Aldehyd, Keton, Amin, Vorsilbe fett eingeführt; erst **Rangfolge**, dann **ranghöchste Gruppe** = die Gruppe, die in der Rangfolge vorn steht).
+  Richtige Antwort an wechselnden Plätzen (Test: höchstens 40 % an Platz 1).
 
 ## Polymere (`modules/polymere`)
 - Keine Stufen. Leiste **Üben | Experimentieren** wie Gemische: Üben = sechs Kapitel, je Kapitel Lektion → zehn Aufgaben.
@@ -890,6 +903,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Nomenklatur: Nachprüfung Runde 2** – Lösungsweg „Nummerieren“ nennt die entscheidende Regel mit beiden Nummern (was von beiden Seiten gleich ist zuerst, dann Ast, Alphabet
+  oder Z – vorher immer das erste vorhandene Kriterium, im Widerspruch zur Quiz-Rückmeldung), beim Heterocyclus zuerst „Heteroatom = 1“, bei Namen ohne Nummer den Grund, am
+  Benzolring den eingeführten Namen (Benzenol → Phenol). Tipps als Denkschritte statt Zuordnung Gruppe → Endung oder Rangfolge (verrieten, was das Hilfsmittel bewusst verbirgt);
+  Stoffklassen-Rückmeldung ohne doppelten Satz; keine „1-Hydroxy-…-1-oxo“-Ablenker bei Säuren; „Rangfolge“ vor „ranghöchste Gruppe“ eingeführt; richtige Antworten der Erklärung an
+  wechselnden Plätzen (vorher 10 von 10 an Platz 1; Test höchstens 40 %). Zeichnung: gedrängte Endatome gespreizt (Perchlorhexan: Cl–Cl 0,35 → 0,76 Bindungslängen), keine Atome
+  unter „Farbe“/„Ordnen“, ohne Tippziele zu verkleinern; Werkzeugnamen ab 360 px vollständig (weiche Trennstellen); Ester-Nebennamen ohne irreführende Form; –COO–/–OH brechen nicht um.
 - **Einheiten, Neutralisation: Auswahl in der Erklärung an wechselnden Plätzen** – die richtige Antwort stand fast immer an Platz 1 (bis 8 von 8), die Erklärung war so ohne
   Nachdenken lösbar (die Erklärung mischt nicht). Jetzt an wechselnden Plätzen; Zahlen und Einheiten aufsteigend, Ladungen nach Betrag; Test je Stufe höchstens 40 % an Platz 1.
 - **Reaktionsgleichungen, Neutralisation, Einheiten: Nachprüfung Runde 2** – Phosphorpentoxid als Molekül P₄O₁₀ (P₄ + 5 O₂ → P₄O₁₀, 4 PH₃ + 8 O₂ → P₄O₁₀ + 6 H₂O; vorher

@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { GENS, LEVELS, makeRound, nameDistractors, TYPE_NAMES, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 import type { Diag } from "@lern/quiz";
-import { name, type NameOk } from "../chem/naming.ts";
+import { keepEnding, name, type NameOk } from "../chem/naming.ts";
 import { freeValence, type Mol } from "../chem/mol.ts";
 import { smilesMol } from "../chem/smiles.ts";
 
@@ -92,6 +92,28 @@ describe("Aufgaben", () => {
       const texts = [t.prompt, t.hint, t.explain, ...Object.values(t.kind === "mc" ? t.why ?? {} : {}), ...(t.traps ?? []).map(x => x.why)];
       for (const s of texts) expect(s, id).not.toMatch(/(^|[\s(*])-\p{L}/u);
     }
+  }, 60_000);
+  test("Formeln wie –COO– und –OH: kein Umbruch nach dem Strich", () => {
+    expect(keepEnding("Ester –COO– zwischen, R–O–R, (–OH)")).toBe("Ester –\u2060COO– zwischen, R–\u2060O–\u2060R, (–\u2060OH)");
+    expect(keepEnding("Säure – Endung")).toBe("Säure – Endung"); // Gedankenstrich bleibt Umbruchstelle
+    for (const id of ["klasse", "endung", "prio", "ester"]) for (const t of many(id, 20)) {
+      const texts = [t.prompt, t.hint, t.explain, ...Object.values(t.kind === "mc" ? t.why ?? {} : {})];
+      for (const s of texts) expect(s, id).not.toMatch(/–[A-Z(]/);
+    }
+  });
+  test("Tipps sind Denkschritte: keine Zuordnung Gruppe → Endung, keine Rangfolge, nicht die Antwort", () => {
+    for (const id of Object.keys(GENS)) for (const t of many(id, 15)) {
+      const h = t.hint.replace(/\u2011/g, "-");
+      expect(h, id).not.toMatch(/→ ?-|vor \p{L}+ vor|>|Meth 1/u);
+      if (t.kind === "mc" && ["stamm", "klasse", "endung", "prio"].includes(id)) expect(h, id).not.toContain(t.options[t.answer]);
+    }
+  });
+  test("Stoffklasse: Rückmeldung zur falschen Klasse wiederholt nicht die Erklärung", () => {
+    for (const t of many("klasse", 40) as (Task & { kind: "mc" })[])
+      t.options.forEach((o, i) => { if (i !== t.answer) expect(t.why![i], o).not.toContain(t.explain); });
+  });
+  test("Mehrere Gruppen: bei Säuren kein Name, der die COOH-Gruppe zerlegt (1-Hydroxy-…-1-oxo)", () => {
+    for (const t of many("mehrere", 120) as (Task & { kind: "mc" })[]) for (const o of t.options) expect(o).not.toMatch(/1-Hydroxy.*1-oxo/i);
   }, 60_000);
   test("Level: Typen bekannt, Runden mit 10 Aufgaben", () => {
     for (const l of LEVELS) for (const ty of l.types) expect(TYPE_NAMES[ty]).toBeTruthy();

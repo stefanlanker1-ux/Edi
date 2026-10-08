@@ -50,7 +50,7 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie heißt dieses Alkan?", "Complete: what is this alkane called?"), answer: tr("Propan", "propane"), options: [tr("Propan", "propane"), tr("Butan", "butane"), tr("Propen", "propene")],
+    ask: tr("Ergänze: Wie heißt dieses Alkan?", "Complete: what is this alkane called?"), answer: tr("Propan", "propane"), options: [tr("Butan", "butane"), tr("Propan", "propane"), tr("Propen", "propene")],
     visual: () => <Pic s="CCC" />,
     lines: [tr("3 C → Stamm Prop.", "3 C → stem prop."), tr("Endung -an → {?}", "Ending -ane → {?}")],
     why: { [tr("Butan", "butane")]: tr("Butan hat 4 C. Hier sind es 3.", "Butane has 4 C. Here there are 3."), [tr("Propen", "propene")]: tr("-en steht für eine Doppelbindung. Hier sind nur Einfachbindungen.", "-ene means a double bond. Here there are only single bonds.") },
@@ -58,7 +58,7 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Wie heißt dieses Alkan?", "Your turn: what is this alkane called?"), answer: tr("Hexan", "hexane"), options: [tr("Hexan", "hexane"), tr("Pentan", "pentane"), tr("Heptan", "heptane"), tr("Sexan", "sexane")],
+    ask: tr("Jetzt du: Wie heißt dieses Alkan?", "Your turn: what is this alkane called?"), answer: tr("Hexan", "hexane"), options: [tr("Pentan", "pentane"), tr("Heptan", "heptane"), tr("Hexan", "hexane"), tr("Sexan", "sexane")],
     visual: () => <Pic s="CCCCCC" />,
     lines: [tr("6 C → Hex + an = Hexan.", "6 C → hex + ane = hexane.")],
     why: { [tr("Pentan", "pentane")]: tr("Pentan hat 5 C. Zähle noch einmal.", "Pentane has 5 C. Count again."), [tr("Heptan", "heptane")]: tr("Heptan hätte 7 C.", "Heptane would have 7 C."), [tr("Sexan", "sexane")]: tr("Der Stamm für 6 heißt Hex.", "The stem for 6 is hex.") },
@@ -112,7 +112,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "free",
     say: tr("Gleiche Äste fasst man zusammen: **di** = 2, **tri** = 3. Jeder Ast bekommt seine Nummer.", "Identical branches are combined: **di** = 2, **tri** = 3. Each branch gets its number."),
-    ask: tr("Wie heißt das Molekül?", "What is the name of the molecule?"), answer: tr("2,3-Dimethylbutan", "2,3-dimethylbutane"), options: [tr("2,3-Dimethylbutan", "2,3-dimethylbutane"), tr("2-Methyl-3-methylbutan", "2-methyl-3-methylbutane"), tr("2,3-Methylbutan", "2,3-methylbutane"), tr("2,3-Dimethylpentan", "2,3-dimethylpentane")],
+    ask: tr("Wie heißt das Molekül?", "What is the name of the molecule?"), answer: tr("2,3-Dimethylbutan", "2,3-dimethylbutane"), options: [tr("2,3-Methylbutan", "2,3-methylbutane"), tr("2-Methyl-3-methylbutan", "2-methyl-3-methylbutane"), tr("2,3-Dimethylpentan", "2,3-dimethylpentane"), tr("2,3-Dimethylbutan", "2,3-dimethylbutane")],
     visual: () => <Pic s="CC(C)C(C)C" />,
     why: {
       [tr("2-Methyl-3-methylbutan", "2-methyl-3-methylbutane")]: tr("Gleiche Äste fasst man zusammen: Dimethyl.", "Identical branches are combined: dimethyl."),
@@ -134,7 +134,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Doppelbindung → **-en**, Dreifachbindung → **-in**. Sie bekommt die kleinste Nummer.", "Double bond → **-ene**, triple bond → **-yne**. It gets the lowest number."),
-    ask: tr("Ergänze: Wie heißt das Molekül?", "Complete: what is the molecule called?"), answer: tr("Pent-2-en", "pent-2-ene"), options: [tr("Pent-2-en", "pent-2-ene"), tr("Pent-3-en", "pent-3-ene"), tr("Pent-2-in", "pent-2-yne"), tr("Pentan", "pentane")],
+    ask: tr("Ergänze: Wie heißt das Molekül?", "Complete: what is the molecule called?"), answer: tr("Pent-2-en", "pent-2-ene"), options: [tr("Pentan", "pentane"), tr("Pent-2-en", "pent-2-ene"), tr("Pent-3-en", "pent-3-ene"), tr("Pent-2-in", "pent-2-yne")],
     visual: () => <Pic s="CC=CCC" />,
     why: {
       [tr("Pent-3-en", "pent-3-ene")]: tr("Von der falschen Seite gezählt. Die Doppelbindung soll eine kleine Nummer haben.", "Counted from the wrong end. The double bond should have a low number."),
@@ -155,7 +155,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "faded",
     say: tr("An C=C gibt es zwei Formen. Die vorrangigen Gruppen liegen auf **derselben** Seite (**Z**) oder **gegenüber** (**E**).", "At C=C there are two forms. The higher-priority groups are on the **same** side (**Z**) or **opposite** (**E**)."),
-    ask: tr("Ist diese Doppelbindung **E** oder **Z**?", "Is this double bond **E** or **Z**?"), answer: "Z", options: ["Z", "E"],
+    ask: tr("Ist diese Doppelbindung **E** oder **Z**?", "Is this double bond **E** or **Z**?"), answer: "Z", options: ["E", "Z"],
     visual: () => <Pic s={"C/C=C\\C"} />,
     why: { "E": tr("Beide CH₃ liegen auf derselben Seite der Doppelbindung. Das ist Z (zusammen).", "Both CH₃ are on the same side of the double bond. That is Z (together).") },
     ok: tr("Beide CH₃ auf einer Seite → **(Z)-But-2-en** (cis).", "Both CH₃ on one side → **(Z)-but-2-ene** (cis)."),
@@ -173,7 +173,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Die Nummer der Gruppe steht vor der Endung, z. B. Hexan-**3**-ol.", "The number of the group goes before the ending, e.g. hexan-**3**-ol."),
-    ask: tr("Ergänze: Wie heißt dieser Alkohol?", "Complete: what is this alcohol called?"), answer: tr("Propan-2-ol", "propan-2-ol"), options: [tr("Propan-2-ol", "propan-2-ol"), tr("Propan-1-ol", "propan-1-ol"), tr("Butan-2-ol", "butan-2-ol"), tr("Propanol", "propanol")],
+    ask: tr("Ergänze: Wie heißt dieser Alkohol?", "Complete: what is this alcohol called?"), answer: tr("Propan-2-ol", "propan-2-ol"), options: [tr("Propan-1-ol", "propan-1-ol"), tr("Propanol", "propanol"), tr("Propan-2-ol", "propan-2-ol"), tr("Butan-2-ol", "butan-2-ol")],
     visual: () => <Pic s="CC(O)C" />,
     why: {
       [tr("Propan-1-ol", "propan-1-ol")]: tr("Die OH-Gruppe sitzt am mittleren C, also C2.", "The OH group is on the middle C, so C2."),
@@ -195,7 +195,7 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "worked",
-    part: tr("Säuren und Rangfolge", "Acids and priority"),
+    part: tr("Säuren und Rangfolge", "Acids and order of rank"),
     say: tr("**Carbonsäuren** tragen die Gruppe –COOH.", "**Carboxylic acids** carry the group –COOH."),
     ask: tr("Wie heißt diese Säure?", "What is this acid called?"),
     visual: () => <Pic s="CC(=O)O" />,
@@ -227,15 +227,15 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("Mehrere Gruppen: Die mit dem höchsten Rang ist die **ranghöchste Gruppe**. Sie gibt die Endung.", "Several groups: the one with the highest rank is the **principal group**. It gives the ending."),
+    say: tr("Mehrere Gruppen stehen in einer festen **Rangfolge**. Die Gruppe, die darin vorn steht, ist die **ranghöchste Gruppe**. Sie gibt die Endung.", "Several groups follow a fixed **order of rank**. The group that comes first in it is the **principal group**. It gives the ending."),
     ask: tr("Welche Gruppe gibt die Endung?", "Which group gives the ending?"),
-    lines: [tr("Rang: Säure > **Aldehyd** (–CHO, -al) > **Keton** (C=O in der Kette, -on) > Alkohol (-ol) > **Amin** (–NH₂, -amin).", "Rank: acid > **aldehyde** (–CHO, -al) > **ketone** (C=O in the chain, -one) > alcohol (-ol) > **amine** (–NH₂, -amine)."), tr("Die anderen Gruppen stehen als **Vorsilbe** vorn: –OH → **Hydroxy**-.", "The other groups go in front as a **prefix**: –OH → **hydroxy**-.")],
+    lines: [tr("Rangfolge: Säure > **Aldehyd** (–CHO, -al) > **Keton** (C=O in der Kette, -on) > Alkohol (-ol) > **Amin** (–NH₂, -amin).", "Order of rank: acid > **aldehyde** (–CHO, -al) > **ketone** (C=O in the chain, -one) > alcohol (-ol) > **amine** (–NH₂, -amine)."), tr("Die anderen Gruppen stehen als **Vorsilbe** vorn: –OH → **Hydroxy**-.", "The other groups go in front as a **prefix**: –OH → **hydroxy**-.")],
     ok: tr("Endung = ranghöchste Gruppe, sie bekommt die kleinste Nummer.", "Ending = principal group, it gets the lowest number."),
   },
   {
     mode: "faded",
     say: tr("Mehrere Gruppen: Die mit dem **höchsten Rang** gibt die Endung. Säure > Aldehyd > Keton > Alkohol > Amin.", "Several groups: the one with the **highest rank** gives the ending. Acid > aldehyde > ketone > alcohol > amine."),
-    ask: tr("Welche Gruppe gibt hier die Endung?", "Which group gives the ending here?"), answer: tr("Keton C=O", "Ketone C=O"), options: [tr("Keton C=O", "Ketone C=O"), tr("Alkohol –OH", "Alcohol –OH")],
+    ask: tr("Welche Gruppe gibt hier die Endung?", "Which group gives the ending here?"), answer: tr("Keton C=O", "Ketone C=O"), options: [tr("Alkohol –OH", "Alcohol –OH"), tr("Keton C=O", "Ketone C=O")],
     visual: () => <Pic s="CC(=O)CC(O)C" />,
     why: { [tr("Alkohol –OH", "Alcohol –OH")]: tr("Keton steht in der Rangfolge vor Alkohol. Die OH-Gruppe wird Vorsilbe.", "Ketone ranks before alcohol. The OH group becomes a prefix.") },
     ok: tr("Keton → Endung **-on**. OH wird **Hydroxy-**.", "Ketone → ending **-one**. OH becomes **hydroxy-**."),
@@ -244,7 +244,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "free",
     say: tr("Die ranghöchste Gruppe bekommt die kleinste Nummer. Die anderen Gruppen stehen als Vorsilbe vorn.", "The principal group gets the lowest number. The other groups come first as prefixes."),
-    ask: tr("Wie heißt die Verbindung?", "What is the name of the compound?"), answer: tr("4-Hydroxypentan-2-on", "4-hydroxypentan-2-one"), options: [tr("4-Hydroxypentan-2-on", "4-hydroxypentan-2-one"), tr("4-Oxopentan-2-ol", "4-oxopentan-2-ol"), tr("2-Hydroxypentan-4-on", "2-hydroxypentan-4-one"), tr("Pentan-2-on-4-ol", "pentan-2-one-4-ol")],
+    ask: tr("Wie heißt die Verbindung?", "What is the name of the compound?"), answer: tr("4-Hydroxypentan-2-on", "4-hydroxypentan-2-one"), options: [tr("4-Oxopentan-2-ol", "4-oxopentan-2-ol"), tr("2-Hydroxypentan-4-on", "2-hydroxypentan-4-one"), tr("Pentan-2-on-4-ol", "pentan-2-one-4-ol"), tr("4-Hydroxypentan-2-on", "4-hydroxypentan-2-one")],
     visual: () => <Pic s="CC(=O)CC(O)C" />,
     why: {
       [tr("4-Oxopentan-2-ol", "4-oxopentan-2-ol")]: tr("Keton geht vor Alkohol. Darum Endung -on, nicht -ol.", "Ketone ranks before alcohol. So the ending is -one, not -ol."),

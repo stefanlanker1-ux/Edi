@@ -26,7 +26,7 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
     "**Ester** –COO–: Säureteil + Alkylteil + ester, z. B. Butansäureethylester. **Ether**: ein O zwischen zwei C, z. B. Ethoxyethan.",
   ] },
   "og-n4": { ex: "OC(=O)C(C)C(=O)C(O)C(C)CC", points: [
-    "Die Gruppe mit dem höchsten Rang ist die **ranghöchste Gruppe**. Sie gibt die Endung: Säure > Aldehyd > Keton > Alkohol > Amin.",
+    "Die Gruppen haben eine feste **Rangfolge**: Säure > Aldehyd > Keton > Alkohol > Amin. Von den Gruppen im Molekül ist die vorderste die **ranghöchste Gruppe**. Sie gibt die Endung.",
     "Alle anderen werden **Vorsilben**: Oxo-, Hydroxy-, Amino-, Methyl-, Chlor-.",
     "Die ranghöchste Gruppe bekommt die kleinste Nummer. Vorsilben **alphabetisch**.",
   ] },
@@ -47,7 +47,7 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
     "**Ester** –COO–: alkyl part + acid part ending in -oate, e.g. ethyl butanoate. **Ether**: an O between two C, e.g. ethoxyethane.",
   ] },
   "og-n4": { ex: "OC(=O)C(C)C(=O)C(O)C(C)CC", points: [
-    "The group with the highest rank is the **principal group**. It gives the ending: acid > aldehyde > ketone > alcohol > amine.",
+    "Groups follow a fixed **order of rank**: acid > aldehyde > ketone > alcohol > amine. Of the groups in the molecule, the one that comes first is the **principal group**. It gives the ending.",
     "All others become **prefixes**: oxo-, hydroxy-, amino-, methyl-, chloro-.",
     "The principal group gets the lowest number. Prefixes **alphabetical**.",
   ] },
@@ -65,15 +65,12 @@ function Example({ smiles }: { smiles: string }) {
   );
 }
 
-/** Gruppen und Endungen nicht mitten im Zeichen umbrechen: –COOH (Wortverbinder), (-amin) (geschützter Bindestrich) */
-const keep = (s: string) => keepEnding(s).replace(/–(?=[A-Z])/g, "–\u2060");
-
 export function explainFor(level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[level].id : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;
   const e = TEXT[id];
   return (
     <div className="explain">
-      <ul className="ex-points">{e.points.map((p, i) => <li key={i}><RichText text={keep(p)} /></li>)}</ul>
+      <ul className="ex-points">{e.points.map((p, i) => <li key={i}><RichText text={keepEnding(p)} /></li>)}</ul>
       <Example smiles={e.ex} />
     </div>
   );

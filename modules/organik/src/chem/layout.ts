@@ -130,6 +130,7 @@ export function layout(mol: Mol): Mol {
   pos.set(start, { x: 0, y: 0 });
   if (ri.ringOf.has(start)) placeRing(start, null);
   else grow(start, -1, -30, -1);
+  spreadLeaves(g, ri, pos);
   // senkrecht ausrichten: nichts; Mittelpunkt auf 0
   const xs = [...pos.values()];
   const cx = (Math.min(...xs.map(p => p.x)) + Math.max(...xs.map(p => p.x))) / 2;
@@ -141,6 +142,37 @@ export function layout(mol: Mol): Mol {
 }
 
 const round = (v: number) => Math.round(v * 1000) / 1000;
+
+/** Endatome (Cl, OH, =O, CH₃ …), die einem anderen Atom zu nahe kommen, um ihr Nachbaratom in die freieste Richtung drehen –
+ *  bei vielen Substituenten an aufeinanderfolgenden C (Perchlorhexan) legt der Zickzack sonst Atome fast übereinander.
+ *  Nicht an C=C/C=N und Dreifachbindungen (E/Z und gerade Linien bleiben wie gezeichnet) und nicht an Ringatomen. */
+function spreadLeaves(g: Graph, ri: ReturnType<typeof findRings>, pos: Map<number, { x: number; y: number }>) {
+  const nearest = (v: number, q: { x: number; y: number }) => {
+    let d = Infinity;
+    for (const [id, p] of pos) if (id !== v) d = Math.min(d, Math.hypot(p.x - q.x, p.y - q.y));
+    return d;
+  };
+  for (let pass = 0; pass < 6; pass++) {
+    let moved = false;
+    for (const v of g.ids) {
+      const nb = g.nb.get(v)!;
+      if (nb.length !== 1 || nb[0].order === 3) continue;
+      const p = nb[0].to;
+      // C=C bzw. C=N am Nachbaratom: die Lage bestimmt E/Z – nicht verschieben; C=O darf sich drehen
+      if (ri.ringOf.has(p) || g.nb.get(p)!.some(n => n.order === 3 || (n.order === 2 && g.el.get(n.to) !== "O"))) continue;
+      const now = nearest(v, pos.get(v)!);
+      if (now >= 0.9) continue;
+      const c = pos.get(p)!;
+      let best = now, bq: { x: number; y: number } | undefined;
+      for (let a = 0; a < 360; a += 15) {
+        const q = { x: c.x + Math.cos(a * RAD), y: c.y + Math.sin(a * RAD) }, d = nearest(v, q);
+        if (d > best + 0.05) { best = d; bq = q; }
+      }
+      if (bq) { pos.set(v, bq); moved = true; }
+    }
+    if (!moved) break;
+  }
+}
 
 /** Richtung (Grad) für ein neues Atom an `id`: größte Lücke zwischen den Bindungen, Zickzack, gerade bei Dreifachbindung */
 export function nextDirection(mol: Mol, id: number): number {

@@ -20,11 +20,11 @@ import { tr } from "@lern/i18n";
 /** Ausschnitt der Zeichenfläche: Mitte (in Bindungslängen) und Maßstab (px je Bindung) */
 interface Cam { cx: number; cy: number; s: number }
 
-/** Ausschnitt nachführen: gleich lassen, wenn alles passt; sonst minimal verschieben; erst wenn das nicht reicht, verkleinern */
+/** Ausschnitt nachführen: gleich lassen, wenn alles passt; sonst minimal verschieben; erst wenn das nicht reicht, verkleinern.
+ *  `w` × `h` = nutzbare Fläche, `cx`/`cy` = ihre Mitte */
 function follow(cam: Cam | null, mol: Mol, w: number, h: number, pad: number, sMax: number): Cam {
   if (!mol.atoms.length) return { cx: 0, cy: 0, s: sMax };
-  const xs = mol.atoms.map(a => a.x), ys = mol.atoms.map(a => a.y);
-  const x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+  const [x0, x1, y0, y1] = extent(mol, pad);
   const fit = Math.min(sMax, w / (x1 - x0), h / (y1 - y0));
   let c = cam ?? { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s: Math.min(sMax, fit) };
   if (c.s > fit + 1e-6 || c.s < Math.min(sMax, fit) * 0.6) c = { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s: Math.min(sMax, fit) };
@@ -33,6 +33,24 @@ function follow(cam: Cam | null, mol: Mol, w: number, h: number, pad: number, sM
   if (x0 < cx - hw) cx = x0 + hw; else if (x1 > cx + hw) cx = x1 - hw;
   if (y0 < cy - hh) cy = y0 + hh; else if (y1 > cy + hh) cy = y1 - hh;
   return { cx, cy, s: c.s };
+}
+
+/** Umriss der Zeichnung in Bindungslängen mit Rand: [x0, x1, y0, y1] */
+function extent(mol: Mol, pad: number): [number, number, number, number] {
+  const xs = mol.atoms.map(a => a.x), ys = mol.atoms.map(a => a.y);
+  return [Math.min(...xs) - pad, Math.max(...xs) + pad, Math.min(...ys) - pad, Math.max(...ys) + pad];
+}
+
+/** Knöpfe oben auf der Zeichenfläche (px): „Farbe“ links bis LEFT, „Ordnen“ rechts ab Rand − RIGHT, beide bis TOP.
+ *  S_TAP = kleinster Maßstab (px je Bindung), bei dem eine schräge Bindung noch ein Tippziel ≥ 44 px ist */
+const TOP = 54, LEFT = 136, RIGHT = 56, S_TAP = 45;
+
+/** Liegt ein Atom (mit Beschriftung, Radius `r` in Bindungslängen) unter einem der Knöpfe oben? */
+function covered(c: Cam, mol: Mol, w: number, h: number, r: number, left: boolean, right: boolean): boolean {
+  return mol.atoms.some(a => {
+    const x = (a.x - c.cx) * c.s + w / 2, y = (a.y - c.cy) * c.s + h / 2, d = r * c.s;
+    return y - d < TOP && ((left && x - d < LEFT) || (right && x + d > w - RIGHT));
+  });
 }
 
 const isEl = (p: Pen): p is El => (ELEMENTS as string[]).includes(p);
@@ -60,7 +78,19 @@ export function Editor({ res }: { res: NameResult }) {
   // Maßstab: höchstens ~56 px je Bindung (am Handy), auf großen Flächen etwas mehr
   const sMax = Math.max(48, Math.min(72, Math.min(size.w, size.h) / 5.5));
   const cam = useRef<Cam | null>(null);
-  if (size.w > 0) cam.current = follow(cam.current, mol, size.w, size.h, view === "lewis" ? 1 : 0.7, sMax);
+  if (size.w > 0) {
+    const pad = view === "lewis" ? 1 : 0.7;
+    const full = follow(cam.current, mol, size.w, size.h, pad, sMax);
+    // läge ein Atom unter „Farbe“ oder „Ordnen“, bleibt oben ein Streifen frei (sonst nicht: kein unnötiges Verkleinern);
+    // höchstens so hoch, dass Bindungen dadurch nicht unter S_TAP schrumpfen (kleine Handys: lieber etwas Überlappung als zu kleine Tippziele)
+    let top = Math.min(TOP, size.h / 4);
+    if (full.s >= S_TAP) { const [, , y0, y1] = extent(mol, pad); top = Math.min(top, size.h - S_TAP * (y1 - y0)); }
+    if (top > 4 && covered(full, mol, size.w, size.h, view === "lewis" ? 0.9 : 0.4, shown && res.ok, mol.atoms.length >= 3)) {
+      // `cam` bezieht sich immer auf die ganze Fläche, der Streifen verschiebt die Mitte um top/2
+      const shift = (k: Cam, d: number): Cam => ({ ...k, cy: k.cy + d / 2 / k.s });
+      cam.current = shift(follow(cam.current && shift(cam.current, top), mol, size.w, size.h - top, pad, sMax), -top);
+    } else cam.current = full;
+  }
   const c = cam.current;
   const viewBox: [number, number, number, number] | undefined = c && size.w > 0
     ? [(c.cx - size.w / 2 / c.s) * U, (c.cy - size.h / 2 / c.s) * U, (size.w / c.s) * U, (size.h / c.s) * U] : undefined;

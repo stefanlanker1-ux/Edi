@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { setLang } from "@lern/i18n";
 import { parseSmiles } from "./smiles.ts";
 import { name, type NameOk } from "./naming.ts";
 import { smilesMol } from "./smiles.ts";
@@ -13,6 +14,9 @@ const nm = (s: string) => {
   return r;
 };
 const N = (s: string) => nm(s).name;
+const ez = (s: string) => { const r = name(smilesMol(s)); if (!r.ok) throw new Error(r.reason); return r; };
+/** Nummerieren-Schritt in der gerade eingestellten Sprache */
+const line2 = (s: string) => nm(s).steps.find(x => /^Numbering|^The heteroatom/.test(x));
 
 describe("Kohlenwasserstoffe", () => {
   test.each([
@@ -159,12 +163,43 @@ describe("Ergebnis", () => {
     expect(nm("OC(=O)C1=CC=CC=C1C(=O)O").alt).toContain("Benzol-1,2-dicarbonsäure");
     expect(nm("CC1=CC=CC=C1").alt).toContain("Methylbenzol");
     expect(nm("COC(=O)C(C)C").alt).toContain("Methyl-2-methylpropanoat");
-    expect(nm("COC(=O)C(C)CC(=O)OCC").alt).toContain("4-Ethyl-1-methyl-2-methylbutandioat");
+    expect(nm("CC(C)COC(=O)C").alt).toContain("2-Methylpropylacetat");
+    expect(nm("COC(=O)CCC(=O)OCC").alt).toContain("1-Ethyl-4-methylbutandioat");
+  });
+  test("Ester-Name Alkyl…oat: ein Alkyl ohne Klammer, gemischter Ester mit Vorsilben am Säureteil ohne irreführende Form", () => {
+    expect(ez("CC(C)COC(=O)/C=C\\C").alt).toContain("2-Methylpropyl-(Z)-but-2-enoat");
+    // „4-Ethyl-1-methyl-2-methylbutandioat“ sähe aus wie drei Vorsilben an einer Kette
+    expect(nm("COC(=O)C(C)CC(=O)OCC").alt).toEqual([]);
   });
   test("Lösungsweg: Heterocyclus ohne Endung, ranghöchste Gruppe", () => {
     expect(nm("C1=CC=NC=C1").steps[0]).toBe("Keine Gruppe mit Endung: Der Ring mit Heteroatom hat einen eigenen Namen.");
     expect(nm("CC(O)C").steps[0]).toMatch(/^Ranghöchste Gruppe: \*\*Alkohol\*\*/);
     expect(nm("CC(O)C").steps.join(" ")).not.toMatch(/Hauptgruppe/);
+  });
+  test("Lösungsweg „Nummerieren“: die Regel, die entscheidet, mit beiden Nummern", () => {
+    const line = (s: string) => nm(s).steps.find(x => /^Nummerieren|^Das Heteroatom/.test(x));
+    expect(line("CC(C)C(=O)CC")).toBe("Nummerieren: Die **ranghöchste Gruppe** hat von beiden Seiten C3. Dann entscheidet der **Ast**: 2 statt 4.");
+    expect(line("CCC(CC)CC(C)CC")).toBe("Nummerieren: Die **Äste** haben von beiden Seiten C3 und C5. Dann entscheidet das Alphabet: **Ethyl** bekommt die 3.");
+    expect(line("CC(C)CCC=O")).toBe("Nummerieren: so, dass die **ranghöchste Gruppe** die kleinste Nummer bekommt: 1 statt 5.");
+    expect(line("CC1=CC=CC(O)=C1")).toBe("Nummerieren: Die **ranghöchste Gruppe** hat in beiden Zählrichtungen C1. Dann entscheidet der **Ast**: 3 statt 5.");
+    // Heterocyclus: das Heteroatom ist immer 1, erst dann die anderen Regeln
+    expect(line("CC1=CN=CC=C1")).toBe("Das Heteroatom im Ring hat immer die Nummer 1. Weiter so zählen, dass der **Ast** die kleinste Nummer bekommt: 3 statt 5.");
+    expect(line("O=C1CCCO1")).toMatch(/^Das Heteroatom im Ring hat immer die Nummer 1\. Weiter so zählen, dass die \*\*ranghöchste Gruppe\*\* .*: 2 statt 5\.$/);
+    // Name ohne Nummer: kein „1 statt 2“, sondern der Grund
+    expect(line("CCO")).toBe("Nummerieren: so, dass die **ranghöchste Gruppe** die kleinste Nummer bekommt. Die Nummer steht nicht im Namen: Er ist auch ohne eindeutig.");
+    expect(nm("OC1=CC=CC=C1").steps.join(" ")).not.toMatch(/statt 2/);
+    setLang("en", false);
+    try {
+      expect(line2("CC(C)C(=O)CC")).toBe("Numbering: The **principal group** is at C3 from both ends. Then the **branch** decides: 2 instead of 4.");
+      expect(line2("CC1=CN=CC=C1")).toBe("The heteroatom in the ring always gets number 1. Then count so that the **branch** gets the lowest number: 3 instead of 5.");
+    } finally { setLang("de", false); }
+  });
+  test("Lösungsweg: eingeführter Name am Benzolring, Säureteil und Alkylteil", () => {
+    expect(nm("OC1=CC=CC=C1").steps).toContain("Statt Benzenol heißt es **Phenol** (eingeführter Name).");
+    expect(nm("NC1=CC=CC=C1").steps).toContain("Statt Benzenamin heißt es **Anilin** (eingeführter Name).");
+    const e = nm("CCCC(=O)OCC").steps.join(" ");
+    expect(e).toMatch(/Säureteil \+ Alkylteil/);
+    expect(e).not.toMatch(/Säure-Teil|Alkyl-Teil/);
   });
   test("andere Richtung: Regel, die entscheidet", () => {
     const rv = (s: string) => (name(parseSmiles(s), { pick: "reverse" }) as NameOk).reverse;
@@ -254,7 +289,6 @@ describe("Name in Teilen (Farben)", () => {
 });
 
 describe("E/Z-Isomerie", () => {
-  const ez = (s: string) => { const r = name(smilesMol(s)); if (!r.ok) throw new Error(r.reason); return r; };
   test.each([
     ["C/C=C/C", "(E)-But-2-en", "trans-But-2-en"],
     ["C/C=C\\C", "(Z)-But-2-en", "cis-But-2-en"],
@@ -291,6 +325,10 @@ describe("E/Z-Isomerie", () => {
     expect((name(f) as NameOk).name).toBe("(Z)-Pent-2-en");
     // Neu zeichnen (Ordnen) behält E/Z
     expect((name(keepStereo(f, layout(f))) as NameOk).name).toBe("(Z)-Pent-2-en");
+  });
+  test("Lösungsweg „Nummerieren“: bei sonst gleichen Nummern bekommt Z die kleinere", () => {
+    expect(ez("C/C=C\\C(C)/C=C/C").steps.find(x => x.startsWith("Nummerieren"))).toBe(
+      "Nummerieren: Doppelbindungen (C2 und C5) und Ast (C4) liegen von beiden Seiten gleich. Dann bekommt **Z** die kleinere Nummer: 2 statt 5.");
   });
   test("Lösungsweg erklärt E/Z", () => {
     expect(ez("C/C=C\\C").steps.join(" ")).toMatch(/derselben.*\*\*Z\*\*/);
