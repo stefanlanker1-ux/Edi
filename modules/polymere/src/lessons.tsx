@@ -132,7 +132,7 @@ const K1: GuideStep[] = [
     visual: () => <Row items={[[{ k: "mono", id: "styrol" }, T("Styrol", "Styrene")], [{ k: "sat", id: "ethen" }, T("Ethan", "Ethane")], [{ k: "mono", id: "vinylchlorid" }, T("Vinylchlorid", "Vinyl chloride")]]} />,
     why: { [T("Styrol", "Styrene")]: T("Styrol hat eine C=C-Bindung – daraus wird Polystyrol.", "Styrene has a C=C bond – it becomes polystyrene."), [T("Vinylchlorid", "Vinyl chloride")]: T("Vinylchlorid hat eine C=C-Bindung – daraus wird Polyvinylchlorid (PVC).", "Vinyl chloride has a C=C bond – it becomes poly(vinyl chloride) (PVC).") },
     lines: [T("Ethan hat nur Einfachbindungen: Es ist **gesättigt**.", "Ethane has only single bonds: it is **saturated**."),
-      T("Gesättigte Gegenstücke: Ethen – Ethan, Propen – Propan, Styrol – Ethylbenzol, Vinylchlorid – Chlorethan.", "Saturated counterparts: ethene – ethane, propene – propane, styrene – ethylbenzene, vinyl chloride – chloroethane.")],
+      T("Gesättigte Gegenstücke: Ethen – Ethan, Propen – Propan, Vinylchlorid – Chlorethan.", "Saturated counterparts: ethene – ethane, propene – propane, vinyl chloride – chloroethane.")],
     ok: T("Ohne Zweifachbindung keine Polymerisation.", "No double bond, no polymerisation."),
   },
   {
@@ -317,10 +317,10 @@ const K3: GuideStep[] = [
   {
     mode: "faded",
     ask: T("Ergänze: Wo lagert sich das nächste Monomer an?", "Complete: where does the next monomer attach?"),
-    answer: T("an der freien Stelle", "at the vacant site"), options: [T("an der freien Stelle", "at the vacant site"), T("an einem Radikal", "at a radical"), T("am Chlor-Atom", "at the chlorine atom")],
+    answer: T("an der freien Stelle", "at the vacant site"), options: [T("an der freien Stelle", "at the vacant site"), T("an einem Radikal", "at a radical"), T("am Cl‑Atom", "at the Cl atom")],
     visual: () => <MechPlay r={ZN_PP} acts={["act", "add:propen", "add:propen"]} />,
     lines: [T("Eine **Aluminiumverbindung** gibt eine **Ethylgruppe** ans Titan – dort beginnt die Kette", "An **aluminium compound** gives an **ethyl group** to the titanium – the chain starts there"), T("Nach dem Einbau ist die Stelle am Titan wieder frei", "After insertion the site on the titanium is free again"), T("Das nächste Monomer kommt {?}", "The next monomer goes {?}")],
-    why: { [T("an einem Radikal", "at a radical")]: T("Hier gibt es kein Radikal – die Kette hängt am Titan.", "There is no radical here – the chain hangs on the titanium."), [T("am Chlor-Atom", "at the chlorine atom")]: T("Die Cl‑Atome halten das Titan, sie reagieren nicht.", "The Cl atoms hold the titanium, they do not react.") },
+    why: { [T("an einem Radikal", "at a radical")]: T("Hier gibt es kein Radikal – die Kette hängt am Titan.", "There is no radical here – the chain hangs on the titanium."), [T("am Cl‑Atom", "at the Cl atom")]: T("Die Cl‑Atome halten das Titan, sie reagieren nicht.", "The Cl atoms hold the titanium, they do not react.") },
     ok: T("Jedes Monomer wird am Titan eingebaut.", "Every monomer is inserted at the titanium."),
   },
   {

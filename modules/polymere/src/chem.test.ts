@@ -5,6 +5,7 @@ import { compat, polymerise, stepReact } from "./chem/rules.ts";
 import { makeMech, nextAuto, replay } from "./chem/mech/index.ts";
 import type { Recipe } from "./chem/mech/types.ts";
 import { Reactor } from "./chem/reactor.ts";
+import { anchorPt } from "./chem/scene.ts";
 
 const METHOD_IDS = METHODS.map(m => m.id);
 
@@ -335,3 +336,188 @@ test("Atom-Ansicht: Kettenabläufe ohne überlappende Beschriftungen (alle Bilde
   }
   assert.deepEqual([...new Set(bad)].slice(0, 30), []);
 }, 120_000);
+
+test("Stufenwachstum: Monomer mit zwei verschiedenen Gruppen und Partner – nur Gruppen zählen, die mit dem Partner reagieren (kein Netz, nicht abwechselnd)", async () => {
+  const { isAB, functionality } = await import("./chem/rules.ts");
+  const r = (a: StepId, b?: StepId) => stepReact(a, b);
+  // Funktionalität gegenüber dem Partner: die –OH der Milchsäure reagiert nicht mit –NH₂
+  assert.strictEqual(functionality("milchsaeure", "NH2"), 1);
+  assert.strictEqual(functionality("glycerin", "COOH"), 3);
+  assert.strictEqual(functionality("hexandiamin", "EPOX"), 4);
+  // AB + B₃: verzweigt, kein Netz (an den Enden nur –OH)
+  for (const ab of ["milchsaeure", "aminohexansaeure"] as StepId[]) {
+    const g = r(ab, "glycerin");
+    assert.strictEqual(g.struktur, "verzweigt", ab);
+    assert.notStrictEqual(g.product?.klasse, "duro", ab);
+  }
+  // AB + BB: lineare Ketten, die Bausteine wechseln sich nicht ab
+  const pe = r("milchsaeure", "ethandiol");
+  assert.strictEqual(pe.struktur, "linear");
+  assert.ok(!/abwechselnd/.test(pe.why), pe.why);
+  // Milchsäure + Diamin: Amid (mit dem Partner) und Ester (mit sich selbst) – kein reines Polyamid
+  const pa = r("milchsaeure", "hexandiamin");
+  assert.deepEqual([...(pa.links ?? [])].sort(), ["amid", "ester"]);
+  assert.match(pa.product!.name, /Polyesteramid/);
+  // Kettenstopper bleibt Kettenstopper
+  assert.strictEqual(r("milchsaeure", "ethanol").struktur, "klein");
+  // alle Paare: mit einem AB-Monomer nie Netz und nie „abwechselnd“
+  for (const art of ["kond", "add"] as const) {
+    const ms = STEPS.filter(s => s.arts.includes(art)).map(s => s.id);
+    for (const a of ms) for (const b of ms) {
+      if (a === b) continue;
+      const o = r(a, b);
+      if (isAB(a) || isAB(b)) {
+        assert.notStrictEqual(o.struktur, "vernetzt", `${a}+${b}`);
+        assert.ok(!/abwechselnd/.test(o.why), `${a}+${b}: ${o.why}`);
+      }
+      // keine pauschale Behauptung, die Gruppen reagierten nicht (Phenol + Säurechlorid, Methanal + Amin reagieren in Wirklichkeit)
+      assert.ok(!/keine Gruppen, die miteinander reagieren/.test(o.why), `${a}+${b}: ${o.why}`);
+    }
+  }
+  assert.match(r("phenol", "adipoylchlorid").why, /–OH/);
+  assert.match(r("methanal", "hexandiamin").why, /Aminogruppen/);
+  assert.match(r("methanal").why, /POM/);
+});
+
+test("Anionisch nacheinander: Blöcke nur, wenn das Kettenende das zweite Monomer starten kann (Styrol/Butadien → MMA, nicht umgekehrt)", async () => {
+  const { seqKind } = await import("./chem/rules.ts");
+  assert.strictEqual(seqKind("styrol", "mma", "buli"), "block");
+  assert.strictEqual(seqKind("butadien", "styrol", "buli"), "block");
+  assert.strictEqual(seqKind("mma", "styrol", "buli"), "first");
+  assert.strictEqual(seqKind("acrylnitril", "styrol", "buli"), "first");
+  const bad = polymerise(["mma", "styrol"], "buli", true);
+  assert.notStrictEqual(bad.product!.copo, "block");
+  assert.strictEqual(bad.unreacted, "styrol");
+  assert.strictEqual(polymerise(["styrol", "mma"], "buli", true).product!.copo, "block");
+  // gleichzeitig: MMA setzt sich durch (kein statistisches Copolymer)
+  assert.strictEqual(polymerise(["styrol", "mma"], "buli").product!.abbr, "PMMA");
+  // Atom-Ansicht: das MMA-Kettenende baut Styrol nicht ein
+  const m = replay({ art: "poly", a: "mma", b: "styrol", seq: true, method: "buli" }, ["add:mma", "add:mma"]);
+  m.run("add:styrol");
+  assert.strictEqual(m.status().n, 2);
+  assert.ok(m.status().fail && /zu schwach/.test(m.status().fail!));
+  // Reaktor: kein Styrol in den Ketten
+  const R = new Reactor({ art: "poly", a: "mma", b: "styrol", seq: true, method: "buli" }, 48, 52, 5);
+  R.run("start"); R.advance(300); R.run("add:styrol"); R.advance(600);
+  assert.ok(R.beads.filter(b => b.kind === "mono" && b.m === "styrol").every(b => !b.nb.length), "Styrol eingebaut");
+}, 60_000);
+
+test("Nacheinander ohne lebende Ketten: erst Abbruch, dann neue Kette aus dem zweiten Monomer (keine Blöcke) – Atom-Ansicht und Reaktor", () => {
+  for (const r of [{ art: "poly", a: "styrol", b: "mma", seq: true, method: "dbpo" }, { art: "poly", a: "propen", b: "ethen", seq: true, method: "zn" }, { art: "poly", a: "isobuten", b: "styrol", seq: true, method: "bf3" }] as Recipe[]) {
+    const m = makeMech(r);
+    let second = false, k = 0;
+    for (let id = nextAuto(m, r); id && k < 30; id = nextAuto(m, r), k++) {
+      if (m.status().n) assert.ok(m.actions().filter(a => a.kind === "add").length <= 1, `${r.a}: nur ein Monomer zur Wahl`);
+      m.run(id);
+      const st = m.status(), monos = new Set(st.beads.filter(b => b.kind === "unit").map(b => b.mono));
+      assert.ok(monos.size <= 1, `${r.a}/${r.method} nach ${id}: Kette aus zwei Monomeren`);
+      if (st.second) second = true;
+      if (second && st.n) assert.ok(monos.has(r.b!), `${r.a}: zweite Kette aus ${r.b}`);
+    }
+    assert.ok(second, `${r.a}/${r.method}: keine zweite Kette`);
+    assert.ok(polymerise([r.a, r.b!] as VinylId[], r.method!, true).separate);
+  }
+  const R = new Reactor({ art: "poly", a: "styrol", b: "mma", seq: true, method: "dbpo" }, 48, 52, 5);
+  R.run("start"); R.advance(500); R.run("add:mma"); R.advance(900);
+  const mols = new Map<number, Set<string>>();
+  for (const b of R.beads.filter(x => x.kind === "mono")) mols.set(b.mol, new Set([...(mols.get(b.mol) ?? []), b.m]));
+  assert.ok([...mols.values()].every(s => s.size === 1), "Reaktor: Kette aus zwei Monomeren");
+}, 60_000);
+
+test("Kautschuk: EPM ist Kautschuk ohne C=C (Peroxid), PIB nicht vernetzbar, SB thermoplastisches Elastomer, Dien-Kautschuke vulkanisierbar", () => {
+  const p = (ms: VinylId[], me: MethodId, seq = false) => polymerise(ms, me, seq).product!;
+  assert.deepEqual([p(["ethen", "propen"], "zn").klasse, p(["ethen", "propen"], "zn").rubber], ["elast", "peroxid"]);
+  assert.strictEqual(p(["isobuten"], "bf3").rubber, "nein");
+  assert.strictEqual(p(["styrol", "butadien"], "buli", true).rubber, "tpe");
+  for (const x of [p(["butadien"], "dbpo"), p(["styrol", "butadien"], "dbpo"), p(["acrylnitril", "butadien"], "dbpo")]) assert.strictEqual(x.rubber, "dien", x.name);
+  // Ziegler-Natta mit TiCl₄/Al(C₂H₅)₃: nicht pauschal cis-1,4
+  assert.ok(!/cis/i.test(p(["butadien"], "zn").name));
+  assert.ok(polymerise(["styrol", "mma"], "dbpo", true).product!.mix);
+});
+
+test("Phenoplast: CH₂-Brücken nur in ortho- oder para-Stellung zur –OH (Ringnachbarschaft)", () => {
+  const r: Recipe = { art: "kond", a: "phenol", b: "methanal" };
+  const m = replay(r, ["join", "add:pf", "add:pf"]);
+  const s = m.snap();
+  const nb = (id: string) => s.bonds.filter(b => b.a === id || b.b === id).map(b => (b.a === id ? b.b : b.a));
+  const el = (id: string) => s.atoms.find(a => a.id === id)?.el;
+  let bridges = 0;
+  for (const ring of Object.values(s.rings)) {
+    if (!ring.every(id => s.atoms.some(a => a.id === id))) continue;
+    const iO = ring.findIndex(id => nb(id).some(x => el(x) === "O"));
+    if (iO < 0) continue;
+    ring.forEach((id, i) => {
+      // Brücke: Ring-C mit einem C außerhalb des Rings
+      if (!nb(id).some(x => el(x) === "C" && !ring.includes(x))) return;
+      const d = Math.min(Math.abs(i - iO), 6 - Math.abs(i - iO));
+      assert.ok(d === 1 || d === 3, `Brücke in Stellung ${d} zur –OH (1 = ortho, 3 = para)`);
+      bridges++;
+    });
+  }
+  assert.ok(bridges >= 4, `${bridges} Brücken geprüft`);
+});
+
+test("Pfeile: Ziegler-Natta-Einbau von Butadien mit drei Pfeilen, kationisch H⁺ vom Butadien ohne Allen", () => {
+  const zn = replay({ art: "poly", a: "butadien", method: "zn" }, ["act"]);
+  const clip = zn.run("add:butadien");
+  assert.ok(clip.some(k => (k.arrows?.length ?? 0) === 3), "Einbau: drei Pfeile (π C1=C2, Ti–C, π C3=C4)");
+  // Elektronen wandern paarweise
+  for (const k of clip) assert.strictEqual(k.snap.dots.length % 2, 0, "Elektronen paarweise");
+  const cat = replay({ art: "poly", a: "butadien", method: "bf3" }, ["acid", "add:butadien"]);
+  cat.run("hplus");
+  const s = cat.snap();
+  for (const a of s.atoms.filter(x => x.el === "C")) {
+    const bs = s.bonds.filter(b => (b.a === a.id || b.b === a.id) && !b.k);
+    assert.ok(bs.filter(b => b.o === 2).length <= 1, `${a.id}: zwei Zweifachbindungen (Allen)`);
+    assert.ok(bs.reduce((t, b) => t + b.o, 0) <= 4, `${a.id}: mehr als vier Bindungen`);
+  }
+});
+
+test("Polykondensation: Ester- und Amidbindung mit Pfeilen in drei Schritten, Ladungen ausgeglichen", () => {
+  for (const r of [{ art: "kond", a: "terephthalsaeure", b: "ethandiol" }, { art: "kond", a: "adipinsaeure", b: "hexandiamin" }, { art: "kond", a: "adipoylchlorid", b: "hexandiamin" }, { art: "kond", a: "milchsaeure" }] as Recipe[]) {
+    for (const acts of [["join"], ["join", `add:${r.a}`]]) {
+      const m = replay(r, acts.slice(0, -1)), clip = m.run(acts[acts.length - 1]);
+      const withArrows = clip.filter(k => k.arrows?.length);
+      assert.strictEqual(withArrows.length, 3, `${r.a}+${r.b ?? ""} ${acts.at(-1)}: Schritte mit Pfeilen`);
+      for (const k of clip) assert.strictEqual(k.snap.atoms.reduce((t, a) => t + (a.q ?? 0), 0), 0, `${r.a}: Ladung nicht ausgeglichen`);
+      for (const k of withArrows) for (const ar of k.arrows!) assert.ok(anchorPt(k.snap, ar.from) && anchorPt(k.snap, ar.to), "Pfeil ohne Anker");
+    }
+  }
+});
+
+test("Produktbild: Wiederholeinheit des Monomers, das wirklich eingebaut wird (Gemisch: beide, Copolymer: keine)", async () => {
+  const { productUnits } = await import("./chem/rules.ts");
+  const u = (ms: VinylId[], me: MethodId, seq = false) => productUnits(ms, polymerise(ms, me, seq));
+  // gleichzeitig anionisch: es entsteht fast nur PMMA – nicht das Bild von Polystyrol
+  assert.deepEqual(u(["styrol", "mma"], "buli"), ["mma"]);
+  assert.deepEqual(u(["mma", "styrol"], "buli", true), ["mma"]);
+  assert.deepEqual(u(["styrol", "mma"], "dbpo", true), ["styrol", "mma"]);
+  assert.deepEqual(u(["styrol", "mma"], "dbpo"), []);
+  assert.deepEqual(u(["propen"], "zn"), ["propen"]);
+});
+
+test("Glycerin: mit Disäure bzw. Säurechlorid (A₂ + B₃) vernetzter Polyester; mit AB-Monomer (Milchsäure, 6-Aminohexansäure) sternförmig, kein Netz", () => {
+  // A₂ + B₃: Netz, Duroplast – in Regeln und Reaktor
+  for (const acid of ["adipinsaeure", "terephthalsaeure", "adipoylchlorid", "terephthaloylchlorid"] as StepId[]) {
+    const o = stepReact(acid, "glycerin");
+    assert.strictEqual(o.struktur, "vernetzt", acid);
+    assert.strictEqual(o.product?.klasse, "duro", acid);
+    assert.ok(!o.product?.star, acid);
+  }
+  // AB + B₃: Stern mit Glycerin in der Mitte, kein Netz, schmelzbar
+  for (const ab of ["milchsaeure", "aminohexansaeure"] as StepId[]) {
+    const o = stepReact(ab, "glycerin"), p = o.product!;
+    assert.strictEqual(o.struktur, "verzweigt", ab);
+    assert.notStrictEqual(p.klasse, "duro", ab);
+    assert.ok(p.star, ab);
+    assert.match(p.name, /^Sternförmig verzweigte[rs] Poly/, ab);
+    assert.match(o.why, /sternförmig/);
+    assert.match(o.why, /Zwei Sterne verbinden sich nie/);
+    assert.deepEqual(stepReact("glycerin", ab).product?.star, true, `glycerin+${ab}`);
+  }
+  assert.strictEqual(stepReact("milchsaeure", "glycerin").product!.name, "Sternförmig verzweigter Polyester aus Milchsäure und Glycerin");
+  assert.match(stepReact("aminohexansaeure", "glycerin").product!.name, /^Sternförmig verzweigtes Polyesteramid/);
+  const sim = (r: Recipe) => { const R = new Reactor(r, 48, 52, 5); R.run("start"); R.advance(1500); return R.stats(); };
+  assert.ok(sim({ art: "kond", a: "terephthalsaeure", b: "glycerin" }).network, "A₂ + B₃: Netz");
+  assert.ok(!sim({ art: "kond", a: "milchsaeure", b: "glycerin" }).network, "AB + B₃: kein Netz");
+}, 60_000);

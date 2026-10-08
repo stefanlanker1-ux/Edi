@@ -26,8 +26,9 @@ export type Vis =
   | { k: "sat"; id: string }
   | { k: "unit"; id: string; dbl?: boolean }
   | { k: "chain"; id: string; n: number; tact?: Tact; seed?: number }
-  /** Mechanismus: Ansatz, Aktionen bis dahin; gezeigt wird Bild `key` des Ablaufs der letzten Aktion (mit Pfeilen) */
-  | { k: "mech"; r: Recipe; acts: string[]; key: number }
+  /** Mechanismus: Ansatz, Aktionen bis dahin; gezeigt wird Bild `key` des Ablaufs der letzten Aktion (mit Pfeilen);
+   *  `bare`: ohne Beschriftungen (z. B. wenn „H₂O“ die Antwort wäre) */
+  | { k: "mech"; r: Recipe; acts: string[]; key: number; bare?: boolean }
   | { k: "beads"; seq: string[] }
   | { k: "pair"; a: string; b?: string }
   | { k: "struct"; s: StructKind }
@@ -64,7 +65,7 @@ export function ChainSvg({ id, n, tact, seed }: { id: string; n: number; tact?: 
 }
 
 /** Standbild eines Mechanismus-Schritts mit Elektronenpfeilen */
-export function MechFrame({ r, acts, keyIndex, label }: { r: Recipe; acts: string[]; keyIndex: number; label: string }) {
+export function MechFrame({ r, acts, keyIndex, label, bare }: { r: Recipe; acts: string[]; keyIndex: number; label: string; bare?: boolean }) {
   const frame = useMemo(() => {
     const m = replay(r, acts.slice(0, -1));
     const clip = m.run(acts[acts.length - 1]);
@@ -79,7 +80,7 @@ export function MechFrame({ r, acts, keyIndex, label }: { r: Recipe; acts: strin
     y0: Math.max(all.y0, Math.min(...pts.map(p => p.y)) - 1.6), y1: Math.min(all.y1, Math.max(...pts.map(p => p.y)) + 1.6) } : all;
   const box = fitBox(crop, 1.7, 5, 3.0, 0.4);
   // Beschriftungen nur, wenn sie ganz im Ausschnitt liegen (nie abgeschnitten)
-  const notes = pose.notes.filter(n => { const q = noteBox(n); return q.x0 >= box.x0 && q.x1 <= box.x1 && q.y0 >= box.y0 && q.y1 <= box.y1; });
+  const notes = bare ? [] : pose.notes.filter(n => { const q = noteBox(n); return q.x0 >= box.x0 && q.x1 <= box.x1 && q.y0 >= box.y0 && q.y1 <= box.y1; });
   return <MechSvg pose={{ ...pose, notes }} box={box} label={label} className="pm-vis-svg" />;
 }
 
@@ -254,7 +255,7 @@ export function VisView({ v, opt }: { v: Vis; opt?: boolean }) {
     case "sat": return <SnapSvg snap={saturatedSnap(v.id)} label={tr("Molekül ohne Zweifachbindung", "Molecule without a double bond")} aspect={asp} className="pm-vis-svg" />;
     case "unit": return v.dbl ? <SnapSvg snap={unitWithDouble(v.id)} label={tr("Baustein mit Zweifachbindung", "Unit with double bond")} aspect={asp} halos className="pm-vis-svg" /> : <UnitSvg id={v.id} aspect={asp} className="pm-vis-svg" />;
     case "chain": return <ChainSvg id={v.id} n={v.n} tact={v.tact} seed={v.seed} />;
-    case "mech": return <MechFrame r={v.r} acts={v.acts} keyIndex={v.key} label={tr("Mechanismus mit Elektronenpfeilen", "Mechanism with electron arrows")} />;
+    case "mech": return <MechFrame r={v.r} acts={v.acts} keyIndex={v.key} bare={v.bare} label={tr("Mechanismus mit Elektronenpfeilen", "Mechanism with electron arrows")} />;
     case "beads": return <div className="pm-vis-beads"><BeadStrip beads={beadsOf(v.seq)} active={null} max={30} /></div>;
     case "pair": return (
       <div className={`pm-vis-pair${structOf(v.a) && (!v.b || structOf(v.b)) ? " has-txt" : ""}`}>
@@ -302,7 +303,7 @@ export function unitWithDouble(id: string): Snap {
 export function visText(v: Vis): string {
   switch (v.k) {
     case "mono": return monoName(v.id);
-    case "sat": return tr(`gesättigt: ${monoName(v.id)}`, `saturated: ${monoName(v.id).toLowerCase()}`);
+    case "sat": return tr(`gesättigtes Gegenstück zu ${monoName(v.id)}`, `saturated counterpart of ${monoName(v.id).toLowerCase()}`);
     case "unit": return v.dbl ? tr(`Baustein von ${monoName(v.id)} mit C=C`, `Unit of ${monoName(v.id).toLowerCase()} with C=C`) : tr(`Baustein von ${monoName(v.id)}`, `Unit of ${monoName(v.id).toLowerCase()}`);
     case "chain": return tr(`Kette aus ${monoName(v.id)}`, `Chain of ${monoName(v.id).toLowerCase()}`);
     case "beads": return v.seq.map(m => monoLetter(m)).join("–");

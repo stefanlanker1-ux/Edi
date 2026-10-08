@@ -152,25 +152,35 @@ export function stepMolecule(sc: Scene, id: StepId, x: number, y: number, ctx: C
     sc.autoLp(o1, 2, -90); sc.autoLp(o2, 2, -90);
     left = c1; right = c2; xc += 3.4;
   } else if (core.k === "phenol") {
-    const r = benzene(sc, xc, y, 0, ctx, "r");
-    out.push(...r);
-    // OH oben am Ring (Ecke 2 zeigt nach oben-rechts → Ecke oben: Mittelpunkt − 0,72 nach oben)
-    const top = r[2];
-    const o = A("o", "O", sc.at(top).x, sc.at(top).y - 1), h = A("ho", "H", sc.at(top).x + 0.8, sc.at(top).y - 1);
-    sc.bond(top, o); sc.bond(o, h); sc.autoLp(o, 2, -90);
-    left = r[0]; right = r[3];
-    // reaktive H‑Atome an beiden Seiten (Stellungen neben der OH-Gruppe sind gezeichnet als links/rechts)
-    const hl = A("hl", "H", sc.at(left).x - 0.8, y), hr = A("hr", "H", sc.at(right).x + 0.8, y);
-    sc.bond(left, hl); sc.bond(right, hr);
+    // Ring mit Spitze nach oben, –OH oben; reaktiv sind die H‑Atome in ortho- und para-Stellung (neben bzw. gegenüber der –OH).
+    // Die CH₂-Brücken der Kette gehen von den beiden ortho-Stellen schräg nach oben aus (so liegen alle Ringe auf einer Höhe).
+    const r = 0.72, cx = xc + r * Math.cos(Math.PI / 6), ids: string[] = [];
+    for (let k = 0; k < 6; k++) {
+      const a = ((270 + 60 * k) * Math.PI) / 180;
+      ids.push(A(`r${k}`, "C", cx + Math.cos(a) * r, y + Math.sin(a) * r, { text: "" }));
+    }
+    const ring = ctx.pre + "r";
+    for (let k = 0; k < 6; k++) sc.bond(ids[k], ids[(k + 1) % 6], k % 2 === 0 ? 2 : 1, undefined, ring);
+    sc.ring(ring, ids);
+    // Ecken: 0 oben (–OH), 1 rechts oben und 5 links oben (ortho), 3 unten (para)
+    const top = ids[0];
+    const o = A("o", "O", cx, y - r - 1), h = A("ho", "H", cx, y - r - 1.8);
+    sc.bond(top, o); sc.bond(o, h); sc.autoLp(o, 2, 0);
+    left = ids[5]; right = ids[1];
+    const out30 = (c: string, ang: number, tag: string) => { const C = sc.at(c), q = (ang * Math.PI) / 180; const x = A(tag, "H", C.x + Math.cos(q) * 0.8, C.y + Math.sin(q) * 0.8); sc.bond(c, x); return x; };
+    const hl = out30(left, 210, "hl"), hr = out30(right, 330, "hr");
+    out30(ids[3], 90, "hp");
     ends.push({ fg: "ArH", anchor: left, leave: [hl], extra: {}, s: -1 }, { fg: "ArH", anchor: right, leave: [hr], extra: {}, s: 1 });
-    return { atoms: out, ends, x0: x, x1: xc + 1.44 + 0.8 };
+    const xs = out.map(i => sc.at(i).x);
+    return { atoms: out, ends, x0: Math.min(...xs), x1: Math.max(...xs) };
   } else if (core.k === "methanal") {
+    // H₂C=O eben (120°): O oben, die H‑Atome schräg nach unten
     const c = A("c", "C", xc, y), o = A("o", "O", xc, y - 1);
     sc.bond(c, o, 2); sc.autoLp(o, 2, -90);
-    const h1 = A("h1", "H", xc - 0.8, y), h2 = A("h2", "H", xc + 0.8, y);
+    const h1 = A("h1", "H", xc - 0.69, y + 0.4), h2 = A("h2", "H", xc + 0.69, y + 0.4);
     sc.bond(c, h1); sc.bond(c, h2);
     ends.push({ fg: "CHO", anchor: c, leave: [o], extra: { h1, h2 }, s: 1 });
-    return { atoms: out, ends, x0: xc - 0.8, x1: xc + 0.8 };
+    return { atoms: out, ends, x0: xc - 0.69, x1: xc + 0.69 };
   }
   // Gruppen links und rechts (Kurzformel (CH₂)ₙ ist breit: Gruppe weiter weg)
   const gap = (k: string) => { const n = sc.at(k).text?.length ?? 0; return n > 3 ? Math.max(1.6, n * 0.13 + 0.6) : 1; };

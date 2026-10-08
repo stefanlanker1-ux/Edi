@@ -2,7 +2,7 @@
 // Ergebnis ist das Produkt (Name, Kurzzeichen, Aufbau, Verwendung) oder die fachliche Begründung, warum keine (lange) Kette entsteht.
 
 import { tr } from "@lern/i18n";
-import { ART_NAME, method, stepMono, vinyl, type Art, type FG, type Klasse, type MechKind, type MethodId, type StepId, type VinylId } from "./data.ts";
+import { ART_NAME, FG_FORMULA, lc, method, stepMono, vinyl, type Art, type FG, type Klasse, type MechKind, type MethodId, type Rubber, type StepId, type StepMono, type VinylId } from "./data.ts";
 
 // ── Polymerisation: Monomer × Verfahren ──────────────────────────────────────
 
@@ -33,7 +33,7 @@ const T = (de: string, en: string) => tr(de, en);
 /** Begründungen je Verfahren und Monomer (Fachstand: Polar → vergiftet Ziegler-Natta; Allyl-H → radikalisch nur kurze Ketten …) */
 const RULES: Record<MechKind, Record<VinylId, Compat>> = {
   radikal: {
-    ethen: { fit: "ok", branched: true, why: T("Radikale lagern sich an die Zweifachbindung an. Unter hohem Druck entstehen lange, verzweigte Ketten.", "Radicals add to the double bond. Under high pressure long, branched chains form."), note: T("nur unter hohem Druck (1000–3000 bar) – LDPE, verzweigt", "only under high pressure (1000–3000 bar) – LDPE, branched") },
+    ethen: { fit: "ok", branched: true, why: T("Radikale lagern sich an die Zweifachbindung an. Unter hohem Druck entstehen lange, verzweigte Ketten.", "Radicals add to the double bond. Under high pressure long, branched chains form."), note: T("nur unter hohem Druck (1000–3000 bar) – PE-LD, verzweigt", "only under high pressure (1000–3000 bar) – PE-LD (LDPE), branched") },
     propen: { fit: "short", fail: "allyl", why: T("Das Radikal reißt ein H‑Atom von der CH₃-Gruppe ab. Das neue Radikal ist zu stabil und wächst kaum weiter – nur ölige, kurze Ketten.", "The radical pulls an H atom off the CH₃ group. The new radical is too stable and hardly grows – only oily, short chains.") },
     styrol: { fit: "ok", tact: "atakt", why: T("Der Benzolring stabilisiert das Radikal am Kettenende. Die Ketten wachsen schnell.", "The benzene ring stabilises the radical at the chain end. The chains grow fast.") },
     vinylchlorid: { fit: "ok", tact: "atakt", why: T("Radikale lagern sich an die Zweifachbindung an. So wird PVC hergestellt.", "Radicals add to the double bond. This is how PVC is made.") },
@@ -45,7 +45,7 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
     vinylacetat: { fit: "ok", tact: "atakt", why: T("Radikale lagern sich an die Zweifachbindung an. So entsteht Holzleim.", "Radicals add to the double bond. This is how wood glue is made.") },
   },
   koord: {
-    ethen: { fit: "ok", why: T("Ethen lagert sich an das Titan an und wird zwischen Titan und Kette eingebaut. Die Ketten bleiben unverzweigt.", "Ethene attaches to the titanium and is inserted between titanium and chain. The chains stay unbranched."), note: T("Niederdruck – HDPE, unverzweigt, dicht und fest", "low pressure – HDPE, unbranched, dense and stiff") },
+    ethen: { fit: "ok", why: T("Ethen lagert sich an das Titan an und wird zwischen Titan und Kette eingebaut. Die Ketten bleiben unverzweigt.", "Ethene attaches to the titanium and is inserted between titanium and chain. The chains stay unbranched."), note: T("Niederdruck – PE-HD, unverzweigt, dicht und fest", "low pressure – PE-HD (HDPE), unbranched, dense and stiff") },
     propen: { fit: "ok", tact: "iso", why: T("Jedes Propen lagert sich gleich herum an das Titan an. Alle CH₃-Gruppen zeigen zur selben Seite: isotaktisch.", "Every propene attaches to the titanium the same way round. All CH₃ groups point to the same side: isotactic.") },
     styrol: { fit: "ok", tact: "iso", why: T("Styrol wird am Titan eingebaut – immer gleich herum. Es entsteht isotaktisches Polystyrol.", "Styrene is inserted at the titanium – always the same way round. Isotactic polystyrene forms.") },
     vinylchlorid: { fit: "none", fail: "poison", why: T("Das Cl‑Atom bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The Cl atom binds to the titanium with a lone pair. It blocks the vacant site: the catalyst is poisoned.") },
@@ -53,7 +53,7 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
     acrylnitril: { fit: "none", fail: "poison", why: T("Das N‑Atom der C≡N-Gruppe bindet mit seinem freien Elektronenpaar an das Titan. Der Katalysator ist vergiftet.", "The N atom of the C≡N group binds to the titanium with its lone pair. The catalyst is poisoned.") },
     tfe: { fit: "none", fail: "poison", why: T("Ein F‑Atom bindet an das Titan und besetzt die freie Stelle. Der Katalysator ist vergiftet.", "An F atom binds to the titanium and blocks the vacant site. The catalyst is poisoned.") },
     isobuten: { fit: "none", fail: "bulky", why: T("Zwei CH₃-Gruppen am selben C‑Atom sind zu sperrig. Isobuten wird am Titan nicht eingebaut.", "Two CH₃ groups on the same C atom are too bulky. Isobutene is not inserted at the titanium.") },
-    butadien: { fit: "ok", why: T("Butadien wird am Metall 1,4 eingebaut. Mit passendem Katalysator (z. B. Neodym) fast nur cis-1,4: ein Kautschuk wie Naturkautschuk.", "Butadiene is inserted 1,4 at the metal. With a suitable catalyst (e.g. neodymium) almost only cis-1,4: a rubber like natural rubber."), note: "cis-1,4" },
+    butadien: { fit: "ok", why: T("Butadien wird am Titan überwiegend 1,4 eingebaut. Fast nur cis-1,4 – ein Kautschuk wie Naturkautschuk – gibt erst ein passender Katalysator (z. B. mit Neodym).", "Butadiene is inserted mostly 1,4 at the titanium. Almost only cis-1,4 – a rubber like natural rubber – needs a suitable catalyst (e.g. with neodymium).") },
     vinylacetat: { fit: "none", fail: "poison", why: T("Das O der C=O-Gruppe bindet mit einem freien Elektronenpaar an das Titan. Es besetzt die freie Stelle: Der Katalysator ist vergiftet.", "The O of the C=O group binds to the titanium with a lone pair. It blocks the vacant site: the catalyst is poisoned.") },
   },
   anion: {
@@ -62,7 +62,7 @@ const RULES: Record<MechKind, Record<VinylId, Compat>> = {
     styrol: { fit: "ok", tact: "atakt", living: true, why: T("Der Benzolring stabilisiert die negative Ladung. Die Ketten brechen nicht von selbst ab: lebende Ketten.", "The benzene ring stabilises the negative charge. The chains do not stop by themselves: living chains.") },
     vinylchlorid: { fit: "none", fail: "side", why: T("Butyllithium reagiert mit dem Cl‑Atom statt mit der C=C – es entsteht keine Kette.", "Butyllithium reacts with the Cl atom instead of the C=C – no chain forms.") },
     mma: { fit: "ok", tact: "atakt", living: true, why: T("Die COOCH₃-Gruppe stabilisiert die negative Ladung. Nur bei −78 °C – sonst greift das Anion die COOCH₃-Gruppe an.", "The COOCH₃ group stabilises the negative charge. Only at −78 °C – otherwise the anion attacks the COOCH₃ group."), note: "−78 °C" },
-    acrylnitril: { fit: "ok", tact: "atakt", why: T("Die C≡N-Gruppe stabilisiert die negative Ladung am Kettenende.", "The C≡N group stabilises the negative charge at the chain end.") },
+    acrylnitril: { fit: "ok", tact: "atakt", why: T("Die C≡N-Gruppe stabilisiert die negative Ladung am Kettenende. Nebenreaktionen an der C≡N-Gruppe beenden die Ketten aber nach und nach: Sie leben nicht.", "The C≡N group stabilises the negative charge at the chain end. But side reactions at the C≡N group stop the chains bit by bit: they are not living.") },
     tfe: { fit: "none", fail: "side", why: T("Das Anion verdrängt ein Fluorid-Ion (F⁻) – eine Nebenreaktion statt einer Kette.", "The anion pushes out a fluoride ion (F⁻) – a side reaction instead of a chain.") },
     isobuten: { fit: "none", fail: "bounce", why: T("Zwei CH₃-Gruppen schieben Elektronen zur Zweifachbindung. Eine negative Ladung am Kettenende wäre sehr instabil.", "Two CH₃ groups push electrons towards the double bond. A negative charge at the chain end would be very unstable.") },
     butadien: { fit: "ok", living: true, why: T("Die negative Ladung verteilt sich über zwei C‑Atome. Die Ketten brechen nicht von selbst ab: lebende Ketten.", "The negative charge spreads over two C atoms. The chains do not stop by themselves: living chains.") },
@@ -113,6 +113,12 @@ export interface Product {
   tact?: Tact;
   copo?: CopoKind;
   note?: string;
+  /** Kautschuk: wie er vernetzt wird (nur Klasse elast) */
+  rubber?: Rubber;
+  /** zwei getrennte Polymere (nacheinander zugegeben, Ketten nicht lebend) */
+  mix?: boolean;
+  /** sternförmig verzweigt (AB-Monomer + Monomer mit drei Gruppen): Arme ab einem Kern, kein Netz */
+  star?: boolean;
 }
 
 const TACT_ADJ = tr({ iso: "isotaktisches", atakt: "ataktisches" }, { iso: "isotactic", atakt: "atactic" });
@@ -131,27 +137,51 @@ export function homoProduct(m: VinylId, me: MethodId): Product {
   if (m === "propen") code = "5";
   if (m === "styrol") code = "6";
   if (m === "vinylchlorid") code = "3";
-  if (m === "butadien" && method(me).kind === "koord") name = tr("cis-1,4-Polybutadien", "cis-1,4-Polybutadiene");
   const tact = c.tact && (m === "propen" || m === "styrol") ? c.tact : undefined;
-  if (tact) name = `${TACT_ADJ[tact]} ${name}`;
+  // englisch: Polymername mitten im Satz klein („Isotactic polypropene“)
+  if (tact) name = tr(`${TACT_ADJ[tact]} ${name}`, `${TACT_ADJ[tact]} ${lc(name)}`);
   return {
-    name: `${capFirst(name)} (${abbr})`, abbr, klasse: v.klasse, struktur: c.branched ? "verzweigt" : "linear", uses, code, tact, note,
+    name: `${capFirst(name)} (${abbr})`, abbr, klasse: v.klasse, ...(v.rubber ? { rubber: v.rubber } : {}), struktur: c.branched ? "verzweigt" : "linear", uses, code, tact, note,
   };
 }
 
 const capFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/** bekanntes Copolymer: Kurzzeichen, Name, Verwendung und Art des Kunststoffs */
+interface Copo { p: [string, string, string]; klasse: Klasse; rubber?: Rubber }
 /** bekannte Copolymere (Paare ungeordnet) */
-const COPOS: { a: VinylId; b: VinylId; stat?: [string, string, string]; block?: [string, string, string] }[] = [
-  { a: "styrol", b: "butadien", stat: tr(["SBR", "Styrol-Butadien-Kautschuk", "Autoreifen"], ["SBR", "Styrene–butadiene rubber", "car tyres"]),
-    block: tr(["SB", "Styrol-Butadien-Blockcopolymer", "mit drei Blöcken (SBS): Schuhsohlen, Zusatz für Straßenasphalt"], ["SB", "Styrene–butadiene block copolymer", "with three blocks (SBS): shoe soles, additive for road asphalt"]) },
-  { a: "styrol", b: "acrylnitril", stat: tr(["SAN", "Styrol-Acrylnitril-Copolymer", "Gehäuse, Schüsseln für Küchengeräte"], ["SAN", "Styrene–acrylonitrile copolymer", "housings, bowls for kitchen appliances"]) },
-  { a: "acrylnitril", b: "butadien", stat: tr(["NBR", "Nitrilkautschuk", "Dichtungen, Schutzhandschuhe"], ["NBR", "Nitrile rubber", "seals, protective gloves"]) },
-  { a: "ethen", b: "propen", stat: tr(["EPM", "Ethen-Propen-Kautschuk", "Dichtungen an Autotüren, Kabel"], ["EPM", "Ethene–propene rubber", "car door seals, cables"]) },
-  { a: "ethen", b: "vinylacetat", stat: tr(["EVA", "Ethen-Vinylacetat-Copolymer", "Schuhsohlen, Heißkleber"], ["EVA", "Ethene–vinyl acetate copolymer", "shoe soles, hot glue"]) },
-  { a: "styrol", b: "mma", stat: tr(["SMMA", "Styrol-Methylmethacrylat-Copolymer", "durchsichtige Becher und Dosen"], ["SMMA", "Styrene–methyl methacrylate copolymer", "clear cups and boxes"]) },
-  { a: "vinylchlorid", b: "vinylacetat", stat: tr(["PVC/VAc", "Vinylchlorid-Vinylacetat-Copolymer", "Lacke, früher Schallplatten"], ["PVC/VAc", "Vinyl chloride–vinyl acetate copolymer", "paints, formerly records"]) },
+const COPOS: { a: VinylId; b: VinylId; stat?: Copo; block?: Copo }[] = [
+  { a: "styrol", b: "butadien", stat: { klasse: "elast", rubber: "dien", p: tr(["SBR", "Styrol-Butadien-Kautschuk", "Autoreifen"], ["SBR", "Styrene–butadiene rubber", "car tyres"]) },
+    block: { klasse: "elast", rubber: "tpe", p: tr(["SB", "Styrol-Butadien-Blockcopolymer", "mit drei Blöcken (SBS): Schuhsohlen, Zusatz für Straßenasphalt"], ["SB", "Styrene–butadiene block copolymer", "with three blocks (SBS): shoe soles, additive for road asphalt"]) } },
+  { a: "styrol", b: "acrylnitril", stat: { klasse: "thermo", p: tr(["SAN", "Styrol-Acrylnitril-Copolymer", "Gehäuse, Schüsseln für Küchengeräte"], ["SAN", "Styrene–acrylonitrile copolymer", "housings, bowls for kitchen appliances"]) } },
+  { a: "acrylnitril", b: "butadien", stat: { klasse: "elast", rubber: "dien", p: tr(["NBR", "Nitrilkautschuk", "Dichtungen, Schutzhandschuhe"], ["NBR", "Nitrile rubber", "seals, protective gloves"]) } },
+  // EPM: Kautschuk ohne C=C in der Kette – vernetzt wird mit Peroxid, nicht mit Schwefel
+  { a: "ethen", b: "propen", stat: { klasse: "elast", rubber: "peroxid", p: tr(["EPM", "Ethen-Propen-Kautschuk", "Dichtungen an Autotüren, Kabel"], ["EPM", "Ethene–propene rubber", "car door seals, cables"]) } },
+  { a: "ethen", b: "vinylacetat", stat: { klasse: "thermo", p: tr(["EVA", "Ethen-Vinylacetat-Copolymer", "Schuhsohlen, Heißkleber"], ["EVA", "Ethene–vinyl acetate copolymer", "shoe soles, hot glue"]) } },
+  { a: "styrol", b: "mma", stat: { klasse: "thermo", p: tr(["SMMA", "Styrol-Methylmethacrylat-Copolymer", "durchsichtige Becher und Dosen"], ["SMMA", "Styrene–methyl methacrylate copolymer", "clear cups and boxes"]) } },
+  { a: "vinylchlorid", b: "vinylacetat", stat: { klasse: "thermo", p: tr(["PVC/VAc", "Vinylchlorid-Vinylacetat-Copolymer", "Lacke, früher Schallplatten"], ["PVC/VAc", "Vinyl chloride–vinyl acetate copolymer", "paints, formerly records"]) } },
 ];
+
+/** Art eines unbekannten Copolymers: mit Butadien ein Kautschuk mit C=C, sonst wie das gummiartige Homopolymer (falls eines dabei ist) */
+function copoClass(a: VinylId, b: VinylId): { klasse: Klasse; rubber?: Rubber } {
+  if (vinyl(a).diene || vinyl(b).diene) return { klasse: "elast", rubber: "dien" };
+  const el = [a, b].map(vinyl).find(v => v.klasse === "elast");
+  return el ? { klasse: "elast", ...(el.rubber ? { rubber: el.rubber } : {}) } : { klasse: "thermo" };
+}
+
+/** anionisch: Stärke des Kettenendes (Carbanion). Ein Ende startet nur Monomere mit gleicher oder kleinerer Zahl:
+ *  Styrol, Butadien → Methylmethacrylat → Acrylnitril; umgekehrt nicht (das Kettenende aus MMA ist zu schwach für Styrol) */
+const ANION_LEVEL: Partial<Record<VinylId, number>> = { styrol: 3, butadien: 3, mma: 2, acrylnitril: 1 };
+export const anionStarts = (end: VinylId, m: VinylId) => (ANION_LEVEL[end] ?? 0) >= (ANION_LEVEL[m] ?? 0);
+
+/** zwei Monomere nacheinander: block = Blöcke (anionisch, die Kette lebt und ihr Ende startet das zweite Monomer);
+ *  first = das zweite Monomer reagiert nicht mehr (Kettenende zu schwach bzw. Ketten tot, Butyllithium verbraucht);
+ *  separate = die ersten Ketten sind fertig, neue Ketten aus dem zweiten Monomer (radikalisch, kationisch, Ziegler-Natta) */
+export type SeqKind = "block" | "first" | "separate";
+export function seqKind(a: VinylId, b: VinylId, me: MethodId): SeqKind {
+  if (method(me).kind !== "anion") return "separate";
+  return compat(a, me).living && anionStarts(a, b) ? "block" : "first";
+}
 
 export interface PolyOutcome {
   fit: Fit;
@@ -161,11 +191,31 @@ export interface PolyOutcome {
   product?: Product;
   /** nacheinander zugegeben, aber nicht lebend: zwei getrennte Polymere statt Blöcken */
   separate?: boolean;
+  /** Monomer, das (fast) nicht eingebaut wird */
+  unreacted?: VinylId;
   why: string;
 }
 
+/** Wiederholeinheiten fürs Produktbild: beim Gemisch beide, beim Copolymer keine, sonst die des Monomers, das tatsächlich eingebaut wird */
+export function productUnits(ms: VinylId[], out: PolyOutcome): VinylId[] {
+  if (!out.product || out.product.copo) return [];
+  return out.product.mix ? ms : ms.filter(m => m !== out.unreacted).slice(0, 1);
+}
+
+/** warum nacheinander keine Blöcke entstehen (je Verfahren) */
+const SEP_WHY = (k: MechKind, b: string) => tr(
+  { radikal: `Radikal-Ketten brechen nach Bruchteilen einer Sekunde ab. Mit ${b} starten neue Radikale neue Ketten: zwei getrennte Polymere statt Blöcken.`,
+    kation: `Die Ketten enden schnell, indem sie ein H⁺ abgeben. Dieses H⁺ startet neue Ketten aus ${b}: zwei getrennte Polymere statt Blöcken.`,
+    koord: `Die Ketten lösen sich nach und nach vom Titan. Danach wachsen dort Ketten aus ${b}: überwiegend zwei getrennte Polymere statt Blöcken.`,
+    anion: "" },
+  { radikal: `Radical chains stop within a fraction of a second. With ${lc(b)}, new radicals start new chains: two separate polymers instead of blocks.`,
+    kation: `The chains end quickly by giving off an H⁺. This H⁺ starts new chains of ${lc(b)}: two separate polymers instead of blocks.`,
+    koord: `The chains come off the titanium bit by bit. Then chains of ${lc(b)} grow there: mostly two separate polymers instead of blocks.`,
+    anion: "" },
+)[k];
+
 /**
- * Polymerisation mit einem oder zwei Monomeren. `seq`: zwei Monomere nacheinander zugeben (nur lebende Ketten ergeben Blöcke).
+ * Polymerisation mit einem oder zwei Monomeren. `seq`: zwei Monomere nacheinander zugeben (Blöcke nur bei lebenden Ketten, deren Ende das zweite Monomer startet).
  */
 export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcome {
   const list = [...new Set(ms)];
@@ -176,32 +226,52 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
   const c = compat(list[0], me);
   if (list.length === 1) return { fit: "ok", compat: c, product: homoProduct(list[0], me), why: c.why };
   const [a, b] = list;
-  const living = list.every(m => compat(m, me).living);
+  const kind0 = method(me).kind;
   const known = COPOS.find(x => (x.a === a && x.b === b) || (x.a === b && x.b === a));
   const va = vinyl(a), vb = vinyl(b);
-  const elast = va.klasse === "elast" || vb.klasse === "elast";
-  if (seq && !living) {
+  if (seq && seqKind(a, b, me) === "first") {
     return {
-      fit: "ok", compat: c, separate: true,
-      why: tr(`Die ersten Ketten sind schon abgebrochen, wenn ${vb.name} dazukommt. Es entstehen zwei getrennte Polymere statt Blöcken.`,
-        `The first chains have already stopped when ${vb.name.toLowerCase()} is added. Two separate polymers form instead of blocks.`),
+      fit: "ok", compat: c, unreacted: b, product: homoProduct(a, me),
+      why: c.living
+        ? tr(`Das Kettenende aus ${va.name} ist zu schwach, um ${vb.name} zu starten. ${vb.name} bleibt übrig – es entsteht nur ${va.abbr}.`,
+          `The chain end made of ${lc(va.name)} is too weak to start ${lc(vb.name)}. The ${lc(vb.name)} is left over – only ${va.abbr} forms.`)
+        : tr(`Die ${va.abbr}-Ketten enden durch Nebenreaktionen, und das Butyllithium ist verbraucht. ${vb.name} bleibt übrig – es entsteht nur ${va.abbr}.`,
+          `The ${va.abbr} chains stop through side reactions, and the butyllithium is used up. The ${lc(vb.name)} is left over – only ${va.abbr} forms.`),
+    };
+  }
+  if (seq && seqKind(a, b, me) === "separate") {
+    const both = [va, vb].every(v => v.klasse === "thermo");
+    return {
+      fit: "ok", compat: c, separate: true, why: SEP_WHY(kind0, vb.name),
       product: {
-        name: tr(`Gemisch aus ${va.abbr} und ${vb.abbr}`, `Mixture of ${va.abbr} and ${vb.abbr}`), abbr: `${va.abbr} + ${vb.abbr}`, klasse: elast ? "elast" : "thermo",
-        struktur: "linear", uses: "–",
+        name: tr(`Gemisch aus ${va.abbr} und ${vb.abbr}`, `Mixture of ${va.abbr} and ${vb.abbr}`), abbr: `${va.abbr} + ${vb.abbr}`, klasse: both ? "thermo" : "elast",
+        struktur: "linear", uses: "–", mix: true,
       },
+    };
+  }
+  if (!seq && kind0 === "anion" && !(anionStarts(a, b) && anionStarts(b, a))) {
+    // gleichzeitig, aber verschieden starke Kettenenden: das Monomer mit dem schwächeren Ende lagert sich viel schneller an und setzt sich durch
+    const [dom, oth] = anionStarts(a, b) ? [b, a] : [a, b];
+    const vd = vinyl(dom), vo = vinyl(oth);
+    return {
+      fit: "ok", compat: compat(dom, me), unreacted: oth, product: homoProduct(dom, me),
+      why: tr(`${vd.name} lagert sich viel schneller an. Sein Kettenende startet ${vo.name} nicht: Es entsteht fast nur ${vd.abbr}.`,
+        `${vd.name} adds much faster. Its chain end does not start ${lc(vo.name)}: almost only ${vd.abbr} forms.`),
     };
   }
   const kind: CopoKind = seq ? "block" : "stat";
   const named = kind === "block" ? known?.block : known?.stat;
+  const cls = named ? { klasse: named.klasse, ...(named.rubber ? { rubber: named.rubber } : {}) } : copoClass(a, b);
   const KIND = tr({ stat: "statistisches Copolymer", block: "Blockcopolymer", alt: "alternierendes Copolymer" }, { stat: "random copolymer", block: "block copolymer", alt: "alternating copolymer" });
   return {
     fit: "ok", compat: c,
     why: kind === "block"
       ? tr("Die Ketten leben weiter: Erst wächst ein Block aus dem ersten Monomer, dann ein Block aus dem zweiten.", "The chains stay alive: first a block of the first monomer grows, then a block of the second.")
+        + (compat(b, me).living ? "" : tr(` Die Ketten aus ${vb.name} enden danach durch Nebenreaktionen.`, ` The ${lc(vb.name)} chains then stop through side reactions.`))
       : tr("Beide Monomere lagern sich an dasselbe Kettenende an – in zufälliger Reihenfolge.", "Both monomers add to the same chain end – in random order."),
     product: named
-      ? { name: withAbbr(named[1], named[0]), abbr: named[0], klasse: elast ? "elast" : "thermo", struktur: "linear", uses: named[2], copo: kind }
-      : { name: tr(`${capFirst(KIND[kind])} aus ${va.name} und ${vb.name}`, `${capFirst(KIND[kind])} of ${va.name.toLowerCase()} and ${vb.name.toLowerCase()}`), abbr: `${va.letter}/${vb.letter}`, klasse: elast ? "elast" : "thermo", struktur: "linear", uses: "–", copo: kind },
+      ? { name: withAbbr(named.p[1], named.p[0]), abbr: named.p[0], ...cls, struktur: "linear", uses: named.p[2], copo: kind }
+      : { name: tr(`${capFirst(KIND[kind])} aus ${va.name} und ${vb.name}`, `${capFirst(KIND[kind])} of ${lc(va.name)} and ${lc(vb.name)}`), abbr: `${va.letter}/${vb.letter}`, ...cls, struktur: "linear", uses: "–", copo: kind },
   };
 }
 
@@ -212,7 +282,7 @@ export type Byp = "H2O" | "HCl" | null;
 
 export const LINK_NAME: Record<Link, string> = tr(
   { ester: "Esterbindung", amid: "Amidbindung (wie die Peptidbindung in Proteinen)", urethan: "Urethangruppe", harnstoff: "Harnstoffgruppe", aminoalkohol: "Aminoalkohol-Brücke", methylen: "CH₂-Brücke" },
-  { ester: "ester bond", amid: "amide bond (peptide bond)", urethan: "urethane group", harnstoff: "urea group", aminoalkohol: "amino alcohol bridge", methylen: "CH₂ bridge" },
+  { ester: "ester bond", amid: "amide bond (like the peptide bond in proteins)", urethan: "urethane group", harnstoff: "urea group", aminoalkohol: "amino alcohol bridge", methylen: "CH₂ bridge" },
 );
 /** kurzer Name für die Statuszeile */
 export const LINK_SHORT: Record<Link, string> = tr(
@@ -240,22 +310,30 @@ export function reactGroups(x: FG, y: FG): Pair | null {
 }
 
 export interface StepOutcome {
-  /** lange Ketten (linear), Netz (vernetzt), nur kleine Moleküle (Kettenstopper) oder keine Reaktion */
+  /** lange Ketten (linear), verzweigt, Netz (vernetzt), nur kleine Moleküle (Kettenstopper) oder keine Reaktion */
   struktur: Struktur | "none";
   art?: Art;
   link?: Link;
   byp?: Byp;
   /** reagierende Gruppen (Monomer a, Monomer b) */
   groups?: [FG, FG];
+  /** alle Verknüpfungen und Nebenprodukte (Monomer mit zwei verschiedenen Gruppen: auch die mit sich selbst) */
+  links?: Link[];
+  byps?: ("H2O" | "HCl")[];
   product?: Product;
   why: string;
 }
 
-/** Funktionalität gegenüber dem Partner: eine NH₂-Gruppe reagiert mit zwei Epoxidgruppen (zwei N–H) */
+/** Funktionalität gegenüber dem Partner: nur Gruppen, die mit der Gruppe des Partners reagieren;
+ *  eine NH₂-Gruppe reagiert mit zwei Epoxidgruppen (zwei N–H) */
 export function functionality(id: StepId, partner: FG | null): number {
   const g = stepMono(id).groups;
-  return g.reduce((s, x) => s + (x === "NH2" && partner === "EPOX" ? 2 : 1), 0);
+  if (!partner) return g.length;
+  return g.reduce((s, x) => s + (!reactGroups(x, partner) ? 0 : x === "NH2" && partner === "EPOX" ? 2 : 1), 0);
 }
+
+/** Monomer mit zwei verschiedenen Gruppen, die miteinander reagieren (Milchsäure, 6-Aminohexansäure): reagiert mit sich selbst */
+export const isAB = (id: StepId) => { const g = stepMono(id).groups; return g.length === 2 && g[0] !== g[1] && !!reactGroups(g[0], g[1]); };
 
 const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klasse?: Klasse; code?: string; note?: string }[] = [
   { a: "terephthalsaeure", b: "ethandiol", code: "1", p: tr(["PET", "Polyethylenterephthalat", "Getränkeflaschen, Polyesterfasern für Kleidung"], ["PET", "Poly(ethylene terephthalate)", "drinks bottles, polyester fibres for clothes"]) },
@@ -292,37 +370,105 @@ const STEP_PRODUCTS: { a: StepId; b?: StepId; p: [string, string, string]; klass
 /** Polyester aus einer Säure und Glycerin: vernetzt */
 const NET_ESTER = tr(["—", "Vernetzter Polyester (Glycerin-Polyesterharz, Alkydharz-Typ)", "Lackharze"], ["—", "Cross-linked polyester (glycerol polyester resin, alkyd type)", "paint resins"]);
 
+/** „sternförmig verzweigt“ in der Form passend zum Geschlecht des Namens (der Polyester, das Polyamid) */
+const STAR_ADJ: Record<string, string> = { Polyester: "Sternförmig verzweigter", Polyharnstoff: "Sternförmig verzweigter" };
+
+/** Art des Polymers nach seinen Verknüpfungen */
+const kindOf = (ls: Link[]) => (ls.includes("ester") && ls.includes("amid") ? tr("Polyesteramid", "Poly(ester amide)")
+  : ls[0] === "ester" ? tr("Polyester", "Polyester") : ls[0] === "amid" ? tr("Polyamid", "Polyamide") : ls[0] === "urethan" ? tr("Polyurethan", "Polyurethane") : ls[0] === "harnstoff" ? tr("Polyharnstoff", "Polyurea") : tr("Polymer", "Polymer"));
+const fgText = (gs: FG[]) => [...new Set(gs)].map(g => (g === "ArH" ? tr("H am Ring", "H on the ring") : g === "CHO" ? "C=O" : FG_FORMULA[g])).join(tr(" und ", " and "));
+
+/** warum zwei Monomere keine Kette bilden (keine passenden Gruppen im Modell) – ehrlich, wo es in Wirklichkeit doch eine Reaktion gibt */
+function noLink(A: StepMono, B: StepMono): string {
+  const has = (m: StepMono, g: FG) => m.groups.includes(g);
+  const pair = (id: StepId) => (A.id === id ? [A, B] : B.id === id ? [B, A] : null);
+  const ph = pair("phenol"), me = pair("methanal");
+  if (ph) return has(ph[1], "COCl")
+    ? tr(`Phenol reagiert mit ${ph[1].name} nur über seine eine –OH-Gruppe: Es entsteht ein kleiner Ester, keine Kette.`, `Phenol reacts with ${lc(ph[1].name)} only through its single –OH group: a small ester forms, no chain.`)
+    : tr(`Phenol bildet mit ${ph[1].name} keine Kette: Die H‑Atome am Ring reagieren nur mit Methanal.`, `Phenol forms no chain with ${lc(ph[1].name)}: the H atoms on the ring react only with methanal.`);
+  if (me) return has(me[1], "NH2")
+    ? tr("Methanal reagiert zwar auch mit Aminogruppen – zu Harzen wie aus Harnstoff und Methanal. Dieses Modell zeigt Methanal nur mit Phenol.", "Methanal does react with amino groups too – to resins like those from urea and methanal. This model only shows methanal with phenol.")
+    : tr(`Methanal bildet mit ${me[1].name} keine Kette. In diesem Modell verbrückt Methanal nur Phenol-Ringe.`, `Methanal forms no chain with ${lc(me[1].name)}. In this model methanal only bridges phenol rings.`);
+  if ((has(A, "EPOX") && has(B, "OH")) || (has(B, "EPOX") && has(A, "OH")))
+    return tr("Epoxidgruppen reagieren mit Hydroxygruppen nur mit Katalysator und Hitze – hier entsteht keine Kette.", "Epoxide groups only react with hydroxy groups with a catalyst and heat – no chain forms here.");
+  if ((has(A, "EPOX") && has(B, "NCO")) || (has(B, "EPOX") && has(A, "NCO")))
+    return tr("Epoxid- und Isocyanatgruppen reagieren nur mit Katalysator – hier entsteht keine Kette.", "Epoxide and isocyanate groups only react with a catalyst – no chain forms here.");
+  const ga = [...new Set(A.groups)], gb = [...new Set(B.groups)];
+  if (ga.length === 1 && gb.length === 1 && ga[0] === gb[0])
+    return tr(`${A.name} und ${B.name} tragen nur ${FG_FORMULA[ga[0]]}-Gruppen. Gleiche Gruppen reagieren nicht miteinander.`, `${A.name} and ${lc(B.name)} only carry ${FG_FORMULA[ga[0]]} groups. Identical groups do not react with each other.`);
+  return tr(`${A.name} (${fgText(A.groups)}) und ${B.name} (${fgText(B.groups)}): Diese Gruppen verknüpfen sich in diesem Modell nicht.`, `${A.name} (${fgText(A.groups)}) and ${lc(B.name)} (${fgText(B.groups)}): these groups do not link up in this model.`);
+}
+
 /** Stufenwachstum aus einem Monomer (AB-Monomer) oder zwei Monomeren */
 export function stepReact(a: StepId, b?: StepId): StepOutcome {
   const A = stepMono(a), B = b ? stepMono(b) : undefined;
   const NONE = (why: string): StepOutcome => ({ struktur: "none", why });
   if (!B || a === b) {
     // ein Monomer allein: nur AB-Monomere reagieren mit sich selbst
+    if (a === "methanal") return NONE(tr("Methanal allein bildet hier keine Kette. Über seine C=O kann es zwar zu Polyoxymethylen (POM) polymerisieren – das ist aber eine Polymerisation, keine Polykondensation.", "Methanal alone forms no chain here. It can polymerise through its C=O to polyoxymethylene (POM) – but that is a polymerisation, not a polycondensation."));
+    if (a === "phenol") return NONE(tr("Phenol allein bildet keine Kette: Erst Methanal verbrückt die Ringe.", "Phenol alone forms no chain: only methanal bridges the rings."));
     const [x, y] = A.groups;
-    const r = A.groups.length === 2 && x !== y ? reactGroups(x, y) : null;
-    if (!r) return NONE(tr(`${A.name} allein reagiert nicht: Gleiche Gruppen verbinden sich nicht miteinander.`, `${A.name} alone does not react: identical groups do not join each other.`));
+    const r = isAB(a) ? reactGroups(x, y) : null;
+    if (!r) return NONE(A.groups.some(g => g === "NCO" || g === "EPOX")
+      ? tr(`${A.name} allein bildet ohne Katalysator keine Kette: Gleiche Gruppen reagieren nicht miteinander.`, `${A.name} alone forms no chain without a catalyst: identical groups do not react with each other.`)
+      : tr(`${A.name} allein reagiert nicht: Gleiche Gruppen verbinden sich nicht miteinander.`, `${A.name} alone does not react: identical groups do not join each other.`));
     const p = STEP_PRODUCTS.find(s => s.a === a && !s.b);
     return {
-      struktur: "linear", art: r.art, link: r.link, byp: r.byp, groups: [x, y],
+      struktur: "linear", art: r.art, link: r.link, byp: r.byp, groups: [x, y], links: [r.link], byps: r.byp ? [r.byp] : [],
       why: tr(`${A.name} trägt zwei verschiedene Gruppen. Das eine Ende reagiert mit dem anderen Ende des nächsten Moleküls.`, `${A.name} carries two different groups. One end reacts with the other end of the next molecule.`),
       product: p && { name: withAbbr(p.p[1], p.p[0]), abbr: p.p[0], klasse: p.klasse ?? "thermo", struktur: "linear", uses: p.p[2], code: p.code, note: p.note },
     };
   }
-  // passende Gruppen suchen
+  // passende Gruppen suchen (Monomer a mit Monomer b)
   let pair: { x: FG; y: FG; r: Pair } | undefined;
   for (const x of A.groups) for (const y of B.groups) { const r = reactGroups(x, y); if (r && !pair) pair = { x, y, r }; }
+  const abA = isAB(a), abB = isAB(b!);
   if (!pair) {
-    const epoxOh = (A.groups.includes("EPOX") && B.groups.includes("OH")) || (B.groups.includes("EPOX") && A.groups.includes("OH"));
-    return NONE(epoxOh
-      ? tr("Epoxidgruppen reagieren mit Hydroxygruppen nur mit Katalysator und Hitze – hier entsteht keine Kette.", "Epoxide groups only react with hydroxy groups with a catalyst and heat – no chain forms here.")
-      : tr(`${A.name} und ${B.name} haben keine Gruppen, die miteinander reagieren.`, `${A.name} and ${B.name.toLowerCase()} have no groups that react with each other.`));
+    const self = abA ? A : abB ? B : null;
+    return NONE(noLink(A, B) + (self ? tr(` ${self.name} reagiert dabei nur mit sich selbst.`, ` ${self.name} only reacts with itself.`) : ""));
+  }
+  const base = { art: pair.r.art, link: pair.r.link, byp: pair.r.byp, groups: [pair.x, pair.y] as [FG, FG] };
+  // alle Verknüpfungen: mit dem Partner und – bei Monomeren mit zwei verschiedenen Gruppen – mit sich selbst
+  const all: Pair[] = [];
+  for (const x of A.groups) for (const y of B.groups) { const r = reactGroups(x, y); if (r) all.push(r); }
+  for (const m of [a, b!]) if (isAB(m)) all.push(reactGroups(stepMono(m).groups[0], stepMono(m).groups[1])!);
+  const links = [...new Set(all.map(r => r.link))], byps = [...new Set(all.flatMap(r => (r.byp ? [r.byp] : [])))];
+  const more = { links, byps };
+  const named = (struktur: Struktur, why: string, klasse: Klasse = "thermo"): StepOutcome => ({
+    ...base, ...more, struktur, why,
+    product: { name: tr(`${kindOf(links)} aus ${A.name} und ${B.name}`, `${kindOf(links)} of ${lc(A.name)} and ${lc(B.name)}`), abbr: kindOf(links), klasse, struktur, uses: "–" },
+  });
+  if (abA && abB) {
+    // beide reagieren mit sich selbst und miteinander: lineare Ketten, Bausteine in zufälliger Folge
+    return named("linear", tr(`${A.name} und ${B.name} tragen je zwei verschiedene Gruppen. Jedes reagiert mit sich selbst und mit dem anderen: lineare Ketten, die Bausteine folgen zufällig aufeinander.`,
+      `${A.name} and ${lc(B.name)} each carry two different groups. Each reacts with itself and with the other: linear chains, the units follow in random order.`));
+  }
+  if (abA || abB) {
+    // ein Monomer reagiert mit sich selbst (AB), der Partner nur mit einer seiner beiden Gruppen
+    const ab = abA ? A : B, p = abA ? B : A, gAb = abA ? pair.x : pair.y;
+    const fp = functionality(p.id, gAb), other = FG_FORMULA[ab.groups.find(g => g !== gAb)!];
+    if (fp < 2) return { ...base, ...more, struktur: "klein",
+      why: tr(`${p.name} hat nur eine passende Gruppe. Sie blockiert das ${FG_FORMULA[gAb]}-Ende der ${ab.name}-Ketten: Mit viel ${p.name} entstehen nur kleine Moleküle.`,
+        `${p.name} has only one matching group. It blocks the ${FG_FORMULA[gAb]} end of the ${lc(ab.name)} chains: with a lot of ${lc(p.name)} only small molecules form.`) };
+    if (fp < 3) return named("linear", tr(`${ab.name} reagiert auch mit sich selbst. ${p.name} verbindet zwei ${ab.name}-Ketten an ihren ${FG_FORMULA[gAb]}-Enden: lineare Ketten, die Bausteine wechseln sich nicht ab. Je mehr ${p.name}, desto kürzer die Ketten.`,
+      `${ab.name} also reacts with itself. ${p.name} joins two ${lc(ab.name)} chains at their ${FG_FORMULA[gAb]} ends: linear chains, the units do not alternate. The more ${lc(p.name)}, the shorter the chains.`));
+    // Monomer mit drei Gruppen + AB-Monomer: sternförmige Moleküle (Arme enden mit der anderen Gruppe des AB-Monomers) – kein Netz, schmelzbar
+    const n = tr(["", "eine", "zwei", "drei"], ["", "one", "two", "three"])[fp] ?? String(fp);
+    const star = named("verzweigt", tr(`${ab.name} reagiert auch mit sich selbst. ${p.name} bindet bis zu ${n} ${ab.name}-Ketten an ihren ${FG_FORMULA[gAb]}-Enden: sternförmige Moleküle – ${p.name} in der Mitte, bis zu ${n} Arme. Ein Netz entsteht nicht: Jeder Arm endet mit einer ${other}-Gruppe, und die reagiert weder mit einem anderen Arm noch mit ${p.name}. Zwei Sterne verbinden sich nie.`,
+      `${ab.name} also reacts with itself. ${p.name} binds up to ${n} ${lc(ab.name)} chains at their ${FG_FORMULA[gAb]} ends: star-shaped molecules – ${lc(p.name)} in the middle, up to ${n} arms. No network forms: every arm ends with an ${other} group, and it reacts neither with another arm nor with ${lc(p.name)}. Two stars never join.`));
+    const kind = kindOf(links);
+    star.product = {
+      ...star.product!, star: true,
+      name: tr(`${STAR_ADJ[kind] ?? "Sternförmig verzweigtes"} ${kind} aus ${A.name} und ${B.name}`, `Star-branched ${lc(kind)} of ${lc(A.name)} and ${lc(B.name)}`),
+      note: tr("Schmelzbar wie ein Thermoplast – kein Duroplast, denn die Sterne bilden kein Netz.", "Meltable like a thermoplastic – not a thermoset, because the stars form no network."),
+    };
+    return star;
   }
   const fa = functionality(a, pair.y), fb = functionality(b!, pair.x);
-  const base = { art: pair.r.art, link: pair.r.link, byp: pair.r.byp, groups: [pair.x, pair.y] as [FG, FG] };
   if (fa < 2 || fb < 2) {
     const mono = fa < 2 ? A : B;
     return {
-      ...base, struktur: "klein",
+      ...base, ...more, struktur: "klein",
       why: tr(`${mono.name} hat nur eine reaktive Gruppe. Nach der ersten Verknüpfung ist das Ende blockiert – es entsteht kein Polymer.`, `${mono.name} has only one reactive group. After the first link the end is blocked – no polymer forms.`),
     };
   }
@@ -332,12 +478,11 @@ export function stepReact(a: StepId, b?: StepId): StepOutcome {
   let product: Product;
   if (known) product = { name: withAbbr(known.p[1], known.p[0]), abbr: known.p[0], klasse: known.klasse ?? (net ? "duro" : "thermo"), struktur: net ? "vernetzt" : "linear", uses: known.p[2], code: known.code, note: known.note };
   else if (net && pair.r.link === "ester") product = { name: withAbbr(NET_ESTER[1], NET_ESTER[0]), abbr: NET_ESTER[0], klasse: "duro", struktur: "vernetzt", uses: NET_ESTER[2] };
-  else {
-    const kind = pair.r.link === "ester" ? tr("Polyester", "Polyester") : pair.r.link === "amid" ? tr("Polyamid", "Polyamide") : pair.r.link === "urethan" ? tr("Polyurethan", "Polyurethane") : pair.r.link === "harnstoff" ? tr("Polyharnstoff", "Polyurea") : tr("Polymer", "Polymer");
-    product = { name: tr(`${kind} aus ${A.name} und ${B.name}`, `${kind} of ${A.name.toLowerCase()} and ${B.name.toLowerCase()}`), abbr: kind, klasse: net ? "duro" : "thermo", struktur: net ? "vernetzt" : "linear", uses: "–" };
-  }
+  else return named(net ? "vernetzt" : "linear", net
+    ? tr(`Ein Monomer hat drei oder mehr reaktive Stellen. Die Ketten verknüpfen sich zu einem Netz: ${linkName}.`, `One monomer has three or more reactive sites. The chains link up into a network: ${linkName}.`)
+    : tr(`Jedes Monomer hat zwei reaktive Gruppen. Sie verknüpfen sich abwechselnd zu langen Ketten: ${linkName}.`, `Each monomer has two reactive groups. They join alternately into long chains: ${linkName}.`), net ? "duro" : "thermo");
   return {
-    ...base, struktur: net ? "vernetzt" : "linear", product,
+    ...base, ...more, struktur: net ? "vernetzt" : "linear", product,
     why: net
       ? tr(`Ein Monomer hat drei oder mehr reaktive Stellen. Die Ketten verknüpfen sich zu einem Netz: ${linkName}.`, `One monomer has three or more reactive sites. The chains link up into a network: ${linkName}.`)
       : tr(`Jedes Monomer hat zwei reaktive Gruppen. Sie verknüpfen sich abwechselnd zu langen Ketten: ${linkName}.`, `Each monomer has two reactive groups. They join alternately into long chains: ${linkName}.`),

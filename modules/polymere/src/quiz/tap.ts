@@ -34,7 +34,8 @@ export const visibleAtoms = (snap: Snap) => {
   return snap.atoms.filter(a => (a.op ?? 1) > 0.5 && (a.vac || (a.text ?? a.el)) && (!f || f.has(a.id)));
 };
 
-/** richtige Auswahl? einzeln: das Teil; mehrere: genau diese Menge; Paar: zwei benachbarte Teile */
+/** richtige Auswahl? einzeln: das Teil; mehrere: genau diese Menge; Paar: zwei benachbarte Teile.
+ *  Gemeldet: einzeln `pick`; mehrere `n`, `wrong` (erstes falsches Teil, sonst −1), `adj` (benachbart), `dup` (gleichwertige Teile doppelt) */
 export function tapResult(t: TapTask, sel: string[]) {
   const idx = sel.map(p => t.parts.indexOf(p)).sort((a, b) => a - b);
   const adj = idx.length === 2 && idx[1] - idx[0] === 1 ? 1 : 0;
@@ -42,6 +43,8 @@ export function tapResult(t: TapTask, sel: string[]) {
   const canon = (p: string) => t.same?.[p] ?? p, got = sel.map(canon);
   const wrong = t.mode === "pair" ? -1 : idx.find(i => !t.answer.includes(canon(t.parts[i]))) ?? -1;
   const ok = t.mode === "pair" ? idx.length === 2 && adj === 1 : t.mode === "any" ? sel.length === 1 && t.answer.includes(sel[0]) : sel.length === t.answer.length && new Set(got).size === got.length && t.answer.every(a => got.includes(a));
-  const values: Record<string, number> = t.mode && t.mode !== "any" ? { n: sel.length, wrong, adj } : { pick: idx[0] };
+  // dup: zwei gleichwertige Teile gewählt (beide H am selben N) – zählen nur einmal
+  const dup = got.length - new Set(got).size > 0 ? 1 : 0;
+  const values: Record<string, number> = t.mode && t.mode !== "any" ? { n: sel.length, wrong, adj, dup } : { pick: idx[0] };
   return { ok, values };
 }

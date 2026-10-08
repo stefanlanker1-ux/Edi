@@ -7,7 +7,7 @@ import { tr } from "@lern/i18n";
 import { stepMono, type FG, type StepId } from "../data.ts";
 import { LINK_SHORT, reactGroups, stepReact, type Link } from "../rules.ts";
 import { stepMolecule, type End, type StepMol } from "../stepdraw.ts";
-import { Scene, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
+import { Scene, anchorPt, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
 import type { Action, Bead, Mech, Phase, Recipe, Status } from "./types.ts";
 
 export const STEP_STEP = tr(
@@ -62,15 +62,18 @@ export class StepMech implements Mech {
     this.b = (recipe.b ?? recipe.a) as StepId;
     const sc = this.sc;
     if (this.isPhenoplast()) {
-      // Phenol – Methanal – Phenol
+      // Phenol – Methanal – Phenol: Methanal über der Lücke, der zweite Ring rechts daneben (wie kurz vor dem Verknüpfen)
       const p1 = stepMolecule(sc, "phenol", 0, 0, this.ctx("phenol"));
       this.units.push("phenol");
       this.right = p1.ends.find(e => e.s === 1) ?? null;
-      const me = stepMolecule(sc, "methanal", p1.x1 + 0.6, -1.9, this.ctx("methanal"));
-      const p2 = stepMolecule(sc, "phenol", p1.x1 + 1.6, 0, this.ctx("phenol"));
-      this.pending = { mol: { atoms: [...me.atoms, ...p2.atoms], ends: [...me.ends, ...p2.ends], x0: me.x0, x1: p2.x1 }, ids: ["methanal", "phenol"] };
-      this.fx = p1.x0 - 0.2;
-      this.fw = p2.x1 + 0.2 - this.fx;
+      const me = stepMolecule(sc, "methanal", 0, 0, this.ctx("methanal"));
+      const p2 = stepMolecule(sc, "phenol", 0, 0, this.ctx("phenol"));
+      const m: Mol = { mol: { atoms: [...me.atoms, ...p2.atoms], ends: [...me.ends, ...p2.ends], x0: me.x0, x1: p2.x1 }, ids: ["methanal", "phenol"] };
+      this.pfPlace(m, 1.0);
+      this.pending = m;
+      const xs = [...p1.atoms, ...m.mol.atoms].map(i => sc.at(i).x);
+      this.fx = Math.min(...xs) - 0.2;
+      this.fw = Math.max(...xs) + 0.2 - this.fx;
       return;
     }
     const A = stepMolecule(sc, this.a, 0, 0, this.ctx(this.a));
@@ -248,12 +251,13 @@ export class StepMech implements Mech {
     // reagierende Atome hinterlegen
     const hl = [R.anchor, L.anchor, ...R.leave, ...L.leave, ...Object.values(R.extra), ...Object.values(L.extra)].filter(i => sc.has(i));
     hl.forEach(i => sc.set(i, { hl: true }));
-    const arrows = this.arrowsFor(r.link, R, L);
-    this.key(950, 300, arrows);
+    // Ester und Amid: Additions-Eliminierung in drei Schritten mit Pfeilen; Polyaddition: ein Schritt
+    const acyl = r.link === "ester" || r.link === "amid";
+    this.key(950, 300, acyl ? this.acylAdd(R, L) : this.arrowsFor(r.link, R, L));
     // an den Platz rücken und verknüpfen
     const dx = this.placeX(R, L) - sc.at(L.anchor).x;
     sc.move(all, dx, 0);
-    this.link(R, L, true);
+    if (acyl) this.acyl(R, L); else this.link(R, L, true);
     hl.forEach(i => sc.has(i) && sc.set(i, { hl: false }));
     this.addBranches(m.mol.ends, this.units.length, m.ids);
     this.units.push(...m.ids);
@@ -296,9 +300,11 @@ export class StepMech implements Mech {
     this.key(150, 600);
     const hl = [R.anchor, L.anchor, ...R.leave, ...L.leave].filter(i => sc.has(i));
     hl.forEach(i => sc.set(i, { hl: true }));
-    this.key(800, 300);
+    // Ast an der dritten –OH: immer eine Esterbindung (Säure + Glycerin), mit Pfeilen wie in der Hauptkette
+    const acyl = r.link === "ester" || r.link === "amid";
+    this.key(800, 300, acyl ? this.acylAdd(R, L) : undefined);
     sc.move(m.mol.atoms, 0, -1.6);
-    this.link(R, L, true);
+    if (acyl) this.acyl(R, L); else this.link(R, L, true);
     hl.forEach(i => sc.has(i) && sc.set(i, { hl: false }));
     // Nebenprodukt seitlich neben den Ast (nicht in ihn hinein)
     if (this.bypIds.length) {
@@ -313,15 +319,164 @@ export class StepMech implements Mech {
     this.release();
   }
 
-  /** Nebenprodukt sinkt weg und verschwindet */
-  private release() {
+  /** Nebenprodukt sinkt weg (bzw. steigt auf, dy < 0) und verschwindet */
+  private release(dy = 1.2) {
     const sc = this.sc, byp = this.bypIds.filter(i => sc.has(i));
     this.bypIds = [];
     if (!byp.length) return;
-    sc.move(byp, 0, 1.2); byp.forEach(i => sc.set(i, { op: 0 }));
-    const n = sc.notes.get("bypn"); if (n) { n.y += 1.2; n.op = 0; }
+    sc.move(byp, 0, dy); byp.forEach(i => sc.set(i, { op: 0 }));
+    const n = sc.notes.get("bypn"); if (n) { n.y += dy; n.op = 0; }
     this.key(0, 0);
     byp.forEach(i => sc.remove(i)); sc.unnote("bypn");
+  }
+
+  // ── Ester- und Amidbindung: Additions-Eliminierung mit Elektronenpfeilen ──
+  // ① Das freie Elektronenpaar am O (Alkohol) bzw. N (Amin) greift das C der C=O an, die π-Bindung klappt zum O: Zwischenstufe mit O⁻ und O⁺ bzw. N⁺.
+  // –COOH: ② das H⁺ wandert vom O⁺ bzw. N⁺ zur –OH der Säure, ③ die C=O bildet sich zurück, Wasser geht ab.
+  // –COCl: ② die C=O bildet sich zurück, Cl⁻ geht ab, ③ Cl⁻ nimmt das H⁺ – HCl.
+  // (Vereinfacht ohne Katalysator; technisch helfen Säure und Hitze, und das Wasser wird entfernt.)
+
+  /** Säure- und Nucleophil-Ende einer Ester- bzw. Amid-Verknüpfung */
+  private acylEnds(R: End, L: End) {
+    const acid = R.fg === "COOH" || R.fg === "COCl" ? R : L, nuc = acid === R ? L : R;
+    return { acid, nuc, c: acid.anchor, od: acid.extra.od, lo: acid.leave[0], ha: acid.leave[1] as string | undefined, nu: nuc.anchor, hn: nuc.leave[0] };
+  }
+
+  /** Richtung (Grad) von a nach b */
+  private ang(a: string, b: string) { const A = this.sc.at(a), B = this.sc.at(b); return (Math.atan2(B.y - A.y, B.x - A.x) * 180) / Math.PI; }
+
+  /** von zwei Richtungen base ± k die, die mehr zur Seite `away` zeigt (Einheitsvektor) */
+  private sideAng(base: number, away: { x: number; y: number }, k = 45) {
+    const d = (a: number) => Math.cos((a * Math.PI) / 180) * away.x + Math.sin((a * Math.PI) / 180) * away.y;
+    return d(base + k) >= d(base - k) ? base + k : base - k;
+  }
+
+  /** Versatz eines Bindungs-Ankers (a → b) zur Seite `away` */
+  private sideOff(a: string, b: string, away: { x: number; y: number }, k = 0.13) {
+    const A = this.sc.at(a), B = this.sc.at(b), l = Math.hypot(B.x - A.x, B.y - A.y) || 1;
+    return ((-(B.y - A.y) / l) * away.x + ((B.x - A.x) / l) * away.y) >= 0 ? k : -k;
+  }
+
+  /** Einheitsvektor vom Nucleophil weg (Seite des Säure-C, die frei ist) */
+  private away(c: string, nu: string) {
+    const C = this.sc.at(c), N = this.sc.at(nu), l = Math.hypot(C.x - N.x, C.y - N.y) || 1;
+    return { x: (C.x - N.x) / l, y: (C.y - N.y) / l };
+  }
+
+  /** Pfeil, dessen Bogen sich vom Atom p weg wölbt (nach außen, nicht über die Bindungen) */
+  private bulge(ar: Arrow, p: string, k = 0.5): Arrow {
+    const snap = this.sc.snap(), a = anchorPt(snap, ar.from), b = anchorPt(snap, ar.to), P = this.sc.at(p);
+    if (!a || !b) return { ...ar, bend: k };
+    const l = Math.hypot(b.x - a.x, b.y - a.y) || 1, nx = -(b.y - a.y) / l, ny = (b.x - a.x) / l;
+    const mx = (a.x + b.x) / 2 - P.x, my = (a.y + b.y) / 2 - P.y;
+    return { ...ar, bend: nx * mx + ny * my >= 0 ? k : -k };
+  }
+
+  /** ① Pfeile vor dem Angriff (Moleküle noch mit Abstand) */
+  private acylAdd(R: End, L: End): Arrow[] {
+    const { c, od, lo, nu } = this.acylEnds(R, L);
+    const toNu = { x: -this.away(c, nu).x, y: -this.away(c, nu).y };
+    return [
+      this.bulge({ from: { a: nu, ang: this.ang(nu, c), r: 0.42 }, to: { a: c, ang: this.ang(c, nu), r: 0.38 } }, lo),
+      this.bulge({ from: { b: [c, od], off: this.sideOff(c, od, toNu) }, to: { a: od, ang: this.sideAng(this.ang(c, od), toNu), r: 0.45 } }, c, 0.6),
+    ];
+  }
+
+  /** H‑Atom h an Atom x in Richtung `prefer` legen – liegt dort schon ein Atom zu nah, in die freieste Richtung (30°-Schritte) */
+  private freeH(h: string, x: string, prefer: number) {
+    const sc = this.sc, X = sc.at(x);
+    const others = [...sc.atoms.values()].filter(a => a.id !== h && a.id !== x && (a.op ?? 1) > 0.05 && (a.text ?? a.el) !== "");
+    const score = (a: number) => { const q = { x: X.x + 0.8 * Math.cos((a * Math.PI) / 180), y: X.y + 0.8 * Math.sin((a * Math.PI) / 180) }; return { q, d: Math.min(...others.map(o => Math.hypot(o.x - q.x, o.y - q.y))) }; };
+    let best = score(prefer);
+    if (best.d < 0.75) for (let a = 0; a < 360; a += 30) { const t = score(a); if (t.d > best.d + 0.05) best = t; }
+    sc.set(h, best.q);
+  }
+
+  /** ② und ③: Zwischenstufe, Umlagerung und Abgang von Wasser bzw. HCl (Endzustand wie `link`) */
+  private acyl(R: End, L: End) {
+    const sc = this.sc, { c, od, lo, ha, nu, hn } = this.acylEnds(R, L);
+    const away = this.away(c, nu), chloride = !ha;
+    const isN = sc.at(nu).el === "N";
+    // Zwischenstufe: C–O bzw. C–N gebildet, C–O⁻ (drei freie Paare), O⁺ bzw. N⁺
+    sc.bond(c, nu); sc.order(c, od, 1);
+    // H der Säure-OH auf die freie Seite (weg vom Nucleophil), H am O⁺/N⁺ dorthin, wo Platz ist
+    const LO = sc.at(lo), w = this.ang(c, lo);
+    const spot = (a: number) => ({ x: LO.x + 0.8 * Math.cos((a * Math.PI) / 180), y: LO.y + 0.8 * Math.sin((a * Math.PI) / 180) });
+    const far = this.sideAng(w, away, 40), near = 2 * w - far; // ±40° um die Richtung C → O
+    if (ha) sc.set(ha, spot(far));
+    // H am O⁺/N⁺ schräg zur Seite der abgehenden Gruppe (so bleibt Platz für die Pfeile der H⁺-Wanderung)
+    const CC = sc.at(c), NU = sc.at(nu), side = Math.sign((NU.x - CC.x) * (LO.y - CC.y) - (NU.y - CC.y) * (LO.x - CC.x)) || 1;
+    this.freeH(hn, nu, this.ang(c, nu) + 60 * side);
+    // O⁻: Ladung zur Seite des Nucleophils (auf der anderen Seite setzt der Pfeil ③ an)
+    sc.set(od, { q: -1 }); sc.autoLp(od, 3, this.ang(c, od)); sc.set(od, { qa: this.sideAng(this.ang(c, od), { x: -away.x, y: -away.y }) });
+    sc.set(nu, { q: 1 });
+    if (isN) sc.set(nu, { lp: [] }); else sc.autoLp(nu, 1, this.ang(c, nu));
+    sc.set(nu, { qa: this.freeAng(nu) });
+    if (ha) sc.autoLp(lo, 2, w);
+    // Pfeile erst kurz vor dem jeweiligen Bild anlegen (die Wölbung richtet sich nach der Lage in diesem Bild)
+    const transfer = (to: string): Arrow[] => [
+      this.bulge({ from: { a: to, ang: this.ang(to, hn), r: 0.34 }, to: { a: hn, ang: this.ang(hn, to), r: 0.27 } }, c, 0.45),
+      this.bulge({ from: { b: [nu, hn], off: this.sideOff(nu, hn, this.unit(sc.at(hn), sc.at(to), true), 0.12) }, to: { a: nu, ang: this.sideAng(this.ang(nu, hn), this.unit(sc.at(hn), sc.at(to), true)), r: 0.42 } }, hn),
+    ];
+    const elim = (): Arrow[] => [
+      this.bulge({ from: { a: od, ang: this.sideAng(this.ang(c, od), away), r: 0.42 }, to: { b: [c, od], off: this.sideOff(c, od, away) } }, c),
+      this.bulge({ from: { b: [c, lo], f: 0.35, off: this.sideOff(c, lo, away) }, to: { a: lo, ang: this.sideAng(w + 180, away, 90), r: sc.at(lo).el === "Cl" ? 0.62 : 0.46 } }, lo),
+    ];
+    const neutralNu = () => { sc.set(nu, { q: 0 }); sc.autoLp(nu, isN ? 1 : 2, this.ang(nu, c) + 180); };
+    if (!chloride) {
+      // ② H⁺ wandert vom O⁺/N⁺ zur –OH der Säure
+      this.key(900, 300, transfer(lo));
+      sc.unbond(nu, hn); sc.bond(lo, hn); sc.set(hn, { ...spot(near), unit: undefined, hue: undefined });
+      neutralNu();
+      // O⁺ mit zwei H: freies Paar und Ladung auf der Seite zum Nucleophil (auf der anderen Seite setzt gleich der Pfeil an)
+      const toNu = this.sideAng(w + 180, { x: -away.x, y: -away.y }, 90);
+      sc.set(lo, { q: 1, qa: toNu, lp: [(toNu + w + 180) / 2 + (Math.abs(toNu - w - 180) > 180 ? 180 : 0)] });
+      // ③ C=O bildet sich zurück, Wasser geht ab
+      this.key(900, 300, elim());
+      sc.unbond(c, lo); sc.order(c, od, 2);
+      sc.set(od, { q: 0 }); sc.autoLp(od, 2, this.ang(c, od));
+      sc.set(lo, { q: 0 });
+    } else {
+      // ② C=O bildet sich zurück, Cl⁻ geht ab
+      this.key(900, 300, elim());
+      sc.unbond(c, lo); sc.order(c, od, 2);
+      sc.set(od, { q: 0 }); sc.autoLp(od, 2, this.ang(c, od));
+      sc.set(lo, { ...spot(w), q: -1, qa: w + 45, lp: [w - 45, w + 135, w - 135] });
+      // ③ Cl⁻ nimmt das H⁺ vom N⁺ bzw. O⁺
+      this.key(900, 300, transfer(lo));
+      sc.unbond(nu, hn); sc.bond(lo, hn);
+      neutralNu();
+      sc.set(lo, { q: 0 });
+    }
+    // Nebenprodukt unter der neuen Bindung (wie bei `link`), beschriftet
+    const C = sc.at(c), N = sc.at(nu), mx = (C.x + N.x) / 2, y = Math.max(C.y, N.y) + 1.75;
+    const free = { unit: undefined, hue: undefined, hl: false };
+    if (!chloride) {
+      sc.set(lo, { x: mx, y, ...free }); sc.set(ha!, { x: mx - 0.62, y: y + 0.5, ...free }); sc.set(hn, { x: mx + 0.62, y: y + 0.5, ...free });
+      sc.autoLp(lo, 2, -90);
+      this.bypName = "H₂O";
+    } else {
+      sc.set(lo, { x: mx + 0.45, y, ...free }); sc.set(hn, { x: mx - 0.45, y, ...free });
+      sc.autoLp(lo, 3, 0);
+      this.bypName = "HCl";
+    }
+    this.bypIds.push(lo, ...(ha ? [ha] : []), hn);
+    sc.note({ id: "bypn", x: mx + (chloride ? 1.55 : 1.25), y: y + 0.2, text: this.bypName, tone: "gas" });
+    this.byp++;
+  }
+
+  /** freie Richtung (Grad) für das Ladungszeichen: größter Abstand zu Bindungen und freien Paaren */
+  private freeAng(id: string) {
+    const used = [...this.sc.bondAngles(id), ...(this.sc.at(id).lp ?? [])];
+    const gap = (a: number) => Math.min(...used.map(u => Math.abs(((a - u + 540) % 360) - 180)));
+    let best = -45;
+    for (const a of [-45, -135, 45, 135, -90, 0, 180, 90]) if (gap(a) > gap(best) + 1) best = a;
+    return best;
+  }
+
+  private unit(a: { x: number; y: number }, b: { x: number; y: number }, flip = false) {
+    const l = Math.hypot(b.x - a.x, b.y - a.y) || 1, k = flip ? -1 : 1;
+    return { x: (k * (b.x - a.x)) / l, y: (k * (b.y - a.y)) / l };
   }
 
   /** x des verknüpfenden Atoms des neuen Moleküls nach der Verknüpfung */
@@ -399,7 +554,7 @@ export class StepMech implements Mech {
       }
       const gone = [...lo, h];
       if (!anim) gone.forEach(i => sc.remove(i)); else this.bypIds.push(...gone);
-      if (anim) { sc.note({ id: "bypn", x: mx + 1.25, y: y + 0.2, text: this.bypName, tone: "gas" }); this.byp++; }
+      if (anim) { sc.note({ id: "bypn", x: mx + (lo.length === 2 ? 1.25 : 1.55), y: y + 0.2, text: this.bypName, tone: "gas" }); this.byp++; }
       sc.autoLp(nuc.anchor, sc.at(nuc.anchor).el === "N" ? 1 : 2, 90);
       return;
     }
@@ -438,55 +593,69 @@ export class StepMech implements Mech {
   /** Phenoplast: Methanal und Phenol verbinden sich mit der Kette über eine CH₂-Brücke */
   private addPf() {
     const sc = this.sc;
-    const R = this.right;
-    if (!R) return;
-    const X = sc.at(R.anchor);
-    const me = stepMolecule(sc, "methanal", X.x + 1, -1.9, this.ctx("methanal"));
-    const p2 = stepMolecule(sc, "phenol", X.x + 2, 0, this.ctx("phenol"));
+    if (!this.right) return;
+    const me = stepMolecule(sc, "methanal", 0, 0, this.ctx("methanal"));
+    const p2 = stepMolecule(sc, "phenol", 0, 0, this.ctx("phenol"));
     this.joinPf({ mol: { atoms: [...me.atoms, ...p2.atoms], ends: [...me.ends, ...p2.ends], x0: me.x0, x1: p2.x1 }, ids: ["methanal", "phenol"] });
   }
 
-  /** Phenol – CH₂ – Phenol: das C des Methanals verbrückt zwei Ringe; O des Methanals + je ein H der Ringe → Wasser */
+  /** Lage von Methanal und neuem Phenolring zum Kettenende: die CH₂-Brücke liegt schräg über den beiden ortho-Stellen
+   *  (1 Bindungslänge unter 30°), der neue Ring auf gleicher Höhe; `gap` = Abstand des Rings vor dem Verknüpfen,
+   *  Methanal dann 1,5 über seinem Platz. Rückgabe: Platz der Brücke P */
+  private pfPlace(m: Mol, gap: number, meUp = 1.5) {
+    const sc = this.sc, X = sc.at(this.right!.anchor);
+    const meEnd = m.mol.ends.find(e => e.fg === "CHO")!, pL = m.mol.ends.find(e => e.fg === "ArH" && e.s === -1)!;
+    const pre = meEnd.anchor.slice(0, -1), meAtoms = ["c", "o", "h1", "h2"].map(x => pre + x);
+    const ring = m.mol.atoms.filter(i => !meAtoms.includes(i));
+    const P = { x: X.x + 0.866, y: X.y - 0.5 };
+    const L = sc.at(pL.anchor), C = sc.at(meEnd.anchor);
+    sc.move(ring, X.x + 1.732 + gap - L.x, X.y - L.y);
+    sc.move(meAtoms, P.x - C.x, P.y - meUp - C.y);
+    return { P, meEnd, pL, meAtoms, ring };
+  }
+
+  /** Phenol – CH₂ – Phenol: das C des Methanals verbrückt zwei Ringe (ortho-Stellen neben der –OH); O des Methanals + je ein H der Ringe → Wasser.
+   *  Nur die Bilanz, ohne Pfeile: in Wirklichkeit läuft es über mehrere Stufen (erst –CH₂OH am Ring, dann die Brücke). */
   private joinPf(m: Mol, initial = false) {
     const sc = this.sc, R = this.right;
     if (!R) return;
-    const meEnd = m.mol.ends.find(e => e.fg === "CHO")!, pL = m.mol.ends.find(e => e.fg === "ArH" && e.s === -1)!;
     const all = m.mol.atoms;
-    const X = sc.at(R.anchor);
     if (!initial) {
-      sc.move(all, 2.2, 0); all.forEach(i => sc.set(i, { op: 0 }));
+      // erscheint rechts oben und rückt heran
+      this.pfPlace(m, 3.2, 2.6);
+      all.forEach(i => sc.set(i, { op: 0 }));
       this.key(60, 600);
-      all.forEach(i => sc.set(i, { op: 1 })); sc.move(all, -2.2, 0);
+      all.forEach(i => sc.set(i, { op: 1 }));
     }
     // Abstand halten, dann reagierende Atome zeigen
-    const target = X.x + 2;
-    sc.move(all, target + 1.0 - sc.at(pL.anchor).x, 0);
-    const meAtoms = all.filter(i => i.startsWith(meEnd.anchor.replace(/c$/, "")));
-    sc.move(meAtoms, -1.0, 0);
+    const { P, meEnd, pL, ring } = this.pfPlace(m, 1.0);
     this.key(200, 600);
     const hl = [R.leave[0], meEnd.leave[0], pL.leave[0], meEnd.anchor];
     hl.forEach(i => sc.set(i, { hl: true }));
     this.key(950, 300);
-    // Ring B an den Platz, C des Methanals zwischen die Ringe
-    sc.move(all.filter(i => !meAtoms.includes(i)), target - sc.at(pL.anchor).x, 0);
-    const cx = X.x + 1;
-    sc.set(meEnd.anchor, { x: cx, y: 0, hl: false });
-    sc.set(meEnd.extra.h1, { x: cx, y: -0.8 }); sc.set(meEnd.extra.h2, { x: cx, y: 0.8 });
+    // Ring B an den Platz, C des Methanals als CH₂-Brücke zwischen die Ringe (seine H‑Atome nach oben)
+    const L = sc.at(pL.anchor);
+    sc.move(ring, sc.at(R.anchor).x + 1.732 - L.x, 0);
+    const at = (a: number, r = 0.8) => ({ x: P.x + r * Math.cos((a * Math.PI) / 180), y: P.y + r * Math.sin((a * Math.PI) / 180) });
+    sc.set(meEnd.anchor, { x: P.x, y: P.y, hl: false });
+    sc.set(meEnd.extra.h1, at(240)); sc.set(meEnd.extra.h2, at(300));
     const o = meEnd.leave[0], ha = R.leave[0], hb = pL.leave[0];
     sc.unbond(meEnd.anchor, o); sc.unbond(R.anchor, ha); sc.unbond(pL.anchor, hb);
     sc.bond(R.anchor, meEnd.anchor); sc.bond(meEnd.anchor, pL.anchor);
+    // Wasser über der Brücke (zwischen den –OH der Ringe), steigt nach oben weg
     const free = { unit: undefined, hue: undefined, hl: false };
-    sc.set(o, { x: cx, y: 1.75, ...free }); sc.set(ha, { x: cx - 0.62, y: 2.25, ...free }); sc.set(hb, { x: cx + 0.62, y: 2.25, ...free });
+    const W = { x: P.x, y: P.y - 2.0 };
+    sc.set(o, { ...W, ...free }); sc.set(ha, { x: W.x - 0.62, y: W.y + 0.5, ...free }); sc.set(hb, { x: W.x + 0.62, y: W.y + 0.5, ...free });
     sc.bond(o, ha); sc.bond(o, hb); sc.autoLp(o, 2, -90);
     this.bypName = "H₂O"; this.byp++;
-    sc.note({ id: "bypn", x: cx + 1.25, y: 1.95, text: "H₂O", tone: "gas" });
+    sc.note({ id: "bypn", x: W.x, y: W.y - 0.85, text: "H₂O", tone: "gas" });
     this.bypIds.push(o, ha, hb);
     this.units.push(...m.ids);
     this.stepName = LINK_SHORT.methylen;
     this.key(700, 900);
-    this.release();
+    this.release(-1.2);
     this.right = m.mol.ends.find(e => e.fg === "ArH" && e.s === 1) ?? null;
     this.phase = "wachsend";
-    this.note = tr("Jeder Phenolring kann drei Brücken bilden – es entsteht ein Netz.", "Each phenol ring can form three bridges – a network forms.");
+    this.note = tr("Jeder Phenolring kann drei Brücken bilden (neben und gegenüber der –OH) – es entsteht ein Netz.", "Each phenol ring can form three bridges (next to and opposite the –OH) – a network forms.");
   }
 }

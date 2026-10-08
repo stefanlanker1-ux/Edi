@@ -7,7 +7,7 @@
 
 import { tr } from "@lern/i18n";
 import { vinyl, type VinylId } from "../data.ts";
-import { compat } from "../rules.ts";
+import { compat, seqKind } from "../rules.ts";
 import { titanium, triethylAl, vinylUnit, type UnitIds } from "../draw.ts";
 import { Scene, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
 import type { Action, Bead, Mech, Phase, Recipe, Status } from "./types.ts";
@@ -48,7 +48,16 @@ export class ZnMech implements Mech {
     sc.note({ id: "cryst", x: -1.2, y: 1.6, text: tr("TiCl₃-Oberfläche", "TiCl₃ surface"), tone: "plain" });
   }
 
-  monos(): VinylId[] { return [this.recipe.a, this.recipe.b].filter((x): x is VinylId => !!x) as VinylId[]; }
+  /** nacheinander zugegeben: Ziegler-Natta-Ketten leben nicht – erst eine Kette aus dem ersten Monomer bis zum Ablösen (H₂),
+   *  danach wachsen am Titan neue Ketten aus dem zweiten (zwei getrennte Polymere, keine Blöcke) */
+  private sepSeq(): boolean {
+    const r = this.recipe;
+    return !!(r.seq && r.b && r.b !== r.a && seqKind(r.a as VinylId, r.b as VinylId, "zn") === "separate");
+  }
+  monos(): VinylId[] {
+    if (this.sepSeq()) return [(this.done ? this.recipe.b : this.recipe.a) as VinylId];
+    return [this.recipe.a, this.recipe.b].filter((x): x is VinylId => !!x) as VinylId[];
+  }
   snap(): Snap { return this.frame(); }
 
   status(): Status {
@@ -57,7 +66,7 @@ export class ZnMech implements Mech {
     if (this.phase !== "init") beads.push({ kind: "cat", hue: "init", letter: "Ti", title: tr("Titan (Katalysator)", "titanium (catalyst)") });
     return {
       phase: this.phase, n: this.units.length, step: this.stepName, active: this.phase === "bereit" || this.phase === "wachsend" ? "ti" : null,
-      fail: this.fail, beads, note: this.note,
+      fail: this.fail, beads, note: this.note, done: this.done, ...(this.sepSeq() && this.done ? { second: true } : {}),
     };
   }
 
@@ -159,6 +168,8 @@ export class ZnMech implements Mech {
     const pre = ids.ca.slice(0, -2);
     const grp = (tag: string) => ids.atoms.filter(i => i.startsWith(pre + tag));
     if (!v.diene) { sc.rotate(grp("a1"), sc.at(ids.ca), 90); sc.rotate(grp("b1"), sc.at(ids.cb), -130); }
+    // Butadien: die unteren H an C1 und C4 nach außen (sonst lägen sie auf dem Titan bzw. auf den H der Kette)
+    else { sc.rotate(grp("h01"), sc.at(ids.ca), 90); sc.rotate(grp("h31"), sc.at(ids.cb), -90); }
     const all = ids.atoms;
     // erscheint oben rechts
     sc.move(all, 2.1, -1.4);
@@ -175,18 +186,21 @@ export class ZnMech implements Mech {
     this.key(700, 700);
     // Vierring: Ti···C_a und C_b···C1 bilden sich
     sc.remove("pi");
-    sc.move(all, 0, 0.45);
+    // Butadien liegt über der ganzen Kette: etwas höher, damit seine C‑Atome nicht an die H der Kette stoßen
+    sc.move(all, 0, v.diene ? 0.25 : 0.45);
     const c1 = this.first();
     sc.bond("tti", ids.ca, 1, "ts");
     sc.bond(v.diene ? ids.cb : ids.cb, c1, 1, "ts");
     this.key(900, 300, [
       { from: { b: [ids.ca, v.diene ? ids.mid![0] : ids.cb], off: 0.13 }, to: { b: ["tti", ids.ca], f: 0.55, off: -0.12 }, bend: -0.5 },
       { from: { b: ["tti", c1], off: -0.13 }, to: { b: [c1, ids.cb], f: 0.5, off: 0.12 }, bend: 0.5 },
+      // Butadien (Einbau 1,4): die zweite π-Bindung wandert in die Mitte (C2=C3) – sonst fehlte am C2 eine Bindung
+      ...(v.diene ? [{ from: { b: [ids.mid![1], ids.cb], off: -0.13 }, to: { b: [ids.mid![0], ids.mid![1]], off: -0.14 }, bend: 0.6 } as Arrow] : []),
     ]);
     // Elektronenpaare wandern: π → Ti–C_a, Ti–C1 → C1–C_b
     sc.unbond("tti", ids.ca); sc.unbond(ids.cb, c1);
     const T = sc.at("tti"), C1 = sc.at(c1), A = sc.at(ids.ca), B = sc.at(ids.cb);
-    const d = [0, 1, 2, 3].map(() => `ez${this.seq++}`);
+    const d = (v.diene ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3]).map(() => `ez${this.seq++}`);
     sc.order(ids.ca, v.diene ? ids.mid![0] : ids.cb, 1);
     if (v.diene) sc.order(ids.mid![1], ids.cb, 1);
     sc.unbond("tti", c1);
@@ -194,11 +208,13 @@ export class ZnMech implements Mech {
     const m1 = mid(A, v.diene ? sc.at(ids.mid![0]) : B), m2 = mid(T, C1);
     sc.dot(d[0], m1.x - 0.08, m1.y + 0.12); sc.dot(d[1], m1.x + 0.08, m1.y + 0.12);
     sc.dot(d[2], m2.x - 0.08, m2.y - 0.12); sc.dot(d[3], m2.x + 0.08, m2.y - 0.12);
+    // Butadien: das Elektronenpaar der zweiten π-Bindung (C3=C4)
+    if (v.diene) { const m3 = mid(sc.at(ids.mid![1]), B); sc.dot(d[4], m3.x - 0.08, m3.y + 0.12); sc.dot(d[5], m3.x + 0.08, m3.y + 0.12); }
     this.key(120, 900);
     const n1 = mid(T, A), n2 = mid(C1, B);
     sc.dot(d[0], n1.x - 0.08, n1.y); sc.dot(d[1], n1.x + 0.08, n1.y);
     sc.dot(d[2], n2.x - 0.08, n2.y); sc.dot(d[3], n2.x + 0.08, n2.y);
-    if (v.diene) { const M = mid(sc.at(ids.mid![0]), sc.at(ids.mid![1])); sc.dot(`ez${this.seq++}`, M.x, M.y); }
+    if (v.diene) { const M = mid(sc.at(ids.mid![0]), sc.at(ids.mid![1])); sc.dot(d[4], M.x - 0.08, M.y + 0.12); sc.dot(d[5], M.x + 0.08, M.y + 0.12); }
     this.key(60, 380);
     sc.bond("tti", ids.ca); sc.bond(ids.cb, c1);
     if (v.diene) sc.order(ids.mid![0], ids.mid![1], 2);

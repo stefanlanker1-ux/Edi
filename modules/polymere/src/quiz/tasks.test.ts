@@ -332,3 +332,88 @@ test("Halbstrukturformeln als Text für kleine Bild-Antworten", async () => {
   assert.strictEqual(visFormula({ k: "sat", id: "vinylchlorid" }), "CH₃–CH₂Cl");
   assert.strictEqual(visFormula({ k: "unit", id: "propen", dbl: true }), "–CH₂=CH(CH₃)–");
 });
+
+test("Tipp in jedem Modus der zugeschnittene (auch „Alles gemischt“, „Heute fällig“, „Schwächen üben“ und im ersten Schritt)", async () => {
+  const { withExamples } = await import("@lern/quiz");
+  // allgemeine Hinweise, die es neben einem zugeschnittenen Tipp gibt: dürfen nie als Tipp erscheinen
+  const generic = new Set<string>();
+  for (const g of Object.values(GENERATORS)) for (let k = 0; k < 25; k++) { const t = g() as Task & { tip?: string }; if (t.tip && t.tip !== t.hint) generic.add(t.hint); }
+  const types = [...new Set(LEVELS.flatMap(l => l.types))];
+  const stats = Object.fromEntries(types.map(id => [id, { right: 0, wrong: 1 }]));
+  const bad = new Set<string>();
+  for (let k = 0; k < 15; k++) {
+    const rounds = [withExamples(makeRound("us", "mix"), {}, () => makeRound("us", "mix"), sameTask), makeRound("us", "due", undefined, types), makeRound("us", "weak", stats)];
+    for (const t of rounds.flat()) if (generic.has(t.hint)) bad.add(`${t.type}: „${t.hint}“`);
+  }
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Tipp und Hinweis nennen nicht die Lösung bzw. ihre Kernbegriffe (je Aufgabentyp)", () => {
+  // Wendungen, die bei diesem Typ die Antwort oder die Regel vorwegnehmen würden
+  const LEAK: Record<string, RegExp> = {
+    chlorid: /HCl|Cl der|H der Amino/, wasserTap: /gibt OH ab|ein H\b/, hTap: /Sein H|H geht/, schnitt: /Neu ist|zwischen zwei Bausteinen/,
+    epoxidBindungTap: /Neu ist|zwischen beiden/, verfahrenWahl: /gut kationisch|O, N, Cl/, giftTap: /Cl, O, N|O, N oder/, epoxidNetz: /zweimal|Netz/,
+    lebend: /Block|wachsen mit jedem/, bausteinWahl: /Aus C=C wird/, zieglerGift: /O, N|Cl‑Atom|Cl-Atom/, monomerVon: /Seitengruppe:/,
+    abMonomer: /verschieden/, kationisch: /CH₃|O- und Cl/, freieStelleTap: /noch nichts gebunden|freie Stelle/, freieStelle: /noch nichts gebunden|freie Stelle/,
+    wohinRadikal: /bleibt übrig|Kettenende/, radikalTap: /bleibt übrig|Das andere/, paarWahl: /zwei Gruppen, die/, nebenprodukt: /H₂O|Wasser/,
+  };
+  const bad = new Set<string>();
+  for (const [id, re] of Object.entries(LEAK)) for (let k = 0; k < 20; k++) {
+    const t = GENERATORS[id]() as Task & { tip?: string };
+    for (const f of [t.hint, t.tip ?? ""]) if (re.test(f)) bad.add(`${id}: „${f}“`);
+  }
+  assert.deepEqual([...bad], []);
+});
+
+test("Ethylbenzol ist kein gesättigtes Gegenstück (der Benzolring hat C=C)", () => {
+  for (const [id, g] of Object.entries(GENERATORS)) for (let k = 0; k < 20; k++) {
+    const t = g();
+    assert.ok(!/Ethylbenzol|Ethylbenzene/.test(JSON.stringify(t)), `${id}: Ethylbenzol`);
+    if (!isTap(t) && !isOrder(t) && !isBuild(t)) for (const v of Object.values(t.pics ?? {})) assert.ok(!(v.k === "sat" && v.id === "styrol"), id);
+  }
+});
+
+test("Wasser abziehen (Amin): beide H vom N bekommen eine eigene Rückmeldung (nicht „drei Atome“)", async () => {
+  const { tapResult, tapFrame } = await import("./tap.ts");
+  const { diagnose } = await import("@lern/quiz");
+  let seen = 0;
+  for (let k = 0; k < 60; k++) {
+    const t = GENERATORS.wasserTap();
+    if (!isTap(t) || !t.same) continue;
+    seen++;
+    const [alt, h] = Object.entries(t.same)[0];
+    const at = new Map(tapFrame(t.scene).snap.atoms.map(a => [a.id, a]));
+    // O der Säure + beide H am N: drei Atome, aber falsch zusammengesetzt
+    const o = t.answer.find(a => at.get(a)?.el === "O")!;
+    const r = tapResult(t, [o, alt, h]);
+    assert.isFalse(r.ok);
+    const why = diagnose(t, { ok: false, values: r.values })?.why ?? "";
+    assert.ok(!/drei Atome/.test(why) && /N gibt nur ein H/.test(why), why);
+    const four = tapResult(t, [...t.answer, alt]);
+    assert.match(diagnose(t, { ok: false, values: four.values })?.why ?? "", /N gibt nur ein H/);
+  }
+  assert.isAbove(seen, 0);
+});
+
+test("Freie Stelle antippen: das Kettenende (Ethylgruppe) ist antippbar und hat eine Rückmeldung", () => {
+  const t = GENERATORS.freieStelleTap();
+  assert.ok(isTap(t));
+  if (!isTap(t)) return;
+  const i = t.parts.indexOf("eth");
+  assert.ok(i >= 0, "Kettenende fehlt");
+  assert.ok((t.traps ?? []).some(tr => tr.values?.pick === i && /Kettenende/.test(tr.why)));
+});
+
+test("Abgespaltenes Molekül: Bild zeigt das Wasser (ohne Beschriftung, die die Antwort wäre)", async () => {
+  const { replay } = await import("../chem/mech/index.ts");
+  for (let k = 0; k < 5; k++) {
+    const t = GENERATORS.nebenprodukt();
+    if (isTap(t) || isOrder(t) || isBuild(t) || t.vis?.k !== "mech") { assert.fail("Bild fehlt"); return; }
+    const v = t.vis;
+    assert.ok(v.bare, "Beschriftung „H₂O“ verrät die Antwort");
+    const clip = replay(v.r, v.acts.slice(0, -1)).run(v.acts[v.acts.length - 1]);
+    const s = clip[v.key < 0 ? clip.length + v.key : v.key].snap;
+    const nb = (id: string) => s.bonds.filter(b => b.a === id || b.b === id).map(b => (b.a === id ? b.b : b.a));
+    assert.ok(s.atoms.some(a => a.el === "O" && nb(a.id).length === 2 && nb(a.id).every(x => s.atoms.find(y => y.id === x)?.el === "H")), "kein Wasser im Bild");
+  }
+});

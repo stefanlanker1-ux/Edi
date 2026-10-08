@@ -4,15 +4,17 @@
 //  • Kettenwachstum: nur aktive Kettenenden (Radikal, Anion, Kation, Titan) lagern Monomere an – wenige lange Ketten, freies Monomer
 //    bleibt bis zum Schluss übrig. Radikalisch: der Starter zerfällt beim Erwärmen (CO₂ bzw. N₂ steigt auf), zwei Radikalenden
 //    brechen ab (Rekombination oder Disproportionierung). Anionisch: alle Ketten starten gleichzeitig und leben weiter – ein zweites
-//    Monomer ergibt Blöcke, Methanol beendet. Kationisch: Kettenenden geben H⁺ ab, das eine neue Kette startet. Ziegler-Natta:
+//    Monomer ergibt Blöcke, wenn das Kettenende es starten kann (Styrol/Butadien → MMA → Acrylnitril, nicht umgekehrt; Acrylnitril-Ketten
+//    enden durch Nebenreaktionen), Methanol beendet. Kationisch: Kettenenden geben H⁺ ab, das eine neue Kette startet. Ziegler-Natta:
 //    Einbau am Titan (der neue Baustein sitzt zwischen Titan und Kette), H₂ löst die fertige Kette, polare Monomere vergiften.
+//    Nacheinander zugegeben ohne lebende Ketten: ein Kettenende baut das andere Monomer nicht ein – zwei getrennte Polymere.
 //  • Stufenwachstum: jede freie Gruppe reagiert mit jeder passenden Gruppe eines anderen Moleküls – erst Zweier-, Dreierketten,
 //    lange Ketten erst bei hohem Umsatz; Wasser bzw. HCl steigt als Bläschen auf; drei reaktive Stellen an einem Monomer → Netz.
 // Rein rechnerisch (kein DOM): Zeichnen und Bedienung in components/Reactor.tsx.
 
 import { tr } from "@lern/i18n";
 import { method, monoName, stepMono, type FG, type MechKind, type StepId, type VinylId } from "./data.ts";
-import { compat, functionality, reactGroups, stepReact } from "./rules.ts";
+import { anionStarts, compat, functionality, reactGroups, seqKind, stepReact } from "./rules.ts";
 import { rng } from "./mech/chain.ts";
 import type { Action, Recipe } from "./mech/types.ts";
 
@@ -130,6 +132,8 @@ export class Reactor {
   private pendingB: string | null = null;
   /** Stufenwachstum: welche Gruppen miteinander reagieren */
   private partners = new Map<FG, FG[]>();
+  /** Stufenwachstum: entsteht nach den Regeln ein Netz? */
+  private netPossible = false;
 
   constructor(public recipe: Recipe, W: number, H: number, seed = 7) {
     this.W = W; this.H = H;
@@ -139,6 +143,7 @@ export class Reactor {
     if (this.kind === "step") {
       const gs = [...new Set(this.monos.flatMap(m => stepMono(m).groups))];
       for (const x of gs) this.partners.set(x, gs.filter(y => reactGroups(x, y)));
+      this.netPossible = stepReact(recipe.a as StepId, recipe.b as StepId | undefined).struktur === "vernetzt";
       this.fillStep();
     } else this.fillChain();
   }
@@ -524,10 +529,28 @@ export class Reactor {
     }
   }
 
+  /** nacheinander zugegeben, Ketten nicht lebend: ein Kettenende baut nur sein eigenes Monomer ein (getrennte Polymere) */
+  private sepSeq(): boolean {
+    const r = this.recipe;
+    return !!(r.seq && r.b && r.b !== r.a && seqKind(r.a as VinylId, r.b as VinylId, r.method ?? "dbpo") === "separate");
+  }
+
+  /** kann das Kettenende (Baustein end, sonst Starter bzw. leeres Titan) das Monomer m einbauen? */
+  private canGrow(end: RBead | undefined, m: string): boolean {
+    if (!end || end.kind !== "mono") return true;
+    if (this.sepSeq() && end.m !== m) return false;
+    if (this.kind === "anion" && !anionStarts(end.m as VinylId, m as VinylId)) {
+      if (!this.why) this.why = tr(`Das Kettenende aus ${monoName(end.m)} ist zu schwach, um ${monoName(m)} zu starten.`, `The chain end made of ${monoName(end.m).toLowerCase()} is too weak to start ${monoName(m).toLowerCase()}.`);
+      return false;
+    }
+    return true;
+  }
+
   /** Monomer an aktives Ende (Radikal, Anion, Kation) */
   private tryAdd(e: RBead, n: RBead): boolean {
     const rnd = this.rand;
     const c = compat(n.m as VinylId, this.recipe.method ?? "dbpo");
+    if (c.fit !== "none" && !this.canGrow(e, n.m)) return false;
     if (c.fit === "none") {
       if (c.fail === "side" && rnd() < KP * 0.6) {
         // Nebenreaktion: Starter bzw. Kettenende reagiert mit dem Monomer und ist danach verbraucht
@@ -543,6 +566,8 @@ export class Reactor {
     n.act = e.act; e.act = undefined;
     this.fire(EV.wachstum);
     if (c.fail === "allyl" && rnd() < 0.45) { n.act = undefined; this.why = c.why; this.fire(EV.allyl); }
+    // anionisch, aber nicht lebend (Acrylnitril): Nebenreaktionen beenden die Kette nach und nach
+    if (this.kind === "anion" && !c.living && rnd() < 0.05) { n.act = undefined; this.why = c.why; this.fire(EV.neben); }
     if (this.kind === "kation" && rnd() < (c.fit === "short" ? 0.35 : 0.035)) {
       // Kettenende gibt H⁺ ab (C=C am Ende) – das H⁺ startet eine neue Kette
       n.act = undefined;
@@ -574,9 +599,10 @@ export class Reactor {
       return true;
     }
     if (c.fit !== "ok") { if (!this.why) this.why = c.why; return false; }
-    if (this.rand() >= KP * 1.3) return false;
     // Einbau zwischen Titan und Kette
     const c0 = ti.nb.map(j => this.byId.get(j)!).find(x => x.kind === "mono");
+    if (!this.canGrow(c0, n.m)) return false;
+    if (this.rand() >= KP * 1.3) return false;
     if (c0) { this.unbondKeep(ti, c0); this.bond(n, c0); }
     this.bond(ti, n);
     this.fire(EV.wachstum);
@@ -677,9 +703,11 @@ export class Reactor {
       avg = chains ? used / chains : 0;
     }
     const max = sizes.length ? Math.max(...sizes) : 0;
-    const funcMax = step ? Math.max(...this.monos.map(m => functionality(m as StepId, this.partnerGroup(m)))) : 0;
-    const network = step && funcMax >= 3 && max >= monos.length * 0.4;
+    // Netz nur, wo die Regeln eines vorhersagen (z. B. nicht bei Milchsäure + Glycerin: verzweigt, aber kein Netz)
+    const network = step && this.netPossible && max >= monos.length * 0.4;
     const active = bs.filter(b => b.act && !b.dead).length;
+    // lebend: nur Enden, die von selbst nicht abbrechen (anionisch, nicht Acrylnitril)
+    const living = this.kind === "anion" && bs.some(b => b.act === "an" && !b.dead && (b.kind !== "mono" || !!compat(b.m as VinylId, this.recipe.method ?? "buli").living));
     const poisoned = bs.filter(b => b.kind === "cat" && b.dead).length;
     const can = this.canReact();
     let phase: RPhase = !this.started ? "bereit" : can ? "läuft" : "fertig";
@@ -698,7 +726,7 @@ export class Reactor {
     }
     const ev = network ? EV.netz : phase === "aus" && !this.event ? EV.keine : this.event;
     return {
-      phase, conv, chains, avg, max, active, living: this.kind === "anion" && active > 0, network, poisoned,
+      phase, conv, chains, avg, max, active, living, network, poisoned,
       byp: this.bypCount, bypName: step ? (stepReact(this.recipe.a as StepId, this.recipe.b as StepId | undefined).byp === "HCl" ? "HCl" : "H₂O") : undefined,
       released: this.released, event: ev, why, hist,
     };

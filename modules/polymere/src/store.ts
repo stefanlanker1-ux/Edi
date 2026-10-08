@@ -1,4 +1,4 @@
-// App-State der Polymere. Gespeichert (polymere-v1): gewählte Art, Ansatz je Art, Ansicht (Atome | Kügelchen), Anzeige-Schalter, Vorhersagen.
+// App-State der Polymere. Gespeichert (polymere-v1): gewählte Art, Ansatz je Art, Ansicht (Atome | Kügelchen), Anzeige-Schalter.
 // Der Ablauf selbst (Aktionen) wird nicht gespeichert – beim Öffnen beginnt der Ansatz von vorn.
 
 import { create } from "zustand";
@@ -24,7 +24,6 @@ interface State {
   /** Bausteine farbig hinterlegen, freie Elektronenpaare zeigen */
   halos: boolean;
   lp: boolean;
-  /** Atom-Ansicht: vor einem Schritt vorhersagen, was passiert */
   setTab: (t: Tab) => void;
   setArt: (a: Art | null) => void;
   setRecipe: (r: Recipe) => void;

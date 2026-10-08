@@ -52,6 +52,10 @@ export interface Status {
   note?: string;
   /** Bedingung (Temperatur, Druck) */
   cond?: string;
+  /** Ziegler-Natta: Zahl der schon abgelösten Ketten */
+  done?: number;
+  /** nacheinander zugegeben, Ketten nicht lebend: die zweite Kette (aus dem zweiten Monomer) läuft */
+  second?: boolean;
   /** Stufenwachstum: reaktive Gruppe am rechten Kettenende und ihr Atom (zum Markieren) */
   end?: string;
   endAtom?: string;

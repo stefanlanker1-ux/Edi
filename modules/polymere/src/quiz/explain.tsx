@@ -78,7 +78,8 @@ export function explainFor(level: LevelKey, task?: Task) {
   const e = CARDS[TOPIC[id]];
   return (
     <div className="explain">
-      <ul className="ex-points">{[CUE, ...e.points].map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
+      {/* der Hinweis „kostet keine Punkte“ gilt nur in den Kapiteln (dort ist der Tipp hervorgehoben) */}
+      <ul className="ex-points">{[...(typeof level === "number" ? [CUE] : []), ...e.points].map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
       <figure className="ex-example pm-ex-fig">
         {e.vis.map((v, i) => <span key={i} className="pm-ex-step">{i > 0 && <span className="pm-ex-arrow" aria-hidden="true">→</span>}<VisView v={v} /></span>)}
       </figure>

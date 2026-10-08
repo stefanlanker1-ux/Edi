@@ -1,12 +1,12 @@
 // Experimentieren: am Anfang Polymerisation, Polykondensation oder Polyaddition wählen, dann den Ansatz bauen
 // (Monomer[e], bei der Polymerisation Starter bzw. Katalysator) und die Entstehung Schritt für Schritt auslösen –
-// in Atomen (Mechanismus mit Elektronen) oder als Kügelchen (Reaktor mit vielen Ketten). In der Atom-Ansicht wird vor einem
-// Schritt zuerst vorhergesagt, was passiert (abschaltbar), dann läuft der Ablauf ab.
+// in Atomen (Mechanismus mit Elektronen) oder als Kügelchen (Reaktor mit vielen Ketten). Eine Aktion spielt ihren Ablauf
+// sofort ab – Experimentieren stellt keine Fragen.
 
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Button, Icon, IconButton, Segmented, Sheet, Switch, Tag, buzz, tr, useMediaQuery, useReducedMotion, Workbench } from "@lern/ui";
-import { ART_NAME, KIND_NAME, METHODS, STEPS, VINYLS, isVinyl, method, monoHue, monoLetter, monoName, monoStruct, stepMono, vinyl, type Art, type MethodId, type StepId, type VinylId } from "../chem/data.ts";
-import { compat, methodsFor, polymerise, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
+import { ART_NAME, KIND_NAME, METHODS, STEPS, VINYLS, isVinyl, lc, method, monoHue, monoLetter, monoName, monoStruct, stepMono, vinyl, type Art, type MethodId, type Rubber, type StepId, type VinylId } from "../chem/data.ts";
+import { compat, methodsFor, polymerise, productUnits, stepReact, LINK_NAME, BYP_NAME, type Product } from "../chem/rules.ts";
 import { makeMech, nextAuto, replay, type Mech, type Recipe } from "../chem/mech/index.ts";
 import type { Clip } from "../chem/scene.ts";
 import type { Action, Bead } from "../chem/mech/types.ts";
@@ -22,7 +22,7 @@ const ARTS: Art[] = ["poly", "kond", "add"];
 const KIND_TRY = tr({ radikal: "Radikalisch", anion: "Anionisch", kation: "Kationisch", koord: "Ziegler-Natta" },
   { radikal: "Radical", anion: "Anionic", kation: "Cationic", koord: "Ziegler–Natta" });
 const ART_SHORT: Record<Art, string> = tr({ poly: "Polymeri­sation", kond: "Polykonden­sation", add: "Poly­addition" }, { poly: "Polymeri­sation", kond: "Polycon­densation", add: "Poly­addition" });
-const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "spaltet H₂O ab", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "splits off H₂O", add: "no by-product" });
+const ART_TAG: Record<Art, string> = tr({ poly: "C=C wird zur Kette", kond: "spaltet H₂O bzw. HCl ab", add: "ohne Nebenprodukt" }, { poly: "C=C becomes a chain", kond: "splits off H₂O or HCl", add: "no by-product" });
 
 // ── Kleine Bilder für die Auswahl am Anfang ──
 function ArtPic({ art }: { art: Art }) {
@@ -96,38 +96,56 @@ function MethodCard({ id, active, onClick }: { id: MethodId; active: boolean; on
   );
 }
 
+/** Kautschuk (noch unvernetzt): Kennzeichen und ein Satz, wie daraus ein Elastomer wird – Schwefel vernetzt nur Ketten mit C=C */
+const RUBBER = (): Record<Rubber, { tags: string[]; text: string }> => tr({
+  dien: { tags: ["Kautschuk", "Elastomer nach dem Vulkanisieren"], text: "Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten an ihren C=C." },
+  peroxid: { tags: ["Kautschuk", "Elastomer nach dem Vernetzen"], text: "Ohne C=C in der Kette vernetzt Schwefel nicht. Peroxide verbinden die Ketten – so wird daraus ein Elastomer." },
+  nein: { tags: ["Kautschuk", "nicht vernetzbar"], text: "Ohne C=C in der Kette vernetzen weder Schwefel noch Peroxide: Der Kautschuk bleibt weich und klebrig." },
+  tpe: { tags: ["thermoplastisches Elastomer"], text: "Mit drei Blöcken (SBS) halten die harten Styrol-Blöcke die weichen Butadien-Ketten zusammen – ganz ohne Vulkanisieren. Warm wird es weich und formbar." },
+}, {
+  dien: { tags: ["rubber", "elastomer after vulcanisation"], text: "Raw rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains at their C=C." },
+  peroxid: { tags: ["rubber", "elastomer after cross-linking"], text: "Without C=C in the chain, sulfur does not cross-link. Peroxides link the chains – this makes an elastomer." },
+  nein: { tags: ["rubber", "cannot be cross-linked"], text: "Without C=C in the chain, neither sulfur nor peroxides cross-link it: the rubber stays soft and sticky." },
+  tpe: { tags: ["thermoplastic elastomer"], text: "With three blocks (SBS), the hard styrene blocks hold the soft butadiene chains together – without vulcanisation. When warm it becomes soft and shapeable." },
+});
+
 function ProductCard({ recipe, mech }: { recipe: Recipe; mech: Mech }) {
   const st = mech.status();
-  let product: Product | undefined, why = "", extra: ReactNode = null;
+  let product: Product | undefined, why = "", extra: ReactNode = null, pics: VinylId[] = [];
   if (recipe.art === "poly") {
-    const out = polymerise([recipe.a, recipe.b].filter(Boolean) as VinylId[], recipe.method ?? "dbpo", !!recipe.seq);
+    const ms = [recipe.a, recipe.b].filter(m => m && isVinyl(m)) as VinylId[];
+    const out = polymerise(ms, recipe.method ?? "dbpo", !!recipe.seq);
     product = out.product; why = out.why;
+    pics = productUnits(ms, out);
   } else {
     const out = stepReact(recipe.a as StepId, recipe.b as StepId | undefined);
     product = out.product; why = out.why;
-    if (out.link) extra = <dl className="pm-facts"><div><dt>{tr("Verknüpfung", "Link")}</dt><dd>{LINK_NAME[out.link]}</dd></div>
-      <div><dt>{tr("Nebenprodukt", "By-product")}</dt><dd>{out.byp ? BYP_NAME[out.byp] : tr("keines", "none")}</dd></div></dl>;
+    // Monomer mit zwei verschiedenen Gruppen und Partner: Verknüpfungen mit sich selbst und mit dem Partner
+    const and = tr(" und ", " and "), byps = out.byps ?? (out.byp ? [out.byp] : []);
+    if (out.link) extra = <dl className="pm-facts"><div><dt>{tr("Verknüpfung", "Link")}</dt><dd>{(out.links ?? [out.link]).map(l => LINK_NAME[l]).join(and)}</dd></div>
+      <div><dt>{tr("Nebenprodukt", "By-product")}</dt><dd>{byps.length ? byps.map(b => BYP_NAME[b]).join(and) : tr("keines", "none")}</dd></div></dl>;
   }
   const KL = tr({ thermo: "Thermoplast", elast: "Elastomer", duro: "Duroplast" }, { thermo: "Thermoplastic", elast: "Elastomer", duro: "Thermoset" });
+  // unvernetzter Kautschuk: wie er zum Elastomer wird (Vulkanisieren nur mit C=C in der Kette)
+  const rub = product?.klasse === "elast" && product.struktur !== "vernetzt" && !product.mix ? RUBBER()[product.rubber ?? "dien"] : null;
   const ST = tr({ linear: "lange, unverzweigte Ketten", verzweigt: "verzweigte Ketten", vernetzt: "Netz aus Ketten", klein: "nur kleine Moleküle" },
     { linear: "long, unbranched chains", verzweigt: "branched chains", vernetzt: "network of chains", klein: "only small molecules" });
   return (
     <div className="pm-product">
       {product ? <h3>{product.name}</h3> : <h3>{tr("Kein Polymer", "No polymer")}</h3>}
-      {recipe.art === "poly" && product && !product.copo && isVinyl(recipe.a) && <div className="pm-product-pic"><UnitSvg id={recipe.a} aspect={1.6} /></div>}
+      {pics.length > 0 && <div className="pm-product-pic">{pics.map(m => <UnitSvg key={m} id={m} aspect={1.6} />)}</div>}
       {product && <div className="pm-tags">
-        {/* unvernetzte Ketten aus dem Ansatz sind Kautschuk: zum Elastomer werden sie erst durch Vulkanisieren (Schwefelbrücken) */}
-        {product.klasse === "elast" && product.struktur !== "vernetzt"
-          ? <><Tag>{tr("Kautschuk", "Rubber")}</Tag><Tag>{tr("Elastomer nach dem Vulkanisieren", "elastomer after vulcanisation")}</Tag></>
+        {product.mix ? <Tag>{tr("zwei getrennte Polymere", "two separate polymers")}</Tag>
+          : rub ? rub.tags.map(t => <Tag key={t}>{t}</Tag>)
           : <Tag>{KL[product.klasse]}</Tag>}
-        <Tag>{ST[product.struktur]}</Tag>
+        <Tag>{product.star ? tr("sternförmige Moleküle", "star-shaped molecules") : ST[product.struktur]}</Tag>
         {product.code && <Tag>{tr("Recycling-Code", "Recycling code")} {product.code}</Tag>}
       </div>}
       {extra}
       <p className="pm-why">{st.fail ?? why}</p>
       {product?.uses && product.uses !== "–" && <p><b>{tr("Verwendung", "Uses")}:</b> {product.uses}</p>}
       {product?.note && <p className="pm-small">{product.note}</p>}
-      {product?.klasse === "elast" && product.struktur !== "vernetzt" && <p className="pm-small">{tr("Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten.", "Raw rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains.")}</p>}
+      {rub && <p className="pm-small">{rub.text}</p>}
     </div>
   );
 }
@@ -176,7 +194,7 @@ function BeadLegend({ recipe }: { recipe: Recipe }) {
   const m = recipe.a;
   return (
     <ul className="pm-legend">
-      {([recipe.a, recipe.b].filter(Boolean) as string[]).map(x => <Fragment key={x}>{row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(x)} letter={monoLetter(x)} />, tr(`ein Baustein ${monoName(x)}`, `one repeat unit of ${monoName(x).toLowerCase()}`))}</Fragment>)}
+      {([recipe.a, recipe.b].filter(Boolean) as string[]).map(x => <Fragment key={x}>{row(<BeadDot cx={0} cy={0} r={8} hue={monoHue(x)} letter={monoLetter(x)} />, tr(`ein Baustein ${monoName(x)}`, `one repeat unit of ${lc(monoName(x))}`))}</Fragment>)}
       {row(<><BeadDot cx={-5} cy={0} r={5} hue={monoHue(m)} /><BeadDot cx={5} cy={0} r={5} hue={monoHue(recipe.b ?? m)} /></>, tr("verbundene Kügelchen = Kette", "joined beads = chain"))}
       {poly && kind !== "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Starter bzw. sein Bruchstück am Kettenanfang", "initiator or its fragment at the chain start"))}
       {kind === "koord" && row(<BeadDot cx={0} cy={0} r={6.5} hue="init" />, tr("Ethylgruppe bzw. H am Kettenanfang", "ethyl group or H at the chain start"))}
@@ -248,7 +266,7 @@ export function ExperimentView() {
   useEffect(() => {
     mech.current = makeMech(recipe); setActs([]); setClip(null); setAuto(false); force(v => v + 1); setRpaused(false);
     setRestarted(!!rstats && rstats.phase !== "bereit");
-  }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps // eslint-disable-line react-hooks/exhaustive-deps
+  }, [rkey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const rrun = (id: string) => {
     buzz();

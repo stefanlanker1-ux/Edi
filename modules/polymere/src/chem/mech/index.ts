@@ -1,7 +1,7 @@
 // Mechanismus zum Ansatz wählen, Abläufe ohne Animation nachspielen (Zurück, Wiederherstellen) und „Automatisch“.
 
-import { method, vinyl, type VinylId } from "../data.ts";
-import { compat } from "../rules.ts";
+import { method, stepMono, vinyl, type FG, type VinylId } from "../data.ts";
+import { compat, reactGroups, seqKind } from "../rules.ts";
 import { ChainMech } from "./chain.ts";
 import { StepMech } from "./step.ts";
 import { ZnMech } from "./zn.ts";
@@ -31,7 +31,11 @@ export function nextAuto(m: Mech, r: Recipe): string | null {
   if (r.art === "poly") {
     // Monomer, das nicht reagiert, nur einmal zeigen – dann Ende
     if (st.fail) return null;
-    if (st.n < target && adds.length) {
+    // nacheinander ohne lebende Ketten: je Monomer eine eigene Kette aus drei Bausteinen, dazwischen Abbruch bzw. Ablösen
+    const sep = !!(r.b && r.seq && r.b !== r.a && seqKind(r.a as VinylId, r.b as VinylId, r.method ?? "dbpo") === "separate");
+    // Ziegler-Natta: nach dem Ablösen der (letzten) Kette ist der Ablauf fertig – der Katalysator könnte weitere Ketten bilden
+    if ((st.done ?? 0) >= (sep ? 2 : 1) && !st.n) return null;
+    if (st.n < (sep ? target / 2 : target) && adds.length) {
       const ms = adds.map(a => a.mono as VinylId);
       if (ms.length === 1) return adds[0].id;
       // nacheinander: Block aus a, dann Block aus b; gleichzeitig: zufällig (fest gewürfelt)
@@ -42,8 +46,10 @@ export function nextAuto(m: Mech, r: Recipe): string | null {
     return stop && st.n >= 1 ? stop.id : null;
   }
   if (st.n >= target) return null;
-  // Stufenwachstum: das Monomer nehmen, das zum Kettenende passt (sonst das erste)
-  return adds.find(a => a.mono !== st.beads[st.beads.length - 1]?.mono)?.id ?? adds[0]?.id ?? null;
+  // Stufenwachstum: ein Monomer, dessen Gruppe zum Kettenende passt – möglichst ein anderes als das letzte; passt keins, ist Schluss
+  const last = st.beads.filter(b => b.branchOf === undefined).at(-1)?.mono;
+  const fits = adds.filter(a => !a.mono || !st.end || stepMono(a.mono).groups.some(g => reactGroups(st.end as FG, g)));
+  return (fits.find(a => a.mono !== last) ?? fits[0])?.id ?? null;
 }
 
 /** passt das Verfahren zu allen Monomeren des Ansatzes? (für Kennzeichen in der Auswahl) */

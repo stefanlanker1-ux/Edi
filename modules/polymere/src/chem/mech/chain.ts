@@ -5,8 +5,8 @@
 
 import { tr } from "@lern/i18n";
 import { method, vinyl, type MechKind, type VinylId } from "../data.ts";
-import { compat } from "../rules.ts";
-import { aibn, bf3, buli, dbpo, group, methanol, vinylUnit, water, type UnitIds } from "../draw.ts";
+import { anionStarts, compat, seqKind } from "../rules.ts";
+import { aibn, benzene, bf3, buli, dbpo, group, methanol, vinylUnit, water, type UnitIds } from "../draw.ts";
 import { Scene, dirOf, rad, type Arrow, type Clip, type Key, type Snap } from "../scene.ts";
 import type { Action, Bead, Mech, Phase, Recipe, Status } from "./types.ts";
 
@@ -21,10 +21,10 @@ interface U { m: VinylId; flip: boolean; ids: UnitIds }
 export const STEP = tr(
   { start: "Start", zerfall: "Zerfall des Starters", saeure: "Säure entsteht", kettenstart: "Kettenstart", wachstum: "Kettenwachstum",
     rekombination: "Abbruch: Rekombination", disproportionierung: "Abbruch: Disproportionierung", methanol: "Abbruch mit Methanol",
-    hplus: "Kettenende: H⁺ abgespalten", allyl: "H‑Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette" },
+    hplus: "Kettenende: H⁺ abgespalten", allyl: "H‑Atom abgerissen", nebenreaktion: "Nebenreaktion", keine: "keine Reaktion", lebend: "lebende Kette", neu: "neue Kette" },
   { start: "Start", zerfall: "Initiator decomposes", saeure: "Acid forms", kettenstart: "Chain initiation", wachstum: "Propagation",
     rekombination: "Termination: combination", disproportionierung: "Termination: disproportionation", methanol: "Termination with methanol",
-    hplus: "Chain end: H⁺ split off", allyl: "H atom pulled off", nebenreaktion: "Side reaction", keine: "No reaction", lebend: "living chain" },
+    hplus: "Chain end: H⁺ split off", allyl: "H atom pulled off", nebenreaktion: "Side reaction", keine: "No reaction", lebend: "living chain", neu: "New chain" },
 );
 
 export class ChainMech implements Mech {
@@ -52,6 +52,8 @@ export class ChainMech implements Mech {
   private li = "";
   /** Rekombination: die zweite Kette hängt jetzt am Ende (Kügelchen-Leiste zeigt beide, Starter-Rest an beiden Enden) */
   private merged = false;
+  /** nacheinander zugegeben, Ketten nicht lebend: die zweite Kette (aus dem zweiten Monomer) ist gestartet */
+  private second = false;
 
   constructor(public recipe: Recipe) {
     this.kind = method(recipe.method ?? "dbpo").kind as Exclude<MechKind, "koord">;
@@ -72,7 +74,16 @@ export class ChainMech implements Mech {
   }
 
   private id(p: string) { return `${p}${++this.seq}`; }
-  monos(): VinylId[] { return [this.recipe.a, this.recipe.b].filter((x): x is VinylId => !!x) as VinylId[]; }
+  /** nacheinander zugegeben, aber keine lebenden Ketten (radikalisch, kationisch): erst eine Kette aus dem ersten Monomer bis zum Abbruch,
+   *  dann eine neue Kette aus dem zweiten – keine Blöcke */
+  private sepSeq(): boolean {
+    const r = this.recipe;
+    return !!(r.seq && r.b && r.b !== r.a && seqKind(r.a as VinylId, r.b as VinylId, r.method ?? "dbpo") === "separate");
+  }
+  monos(): VinylId[] {
+    if (this.sepSeq()) return [(this.second ? this.recipe.b : this.recipe.a) as VinylId];
+    return [this.recipe.a, this.recipe.b].filter((x): x is VinylId => !!x) as VinylId[];
+  }
 
   // ── Ausgabe ──
   snap(): Snap { return this.frame(); }
@@ -82,7 +93,10 @@ export class ChainMech implements Mech {
     this.units.forEach((u, i) => { const v = vinyl(u.m); beads.push({ kind: "unit", mono: u.m, hue: v.hue, letter: v.letter, title: v.name, unit: i }); });
     if (this.merged) beads.push(...beads.map(b => ({ ...b, unit: undefined })).reverse());
     const active = this.phase === "bereit" || this.phase === "wachsend" ? (this.kind === "radikal" ? "rad" : this.kind === "anion" ? "an" : "kat") : null;
-    return { phase: this.phase, n: this.units.length, step: this.stepName, active, fail: this.fail, beads, living: this.kind === "anion" && this.phase === "wachsend", note: this.note, cond: this.cond };
+    // lebend nur, wenn das Kettenende wirklich lebt (Acrylnitril: Nebenreaktionen beenden die Kette)
+    const last = this.units[this.units.length - 1];
+    const living = this.kind === "anion" && this.phase === "wachsend" && !!last && !!compat(last.m, this.recipe.method ?? "buli").living;
+    return { phase: this.phase, n: this.units.length, step: this.stepName, active, fail: this.fail, beads, living, note: this.note, cond: this.cond, ...(this.second ? { second: true } : {}) };
   }
 
   actions(): Action[] {
@@ -107,6 +121,8 @@ export class ChainMech implements Mech {
         if (this.kind === "kation") out.push({ id: "hplus", kind: "stop", label: tr("H⁺ abspalten", "Split off H⁺") });
       }
     }
+    // nacheinander ohne lebende Ketten: nach dem Abbruch eine neue Kette aus dem zweiten Monomer
+    if (this.phase === "ende" && this.sepSeq() && !this.second) out.push({ id: "new", kind: "start", label: tr("Neue Kette", "New chain") });
     return out;
   }
 
@@ -120,6 +136,7 @@ export class ChainMech implements Mech {
     else if (id === "disp") this.terminateRad(true);
     else if (id === "meoh") this.methanolStop();
     else if (id === "hplus") this.cationStop();
+    else if (id === "new") this.newChain();
     // letzter Schlüssel = neuer Zustand
     this.key(0, 0);
     return this.keys;
@@ -260,6 +277,13 @@ export class ChainMech implements Mech {
   private add(m: VinylId) {
     const c = compat(m, this.recipe.method ?? "dbpo");
     if (c.fit === "none") { this.reject(m, c.fail === "side"); this.fail = c.why; return; }
+    // anionisch: ein schwaches Kettenende (aus MMA, Acrylnitril) startet ein Monomer mit stärkerem Anion (Styrol, Butadien) nicht
+    const last = this.units[this.units.length - 1];
+    if (this.kind === "anion" && last && !anionStarts(last.m, m)) {
+      this.reject(m, false);
+      this.fail = tr(`Das Kettenende aus ${vinyl(last.m).name} ist zu schwach, um ${vinyl(m).name} zu starten.`, `The chain end made of ${vinyl(last.m).name.toLowerCase()} is too weak to start ${vinyl(m).name.toLowerCase()}.`);
+      return;
+    }
     if (c.fit === "short" && c.fail === "allyl") { this.allyl(m); this.fail = c.why; return; }
     this.fail = undefined;
     this.grow(m);
@@ -601,28 +625,32 @@ export class ChainMech implements Mech {
     for (const i of [mo.o, mo.me, this.li]) sc.remove(i);
   }
 
-  /** Kation: ein H⁺ vom CH₂ neben dem Kettenende löst sich, es entsteht eine C=C-Bindung (H⁺ kann eine neue Kette starten) */
+  /** Kation: ein H⁺ vom CH₂ neben dem Kettenende löst sich, es entsteht eine C=C-Bindung (H⁺ kann eine neue Kette starten).
+   *  Butadien: die positive Ladung verteilt sich auf C2 und C4 (Allyl-Kation) – das H⁺ geht vom C1, es entsteht ein konjugiertes Dien
+   *  C1=C2–C3=C4 (nicht vom C3: das gäbe ein Allen C2=C3=C4) */
   private cationStop() {
     const sc = this.sc, u = this.units[this.units.length - 1];
     if (!u) return;
     const v = vinyl(u.m);
     this.fx = this.xe - 3.2;
-    const ca = v.diene ? u.ids.mid![1] : u.ids.ca;
+    const ca = u.ids.ca, cb = this.end;
     const h = sc.nb(ca).find(i => sc.at(i).el === "H" && sc.at(i).y < sc.at(ca).y) ?? sc.nb(ca).find(i => sc.at(i).el === "H");
     if (!h) return;
-    const cb = this.end;
-    this.key(800, 300, [
-      { from: { b: [ca, h], off: -0.12 }, to: { b: [ca, cb], off: -0.14 }, bend: 0.7 },
-    ]);
+    const [m0, m1] = v.diene ? u.ids.mid! : [cb, cb];
+    this.key(800, 300, v.diene
+      ? [{ from: { b: [ca, h], off: -0.12 }, to: { b: [ca, m0], off: -0.14 }, bend: 0.7 }, { from: { b: [m0, m1], off: -0.13 }, to: { b: [m1, cb], off: -0.14 }, bend: 0.6 }]
+      : [{ from: { b: [ca, h], off: -0.12 }, to: { b: [ca, cb], off: -0.14 }, bend: 0.7 }]);
     sc.unbond(ca, h);
-    const A = sc.at(ca), B = sc.at(cb);
+    const A = sc.at(ca), B = sc.at(m0);
     const d1 = this.id("dk"), d2 = this.id("dk");
     sc.dot(d1, A.x - 0.08, A.y - 0.4); sc.dot(d2, A.x + 0.08, A.y - 0.4);
     this.key(100, 900);
     sc.dot(d1, (A.x + B.x) / 2 - 0.08, A.y - 0.13); sc.dot(d2, (A.x + B.x) / 2 + 0.08, A.y - 0.13);
-    sc.set(h, { y: A.y - 1.8, q: 1, qa: 0 });
+    // das H⁺ gehört nicht mehr zum Baustein (ohne farbige Hinterlegung)
+    sc.set(h, { y: A.y - 1.8, q: 1, qa: 0, unit: undefined, hue: undefined });
     this.key(60, 380);
-    sc.order(ca, cb, 2);
+    sc.order(ca, m0, 2);
+    if (v.diene) { sc.order(m0, m1, 1); sc.order(m1, cb, 2); }
     sc.undot(d1); sc.undot(d2);
     sc.set(cb, { q: 0 });
     this.stepName = STEP.hplus;
@@ -632,5 +660,40 @@ export class ChainMech implements Mech {
     sc.set(h, { y: A.y - 2.6, op: 0 });
     this.key(0, 0);
     sc.remove(h);
+  }
+
+  /** neue Kette (nacheinander zugegeben, Ketten nicht lebend): die fertige Kette blendet aus, ein neues Radikal aus dem Starter
+   *  bzw. ein H⁺ startet eine Kette aus dem zweiten Monomer – so entstehen zwei getrennte Polymere statt Blöcken */
+  private newChain() {
+    const sc = this.sc, old = [...sc.atoms.keys()], x = this.xe + 3;
+    sc.move(old, -1.5, 0);
+    old.forEach(i => sc.set(i, { op: 0 }));
+    for (const n of sc.notes.values()) n.op = 0;
+    this.key(100, 700);
+    old.forEach(i => sc.remove(i));
+    for (const n of [...sc.notes.keys()]) sc.unnote(n);
+    for (const d of [...sc.dots.keys()]) sc.undot(d);
+    sc.rings = {};
+    this.fx = x - 2.6;
+    const b = vinyl(this.recipe.b as VinylId);
+    if (this.kind === "radikal") {
+      const pre = `r${++this.seq}`;
+      if (this.recipe.method === "aibn") {
+        this.end = sc.add({ id: `${pre}c`, el: "C", x, y: 0 });
+        group(sc, "CH3", this.end, -90, { pre }, "m1"); group(sc, "CH3", this.end, 90, { pre }, "m2"); group(sc, "CN", this.end, 180, { pre }, "cn");
+      } else this.end = benzene(sc, x, 0, 180, { pre }, "pa")[0];
+      const d = this.id("en");
+      sc.dotAt(d, this.end, 0);
+      this.edots = [d];
+      this.note = tr(`Die erste Kette ist fertig. Ein neues Radikal aus dem Starter beginnt eine Kette aus ${b.name}.`, `The first chain is finished. A new radical from the initiator starts a chain of ${b.name.toLowerCase()}.`);
+    } else {
+      this.end = sc.add({ id: this.id("hn"), el: "H", x, y: 0, q: 1, qa: -90 });
+      this.edots = [];
+      this.note = tr(`Die erste Kette ist fertig. Ein H⁺ beginnt eine neue Kette aus ${b.name}.`, `The first chain is finished. An H⁺ starts a new chain of ${b.name.toLowerCase()}.`);
+    }
+    this.xe = x;
+    this.units = []; this.merged = false; this.second = true;
+    this.phase = "bereit";
+    this.stepName = STEP.neu;
   }
 }

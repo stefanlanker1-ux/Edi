@@ -23,6 +23,9 @@ export type VinylId = "ethen" | "propen" | "styrol" | "vinylchlorid" | "mma" | "
 
 /** Eigenschaft des Kunststoffs: Thermoplast (schmilzt), Elastomer (gummiartig, schwach vernetzt), Duroplast (stark vernetzt) */
 export type Klasse = "thermo" | "elast" | "duro";
+/** Kautschuk (Klasse elast, noch unvernetzt): mit C=C in der Kette – mit Schwefel vulkanisierbar (dien); ohne C=C – nur mit Peroxid
+ *  vernetzbar (peroxid) bzw. gar nicht (nein, Polyisobuten); thermoplastisches Elastomer aus Blöcken, ohne Vernetzen (tpe) */
+export type Rubber = "dien" | "peroxid" | "nein" | "tpe";
 
 export interface Vinyl {
   id: VinylId;
@@ -45,6 +48,8 @@ export interface Vinyl {
   abbr: string;
   uses: string;
   klasse: Klasse;
+  /** nur Kautschuk: wie er vernetzt wird */
+  rubber?: Rubber;
 }
 
 export const VINYLS: Vinyl[] = [
@@ -84,12 +89,12 @@ export const VINYLS: Vinyl[] = [
       { name: "Tetrafluoroethene", alt: "tetrafluoroethylene", polymer: "Polytetrafluoroethene", uses: "non-stick coating of pans, seals, membranes in rain jackets" }),
   },
   {
-    id: "isobuten", struct: "{H₂C=C}(CH₃)₂", letter: "I", hue: "yellow", formula: "C4H8", a: ["H", "H"], b: ["CH3", "CH3"], abbr: "PIB", klasse: "elast",
+    id: "isobuten", struct: "{H₂C=C}(CH₃)₂", letter: "I", hue: "yellow", formula: "C4H8", a: ["H", "H"], b: ["CH3", "CH3"], abbr: "PIB", klasse: "elast", rubber: "nein",
     ...tr({ name: "Isobuten", alt: "2-Methylpropen", polymer: "Polyisobuten", uses: "Kaugummimasse, Dichtmassen; mit wenig Isopren: Butylkautschuk für Schläuche" },
       { name: "Isobutene", alt: "2-methylpropene", polymer: "Polyisobutene", uses: "chewing gum base, sealants; with a little isoprene: butyl rubber for inner tubes" }),
   },
   {
-    id: "butadien", struct: "{H₂C=CH–CH=CH₂}", letter: "B", hue: "orange", formula: "C4H6", a: ["H", "H"], b: ["H", "H"], diene: true, abbr: "BR", klasse: "elast",
+    id: "butadien", struct: "{H₂C=CH–CH=CH₂}", letter: "B", hue: "orange", formula: "C4H6", a: ["H", "H"], b: ["H", "H"], diene: true, abbr: "BR", klasse: "elast", rubber: "dien",
     ...tr({ name: "Butadien", alt: "Buta-1,3-dien", polymer: "Polybutadien", uses: "Autoreifen, Golfbälle, Schuhsohlen" },
       { name: "Butadiene", alt: "buta-1,3-diene", polymer: "Polybutadiene", uses: "car tyres, golf balls, shoe soles" }),
   },
@@ -282,6 +287,9 @@ export const FG_NAME: Record<FG, string> = tr(
 );
 /** Formel der Gruppe */
 export const FG_FORMULA: Record<FG, string> = { COOH: "–COOH", COCl: "–COCl", OH: "–OH", NH2: "–NH₂", NCO: "–N=C=O", EPOX: "–CH(O)CH₂", ArH: "–H", CHO: "H–CHO" };
+
+/** englischer Name mitten im Satz: erster Buchstabe klein, Kürzel und Eigennamen im Namen bleiben (bisphenol A …, HDI) */
+export const lc = (s: string) => s.replace(/^([^A-Za-z]*)([A-Z])(?![A-Z])/, (_, p: string, c: string) => p + c.toLowerCase());
 
 /** Name eines Monomers (Kette oder Stufe) */
 export const monoName = (id: string) => (isVinyl(id) ? vinyl(id).name : stepMono(id).name);
