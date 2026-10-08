@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import { REACTIONS, MOL3D, ionText } from "@lern/chem";
-import { elementParticles, layout2D, substanceInfo } from "../src/Substance.tsx";
+import { elementParticles, formalCharges, layout2D, structureMarks, substanceInfo } from "../src/Substance.tsx";
 
 const ALL = [...new Set(REACTIONS.flatMap(r => [...r.left, ...r.right]))];
 
@@ -56,4 +56,43 @@ test("Elemente nur mit Symbol (C, S): die Stoff-Info sagt, woraus der Stoff wirk
   assert.deepEqual(elementParticles("S"), ["Moleküle S₈", "in Gleichungen vereinfacht: S"]);
   assert.deepEqual(elementParticles("C"), ["Atome im Gitter verbunden", "in Gleichungen: C"]);
   assert.strictEqual(elementParticles("O2"), undefined);
+});
+
+test("Formalladungen und ungepaarte Elektronen wie in der Elektronenpaarbindung (Oktettregel)", () => {
+  const show = (f: string) => {
+    const fc = formalCharges(f)!, els = MOL3D[f].atoms.map(a => a[0]);
+    return els.map((el, i) => `${el}${fc.charge[i] > 0 ? "+" : fc.charge[i] < 0 ? "-" : ""}${fc.radical[i] ? "·" : ""}`).join(" ");
+  };
+  // Ozon: mittleres O mit Doppel- und Einfachbindung +, das O mit Einfachbindung −
+  assert.strictEqual(show("O3"), "O+ O O-");
+  // Salpetersäure: N mit vier Bindungen +, endständiges O mit einer Bindung −
+  assert.strictEqual(show("HNO3"), "N+ O O O- H");
+  // Kohlenstoffmonoxid |C≡O|: C −, O +
+  assert.strictEqual(show("CO"), "C- O+");
+  // Stickstoffmonoxid und -dioxid: ungerade Elektronenzahl – ungepaartes Elektron am N
+  assert.strictEqual(show("NO"), "N· O");
+  assert.strictEqual(show("NO2"), "N+· O O-");
+  // alle übrigen Moleküle ohne Formalladung (auch mit erweitertem Oktett: SO₂, H₂SO₄, H₃PO₄, PCl₅, SF₆; BF₃ mit Elektronensextett)
+  for (const f of Object.keys(MOL3D)) {
+    const fc = formalCharges(f);
+    assert.ok(fc, `${f}: Elektronen nicht verteilbar`);
+    assert.strictEqual(fc.charge.reduce((s, c) => s + c, 0), 0, f);
+    if (!["O3", "HNO3", "CO", "NO", "NO2"].includes(f)) assert.ok(fc.charge.every(c => c === 0) && fc.radical.every(r => !r), `${f}: ${show(f)}`);
+  }
+});
+
+test("Zeichen an der Strukturformel liegen frei: nicht auf einem Atom, nicht auf einer Bindung, nicht aufeinander", () => {
+  for (const f of ["O3", "HNO3", "CO", "NO", "NO2"]) {
+    const l = layout2D(f)!, marks = structureMarks(l, formalCharges(f)!);
+    assert.ok(marks.length, f);
+    const seg = (px: number, py: number, ax: number, ay: number, bx: number, by: number) => {
+      const t = Math.max(0, Math.min(1, ((px - ax) * (bx - ax) + (py - ay) * (by - ay)) / ((bx - ax) ** 2 + (by - ay) ** 2)));
+      return Math.hypot(px - ax - t * (bx - ax), py - ay - t * (by - ay));
+    };
+    for (const m of marks) {
+      for (const [, x, y] of l.atoms) assert.ok(Math.hypot(m.x - x, m.y - y) >= .3, `${f}: Zeichen auf einem Atom`);
+      for (const [i, j] of l.bonds) assert.ok(seg(m.x, m.y, l.atoms[i][1], l.atoms[i][2], l.atoms[j][1], l.atoms[j][2]) >= .2, `${f}: Zeichen auf einer Bindung`);
+      for (const o of marks) if (o !== m) assert.ok(Math.hypot(m.x - o.x, m.y - o.y) >= .2, `${f}: Zeichen aufeinander`);
+    }
+  }
 });

@@ -305,6 +305,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   „Außenelektronen“ (einmal eingeführt als „Außenelektronen (Valenzelektronen)“), „Edukte (Ausgangsstoffe)“ und „Produkte“,
   „Zweifachbindung“, „freie (nichtbindende) Elektronenpaare“, „Strukturformel“ / „geometrische Strukturformel“ (Keil = nach vorn, strichliert = nach hinten),
   „Kohlendioxid“, „Kohlenmonoxid“, „Oktan“, „Gesetz der Massenerhaltung“, Gemischarten mit Aggregatzuständen (Lösung s/l, Emulsion l/l …).
+- Strukturformeln (Stoff-Info, `@lern/chem-ui` `StructureFormula`) zeigen Formalladungen als ⊕/⊖ und ungepaarte Elektronen als Punkt – berechnet aus den Bindungen
+  nach der Oktettregel (`formalCharges`: O₃, HNO₃, CO mit Formalladungen; NO, NO₂ mit ungepaartem Elektron am N), wie in der Elektronenpaarbindung (Test).
 - Tipps verraten die Lösung nicht und passen zur Aufgabe (z. B. Tipp je Reaktionstyp); jede falsche Antwort bekommt eine Rückmeldung, wo möglich mit Katalog-Schlüssel.
 - Multiple Choice: `mc(richtig, falsche)` aus `@lern/quiz`; falsche Antworten möglichst als diagnostische Distraktoren – `d(text, miss, why)` mit Katalog-Schlüssel
   (Chemie-Apps mit `misconceptions.ts`) oder Kurzform `dis(text, why)` ohne Schlüssel (Reaktionsgleichungen). Sind es mehr Ablenker als Plätze, wählt `mc` zuerst die mit
@@ -980,6 +982,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Stoff-Info: Strukturformeln mit Formalladungen und ungepaarten Elektronen** – O₃ wurde als „O–O=O“, HNO₃ mit vierbindigem N und einfach gebundenem O, NO und NO₂ ohne
+  ungepaartes Elektron gezeichnet (widersprach der Elektronenpaarbindung). `formalCharges` (`@lern/chem-ui`) berechnet die Ladungen aus den Bindungen nach der Oktettregel:
+  O₃, HNO₃ und CO zeigen ⊕/⊖, NO und NO₂ das ungepaarte Elektron als Punkt am N; erweitertes Oktett (SO₂, H₂SO₄, PCl₅, SF₆) und das Sextett von BF₃ bleiben ohne Ladung;
+  Screenreader nennen die Zeichen in Worten.
 - **Gemeinsame Pakete, Skripte: Nachprüfung Runde 2** – Tipp und „Erster Schritt“ sind immer ganz lesbar (vorher ragten sie aus der Aufgabenfläche, und das Aufgabenbild wurde bei
   niedrigen Handys bis auf 18 px zerdrückt): passen sie nicht, öffnen sie als Blatt; sie stauchen weder Bild noch Antwortfläche unter ihre Mindesthöhe. Quiz-Werkzeugleiste ohne
   Überlappung mit „Weiter“ und ohne abgeschnittene Beschriftungen; Lesetext im Quiz ≥ 14 px (Level-Beschreibung, Rückmeldung). Zahlschritte der Erklärungen lesen Zahlen nach

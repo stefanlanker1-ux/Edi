@@ -186,6 +186,10 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
 .sub-struct { max-height: 44dvh; height: auto; overflow: visible; }
 .sub-bond { stroke: var(--text); stroke-width: .055; stroke-linecap: round; }
 .sub-sym { font: 700 .42px var(--font); fill: var(--text); }
+/* Formalladung (Kreis mit + oder −) und ungepaartes Elektron (Punkt) an der Strukturformel */
+.sub-fc circle { fill: var(--surface); stroke: var(--text); stroke-width: .035; }
+.sub-fc line { stroke: var(--text); stroke-width: .04; stroke-linecap: round; }
+.sub-rad { fill: var(--text); }
 .sub-body { display: grid; gap: 12px; align-content: start; min-height: 0; }
 /* 3D: Modell füllt den Platz des Blatts (Formel und Kennzeichen oben, Umschalter unten) */
 .sub-body.is-3d { height: 100%; grid-template-rows: auto minmax(0, 1fr) auto; }

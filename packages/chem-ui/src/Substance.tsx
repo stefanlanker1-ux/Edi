@@ -59,15 +59,85 @@ export function layout2D(f: string): { atoms: P2[]; bonds: [number, number, numb
   return { atoms: d.atoms.map((a, i) => [a[0], pts[i][0], pts[i][1]]), bonds: d.bonds };
 }
 
+// ── Formalladungen und ungepaarte Elektronen ────────────────────────────────
+
+/** Valenzelektronen eines Hauptgruppenelements */
+const valence = (el: string) => { const g = BY_SYMBOL[el]?.group; return g == null || (g > 2 && g < 13) ? NaN : g <= 2 ? g : g - 10; };
+
+/**
+ * Formalladung und ungepaartes Elektron je Atom (Bindungen aus den Daten, freie Elektronen nach der Oktettregel): jedes Atom bekommt so viele
+ * freie Elektronen, dass es sein Oktett hat (H: 2 Elektronen, B und Al: nur die bindenden), was übrig bleibt, geht an Atome ab der 3. Periode
+ * (erweitertes Oktett, z. B. S in SO₂). Fehlt genau ein Elektron (ungerade Elektronenzahl: NO, NO₂), sitzt das ungepaarte Elektron am weniger
+ * elektronegativen Atom. Formalladung = Valenzelektronen − freie Elektronen − Bindungen (bei C, N, O, F mit Oktett: V − 8 + Bindungen).
+ * null, wenn sich die Elektronen so nicht verteilen lassen.
+ */
+export function formalCharges(f: string): { charge: number[]; radical: boolean[] } | null {
+  const d = MOL3D[f];
+  if (!d) return null;
+  const els = d.atoms.map(a => a[0]);
+  const B = els.map(() => 0);
+  for (const [i, j, o] of d.bonds) { B[i] += o; B[j] += o; }
+  const V = els.map(valence);
+  if (V.some(v => Number.isNaN(v))) return null;
+  // freie Elektronen = alle Valenzelektronen − 2 je Bindungsstrich (jede Bindung zählt bei B an beiden Atomen, daher Summe von B = 2 × Striche)
+  const avail = V.reduce((s, v) => s + v, 0) - B.reduce((s, b) => s + b, 0);
+  const target = (el: string, v: number) => (el === "H" ? 2 : el === "B" || el === "Al" ? 2 * v : 8);
+  const free = els.map((el, i) => Math.max(0, target(el, V[i]) - 2 * B[i]));
+  let rest = avail - free.reduce((s, x) => s + x, 0);
+  if (rest > 0) {
+    // übrige Elektronen (paarweise) an die Atome ab der 3. Periode mit den meisten Bindungen – das Zentralatom
+    const big = els.map((_, i) => i).filter(i => BY_SYMBOL[els[i]].period >= 3).sort((a, b) => B[b] - B[a]);
+    if (!big.length) return null;
+    for (let k = 0; rest > 0; k = (k + 1) % big.length) { const n = Math.min(2, rest); free[big[k]] += n; rest -= n; }
+  } else if (rest === -1) {
+    const cand = els.map((_, i) => i).filter(i => els[i] !== "H" && free[i] > 0).sort((a, b) => (BY_SYMBOL[els[a]].en ?? 9) - (BY_SYMBOL[els[b]].en ?? 9));
+    if (!cand.length) return null;
+    free[cand[0]] -= 1;
+  } else if (rest < 0) return null;
+  const charge = els.map((_, i) => V[i] - free[i] - B[i]);
+  if (charge.reduce((s, c) => s + c, 0) !== 0) return null;
+  return { charge, radical: free.map(n => n % 2 === 1) };
+}
+
+/** Zeichen an der Strukturformel: Formalladung (Kreis mit + oder −) bzw. ungepaartes Elektron (Punkt) – je in einer freien Richtung am Atom */
+export interface StructMark { atom: number; kind: "plus" | "minus" | "dot"; x: number; y: number }
+export function structureMarks(l: NonNullable<ReturnType<typeof layout2D>>, fc: NonNullable<ReturnType<typeof formalCharges>>): StructMark[] {
+  const marks: StructMark[] = [];
+  const PREF = -Math.PI / 4; // oben rechts (SVG: y nach unten)
+  const gap = (a: number, b: number) => { const d = Math.abs(a - b) % (2 * Math.PI); return Math.min(d, 2 * Math.PI - d); };
+  l.atoms.forEach(([, x, y], i) => {
+    const want: StructMark["kind"][] = [...(fc.charge[i] > 0 ? ["plus" as const] : fc.charge[i] < 0 ? ["minus" as const] : []), ...(fc.radical[i] ? ["dot" as const] : [])];
+    if (!want.length) return;
+    const taken = l.bonds.filter(([a, b]) => a === i || b === i).map(([a, b]) => { const [, bx, by] = l.atoms[a === i ? b : a]; return Math.atan2(by - y, bx - x); });
+    for (const kind of want) {
+      // Richtung: möglichst nah an „oben rechts“, aber mindestens 60° weg von Bindungen (auch den Strichen einer Mehrfachbindung) und schon
+      // gesetzten Zeichen; sonst die freieste
+      const cands = Array.from({ length: 24 }, (_, k) => PREF + (k * Math.PI) / 12);
+      const room = (a: number) => Math.min(Math.PI, ...taken.map(t => gap(a, t)));
+      const ok = cands.filter(a => room(a) >= Math.PI / 3 - 1e-9).sort((a, b) => gap(a, PREF) - gap(b, PREF));
+      const a = ok[0] ?? cands.sort((p, q) => room(q) - room(p))[0];
+      const r = kind === "dot" ? .34 : .42;
+      marks.push({ atom: i, kind, x: x + r * Math.cos(a), y: y + r * Math.sin(a) });
+      taken.push(a);
+    }
+  });
+  return marks;
+}
+
 export function StructureFormula({ f }: { f: string }) {
   const l = layout2D(f);
   if (!l) return null;
-  const xs = l.atoms.map(a => a[1]), ys = l.atoms.map(a => a[2]);
+  const fc = formalCharges(f);
+  const marks = fc ? structureMarks(l, fc) : [];
+  const xs = [...l.atoms.map(a => a[1]), ...marks.map(m => m.x)], ys = [...l.atoms.map(a => a[2]), ...marks.map(m => m.y)];
   const pad = .45, x0 = Math.min(...xs) - pad, y0 = Math.min(...ys) - pad;
   const w = Math.max(...xs) - x0 + pad, h = Math.max(...ys) - y0 + pad;
   const R = .24; // Abstand der Striche vom Atomsymbol
+  // für Screenreader: Formalladungen und ungepaarte Elektronen in Worten
+  const said = marks.map(m => `${l.atoms[m.atom][0]} ${m.kind === "plus" ? tr("Formalladung plus", "formal charge plus") : m.kind === "minus" ? tr("Formalladung minus", "formal charge minus") : tr("ungepaartes Elektron", "unpaired electron")}`);
   return (
-    <svg className="sub-struct" viewBox={`${x0} ${y0} ${w} ${h}`} role="img" aria-label={tr(`Strukturformel von ${speciesName(f)}`, `Structural formula of ${speciesName(f)}`)}
+    <svg className="sub-struct" viewBox={`${x0} ${y0} ${w} ${h}`} role="img"
+      aria-label={tr(`Strukturformel von ${speciesName(f)}`, `Structural formula of ${speciesName(f)}`) + (said.length ? `: ${said.join(", ")}` : "")}
       style={{ width: `min(100%, ${w * 64}px)` }}>
       {l.bonds.map(([i, j, order], n) => {
         const [, ax, ay] = l.atoms[i], [, bx, by] = l.atoms[j];
@@ -80,6 +150,15 @@ export function StructureFormula({ f }: { f: string }) {
       {l.atoms.map(([el, x, y], i) => (
         <text key={i} x={x} y={y} className="sub-sym" textAnchor="middle" dominantBaseline="central">{el}</text>
       ))}
+      {marks.map((m, n) => m.kind === "dot"
+        ? <circle key={`m${n}`} cx={m.x} cy={m.y} r={.055} className="sub-rad" />
+        : (
+          <g key={`m${n}`} className="sub-fc">
+            <circle cx={m.x} cy={m.y} r={.12} />
+            <line x1={m.x - .065} y1={m.y} x2={m.x + .065} y2={m.y} />
+            {m.kind === "plus" && <line x1={m.x} y1={m.y - .065} x2={m.x} y2={m.y + .065} />}
+          </g>
+        ))}
     </svg>
   );
 }
