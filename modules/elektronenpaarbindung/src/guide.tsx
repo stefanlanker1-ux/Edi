@@ -221,9 +221,9 @@ const OS: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("Eine Mehrfachbindung zählt wie **ein** Bereich.", "A multiple bond counts as **one** region."),
+    say: tr("Jede Bindung und jedes freie Paar am Zentralatom ist ein **Bereich**. Eine Mehrfachbindung zählt wie **ein** Bereich.", "Each bond and each lone pair on the central atom is a **region**. A multiple bond counts as **one** region."),
     ask: tr("Welche Formen gibt es?", "Which shapes are there?"),
-    lines: [tr("4 Bereiche, kein freies Paar → **tetraedrisch**, 109,5° (CH₄).", "4 regions, no lone pair → **tetrahedral**, 109.5° (CH₄)."), tr("4 Bereiche, 2 freie Paare → **gewinkelt**, 104,5° (H₂O).", "4 regions, 2 lone pairs → **bent**, 104.5° (H₂O)."), tr("3 Bereiche → **trigonal-planar**, 120° (H₂C=O).", "3 regions → **trigonal planar**, 120° (H₂C=O)."), tr("2 Bereiche → **linear**, 180° (O=C=O).", "2 regions → **linear**, 180° (O=C=O).")],
+    lines: [tr("4 Bereiche, kein freies Paar → **tetraedrisch**, 109,5° (CH₄).", "4 regions, no lone pair → **tetrahedral**, 109.5° (CH₄)."), tr("4 Bereiche, 2 freie Paare → **gewinkelt**, 104,5° (H₂O).", "4 regions, 2 lone pairs → **bent**, 104.5° (H₂O)."), tr("3 Bereiche → **trigonal-planar**, ca. 120° (H₂C=O).", "3 regions → **trigonal planar**, approx. 120° (H₂C=O)."), tr("2 Bereiche → **linear**, 180° (O=C=O).", "2 regions → **linear**, 180° (O=C=O).")],
     ok: tr("Erst Bereiche zählen, dann die Form ablesen.", "Count the regions first, then read off the shape."),
   },
   {

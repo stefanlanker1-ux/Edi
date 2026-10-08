@@ -118,3 +118,10 @@
   .ab-g-orb .orb-legend { display: none; }
   .ab-g-orb .orb-atom { gap: 4px; }
 }
+
+/* PSE als Antwort (Oberstufe): Ordnungszahlen auch am Handy zeigen – gefragt wird u. a. „Tippe auf das Element mit der Ordnungszahl …“
+   (das schmale PSE blendet sie sonst aus) */
+@container (max-width: 600px) {
+  .pse-z .pse-os.fit .pc-z { display: block; font-size: max(6.5px, 1.75cqw); bottom: 1px; left: 1px; opacity: .8; }
+  .pse-z .pse-os.fit .pse-cell:not(.pse-ph) { padding-bottom: 7px; }
+}

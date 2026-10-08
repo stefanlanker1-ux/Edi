@@ -3,9 +3,9 @@
 // Texte: **fett** und `Code` werden von <RichText> formatiert.
 
 import {
-  BY_Z, STABLE_N, GROUP_NAMES, standardNeutrons, configuration, configString, shortConfigString, shells,
+  BY_Z, STABLE_N, standardNeutrons, configuration, configString, shortConfigString, shells,
   unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed, minus, groupLabel,
-  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, type Occupied,
+  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, type Occupied,
 } from "@lern/chem";
 import { mc, d, dis, validTraps, type Trap } from "@lern/quiz";
 import { tr } from "@lern/i18n";
@@ -73,8 +73,11 @@ const el = (Z: number) => BY_Z[Z];
 /** Ordnungszahl des Edelgaskerns in der Kurzschreibweise (Edelgas der vorherigen Periode) */
 const coreOf = (Z: number) => [0, 2, 10, 18, 36, 54, 86].filter(g => g < Z).pop()!;
 const neighbors = (Z: number, maxZ: number) => [Z - 1, Z + 1, Z - 2, Z + 2, Z + 8, Z - 8].filter(z => z >= 1 && z <= maxZ);
-/** Elemente, deren gemessene Konfiguration vom Aufbauprinzip abweicht (Cr, Cu, Pd, Au …): die App rechnet nach der Regel, das Quiz fragt sie nicht ab */
-const DEVIATING = new Set([24, 29, 41, 42, 44, 45, 46, 47, 57, 58, 64, 78, 79]);
+/**
+ * Elemente, deren gemessene Konfiguration vom Aufbauprinzip abweicht (Cr, Cu, Pd, Au …): Aufgaben, die das Aufbauprinzip üben,
+ * fragen sie nicht ab – die App zeigt sonst überall die gemessene Konfiguration (mit Hinweis „Ausnahme“).
+ */
+const DEVIATING = new Set(AUFBAU_EXCEPTIONS);
 const noExc = (Z: number) => !DEVIATING.has(Z);
 const mainGroup = (Z: number) => mainGroupNumber(Z) !== null;
 const maxOf = (pool: number[]) => Math.max(...pool);
@@ -219,11 +222,13 @@ export function buildAtom(pool: number[], ion = false): Task {
 export const elementFromBohr: Gen = pool => {
   const Z = pick(pool);
   const outer = shells(Z)[shells(Z).length - 1];
+  /** „2 + 8 + 1 = 11“, bei nur einer Schale „2“ */
+  const sum = shells(Z).length > 1 ? `${shells(Z).join(" + ")} = ${Z}` : String(Z);
   return {
     ...mc(el(Z).name, [
       ...(shells(Z).length > 1 && outer !== Z ? [d(el(outer).name, "nur-aussenschale", tr(`Du hast nur die äußerste Schale gezählt (${outer}). Für die Ordnungszahl zählen **alle** Elektronen: ${shells(Z).join(" + ")} = ${Z}.`, `You only counted the outer shell (${outer}). For the atomic number **all** electrons count: ${shells(Z).join(" + ")} = ${Z}.`))] : []),
-      ...(shells(Z).length !== Z && shells(Z).length !== outer ? [d(el(shells(Z).length).name, "schalen-statt-elektronen", tr(`${shells(Z).length} ist die Zahl der **Schalen**. Für die Ordnungszahl zählen die Elektronen: ${shells(Z).join(" + ")} = ${Z}.`, `${shells(Z).length} is the number of **shells**. For the atomic number the electrons count: ${shells(Z).join(" + ")} = ${Z}.`))] : []),
-      ...neighbors(Z, maxOf(pool)).map(z => dis(el(z).name, tr(`${el(z).name} hätte ${El(z)}. Hier: ${shells(Z).join(" + ")} = ${Z}.`, `${el(z).name} would have ${El(z)}. Here: ${shells(Z).join(" + ")} = ${Z}.`))),
+      ...(shells(Z).length !== Z && shells(Z).length !== outer ? [d(el(shells(Z).length).name, "schalen-statt-elektronen", tr(`${shells(Z).length} ist die Zahl der **Schalen**. Für die Ordnungszahl zählen die Elektronen: ${sum}.`, `${shells(Z).length} is the number of **shells**. For the atomic number the electrons count: ${sum}.`))] : []),
+      ...neighbors(Z, maxOf(pool)).map(z => dis(el(z).name, tr(`${el(z).name} hätte ${El(z)}. Hier: ${sum}.`, `${el(z).name} would have ${El(z)}. Here: ${sum}.`))),
     ]),
     prompt: tr("Welches Element zeigt dieses Bohrmodell? (neutrales Atom)", "Which element does this Bohr model show? (neutral atom)"),
     visual: { kind: "bohr", Z, N: standardNeutrons(Z), E: Z, labels: true },
@@ -252,17 +257,23 @@ export const fillShells: Gen = pool => {
 export const outerElectrons: Gen = pool => {
   const Z = pick(pool.filter(mainGroup));
   const v = valenceElectrons(Z)!, nper = shells(Z).length;
+  // volle Außenschale: K-Schale (H, He) mit 2, sonst 8
+  const full = Z <= 2 ? 2 : 8;
   return {
     ...mc(String(v), [
-      ...(nper !== v ? [d(String(nper), "aussen-periode", tr(`**${nper}** ist die Zahl der Schalen (Periode). Die Außenelektronen sitzen nur auf der äußersten Schale – ihre Zahl ist die Hauptgruppe.`, `**${nper}** is the number of shells (period). Outer electrons are only on the outer shell – their number is the main group.`))] : []),
+      ...(nper !== v ? [d(String(nper), "aussen-periode", tr(`**${nper}** ist die Zahl der Schalen (Periode). Die Außenelektronen sitzen nur auf der äußersten Schale – ${Z === 2 ? "bei Helium ist das die K-Schale mit 2 Elektronen" : "ihre Zahl ist die Hauptgruppe"}.`, `**${nper}** is the number of shells (period). Outer electrons are only on the outer shell – ${Z === 2 ? "for helium that is the K shell with 2 electrons" : "their number is the main group"}.`))] : []),
       ...(Z !== v && Z <= 12 ? [d(String(Z), "aussen-ordnungszahl", tr(`**${Z}** sind alle Elektronen. Gefragt sind nur die auf der äußersten Schale.`, `**${Z}** are all the electrons. Only those on the outer shell are asked for.`))] : []),
-      ...(8 - v !== v && v < 8 ? [d(String(8 - v), "aussen-fehlend", Z > 2
-        ? tr(`**${8 - v}** fehlen bis zur vollen Schale. Gefragt ist, wie viele **da** sind.`, `**${8 - v}** are missing for a full shell. The question is how many are **there**.`)
-        : tr(`${el(Z).name} hat nur die K-Schale, und die ist schon mit 2 voll. Gefragt ist, wie viele Außenelektronen **da** sind: ${v}.`, `${el(Z).name} only has the K shell, which is already full with 2. The question is how many outer electrons are **there**: ${v}.`))] : []),
+      ...(full - v !== v && v < full ? [d(String(full - v), "aussen-fehlend", tr(`**${full - v}** fehlen bis zur vollen Schale. Gefragt ist, wie viele **da** sind.`, `**${full - v}** are missing for a full shell. The question is how many are **there**.`))] : []),
+      // Wasserstoff: Platz auf der K-Schale (2) mit der Zahl der Elektronen (1) verwechselt
+      ...(Z === 1 ? [d("2", "kapazitaet-statt-anzahl", tr("Die K-Schale fasst 2 Elektronen – Wasserstoff hat aber nur **1**.", "The K shell holds 2 electrons – but hydrogen only has **1**."))] : []),
+      // Helium steht bei den Edelgasen (VIII. Hauptgruppe), hat aber nur 2 Elektronen
+      ...(Z === 2 ? [d("8", "helium-acht", tr("Helium steht zwar in der VIII. Hauptgruppe, hat aber nur **2** Elektronen. Beide sitzen auf der K-Schale, die damit voll ist.", "Helium is in main group VIII, but it only has **2** electrons. Both sit on the K shell, which is then full."))] : []),
       ...nums(nearNums(v, 1)),
     ]),
     prompt: tr(`Wie viele **Außenelektronen** hat ein **${el(Z).name}**-Atom?`, `How many **outer electrons** does a **${el(Z).name}** atom have?`),
-    hint: tr("Schau, in welcher Hauptgruppe das Element steht.", "Look at which main group the element is in."),
+    hint: Z === 2
+      ? tr("Helium hat nur eine Schale. Wie viele Elektronen hat das ganze Atom?", "Helium has only one shell. How many electrons does the whole atom have?")
+      : tr("Schau, in welcher Hauptgruppe das Element steht.", "Look at which main group the element is in."),
     explain: Z === 2
       ? tr("Helium hat nur die K-Schale mit **2** Elektronen – sie ist damit voll (Edelgas).", "Helium only has the K shell with **2** electrons – so it is full (noble gas).")
       : tr(`${el(Z).name} steht in der ${ROMAN[v]}. Hauptgruppe → **${v}** ${v === 1 ? "Außenelektron" : "Außenelektronen"} (Schalen: ${shells(Z).join(", ")}).`,
@@ -283,7 +294,7 @@ export const periodFromShells: Gen = pool => {
     ]),
     prompt: tr(`Auf wie vielen **Schalen** verteilen sich die Elektronen von **${el(Z).name}**?`, `On how many **shells** are the electrons of **${el(Z).name}** arranged?`),
     hint: tr("Die Nummer der Periode verrät die Anzahl der Schalen.", "The period number tells you the number of shells."),
-    explain: tr(`${el(Z).name} steht in der **${el(Z).period}. Periode** → **${n}** besetzte Schalen`, `${el(Z).name} is in **period ${el(Z).period}** → **${n}** occupied shells`) + ` (${shells(Z).map((c, i) => SHELL_NAMES[i] + " " + c).join(", ")}).`,
+    explain: tr(`${el(Z).name} steht in der **${el(Z).period}. Periode** → **${n}** besetzte Schale${n === 1 ? "" : "n"}`, `${el(Z).name} is in **period ${el(Z).period}** → **${n}** occupied shell${n === 1 ? "" : "s"}`) + ` (${shells(Z).map((c, i) => SHELL_NAMES[i] + " " + c).join(", ")}).`,
   };
 };
 
@@ -341,7 +352,7 @@ export const typicalIon: Gen = pool => {
     ]),
     prompt: tr(`Welches Ion bildet **${el(Z).name}** meist?`, `Which ion does **${el(Z).name}** usually form?`),
     hint: tr("Metalle geben ihre Außenelektronen ab, Nichtmetalle nehmen bis 8 auf. Das Ion hat dann Edelgaskonfiguration.", "Metals lose their outer electrons, non-metals gain up to 8. The ion then has a noble gas configuration."),
-    explain: tr(`${el(Z).name} hat ${Ae(valenceElectrons(Z)!)}. ${q > 0 ? `Es gibt ${q} ab` : `Es nimmt ${-q} auf`}. Dann hat das Ion dieselbe Elektronenanordnung wie ein Edelgas → **${opt(q)}**.`,
+    explain: tr(`${el(Z).name} hat ${Ae(valenceElectrons(Z)!)}. ${elementPronoun(Z)} ${q > 0 ? `gibt ${q} ab` : `nimmt ${-q} auf`}. Dann hat das Ion dieselbe Elektronenanordnung wie ein Edelgas → **${opt(q)}**.`,
       `${el(Z).name} has ${Ae(valenceElectrons(Z)!)}. ${q > 0 ? `It loses ${q}` : `It gains ${-q}`}. Then the ion has the same electron arrangement as a noble gas → **${opt(q)}**.`),
   };
 };
@@ -452,8 +463,9 @@ export const fillBoxes: Gen = pool => {
 
 const blk = (b: string) => tr(`${b}-Block`, `${b} block`);
 export const blockMC: Gen = pool => {
-  // Lutetium ausgenommen: steht hier bei den Lanthanoiden, wird aber zuletzt in 5d befüllt (Zuordnung umstritten)
-  const Z = pick(pool.filter(z => z > 2 && z !== 71));
+  // Lutetium ausgenommen: steht hier bei den Lanthanoiden, wird aber zuletzt in 5d befüllt (Zuordnung umstritten);
+  // ebenso die Ausnahmen vom Aufbauprinzip (La, Ce, Gd: gemessen ein 5d-Elektron, stehen aber im f-Block)
+  const Z = pick(pool.filter(z => z > 2 && z !== 71 && noExc(z)));
   const b = blockOf(Z);
   const cfg = configuration(Z, Z);
   return {
@@ -476,7 +488,9 @@ export const unpairedMC: Gen = pool => {
   return {
     ...mc(String(u), [
       ...(last.count !== u && last.count <= 7 ? [d(String(last.count), "hund-alle-einzeln", tr(`In ${last.key} sitzen ${last.count} Elektronen, aber nur ${last.max / 2} Kästchen. Nach Hund werden erst alle Kästchen einzeln besetzt, dann wird gepaart.`, `${last.key} has ${last.count} electrons but only ${last.max / 2} boxes. By Hund's rule all boxes are filled singly first, then paired.`))] : []),
-      ...(u !== 0 ? [d("0", "hund-alle-gepaart", tr(`Nach der Hund'schen Regel werden Kästchen gleicher Energie zuerst **einzeln** besetzt – in ${last.key}${sup(last.count)} bleiben Elektronen ungepaart.`, `By Hund's rule boxes of equal energy are filled **singly** first – in ${last.key}${sup(last.count)} electrons stay unpaired.`))] : []),
+      ...(u !== 0 ? [d("0", "hund-alle-gepaart", last.count === 1
+        ? tr(`In ${last.key}¹ sitzt nur **1** Elektron – ohne Partner im Kästchen bleibt es ungepaart.`, `${last.key}¹ holds only **1** electron – with no partner in its box it stays unpaired.`)
+        : tr(`Nach der Hund'schen Regel werden Kästchen gleicher Energie zuerst **einzeln** besetzt – in ${last.key}${sup(last.count)} bleiben Elektronen ungepaart.`, `By Hund's rule boxes of equal energy are filled **singly** first – in ${last.key}${sup(last.count)} electrons stay unpaired.`))] : []),
       ...nearNums(u, 0).map(n => dis(String(n), tr(`Kästchen zeichnen: ${last.key}${sup(last.count)} → ${u} ungepaart.`, `Draw the boxes: ${last.key}${sup(last.count)} → ${u} unpaired.`))),
     ]),
     prompt: tr(`Wie viele **ungepaarte Elektronen** hat ein **${el(Z).name}**-Atom?`, `How many **unpaired electrons** does a **${el(Z).name}** atom have?`),
@@ -559,8 +573,8 @@ export const periodGroupFromConfig: Gen = pool => {
       lbl(e.period, g <= 2 ? g + 1 : g - 1), lbl(e.period - 1 || 2, g),
     ]),
     prompt: tr(`Ein Element hat die Konfiguration \`${shortConfigString(Z)}\`. Wo steht es im Periodensystem?`, `An element has the configuration \`${shortConfigString(Z)}\`. Where is it in the periodic table?`),
-    hint: tr("Höchste Hauptquantenzahl n = Periode. Anzahl der Außenelektronen (s + p) → Hauptgruppe.", "Highest principal quantum number n = period. Number of outer electrons (s + p) → main group."),
-    explain: tr(`Höchstes n = ${e.period} → ${e.period}. Periode. ${Ae(valenceElectrons(Z)!)} → Gruppe ${g}`, `Highest n = ${e.period} → period ${e.period}. ${Ae(valenceElectrons(Z)!)} → group ${g}`) + `${GROUP_NAMES[g] ? ` (${GROUP_NAMES[g]})` : ""}: **${e.name}**.`,
+    hint: tr("Höchste Hauptquantenzahl n = Periode. Außenelektronen (s + p) zählen: im s-Block = Gruppe, im p-Block + 10 = Gruppe.", "Highest principal quantum number n = period. Count the outer electrons (s + p): in the s block = group, in the p block + 10 = group."),
+    explain: tr(`Höchstes n = ${e.period} → ${e.period}. Periode. ${Ae(valenceElectrons(Z)!)}${g >= 13 ? " + 10" : ""} → Gruppe ${g}`, `Highest n = ${e.period} → period ${e.period}. ${Ae(valenceElectrons(Z)!)}${g >= 13 ? " + 10" : ""} → group ${g}`) + `${groupName(Z) ? ` (${groupName(Z)})` : ""}: **${e.name}**.`,
   };
 };
 
@@ -618,7 +632,7 @@ export const LEVELS: Record<Stufe, Level[]> = {
       types: ["particles", "mass", "fromProtons", "pse", "buildAtom"] },
     { id: "us-2", name: tr("Schalenmodell", "Shell model"), desc: tr("Bohrmodell lesen, Schalen füllen, Außenelektronen", "Reading the Bohr model, filling shells, outer electrons"),
       types: ["fromBohr", "shells", "outer", "period", "pseGroup"] },
-    { id: "us-3", name: tr("Ionen & Isotope", "Ions & isotopes"), desc: tr("Ladungen, Isotope und Edelgasregel", "Charges, isotopes and the noble gas rule"),
+    { id: "us-3", name: tr("Ionen & Isotope", "Ions & isotopes"), desc: tr("Ladungen, Isotope und Edelgaskonfiguration", "Charges, isotopes and noble gas configuration"),
       types: ["ionCharge", "isotope", "typicalIon", "buildIon", "isoCompare"] },
   ],
   os: [

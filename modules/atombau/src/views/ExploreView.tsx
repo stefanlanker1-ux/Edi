@@ -4,13 +4,14 @@
 import { useEffect, useState } from "react";
 import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, useReducedMotion } from "@lern/ui";
 import {
-  BY_Z, CATEGORIES, GROUP_NAMES, searchElements, standardNeutrons, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons,
+  BY_Z, CATEGORIES, groupName, searchElements, standardNeutrons, configuration, configString, shortConfigString,
+  shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons, configException,
   ELEMENTS, TRENDS, trendScale, kindLabel, type Category, type TrendKey, mainGroupNumber, ROMAN,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { PeriodicTable, Legend, BlockLegend } from "@lern/chem-ui";
 import { SearchBox } from "../components/ElementPicker.tsx";
+import { ExceptionTag } from "../components/ConfigNote.tsx";
 import { Bohr, Nuclide, EnergyDiagram } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 
@@ -82,8 +83,8 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
     ["p⁺ · n · e⁻", `${Z} · ${N} · ${Z}`],
     [tr("Periode", "Period"), tr(`${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`, `${el.period} (${sh.length} shell${sh.length > 1 ? "s" : ""})`)],
     os || mainGroupNumber(Z) === null
-      ? [tr("Gruppe", "Group"), el.group === null ? tr("Lanthanoide", "Lanthanoids") : `${el.group}${GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`]
-      : [tr("Hauptgruppe", "Main group"), `${ROMAN[mainGroupNumber(Z)!]}${el.group && GROUP_NAMES[el.group] ? ` · ${GROUP_NAMES[el.group]}` : ""}`],
+      ? [tr("Gruppe", "Group"), el.group === null ? tr("Lanthanoide", "Lanthanoids") : `${el.group}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`]
+      : [tr("Hauptgruppe", "Main group"), `${ROMAN[mainGroupNumber(Z)!]}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`],
     [tr("Art", "Type"), kindLabel(CATEGORIES[el.category].kind)],
   ];
   if (val !== null) rows.push([tr("Außenelektronen", "Outer electrons"), val]);
@@ -107,6 +108,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
           <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
         </div>
       </div>
+      {os && configException(Z) && <div className="ui-tags"><ExceptionTag Z={Z} /></div>}
       <dl className="d-facts">{key.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
     </FitDown>
   );
@@ -118,6 +120,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
         <>
           <p className="cfg-line"><span className="cfg-k">{tr("Ausführlich", "Full")}</span><code>{configString(cfg)}</code></p>
           <p className="cfg-line"><span className="cfg-k">{tr("Kurz", "Short")}</span><code>{shortConfigString(Z)}</code></p>
+          {configException(Z) && <div className="ui-tags"><ExceptionTag Z={Z} /></div>}
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={cfg} /></FitDown>
         </>
       ),

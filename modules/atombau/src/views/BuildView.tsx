@@ -5,10 +5,11 @@ import { useRef, useState } from "react";
 import { Button, FitDown, IconButton, Stepper, Switch, Tag, Workbench, buzz, useReducedMotion, type WorkbenchTool } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, STABLE_N, standardNeutrons, ionName, isStable, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, chargeSup, signed, mainGroupNumber, ROMAN,
+  shells, SHELL_NAMES, chargeSup, signed, mainGroupNumber, ROMAN, configException,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { ElementPicker } from "../components/ElementPicker.tsx";
+import { ExceptionTag } from "../components/ConfigNote.tsx";
 import { Bohr, type Particle, Nuclide, EnergyDiagram, OrbitalAtom } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 
@@ -62,14 +63,17 @@ export function BuildView() {
     },
     {
       id: "steckbrief", label: tr("Steckbrief", "Profile"), icon: "info", content: (
-        <dl className="facts">
-          <div><dt>{tr("Ordnungszahl Z", "Atomic number Z")}</dt><dd>{Z}</dd></div>
-          <div><dt>{tr("Massenzahl A", "Mass number A")}</dt><dd>{Z + N}</dd></div>
-          <div><dt>{tr("Ladung", "Charge")}</dt><dd>{signed(q)}</dd></div>
-          {el && <div><dt>{tr("Periode", "Period")} · {os ? tr("Gruppe", "Group") : tr("Hauptgruppe", "Main group")}</dt><dd>{el.period} · {os ? (el.group ?? "La–Lu") : (mainGroupNumber(Z) ? ROMAN[mainGroupNumber(Z)!] : `${tr("Gruppe", "Group")} ${el.group ?? "La–Lu"}`)}</dd></div>}
-          <div><dt>{tr("Schalen", "Shells")}</dt><dd>{sh.length ? sh.map((c, i) => `${SHELL_NAMES[i]}${c}`).join(" ") : "–"}</dd></div>
-          {el && isStable(Z, N) === false && <div><dt>{tr("Stabile Isotope", "Stable isotopes")}</dt><dd>{STABLE_N[Z].map(n => `${el.symbol}-${Z + n}`).join(", ")}</dd></div>}
-        </dl>
+        <>
+          <dl className="facts">
+            <div><dt>{tr("Ordnungszahl Z", "Atomic number Z")}</dt><dd>{Z}</dd></div>
+            <div><dt>{tr("Massenzahl A", "Mass number A")}</dt><dd>{Z + N}</dd></div>
+            <div><dt>{tr("Ladung", "Charge")}</dt><dd>{signed(q)}</dd></div>
+            {el && <div><dt>{tr("Periode", "Period")} · {os ? tr("Gruppe", "Group") : tr("Hauptgruppe", "Main group")}</dt><dd>{el.period} · {os ? (el.group ?? "La–Lu") : (mainGroupNumber(Z) ? ROMAN[mainGroupNumber(Z)!] : `${tr("Gruppe", "Group")} ${el.group ?? "La–Lu"}`)}</dd></div>}
+            <div><dt>{tr("Schalen", "Shells")}</dt><dd>{sh.length ? sh.map((c, i) => `${SHELL_NAMES[i]}${c}`).join(" ") : "–"}</dd></div>
+            {el && isStable(Z, N) === false && <div><dt>{tr("Stabile Isotope", "Stable isotopes")}</dt><dd>{STABLE_N[Z].map(n => `${el.symbol}-${Z + n}`).join(", ")}</dd></div>}
+          </dl>
+          {os && el && E > 0 && configException(Z, E) && <div className="ui-tags"><ExceptionTag Z={Z} E={E} /></div>}
+        </>
       ),
     },
     ...(os && E > 0 ? [{
@@ -77,7 +81,12 @@ export function BuildView() {
         <>
           <p className="cfg-line"><span className="cfg-k">{tr("Ausführlich", "Full")}</span><code>{configString(configuration(Z, E))}</code></p>
           <p className="cfg-line"><span className="cfg-k">{tr("Kurz", "Short")}</span><code>{shortConfigString(Z, E)}</code></p>
-          {q > 0 && Z > 20 && <div className="ui-tags"><Tag>{tr("Kation: zuerst höchstes n abgeben", "Cation: highest n is lost first")}</Tag></div>}
+          {((q > 0 && Z > 20) || configException(Z, E)) && (
+            <div className="ui-tags">
+              {q > 0 && Z > 20 && <Tag>{tr("Kation: zuerst höchstes n abgeben", "Cation: highest n is lost first")}</Tag>}
+              <ExceptionTag Z={Z} E={E} />
+            </div>
+          )}
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={configuration(Z, E)} color={orbitalColors} /></FitDown>
           <Switch checked={orbitalColors} onChange={v => setOpt({ orbitalColors: v })}>
             {tr("Nach Orbital färben", "Colour by orbital")} (<b className="t-s">s</b> <b className="t-p">p</b> <b className="t-d">d</b> <b className="t-f">f</b>)

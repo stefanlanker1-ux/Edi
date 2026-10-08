@@ -107,7 +107,7 @@ function build(os: boolean): Task {
   // Fallen: QuizView meldet atomsOff (Atomzahl stimmt nicht), multi (Mehrfachbindungen gesetzt), complete (alle Oktette voll)
   const traps: Trap[] = [
     { field: "atomsOff", value: 1, miss: "atomzahl-falsch", why: tr(`${k.name} ist ${sub(k.formula)}: ${num(k.atoms.length, "Atom", "Atome")}. Zähle die Atome in der Formel.`, `${k.name} is ${sub(k.formula)}: ${num(k.atoms.length, "atom", "atoms")}. Count the atoms in the formula.`) },
-    ...(multi ? [{ field: "multi", value: 0, miss: "mehrfachbindung-uebersehen", why: tr(`${k.name} braucht ${bondList(k)}. Tipp aufs Bindungs-Oval macht aus einer Einfach- eine Zweifachbindung.`, `${k.name} needs ${bondList(k)}. Tapping the bond oval turns a single bond into a double bond.`) }] : []),
+    ...(multi ? [{ field: "multi", value: 0, miss: "mehrfachbindung-uebersehen", why: tr(`${k.name} hat ${bondList(k)}. Tipp aufs Bindungs-Oval macht aus einer Einfach- eine Zweifachbindung.`, `${k.name} has ${bondList(k)}. Tapping the bond oval turns a single bond into a double bond.`) }] : []),
     { field: "complete", value: 0, miss: "oktett-offen", why: tr("Ein Atom hat noch nicht 8 Elektronen (H: 2) – der rote Kreis zeigt es. Fertig ist ein Molekül erst, wenn alle Kreise ✓ sind.", "An atom does not yet have 8 electrons (H: 2) – the red circle shows it. A molecule is only finished when all circles show ✓.") },
   ];
   return {
@@ -181,7 +181,7 @@ function nameQ(os: boolean): Task {
   const k = pickFor(os, pool(os));
   const els = (f: string) => composition(f).map(([el]) => el).sort().join();
   // Moleküle aus denselben Elementen zuerst (CH₄ ↔ C₂H₆, H₂O ↔ H₂O₂): genau zählen
-  const alike = shuffle(pool(true).filter(x => x.id !== k.id && x.name !== k.name && els(x.formula) === els(k.formula)));
+  const alike = shuffle(pool(os).filter(x => x.id !== k.id && x.name !== k.name && els(x.formula) === els(k.formula)));
   return {
     ...mc(k.name, [
       ...alike.slice(0, 3).map(x => d(x.name, "name-verwechselt", tr(`${x.name} ist ${sub(x.formula)} – dieselben Elemente, aber andere Anzahl. ${sub(k.formula)} ist **${k.name}**.`, `${x.name} is ${sub(x.formula)} – the same elements but different numbers. ${sub(k.formula)} is **${mid(k)}**.`))),
@@ -204,39 +204,40 @@ function geometry(): Task {
   const G = geo(s.geometry);
   const pairsDe = (n: number) => num(n, "freies Paar", "freie Paare"), pairsEn = (n: number) => num(n, "lone pair", "lone pairs");
   const wrongs = [
-    s.pairs > 0 && noPairs !== s.geometry ? d(geo(noPairs), "freie-paare-ignoriert", tr(`${c.el} hat ${num(s.pairs, "freies Elektronenpaar", "freie Elektronenpaare")}. Auch sie brauchen Platz und drücken die Bindungen weg → ${G}.`, `${c.el} has ${pairsEn(s.pairs)}. They need space too and push the bonds away → ${G}.`)) : null,
-    s.pairs > 0 && s.neighbors + s.pairs === 4 ? d(geo("tetraedrisch"), "elektronen-statt-atome", tr(`Die 4 Elektronenpaare zeigen zwar in die Ecken eines Tetraeders – die Form beschreibt aber nur die **Atome**: ${s.neighbors} Partner + ${pairsDe(s.pairs)} → ${G}.`, `The 4 electron pairs do point to the corners of a tetrahedron – but the shape only describes the **atoms**: ${s.neighbors} partners + ${pairsEn(s.pairs)} → ${G}.`)) : null,
+    s.pairs > 0 && noPairs !== s.geometry ? d(geo(noPairs), "freie-paare-ignoriert", tr(`${c.el} hat ${num(s.pairs, "freies Elektronenpaar", "freie Elektronenpaare")}. ${s.pairs === 1 ? "Auch es nimmt Raum ein und drückt" : "Auch sie nehmen Raum ein und drücken"} die Bindungen weg → ${G}.`, `${c.el} has ${pairsEn(s.pairs)}. ${s.pairs === 1 ? "It takes up space too and pushes" : "They take up space too and push"} the bonds away → ${G}.`)) : null,
+    s.pairs > 0 && s.neighbors + s.pairs === 4 ? d(geo("tetraedrisch"), "elektronen-statt-atome", tr(`Die 4 Bereiche zeigen zwar in die Ecken eines Tetraeders – die Form beschreibt aber nur die **Atome**: ${s.neighbors} Bindungspartner + ${pairsDe(s.pairs)} → ${G}.`, `The 4 regions do point to the corners of a tetrahedron – but the shape only describes the **atoms**: ${s.neighbors} bonding partners + ${pairsEn(s.pairs)} → ${G}.`)) : null,
     s.pairs === 0 && s.neighbors === 2 ? d(geo("gewinkelt"), "aussen-paare-gezaehlt", tr(`Nur das Zentralatom ${c.el} zählt – und es hat kein freies Paar. Die freien Paare der Außenatome ändern die Form nicht → linear.`, `Only the central atom ${c.el} counts – and it has no lone pair. The lone pairs of the outer atoms do not change the shape → linear.`)) : null,
-    hasMulti && s.geometry !== "tetraedrisch" ? d(geo("tetraedrisch"), "mehrfachbindung-doppelt-gezaehlt", tr(`Eine Mehrfachbindung zählt wie **ein** Partner. ${c.el} hat ${s.neighbors} Partner${s.pairs ? ` + ${pairsDe(s.pairs)}` : ""} → ${G}.`, `A multiple bond counts as **one** partner. ${c.el} has ${s.neighbors} partners${s.pairs ? ` + ${pairsEn(s.pairs)}` : ""} → ${G}.`)) : null,
+    hasMulti && s.geometry !== "tetraedrisch" ? d(geo("tetraedrisch"), "mehrfachbindung-doppelt-gezaehlt", tr(`Eine Mehrfachbindung zählt wie **ein** Bereich. ${c.el} hat ${s.neighbors + s.pairs} Bereiche → ${G}.`, `A multiple bond counts as **one** region. ${c.el} has ${s.neighbors + s.pairs} regions → ${G}.`)) : null,
     ...GEOMS,
   ];
   return {
     ...mc(G, wrongs),
-    prompt: tr(`Welche **Molekülgeometrie** hat **${k.name}** (${sub(k.formula)})?`, `What is the **molecular shape** of **${mid(k)}** (${sub(k.formula)})?`),
-    hint: tr("EPA-Modell: Bindungspartner und freie Elektronenpaare am Zentralatom stoßen sich ab. Mehrfachbindungen zählen wie eine.", "VSEPR model: bonding partners and lone pairs on the central atom repel each other. Multiple bonds count as one."),
-    explain: tr(`Zentralatom ${centerOf(k).el}: ${s.neighbors} Bindungspartner + ${s.pairs === 1 ? "1 freies Paar" : `${s.pairs} freie Paare`} → **${G}** (Winkel ${s.angle}).`, `Central atom ${centerOf(k).el}: ${s.neighbors} bonding partners + ${pairsEn(s.pairs)} → **${G}** (angle ${s.angle}).`),
+    prompt: tr(`Welche **Molekülform** hat **${k.name}** (${sub(k.formula)})?`, `What is the **molecular shape** of **${mid(k)}** (${sub(k.formula)})?`),
+    hint: tr("EPA-Modell: Zähle die Bereiche am Zentralatom – jede Bindung (auch eine Mehrfachbindung) und jedes freie Paar ist einer.", "VSEPR model: count the regions on the central atom – each bond (a multiple bond too) and each lone pair is one."),
+    explain: tr(`Zentralatom ${centerOf(k).el}: ${s.neighbors} Bindungspartner + ${s.pairs === 1 ? "1 freies Paar" : `${s.pairs} freie Paare`} = ${s.neighbors + s.pairs} Bereiche → **${G}** (Winkel ${s.angle}).`, `Central atom ${centerOf(k).el}: ${s.neighbors} bonding partners + ${pairsEn(s.pairs)} = ${s.neighbors + s.pairs} regions → **${G}** (angle ${s.angle}).`),
   };
 }
 
 function angle(): Task {
   const k = pick(KNOWN.filter(x => ["H2O", "NH3", "CH4", "CO2", "CH2O", "HCN"].includes(x.id)));
   const m = mols(k), c = centerOf(k), s = shapeAt(m, c.id)!;
-  const opts = ["180°", "120°", "109,5°", "107°", "104,5°"].map(dec);
+  // trigonal-planar mit verschiedenen Partnern (Methanal): „ca. 120°“ statt genau 120°
+  const opts = ["180°", "120°", "109,5°", "107°", "104,5°"].map(dec).map(o => (o === "120°" && s.geometry === "trigonal-planar" ? s.angle : o));
   const noPairs = s.neighbors === 2 ? "180°" : s.neighbors === 3 ? "120°" : dec("109,5°");
   const hasMulti = m.bonds.some(b => (b.a === c.id || b.b === c.id) && b.order > 1);
   const wrongs = [
     s.pairs > 0 ? d(dec("109,5°"), "stauchung-ignoriert", tr(`109,5° gilt für 4 Bindungen ohne freie Paare. ${s.pairs === 1 ? "Das freie Paar drückt" : `Die ${s.pairs} freien Paare drücken`} stärker → etwas kleiner: ${s.angle}.`, `109.5° applies to 4 bonds without lone pairs. ${s.pairs === 1 ? "The lone pair pushes" : `The ${s.pairs} lone pairs push`} harder → slightly smaller: ${s.angle}.`)) : null,
-    s.pairs > 0 ? d(noPairs, "freie-paare-ignoriert", tr(`${c.el} hat ${num(s.pairs, "freies Elektronenpaar", "freie Elektronenpaare")}, das mitzählt: ${s.neighbors + s.pairs} Richtungen → Tetraeder-Winkel, durch die freien Paare leicht gedrückt: ${s.angle}.`, `${c.el} has ${num(s.pairs, "lone pair", "lone pairs")}, which count too: ${s.neighbors + s.pairs} directions → tetrahedral angle, slightly squeezed by the lone pairs: ${s.angle}.`)) : null,
+    s.pairs > 0 ? d(noPairs, "freie-paare-ignoriert", tr(`${c.el} hat ${num(s.pairs, "freies Elektronenpaar, das", "freie Elektronenpaare, die")} ${s.pairs === 1 ? "mitzählt" : "mitzählen"}: ${s.neighbors + s.pairs} Bereiche → Tetraederwinkel, durch die freien Paare leicht gedrückt: ${s.angle}.`, `${c.el} has ${num(s.pairs, "lone pair, which counts", "lone pairs, which count")} too: ${s.neighbors + s.pairs} regions → tetrahedral angle, slightly squeezed by the lone pairs: ${s.angle}.`)) : null,
     s.geometry === "tetraedrisch" ? d("90°", "wuerfel-statt-tetraeder", tr("90° wäre die Zeichnung auf dem Papier. Im Raum weichen die 4 Bindungen so weit wie möglich aus → Tetraeder, 109,5°.", "90° would be the drawing on paper. In space the 4 bonds spread as far apart as possible → tetrahedron, 109.5°.")) : null,
-    hasMulti ? d(dec("109,5°"), "mehrfachbindung-doppelt-gezaehlt", tr(`Eine Mehrfachbindung zählt wie **ein** Partner: ${c.el} hat ${s.neighbors} Richtungen → ${s.angle}.`, `A multiple bond counts as **one** partner: ${c.el} has ${s.neighbors} directions → ${s.angle}.`)) : null,
+    hasMulti ? d(dec("109,5°"), "mehrfachbindung-doppelt-gezaehlt", tr(`Eine Mehrfachbindung zählt wie **ein** Bereich: ${c.el} hat ${s.neighbors + s.pairs} Bereiche → ${s.angle}.`, `A multiple bond counts as **one** region: ${c.el} has ${s.neighbors + s.pairs} regions → ${s.angle}.`)) : null,
     s.pairs === 0 && s.neighbors === 2 ? d(dec("104,5°"), "aussen-paare-gezaehlt", tr(`Die freien Paare sitzen an den Außenatomen, nicht am Zentralatom ${c.el} → gestreckt, 180°.`, `The lone pairs sit on the outer atoms, not on the central atom ${c.el} → straight, 180°.`)) : null,
     ...opts,
   ];
   return {
     ...mc(s.angle, wrongs),
     prompt: tr(`Welchen **Bindungswinkel** hat **${k.name}** (${sub(k.formula)})?`, `What is the **bond angle** in **${mid(k)}** (${sub(k.formula)})?`),
-    hint: tr("Tetraeder 109,5°. Freie Elektronenpaare brauchen mehr Platz und drücken die Bindungen etwas zusammen.", "Tetrahedron 109.5°. Lone pairs need more space and push the bonds a little closer together."),
-    explain: tr(`${k.name} ist ${s.geometry} → **${s.angle}**.${s.pairs ? " Die freien Elektronenpaare stoßen stärker ab als bindende Paare." : ""}`, `${k.name} is ${geo(s.geometry)} → **${s.angle}**.${s.pairs ? " Lone pairs repel more strongly than bonding pairs." : ""}`),
+    hint: tr("Tetraeder 109,5°. Freie Elektronenpaare nehmen mehr Raum ein und drücken die Bindungen etwas zusammen.", "Tetrahedron 109.5°. Lone pairs take up more space and push the bonds a little closer together."),
+    explain: tr(`${k.name} ist ${geo(s.geometry)} → **${s.angle}**.${s.pairs ? " Freie Elektronenpaare stoßen stärker ab als bindende Paare." : ""}`, `${k.name} is ${geo(s.geometry)} → **${s.angle}**.${s.pairs ? " Lone pairs repel more strongly than bonding pairs." : ""}`),
   };
 }
 
@@ -250,7 +251,10 @@ function polar(): Task {
   const wrongs = [
     p
       ? (m.atoms.length > 2
-        ? d(UNP, "form-uebersehen", tr(`${k.name} ist ${shapeAt(m, centerOf(k).id)!.geometry}, nicht symmetrisch: Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, not symmetrical: the partial charges do not cancel → dipole.`))
+        ? (new Set(m.atoms.filter(a => a.id !== centerOf(k).id).map(a => a.el)).size > 1
+          // gleiche Form wie ein symmetrisches Molekül (Tetraeder), aber verschiedene Bindungspartner
+          ? d(UNP, "partner-ungleich", tr(`${k.name} ist zwar ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, aber die Partner sind verschieden: Nur ${polarBonds(m).map(b => `${m.atoms.find(a => a.id === b.plus)!.el}–${m.atoms.find(a => a.id === b.minus)!.el}`).filter((x, i, a) => a.indexOf(x) === i).join(", ")} ist polar. Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, but the partners differ: only ${polarBonds(m).map(b => `${m.atoms.find(a => a.id === b.plus)!.el}–${m.atoms.find(a => a.id === b.minus)!.el}`).filter((x, i, a) => a.indexOf(x) === i).join(", ")} is polar. The partial charges do not cancel → dipole.`))
+          : d(UNP, "form-uebersehen", tr(`${k.name} ist ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, nicht symmetrisch: Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, not symmetrical: the partial charges do not cancel → dipole.`)))
         : d(UNP, "en-uebersehen", tr(`ΔEN = ${delta.toFixed(2).replace(".", ",")} ≥ 0,4: Das elektronegativere Atom zieht die Elektronen zu sich → polare Bindung = polares Molekül (nur 2 Atome).`, `ΔEN = ${delta.toFixed(2)} ≥ 0.4: the more electronegative atom pulls the electrons towards itself → polar bond = polar molecule (only 2 atoms).`)))
       : (hasPolarBonds
         ? d(POL, "polare-bindung-polares-molekuel", tr(`Die Bindungen sind polar, aber ${k.name} ist symmetrisch gebaut: Die Teilladungen heben sich gegenseitig auf → kein Dipol.`, `The bonds are polar, but ${mid(k)} is symmetrical: the partial charges cancel each other → no dipole.`))
@@ -265,7 +269,9 @@ function polar(): Task {
     prompt: tr(`Ist das Molekül **${k.name}** (${sub(k.formula)}) polar oder unpolar?`, `Is the molecule **${mid(k)}** (${sub(k.formula)}) polar or non-polar?`),
     hint: tr("1. Gibt es polare Bindungen (ΔEN ≥ 0,4)? 2. Heben sich die Teilladungen durch den symmetrischen Bau auf?", "1. Are there polar bonds (ΔEN ≥ 0.4)? 2. Do the partial charges cancel because of a symmetrical shape?"),
     explain: p
-      ? tr(`${k.name} hat polare Bindungen, und die Teilladungen heben sich nicht auf → **polar** (Dipol).`, `${k.name} has polar bonds, and the partial charges do not cancel → **polar** (dipole).`)
+      ? (m.bonds.length === 1
+        ? tr(`${k.name} hat eine polare Bindung (ΔEN ${dec(delta.toFixed(2))}) → **polar** (Dipol).`, `${k.name} has a polar bond (ΔEN ${delta.toFixed(2)}) → **polar** (dipole).`)
+        : tr(`${k.name} hat polare Bindungen, und die Teilladungen heben sich nicht auf → **polar** (Dipol).`, `${k.name} has polar bonds, and the partial charges do not cancel → **polar** (dipole).`))
       : tr(`${k.name}: ${hasPolarBonds ? "Die Bindungen sind zwar polar, aber der symmetrische Bau hebt die Teilladungen auf"
         : k.id === "CH4" ? "Die C–H-Bindungen sind kaum polar (ΔEN 0,35), und der Bau ist symmetrisch"
         : "Keine polaren Bindungen (gleiche oder fast gleiche Elektronegativität)"} → **unpolar**.`,
@@ -303,7 +309,7 @@ const GENS = (os: boolean): Record<string, () => Task> => ({
 
 export const TYPE_NAMES: Record<string, string> = tr({
   bindigkeit: "Anzahl der Bindungen", around: "Oktett und Duett", lonePairs: "Freie Elektronenpaare", build: "Moleküle bauen",
-  bondType: "Mehrfachbindungen", formula: "Formeln", name: "Namen", geometry: "Molekülgeometrie", angle: "Bindungswinkel",
+  bondType: "Mehrfachbindungen", formula: "Formeln", name: "Namen", geometry: "Molekülform", angle: "Bindungswinkel",
   polar: "Polarität", strongest: "Polare Bindungen",
 }, {
   bindigkeit: "Number of bonds", around: "Octet and duet", lonePairs: "Lone pairs", build: "Building molecules",
@@ -320,7 +326,7 @@ export const LEVELS: Record<Stufe, Level[]> = {
   ],
   os: [
     { id: "os-1", name: tr("Moleküle bauen", "Building molecules"), desc: tr("Auch Ethen, Ethin, Methanol, Blausäure …", "Also ethene, ethyne, methanol, hydrogen cyanide …"), types: ["build", "bondType", "lonePairs"] },
-    { id: "os-2", name: tr("Molekülgeometrie", "Molecular shape"), desc: tr("EPA-Modell: Form und Bindungswinkel", "VSEPR model: shape and bond angles"), types: ["geometry", "angle", "lonePairs"] },
+    { id: "os-2", name: tr("Molekülform", "Molecular shape"), desc: tr("EPA-Modell: Form und Bindungswinkel", "VSEPR model: shape and bond angles"), types: ["geometry", "angle", "lonePairs"] },
     { id: "os-3", name: tr("Polarität", "Polarity"), desc: tr("Elektronegativität, Teilladungen, Dipole", "Electronegativity, partial charges, dipoles"), types: ["polar", "strongest", "geometry"] },
   ],
 };

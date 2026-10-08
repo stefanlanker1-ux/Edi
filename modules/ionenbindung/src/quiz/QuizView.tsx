@@ -9,7 +9,7 @@ import { IonTable } from "../components/IonTable.tsx";
 import { useApp } from "../store.ts";
 import { IonWall } from "../components/IonWall.tsx";
 import { IonLabel } from "../components/IonTile.tsx";
-import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, ionsOf, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, NO_ION_TABLE, levelId, levelName, makeRound, ionsOf, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
 import { MISS } from "./misconceptions.ts";
 import { tr } from "@lern/i18n";
@@ -53,8 +53,9 @@ export function QuizView() {
       explain={(level, task) => explainFor(stufe, level, task)}
       tools={t => [
         pseTool({ stufe, mark: elementsIn(t.prompt) }),
-        // Ionentabelle wie in der Formelsammlung – nur Oberstufe (in der Unterstufe leitet man die Ladung aus dem PSE ab)
-        ...(stufe === "os" ? [{ id: "ions", label: tr("Ionen", "Ions"), icon: "table" as const, content: <IonTable text={t.prompt} os /> }] : []),
+        // Ionentabelle wie in der Formelsammlung – nur Oberstufe (in der Unterstufe leitet man die Ladung aus dem PSE ab),
+        // nicht bei Fragen nach der Ladung eines Ions (dort stünde die Lösung in der Tabelle)
+        ...(stufe === "os" && !NO_ION_TABLE.includes(t.type ?? "") ? [{ id: "ions", label: tr("Ionen", "Ions"), icon: "table" as const, content: <IonTable text={t.prompt} os /> }] : []),
       ]}
     />
   );

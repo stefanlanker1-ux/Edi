@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
-import { makeRound, LEVELS, type Task } from "./tasks.ts";
-import { ION_BY_ID, ratio, isKnownCompound } from "@lern/chem";
+import { makeRound, LEVELS, NO_ION_TABLE, type Task } from "./tasks.ts";
+import { ION_BY_ID, ratio, isKnownCompound, CATIONS, ANIONS, ionsFor, ionText, chargeFull, BY_Z } from "@lern/chem";
 import { MISS } from "./misconceptions.ts";
 
 test("alle Level erzeugen gültige Aufgaben", () => {
@@ -72,4 +72,22 @@ test("diagnostische Distraktoren: Schlüssel im Katalog, Listen passen zu den Op
     }
   }
   assert.ok(withDiag / total > 0.6, `zu wenige Aufgaben mit Diagnose: ${withDiag}/${total}`);
+});
+
+test("Ionentabelle verrät keine Lösung: Aufgaben nach der Ladung eines Ions aus der Tabelle ohne Tabelle", () => {
+  const table = ionsFor([...CATIONS, ...ANIONS], true);
+  for (let r = 0; r < 200; r++) for (const t of makeRound("os", "mix")) {
+    if (t.kind !== "mc") continue;
+    const right = t.options[t.answer];
+    const named = table.filter(i => t.prompt.includes(i.name) || (i.Z !== undefined && t.prompt.includes(`**${BY_Z[i.Z].name}**`)));
+    const reveals = table.some(i => right === ionText(i)) || named.some(i => right === chargeFull(i.charge));
+    if (reveals) assert.ok(NO_ION_TABLE.includes(t.type!), `${t.type}: ${t.prompt} → ${right}`);
+  }
+});
+
+test("Rückmeldungen zu mehratomigen Ionen: Ammonium ist ein Kation", () => {
+  for (let r = 0; r < 300; r++) for (const t of makeRound("os", 0)) {
+    if (t.type !== "polyCharge" || t.kind !== "mc") continue;
+    for (const why of Object.values(t.why ?? {})) assert.ok(!/alle anderen mehratomigen Ionen hier sind Anionen/.test(why), why);
+  }
 });

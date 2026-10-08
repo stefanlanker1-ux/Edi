@@ -74,9 +74,12 @@ const NOT_KNOWN = new Set([
   "Fe3+|I-", "Cu2+|I-", "Cu+|F-", "Al3+|CO32-", "Fe3+|CO32-", "Cu+|CO32-", "Cu+|NO3-", "Cu+|PO43-",
   "Ag+|OH-", "Cu+|OH-", "NH4+|OH-", "NH4+|O2-", "NH4+|N3-",
   "Cu2+|N3-", "Fe2+|N3-", "Fe3+|N3-", "Pb2+|N3-",
+  // Na₃N und K₃N zerfallen schon wenig über Raumtemperatur bzw. darunter (beständig: Li₃N, Mg₃N₂, Ca₃N₂)
+  "Na+|N3-", "K+|N3-",
   // Cu⁺ ist in Wasser nicht beständig (Cu₂SO₄ zerfällt in Cu und CuSO₄)
   "Cu+|SO42-", "Cu+|SO32-", "Cu+|NO2-", "Cu+|HCO3-",
-  // Nitrit, Sulfit, Hydrogencarbonat: nicht mit Al³⁺, Fe³⁺, Cu²⁺; Nitrit und Hydrogencarbonat auch nicht mit Schwermetall-Ionen
+  // Nitrit, Sulfit, Hydrogencarbonat: nicht mit Al³⁺, Fe³⁺, Cu²⁺; Nitrit auch nicht mit Fe²⁺, Zn²⁺, Pb²⁺,
+  // Hydrogencarbonat nicht mit Ag⁺, Zn²⁺, Pb²⁺ (Eisen(II)-hydrogencarbonat gibt es wie Ca(HCO₃)₂ gelöst, z. B. im Grundwasser)
   "Al3+|NO2-", "Al3+|SO32-", "Al3+|HCO3-", "Fe3+|NO2-", "Fe3+|SO32-", "Fe3+|HCO3-", "Cu2+|NO2-", "Cu2+|SO32-", "Cu2+|HCO3-",
   "Fe2+|NO2-", "Zn2+|NO2-", "Pb2+|NO2-", "Ag+|HCO3-", "Pb2+|HCO3-", "Zn2+|HCO3-",
 ]);

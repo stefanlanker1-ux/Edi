@@ -31,9 +31,9 @@ const TEXT_DE: Record<string, { points: string[]; mol: string }> = {
     "Im Molekül hat jedes Atom außer H 8 Elektronen um sich – freie Paare mitzählen.",
   ] },
   "os-2": { mol: "H2O", points: [
-    "**EPA-Modell:** Elektronenpaare am Zentralatom stoßen sich ab und gehen so weit wie möglich auseinander. Eine Mehrfachbindung zählt wie ein Paar.",
-    "4 Paare → Tetraeder-Grundform: CH₄ tetraedrisch 109,5°, NH₃ trigonal-pyramidal 107°, H₂O gewinkelt 104,5°.",
-    "3 Paare → trigonal-planar 120° (Methanal); 2 Paare → linear 180° (CO₂, HCN).",
+    "**EPA-Modell:** Elektronenpaare am Zentralatom stoßen sich ab und gehen so weit wie möglich auseinander. Jede Bindung und jedes freie Paar ist ein **Bereich** – eine Mehrfachbindung zählt wie ein Bereich.",
+    "4 Bereiche → Tetraeder-Grundform: CH₄ tetraedrisch 109,5°, NH₃ trigonal-pyramidal 107°, H₂O gewinkelt 104,5°.",
+    "3 Bereiche → trigonal-planar, ca. 120° (Methanal); 2 Bereiche → linear 180° (CO₂, HCN).",
   ] },
   "os-3": { mol: "H2O", points: [
     "Eine Bindung ist **polar**, wenn die Elektronegativitäten deutlich verschieden sind (ΔEN ≥ 0,4): Das stärker ziehende Atom wird δ−, das andere δ+.",
@@ -63,9 +63,9 @@ const TEXT_EN: typeof TEXT_DE = {
     "In the molecule every atom except H has 8 electrons around it – count lone pairs too.",
   ] },
   "os-2": { mol: "H2O", points: [
-    "**VSEPR model:** electron pairs on the central atom repel each other and spread as far apart as possible. A multiple bond counts like one pair.",
-    "4 pairs → tetrahedral base shape: CH₄ tetrahedral 109.5°, NH₃ trigonal pyramidal 107°, H₂O bent 104.5°.",
-    "3 pairs → trigonal planar 120° (methanal); 2 pairs → linear 180° (CO₂, HCN).",
+    "**VSEPR model:** electron pairs on the central atom repel each other and spread as far apart as possible. Each bond and each lone pair is a **region** – a multiple bond counts as one region.",
+    "4 regions → tetrahedral base shape: CH₄ tetrahedral 109.5°, NH₃ trigonal pyramidal 107°, H₂O bent 104.5°.",
+    "3 regions → trigonal planar, approx. 120° (methanal); 2 regions → linear 180° (CO₂, HCN).",
   ] },
   "os-3": { mol: "H2O", points: [
     "A bond is **polar** if the electronegativities differ clearly (ΔEN ≥ 0.4): the more strongly attracting atom becomes δ−, the other δ+.",

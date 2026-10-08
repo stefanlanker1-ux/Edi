@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
-import { makeRound, weakTypes, LEVELS, TYPES, type Stufe } from "./tasks.ts";
-import { commonCharges } from "@lern/chem";
+import { makeRound, weakTypes, outerElectrons, LEVELS, TYPES, type Stufe } from "./tasks.ts";
+import { commonCharges, AUFBAU_EXCEPTIONS, BY_Z } from "@lern/chem";
 import { MISS } from "./misconceptions.ts";
 
 test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
@@ -99,4 +99,34 @@ test("Fallen zeigen nie auf den richtigen Wert (H-1: Massenzahl 1 = Elektronenza
       if (tr.min !== undefined) assert.ok(correct[tr.field] < tr.min, t.prompt);
     }
   }
+});
+
+test("Außenelektronen von H und He: keine Rückmeldung, die eine volle K-Schale oder die Hauptgruppe behauptet", () => {
+  for (let r = 0; r < 40; r++) {
+    const h = outerElectrons([1]);
+    assert.ok(h.kind === "mc" && h.options[h.answer] === "1");
+    assert.ok(h.kind === "mc" && !h.options.includes("7"), "7 fehlen nur bis zum Oktett, H hat die K-Schale");
+    for (const why of Object.values(h.kind === "mc" ? h.why ?? {} : {})) assert.ok(!/schon mit 2 voll/.test(why), why);
+    const he = outerElectrons([2]);
+    assert.ok(he.kind === "mc" && he.options[he.answer] === "2");
+    assert.ok(!/Hauptgruppe/.test(he.hint), he.hint);
+    for (const why of Object.values(he.kind === "mc" ? he.why ?? {} : {})) assert.ok(!/ihre Zahl ist die Hauptgruppe/.test(why), why);
+  }
+});
+
+test("Aufgaben zum Aufbauprinzip fragen keine Ausnahmen ab; Ionen mit Edelgas-Elektronenzahl als [Ne], [Ar], [Kr]", () => {
+  const rule = ["config", "boxes", "block", "unpaired", "short", "periodGroup"];
+  let noble = 0;
+  for (let r = 0; r < 300; r++) for (const t of makeRound("os", "mix")) {
+    const Z = t.kind === "boxes" ? t.Z : t.visual?.kind === "fill" ? t.visual.Z : null;
+    if (rule.includes(t.type!) && Z !== null) assert.ok(!AUFBAU_EXCEPTIONS.includes(Z), `${t.type}: ${t.prompt}`);
+    if (t.type === "block") assert.ok(!AUFBAU_EXCEPTIONS.some(z => t.prompt.includes(`**${BY_Z[z].name}**`)), t.prompt);
+    if (t.type === "ionConfig" && t.kind === "mc") {
+      const right = t.options[t.answer];
+      const E = t.visual?.kind === "fill" ? t.visual.E : 0;
+      if ([10, 18, 36].includes(E)) { noble++; assert.match(right, /^\[(Ne|Ar|Kr)\]$/, t.prompt); }
+    }
+    if (t.type === "periodGroup" && t.kind === "mc" && /Gruppe 1[3-8]\b/.test(t.options[t.answer])) assert.match(t.explain, /\+ 10/, t.explain);
+  }
+  assert.ok(noble > 0, "keine Edelgas-Ionen geprüft");
 });

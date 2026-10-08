@@ -1,4 +1,4 @@
-// Ionentabelle als Hilfsmittel im Quiz (Oberstufe): Nebengruppen- und mehratomige Ionen, Ionen aus der Aufgabe markiert.
+// Ionentabelle als Hilfsmittel im Quiz (Oberstufe): Ionen der Übergangsmetalle und mehratomige Ionen, Ionen aus der Aufgabe markiert.
 
 import { CATIONS, ANIONS, ionsFor, ionText, type Ion } from "@lern/chem";
 import { IonLabel } from "./IonTile.tsx";

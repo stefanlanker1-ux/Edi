@@ -128,6 +128,17 @@ export const GROUP_NAMES: Record<number, string> = {
   17: tr("Halogene", "Halogens"), 18: tr("Edelgase", "Noble gases"),
 };
 
+/** Name der Gruppe (Alkalimetalle, Halogene …) oder null – Wasserstoff steht in Gruppe 1, ist aber kein Alkalimetall */
+export const groupName = (Z: number): string | null => {
+  const g = BY_Z[Z]?.group;
+  return Z === 1 || g == null ? null : GROUP_NAMES[g] ?? null;
+};
+
+/** Elemente mit männlichem Namen (der Wasserstoff, Kohlenstoff, Stickstoff, Sauerstoff, Phosphor, Schwefel) – alle übrigen sind sächlich */
+const MASCULINE = new Set([1, 6, 7, 8, 15, 16]);
+/** Personalpronomen für einen Elementnamen am Satzanfang: „Er“ (Sauerstoff) bzw. „Es“ (Natrium); englisch „It“ */
+export const elementPronoun = (Z: number) => tr(MASCULINE.has(Z) ? "Er" : "Es", "It");
+
 export const ELEMENTS: Element[] = RAW.map(([Z, symbol, name, mass, en]) => {
   const period = periodOf(Z);
   const group = groupOf(Z);

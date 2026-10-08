@@ -1,5 +1,6 @@
 import { test, assert } from "vitest";
-import { makeRound, LEVELS, KNOWN_BY_ID, type Task } from "./tasks.ts";
+import { makeRound, LEVELS, KNOWN_BY_ID, TYPE_NAMES, type Task } from "./tasks.ts";
+import { KNOWN } from "@lern/chem";
 import { MISS } from "./misconceptions.ts";
 
 test("alle Level erzeugen gültige Aufgaben mit sauberen Texten", () => {
@@ -69,5 +70,28 @@ test("Rückmeldung zur Bindungsart: H hat 1 ungepaartes Elektron (nicht 7)", () 
   for (let r = 0; r < 400; r++) for (const t of makeRound("us", 1)) {
     const all = JSON.stringify(t);
     assert.ok(!/H hat 1 Valenzelektronen|davon 7 ungepaarte/.test(all), all);
+  }
+});
+
+test("Unterstufe: Namen nur von Molekülen der Unterstufe (keine Oberstufen-Stoffe als falsche Antwort)", () => {
+  const osNames = new Set(KNOWN.filter(k => k.os).map(k => k.name));
+  for (let r = 0; r < 400; r++) for (const t of makeRound("us", 2)) {
+    if (t.type !== "name" || t.kind !== "mc") continue;
+    for (const o of t.options) assert.ok(!osNames.has(o), `${t.prompt}: ${o}`);
+  }
+});
+
+test("Polarität und Molekülform: passende Stolpersteine, Mehrzahl, ein Begriff", () => {
+  assert.strictEqual(TYPE_NAMES.geometry, "Molekülform");
+  for (let r = 0; r < 300; r++) for (const t of makeRound("os", "mix")) {
+    if (t.kind !== "mc") continue;
+    const all = JSON.stringify(t);
+    assert.ok(!/Molekülgeometrie|Richtungen|wie \*\*ein\*\* Partner|Paare, das mitzählt/.test(all), all);
+    // Chlormethan: Grund sind die verschiedenen Bindungspartner, nicht ein gewinkelter Bau
+    if (t.type === "polar" && /Chlormethan/.test(t.prompt)) assert.ok(Object.values(t.miss ?? {}).includes("partner-ungleich"), all);
+    if (t.type === "angle" && /Methanal/.test(t.prompt)) {
+      assert.strictEqual(t.options[t.answer], "ca. 120°");
+      assert.ok(!t.options.includes("120°"), "120° und ca. 120° zugleich");
+    }
   }
 });

@@ -30,6 +30,11 @@ test("nicht beständige Verbindungen werden erkannt", () => {
   assert.strictEqual(isKnownCompound(I["Al3+"], I["CO32-"]), false);
   assert.strictEqual(isKnownCompound(I["Cu+"], I["I-"]), true);
   assert.strictEqual(isKnownCompound(I["Na+"], I["Cl-"]), true);
+  // Nitride: Li₃N, Mg₃N₂ beständig, Na₃N und K₃N nicht
+  assert.strictEqual(isKnownCompound(I["Li+"], I["N3-"]), true);
+  assert.strictEqual(isKnownCompound(I["Mg2+"], I["N3-"]), true);
+  assert.strictEqual(isKnownCompound(I["Na+"], I["N3-"]), false);
+  assert.strictEqual(isKnownCompound(I["K+"], I["N3-"]), false);
 });
 
 test("ionText kann jede Ladung schreiben (Distraktoren wie Na⁷⁻)", () => {

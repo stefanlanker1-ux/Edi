@@ -60,11 +60,11 @@ const US = (): GuideStep[] => [
   // ── Metall-Ionen ──
   {
     mode: "worked", part: tr("Vom Atom zum Ion", "From atom to ion"),
-    say: tr("Natrium hat **1** Außenelektron, Chlor hat **7**. Beide möchten **8** außen haben.", "Sodium has **1** outer electron, chlorine has **7**. Both would like **8** on the outside."),
+    say: tr("Natrium hat **1** Außenelektron, Chlor hat **7**. Edelgase wie Neon und Argon haben **8** außen.", "Sodium has **1** outer electron, chlorine has **7**. Noble gases such as neon and argon have **8** on the outside."),
     ask: tr("Was passiert, wenn Natrium und Chlor reagieren?", "What happens when sodium and chlorine react?"),
     visual: c => <Transfer c={c} />,
-    lines: [tr("1 Elektron abgeben ist leichter als 7 abgeben.", "Losing 1 electron is easier than losing 7."), tr("Natrium gibt sein Außenelektron an Chlor ab.", "Sodium gives its outer electron to chlorine."), tr("Beide haben jetzt 8 außen: **Na⁺** und **Cl⁻** – geladene Teilchen, **Ionen**.", "Both now have 8 on the outside: **Na⁺** and **Cl⁻** – charged particles, **ions**.")],
-    ok: tr("Ein Elektron wandert vom Metall zum Nichtmetall.", "One electron moves from the metal to the non-metal."),
+    lines: [tr("1 Elektron abgeben ist leichter als 7 abgeben.", "Losing 1 electron is easier than losing 7."), tr("Natrium gibt sein Außenelektron an Chlor ab.", "Sodium gives its outer electron to chlorine."), tr("Beide haben jetzt 8 außen wie ein Edelgas: **Na⁺** und **Cl⁻** – geladene Teilchen, **Ionen**.", "Both now have 8 on the outside like a noble gas: **Na⁺** and **Cl⁻** – charged particles, **ions**.")],
+    ok: tr("Modell: Bei der Reaktion geht ein Elektron vom Metall-Atom zum Nichtmetall-Atom über. So entstehen die Ionen.", "Model: in the reaction one electron passes from the metal atom to the non-metal atom. That is how the ions form."),
   },
   {
     mode: "worked",
@@ -128,7 +128,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie viele **Cl⁻** braucht ein **Mg²⁺**?", "Complete: how many **Cl⁻** does one **Mg²⁺** need?"), answer: 2, num: {},
+    ask: tr("Ergänze: Wie viele **Cl⁻** gleichen ein **Mg²⁺** aus?", "Complete: how many **Cl⁻** balance one **Mg²⁺**?"), answer: 2, num: {},
     visual: c => <Wall c={c} cat="Mg2+" an="Cl-" nC={1} nA={1} />,
     lines: [tr("Mg²⁺ bringt 2+.", "Mg²⁺ brings 2+."), tr("Jedes Cl⁻ bringt 1−.", "Each Cl⁻ brings 1−."), tr("Anzahl Cl⁻: {?} → MgCl₂", "Number of Cl⁻: {?} → MgCl₂")],
     why: { "1": tr("Dann bleibt 1+ übrig – nicht neutral.", "Then 1+ is left over – not neutral.") },
@@ -175,15 +175,15 @@ const US = (): GuideStep[] => [
     mode: "free",
     ask: tr("Jetzt du: Welche Formel hat **Calciumbromid**? Brom steht wie Chlor in der VII. Hauptgruppe.", "Your turn: what is the formula of **calcium bromide**? Bromine is in main group VII like chlorine."), answer: "CaBr₂", options: ["CaBr₂", "CaBr", "Ca₂Br", "CaBr₃"],
     visual: () => <Pse mark={20} />,
-    why: { CaBr: tr("Ca²⁺ braucht zwei Br⁻.", "Ca²⁺ needs two Br⁻."), "Ca₂Br": tr("Es braucht mehr Bromid-Ionen, nicht mehr Calcium-Ionen.", "It needs more bromide ions, not more calcium ions."), "CaBr₃": tr("Ca²⁺ hat nur 2+ – zwei Br⁻ reichen.", "Ca²⁺ has only 2+ – two Br⁻ are enough.") },
+    why: { CaBr: tr("Ein Ca²⁺ gleicht zwei Br⁻ aus.", "One Ca²⁺ balances two Br⁻."), "Ca₂Br": tr("Man braucht mehr Bromid-Ionen, nicht mehr Calcium-Ionen.", "You need more bromide ions, not more calcium ions."), "CaBr₃": tr("Ca²⁺ hat nur 2+ – zwei Br⁻ reichen.", "Ca²⁺ has only 2+ – two Br⁻ are enough.") },
     lines: [tr("Ca²⁺ und Br⁻ → 2 Br⁻ je Ca²⁺ → CaBr₂.", "Ca²⁺ and Br⁻ → 2 Br⁻ per Ca²⁺ → CaBr₂.")],
     ok: tr("Genau: **CaBr₂**.", "Exactly: **CaBr₂**."),
   },
   {
     mode: "worked",
-    say: tr("Im Feststoff liegen sehr viele Ionen abwechselnd im **Ionengitter**.", "In the solid, very many ions alternate in an **ionic lattice**."),
+    say: tr("Positive und negative Ionen ziehen sich an. Im Feststoff liegen sehr viele Ionen abwechselnd im **Ionengitter**.", "Positive and negative ions attract each other. In the solid, very many ions alternate in an **ionic lattice**."),
     ask: tr("Was bedeutet die Formel **CaCl₂**?", "What does the formula **CaCl₂** mean?"),
-    lines: [tr("Es gibt kein einzelnes „CaCl₂-Teilchen“ – kein Molekül.", "There is no single “CaCl₂ particle” – no molecule."), tr("Die Formel nennt nur das **Verhältnis** im Gitter.", "The formula only gives the **ratio** in the lattice."), tr("CaCl₂: auf 1 Ca²⁺ kommen 2 Cl⁻.", "CaCl₂: 2 Cl⁻ for every Ca²⁺.")],
+    lines: [tr("Die Anziehung der entgegengesetzt geladenen Ionen im Gitter ist die **Ionenbindung**.", "The attraction between the oppositely charged ions in the lattice is the **ionic bond**."), tr("Es gibt kein einzelnes „CaCl₂-Teilchen“ – kein Molekül.", "There is no single “CaCl₂ particle” – no molecule."), tr("Die Formel nennt nur das **Verhältnis** im Gitter.", "The formula only gives the **ratio** in the lattice."), tr("CaCl₂: auf 1 Ca²⁺ kommen 2 Cl⁻.", "CaCl₂: 2 Cl⁻ for every Ca²⁺.")],
     ok: tr("Formel = Verhältnis der Ionen.", "Formula = ratio of the ions."),
   },
   {
@@ -193,6 +193,17 @@ const US = (): GuideStep[] => [
     lines: [tr("Ionengitter – kein Molekül.", "Ionic lattice – no molecule."), tr("Die Formel nennt das Verhältnis: {?}", "The formula gives the ratio: {?}")],
     why: { [tr("ein Molekül aus 5 Atomen", "a molecule of 5 atoms")]: tr("Ionenverbindungen bilden keine Moleküle, sondern ein Gitter.", "Ionic compounds do not form molecules but a lattice."), [tr("Aluminium und Sauerstoff gemischt", "aluminium and oxygen mixed")]: tr("Es sind Ionen, fest im Gitter gebunden – kein Gemisch.", "They are ions, held firmly in the lattice – not a mixture.") },
     ok: tr("Im Gitter: immer 2 Al³⁺ auf 3 O²⁻.", "In the lattice: always 2 Al³⁺ for 3 O²⁻."),
+  },
+  {
+    mode: "free",
+    ask: tr("Jetzt du: Was hält die Ionen im Ionengitter zusammen?", "Your turn: what holds the ions together in the ionic lattice?"), answer: tr("Anziehung von Plus und Minus", "attraction of plus and minus"),
+    options: [tr("Anziehung von Plus und Minus", "attraction of plus and minus"), tr("wandernde Elektronen", "moving electrons"), tr("gemeinsame Elektronenpaare", "shared electron pairs")],
+    why: {
+      [tr("wandernde Elektronen", "moving electrons")]: tr("Die Elektronen sind bei der Bildung der Ionen übergegangen und bleiben dort – sie wandern nicht hin und her. Im Gitter ziehen sich die Ionen an.", "The electrons passed over when the ions formed and stay there – they do not move back and forth. In the lattice the ions attract each other."),
+      [tr("gemeinsame Elektronenpaare", "shared electron pairs")]: tr("Gemeinsame Elektronenpaare teilen Nichtmetall-Atome in Molekülen. Im Salz gibt es keine Moleküle, sondern Ionen, die sich anziehen.", "Non-metal atoms share electron pairs in molecules. A salt has no molecules but ions that attract each other."),
+    },
+    lines: [tr("Plus zieht Minus an – jedes Ion zieht viele Nachbarn im Gitter an: **Ionenbindung**.", "Plus attracts minus – each ion attracts many neighbours in the lattice: **ionic bond**.")],
+    ok: tr("Genau: Die Ionenbindung ist die Anziehung der Ionen im Gitter.", "Exactly: the ionic bond is the attraction between the ions in the lattice."),
   },
 ];
 
@@ -230,7 +241,7 @@ const OS: GuideStep[] = [
     ask: tr("Welche Formel hat **Calciumhydroxid**?", "What is the formula of **calcium hydroxide**?"),
     visual: c => <Wall c={c} cat="Ca2+" an="OH-" nC={1} nA={2} />,
     labels: [{ at: ".ion-tile.anion", text: tr("Hydroxid-Ion: ein Block", "Hydroxide ion: one block"), point: "left", side: "left" }],
-    lines: [tr("Ca²⁺ braucht 2 OH⁻.", "Ca²⁺ needs 2 OH⁻."), tr("OH⁻ ist ein Block → (OH), dahinter die 2.", "OH⁻ is a block → (OH), the 2 after it."), tr("→ **Ca(OH)₂** = 1 Ca, 2 O, 2 H. Ohne Klammer hieße OH₂: 1 O, 2 H.", "→ **Ca(OH)₂** = 1 Ca, 2 O, 2 H. Without brackets OH₂ would mean 1 O, 2 H.")],
+    lines: [tr("Für ein Ca²⁺ braucht man 2 OH⁻.", "For one Ca²⁺ you need 2 OH⁻."), tr("OH⁻ ist ein Block → (OH), dahinter die 2.", "OH⁻ is a block → (OH), the 2 after it."), tr("→ **Ca(OH)₂** = 1 Ca, 2 O, 2 H. Ohne Klammer hieße OH₂: 1 O, 2 H.", "→ **Ca(OH)₂** = 1 Ca, 2 O, 2 H. Without brackets OH₂ would mean 1 O, 2 H.")],
     ok: tr("Klammern nur, wenn ein Block mehrmals vorkommt.", "Brackets only when a block appears more than once."),
   },
   {
@@ -261,24 +272,24 @@ const OS: GuideStep[] = [
   },
   // ── Nebengruppen und Namen ──
   {
-    mode: "worked", part: tr("Nebengruppen und Namen", "Transition metals and names"),
-    say: tr("Nebengruppen-Metalle bilden verschiedene Ionen. Die Ladung steht als **römische Zahl** im Namen.", "Transition metals form different ions. The charge is given as a **Roman numeral** in the name."),
+    mode: "worked", part: tr("Übergangsmetalle und Namen", "Transition metals and names"),
+    say: tr("Manche Metalle bilden verschiedene Ionen – vor allem **Übergangsmetalle** (Gruppe 3–12), aber auch Blei. Die Ladung steht als **römische Zahl** im Namen.", "Some metals form different ions – above all **transition metals** (groups 3–12), but also lead. The charge is given as a **Roman numeral** in the name."),
     ask: tr("Welche Formel hat **Eisen(III)-chlorid**?", "What is the formula of **iron(III) chloride**?"),
-    lines: [tr("Eisen(III) = Fe³⁺.", "Iron(III) = Fe³⁺."), tr("Fe³⁺ braucht 3 Cl⁻.", "Fe³⁺ needs 3 Cl⁻."), tr("→ **FeCl₃**. Die III ist die Ladung, keine Anzahl.", "→ **FeCl₃**. The III is the charge, not a number of atoms.")],
+    lines: [tr("Eisen(III) = Fe³⁺.", "Iron(III) = Fe³⁺."), tr("Für ein Fe³⁺ braucht man 3 Cl⁻.", "For one Fe³⁺ you need 3 Cl⁻."), tr("→ **FeCl₃**. Die III ist die Ladung, keine Anzahl.", "→ **FeCl₃**. The III is the charge, not a number of atoms.")],
     ok: tr("Römische Zahl = Ladung des Metall-Ions.", "Roman numeral = charge of the metal ion."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Welche Ladung hat das Kupfer-Ion in **CuO**?", "Complete: what is the charge of the copper ion in **CuO**?"), answer: "2+", options: ["2+", "1+", "2−", "3+"],
     lines: [tr("O²⁻ bringt 2−.", "O²⁻ brings 2−."), tr("Ein Cu muss ausgleichen → Ladung {?}", "One Cu must balance → charge {?}")],
-    why: { "1+": tr("O²⁻ braucht 2+ – ein Cu muss 2+ tragen.", "O²⁻ needs 2+ – one Cu must carry 2+."), "2−": tr("Metall-Ionen sind positiv.", "Metal ions are positive."), "3+": tr("Dann wäre CuO nicht neutral.", "Then CuO would not be neutral.") },
+    why: { "1+": tr("Nur 2+ gleicht O²⁻ aus – das eine Cu trägt also 2+.", "Only 2+ balances O²⁻ – so the one Cu carries 2+."), "2−": tr("Metall-Ionen sind positiv.", "Metal ions are positive."), "3+": tr("Dann wäre CuO nicht neutral.", "Then CuO would not be neutral.") },
     ok: tr("CuO = Kupfer(II)-oxid.", "CuO = copper(II) oxide."),
   },
   {
     mode: "worked",
     say: tr("Die Endung des Anions verrät, ob Sauerstoff drin ist.", "The ending of the anion tells you whether oxygen is in it."),
     ask: tr("Sulfid, Sulfat oder Sulfit?", "Sulfide, sulfate or sulfite?"),
-    lines: [tr("**-id**: nur ein Atom – **Sulfid** S²⁻.", "**-ide**: just one atom – **sulfide** S²⁻."), tr("**-at**: mit Sauerstoff – **Sulfat** SO₄²⁻.", "**-ate**: with oxygen – **sulfate** SO₄²⁻."), tr("**-it**: ein O weniger – **Sulfit** SO₃²⁻.", "**-ite**: one O fewer – **sulfite** SO₃²⁻.")],
+    lines: [tr("**-id**: meist nur ein Atom – **Sulfid** S²⁻ (Ausnahme: Hydroxid OH⁻).", "**-ide**: usually just one atom – **sulfide** S²⁻ (exception: hydroxide OH⁻)."), tr("**-at**: mit Sauerstoff – **Sulfat** SO₄²⁻.", "**-ate**: with oxygen – **sulfate** SO₄²⁻."), tr("**-it**: ein O weniger – **Sulfit** SO₃²⁻.", "**-ite**: one O fewer – **sulfite** SO₃²⁻.")],
     ok: tr("Genauso: Nitrat NO₃⁻, Nitrit NO₂⁻.", "Likewise: nitrate NO₃⁻, nitrite NO₂⁻."),
   },
   {
@@ -304,6 +315,7 @@ export function guideFor(stufe: "us" | "os"): GuideDef {
       tr("Plus und Minus gleichen sich aus: beide Reihen der Ionenwand **gleich lang**.", "Plus and minus balance: both rows of the ion wall **the same length**."),
       tr("Formel: Anzahlen tiefgestellt, kleinstes Verhältnis, 1 weglassen.", "Formula: numbers as subscripts, smallest ratio, leave out 1."),
       tr("Name: Metall + Nichtmetall-Stamm + **-id** (Chlorid, Oxid, Sulfid, Nitrid).", "Name: metal + non-metal stem + **-ide** (chloride, oxide, sulfide, nitride)."),
+      tr("**Ionenbindung**: Kationen und Anionen ziehen sich im **Ionengitter** an – keine Moleküle.", "**Ionic bond**: cations and anions attract each other in the **ionic lattice** – no molecules."),
     ] }
     : { title: tr("Ionenbindung", "Ionic Bonds"), steps: OS, outro: [
       tr("Ladungen der Hauptgruppen-Ionen und der mehratomigen Ionen (Nitrat, Sulfat, Phosphat …).", "Charges of main group ions and polyatomic ions (nitrate, sulfate, phosphate …)."),

@@ -17,12 +17,13 @@ export interface Subshell {
 export interface Occupied extends Subshell {
   count: number;
 }
-/** Unterschalen in Reihenfolge steigender Energie (Madelung-Regel) bis 6p */
+/** Unterschalen in Reihenfolge steigender Energie (Madelung-Regel) bis 7p */
 export const MADELUNG: Subshell[] = [
   [1, 0], [2, 0], [2, 1], [3, 0], [3, 1], [4, 0], [3, 2], [4, 1], [5, 0], [4, 2], [5, 1], [6, 0], [4, 3], [5, 2], [6, 1],
+  [7, 0], [5, 3], [6, 2], [7, 1],
 ].map(([n, l]) => ({ n, l, max: 2 * (2 * l + 1), key: `${n}${L_NAMES[l]}` }));
 
-/** Aufbauprinzip (Madelung-Regel), bewusst ohne Sonderfälle – eine Regel für alle Elemente */
+/** Aufbauprinzip (Madelung-Regel) – die Regel ohne Ausnahmen */
 export function aufbau(electrons: number): Occupied[] {
   const out: Occupied[] = [];
   let left = electrons;
@@ -36,15 +37,38 @@ export function aufbau(electrons: number): Occupied[] {
 }
 
 /**
- * Elektronenkonfiguration für Z Protonen und `electrons` Elektronen.
- * Kationen: Elektronen werden von außen nach innen entfernt – zuerst aus der äußersten Schale (höchstes n: p vor s),
- * dann (n−1)d, dann (n−2)f → Fe²⁺ = [Ar] 3d⁶, Eu³⁺ = [Xe] 4f⁶, Pb²⁺ = [Xe] 4f¹⁴ 5d¹⁰ 6s².
- * Anionen: weitere Elektronen nach Aufbauprinzip.
+ * Gemessene Grundzustände, die vom Aufbauprinzip abweichen (Z ≤ 86; nur die abweichenden Unterschalen):
+ * Cr [Ar] 4s¹ 3d⁵, Cu [Ar] 4s¹ 3d¹⁰, Nb, Mo, Ru, Rh, Pd [Kr] 4d¹⁰, Ag, La [Xe] 6s² 5d¹, Ce, Gd [Xe] 6s² 4f⁷ 5d¹, Pt, Au.
  */
-export function configuration(Z: number, electrons = Z): Occupied[] {
-  if (electrons <= 0) return [];
-  if (Z <= 0 || electrons >= Z) return aufbau(electrons);
-  const cfg = aufbau(Z);
+const GROUND_STATE: Record<number, Record<string, number>> = {
+  24: { "4s": 1, "3d": 5 }, 29: { "4s": 1, "3d": 10 },
+  41: { "5s": 1, "4d": 4 }, 42: { "5s": 1, "4d": 5 }, 44: { "5s": 1, "4d": 7 }, 45: { "5s": 1, "4d": 8 }, 46: { "5s": 0, "4d": 10 }, 47: { "5s": 1, "4d": 10 },
+  57: { "4f": 0, "5d": 1 }, 58: { "4f": 1, "5d": 1 }, 64: { "4f": 7, "5d": 1 },
+  78: { "6s": 1, "5d": 9 }, 79: { "6s": 1, "5d": 10 },
+};
+/** Elemente, deren Grundzustand vom Aufbauprinzip abweicht (Cr, Cu, Nb, Mo, Ru, Rh, Pd, Ag, La, Ce, Gd, Pt, Au) */
+export const AUFBAU_EXCEPTIONS: readonly number[] = Object.keys(GROUND_STATE).map(Number);
+
+/** Grundzustand des neutralen Atoms: Aufbauprinzip, bei den Ausnahmen die gemessene Besetzung */
+export function groundState(Z: number): Occupied[] {
+  const cfg = aufbau(Z), exc = GROUND_STATE[Z];
+  if (!exc) return cfg;
+  return MADELUNG.map(o => ({ ...o, count: exc[o.key] ?? cfg.find(c => c.key === o.key)?.count ?? 0 })).filter(o => o.count > 0);
+}
+
+/**
+ * Von `start` (neutrales Atom mit Z Elektronen) zu `electrons` Elektronen:
+ * Kationen geben von außen nach innen ab – zuerst die äußerste Schale (höchstes n: p vor s),
+ * dann (n−1)d, dann (n−2)f → Fe²⁺ = [Ar] 3d⁶, Cu⁺ = [Ar] 3d¹⁰, Eu³⁺ = [Xe] 4f⁶, Pb²⁺ = [Xe] 4f¹⁴ 5d¹⁰ 6s².
+ * Anionen: weitere Elektronen in die tiefste noch freie Unterschale (Madelung).
+ */
+function ionize(start: Occupied[], Z: number, electrons: number): Occupied[] {
+  const cfg = MADELUNG.map(o => ({ ...o, count: start.find(c => c.key === o.key)?.count ?? 0 }));
+  for (let add = electrons - Z; add > 0; add--) {
+    const free = cfg.find(o => o.count < o.max);
+    if (!free) break;
+    free.count++;
+  }
   // „Äußere“ Rangfolge: n + (d: 1 Schale tiefer, f: 2 Schalen tiefer gilt als weiter innen) – ns/np vor (n−1)d vor (n−2)f
   const outer = (o: Occupied) => (o.l === 3 ? o.n + 2 : o.l === 2 ? o.n + 1 : o.n) * 10 + (o.l <= 1 ? o.l + 5 : 0);
   for (let remove = Z - electrons; remove > 0; remove--) {
@@ -56,6 +80,39 @@ export function configuration(Z: number, electrons = Z): Occupied[] {
     best!.count--;
   }
   return cfg.filter(o => o.count > 0);
+}
+
+/**
+ * Elektronenkonfiguration für Z Protonen und `electrons` Elektronen – gemessener Grundzustand
+ * (Cr [Ar] 4s¹ 3d⁵, Cu [Ar] 4s¹ 3d¹⁰ …), Ionen von dort aus (Cu⁺ [Ar] 3d¹⁰, Cu²⁺ [Ar] 3d⁹).
+ */
+export function configuration(Z: number, electrons = Z): Occupied[] {
+  if (electrons <= 0) return [];
+  if (Z <= 0) return aufbau(electrons);
+  return ionize(groundState(Z), Z, electrons);
+}
+
+/** Konfiguration allein nach dem Aufbauprinzip (ohne gemessene Ausnahmen), Ionen wie bei `configuration` */
+export function ruleConfiguration(Z: number, electrons = Z): Occupied[] {
+  if (electrons <= 0) return [];
+  if (Z <= 0) return aufbau(electrons);
+  return ionize(aufbau(Z), Z, electrons);
+}
+
+/** Art der Abweichung vom Aufbauprinzip: halb bzw. voll besetzte d-Unterschale, halb besetzte f-Unterschale, sonstige */
+export type ConfigException = "d5" | "d10" | "f7" | "other";
+/** Weicht die gemessene Konfiguration vom Aufbauprinzip ab (Cr, Cu, Cu⁺, Pd …)? Sonst null. */
+export function configException(Z: number, electrons = Z): ConfigException | null {
+  if (!GROUND_STATE[Z]) return null;
+  const real = configuration(Z, electrons), rule = ruleConfiguration(Z, electrons);
+  const count = (c: Occupied[], key: string) => c.find(o => o.key === key)?.count ?? 0;
+  // gleiche Elektronenzahl: stimmt jede Unterschale von real, ist es dieselbe Konfiguration
+  const changed = real.filter(o => count(rule, o.key) !== o.count);
+  if (!changed.length) return null;
+  if (changed.some(o => o.l === 2 && o.count === 10)) return "d10";
+  if (changed.some(o => o.l === 2 && o.count === 5)) return "d5";
+  if (changed.some(o => o.l === 3 && o.count === 7)) return "f7";
+  return "other";
 }
 
 /** Elektronen je Hauptschale (K, L, M, …) */
@@ -95,12 +152,15 @@ export const configString = (cfg: Occupied[]) => cfg.map(o => `${o.key}${sup(o.c
 
 const NOBLE = [2, 10, 18, 36, 54, 86];
 
-/** Edelgas-Kurzschreibweise, z. B. [Ar] 4s² 3d⁶ */
+/**
+ * Edelgas-Kurzschreibweise, z. B. [Ar] 4s² 3d⁶. Ionen mit der Elektronenzahl eines Edelgases ganz als Kern:
+ * Na⁺, O²⁻ → [Ne]; Cl⁻, Ca²⁺ → [Ar] (das Edelgas-Atom selbst: Ne = [He] 2s² 2p⁶).
+ */
 export function shortConfigString(Z: number, electrons = Z): string {
   const cfg = configuration(Z, electrons);
   let core = 0;
   for (const g of NOBLE) {
-    if (g >= electrons) break;
+    if (g > electrons || (g === electrons && Z === electrons)) break;
     const ok = aufbau(g).every(c => (cfg.find(o => o.key === c.key)?.count ?? 0) >= c.count);
     if (ok) core = g;
   }
@@ -146,7 +206,7 @@ export function blockOf(Z: number): LName {
   return "d";
 }
 
-/** Typische Ionenladung nach der Edelgasregel (Hauptgruppen), sonst null */
+/** Typische Ionenladung der Hauptgruppen (Ion mit Edelgaskonfiguration), sonst null */
 export function typicalIonCharge(Z: number): number | null {
   const el = BY_Z[Z];
   if (!el || el.group === null) return null;

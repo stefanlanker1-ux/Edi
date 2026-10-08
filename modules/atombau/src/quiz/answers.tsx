@@ -39,7 +39,7 @@ type P<K extends Task["kind"]> = { task: Extract<Task, { kind: K }>; answered: A
 function PseAnswer({ task, answered, submit }: P<"pse">) {
   const stufe = useApp(s => s.stufe);
   return (
-    <div className="answer-fill pse-fit">
+    <div className="answer-fill pse-fit pse-z">
       <PeriodicTable fit stufe={stufe} names={false} disabled={!!answered} onPick={z => submit({ ok: z === task.answer, choice: z })}
         cellState={z => answered ? (z === task.answer ? "right" : z === answered.choice ? "wrong" : undefined) : undefined} />
     </div>
@@ -78,7 +78,8 @@ function NumbersAnswer({ task, answered, submit }: P<"numbers">) {
 
 function ShellsAnswer({ task, answered, submit }: P<"shells">) {
   const [counts, setCounts] = useState<number[]>(() => new Array(task.shellCount).fill(0));
-  const shown = answered?.values ? task.target.map((_, i) => answered.values![`s${i}`] ?? 0).concat(new Array(Math.max(0, task.shellCount - task.target.length)).fill(0)) : counts;
+  // nach dem Prüfen die eigene Eingabe auf allen Schalen zeigen (auch ein Elektron auf einer Schale zu viel)
+  const shown = answered?.values ? Array.from({ length: task.shellCount }, (_, i) => answered.values![`s${i}`] ?? 0) : counts;
   const Z = task.target.reduce((a, b) => a + b, 0);
   const check = () => submit({
     ok: counts.every((c, i) => c === (task.target[i] ?? 0)),

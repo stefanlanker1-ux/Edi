@@ -20,7 +20,7 @@ const TEXT_DE: Record<string, Ex> = {
     "Eine Ionenverbindung ist nach außen **neutral**: Die positiven und negativen Ladungen gleichen sich aus.",
     "Jeder Baustein ist so breit wie seine Ladung. Nimm so viele goldene und grüne Bausteine, bis **beide Reihen gleich lang** sind.",
     "Die Anzahl der Ionen steht als kleine Zahl (Index) in der Formel – die 1 schreibt man nicht.",
-    "Im Salz gibt es keine Paare oder Moleküle: Jedes Ion ist von vielen Gegen-Ionen umgeben (**Ionengitter**).",
+    "Im Salz gibt es keine Paare oder Moleküle: Jedes Ion ist von vielen Gegen-Ionen umgeben (**Ionengitter**). Ihre Anziehung ist die **Ionenbindung**.",
   ] },
   "us-3": { c: "Al3+", a: "O2-", points: [
     "Im Namen kommt zuerst das **Metall**, dann das Nichtmetall mit der Endung **-id**: Natrium + Chlor → Natrium**chlorid**.",
@@ -29,7 +29,7 @@ const TEXT_DE: Record<string, Ex> = {
   ] },
   "os-1": { c: "Fe3+", a: "O2-", points: [
     "Hauptgruppen-Ionen haben Edelgaskonfiguration: Na⁺ wie Ne, Cl⁻ wie Ar.",
-    "Nebengruppenmetalle bilden oft mehrere Ionen – die **römische Zahl** nennt die Ladung: Eisen(II) = Fe²⁺, Eisen(III) = Fe³⁺.",
+    "**Übergangsmetalle** (Gruppe 3–12) und Blei bilden oft mehrere Ionen – die **römische Zahl** nennt die Ladung: Eisen(II) = Fe²⁺, Eisen(III) = Fe³⁺.",
     "**Mehratomige Ionen** tragen die Ladung als Ganzes: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
   ] },
   "os-2": { c: "Al3+", a: "SO42-", points: [
@@ -40,7 +40,7 @@ const TEXT_DE: Record<string, Ex> = {
   "os-3": { c: "Fe2+", a: "SO42-", points: [
     "Einatomige Anionen enden auf **-id** (Chlorid, Oxid, Sulfid; F⁻, Cl⁻, Br⁻, I⁻ = **Halogenid**-Ionen). Mehratomige enden meist auf **-at** (Sulfat, Nitrat, Carbonat).",
     "Achtung: Sulfid (S²⁻) ≠ Sulfat (SO₄²⁻), Nitrid (N³⁻) ≠ Nitrat (NO₃⁻).",
-    "Bei Nebengruppenmetallen die Ladung als römische Zahl angeben: FeSO₄ = Eisen(II)-sulfat.",
+    "Bilden Metalle mehrere Ionen (Eisen, Kupfer, Blei), die Ladung als römische Zahl angeben: FeSO₄ = Eisen(II)-sulfat.",
   ] },
 };
 const TEXT_EN: Record<string, Ex> = {
@@ -53,7 +53,7 @@ const TEXT_EN: Record<string, Ex> = {
     "An ionic compound is **neutral** overall: the positive and negative charges balance.",
     "Each tile is as wide as its charge. Take gold and green tiles until **both rows are the same length**.",
     "The number of ions is the small number (subscript) in the formula – the 1 is not written.",
-    "A salt has no pairs or molecules: each ion is surrounded by many oppositely charged ions (**ionic lattice**).",
+    "A salt has no pairs or molecules: each ion is surrounded by many oppositely charged ions (**ionic lattice**). Their attraction is the **ionic bond**.",
   ] },
   "us-3": { c: "Al3+", a: "O2-", points: [
     "In the name the **metal** comes first, then the non-metal with the ending **-ide**: sodium + chlorine → sodium **chloride**.",
@@ -62,7 +62,7 @@ const TEXT_EN: Record<string, Ex> = {
   ] },
   "os-1": { c: "Fe3+", a: "O2-", points: [
     "Main group ions have a noble gas configuration: Na⁺ like Ne, Cl⁻ like Ar.",
-    "Transition metals often form several ions – the **Roman numeral** gives the charge: iron(II) = Fe²⁺, iron(III) = Fe³⁺.",
+    "**Transition metals** (groups 3–12) and lead often form several ions – the **Roman numeral** gives the charge: iron(II) = Fe²⁺, iron(III) = Fe³⁺.",
     "**Polyatomic ions** carry the charge as a whole: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
   ] },
   "os-2": { c: "Al3+", a: "SO42-", points: [
@@ -73,7 +73,7 @@ const TEXT_EN: Record<string, Ex> = {
   "os-3": { c: "Fe2+", a: "SO42-", points: [
     "Monatomic anions end in **-ide** (chloride, oxide, sulfide; F⁻, Cl⁻, Br⁻, I⁻ = **halide** ions). Polyatomic ones usually end in **-ate** (sulfate, nitrate, carbonate).",
     "Careful: sulfide (S²⁻) ≠ sulfate (SO₄²⁻), nitride (N³⁻) ≠ nitrate (NO₃⁻).",
-    "For transition metals give the charge as a Roman numeral: FeSO₄ = iron(II) sulfate.",
+    "If a metal forms several ions (iron, copper, lead), give the charge as a Roman numeral: FeSO₄ = iron(II) sulfate.",
   ] },
 };
 const TEXT = tr(TEXT_DE, TEXT_EN);

@@ -275,6 +275,32 @@ function placeRingSubstituents(m: Molecule, pos: Map<number, Vec>, lonePairs: Em
   }
 }
 
+/**
+ * cis/trans an Zweifachbindungen b=c (nicht im Ring, beide mit weiteren Partnern) wie im Raster gebaut:
+ * Bezugspartner a an b und d an c, cis = auf derselben Seite der Bindung (Cl auf derselben Seite → cis-Dichlorethen).
+ * Liegt ein Partner in der Linie der Bindung, gilt der andere (Gegenseite); ohne jede Angabe (H–N=N–H in einer Reihe) trans.
+ * Reihenfolge [a, b, c, d] wie bei der Stereo-Angabe des Kraftfelds (`@lern/chem/mmff`, Doppelbindungen).
+ */
+export function gridCisTrans(m: Molecule): { a: number; b: number; c: number; d: number; cis: boolean }[] {
+  const at = (id: number) => m.atoms.find(x => x.id === id)!;
+  const nbs = (id: number) => bondsOf(m, id).map(b => (b.a === id ? b.b : b.a));
+  const out: { a: number; b: number; c: number; d: number; cis: boolean }[] = [];
+  for (const bd of m.bonds) {
+    const A = bd.a, B = bd.b;
+    if (bd.order !== 2 || nbs(A).length < 2 || nbs(B).length < 2 || inRing(m, bd)) continue;
+    // kumulierte Zweifachbindung (C=C=C): das Atom ist linear, dort gibt es kein cis/trans
+    if (bondsOf(m, A).concat(bondsOf(m, B)).some(x => x !== bd && x.order >= 2)) continue;
+    const dx = at(B).x - at(A).x, dy = at(B).y - at(A).y;
+    // Partner mit Seite im Raster (+1/−1 quer zur Bindung)
+    const sideOf = (c: number, other: number) =>
+      nbs(c).filter(x => x !== other).map(x => ({ id: x, s: Math.sign(dx * (at(x).y - at(c).y) - dy * (at(x).x - at(c).x)) })).find(x => x.s !== 0) ?? null;
+    const sa = sideOf(A, B), sb = sideOf(B, A);
+    if (!!sa !== !!sb) continue;
+    out.push({ a: sa?.id ?? nbs(A).find(x => x !== B)!, b: A, c: B, d: sb?.id ?? nbs(B).find(x => x !== A)!, cis: sa && sb ? sa.s === sb.s : false });
+  }
+  return out;
+}
+
 function embedEPA(m: Molecule, mode: AngleMode): Embedded3D {
   const nbs = (id: number) => bondsOf(m, id).map(b => ({ id: b.a === id ? b.b : b.a, order: b.order }));
   const el = (id: number) => m.atoms.find(a => a.id === id)!.el;
@@ -351,6 +377,18 @@ function embedEPA(m: Molecule, mode: AngleMode): Embedded3D {
       lp.dir = d;
     }
     placeRingSubstituents(m, pos, lonePairs, ring);
+  }
+
+  // Zweifachbindungen: cis/trans wie gebaut (gridCisTrans) – sonst B-Seite um die Bindung drehen
+  for (const { a: X, b: A, c: B, d: Y, cis } of gridCisTrans(m)) {
+    const pa = pos.get(A)!, u = norm(sub(pos.get(B)!, pa));
+    const perp = (v: Vec) => sub(v, mul(u, dot(v, u)));
+    const vx = perp(sub(pos.get(X)!, pa)), vy = perp(sub(pos.get(Y)!, pos.get(B)!));
+    if (len(vx) < 1e-6 || len(vy) < 1e-6 || dot(vx, vy) > 0 === cis) continue;
+    const side = new Set([B]), stack = [B];
+    while (stack.length) for (const nb of nbs(stack.pop()!)) if (nb.id !== A && !side.has(nb.id)) { side.add(nb.id); stack.push(nb.id); }
+    for (const id of side) if (id !== B) pos.set(id, add(pa, rotate(sub(pos.get(id)!, pa), u, Math.PI)));
+    for (const lp of lonePairs) if (side.has(lp.atom)) lp.dir = rotate(lp.dir, u, Math.PI);
   }
 
   // Peroxid-artige Ketten X–A–B–Y (A, B mit je 2 Bindungen und 2 freien Paaren, z. B. H–O–O–H) sind verdrillt:
@@ -512,14 +550,69 @@ export function embedMol3D(d: Mol3D): Embedded3D {
   };
 }
 
-/** Summe der Bindungsdipole (ΔEN · Richtung von δ+ nach δ−) – Richtung des Dipolmoments */
-export function dipoleVector(e: Embedded3D, enOf: (el: string) => number): Vec {
-  let d: Vec = [0, 0, 0];
+/** Teil-Dipol: Vektor und die Atome, zu denen er gehört (Bindung bzw. Atom mit freiem Paar) */
+interface DipolePart { atoms: number[]; v: Vec }
+
+/** Bindungsdipole polarer Bindungen (ΔEN ≥ 0,4): ΔEN · Richtung von δ+ nach δ− */
+function bondDipoles(e: Embedded3D, enOf: (el: string) => number): DipolePart[] {
+  const out: DipolePart[] = [];
   for (const b of e.bonds) {
     const A = e.atoms.find(a => a.id === b.a)!, B = e.atoms.find(a => a.id === b.b)!;
     const diff = enOf(B.el) - enOf(A.el);
     if (Math.abs(diff) < 0.4) continue;
-    d = add(d, mul(norm(sub(B.pos, A.pos)), diff));
+    out.push({ atoms: [b.a, b.b], v: mul(norm(sub(B.pos, A.pos)), diff) });
   }
-  return d;
+  return out;
+}
+
+/** Summe der Bindungsdipole (ΔEN · Richtung von δ+ nach δ−) – Richtung des Dipolmoments */
+export function dipoleVector(e: Embedded3D, enOf: (el: string) => number): Vec {
+  return bondDipoles(e, enOf).reduce((d, p) => add(d, p.v), [0, 0, 0] as Vec);
+}
+
+/** Ab diesem Betrag heben sich Teil-Dipole nicht auf (eine einzelne polare Bindung hat ΔEN ≥ 0,4) */
+export const DIPOLE_MIN = 0.2;
+
+/**
+ * Bleibt von den Teil-Dipolen ein Dipol übrig? Summe in der räumlichen Lage (gemessen bzw. EPA).
+ * Drehen sich Molekülteile um eine Einfachbindung gegeneinander (H₂N–NH₂, ClCH₂–CH₂Cl) und stehen auf beiden Seiten
+ * Dipole schräg zur Achse, hängt die Summe von der Drehung ab – im Mittel bleibt ein Dipol, auch wenn eine Lage symmetrisch wäre.
+ */
+function netDipole(m: Molecule, e: Embedded3D, parts: DipolePart[]): boolean {
+  if (len(parts.reduce((d, p) => add(d, p.v), [0, 0, 0] as Vec)) > DIPOLE_MIN) return true;
+  const P = (id: number) => e.atoms.find(a => a.id === id)!.pos;
+  for (const b of m.bonds) {
+    if (b.order !== 1 || bondsOf(m, b.a).length < 2 || bondsOf(m, b.b).length < 2 || inRing(m, b)) continue;
+    // Atome auf der Seite von a (ohne die Bindung a–b)
+    const side = new Set([b.a]), stack = [b.a];
+    while (stack.length) {
+      const id = stack.pop()!;
+      for (const x of bondsOf(m, id)) {
+        const nb = x.a === id ? x.b : x.a;
+        if (x === b || side.has(nb)) continue;
+        side.add(nb); stack.push(nb);
+      }
+    }
+    const axis = norm(sub(P(b.b), P(b.a)));
+    const across = (v: Vec) => len(sub(v, mul(axis, dot(v, axis))));
+    let sa: Vec = [0, 0, 0], sb: Vec = [0, 0, 0];
+    for (const p of parts) {
+      if (p.atoms.length === 2 && p.atoms.includes(b.a) && p.atoms.includes(b.b)) continue;
+      if (p.atoms.every(id => side.has(id))) sa = add(sa, p.v); else sb = add(sb, p.v);
+    }
+    if (across(sa) > DIPOLE_MIN && across(sb) > DIPOLE_MIN) return true;
+  }
+  return false;
+}
+
+/** Heben sich die Bindungsdipole (ΔEN ≥ 0,4) nicht auf? – Vektorsumme in der räumlichen Lage */
+export function hasBondDipole(m: Molecule, enOf: (el: string) => number): boolean {
+  const e = embed3D(m);
+  return netDipole(m, e, bondDipoles(e, enOf));
+}
+
+/** Ungleich verteilte freie Elektronenpaare an Zentralatomen (gewinkelt, pyramidal: H₂S, PH₃) – kleiner Dipol ohne polare Bindungen */
+export function hasLonePairDipole(m: Molecule): boolean {
+  const e = embed3D(m);
+  return netDipole(m, e, e.lonePairs.filter(lp => bondsOf(m, lp.atom).length >= 2).map(lp => ({ atoms: [lp.atom], v: norm(lp.dir) })));
 }

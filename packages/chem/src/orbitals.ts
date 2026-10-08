@@ -25,9 +25,9 @@ export function orbitalLabel(o: OrbitalId) {
   return { main: `${o.n}${L_NAMES[o.l]}`, sub };
 }
 
-/** Slater-Gruppen: (1s)(2s,2p)(3s,3p)(3d)(4s,4p)(4d)(4f)(5s,5p)(5d)(5f)(6s,6p) */
+/** Slater-Gruppen: (1s)(2s,2p)(3s,3p)(3d)(4s,4p)(4d)(4f)(5s,5p)(5d)(5f)(6s,6p)(6d)(7s,7p) */
 const groupOf = (n: number, l: number) => (l <= 1 ? `${n}sp` : `${n}${L_NAMES[l]}`);
-const GROUP_ORDER = ["1sp", "2sp", "3sp", "3d", "4sp", "4d", "4f", "5sp", "5d", "5f", "6sp"];
+const GROUP_ORDER = ["1sp", "2sp", "3sp", "3d", "4sp", "4d", "4f", "5sp", "5d", "5f", "6sp", "6d", "7sp"];
 
 /** effektive Kernladung für ein Elektron in (n, l) nach den Slater-Regeln */
 export function slaterZeff(Z: number, n: number, l: number, cfg: Occupied[] = configuration(Z)): number {

@@ -264,7 +264,7 @@ const US: GuideStep[] = [
   // ── Ionen ──
   {
     mode: "worked", part: tr("Ionen", "Ions"),
-    say: tr("Bei Reaktionen geben Atome Außenelektronen ab oder nehmen welche auf, bis die äußerste Schale **voll** ist (**Edelgaszustand**).", "In reactions atoms lose or gain outer electrons until the outer shell is **full** (**noble gas configuration**)."),
+    say: tr("Bei Reaktionen geben Atome Außenelektronen ab oder nehmen welche auf, bis die äußerste Schale **voll** ist (**Edelgaskonfiguration**).", "In reactions atoms lose or gain outer electrons until the outer shell is **full** (**noble gas configuration**)."),
     ask: tr("Was wird aus **Natrium** (2 · 8 · 1)?", "What does **sodium** (2 · 8 · 1) become?"),
     visual: () => <BohrOnly Z={11} N={12} E={10} />,
     lines: [tr("1 Außenelektron abgeben ist leichter als 7 aufnehmen.", "Losing 1 outer electron is easier than gaining 7."), tr("Danach außen: die volle 2. Schale (8).", "Afterwards on the outside: the full 2nd shell (8)."), tr("11 Plus, 10 Minus → Ladung **1+**: das Ion **Na⁺**.", "11 plus, 10 minus → charge **1+**: the ion **Na⁺**.")],
@@ -470,12 +470,12 @@ const OS: GuideStep[] = [
     visual: () => <OrbView items={[orb(6, 2, 1, "px"), orb(6, 2, 1, "py"), orb(6, 2, 1, "pz")]} />,
     why: { "6": tr("6 Elektronen passen hinein – verteilt auf die Orbitale.", "6 electrons fit in – spread over the orbitals."), "1": tr("Dreh das Modell: Es sind Hanteln in drei Richtungen.", "Rotate the model: there are dumbbells in three directions.") },
     tip: tr("Zähle die Achsen, entlang denen Hanteln liegen.", "Count the axes along which dumbbells lie."),
-    ok: tr("pₓ, p_y, p_z – drei Orbitale, zusammen 6 Elektronen.", "pₓ, p_y, p_z – three orbitals, 6 electrons together."),
+    ok: tr("Je ein p-Orbital entlang x, y und z – zusammen 6 Elektronen.", "One p orbital each along x, y and z – 6 electrons together."),
     lines: [tr("Die **Magnetquantenzahl m** gibt die Ausrichtung an.", "The **magnetic quantum number m** gives the orientation."), tr("p-Hanteln liegen entlang x, y und z.", "p dumbbells lie along x, y and z."), tr("Zahl der p-Orbitale: {?}", "Number of p orbitals: {?}")],
   },
   {
     mode: "free",
-    say: tr("Ab n = 3 gibt es **d**-Orbitale: fünf Stück, meist mit vier Lappen. Im Bild: 3d_xy und 3d_z² von Eisen.", "From n = 3 there are **d** orbitals: five of them, mostly with four lobes. In the picture: 3d_xy and 3d_z² of iron."),
+    say: tr("Ab n = 3 gibt es **d**-Orbitale: fünf Stück, meist mit vier Lappen. Im Bild: zwei der fünf 3d-Orbitale von Eisen.", "From n = 3 there are **d** orbitals: five of them, mostly with four lobes. In the picture: two of the five 3d orbitals of iron."),
     ask: tr("Wie viele **d-Orbitale** gibt es in einer Schale?", "How many **d orbitals** are there in a shell?"), answer: 5, num: {},
     visual: () => <OrbView items={[orb(26, 3, 2, "dxy"), orb(26, 3, 2, "dz2")]} />,
     why: { "10": tr("10 Elektronen passen in die d-Unterschale – je 2 pro Orbital.", "10 electrons fit into the d subshell – 2 per orbital."), "3": tr("3 sind es bei p. Bei d sind es mehr.", "3 is for p. d has more.") },
@@ -524,7 +524,7 @@ const OS: GuideStep[] = [
     say: tr("Im **Energieniveauschema** liegt jede Unterschale auf ihrer Energiestufe.", "In the **energy level diagram** each subshell sits on its energy level."),
     ask: tr("In welcher Reihenfolge werden die Orbitale gefüllt?", "In which order are the orbitals filled?"),
     visual: () => <Fit className="ab-g-fit" min={0.2}><EnergyDiagram cfg={configuration(10)} /></Fit>,
-    lines: [tr("Weiter oben = mehr Energie: 2p liegt über 2s.", "Higher up = more energy: 2p is above 2s."), tr("Reihenfolge: 1s 2s 2p 3s 3p **4s 3d** 4p …", "Order: 1s 2s 2p 3s 3p **4s 3d** 4p …"), tr("**Aufbauprinzip**: jedes Elektron besetzt die tiefste freie Stufe.", "**Aufbau principle**: each electron takes the lowest free level.")],
+    lines: [tr("Weiter oben = mehr Energie: 2p liegt über 2s.", "Higher up = more energy: 2p is above 2s."), tr("Reihenfolge: 1s 2s 2p 3s 3p **4s 3d** 4p …", "Order: 1s 2s 2p 3s 3p **4s 3d** 4p …"), tr("**Aufbauprinzip**: jedes Elektron besetzt die tiefste freie Stufe.", "**Aufbau principle**: each electron takes the lowest free level."), tr("Wenige **Ausnahmen** zeigt die Messung: Chrom endet auf 4s¹ 3d⁵ (halb besetzte d-Unterschale), nicht auf 4s² 3d⁴.", "Measurements show a few **exceptions**: chromium ends in 4s¹ 3d⁵ (half-filled d subshell), not in 4s² 3d⁴.")],
     ok: tr("Von unten nach oben auffüllen.", "Fill from the bottom up."),
   },
   {
@@ -588,7 +588,7 @@ const OS: GuideStep[] = [
     visual: () => <AtomView Z={6} />,
     why: { "1": tr("Zwei Elektronen gehen nach Hund in zwei Orbitale, nicht in eines.", "By Hund's rule two electrons go into two orbitals, not one."), "3": tr("Für drei Orbitale bräuchte es drei p-Elektronen (Stickstoff).", "Three orbitals would need three p electrons (nitrogen).") },
     tip: tr("Die Schalter oben zeigen alle besetzten Orbitale.", "The switches at the top show all occupied orbitals."),
-    ok: tr("2pₓ¹ und 2p_y¹ – ein p-Orbital bleibt leer.", "2pₓ¹ and 2p_y¹ – one p orbital stays empty."),
+    ok: tr("Zwei 2p-Orbitale mit je einem Elektron – das dritte bleibt leer.", "Two 2p orbitals with one electron each – the third stays empty."),
     lines: [tr("Kohlenstoff: 2p² – zwei p-Elektronen.", "Carbon: 2p² – two p electrons."), tr("Nach Hund: jedes in ein eigenes p-Orbital.", "By Hund: each in its own p orbital."), tr("Besetzte 2p-Orbitale: {?}", "Occupied 2p orbitals: {?}")],
   },
   {
@@ -619,10 +619,10 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    say: tr("Der **Block** sagt, welche Unterschale zuletzt gefüllt wird: s (Gruppe 1–2), d (3–12), p (13–18).", "The **block** tells you which subshell is filled last: s (groups 1–2), d (3–12), p (13–18)."),
+    say: tr("Der **Block** sagt, welche Unterschale zuletzt gefüllt wird: s (Gruppe 1–2), d (3–12, die **Übergangsmetalle**), p (13–18), f (Lanthanoide).", "The **block** tells you which subshell is filled last: s (groups 1–2), d (3–12, the **transition metals**), p (13–18), f (lanthanoids)."),
     ask: tr("In welchem Block steht **Eisen** (Fe, Gruppe 8)?", "Which block is **iron** (Fe, group 8) in?"), answer: tr("d-Block", "d block"), options: [tr("s-Block", "s block"), tr("p-Block", "p block"), tr("d-Block", "d block"), tr("f-Block", "f block")],
     visual: c => <Pse c={c} stufe="os" mark={26} blocks />,
-    why: { [tr("s-Block", "s block")]: tr("s-Block sind nur die Gruppen 1 und 2.", "The s block is only groups 1 and 2."), [tr("p-Block", "p block")]: tr("p-Block sind die Gruppen 13–18.", "The p block is groups 13–18."), [tr("f-Block", "f block")]: tr("f-Block sind Lanthanoide und Actinoide.", "The f block is the lanthanides and actinides.") },
+    why: { [tr("s-Block", "s block")]: tr("s-Block sind nur die Gruppen 1 und 2.", "The s block is only groups 1 and 2."), [tr("p-Block", "p block")]: tr("p-Block sind die Gruppen 13–18.", "The p block is groups 13–18."), [tr("f-Block", "f block")]: tr("f-Block sind Lanthanoide und Actinoide.", "The f block is the lanthanoids and actinoids.") },
     ok: tr("Eisen: [Ar] 4s² 3d⁶ – zuletzt wird 3d gefüllt.", "Iron: [Ar] 4s² 3d⁶ – 3d is filled last."),
     lines: [tr("Zuletzt gefüllt: 3d → d-Block (Gruppen 3–12).", "Filled last: 3d → d block (groups 3–12).")],
   },
@@ -671,7 +671,7 @@ const OS: GuideStep[] = [
     ask: tr("Ergänze: Welche Konfiguration hat **Fe³⁺**?", "Complete: what is the configuration of **Fe³⁺**?"), answer: "[Ar] 3d⁵", options: ["[Ar] 3d⁵", "[Ar] 4s² 3d³", "[Ar] 4s¹ 3d⁴"],
     lines: [tr("Fe²⁺: [Ar] 3d⁶ – 4s ist schon leer.", "Fe²⁺: [Ar] 3d⁶ – 4s is already empty."), tr("Das dritte Elektron kommt jetzt aus 3d.", "The third electron now comes from 3d."), tr("Fe³⁺ = {?}", "Fe³⁺ = {?}")],
     why: { "[Ar] 4s² 3d³": tr("4s ist die äußerste Schale – diese Elektronen gehen zuerst.", "4s is the outer shell – these electrons go first."), "[Ar] 4s¹ 3d⁴": tr("Beide 4s-Elektronen gehen vor den 3d-Elektronen.", "Both 4s electrons go before the 3d electrons.") },
-    ok: tr("Fe³⁺ = [Ar] 3d⁵ – halb besetzte d-Schale.", "Fe³⁺ = [Ar] 3d⁵ – half-filled d subshell."),
+    ok: tr("Fe³⁺ = [Ar] 3d⁵ – halb besetzte d-Unterschale.", "Fe³⁺ = [Ar] 3d⁵ – half-filled d subshell."),
   },
 ];
 
@@ -688,8 +688,8 @@ export function guideFor(stufe: "us" | "os"): GuideDef {
       tr("Atomsymbol lesen: Massenzahl, Ordnungszahl, Ladung → p, n, e.", "Reading the nuclide symbol: mass number, atomic number, charge → p, n, e."),
       tr("Elektronen verhalten sich wie **Wellen**: kein Ort, keine Bahn – nur Aufenthaltswahrscheinlichkeit |ψ|². **Orbital** = Raum mit 90 % davon, höchstens 2 Elektronen (**Pauli**).", "Electrons behave like **waves**: no position, no path – only probability |ψ|². **Orbital** = region with 90 % of it, at most 2 electrons (**Pauli**)."),
       tr("Quantenzahlen: **n** Größe/Schale, **l** Form (s Kugel, p Hantel, d Rosette), **m** Ausrichtung (1 s, 3 p, 5 d), **s** Spin ↑↓. Schale n fasst 2n² Elektronen.", "Quantum numbers: **n** size/shell, **l** shape (s sphere, p dumbbell, d cloverleaf), **m** orientation (1 s, 3 p, 5 d), **s** spin ↑↓. Shell n holds 2n² electrons."),
-      tr("Aufbauprinzip 1s 2s 2p 3s 3p **4s 3d** 4p …; **Hund'sche Regel**: gleichwertige Orbitale erst einzeln, dann gepaart.", "Aufbau principle 1s 2s 2p 3s 3p **4s 3d** 4p …; **Hund's rule**: equivalent orbitals singly first, then paired."),
-      tr("Kurzschreibweise mit Edelgaskern; s-, p-, d-Block; Periode und Gruppe aus der Konfiguration.", "Short notation with noble gas core; s, p, d block; period and group from the configuration."),
+      tr("Aufbauprinzip 1s 2s 2p 3s 3p **4s 3d** 4p … (wenige Ausnahmen wie Cr, Cu); **Hund'sche Regel**: gleichwertige Orbitale erst einzeln, dann gepaart.", "Aufbau principle 1s 2s 2p 3s 3p **4s 3d** 4p … (a few exceptions such as Cr, Cu); **Hund's rule**: equivalent orbitals singly first, then paired."),
+      tr("Kurzschreibweise mit Edelgaskern; s-, p-, d-, f-Block; Periode und Gruppe aus der Konfiguration.", "Short notation with noble gas core; s, p, d, f block; period and group from the configuration."),
       tr("Ionen: Edelgaskonfiguration, Kationen geben 4s vor 3d ab, isoelektronische Teilchen.", "Ions: noble gas configuration, cations lose 4s before 3d, isoelectronic particles."),
     ] };
 }

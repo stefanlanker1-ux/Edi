@@ -2,11 +2,11 @@
 
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { FitDown, Segmented, Switch, Sheet, Tag, Workbench, type WorkbenchTool } from "@lern/ui";
-import { Formula, pseTool, computeMol3D, forceFieldAvailable, moleculeInput } from "@lern/chem-ui";
+import { Formula, pseTool, computeMol3D, forceFieldAvailable, moleculeInput, type FFInput } from "@lern/chem-ui";
 import {
   BY_SYMBOL, KNOWN, electronsOf, isComplete, connected, identify, storedMol3D, sumFormula, shapeAt, isPolar, isWeaklyPolar, polarBonds, elementName, bondName, geometryName,
-  target,
-  type AngleMode, type Mol3D,
+  target, gridCisTrans,
+  type AngleMode, type Mol3D, type Molecule,
 } from "@lern/chem";
 import { useApp } from "../store.ts";
 import { empty, loadKnown } from "../edit.ts";
@@ -20,6 +20,13 @@ export const OS_ELEMENTS = [...US_ELEMENTS, "S", "P", "Br", "I"];
 
 // 3D-Ansicht (three.js) wird erst beim ersten Öffnen geladen
 const Molecule3D = lazy(() => import("@lern/chem-ui/3d"));
+
+/** Eingabe für das Kraftfeld: cis/trans an Zweifachbindungen wie gebaut (wie bei der Polarität) */
+function ffInput(m: Molecule): FFInput {
+  const idx = new Map(m.atoms.map((a, i) => [a.id, i]));
+  const d = gridCisTrans(m).map(s => [idx.get(s.a)!, idx.get(s.b)!, idx.get(s.c)!, idx.get(s.d)!, s.cis ? 1 : 0]);
+  return { ...moleculeInput(m), stereo: { c: [], d } };
+}
 
 export function BuildView() {
   const { stufe, mol, setMol, showLonePairs, setShowLonePairs, showDeltas, setShowDeltas, wedge, setWedge, lines, setLines, octet, setOctet } = useApp();
@@ -44,7 +51,7 @@ export function BuildView() {
     let live = true;
     setCalc("busy");
     // erst zeichnen lassen („wird berechnet“), dann rechnen
-    const t = window.setTimeout(() => computeMol3D(moleculeInput(mol)).then(data => { if (live) setCalc({ for: mol, data }); }, () => { if (live) setCalc({ for: mol, data: null }); }), 30);
+    const t = window.setTimeout(() => computeMol3D(ffInput(mol)).then(data => { if (live) setCalc({ for: mol, data }); }, () => { if (live) setCalc({ for: mol, data: null }); }), 30);
     return () => { live = false; window.clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show3d, canCompute, mol]);
@@ -67,7 +74,9 @@ export function BuildView() {
         {mol.atoms.length > 1 && missing.map(({ a, e }) => <Tag key={a.id} tone="signal">{a.el} {e.around}/{target(a.el)} e⁻</Tag>)}
       </>
     );
-  const polarity = isPolar(mol) ? "polar" : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : isWeaklyPolar(mol) ? tr("schwach polar", "weakly polar") : tr("unpolar", "non-polar");
+  // Polarität aus der räumlichen Lage (Vektorsumme der Bindungsdipole) – nur für fertige Moleküle
+  const polar = useMemo(() => done && isPolar(mol), [done, mol]);
+  const polarity = useMemo(() => !done ? null : polar ? "polar" : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : isWeaklyPolar(mol) ? tr("schwach polar", "weakly polar") : tr("unpolar", "non-polar"), [done, polar, mol]);
   const tools: WorkbenchTool[] = [
     {
       id: "formel", label: tr("Formel", "Formula"), title: showWedge ? tr("Geometrische Strukturformel", "Wedge-dash formula") : tr("Strukturformel", "Structural formula"), icon: "bond", content: (
@@ -111,7 +120,7 @@ export function BuildView() {
             {!center.length && <li><b>–</b><span>linear</span><span>180°</span></li>}
           </ul>
           <div className="ui-tags">
-            <Tag tone={isPolar(mol) ? "signal" : "plain"}>{polarity}</Tag>
+            <Tag tone={polar ? "signal" : "plain"}>{polarity}</Tag>
             {[...new Set(polarBonds(mol).map(p => {
               const A = mol.atoms.find(x => x.id === p.plus)!, B = mol.atoms.find(x => x.id === p.minus)!;
               return `${A.el}–${B.el} ΔEN ${p.delta.toLocaleString(tr("de-AT", "en-GB"))}`;

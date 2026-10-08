@@ -37,7 +37,7 @@ export function QuizView() {
       levelId={l => levelId(stufe, l)}
       typeName={id => TYPES[stufe][id]?.name}
       missName={id => MISS[id]}
-      heroArt={<Bohr Z={stufe === "us" ? 8 : 26} N={8} E={stufe === "us" ? 8 : 26} labels={false} />}
+      heroArt={<Bohr Z={stufe === "us" ? 8 : 26} N={stufe === "us" ? 8 : 30} E={stufe === "us" ? 8 : 26} labels={false} />}
       renderVisual={t => !t.visual ? null
         : t.visual.kind === "nuclide" ? <Nuclide Z={t.visual.Z} N={t.visual.N} E={t.visual.E} size="xl" blank={t.visual.blank} />
         : t.visual.kind === "fill" ? <div className="q-fill"><FillScheme key={t.prompt} Z={t.visual.Z} electrons={t.visual.E} /></div>

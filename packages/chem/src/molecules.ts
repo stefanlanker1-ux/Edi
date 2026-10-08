@@ -3,6 +3,8 @@
 
 import { num, tr } from "@lern/i18n";
 import { ELEMENTS } from "./elements.ts";
+// Zyklischer Import: geometry3d nutzt molecules erst beim Aufruf, nicht beim Laden
+import { hasBondDipole, hasLonePairDipole } from "./geometry3d.ts";
 
 export const VALENCE: Record<string, number> = { H: 1, C: 4, N: 5, O: 6, F: 7, Cl: 7, Br: 7, I: 7, S: 6, P: 5 };
 export const BONDING_ELEMENTS = Object.keys(VALENCE);
@@ -163,7 +165,8 @@ export function shapeAt(m: Molecule, id: number): Shape | null {
     else if (n === 3) { geometry = "trigonal-pyramidal"; angle = real ? formatAngle(real) : a === "N" ? tr("ca. 107°", "approx. 107°") : tr("kleiner als 109,5°", "less than 109.5°"); }
     else { geometry = "gewinkelt"; angle = real ? formatAngle(real) : a === "O" ? tr("ca. 104,5°", "approx. 104.5°") : tr("kleiner als 109,5°", "less than 109.5°"); }
   } else if (steric === 3) {
-    if (n === 3) { geometry = "trigonal-planar"; angle = "120°"; }
+    // genau 120° nur bei drei gleichen Partnern; sonst verschieden (Methanal H–C–H gemessen 116,5°)
+    if (n === 3) { geometry = "trigonal-planar"; angle = new Set(nbEls).size === 1 ? "120°" : tr("ca. 120°", "approx. 120°"); }
     else { geometry = "gewinkelt"; angle = tr("etwas kleiner als 120°", "slightly less than 120°"); }
   } else { geometry = "linear"; angle = "180°"; }
   return { center: id, geometry, angle, pairs: p, neighbors: n };
@@ -181,31 +184,21 @@ export function polarBonds(m: Molecule): PolarBond[] {
 }
 
 /**
- * Schwach polar: keine Bindung mit ΔEN ≥ 0,4, aber gewinkelter/pyramidaler Bau mit fast polaren Bindungen (ΔEN ≥ 0,3),
- * z. B. H₂S (ΔEN 0,38) – gemessen hat H₂S ein kleines Dipolmoment.
+ * Schwach polar: keine Bindung mit ΔEN ≥ 0,4, aber ein Zentralatom mit freien Elektronenpaaren, die sich nicht aufheben
+ * (gewinkelt, pyramidal) – z. B. H₂S (gemessen 0,97 D) und PH₃ (0,57 D).
  */
 export function isWeaklyPolar(m: Molecule): boolean {
   if (polarBonds(m).length) return false;
-  const centers = m.atoms.filter(a => bondsOf(m, a.id).length >= 2);
-  if (centers.length !== 1) return false;
-  const s = shapeAt(m, centers[0].id)!;
-  const maxDelta = Math.max(...m.bonds.map(b => Math.abs(en(atom(m, b.a).el) - en(atom(m, b.b).el))));
-  return s.pairs > 0 && maxDelta >= 0.3;
+  return hasLonePairDipole(m);
 }
 
 /**
- * Polarität des Moleküls (vereinfacht für die Schule): ohne polare Bindungen unpolar;
- * mit einem Zentralatom, gleichen Nachbarn und symmetrischer Geometrie ohne freie Paare ebenfalls unpolar; sonst polar.
+ * Polarität des Moleküls: polare Bindungen (ΔEN ≥ 0,4), deren Dipole sich in der räumlichen Lage nicht aufheben
+ * (Vektorsumme, `hasBondDipole`) – H₂O, NH₃, CHCl₃ polar; CO₂, CCl₄, Cl₂C=CCl₂, N≡C–C≡N unpolar.
  */
 export function isPolar(m: Molecule): boolean {
   if (!polarBonds(m).length) return false;
-  const centers = m.atoms.filter(a => bondsOf(m, a.id).length >= 2);
-  if (centers.length === 1) {
-    const c = centers[0], s = shapeAt(m, c.id)!;
-    const nbEls = new Set(bondsOf(m, c.id).map(b => atom(m, b.a === c.id ? b.b : b.a).el));
-    if (nbEls.size === 1 && s.pairs === 0 && ["linear", "trigonal-planar", "tetraedrisch"].includes(s.geometry)) return false;
-  }
-  return true;
+  return hasBondDipole(m, en);
 }
 
 // ── Bekannte Moleküle ───────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 
 import {
   CATIONS, ANIONS, ION_BY_ID, ionsFor, ratio, formula, toSubscript, compoundName, ionText, chargeFull, isKnownCompound, BY_Z, type Ion, groupLabel,
+  elementPronoun,
 } from "@lern/chem";
 import { buildRound, mc, d, pick, shuffle, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { weakTypes } from "@lern/quiz";
@@ -42,7 +43,7 @@ function charge(os: boolean): Task {
     ]
     : [
       d(opt(-q), "ion-gegenteil", tr(`${el.name} ist ein Nichtmetall. Nichtmetalle nehmen Elektronen auf – das Ion wird **negativ**.`, `${el.name} is a non-metal. Non-metals gain electrons – the ion becomes **negative**.`)),
-      d(opt(8 + q), "abgeben-statt-aufnehmen", tr(`${el.name} hat ${8 - n} Außenelektronen. Es gibt sie nicht ab, sondern füllt bis zur 8 auf: ${n === 1 ? "1 Elektron" : `${n} Elektronen`} dazu.`, `${el.name} has ${8 - n} outer electrons. It does not lose them but fills up to 8: ${n === 1 ? "1 more electron" : `${n} more electrons`}.`)),
+      d(opt(8 + q), "abgeben-statt-aufnehmen", tr(`${el.name} hat ${8 - n} Außenelektronen. ${elementPronoun(el.Z)} gibt sie nicht ab, sondern füllt bis zur 8 auf: ${n === 1 ? "1 Elektron" : `${n} Elektronen`} dazu.`, `${el.name} has ${8 - n} outer electrons. It does not lose them but fills up to 8: ${n === 1 ? "1 more electron" : `${n} more electrons`}.`)),
       d(opt(q - 1), "ladung-verzaehlt", tr(`${el.name} hat ${8 - n} Außenelektronen. Bis zur 8 ${n === 1 ? "fehlt genau 1" : `fehlen genau ${n}`}.`, `${el.name} has ${8 - n} outer electrons. Exactly ${n} ${n === 1 ? "is" : "are"} missing to make 8.`)),
     ];
   return {
@@ -66,9 +67,9 @@ function electrons(): Task {
     ...mc(String(n), [other, ...["1", "2", "3", "4", "5", "6", "7"].filter(x => x !== String(n) && x !== String(8 - n))]),
     prompt: tr(`Ein **${el.name}**-Atom wird zum Ion. Wie viele Elektronen ${ion.charge > 0 ? "gibt es ab" : "nimmt es auf"}?`, `A **${el.name}** atom becomes an ion. How many electrons does it ${ion.charge > 0 ? "lose" : "gain"}?`),
     hint: tr("Schau auf die Hauptgruppe: Sie sagt, wie viele Außenelektronen das Atom hat.", "Look at the main group: it tells you how many outer electrons the atom has."),
-    explain: tr(`${el.name} hat ${ion.charge > 0 ? n : 8 - n} Außenelektron${(ion.charge > 0 ? n : 8 - n) === 1 ? "" : "en"}. ${ion.charge > 0
-      ? (n === 1 ? "Es gibt dieses **1** Elektron ab" : `Es gibt diese **${n}** ab`)
-      : `Es nimmt **${n}** auf, dann sind es 8`} → ${ionText(ion)}, volle Außenschale wie ein Edelgas.`,
+    explain: tr(`${el.name} hat ${ion.charge > 0 ? n : 8 - n} Außenelektron${(ion.charge > 0 ? n : 8 - n) === 1 ? "" : "en"}. ${elementPronoun(el.Z)} ${ion.charge > 0
+      ? (n === 1 ? "gibt dieses **1** Elektron ab" : `gibt diese **${n}** ab`)
+      : `nimmt **${n}** auf, dann sind es 8`} → ${ionText(ion)}, volle Außenschale wie ein Edelgas.`,
       `${el.name} has ${ion.charge > 0 ? n : 8 - n} outer electron${(ion.charge > 0 ? n : 8 - n) === 1 ? "" : "s"}. ${ion.charge > 0
       ? (n === 1 ? "It loses this **1** electron" : `It loses these **${n}**`)
       : `It gains **${n}**, then there are 8`} → ${ionText(ion)}, a full outer shell like a noble gas.`),
@@ -175,14 +176,16 @@ function polyCharge(): Task {
   const idx = Number(ion.formula.match(/\d+$/)?.[0]);
   const signOf = (q: number) => (q > 0 ? tr("positiv", "positive") : tr("negativ", "negative"));
   const wrongs = [
-    d(chargeFull(-ion.charge), "ladung-vorzeichen", tr(`${ion.name}en sind ${signOf(ion.charge)}: ${ion.charge > 0 ? "es ist das einzige mehratomige Kation im Baukasten" : "alle anderen mehratomigen Ionen hier sind Anionen"}.`, `${plural(ion)[0].toUpperCase() + plural(ion).slice(1)} are ${signOf(ion.charge)}: ${ion.charge > 0 ? "it is the only polyatomic cation in the kit" : "all other polyatomic ions here are anions"}.`)),
+    d(chargeFull(-ion.charge), "ladung-vorzeichen", tr(`${ion.name}en sind ${signOf(ion.charge)}: ${ion.charge > 0 ? "es ist das einzige mehratomige Kation im Baukasten" : "von den mehratomigen Ionen hier ist nur Ammonium NH₄⁺ positiv"}.`, `${plural(ion)[0].toUpperCase() + plural(ion).slice(1)} are ${signOf(ion.charge)}: ${ion.charge > 0 ? "it is the only polyatomic cation in the kit" : "of the polyatomic ions here only ammonium NH₄⁺ is positive"}.`)),
     idx && idx !== abs(ion.charge) ? d(chargeFull(Math.sign(ion.charge) * idx), "ladung-aus-index", tr(`Die ${idx} in ${toSubscript(ion.formula)} ist die Anzahl der Atome, nicht die Ladung. Die Ladung muss man lernen: **${ionText(ion)}**.`, `The ${idx} in ${toSubscript(ion.formula)} is the number of atoms, not the charge. The charge has to be learned: **${ionText(ion)}**.`)) : null,
     ...[1, 2, 3, -1, -2, -3].map(chargeFull),
   ];
   return {
     ...mc(chargeFull(ion.charge), wrongs),
     prompt: tr(`Welche Ladung hat das **${ion.name}** (${toSubscript(ion.formula)})?`, `What is the charge of the **${nm(ion)}** (${toSubscript(ion.formula)})?`),
-    hint: tr("Diese Ladungen muss man auswendig kennen – schau im Baukasten nach.", "These charges have to be learned – look them up in the kit."),
+    hint: ion.charge > 0
+      ? tr("Die tiefgestellte Zahl zählt nur Atome. Denk an ein Salz mit diesem Ion: Wie viele Cl⁻ gleichen es aus?", "The subscript only counts atoms. Think of a salt with this ion: how many Cl⁻ balance it?")
+      : tr("Die tiefgestellte Zahl zählt nur Atome. Denk an ein Salz mit diesem Ion: Wie viele Na⁺ gleichen es aus?", "The subscript only counts atoms. Think of a salt with this ion: how many Na⁺ balance it?"),
     explain: `${ion.name}: **${ionText(ion)}**.`,
   };
 }
@@ -217,6 +220,9 @@ const GENS = (os: boolean): Record<string, () => Task> => ({
   charge: () => charge(os), electrons, count: () => count(os), build: () => build(os),
   formula: () => formulaMc(os), name: () => name(os), polyCharge, romanCharge,
 });
+
+/** Aufgaben ohne Ionentabelle als Hilfsmittel: die Lösung ist eine Ionenladung aus der Tabelle („Welches Ion bildet Natrium?“, „Welche Ladung hat das Sulfat-Ion?“) */
+export const NO_ION_TABLE = ["charge", "polyCharge"];
 
 export const TYPE_NAMES: Record<string, string> = tr({
   charge: "Ionenladungen", electrons: "Elektronen abgeben/aufnehmen", count: "Verhältnis der Ionen",
