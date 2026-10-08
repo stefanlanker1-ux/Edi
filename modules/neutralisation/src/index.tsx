@@ -8,7 +8,7 @@ export const modul: LernModule = {
   name: "Neutralisation",
   desc: "Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen: jedes H⁺ trifft ein OH⁻, der Rest ist das Salz – mit allen Säuren der Tabelle.",
   nameEn: "Neutralisation",
-  descEn: "Base + acid → salt + water with ion blocks: every H⁺ meets an OH⁻, the rest is the salt – with all acids of the table.",
+  descEn: "Alkali + acid → salt + water with ion tiles: every H⁺ meets an OH⁻, the rest is the salt – with all acids of the table.",
   storage: ["neutralisation-v1", "neutralisation-quiz"],
   Card,
   load: () => import("./entry.tsx"),

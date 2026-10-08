@@ -51,6 +51,7 @@ test("Beispiele wie im Heft", () => {
   assert.deepEqual([hc.salt, hc.saltName], ["Ca(HCO3)2", "Calciumhydrogencarbonat"]);
   assert.strictEqual(neutralWords(na), "Natronlauge + Schwefelsäure → Natriumsulfat + Wasser");
   assert.strictEqual(neutralWords(neutralEquation(B("naoh"), A("hcl"))), "Natronlauge + Salzsäure → Natriumchlorid + Wasser");
+  assert.strictEqual(neutralWords(neutralEquation(B("koh"), A("h2so3"))), "Kalilauge + schweflige Säure → Kaliumsulfit + Wasser");
   assert.strictEqual(protolysis(A("h3po4")), "H₃PO₄ → 3 H⁺ + PO₄³⁻");
   assert.strictEqual(protolysis(A("h3po4"), 2), "H₃PO₄ → 2 H⁺ + HPO₄²⁻");
   assert.strictEqual(hydroxideDissociation(B("baoh2")), "Ba(OH)₂ → Ba²⁺ + 2 OH⁻");

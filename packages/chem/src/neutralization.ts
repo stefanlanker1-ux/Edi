@@ -143,5 +143,6 @@ export const hydroxideDissociation = (b: Hydroxide) => `${toSubscript(b.formula)
 export const protolysis = (a: ProticAcid, step = a.protons) => `${toSubscript(a.formula)} → ${coeff(step)}H⁺ + ${ionText(restOf(a, step))}`;
 /** Name des Säurerests ohne „-Ion“: „Dihydrogenphosphat“ */
 export const restName = (r: Ion) => r.name.replace(/-Ion$| ion$/, "");
-/** „Natronlauge + Salzsäure → Natriumchlorid + Wasser“ */
-export const neutralWords = (n: NeutralEq) => `${n.base.lauge ?? n.base.name} + ${n.acid.aq ?? n.acid.name} → ${n.saltName} + ${tr("Wasser", "Water")}`;
+/** „Natronlauge + Salzsäure → Natriumchlorid + Wasser“ („schweflige Säure“ mitten in der Zeile klein) */
+export const neutralWords = (n: NeutralEq) =>
+  `${n.base.lauge ?? n.base.name} + ${(n.acid.aq ?? n.acid.name).replace(/^Schweflige /, "schweflige ")} → ${n.saltName} + ${tr("Wasser", "Water")}`;

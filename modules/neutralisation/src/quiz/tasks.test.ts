@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { HYDROXIDE_BY_ID, PROTIC_BY_ID, neutralEquation, isKnownSalt, restOf } from "@lern/chem";
+import { HYDROXIDE_BY_ID, PROTIC_ACIDS, PROTIC_BY_ID, neutralEquation, isKnownSalt, restOf } from "@lern/chem";
 import { makeRound, LEVELS, TYPE_NAMES, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
@@ -65,4 +65,56 @@ test("diagnostische Distraktoren: Schlüssel im Katalog, Rückmeldung zu jedem S
     }
   }
   assert.ok(withDiag / total > 0.85, `zu wenige Aufgaben mit Diagnose: ${withDiag}/${total}`);
+});
+
+/** alle Texte einer Aufgabe, die Schüler sehen: Frage, Tipp, Erklärung, Antworten, Rückmeldungen */
+const allTexts = (t: Task) => [t.prompt, t.hint, t.explain, ...(t.kind === "mc" ? [...t.options, ...Object.values(t.why ?? {})] : (t.traps ?? []).map(x => x.why))];
+const roundsOf = (stufe: "us" | "os", n: number) => Array.from({ length: n }, () => [0, 1, 2].flatMap(l => makeRound(stufe, l))).flat();
+
+test("Level I: keine Perchlorsäure, keine Hydrogen-Namen, kein „einprotonig“ oder „Formeleinheit“ (erst Level II) – auch nicht in Tipps, Antworten, Rückmeldungen", () => {
+  for (const t of roundsOf("us", 150)) for (const s of allTexts(t))
+    assert.ok(!/Perchlor|HClO₄|[Hh]ydrogen|Formeleinheit|protonig/.test(s), `${t.type}: ${s}`);
+});
+
+test("Säurerest-Fallen mit -id/-it/-at stammen aus derselben Familie (keine Schwefel-Namen bei Phosphat oder Carbonat)", () => {
+  const root = (s: string) => ["sulf", "nitr", "chlor", "brom", "phosph", "carbon", "format", "acetat"].find(r => s.toLowerCase().includes(r));
+  let n = 0;
+  for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 150)) {
+    if (t.kind !== "mc" || !t.miss) continue;
+    for (const [i, m] of Object.entries(t.miss)) if (m === "endung-id-at-it") {
+      n++;
+      assert.strictEqual(root(t.options[Number(i)]), root(t.options[t.answer]), `${t.prompt}: ${t.options[Number(i)]} ↔ ${t.options[t.answer]}`);
+    }
+  }
+  assert.ok(n > 100, `nur ${n}`);
+});
+
+test("Salz, Salzname, Gleichung, Bauen: bei mehrprotonigen Säuren steht in der Frage, wie viele H⁺ jede Säure abgibt", () => {
+  let n = 0;
+  for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 150)) {
+    if (!["salz", "salzName", "gleichung", "bauen"].includes(t.type!)) continue;
+    if (t.type === "salzName" && !t.prompt.includes("→")) continue; // Frage nach dem Namen einer Formel: eindeutig
+    const acid = PROTIC_ACIDS.find(a => t.f?.includes(a.formula))!;
+    assert.ok(acid, t.prompt);
+    // als eigener Satz, nicht mitten in der Frage („… – jedes H₂CO₃ gibt nur 1 H⁺ ab ist richtig ausgeglichen?“)
+    assert.ok(!/ – jedes/.test(t.prompt), t.prompt);
+    if (acid.protons === 1) continue;
+    n++;
+    assert.match(t.prompt, /Jedes \S+ gibt (nur \*\*\d H⁺\*\*|\*\*alle \d H⁺\*\*) ab\./, t.prompt);
+  }
+  assert.ok(n > 300, `nur ${n}`);
+});
+
+test("Tipps und Rückmeldungen zu COOH-Säuren sprechen nicht von „H vorne in der Formel“ ohne die COOH-Gruppe", () => {
+  for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 100)) {
+    if (!t.f?.some(f => /COOH/.test(f))) continue;
+    for (const s of [t.hint, ...(t.kind === "mc" ? Object.values(t.why ?? {}) : [])])
+      if (/vorne in der Formel/.test(s)) assert.match(s, /COOH/, `${t.prompt}: ${s}`);
+  }
+});
+
+test("„schweflige Säure“ mitten im Satz klein (groß nur am Satzanfang und als eigene Antwort)", () => {
+  for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 100))
+    for (const s of [t.prompt, t.hint, t.explain, ...(t.kind === "mc" ? Object.values(t.why ?? {}) : [])])
+      assert.ok(!/Schweflige/.test(s.replace(/(^|[.!?] )Schweflige/g, "$1")), s);
 });

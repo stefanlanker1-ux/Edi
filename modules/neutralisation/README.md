@@ -9,8 +9,8 @@ Neutral, wenn die OH⁻- und die H⁺-Reihe gleich lang sind – jedes Paar H⁺
 - **Säuren** (Tabelle nach Anzahl abgebbarer H⁺): HCl, HClO₄, HCOOH, HBr, HNO₃, CH₃COOH · H₂S, H₂SO₃, H₂SO₄, H₂CO₃ · H₃PO₄
 - **Laugen:** LiOH, NaOH, KOH, Mg(OH)₂, Ca(OH)₂, Ba(OH)₂ (Level II zusätzlich Al(OH)₃)
 - **Level I:** vollständige Neutralisation · **Level II:** zusätzlich schrittweise (Hydrogensalze: NaH₂PO₄, Ca(HCO₃)₂ …)
-- **Quiz:** Säuren in Wasser, Säurerest-Namen und -Ladungen, Laugen, Neutralisation bauen, Wasser zählen, Salzformeln und -namen, Gleichungen –
-  mit diagnostischen Distraktoren (Stolpersteine), Erklärkarten und Wiederholung
+- **Üben:** Säuren in Wasser, Säurerest-Namen und -Ladungen, Laugen, Neutralisation bauen, Wasser zählen, Salzformeln und -namen, Gleichungen –
+  mit diagnostischen Distraktoren (Stolpersteine), Erklärkarten und Wiederholung (Level I ohne Perchlorsäure und Hydrogensalze)
 
 ## Entwickeln
 Modul der App Edi (`apps/edi`), Adresse `#/neutralisation`.

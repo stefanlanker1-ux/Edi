@@ -511,10 +511,18 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Unterstufe nur vollständige Neutralisation; Oberstufe wählt in der Säuretabelle (Werkzeug „Säure“) auch den Säurerest = wie viele H⁺ abgegeben werden (Hydrogensalze).
   Säuretabelle nach Anzahl abgebbarer H⁺ (Gruppen senkrecht beschriftet), passt auch breit (≥ 1024 × 768) ganz ins Register. Gespeichert (`neutralisation-v1`): Lauge, Säure, Stufe der Abgabe, Anzahlen.
 - Salzformeln ionisch, Kation zuerst (NaCH₃COO, KHCOO, Ca(HCO₃)₂). Wortgleichung mit Laugen-/Säurenamen (Natronlauge + Salzsäure → Natriumchlorid + Wasser).
+  Säurenamen mitten im Satz bzw. in der Wortgleichung klein, wo sie ein Adjektiv haben („Kalilauge + schweflige Säure“; groß nur in der Tabelle und am Satzanfang, Test).
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): protolyse, protonen (OS), restName, restLadung, hydroxid, bauen (Bausteine, Fallen 1 : 1 / vertauscht / nicht gekürzt),
-  wasser, koeffizient (OS), salz, salzName, gleichung. Namensfallen nur mit Ionen, die es gibt (-id/-it/-at, Hydrogen-Formen nur beim Schwefel, Formiat ↔ Acetat). Säuretabelle als Hilfsmittel nur Oberstufe und nur bei Aufgaben, die nicht nach Namen/Ladung der Säurereste fragen.
+  wasser, koeffizient (OS), salz, salzName, gleichung. Namensfallen nur mit Ionen, die es gibt (-id/-it/-at derselben Familie, Hydrogen-Formen nur beim Schwefel – also nur für
+  Hydrogensulfid/-sulfit/-sulfat, nie Schwefel-Namen bei Hydrogencarbonat oder -phosphat –, Formiat ↔ Acetat; Test). Säuretabelle als Hilfsmittel nur Oberstufe und nur bei Aufgaben, die nicht nach Namen/Ladung der Säurereste fragen.
+  **Level I** ohne Perchlorsäure/Perchlorat (erst in Level II eingeführt), ohne Hydrogen-Namen und ohne „einprotonig“/„Formeleinheit“ (Level II; **Formeleinheit** führt die Erklärkarte „Neutralisieren“ der Oberstufe ein) – auch nicht als falsche Antwort, im Tipp oder in einer Rückmeldung (Test über alle Texte;
+  `acidsFor(os)`, Tipp zu Salznamen je Stufe). Salz, Salzname (Wortgleichung), Gleichung und Bauen nennen bei mehrprotonigen Säuren als **eigenen Satz vor der Frage**, wie viele H⁺ jede
+  Säure abgibt („Jedes H₂SO₄ gibt **alle 2 H⁺** ab.“ bzw. „nur **1 H⁺**“) – Level II lehrt die teilweise Neutralisation, sonst wären Hydrogensalze ebenso richtig (Test).
+  Tipp „Säuren in Wasser“: die H vorne in der Formel, bei COOH-Säuren nur das H der COOH-Gruppe (die Erklärkarte Level I führt **COOH-Gruppe** ein); Rückmeldungen zu Essig- und
+  Ameisensäure sprechen vom H der COOH-Gruppe, nie von „H vorne in der Formel“ (Test). Englisch: jeder Satz beginnt groß (Test in `english.test.ts`).
 - Erklärung Level I (15 Schritte): **Säuren** · **Laugen und Wasser** (vorgemachte Wand ohne Reaktion) · **Salz und Gleichung**. Level II (14 Schritte): **Mehrprotonige Säuren** ·
   **Ausgleichen** · **Salze benennen** (Formiat, Perchlorat eingeführt; `known`: Nitrat, Sulfat, Carbonat, Hydrogencarbonat, Phosphat aus der Ionenbindung).
+  Vor „Wie viele H⁺ kann CH₃COOH höchstens abgeben?“ nennt die Liste der einprotonigen Säuren CH₃COOH nicht (sonst stünde die Antwort schon da).
 
 ## Nomenklatur (`modules/organik`)
 - Organische Verbindungen frei zeichnen, der Name folgt nach IUPAC (deutsche Schreibweise: Benzen, Oct, Ethansäure, Butansäureethylester), mit weiteren Namen
@@ -736,6 +744,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Neutralisation: Stufen sauber getrennt, Aufgaben eindeutig** – Level I ohne Perchlorsäure, Hydrogen-Namen, „einprotonig“ und „Formeleinheit“ (auch nicht in Fallen, Tipps,
+  Rückmeldungen; Formeleinheit in der Erklärkarte Level II eingeführt). Salz-, Salzname-, Gleichungs- und Bauaufgaben sagen als eigenen Satz, wie viele H⁺ jede Säure abgibt –
+  vorher waren bei mehrprotonigen Säuren auch Hydrogensalze richtig, wurden aber als falsch gewertet. -id/-it/-at-Fallen nur aus derselben Familie; Tipp und Rückmeldungen zu
+  COOH-Säuren („nur das H der COOH-Gruppe“ statt „H vorne in der Formel“); „schweflige Säure“ mitten im Satz klein; englische Satzanfänge groß; Erklärung verrät die CH₃COOH-Antwort nicht mehr.
 - **Einheiten: Eingabe, Rechenweg und Rückmeldungen korrigiert** – Eingaben werden nach der Sprache gelesen (Deutsch „1.000“ = 1000, nie 1; Englisch „1,000“ = 1000) –
   vorher galt „1.000“ bei „1000 m = ? km“ als richtig, gerade der typische Fehler „nicht umgerechnet“; auch im Umrechnen. Antwort exakt gespeichert und so angezeigt, wie sie gelesen wurde.
   Rechenweg immer exakt (endet die Umrechnungszahl nicht, durch den Kehrwert teilen statt gerundeter Faktor ohne „≈“); 1 PS = 735,498 75 W. Rückmeldungen zur Umrechnungszahl

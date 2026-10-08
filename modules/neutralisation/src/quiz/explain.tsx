@@ -14,6 +14,7 @@ const TEXT_DE: Record<string, Ex> = {
   "us-1": { b: "naoh", a: "h2so4", points: [
     "Säuren geben in Wasser **H⁺-Ionen** ab. Übrig bleibt der **Säurerest** – ein negatives Ion.",
     "So viele H⁺ weggehen, so viele Minus trägt der Rest: H₂SO₄ → 2 H⁺ + SO₄²⁻.",
+    "Essig- und Ameisensäure geben nur das H der **COOH-Gruppe** ab: CH₃COOH → H⁺ + CH₃COO⁻.",
     "Namen: Chlorid, Bromid, Sulfid (ohne O) · Nitrat, Sulfat, Carbonat, Phosphat · Sulfit (ein O weniger) · Acetat, Formiat.",
   ] },
   "us-2": { b: "caoh2", a: "hcl", points: [
@@ -32,6 +33,7 @@ const TEXT_DE: Record<string, Ex> = {
     "Essig- und Ameisensäure sind **einprotonig**: Nur das H der COOH-Gruppe ist sauer.",
   ] },
   "os-2": { b: "caoh2", a: "h3po4", points: [
+    "Eine **Formeleinheit** ist eine Einheit der Formel: 1 Ca(OH)₂ bringt 1 Ca²⁺ und 2 OH⁻.",
     "Zahl der H₂O = Zahl der OH⁻ = Zahl der H⁺ = kgV aus Ladung des Metall-Ions und abgegebenen H⁺.",
     "3 Ca(OH)₂ + 2 H₃PO₄ → Ca₃(PO₄)₂ + 6 H₂O.",
     "Gibt die Säure nur einen Teil der H⁺ ab, entsteht ein **Hydrogensalz**: NaOH + H₃PO₄ → NaH₂PO₄ + H₂O.",
@@ -46,6 +48,7 @@ const TEXT_EN: Record<string, Ex> = {
   "us-1": { b: "naoh", a: "h2so4", points: [
     "In water, acids give off **H⁺ ions**. What remains is the **acid anion** – a negative ion.",
     "As many H⁺ as leave, that many minus charges the anion carries: H₂SO₄ → 2 H⁺ + SO₄²⁻.",
+    "Acetic and formic acid give off only the H of the **COOH group**: CH₃COOH → H⁺ + CH₃COO⁻.",
     "Names: chloride, bromide, sulfide (no O) · nitrate, sulfate, carbonate, phosphate · sulfite (one O fewer) · acetate, formate.",
   ] },
   "us-2": { b: "caoh2", a: "hcl", points: [
@@ -64,6 +67,7 @@ const TEXT_EN: Record<string, Ex> = {
     "Acetic and formic acid are **monoprotic**: only the H of the COOH group is acidic.",
   ] },
   "os-2": { b: "caoh2", a: "h3po4", points: [
+    "A **formula unit** is one unit of the formula: 1 Ca(OH)₂ brings 1 Ca²⁺ and 2 OH⁻.",
     "Number of H₂O = number of OH⁻ = number of H⁺ = LCM of the metal ion's charge and the H⁺ given off.",
     "3 Ca(OH)₂ + 2 H₃PO₄ → Ca₃(PO₄)₂ + 6 H₂O.",
     "If the acid gives off only some of its H⁺, a **hydrogen salt** forms: NaOH + H₃PO₄ → NaH₂PO₄ + H₂O.",
