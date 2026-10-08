@@ -6,8 +6,9 @@
 import { buildRound, d, mc, pick, rnd, shuffle, weakTypes, type BaseTask, type Distractor, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
 import { layout } from "../chem/layout.ts";
 import { parseSmiles } from "../chem/smiles.ts";
-import { name, KIND_INFO, type Kind, type NameOk, type NameOptions } from "../chem/naming.ts";
-import { STEM } from "../chem/rings.ts";
+import { cap as capName, keepEnding, name, KIND_INFO, type Kind, type NameOk, type NameOptions } from "../chem/naming.ts";
+import { prefixEn } from "../chem/english.ts";
+import { MULT, STEM } from "../chem/rings.ts";
 import type { Mol } from "../chem/mol.ts";
 import { flipBond } from "../chem/stereo.ts";
 import { tr } from "@lern/i18n";
@@ -18,6 +19,8 @@ export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer:
 const mol = (s: string) => layout(parseSmiles(s));
 const ok = (m: Mol, opt?: NameOptions): NameOk | undefined => { const r = name(m, opt); return r.ok ? r : undefined; };
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** Gruppen, deren C zur Kette gehört (Säure, Aldehyd …) */
+const C_GROUP: Kind[] = ["saeure", "ester", "amid", "nitril", "al"];
 /** unverzweigtes Alkan mit k C: Butan / butane */
 const ALKANE = (k: number) => tr(cap(STEM[k]) + "an", STEM[k] + "ane");
 /** Ester aus Säure mit a C und Alkylrest mit b C: Butansäureethylester / ethyl butanoate */
@@ -47,19 +50,63 @@ function restem(nm: string, size: number, delta: number): string | undefined {
   }
 }
 
+/** Vorsilbe für Rückmeldungen: Methyl / methyl, (Prop-2-inyl) → Prop-2-inyl / prop-2-ynyl */
+const prefixWord = (p: string) => tr(capName(p), prefixEn(p));
+/** Äste (nur Alkylreste) oder Vorsilben */
+const prefixKind = (ps: { name: string }[]) => (ps.every(p => /yl$/.test(p.name)) ? tr("Äste", "branches") : tr("Vorsilben", "prefixes"));
+
+/** Rückmeldung zur anderen Richtung: nennt die Regel, die hier entscheidet, mit den Nummern der Aufgabe */
+function reverseWhy(r: NameOk, x: NonNullable<NameOk["reverse"]>): string {
+  const R = x.right.join(","), W = x.wrong.join(","), many = x.right.length > 1;
+  const sum = (xs: number[]) => xs.reduce((s, v) => s + v, 0);
+  if (x.rule === "principal") {
+    const g = KIND_INFO[r.principal!].group;
+    if (C_GROUP.includes(r.principal!) && x.right[0] === 1 && r.parent.kind === "chain")
+      return tr(`Das C der ${g}-Gruppe ist immer C1. Von dort aus nummerieren.`, `The C of the ${g} group is always C1. Number from there.`);
+    return many ? tr(`Die Gruppen ${g} bekommen die kleinsten Nummern: ${R} statt ${W}.`, `The ${g} groups get the lowest numbers: ${R} instead of ${W}.`)
+      : tr(`Die Gruppe ${g} bekommt die kleinste Nummer: ${R} statt ${W}.`, `The ${g} group gets the lowest number: ${R} instead of ${W}.`);
+  }
+  if (x.rule === "multiple" || x.rule === "double") {
+    const bond = tr({ double: "Doppelbindung", triple: "Dreifachbindung", multiple: "Mehrfachbindung" }, { double: "double bond", triple: "triple bond", multiple: "multiple bond" })[x.rule === "double" ? "double" : x.bond ?? "multiple"];
+    const first = x.rule === "double" ? tr("Gleichstand: ", "A tie: ") : "";
+    return many ? tr(`${first}Die ${bond}en bekommen die kleinsten Nummern: ${R} statt ${W}.`, `${first}The ${bond}s get the lowest numbers: ${R} instead of ${W}.`)
+      : tr(`${first}Die ${bond} bekommt die kleinste Nummer: ${R} statt ${W}.`, `${first}The ${bond} gets the lowest number: ${R} instead of ${W}.`);
+  }
+  if (x.rule === "prefixes") {
+    const alkyl = r.prefixes.every(p => /yl$/.test(p.name));
+    if (!many) return alkyl ? tr(`Der Ast bekommt die kleinste Nummer: ${R} statt ${W}.`, `The branch gets the lowest number: ${R} instead of ${W}.`)
+      : tr(`Die Vorsilbe bekommt die kleinste Nummer: ${R} statt ${W}.`, `The prefix gets the lowest number: ${R} instead of ${W}.`);
+    const firstDiff = sum(x.right) >= sum(x.wrong) ? tr(" Der erste Unterschied entscheidet.", " The first difference decides.") : "";
+    return tr(`Die ${prefixKind(r.prefixes)} bekommen die kleinsten Nummern: ${R} statt ${W}.`, `The ${prefixKind(r.prefixes)} get the lowest numbers: ${R} instead of ${W}.`) + firstDiff;
+  }
+  if (x.rule === "alpha") return tr(`Von beiden Seiten gleiche Nummern. Dann entscheidet das Alphabet: ${prefixWord(x.prefix!)} bekommt die ${R}.`,
+    `Both ends give the same numbers. Then the alphabet decides: ${prefixWord(x.prefix!)} gets ${R}.`);
+  return tr("Bei Wahl bekommt Z die kleinere Nummer.", "If there is a choice, Z gets the lower number.");
+}
+
 /** falsche Namen aus der Benennung selbst – je ein typischer Fehler */
-function nameDistractors(m: Mol, right: NameOk, extra: Distractor[] = []): Distractor[] {
+export function nameDistractors(m: Mol, right: NameOk, extra: Distractor[] = []): Distractor[] {
   const out: Distractor[] = [...extra];
   const bad = new Set([right.name, ...right.alt]);
   const add = (nm: string | undefined, miss: string, why: string) => { if (nm && !bad.has(nm)) { bad.add(nm); out.push(d(nm, miss, why)); } };
   const v = (opt: NameOptions) => ok(m, opt)?.name;
-  add(v({ pick: "reverse" }), "nummer", tr("Von der anderen Seite zählen: Dann sind die Nummern kleiner.", "Count from the other end: then the numbers are lower."));
-  add(v({ pick: "otherChain" }), "kette-kurz", tr(`Die längste Kette hat ${right.parent.size} C. Sie muss nicht gerade gezeichnet sein.`, `The longest chain has ${right.parent.size} C. It does not have to be drawn straight.`));
-  add(v({ noAlpha: true }), "alphabet", tr("Vorsilben alphabetisch ordnen. Di und tri zählen dabei nicht.", "Sort prefixes alphabetically. Di and tri do not count."));
-  add(v({ noMult: true }), "multi", tr("Gleiche Reste zusammenfassen: dimethyl statt methyl und methyl.", "Combine identical groups: dimethyl instead of methyl and methyl."));
+  // andere Richtung: nur, wenn eine Regel sie ausschließt (sonst wäre sie gleichwertig)
+  const rev = ok(m, { pick: "reverse" });
+  if (rev?.reverse) add(rev.name, "nummer", reverseWhy(right, rev.reverse));
+  add(v({ pick: "otherChain" }), "kette-kurz", right.principal
+    ? tr(`Die Hauptkette hat ${right.parent.size} C. Sie muss nicht gerade gezeichnet sein.`, `The main chain has ${right.parent.size} C. It does not have to be drawn straight.`)
+    : tr(`Die längste Kette hat ${right.parent.size} C. Sie muss nicht gerade gezeichnet sein.`, `The longest chain has ${right.parent.size} C. It does not have to be drawn straight.`));
+  const multi = right.prefixes.find(p => p.locs.length > 1);
+  add(v({ noAlpha: true }), "alphabet", tr(`Vorsilben alphabetisch ordnen: ${right.prefixes.map(p => prefixWord(p.name)).join(" vor ")}.`, `Sort prefixes alphabetically: ${right.prefixes.map(p => prefixWord(p.name)).join(" before ")}.`)
+    + (multi ? tr(" Di und tri zählen dabei nicht.", " Di and tri do not count.") : ""));
+  add(v({ noMult: true }), "multi", multi
+    ? tr(`Gleiche ${prefixKind([multi])} zusammenfassen: ${capName(MULT[multi.locs.length] + multi.name)} statt ${multi.locs.length} × ${prefixWord(multi.name)}.`,
+      `Combine identical ${prefixKind([multi])}: ${MULT[multi.locs.length]}${prefixEn(multi.name)} instead of ${multi.locs.length} × ${prefixWord(multi.name)}.`)
+    : tr("Gleiche Vorsilben mit di, tri zusammenfassen.", "Combine identical prefixes with di, tri."));
   if (right.parent.kind === "chain") {
     add(restem(right.name, right.parent.size, 1), "zaehlen", tr(`Die Hauptkette hat ${right.parent.size} C, nicht ${right.parent.size + 1}.`, `The main chain has ${right.parent.size} C, not ${right.parent.size + 1}.`));
-    add(restem(right.name, right.parent.size, -1), "zaehlen", tr(`Die Hauptkette hat ${right.parent.size} C, nicht ${right.parent.size - 1}.`, `The main chain has ${right.parent.size} C, not ${right.parent.size - 1}.`));
+    // kürzer nur ohne E/Z-Angabe: an der kürzeren Kette gäbe es oft kein E/Z mehr ((Z)-Prop-2-en)
+    if (!right.stereo.some(s => s.desc)) add(restem(right.name, right.parent.size, -1), "zaehlen", tr(`Die Hauptkette hat ${right.parent.size} C, nicht ${right.parent.size - 1}.`, `The main chain has ${right.parent.size} C, not ${right.parent.size - 1}.`));
   }
   return out;
 }
@@ -92,11 +139,11 @@ function unsaturated(): { s: string; triple: boolean } {
 }
 
 type G = "ol" | "al" | "on" | "saeure" | "amin";
-/** Kette mit einer Gruppe an Stelle `pos` (Aldehyd und Säure am Ende) */
+/** Kette mit einer Gruppe an Stelle `pos` (Aldehyd und Säure am Ende: am ersten C bei pos 0, sonst am letzten) */
 function withGroup(n: number, g: G, pos: number, br: Record<number, string[]> = {}): string | undefined {
   const b: Record<number, string[]> = Object.fromEntries(Object.entries(br).map(([k, v]) => [k, [...v]]));
-  if (g === "al") return chain(n, b, {}, { last: "C=O" });
-  if (g === "saeure") return chain(n, b, {}, { last: "C(=O)O" });
+  if (g === "al") return chain(n, b, {}, pos === 0 ? { first: "O=C" } : { last: "C=O" });
+  if (g === "saeure") return chain(n, b, {}, pos === 0 ? { first: "OC(=O)" } : { last: "C(=O)O" });
   if (g === "on" && (pos === 0 || pos === n - 1)) return;
   addBranch(b, pos, g === "ol" ? "O" : g === "on" ? "=O" : "N");
   return chain(n, b);
@@ -110,7 +157,7 @@ function stamm(): Task {
   const n = pick([1, 2, 3, 4, 5, 5, 6, 6, 7, 8, 9, 10]);
   const m = mol("C".repeat(n)), r = ok(m)!;
   const wrong = [n + 1, n - 1, n + 2, n - 2].filter(k => k >= 1 && k <= 10)
-    .map(k => d(ALKANE(k), "zaehlen", tr(`${cap(STEM[k])}an hätte ${k} C. Hier ${n === 1 ? "ist es 1 C" : `sind es ${n} C`}.`, `${ALKANE(k)} would have ${k} C. Here there ${n === 1 ? "is 1 C" : `are ${n} C`}.`)));
+    .map(k => d(ALKANE(k), "zaehlen", tr(`${cap(STEM[k])}an hätte ${k} C. Hier ${n === 1 ? "ist es 1 C" : `sind es ${n} C`}.`, `${cap(ALKANE(k))} would have ${k} C. Here there ${n === 1 ? "is 1 C" : `are ${n} C`}.`)));
   return {
     ...mc(r.name, wrong, 4, `${tr("Genau", "Exactly")}: ${n} C → ${r.name}.`),
     mol: m,
@@ -164,7 +211,7 @@ function alken(): Task {
   const swap = tr(base.replace(u.triple ? /in(?=$|-)/ : /en(?=$|-)/, u.triple ? "en" : "in"), base.replace(u.triple ? /yne$/ : /ene$/, u.triple ? "ene" : "yne"));
   if (swap !== base) extra.push(d(tr(cap(swap), swap), "en-in", u.triple ? tr("Dreifachbindung → **-in**. Doppelbindung wäre -en.", "Triple bond → **-yne**. A double bond would be -ene.") : tr("Doppelbindung → **-en**. Dreifachbindung wäre -in.", "Double bond → **-ene**. A triple bond would be -yne.")));
   const sat = ok(mol(u.s.replace(/[=#]/, "")));
-  if (sat) extra.push(d(sat.name, "mehrfach-vergessen", tr(`${sat.name} hätte nur Einfachbindungen. Hier ist eine ${u.triple ? "Dreifach" : "Doppel"}bindung.`, `${sat.name} would have only single bonds. Here there is a ${u.triple ? "triple" : "double"} bond.`)));
+  if (sat) extra.push(d(sat.name, "mehrfach-vergessen", tr(`${sat.name} hätte nur Einfachbindungen. Hier ist eine ${u.triple ? "Dreifach" : "Doppel"}bindung.`, `${capName(sat.name)} would have only single bonds. Here there is a ${u.triple ? "triple" : "double"} bond.`)));
   return {
     ...mc(r.name, nameDistractors(m, r, extra), 4, `${tr("Genau", "Exactly")}: ${r.name}.`),
     mol: m,
@@ -297,16 +344,19 @@ function gruppen(): Task {
     const n = rnd(2, 6);
     const pos = g === "on" ? rnd(1, n - 2) : rnd(0, n - 1);
     const br: Record<number, string[]> = {};
-    if (n >= 4 && Math.random() < 0.5) addBranch(br, rnd(1, n - 2), "C");
+    // kein Ast am C des Ketons (C=O und zwei Kettennachbarn: Wertigkeit voll)
+    if (n >= 4 && Math.random() < 0.5) { const i = rnd(1, n - 2); if (g !== "on" || i !== pos) addBranch(br, i, "C"); }
     const s = withGroup(n, g, pos, br);
     if (!s) continue;
     const m = mol(s), r = ok(m);
     if (!r || r.principal !== G_KIND[g]) continue;
-    // andere Gruppe an derselben Stelle → echte Namen anderer Stoffe
+    // andere Gruppe an derselben Stelle → echte Namen anderer Stoffe (nur ein Unterschied: die Gruppe;
+    // Aldehyd und Säure nur, wenn die Stelle ein Kettenende ist)
+    const at = (g === "al" || g === "saeure") && pos !== 0 ? n - 1 : pos;
     const extra: Distractor[] = [];
     for (const x of ["ol", "al", "on", "saeure"] as G[]) {
-      if (x === g) continue;
-      const alt = withGroup(n, x, pos, br);
+      if (x === g || ((x === "al" || x === "saeure") && at !== 0 && at !== n - 1)) continue;
+      const alt = withGroup(n, x, at, br);
       const ra = alt && ok(mol(alt));
       if (ra && ra.name !== r.name) extra.push(d(ra.name, "endung", tr(`${SUFFIX[x]} steht für ${KIND_INFO[G_KIND[x]].label}. Hier ist ${KIND_INFO[G_KIND[g]].group}: ${SUFFIX[g]}.`, `${SUFFIX[x]} stands for ${KIND_INFO[G_KIND[x]].label.toLowerCase()}. Here there is ${KIND_INFO[G_KIND[g]].group}: ${SUFFIX[g]}.`)));
     }
@@ -358,9 +408,9 @@ function multiMol(): { m: Mol; r: NameOk; g: G } {
     const subs = shuffle(["C", "C", "CC", "O", "=O", "N", "Cl"]).slice(0, rnd(2, 3));
     for (const sb of subs) {
       const i = sb === "CC" ? rnd(2, n - 3) : rnd(1, n - 2);
+      // höchstens eine Vorsilbe je C; kein zweites =O, wenn schon ein Keton die Endung gibt (wäre -dion statt Oxo)
       if (i === pos && g !== "saeure" && g !== "al") continue;
-      if ((br[i]?.length ?? 0) >= (sb === "=O" ? 0 : 1)) continue;
-      if (sb === "=O" && (g === "on" || br[i]?.length)) continue;
+      if (br[i]?.length || (sb === "=O" && g === "on")) continue;
       addBranch(br, i, sb);
     }
     const s = withGroup(n, g, pos, br);
@@ -377,10 +427,10 @@ function prio(): Task {
   const kinds = [...new Set([r.principal!, ...r.prefixes.map(p => ({ hydroxy: "ol", oxo: "on", amino: "amin" } as Record<string, Kind>)[p.name]).filter(Boolean)])] as Kind[];
   const right = KIND_INFO[r.principal!];
   const wrong = kinds.filter(k => k !== r.principal).map(k => d(`${KIND_INFO[k].label} ${KIND_INFO[k].group}`, "prio",
-    tr(`${right.label} steht in der Rangfolge vor ${KIND_INFO[k].label}. ${KIND_INFO[k].label} wird Vorsilbe: ${KIND_INFO[k].prefix}`, `${right.label} ranks before ${KIND_INFO[k].label.toLowerCase()}. ${KIND_INFO[k].label} becomes a prefix: ${KIND_INFO[k].prefix}`)));
+    tr(`${right.label} steht in der Rangfolge vor ${KIND_INFO[k].label}. Die Gruppe ${KIND_INFO[k].group} wird Vorsilbe: ${KIND_INFO[k].prefix}`, `${right.label} ranks before ${KIND_INFO[k].label.toLowerCase()}. The ${KIND_INFO[k].group} group becomes a prefix: ${KIND_INFO[k].prefix}`)));
   // Teile der Hauptgruppe sehen aus wie andere Gruppen: OH und C=O der COOH-Gruppe, C=O der CHO-Gruppe
   const part = (k: Kind) => (r.principal === "saeure" && (k === "ol" || k === "on" || k === "al") ? tr(`Das ${k === "ol" ? "–OH" : "C=O"} gehört zur COOH-Gruppe. Zusammen ist das eine Carbonsäure.`, `The ${k === "ol" ? "–OH" : "C=O"} belongs to the COOH group. Together that is a carboxylic acid.`)
-    : r.principal === "al" && k === "on" ? tr("Das C=O am Kettenende ist eine Aldehydgruppe –CHO.", "The C=O at the end of the chain is an aldehyde group –CHO.") : tr(`Eine ${KIND_INFO[k].label}gruppe ${KIND_INFO[k].group} gibt es hier nicht.`, `There is no ${KIND_INFO[k].label.toLowerCase()} group ${KIND_INFO[k].group} here.`));
+    : r.principal === "al" && k === "on" ? tr("Das C=O am Kettenende ist eine Aldehydgruppe –CHO.", "The C=O at the end of the chain is an aldehyde group –CHO.") : tr(`Hier gibt es keine ${KIND_INFO[k].group}-Gruppe.`, `There is no ${KIND_INFO[k].group} group here.`));
   const fill = (["saeure", "al", "on", "ol", "amin"] as Kind[]).filter(k => k !== r.principal && !kinds.includes(k))
     .map(k => d(`${KIND_INFO[k].label} ${KIND_INFO[k].group}`, "klasse", part(k)));
   return {
@@ -400,13 +450,13 @@ function mehrere(): Task {
   const lower: Kind[] = (["on", "ol", "amin"] as Kind[]).filter(k => kinds.has({ on: "oxo", ol: "hydroxy", amin: "amino" }[k as "on"]));
   for (const k of lower) {
     const w = ok(m, { principal: k });
-    if (w && w.name !== r.name) extra.push(d(w.name, "prio", tr(`${KIND_INFO[r.principal!].label} geht vor ${KIND_INFO[k].label}. Sie gibt die Endung ${KIND_INFO[r.principal!].suffix}.`, `${KIND_INFO[r.principal!].label} ranks before ${KIND_INFO[k].label.toLowerCase()}. It gives the ending ${KIND_INFO[r.principal!].suffix}.`)));
+    if (w && w.name !== r.name) extra.push(d(w.name, "prio", tr(`${KIND_INFO[r.principal!].label} geht vor ${KIND_INFO[k].label}. Diese Gruppe gibt die Endung ${KIND_INFO[r.principal!].suffix}.`, `${KIND_INFO[r.principal!].label} ranks before ${KIND_INFO[k].label.toLowerCase()}. This group gives the ending ${KIND_INFO[r.principal!].suffix}.`)));
   }
   return {
     ...mc(r.name, nameDistractors(m, r, extra.slice(0, 1)), 4, `${tr("Genau", "Exactly")}: ${r.name}.`),
     mol: m,
     prompt: tr("Wie heißt diese Verbindung?", "What is the name of this compound?"),
-    hint: tr("Hauptgruppe → Endung. Längste Kette mit ihr, kleinste Nummern, alphabetisch.", "Principal group → ending. Longest chain containing it, lowest numbers, alphabetical."),
+    hint: tr("Ranghöchste Gruppe → Endung. Längste Kette mit ihr, kleinste Nummern, alphabetisch.", "Principal group → ending. Longest chain containing it, lowest numbers, alphabetical."),
     explain: r.steps.slice(-3).join(" "),
   };
 }
@@ -420,13 +470,13 @@ function struktur(): Task {
     // Fehlformeln: gleiche Bausteine, aber verschoben oder verzählt (echte andere Moleküle)
     const others: { m: Mol; miss: string; why: string }[] = [];
     const seen = new Set([r.name, ...r.alt]);
-    const tryAdd = (mm: Mol, miss: string, why: (n: string) => string) => {
-      const rr = ok(mm);
-      if (rr && !seen.has(rr.name)) { seen.add(rr.name); others.push({ m: mm, miss, why: why(rr.name) }); }
-    };
+    // Stolperstein nach dem Unterschied der Namen: nur Nummern anders → nummer, Kette ±1 C → zaehlen, andere Endung → endung, sonst formel-lesen
+    const parts = (x: NameOk) => x.prefixes.map(p => `${p.name}×${p.locs.length || 1}`).join();
+    const missOf = (rr: NameOk) => (rr.principal !== r.principal ? "endung" : parts(rr) !== parts(r) ? "formel-lesen"
+      : rr.parent.size === r.parent.size ? "nummer" : Math.abs(rr.parent.size - r.parent.size) === 1 ? "zaehlen" : "formel-lesen");
     for (let k = 0; k < 30 && others.length < 5; k++) {
-      const mm = mutate(m);
-      if (mm) tryAdd(mm.m, mm.miss, n => tr(`Diese Formel heißt ${n}.`, `This formula is called ${n}.`));
+      const mm = mutate(m), rr = mm && ok(mm);
+      if (mm && rr && !seen.has(rr.name)) { seen.add(rr.name); others.push({ m: mm, miss: missOf(rr), why: tr(`Diese Formel heißt ${rr.name}.`, `This formula is called ${rr.name}.`) }); }
     }
     if (others.length < 3) continue;
     const opts = shuffle(others).slice(0, 3);
@@ -441,14 +491,19 @@ function struktur(): Task {
   }
 }
 
-/** kleines Abändern: Ast an ein anderes C, Kette um 1 C länger/kürzer, Gruppe tauschen */
-function mutate(m: Mol): { m: Mol; miss: string } | undefined {
+/** kleines Abändern: Ast an ein anderes C, Kette um 1 C länger/kürzer, Gruppe tauschen (die O der COOH-Gruppe bleiben) */
+function mutate(m: Mol): Mol | undefined {
   const atoms = m.atoms.map(a => ({ ...a })), bonds = m.bonds.map(b => ({ ...b }));
-  const deg = (id: number) => bonds.filter(b => b.a === id || b.b === id).length;
+  const nbOf = (id: number) => bonds.filter(b => b.a === id || b.b === id).map(b => (b.a === id ? b.b : b.a));
+  const deg = (id: number) => nbOf(id).length;
+  const el = (id: number) => atoms.find(a => a.id === id)!.el;
+  // O der Carboxygruppe: am selben C sitzt ein zweites O
+  const inCooh = (o: number) => el(o) === "O" && nbOf(nbOf(o)[0]).filter(x => el(x) === "O").length > 1;
   const kind = pick(["move", "move", "longer", "shorter", "swap"]);
   if (kind === "move") {
     // ein Endatom (Ast) an ein anderes C hängen
-    const leaves = atoms.filter(a => deg(a.id) === 1);
+    const leaves = atoms.filter(a => deg(a.id) === 1 && !inCooh(a.id));
+    if (!leaves.length) return;
     const leaf = pick(leaves);
     const bond = bonds.find(b => b.a === leaf.id || b.b === leaf.id)!;
     const targets = atoms.filter(a => a.el === "C" && a.id !== leaf.id && a.id !== bond.a && a.id !== bond.b);
@@ -457,32 +512,38 @@ function mutate(m: Mol): { m: Mol; miss: string } | undefined {
     const used = bonds.filter(b => b.a === t.id || b.b === t.id).reduce((s, b) => s + b.order, 0);
     if (used + bond.order > 4) return;
     if (bond.a === leaf.id) bond.b = t.id; else bond.a = t.id;
-    return { m: layout({ atoms, bonds }), miss: "nummer" };
+    return layout({ atoms, bonds });
   }
   if (kind === "longer" || kind === "shorter") {
     const ends = atoms.filter(a => a.el === "C" && deg(a.id) === 1 && bonds.find(b => (b.a === a.id || b.b === a.id))!.order === 1);
     if (!ends.length) return;
     const e = pick(ends);
-    if (kind === "shorter") {
-      const nm = { atoms: atoms.filter(a => a.id !== e.id), bonds: bonds.filter(b => b.a !== e.id && b.b !== e.id) };
-      return { m: layout(nm), miss: "zaehlen" };
-    }
+    if (kind === "shorter") return layout({ atoms: atoms.filter(a => a.id !== e.id), bonds: bonds.filter(b => b.a !== e.id && b.b !== e.id) });
     const id = Math.max(...atoms.map(a => a.id)) + 1;
-    return { m: layout({ atoms: [...atoms, { id, el: "C", x: 0, y: 0 }], bonds: [...bonds, { a: e.id, b: id, order: 1 }] }), miss: "zaehlen" };
+    return layout({ atoms: [...atoms, { id, el: "C", x: 0, y: 0 }], bonds: [...bonds, { a: e.id, b: id, order: 1 }] });
   }
-  // Gruppe tauschen: =O ↔ OH
-  const o = atoms.find(a => a.el === "O" && deg(a.id) === 1);
+  // Gruppe tauschen: =O ↔ OH (nicht in der COOH-Gruppe – daraus würde ein Diol am selben C)
+  const o = atoms.find(a => a.el === "O" && deg(a.id) === 1 && !inCooh(a.id));
   if (!o) return;
   const b = bonds.find(x => x.a === o.id || x.b === o.id)!;
   b.order = b.order === 2 ? 1 : 2;
   const c = b.a === o.id ? b.b : b.a;
   if (bonds.filter(x => x.a === c || x.b === c).reduce((s, x) => s + x.order, 0) > 4) return;
-  return { m: layout({ atoms, bonds }), miss: "endung" };
+  return layout({ atoms, bonds });
 }
 
 // ── Level und Runden ─────────────────────────────────────────────────────────
 
-const GENS: Record<string, () => Task> = { stamm, kette, alkan, alken, lage, ez, klasse, endung, gruppen, ester, prio, mehrere, struktur };
+/** Endungen in Frage, Tipp, Erklärung und Rückmeldungen nicht umbrechen (Antworten bleiben unverändert – sie sind Namen) */
+const tidy = (gen: () => Task) => (): Task => {
+  const t = gen(), k = keepEnding;
+  return {
+    ...t, prompt: k(t.prompt), hint: k(t.hint), explain: k(t.explain),
+    ...(t.kind === "mc" && t.why ? { why: Object.fromEntries(Object.entries(t.why).map(([i, w]) => [i, k(w)])) } : {}),
+    ...(t.traps ? { traps: t.traps.map(x => ({ ...x, why: k(x.why) })) } : {}),
+  };
+};
+const GENS: Record<string, () => Task> = Object.fromEntries(Object.entries({ stamm, kette, alkan, alken, lage, ez, klasse, endung, gruppen, ester, prio, mehrere, struktur }).map(([id, g]) => [id, tidy(g)]));
 
 export const TYPE_NAMES: Record<string, string> = tr({
   stamm: "Stammnamen", kette: "Längste Kette", alkan: "Verzweigte Alkane", alken: "Alkene und Alkine", lage: "Lage der Mehrfachbindung", ez: "E/Z-Isomerie",

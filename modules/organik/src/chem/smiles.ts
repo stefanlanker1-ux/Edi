@@ -121,7 +121,8 @@ export function smilesMol(s: string): Mol {
     };
     const ma = mark(bd.a, bd.b), mb = mark(bd.b, bd.a);
     if (!ma || !mb) continue;
-    // von der Doppelbindung weg gelesen: gleiche Zeichen = verschiedene Seiten (trans) – siehe F/C=C/F
+    // von der Doppelbindung weg gelesen: gleiche Zeichen = dieselbe Seite (Z), verschiedene = verschiedene Seiten (E) –
+    // F/C=C/F: am ersten C weg gelesen „\“, am zweiten „/“ → E
     mol = forceSide(mol, bd.a, bd.b, ma.atom, mb.atom, ma.out === mb.out);
   }
   return mol;

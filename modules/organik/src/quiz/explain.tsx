@@ -3,7 +3,7 @@
 import { RichText } from "@lern/ui";
 import type { LevelKey } from "@lern/quiz";
 import { smilesMol } from "../chem/smiles.ts";
-import { name } from "../chem/naming.ts";
+import { keepEnding, name } from "../chem/naming.ts";
 import { MolSvg } from "../components/MolSvg.tsx";
 import { useApp } from "../store.ts";
 import { LEVELS, type Task } from "./tasks.ts";
@@ -21,14 +21,14 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
     "**E/Z:** An jedem C der Doppelbindung hat die Gruppe mit größerer Ordnungszahl Vorrang. Gleiche Seite = **Z**, verschiedene = **E**.",
   ] },
   "og-n3": { ex: "CCC(C)=O", points: [
-    "Die Gruppe bestimmt die **Stoffklasse**: **-ol** Alkohol (–OH), **-al** Aldehyd (–CHO), **-on** Keton (C=O in der Kette), **-säure** Carbonsäure (–COOH), **-amin** Amin (–NH₂).",
+    "Die Gruppe bestimmt die **Stoffklasse**: **Alkohol** –OH (-ol), **Aldehyd** –CHO (-al), **Keton** C=O in der Kette (-on), **Carbonsäure** –COOH (-säure), **Amin** –NH₂ (-amin).",
     "Das C von –CHO und –COOH gehört zur Kette und ist **C1**.",
-    "Ester: Säureteil + Alkylteil + **ester**, z. B. Butansäureethylester.",
+    "**Ester** –COO–: Säureteil + Alkylteil + ester, z. B. Butansäureethylester. **Ether**: ein O zwischen zwei C, z. B. Ethoxyethan.",
   ] },
   "og-n4": { ex: "OC(=O)C(C)C(=O)C(O)C(C)CC", points: [
-    "Die Gruppe mit dem **höchsten Rang** gibt die Endung: Säure > Aldehyd > Keton > Alkohol > Amin.",
+    "Die Gruppe mit dem höchsten Rang ist die **ranghöchste Gruppe**. Sie gibt die Endung: Säure > Aldehyd > Keton > Alkohol > Amin.",
     "Alle anderen werden **Vorsilben**: Oxo-, Hydroxy-, Amino-, Methyl-, Chlor-.",
-    "Hauptgruppe kleinste Nummer, Vorsilben **alphabetisch**.",
+    "Die ranghöchste Gruppe bekommt die kleinste Nummer. Vorsilben **alphabetisch**.",
   ] },
 }, {
   "og-n1": { ex: "CCC(C)C(CC)CCC", points: [
@@ -42,14 +42,14 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
     "**E/Z:** On each C of the double bond, the group with the higher atomic number has priority. Same side = **Z**, opposite = **E**.",
   ] },
   "og-n3": { ex: "CCC(C)=O", points: [
-    "The group decides the **compound class**: **-ol** alcohol (–OH), **-al** aldehyde (–CHO), **-one** ketone (C=O in the chain), **-oic acid** carboxylic acid (–COOH), **-amine** amine (–NH₂).",
+    "The group decides the **compound class**: **alcohol** –OH (-ol), **aldehyde** –CHO (-al), **ketone** C=O in the chain (-one), **carboxylic acid** –COOH (-oic acid), **amine** –NH₂ (-amine).",
     "The C of –CHO and –COOH belongs to the chain and is **C1**.",
-    "Ester: alkyl part + acid part ending in **-oate**, e.g. ethyl butanoate.",
+    "**Ester** –COO–: alkyl part + acid part ending in -oate, e.g. ethyl butanoate. **Ether**: an O between two C, e.g. ethoxyethane.",
   ] },
   "og-n4": { ex: "OC(=O)C(C)C(=O)C(O)C(C)CC", points: [
-    "The group with the **highest rank** gives the ending: acid > aldehyde > ketone > alcohol > amine.",
+    "The group with the highest rank is the **principal group**. It gives the ending: acid > aldehyde > ketone > alcohol > amine.",
     "All others become **prefixes**: oxo-, hydroxy-, amino-, methyl-, chloro-.",
-    "Principal group lowest number, prefixes **alphabetical**.",
+    "The principal group gets the lowest number. Prefixes **alphabetical**.",
   ] },
 });
 
@@ -65,12 +65,15 @@ function Example({ smiles }: { smiles: string }) {
   );
 }
 
+/** Gruppen und Endungen nicht mitten im Zeichen umbrechen: –COOH (Wortverbinder), (-amin) (geschützter Bindestrich) */
+const keep = (s: string) => keepEnding(s).replace(/–(?=[A-Z])/g, "–\u2060");
+
 export function explainFor(level: LevelKey, task?: Task) {
   const id = typeof level === "number" ? LEVELS[level].id : (LEVELS.find(l => task?.type && l.types.includes(task.type)) ?? LEVELS[0]).id;
   const e = TEXT[id];
   return (
     <div className="explain">
-      <ul className="ex-points">{e.points.map((p, i) => <li key={i}><RichText text={p} /></li>)}</ul>
+      <ul className="ex-points">{e.points.map((p, i) => <li key={i}><RichText text={keep(p)} /></li>)}</ul>
       <Example smiles={e.ex} />
     </div>
   );

@@ -83,8 +83,9 @@
 .og-groups td { padding: 5px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .og-groups td:first-child { font-weight: 800; font-variant-numeric: tabular-nums; }
 
+/* schmale Handys: engere Abstände, Knöpfe bleiben ≥ 44 × 44 px */
 @media (max-width: 370px) {
-  .og-pen { min-width: 42px; padding: 0 5px; }
+  .og-pen { padding: 0 4px; }
   .og-pens { gap: 4px; }
 }
 

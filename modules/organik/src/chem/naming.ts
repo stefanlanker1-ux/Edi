@@ -9,8 +9,8 @@
 // Mehr als zwei Carbonsäuregruppen an einer Kette: „-carbonsäure“ (Kohlenstoff der Gruppe gehört nicht zur Kette).
 // Substituenten werden rekursiv benannt (Methyl, (1-Methylethyl), Acetyloxy, Phenyl …). Ester: „Butansäureethylester“.
 
-import { formula, graph, hCount, components, HALOGENS, type El, type Graph, type Mol } from "./mol.ts";
-import { findRings, STEM, type Ring, type RingInfo } from "./rings.ts";
+import { formula, graph, hCount, components, usedValence, HALOGENS, VALENCE, type El, type Graph, type Mol } from "./mol.ts";
+import { findRings, MAX_STEM, MULT, MULT_X, STEM, type Ring, type RingInfo } from "./rings.ts";
 import { stereoBonds, type Stereo } from "./stereo.ts";
 import { localizeEn, parentEn, prefixEn, toEnglish } from "./english.ts";
 import { tr, getLang } from "@lern/i18n";
@@ -54,8 +54,6 @@ export interface Group {
   s?: number; r?: number;
 }
 
-const MULT = ["", "", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca"];
-const MULT_X = ["", "", "bis", "tris", "tetrakis", "pentakis", "hexakis"];
 const HALO_NAME: Partial<Record<El, string>> = { F: "fluor", Cl: "chlor", Br: "brom", I: "iod" };
 const SUF: Record<Kind, string> = { saeure: "säure", ester: "säure", amid: "amid", nitril: "nitril", al: "al", on: "on", ol: "ol", thiol: "thiol", amin: "amin" };
 const ATT: Partial<Record<Kind, string>> = { saeure: "carbonsäure", ester: "carbonsäure", amid: "carboxamid", nitril: "carbonitril", al: "carbaldehyd" };
@@ -178,8 +176,20 @@ function subtree(g: Graph, x: number, from: number): number[] {
   return out;
 }
 
-/** Schlüssel für die alphabetische Ordnung: ohne Nummern, Klammern, Bindestriche und ohne E/Z-Angaben */
-const sortKey = (name: string) => name.replace(/\((?:\d*[EZ],?)+\)-/g, "").replace(/[\d,'′″\-()[\]{}\s]/g, "").toLowerCase();
+/** Alphabet der Vorsilben: deutsch (Ethinyl vor Ethyl) oder – nur während `nameEnOrder` – englisch (ethyl vor ethynyl) */
+let alphaEn = false;
+/** Schlüssel für die alphabetische Ordnung: ohne Nummern, Klammern, Bindestriche und ohne E/Z-Angaben (gemerkt – wird beim Sortieren oft gebraucht) */
+const keys = new Map<string, string>();
+function sortKey(name: string): string {
+  const id = (alphaEn ? "en " : "de ") + name;
+  let k = keys.get(id);
+  if (k === undefined) {
+    if (keys.size > 5000) keys.clear();
+    k = (alphaEn ? prefixEn(name) : name).replace(/\((?:\d*[EZ],?)+\)-/g, "").replace(/[\d,'′″\-()[\]{}\s]/g, "").toLowerCase();
+    keys.set(id, k);
+  }
+  return k;
+}
 /** alphabetisch; bei gleichen Buchstaben entscheiden die Nummern im Namen (1-Methylbutyl vor 2-Methylbutyl), dann Z vor E */
 function alphaCmp(a: string, b: string): number {
   const c = sortKey(a).localeCompare(sortKey(b));
@@ -314,7 +324,9 @@ function cmpKey(a: KeyPart[], b: KeyPart[]): number {
 }
 const locNum = (l: string) => (/^\d+$/.test(l) ? Number(l) : 0);
 const prefixLocs = (ps: Prefix[]) => ps.filter(p => /^\d/.test(p.loc)).map(p => locNum(p.loc)).sort((a, b) => a - b);
-const alphaLocs = (ps: Prefix[]) => [...ps].filter(p => /^\d/.test(p.loc)).sort((a, b) => alphaCmp(a.name, b.name) || locNum(a.loc) - locNum(b.loc)).map(p => locNum(p.loc));
+/** Vorsilben mit Nummer in alphabetischer Reihenfolge (gleiche Vorsilbe: kleinere Nummer zuerst) */
+const alphaSorted = (ps: Prefix[]) => [...ps].filter(p => /^\d/.test(p.loc)).sort((a, b) => alphaCmp(a.name, b.name) || locNum(a.loc) - locNum(b.loc));
+const alphaLocs = (ps: Prefix[]) => alphaSorted(ps).map(p => locNum(p.loc));
 
 /** Kette als Substituent: beginnt bei x (Nummer 1), Endung yl / yliden / oyl */
 function chainSub(ctx: Ctx, x: number, from: number, order: number, end: "yl" | "oyl"): Sub {
@@ -475,7 +487,13 @@ interface Option {
   /** Atome der Endung (gehören nicht zu Vorsilben) */
   suffixAtoms: Set<number>;
   key: KeyPart[];
+  /** Teil des Schlüssels für die Nummern (Regeln wie in NUM_RULES) */
+  num: KeyPart[];
 }
+
+/** Regeln der Nummerierung in der Reihenfolge des Schlüssels (nach dem Stammsystem) */
+const NUM_RULES = ["principal", "multiple", "double", "count", "prefixes", "alpha", "z"] as const;
+export type NumRule = (typeof NUM_RULES)[number];
 
 /** Atom, an dem die Hauptgruppe sitzt (für Zählen und Nummer) */
 function anchorIn(ctx: Ctx, gr: Group, set: Set<number>, mode: "incl" | "att"): number | undefined {
@@ -536,8 +554,9 @@ function makeOption(ctx: Ctx, id: string, kind: "chain" | "ring", seq: number[],
   const mult = [...en, ...yn].sort((a, b) => a - b);
   // zuletzt: bei Wahl bekommt Z die kleinere Nummer (vor E)
   const zLocs = ezOf(ctx, seq).filter(x => x.desc === "Z").map(x => x.loc);
-  const key: KeyPart[] = [-counted.length, ...structural, pLocs, mult, en, -prefixes.length, prefixLocs(prefixes), alphaLocs(prefixes), zLocs];
-  return { id, kind, ring, seq, mode, counted, pLocs, en, yn, prefixes, suffixAtoms, key };
+  const num: KeyPart[] = [pLocs, mult, en, -prefixes.length, prefixLocs(prefixes), alphaLocs(prefixes), zLocs];
+  const key: KeyPart[] = [-counted.length, ...structural, ...num];
+  return { id, kind, ring, seq, mode, counted, pLocs, en, yn, prefixes, suffixAtoms, key, num };
 }
 
 /** alle Möglichkeiten (Stammsystem × Nummerierung), beste zuerst */
@@ -654,6 +673,8 @@ function omitLocants(o: Option): boolean {
 
 const cap = (s: string) => s.replace(/[a-zäöü]/, c => c.toUpperCase());
 export { cap };
+/** Endungen in Sätzen nicht umbrechen („→ -⏎in“): Bindestrich vor einer Endung als geschützter Bindestrich (U+2011); Namen bleiben unverändert */
+export const keepEnding = (s: string) => s.replace(/(^|[\s(„/*])-(?=\p{L})/gu, "$1\u2011");
 
 // ── Ergebnis ────────────────────────────────────────────────────────────────
 
@@ -684,6 +705,9 @@ export interface NameOk {
   stereo: StereoAt[];
   /** Vorsilben mit Atom am Stammsystem (at) und erstem Atom des Substituenten (first) – für Prüfungen */
   subs: { at: number; first: number; name: string; loc: string }[];
+  /** nur bei `pick: "reverse"`: Regel, nach der die andere Richtung gewinnt, mit ihren Nummern (right) und denen dieser Richtung (wrong);
+   *  bond = Art der Mehrfachbindungen, prefix = Vorsilbe, bei der das Alphabet entscheidet */
+  reverse?: { rule: NumRule; right: number[]; wrong: number[]; bond?: "double" | "triple" | "multiple"; prefix?: string };
 }
 /** Doppelbindung mit E/Z und ihren Nummern im Stammsystem (la/lb fehlt, wenn das Atom außerhalb liegt) */
 export type StereoAt = Stereo & { loc: number; la?: number; lb?: number };
@@ -696,12 +720,36 @@ function prepare(mol: Mol): { ctx: Ctx; bad?: string } {
   const ri = findRings(g);
   const d = detect(g, ri);
   const ctx: Ctx = { g, ri, groups: d.groups, nitrileC: d.nitrileC, memo: new Map(), stereo: [] };
-  if (!d.bad && !ri.unsupported) ctx.stereo = stereoBonds(mol, g);
   let bad = d.bad ?? ri.unsupported;
+  // mehr Bindungen als die Wertigkeit erlaubt (der Editor verhindert das; Schutz für erzeugte Moleküle)
+  if (g.ids.some(a => usedValence(g, a) > VALENCE[g.el.get(a)!])) bad = "Zu viele Bindungen an einem Atom";
+  // Stämme gibt es bis 30 C (Triacontan)
+  else if (!bad && longestChain(g, ri) > MAX_STEM) bad = `Kette mit mehr als ${MAX_STEM} C – zu lang für diese App`;
+  if (!bad) ctx.stereo = stereoBonds(mol, g);
   if (!mol.atoms.length) bad = "Noch nichts gezeichnet";
   else if (components(mol).length > 1) bad = "Mehrere getrennte Teile – verbinde sie";
   else if (!mol.atoms.some(a => a.el === "C")) bad = "Kein Kohlenstoff – keine organische Verbindung";
   return { ctx, bad };
+}
+
+/** längste Kette aus C außerhalb von Ringen (Zahl der Atome): jede Kette des Namens (Stamm oder Vorsilbe) liegt darin –
+ *  die C außerhalb der Ringe bilden einen Wald, sein Durchmesser folgt aus zweimal „fernstes Atom suchen“ */
+function longestChain(g: Graph, ri: RingInfo): number {
+  const cs = new Set(g.ids.filter(a => g.el.get(a) === "C" && !ri.ringOf.has(a)));
+  const far = (s: number) => {
+    const dist = new Map([[s, 1]]), queue = [s];
+    for (const v of queue) for (const n of g.nb.get(v)!) if (cs.has(n.to) && !dist.has(n.to)) { dist.set(n.to, dist.get(v)! + 1); queue.push(n.to); }
+    return { end: queue[queue.length - 1], len: dist.get(queue[queue.length - 1])!, seen: dist };
+  };
+  let best = 0;
+  const done = new Set<number>();
+  for (const s of cs) {
+    if (done.has(s)) continue;
+    const a = far(s);
+    a.seen.forEach((_, k) => done.add(k));
+    best = Math.max(best, far(a.end).len);
+  }
+  return best;
 }
 
 /** Hauptgruppe = Gruppe mit der höchsten Priorität */
@@ -716,9 +764,16 @@ export interface NameOptions extends Flags {
 
 /** Name des Moleküls; auf Englisch Name, Teile, weitere Namen und Meldungen übersetzt */
 export function name(mol: Mol, opt: NameOptions = {}): NameResult {
-  const r = nameDe(mol, opt);
-  if (getLang() !== "en") return r;
+  if (getLang() !== "en") return nameDe(mol, opt);
+  const r = nameEnOrder(mol, opt);
   return r.ok ? localizeEn(r) : { ...r, reason: REASON_EN[r.reason] ?? r.reason };
+}
+
+/** Name in deutschen Teilen, aber mit englischer Reihenfolge und Nummerierung der Vorsilben (ethyl vor ethynyl, deutsch
+ *  Ethinyl vor Ethyl) – Grundlage für `toEnglish` */
+export function nameEnOrder(mol: Mol, opt: NameOptions = {}): NameResult {
+  alphaEn = true;
+  try { return nameDe(mol, opt); } finally { alphaEn = false; }
 }
 
 const REASON_EN: Record<string, string> = {
@@ -732,6 +787,9 @@ const REASON_EN: Record<string, string> = {
   "Stickstoff an zwei C=O": "Nitrogen on two C=O", "Imid (N an zwei C=O)": "Imide (N on two C=O)",
   "Mehrere Ringe teilen sich Atome": "Several rings share atoms", "Ring mit mehreren Heteroatomen": "Ring with several heteroatoms",
   "Heterocyclus mit mehr als 6 Atomen": "Heterocycle with more than 6 atoms", "Teilweise ungesättigter Heterocyclus": "Partially unsaturated heterocycle",
+  "Dreifachbindung im Ring": "Triple bond in a ring", "Zu viele Bindungen an einem Atom": "Too many bonds on one atom",
+  [`Kette mit mehr als ${MAX_STEM} C – zu lang für diese App`]: `Chain with more than ${MAX_STEM} C – too long for this app`,
+  [`Ring mit mehr als ${MAX_STEM} Atomen – zu groß für diese App`]: `Ring with more than ${MAX_STEM} atoms – too large for this app`,
 };
 
 function nameDe(mol: Mol, opt: NameOptions): NameResult {
@@ -757,7 +815,21 @@ function nameDe(mol: Mol, opt: NameOptions): NameResult {
   res.groupsByKey = keyAtoms(o, res.principalAtoms);
   res.alt = withCisTrans(res, ctx);
   res.steps = steps(ctx, o, K, res);
+  if (opt.pick === "reverse") res.reverse = reverseRule(opts[0], o);
   return res;
+}
+
+/** Warum die beste Nummerierung gewinnt: erste Regel, in der sich die beiden Richtungen unterscheiden (undefined = gleichwertig) */
+function reverseRule(best: Option, o: Option): NameOk["reverse"] {
+  const i = best.num.findIndex((x, j) => cmpKey([x], [o.num[j]]) !== 0);
+  if (i < 0) return;
+  const rule = NUM_RULES[i];
+  const list = (x: KeyPart) => (Array.isArray(x) ? x : []);
+  const bond = !best.yn.length ? "double" : !best.en.length ? "triple" : "multiple";
+  if (rule !== "alpha") return { rule, right: list(best.num[i]), wrong: list(o.num[i]), bond };
+  const right = list(best.num[i]), wrong = list(o.num[i]);
+  const k = right.findIndex((x, j) => x !== wrong[j]);
+  return { rule, right: [right[k]], wrong: [wrong[k]], prefix: alphaSorted(best.prefixes)[k].name };
 }
 
 /** Vorsilben mit Anknüpfung (Atom am Stammsystem, erstes Atom des Substituenten) */
@@ -873,7 +945,8 @@ function build(ctx: Ctx, f: string, chosen: Group[], compOf: (s: number, c: Set<
   const nm = cap(acidName) + alkylText + "ester";
   const anion = acidName.endsWith("benzoesäure") ? acidName.replace(/benzoesäure$/, "benzoat")
     : acidName.endsWith("carbonsäure") ? acidName.replace(/carbonsäure$/, "carboxylat") : acidName.replace(/säure$/, "oat");
-  const alt = [cap(alkylPart + anion)];
+  // Alkyl…oat: vor einer Nummer oder Klammer des Säureteils ein Bindestrich (Methyl-2-methylpropanoat)
+  const alt = [cap(alkylPart + (/^[\d([]/.test(anion) ? "-" : "") + anion)];
   const triv = TRIVIAL_ACID[cap(acidName)];
   if (triv && !mixed) { alt.push(triv.acid + alkylPart + "ester"); alt.push(cap(alkylPart + triv.anion)); }
   const alkylAtoms = chosen.flatMap(e => [...compOf(e.r!, new Set([`${e.s}-${e.r}`]))].filter(a => !acid.has(a)));
@@ -937,7 +1010,7 @@ export const TRIVIAL: Record<string, string[]> = {
 
 function altNames(nm: string, ctx: Ctx, o: Option, K: Kind | undefined): string[] {
   const alt: string[] = [...(TRIVIAL[nm] ?? [])];
-  if (/benzen/.test(nm)) alt.push(nm.replace(/benzen/g, "benzol"));
+  if (/benzen/i.test(nm)) alt.push(nm.replace(/([Bb])enzen/g, "$1enzol"));
   // ältere Schreibweise: Propan-2-ol → 2-Propanol, But-2-en → 2-Buten
   const ring = /benzen|cyclo|^Phenol|^Anilin/i.test(nm);
   const m = ring ? null : /^([A-Z][a-zäöü]*?)(an|en|in)-([\d,]+)-(di|tri|tetra)?(ol|on|amin|thiol)$/.exec(nm);
@@ -973,20 +1046,53 @@ function schoolName(ctx: Ctx, o: Option, K: Kind | undefined): string | undefine
   }
 }
 
+/** C=O im Ring neben dem Heteroatom des Rings – benannt wie ein Keton (-on): Lacton (O), Lactam (N), Thiolacton (S);
+ *  C=O an beiden Seiten des Heteroatoms: Säureanhydrid, Imid, Thioanhydrid. Ergebnis: Stoffklasse und Heteroatom */
+function lactone(ctx: Ctx, gr: Group): { cls: string; el: El } | undefined {
+  const ring = gr.kind === "on" ? ctx.ri.ringOf.get(gr.c) : undefined;
+  const h = ring?.hetero;
+  if (h === undefined || !ctx.g.nb.get(gr.c)!.some(n => n.to === h)) return;
+  const el = ctx.g.el.get(h)!;
+  const both = ctx.g.nb.get(h)!.filter(n => ring!.atoms.includes(n.to) && dblO(ctx.g, n.to) !== undefined).length > 1;
+  return { cls: (both ? ANHYDRIDE : LACTONE)[el]!, el };
+}
+const LACTONE: Partial<Record<El, string>> = { O: "Lacton", N: "Lactam", S: "Thiolacton" };
+const ANHYDRIDE: Partial<Record<El, string>> = { O: "Säureanhydrid", N: "Imid", S: "Thioanhydrid" };
+const LACTONE_OF: Record<string, string> = tr(
+  { Lacton: "ringförmiger Ester", Lactam: "ringförmiges Amid", Thiolacton: "ringförmiger Thioester", Säureanhydrid: "ringförmig", Imid: "ringförmig", Thioanhydrid: "ringförmig" },
+  { Lacton: "lactone (cyclic ester)", Lactam: "lactam (cyclic amide)", Thiolacton: "thiolactone (cyclic thioester)", Säureanhydrid: "acid anhydride (cyclic)", Imid: "imide (cyclic)", Thioanhydrid: "thioanhydride (cyclic)" });
+
+/** Lösungsweg: Hauptgruppe als Lacton/Lactam bzw. OH am aromatischen Ring oder an einer C=C (sonst leer) */
+function groupSite(ctx: Ctx, o: Option): { lactone?: { cls: string; el: El }; ol?: "aromat" | "enol" } {
+  const lac = o.counted.map(x => lactone(ctx, x)).find(Boolean);
+  if (lac) return { lactone: lac };
+  const ol = o.counted.map(x => olSite(ctx, x));
+  return ol.length && ol.every(Boolean) ? { ol: ol[0] } : {};
+}
+
+/** OH nicht an einem C mit nur Einfachbindungen: am aromatischen Ring (Phenol) bzw. an einer C=C (Enol) – dann kein Alkohol */
+function olSite(ctx: Ctx, gr: Group): "aromat" | "enol" | undefined {
+  if (gr.kind !== "ol") return;
+  if (ctx.ri.ringOf.get(gr.c)?.aromatic) return "aromat";
+  if (ctx.g.nb.get(gr.c)!.some(n => n.order === 2 && ctx.g.el.get(n.to) === "C")) return "enol";
+}
+
 /** Stoffklassen (Kategorien) des Moleküls */
 function classes(ctx: Ctx): string[] {
   const { g, ri, groups } = ctx;
   const out: string[] = [];
   const has = (k: Kind) => groups.some(x => x.kind === k);
   const bonds = g.mol.bonds;
-  const ccDouble = bonds.some(b => b.order === 2 && g.el.get(b.a) === "C" && g.el.get(b.b) === "C" && !(ri.ringOf.get(b.a)?.aromatic));
-  const ccTriple = bonds.some(b => b.order === 3 && g.el.get(b.a) === "C" && g.el.get(b.b) === "C");
+  // Bindung im Ring: beide Atome im selben Ring (eine C=C vom Ring nach außen ist keine Ringbindung)
+  const inRing = (a: number, b: number) => { const r = ri.ringOf.get(a); return !!r && r === ri.ringOf.get(b); };
+  const cc = (o: number) => bonds.filter(b => b.order === o && g.el.get(b.a) === "C" && g.el.get(b.b) === "C" && !(inRing(b.a, b.b) && ri.ringOf.get(b.a)!.aromatic));
+  const ccDouble = cc(2), ccTriple = cc(3);
   const onlyCH = g.ids.every(a => g.el.get(a) === "C");
   if (onlyCH) {
     if (ri.rings.some(r => r.kind === "benzen")) out.push("Aromat");
-    if (ccTriple) out.push("Alkin");
-    if (ccDouble) out.push(ri.rings.some(r => r.kind === "carbo" && !r.aromatic) && !bonds.some(b => b.order === 2 && !ri.ringOf.has(b.a)) ? "Cycloalken" : "Alken");
-    if (!ccDouble && !ccTriple && !out.length) out.push(ri.rings.length ? "Cycloalkan" : "Alkan");
+    if (ccTriple.length) out.push("Alkin");
+    if (ccDouble.length) out.push(ccDouble.every(b => inRing(b.a, b.b)) ? "Cycloalken" : "Alken");
+    if (!ccDouble.length && !ccTriple.length && !out.length) out.push(ri.rings.length ? "Cycloalkan" : "Alkan");
     return out;
   }
   if (has("saeure") && has("amin")) out.push("Aminosäure");
@@ -995,17 +1101,21 @@ function classes(ctx: Ctx): string[] {
   if (has("amid")) out.push("Amid");
   if (has("nitril")) out.push("Nitril");
   if (has("al")) out.push("Aldehyd");
-  if (has("on")) out.push("Keton");
-  if (has("ol")) out.push(groups.some(x => x.kind === "ol" && ri.ringOf.get(x.c)?.kind === "benzen") ? "Phenol" : "Alkohol");
+  const ons = groups.filter(x => x.kind === "on");
+  for (const c of new Set(ons.map(x => lactone(ctx, x)?.cls ?? "Keton"))) out.push(c);
+  const ols = groups.filter(x => x.kind === "ol").map(x => olSite(ctx, x));
+  if (ols.some(s => !s)) out.push("Alkohol");
+  if (groups.some(x => olSite(ctx, x) === "aromat" && ri.ringOf.get(x.c)!.kind === "benzen")) out.push("Phenol");
+  if (ols.includes("enol")) out.push("Enol");
   if (has("thiol")) out.push("Thiol");
   if (has("amin") && !has("saeure")) out.push("Amin");
   const ether = g.ids.some(a => g.el.get(a) === "O" && !ri.ringOf.has(a) && g.nb.get(a)!.length === 2 && g.nb.get(a)!.every(n => dblO(g, n.to) === undefined));
   if (ether) out.push("Ether");
+  if (g.ids.some(a => g.el.get(a) === "S" && !ri.ringOf.has(a) && g.nb.get(a)!.length === 2)) out.push("Thioether");
   if (g.ids.some(a => HALOGENS.includes(g.el.get(a)!))) out.push("Halogenverbindung");
   if (g.ids.some(a => g.el.get(a) === "NO2")) out.push("Nitroverbindung");
   if (ri.rings.some(r => r.kind === "hetero")) out.push("Heterocyclus");
-  if (ri.rings.some(r => r.kind === "benzen") && !out.includes("Phenol")) out.push("Aromat");
-  if (!out.length) out.push("Thioether");
+  if (ri.rings.some(r => r.aromatic) && !out.includes("Phenol")) out.push("Aromat");
   return out;
 }
 
@@ -1017,21 +1127,29 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
   const out: string[] = [];
   const n = o.counted.length;
   const info = K ? KIND_INFO[K] : undefined;
-  if (K === "ester") out.push(`Hauptgruppe: **Ester** ${info!.group}. Name = Säure-Teil + Alkyl-Teil + **ester**.`);
-  else if (info && n) out.push(`Hauptgruppe: **${info.label}** ${info.group} → Endung **${info.suffix}**${n > 1 ? ` (${n}× → ${MULT[n]}…)` : ""}.`);
+  const site = groupSite(ctx, o);
+  const mult = n > 1 ? ` (${n}× → ${MULT[n]}…)` : "";
+  if (K === "ester") out.push(`Ranghöchste Gruppe: **Ester** ${info!.group}. Name = Säure-Teil + Alkyl-Teil + **ester**.`);
+  else if (site.lactone) out.push(`Ranghöchste Gruppe: C=O im Ring neben ${site.lactone.el} – ein **${site.lactone.cls}** (${LACTONE_OF[site.lactone.cls]}). Endung wie beim Keton: **-on**${mult}.`);
+  else if (site.ol) out.push(`Ranghöchste Gruppe: **Hydroxygruppe** –OH ${site.ol === "aromat" ? "am aromatischen Ring" : "an einer C=C (Enol)"} → Endung **-ol**${mult}.`);
+  else if (info && n) out.push(`Ranghöchste Gruppe: **${info.label}** ${info.group} → Endung **${info.suffix}**${mult}.`);
+  else if (o.kind === "ring" && o.ring!.kind === "hetero") out.push("Keine Gruppe mit Endung: Der Ring mit Heteroatom hat einen eigenen Namen.");
   else out.push("Keine Gruppe mit Endung: Name endet auf **-an**, **-en** oder **-in**.");
   const others = RANK.filter(k => k !== K && ctx.groups.some(x => x.kind === k));
   if (others.length) out.push(`Weitere Gruppen als Vorsilbe: ${others.map(k => `**${KIND_INFO[k].prefix}**`).join(", ")}.`);
   if (o.kind === "chain") {
-    const why = n ? `längste Kette mit ${n > 1 ? "den Hauptgruppen" : "der Hauptgruppe"}` : "längste Kette";
+    const why = n ? `längste Kette mit ${n > 1 ? "den ranghöchsten Gruppen" : "der ranghöchsten Gruppe"}` : "längste Kette";
     out.push(`${PARENT_WORD(o)}: ${why} → **${o.seq.length} C** = **${cap(STEM[o.seq.length])}an**.`);
   } else {
     const rk = o.ring!;
     const rn = rk.kind === "benzen" ? "Benzen (Benzolring)" : rk.kind === "carbo" ? cap(rk.base) + "an" : cap(rk.base);
     out.push(`Stammsystem: **Ring** geht vor Kette → **${rn}**.`);
   }
-  const what = [n ? "Hauptgruppe" : "", o.en.length || o.yn.length ? "Mehrfachbindung" : "", o.prefixes.length ? "Äste" : ""].filter(Boolean);
-  if (o.seq.length > 1 && what.length) out.push(`Nummerieren: so, dass ${what[0] === "Hauptgruppe" ? "die **Hauptgruppe**" : what[0] === "Mehrfachbindung" ? "die **Mehrfachbindung**" : "die **Äste**"} ${what[0] === "Äste" ? "die kleinsten Nummern bekommen" : "die kleinste Nummer bekommt"}.`);
+  const branches = o.prefixes.every(p => /yl$/.test(p.name));
+  const what = [n ? "group" : "", o.en.length || o.yn.length ? "bond" : "", o.prefixes.length ? "prefix" : ""].filter(Boolean);
+  const one = o.prefixes.length === 1;
+  const pre = one ? (branches ? "der **Ast** die kleinste Nummer bekommt" : "die **Vorsilbe** die kleinste Nummer bekommt") : `die **${branches ? "Äste" : "Vorsilben"}** die kleinsten Nummern bekommen`;
+  if (o.seq.length > 1 && what.length) out.push(`Nummerieren: so, dass ${what[0] === "group" ? "die **ranghöchste Gruppe** die kleinste Nummer bekommt" : what[0] === "bond" ? "die **Mehrfachbindung** die kleinste Nummer bekommt" : pre}.`);
   if (n && o.kind === "chain" && o.mode === "incl" && K && C_TYPE.has(K)) out.push(`Das C der ${info!.label}gruppe ist **C1** – die Nummer steht nicht im Namen.`);
   if (o.en.length) out.push(`Doppelbindung bei C${nums(o.en)} → **-en**.`);
   for (const st of r.stereo) out.push(ezStep(ctx, st));
@@ -1043,7 +1161,7 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] {
   }
   if (r.ester) out.push(`Säure-Teil **${r.ester.acid}**, Alkyl-Teil **${r.ester.alkyl}** → **${r.name}**.`);
   else out.push(`Name: **${r.name}**`);
-  return out;
+  return out.map(keepEnding);
 }
 
 /** Lösungsweg auf Englisch (gleiche Schritte, englische Namen und Endungen) */
@@ -1053,8 +1171,13 @@ function stepsEn(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] 
   const info = K ? KIND_INFO[K] : undefined;
   let nm = r.name;
   try { nm = toEnglish(r); } catch { /* deutscher Name bleibt */ }
+  const site = groupSite(ctx, o);
+  const mult = n > 1 ? ` (${n}× → ${MULT[n]}…)` : "";
   if (K === "ester") out.push(`Principal group: **ester** ${info!.group}. Name = alkyl part + acid part ending in **-oate**.`);
-  else if (info && n) out.push(`Principal group: **${info.label.toLowerCase()}** ${info.group} → ending **${info.suffix}**${n > 1 ? ` (${n}× → ${MULT[n]}…)` : ""}.`);
+  else if (site.lactone) out.push(`Principal group: C=O in the ring next to ${site.lactone.el} – ${/^[aeiou]/.test(LACTONE_OF[site.lactone.cls]) ? "an" : "a"} **${LACTONE_OF[site.lactone.cls]}**. Ending as for a ketone: **-one**${mult}.`);
+  else if (site.ol) out.push(`Principal group: **hydroxy group** –OH ${site.ol === "aromat" ? "on the aromatic ring" : "on a C=C (enol)"} → ending **-ol**${mult}.`);
+  else if (info && n) out.push(`Principal group: **${info.label.toLowerCase()}** ${info.group} → ending **${info.suffix}**${mult}.`);
+  else if (o.kind === "ring" && o.ring!.kind === "hetero") out.push("No group with an ending: the ring with a heteroatom has its own name.");
   else out.push("No group with an ending: the name ends in **-ane**, **-ene** or **-yne**.");
   const others = RANK.filter(k => k !== K && ctx.groups.some(x => x.kind === k));
   if (others.length) out.push(`Other groups as prefixes: ${others.map(k => `**${KIND_INFO[k].prefix}**`).join(", ")}.`);
@@ -1066,8 +1189,10 @@ function stepsEn(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] 
     const rn = rk.kind === "benzen" ? "benzene (benzene ring)" : parentEn(rk.kind === "carbo" ? rk.base + "an" : rk.base);
     out.push(`Parent: a **ring** comes before a chain → **${rn}**.`);
   }
-  const what = [n ? "principal group" : "", o.en.length || o.yn.length ? "multiple bond" : "", o.prefixes.length ? "side chains" : ""].filter(Boolean);
-  if (o.seq.length > 1 && what.length) out.push(`Numbering: so that the **${what[0]}** get${what[0] === "side chains" ? "" : "s"} the lowest number.`);
+  const branches = o.prefixes.every(p => /yl$/.test(p.name));
+  const one = o.prefixes.length === 1;
+  const what = [n ? "principal group" : "", o.en.length || o.yn.length ? "multiple bond" : "", o.prefixes.length ? (branches ? (one ? "branch" : "branches") : one ? "prefix" : "prefixes") : ""].filter(Boolean);
+  if (o.seq.length > 1 && what.length) out.push(`Numbering: so that the **${what[0]}** ${/es$/.test(what[0]) ? "get the lowest numbers" : "gets the lowest number"}.`);
   if (n && o.kind === "chain" && o.mode === "incl" && K && C_TYPE.has(K)) out.push(`The C of the ${info!.label.toLowerCase()} group is **C1** – the number is not written in the name.`);
   if (o.en.length) out.push(`Double bond at C${nums(o.en)} → **-ene**.`);
   for (const st of r.stereo) out.push(ezStep(ctx, st));
@@ -1079,7 +1204,7 @@ function stepsEn(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk): string[] 
   }
   if (r.ester) out.push(`Alkyl part **${nm.slice(0, nm.lastIndexOf(" "))}**, acid part **${nm.slice(nm.lastIndexOf(" ") + 1)}** → **${nm}**.`);
   else out.push(`Name: **${nm}**`);
-  return out;
+  return out.map(keepEnding);
 }
 
 const SUBN = "₀₁₂₃₄₅₆₇₈₉";

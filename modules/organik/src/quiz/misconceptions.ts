@@ -21,7 +21,7 @@ export const MISS: Record<string, string> = tr({
 }, {
   "zaehlen": "Miscounted C atoms",
   "kette-kurz": "Did not choose the longest chain",
-  "alle-c": "Counted side chains into the main chain",
+  "alle-c": "Counted branches into the main chain",
   "nummer": "Numbered from the wrong end",
   "alphabet": "Prefixes not in alphabetical order",
   "multi": "Identical groups not combined with di, tri",

@@ -5,6 +5,7 @@ import { smilesMol } from "./smiles.ts";
 import { flipBond, keepStereo } from "./stereo.ts";
 import { layout } from "./layout.ts";
 import { formula, freeValence, type El, type Mol, type Order } from "./mol.ts";
+import { MULT, MULT_X } from "./rings.ts";
 
 const nm = (s: string) => {
   const r = name(parseSmiles(s));
@@ -111,6 +112,67 @@ describe("Ergebnis", () => {
     expect(name(parseSmiles("O")).ok).toBe(false);
     expect(name(parseSmiles("COOC")).ok).toBe(false);
   });
+  const reason = (s: string) => { const r = name(parseSmiles(s)); return r.ok ? r.name : r.reason; };
+  test("überschrittene Wertigkeit wird abgelehnt (C mit fünf Bindungen)", () => {
+    expect(reason("CC(C)(=O)CC")).toBe("Zu viele Bindungen an einem Atom");
+    expect(reason("CC(C)(C)(C)C")).toBe("Zu viele Bindungen an einem Atom");
+  });
+  test("Ketten bis 30 C, längere mit Meldung statt Absturz", () => {
+    expect(reason("C".repeat(30))).toBe("Triacontan");
+    expect(reason("C".repeat(31))).toBe("Kette mit mehr als 30 C – zu lang für diese App");
+    expect(reason("C".repeat(40))).toBe("Kette mit mehr als 30 C – zu lang für diese App");
+    // längster Weg über einen Ast: 16 + 16 C = 32 C
+    expect(reason("C".repeat(15) + "C(C)" + "C".repeat(15))).toMatch(/zu lang/);
+    expect(reason("CC(C)" + "C".repeat(28))).toBe("2-Methyltriacontan");
+    expect(reason("C1" + "C".repeat(30) + "1")).toBe("Ring mit mehr als 30 Atomen – zu groß für diese App");
+  });
+  test("mehr als zehn gleiche Teile: Zahlwörter nach IUPAC statt „undefined“", () => {
+    expect(MULT.slice(11, 13)).toEqual(["undeca", "dodeca"]);
+    expect([MULT[14], MULT[20], MULT[21], MULT[22], MULT[31], MULT_X[4], MULT_X[12]]).toEqual(["tetradeca", "icosa", "henicosa", "docosa", "hentriaconta", "tetrakis", "dodecakis"]);
+    expect(reason("ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)Cl")).toBe("1,1,1,2,2,3,3,4,4,5,5,6,6,6-Tetradecachlorhexan");
+    expect(reason("OCC(O)C(O)C(O)C(O)C(O)C(O)C(O)C(O)C(O)C(O)CO")).toBe("Dodecan-1,2,3,4,5,6,7,8,9,10,11,12-dodecaol");
+  });
+  test("Dreifachbindung im Ring: eigene Meldung", () => {
+    expect(reason("C1#CCCCCCC1")).toBe("Dreifachbindung im Ring");
+    expect(reason("C1#CCCCC1")).toBe("Dreifachbindung im Ring");
+    expect(reason("C1=CCOC=C1")).toBe("Teilweise ungesättigter Heterocyclus");
+  });
+  test("Stoffklassen: Lacton, Lactam, exocyclische Doppelbindung, OH am Aromaten", () => {
+    expect(nm("O=C1CCCO1").classes).toEqual(["Lacton", "Heterocyclus"]);
+    expect(nm("O=C1CCCO1").steps[0]).toMatch(/\*\*Lacton\*\* \(ringförmiger Ester\).*\*\*\u2011on\*\*/);
+    expect(nm("O=C1CCCCN1").classes).toEqual(["Lactam", "Heterocyclus"]);
+    expect(nm("O=C1CCOCC1").classes).toEqual(["Keton", "Heterocyclus"]);
+    expect(nm("O=C1CCC(=O)O1").classes).toEqual(["Säureanhydrid", "Heterocyclus"]);
+    expect(nm("O=C1CCC(=O)N1C").classes).toEqual(["Imid", "Heterocyclus"]);
+    expect(nm("C=C1CCCCC1").classes).toEqual(["Alken"]);
+    expect(nm("C1CCCCC1=C").classes).toEqual(["Alken"]);
+    expect(nm("C1=CCCCC1").classes).toEqual(["Cycloalken"]);
+    expect(nm("OC1=CC=NC=C1").classes).toEqual(["Heterocyclus", "Aromat"]);
+    expect(nm("OC1=CC=NC=C1").steps[0]).toMatch(/Hydroxygruppe.*am aromatischen Ring/);
+    expect(nm("OC1=CC=CC=C1").classes).toEqual(["Phenol"]);
+    expect(nm("C=C(O)C").classes).toEqual(["Enol"]);
+    expect(nm("CSCC(N)C(=O)O").classes).toEqual(["Aminosäure", "Thioether"]);
+  });
+  test("Benzol-Schreibweise auch am Namensanfang, Ester-Name Alkyl…oat mit Bindestrich", () => {
+    expect(nm("C1=CC=CC=C1").alt).toContain("Benzol");
+    expect(nm("OC1=CC=C(O)C=C1").alt).toContain("Benzol-1,4-diol");
+    expect(nm("OC(=O)C1=CC=CC=C1C(=O)O").alt).toContain("Benzol-1,2-dicarbonsäure");
+    expect(nm("CC1=CC=CC=C1").alt).toContain("Methylbenzol");
+    expect(nm("COC(=O)C(C)C").alt).toContain("Methyl-2-methylpropanoat");
+    expect(nm("COC(=O)C(C)CC(=O)OCC").alt).toContain("4-Ethyl-1-methyl-2-methylbutandioat");
+  });
+  test("Lösungsweg: Heterocyclus ohne Endung, ranghöchste Gruppe", () => {
+    expect(nm("C1=CC=NC=C1").steps[0]).toBe("Keine Gruppe mit Endung: Der Ring mit Heteroatom hat einen eigenen Namen.");
+    expect(nm("CC(O)C").steps[0]).toMatch(/^Ranghöchste Gruppe: \*\*Alkohol\*\*/);
+    expect(nm("CC(O)C").steps.join(" ")).not.toMatch(/Hauptgruppe/);
+  });
+  test("andere Richtung: Regel, die entscheidet", () => {
+    const rv = (s: string) => (name(parseSmiles(s), { pick: "reverse" }) as NameOk).reverse;
+    expect(rv("CC(C)CCC=O")).toMatchObject({ rule: "principal", right: [1], wrong: [5] });
+    expect(rv("CCC(CC)CC(C)CC")).toMatchObject({ rule: "alpha", right: [3], wrong: [5], prefix: "ethyl" });
+    expect(rv("C#CC(C)C")).toMatchObject({ rule: "multiple", right: [1], wrong: [3], bond: "triple" });
+    expect(rv("CC(C)CC(C)(C)C")).toMatchObject({ rule: "prefixes", right: [2, 2, 4], wrong: [2, 4, 4] });
+  });
   test("falsche Varianten für das Quiz", () => {
     const s = parseSmiles("CC(C)CC");
     const rev = name(s, { pick: "reverse" });
@@ -121,7 +183,7 @@ describe("Ergebnis", () => {
     const k = parseSmiles("CC(=O)CC(O)C");
     expect((name(k, { principal: "ol" }) as NameOk).name).toBe("4-Oxopentan-2-ol");
   });
-  test("Lösungsweg nennt Hauptgruppe und Kette", () => {
+  test("Lösungsweg nennt ranghöchste Gruppe und Kette", () => {
     const r = nm("OC(=O)C(C)C(=O)C(O)C(C)CC");
     expect(r.steps.join(" ")).toMatch(/Carbonsäure/);
     expect(r.steps.join(" ")).toMatch(/7 C/);

@@ -2,7 +2,8 @@
 // Die eigentliche Prüfung gegen OPSIN und RDKit: python3 scripts/organik-oracle.py (siehe docs/entwicklung.md).
 
 import { describe, expect, test } from "vitest";
-import { name, TRIVIAL, type NameOk } from "../naming.ts";
+import { name, nameEnOrder, TRIVIAL, type NameOk } from "../naming.ts";
+import { setLang } from "@lern/i18n";
 import { parseSmiles, smilesMol } from "../smiles.ts";
 import { alkaneTrees, TRIVIAL_SMILES } from "./generate.ts";
 import { altEnglish, toEnglish } from "../english.ts";
@@ -31,6 +32,19 @@ describe("Englische Namen für OPSIN", () => {
     ["OC(=O)CCC(=O)OCC", "4-ethoxy-4-oxobutanoic acid"], ["CCOC(=O)CCC(=O)OC", "1-ethyl 4-methyl butanedioate"],
     ["ClCOC", "chloro(methoxy)methane"], ["OCN1CCCCC1", "(piperidin-1-yl)methanol"], ["CC1OC1Cl", "2-chloro-3-methyloxirane"],
   ])("%s → %s", (s, en) => expect(toEnglish(nm(s))).toBe(en));
+  // englisches Alphabet: ethyl vor ethynyl, propyl vor prop-2-ynyl (deutsch Ethinyl vor Ethyl) – Reihenfolge und Nummern neu
+  test.each([
+    ["CCCC(CC)CC(C#C)CCC", "4-Ethinyl-6-ethylnonan", "4-ethyl-6-ethynylnonane"],
+    ["CCCCCC(CCC)CC(CC#C)CCCCC", "6-(Prop-2-inyl)-8-propyltridecan", "6-propyl-8-(prop-2-ynyl)tridecane"],
+    ["CCCC(OCC)CC(C#C)CCC", "4-Ethinyl-6-ethoxynonan", "4-ethoxy-6-ethynylnonane"],
+    ["COC(=O)C(C)CC(=O)OCC", "2-Methylbutandisäure-4-ethyl-1-methylester", "4-ethyl 1-methyl 2-methylbutanedioate"],
+  ])("%s → %s / %s", (s, de, en) => {
+    expect(nm(s).name).toBe(de);
+    const r = nameEnOrder(parseSmiles(s));
+    expect(r.ok && toEnglish(r)).toBe(en);
+    setLang("en", false);
+    try { expect(name(parseSmiles(s)).ok && (name(parseSmiles(s)) as NameOk).name).toBe(en); } finally { setLang("de", false); }
+  });
   test("E/Z, cis/trans, ältere Schreibweise, Trivialname", () => {
     const r = nm("C/C=C/C", true);
     const en = toEnglish(r);

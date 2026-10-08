@@ -4,6 +4,7 @@
 // Heterocyclen mit -e (pyridine). Weitere Namen (cis/trans, ältere Schreibweise, Schulnamen, Trivialnamen) über `altEnglish`.
 
 import type { NameOk, NamePart, Sub } from "./naming.ts";
+import { MULT, MULT_X } from "./rings.ts";
 
 const HETERO: Record<string, string> = {
   pyridin: "pyridine", piperidin: "piperidine", pyrrolidin: "pyrrolidine", aziridin: "aziridine", azetidin: "azetidine",
@@ -18,9 +19,8 @@ const SUFFIX: Record<string, string> = {
   al: "al", on: "one", ol: "ol", thiol: "thiol", amin: "amine", nitril: "nitrile", amid: "amide",
 };
 const ESTER_SUFFIX: Record<string, string> = { säure: "oate", carbonsäure: "carboxylate" };
-const SUF_RE = /^(-[\d,]+-)?(di|tri|tetra|penta|hexa)?(carbonsäure|carbaldehyd|carboxamid|carbonitril|säure|thiol|nitril|amin|amid|al|on|ol)$/;
-const MULT = ["", "", "di", "tri", "tetra", "penta", "hexa"];
-const MULT_X = ["", "", "bis", "tris", "tetrakis", "pentakis", "hexakis"];
+// Zahlwort vor der Endung (di … dodeca …), längste zuerst
+const SUF_RE = new RegExp(`^(-[\\d,]+-)?(${[...MULT.slice(2)].sort((a, b) => b.length - a.length).join("|")})?(carbonsäure|carbaldehyd|carboxamid|carbonitril|säure|thiol|nitril|amin|amid|al|on|ol)$`);
 
 /** Kleinschreibung außer Lokanten (N, N′, N″) und E/Z */
 const lower = (s: string) => s.replace(/[A-ZÄÖÜ](?=[a-zäöü])/g, c => c.toLowerCase()).replace(/‴/g, "'''").replace(/″/g, "''").replace(/′/g, "'");
@@ -76,12 +76,13 @@ function esterEn(r: NameOk): string {
 export function alkylsEn(alkyls: Sub[], locs: number[] = []): string {
   const by = new Map<string, { s: Sub; locs: number[] }>();
   alkyls.forEach((a, i) => { const e = by.get(a.name) ?? { s: a, locs: [] }; e.locs.push(locs[i]); by.set(a.name, e); });
+  // alphabetisch nach den englischen Namen, nicht nach den Nummern davor (4-ethyl 1-methyl 2-methylbutanedioate)
+  const key = (n: string) => n.replace(/\((?:\d*[EZ],?)+\)-/g, "").replace(/[\d,'\-()[\]{}\s]/g, "");
   return [...by.values()].map(({ s, locs: ls }) => {
     const n = prefixEn(s.name), k = ls.length;
     const loc = locs.length ? `${ls.sort((a, b) => a - b).join(",")}-` : "";
-    if (k === 1) return loc + (loc && s.complex ? `(${n})` : n);
-    return loc + (s.complex ? `${MULT_X[k]}(${n})` : MULT[k] + n);
-  }).sort().join(" ");
+    return { n, text: loc + (k === 1 ? (loc && s.complex ? `(${n})` : n) : s.complex ? `${MULT_X[k]}(${n})` : MULT[k] + n) };
+  }).sort((a, b) => key(a.n).localeCompare(key(b.n)) || a.text.localeCompare(b.text)).map(x => x.text).join(" ");
 }
 
 const OLD_SUFFIX: Record<string, string> = { ol: "ol", on: "one", amin: "amine", thiol: "thiol", "": "" };
@@ -173,6 +174,7 @@ const CLASS_EN: Record<string, string> = {
   Aminosäure: "Amino acid", Carbonsäure: "Carboxylic acid", Ester: "Ester", Amid: "Amide", Nitril: "Nitrile", Aldehyd: "Aldehyde",
   Keton: "Ketone", Phenol: "Phenol", Alkohol: "Alcohol", Thiol: "Thiol", Amin: "Amine", Ether: "Ether", Halogenverbindung: "Halogen compound",
   Nitroverbindung: "Nitro compound", Heterocyclus: "Heterocycle", Thioether: "Thioether",
+  Lacton: "Lactone", Lactam: "Lactam", Thiolacton: "Thiolactone", Säureanhydrid: "Acid anhydride", Imid: "Imide", Thioanhydrid: "Thioanhydride", Enol: "Enol",
 };
 export const classEn = (c: string) => CLASS_EN[c] ?? c;
 

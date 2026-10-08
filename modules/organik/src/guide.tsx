@@ -3,6 +3,7 @@
 
 import { Fit, type GuideCtx, type GuideDef, type GuideStep } from "@lern/ui";
 import { exampleMol } from "./chem/examples.ts";
+import { keepEnding } from "./chem/naming.ts";
 import { smilesMol } from "./chem/smiles.ts";
 import { MolSvg, U } from "./components/MolSvg.tsx";
 import type { Mol } from "./chem/mol.ts";
@@ -171,13 +172,13 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "faded",
-    say: tr("Die Nummer der Gruppe steht vor der Endung: Propan-**2**-ol.", "The number of the group stands before the ending: propan-**2**-ol."),
-    ask: tr("Ergänze: Wie heißt dieser Alkohol?", "Complete: what is this alcohol called?"), answer: tr("Propan-2-ol", "propan-2-ol"), options: [tr("Propan-2-ol", "propan-2-ol"), tr("Propan-1-ol", "propan-1-ol"), tr("Propan-2-al", "propan-2-al"), tr("Propan-2-on", "propan-2-one")],
+    say: tr("Die Nummer der Gruppe steht vor der Endung, z. B. Hexan-**3**-ol.", "The number of the group goes before the ending, e.g. hexan-**3**-ol."),
+    ask: tr("Ergänze: Wie heißt dieser Alkohol?", "Complete: what is this alcohol called?"), answer: tr("Propan-2-ol", "propan-2-ol"), options: [tr("Propan-2-ol", "propan-2-ol"), tr("Propan-1-ol", "propan-1-ol"), tr("Butan-2-ol", "butan-2-ol"), tr("Propanol", "propanol")],
     visual: () => <Pic s="CC(O)C" />,
     why: {
       [tr("Propan-1-ol", "propan-1-ol")]: tr("Die OH-Gruppe sitzt am mittleren C, also C2.", "The OH group is on the middle C, so C2."),
-      [tr("Propan-2-al", "propan-2-al")]: tr("-al steht für Aldehyd –CHO. Hier ist eine OH-Gruppe.", "-al stands for aldehyde –CHO. Here there is an OH group."),
-      [tr("Propan-2-on", "propan-2-one")]: tr("-on steht für Keton C=O. Hier ist eine OH-Gruppe.", "-one stands for ketone C=O. Here there is an OH group."),
+      [tr("Butan-2-ol", "butan-2-ol")]: tr("Butan hätte 4 C. Zähle nur die C-Atome, nicht das O.", "Butane would have 4 C. Count only the C atoms, not the O."),
+      [tr("Propanol", "propanol")]: tr("Die Nummer fehlt. Sie zeigt, an welchem C die OH-Gruppe sitzt.", "The number is missing. It shows which C carries the OH group."),
     },
     ok: tr("**Propan-2-ol**.", "**propan-2-ol**."),
     lines: [tr("3 C → Propan.", "3 C → propane."), tr("OH am mittleren C → Nummer 2.", "OH on the middle C → number 2."), tr("Name: {?}", "Name: {?}")],
@@ -195,7 +196,7 @@ const STEPS: GuideStep[] = [
   {
     mode: "worked",
     part: tr("Säuren und Rangfolge", "Acids and priority"),
-    say: tr("Carbonsäuren tragen die Gruppe –COOH.", "Carboxylic acids carry the group –COOH."),
+    say: tr("**Carbonsäuren** tragen die Gruppe –COOH.", "**Carboxylic acids** carry the group –COOH."),
     ask: tr("Wie heißt diese Säure?", "What is this acid called?"),
     visual: () => <Pic s="CC(=O)O" />,
     lines: [tr("Das C der –COOH-Gruppe gehört **zur Kette** und ist immer C1.", "The C of the –COOH group belongs **to the chain** and is always C1."), tr("2 C → Ethan; Endung **-säure**.", "2 C → ethane; ending **-oic acid**."), tr("→ **Ethansäure** (Essigsäure). Die 1 schreibt man nicht.", "→ **ethanoic acid** (acetic acid). The 1 is not written.")],
@@ -226,10 +227,10 @@ const STEPS: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("Mehrere Gruppen: die mit dem **höchsten Rang** gibt die Endung.", "Several groups: the one with the **highest priority** gives the ending."),
+    say: tr("Mehrere Gruppen: Die mit dem höchsten Rang ist die **ranghöchste Gruppe**. Sie gibt die Endung.", "Several groups: the one with the highest rank is the **principal group**. It gives the ending."),
     ask: tr("Welche Gruppe gibt die Endung?", "Which group gives the ending?"),
-    lines: [tr("Rang: Säure > **Aldehyd** (–CHO, -al) > **Keton** (C=O in der Kette, -on) > Alkohol (-ol).", "Priority: acid > **aldehyde** (–CHO, -al) > **ketone** (C=O in the chain, -one) > alcohol (-ol)."), tr("Die anderen Gruppen stehen als Vorsilbe vorn: –OH → **Hydroxy**-.", "The other groups go in front as a prefix: –OH → **hydroxy**-.")],
-    ok: tr("Endung = ranghöchste Gruppe, sie bekommt die kleinste Nummer.", "Ending = highest-priority group, it gets the lowest number."),
+    lines: [tr("Rang: Säure > **Aldehyd** (–CHO, -al) > **Keton** (C=O in der Kette, -on) > Alkohol (-ol) > **Amin** (–NH₂, -amin).", "Rank: acid > **aldehyde** (–CHO, -al) > **ketone** (C=O in the chain, -one) > alcohol (-ol) > **amine** (–NH₂, -amine)."), tr("Die anderen Gruppen stehen als **Vorsilbe** vorn: –OH → **Hydroxy**-.", "The other groups go in front as a **prefix**: –OH → **hydroxy**-.")],
+    ok: tr("Endung = ranghöchste Gruppe, sie bekommt die kleinste Nummer.", "Ending = principal group, it gets the lowest number."),
   },
   {
     mode: "faded",
@@ -238,16 +239,16 @@ const STEPS: GuideStep[] = [
     visual: () => <Pic s="CC(=O)CC(O)C" />,
     why: { [tr("Alkohol –OH", "Alcohol –OH")]: tr("Keton steht in der Rangfolge vor Alkohol. Die OH-Gruppe wird Vorsilbe.", "Ketone ranks before alcohol. The OH group becomes a prefix.") },
     ok: tr("Keton → Endung **-on**. OH wird **Hydroxy-**.", "Ketone → ending **-one**. OH becomes **hydroxy-**."),
-    lines: [tr("Gruppen: –OH (Alkohol) und C=O in der Kette (Keton).", "Groups: –OH (alcohol) and C=O in the chain (ketone)."), tr("Höherer Rang: {?}", "Higher priority: {?}")],
+    lines: [tr("Gruppen: –OH (Alkohol) und C=O in der Kette (Keton).", "Groups: –OH (alcohol) and C=O in the chain (ketone)."), tr("Höherer Rang: {?}", "Higher rank: {?}")],
   },
   {
     mode: "free",
-    say: tr("Die Hauptgruppe bekommt die kleinste Nummer. Die anderen Gruppen stehen als Vorsilbe vorn.", "The principal group gets the lowest number. The other groups come first as prefixes."),
+    say: tr("Die ranghöchste Gruppe bekommt die kleinste Nummer. Die anderen Gruppen stehen als Vorsilbe vorn.", "The principal group gets the lowest number. The other groups come first as prefixes."),
     ask: tr("Wie heißt die Verbindung?", "What is the name of the compound?"), answer: tr("4-Hydroxypentan-2-on", "4-hydroxypentan-2-one"), options: [tr("4-Hydroxypentan-2-on", "4-hydroxypentan-2-one"), tr("4-Oxopentan-2-ol", "4-oxopentan-2-ol"), tr("2-Hydroxypentan-4-on", "2-hydroxypentan-4-one"), tr("Pentan-2-on-4-ol", "pentan-2-one-4-ol")],
     visual: () => <Pic s="CC(=O)CC(O)C" />,
     why: {
       [tr("4-Oxopentan-2-ol", "4-oxopentan-2-ol")]: tr("Keton geht vor Alkohol. Darum Endung -on, nicht -ol.", "Ketone ranks before alcohol. So the ending is -one, not -ol."),
-      [tr("2-Hydroxypentan-4-on", "2-hydroxypentan-4-one")]: tr("Die Hauptgruppe C=O soll die kleinste Nummer haben.", "The principal group C=O should have the lowest number."),
+      [tr("2-Hydroxypentan-4-on", "2-hydroxypentan-4-one")]: tr("Die ranghöchste Gruppe C=O soll die kleinste Nummer haben.", "The principal group C=O should have the lowest number."),
       [tr("Pentan-2-on-4-ol", "pentan-2-one-4-ol")]: tr("Nur eine Endung. Die zweite Gruppe wird Vorsilbe: Hydroxy.", "Only one ending. The second group becomes a prefix: hydroxy."),
     },
     ok: tr("**4-Hydroxypentan-2-on**.", "**4-hydroxypentan-2-one**."),
@@ -255,13 +256,20 @@ const STEPS: GuideStep[] = [
   },
 ];
 
+/** Endungen in den Texten nicht umbrechen (Auswahlen und Antworten bleiben unverändert) */
+const tidy = (s: GuideStep): GuideStep => ({
+  ...s, ask: keepEnding(s.ask), ...(s.say ? { say: keepEnding(s.say) } : {}), ...(s.lines ? { lines: s.lines.map(keepEnding) } : {}),
+  ...(s.ok ? { ok: keepEnding(s.ok) } : {}), ...(s.tip ? { tip: keepEnding(s.tip) } : {}), ...(s.show ? { show: keepEnding(s.show) } : {}),
+  ...(s.why ? { why: Object.fromEntries(Object.entries(s.why).map(([o, w]) => [o, keepEnding(w)])) } : {}),
+});
+
 export const GUIDE: GuideDef = {
   title: tr("Nomenklatur", "Nomenclature"),
-  steps: STEPS,
+  steps: STEPS.map(tidy),
   outro: [
     tr("Stamm nach der Zahl der C in der **längsten Kette**.", "Stem from the number of C in the **longest chain**."),
-    tr("Nummerieren: kleinste Nummern für Hauptgruppe, Mehrfachbindung, Äste.", "Numbering: lowest numbers for the principal group, multiple bond, branches."),
+    tr("Nummerieren: kleinste Nummern für die ranghöchste Gruppe, Mehrfachbindung, Äste.", "Numbering: lowest numbers for the principal group, multiple bond, branches."),
     tr("Gleiche Äste mit **di, tri**, Vorsilben **alphabetisch**.", "Identical branches with **di, tri**, prefixes **alphabetical**."),
     tr("Endung von der Gruppe mit dem **höchsten Rang**: -säure, -al, -on, -ol, -amin.", "Ending from the group with the **highest rank**: -oic acid, -al, -one, -ol, -amine."),
-  ],
+  ].map(keepEnding),
 };

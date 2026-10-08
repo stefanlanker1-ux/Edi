@@ -93,7 +93,9 @@ export function findRings(g: Graph): RingInfo {
 
 function ringText(g: Graph, atoms: number[]): string {
   const het = atoms.filter(a => g.el.get(a) !== "C");
+  if (atoms.length > MAX_STEM) return `Ring mit mehr als ${MAX_STEM} Atomen – zu groß für diese App`;
   if (het.length > 1) return "Ring mit mehreren Heteroatomen";
+  if (atoms.some((a, i) => bondOrder(g, a, atoms[(i + 1) % atoms.length]) === 3)) return "Dreifachbindung im Ring";
   if (atoms.length > 6 && het.length) return "Heterocyclus mit mehr als 6 Atomen";
   return "Teilweise ungesättigter Heterocyclus";
 }
@@ -104,7 +106,7 @@ function classify(g: Graph, atoms: number[]): Ring | undefined {
   const els = atoms.map(a => g.el.get(a)!) as El[];
   const het = atoms.filter((_, i) => els[i] !== "C");
   const dbl = atoms.map((a, i) => bondOrder(g, a, atoms[(i + 1) % n]));
-  if (dbl.some(o => o === 3)) return undefined;
+  if (n > MAX_STEM || dbl.some(o => o === 3)) return undefined;
   const doubles = dbl.filter(o => o === 2).length;
   if (het.length === 0) {
     if (n === 6 && doubles === 3 && dbl.every((o, i) => o !== dbl[(i + 1) % n])) return { atoms, kind: "benzen", base: "benzen", aromatic: true };
@@ -124,6 +126,24 @@ function classify(g: Graph, atoms: number[]): Ring | undefined {
   return undefined;
 }
 
+/** Zahlwort für n gleiche Teile (IUPAC): di … deca, undeca, dodeca … icosa, henicosa, docosa … triaconta, hentriaconta … (n bis 99) */
+function multNum(n: number): string {
+  if (n < 2) return "";
+  if (n <= 10) return ["di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca"][n - 2];
+  if (n === 11) return "undeca";
+  const UNIT = ["", "hen", "do", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona"];
+  const TENS = ["", "deca", "icosa", "triaconta", "tetraconta", "pentaconta", "hexaconta", "heptaconta", "octaconta", "nonaconta"];
+  const u = n % 10, t = Math.floor(n / 10);
+  // nach do, tri … entfällt das i von icosa (docosa, tricosa), nach hen nicht (henicosa)
+  return UNIT[u] + (t === 2 && u > 1 ? "cosa" : TENS[t]);
+}
+/** di, tri … (Index = Anzahl; bis 99 – mehr gleiche Teile hat kein Molekül mit höchstens 30 C im Stamm) */
+export const MULT = Array.from({ length: 100 }, (_, n) => multNum(n));
+/** für zusammengesetzte Teile: bis, tris, tetrakis … */
+export const MULT_X = MULT.map((m, n) => (n < 2 ? "" : n === 2 ? "bis" : n === 3 ? "tris" : m + "kis"));
+
+/** Stämme gibt es bis 30 C (Triacontan); längere Ketten und größere Ringe benennt die App nicht */
+export const MAX_STEM = 30;
 export const STEM: Record<number, string> = {
   1: "meth", 2: "eth", 3: "prop", 4: "but", 5: "pent", 6: "hex", 7: "hept", 8: "oct", 9: "non", 10: "dec",
   11: "undec", 12: "dodec", 13: "tridec", 14: "tetradec", 15: "pentadec", 16: "hexadec", 17: "heptadec", 18: "octadec", 19: "nonadec", 20: "icos",

@@ -4,7 +4,7 @@
 
 import { describe, expect, test } from "vitest";
 import { writeFileSync } from "node:fs";
-import { name, substituentNames } from "../naming.ts";
+import { name, nameEnOrder, substituentNames } from "../naming.ts";
 import { layout } from "../layout.ts";
 import { keepStereo, stereoBonds } from "../stereo.ts";
 import type { Mol } from "../mol.ts";
@@ -43,7 +43,8 @@ describe.skipIf(!OUT)("Export für die Prüfung", () => {
       const idx = new Map(s.mol.atoms.map((a, i) => [a.id, i]));
       const ix = (id: number) => idx.get(id) ?? -1;
       let en = "", enError = "";
-      try { en = toEnglish(r); } catch (e) { enError = String(e); }
+      // englischer Name mit englischer Reihenfolge der Vorsilben (ethyl vor ethynyl), wie ihn die App auf Englisch zeigt
+      try { const re = nameEnOrder(s.mol); en = re.ok ? toEnglish(re) : ""; } catch (e) { enError = String(e); }
       lines.push(JSON.stringify({
         id: s.id, family: s.family, de: r.name, en, enError, formula: r.formula, classes: r.classes, principal: r.principal ?? null,
         alts: r.alt.map(a => ({ de: a, en: en ? altEnglish(a, r, en) ?? null : null })),
