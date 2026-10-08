@@ -197,12 +197,13 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   als Vollbild. Keine eigenen Übungsseiten.
 - **Arbeitsteilung der Agenten**: siehe `docs/agenten.md` (Rollen, Prüfkette Fach – Gestaltung – Realität, Sofort-Warnung).
 - **Experimentieren stellt nie Fragen** – keine Vorhersage-, Auswahl- oder Richtig/falsch-Fragen, kein ✓/✗ zu einer Antwort, keine Punkte. Experimentieren ist freies
-  Ausprobieren: Aktion wählen → ansehen; Zustand nur als kurze Kennzeichen, Begründungen auf Abruf (ⓘ). Fragen, Vorhersagen und Rückmeldung zu Antworten gehören
-  ausschließlich in **Lernen** (Lektion und Aufgaben) bzw. **Quiz**.
-- **Bereichsleiste in allen Modulen gleich** (Handy unten, ab 900 px oben in der Kopfzeile): **Erklärung | Quiz | Experimentieren** (Atombau zusätzlich „Periodensystem“/„PSE“
+  Ausprobieren: Aktion wählen → ansehen; Zustand nur als kurze Kennzeichen (z. B. „✓ neutral“, „✓ ausgeglichen“ nach „Prüfen“ in Reaktionsgleichungen – sie beschreiben
+  den Zustand der Werkbank, bewerten keine Antwort und vergeben keine Punkte), Begründungen auf Abruf (ⓘ). Fragen, Vorhersagen und Rückmeldung zu Antworten gehören
+  ausschließlich in **Üben** (Lektion und Aufgaben bzw. Quiz-Runden).
+- **Bereichsleiste in allen Modulen gleich** (Handy unten, ab 900 px oben in der Kopfzeile): **Erklärung | Üben | Experimentieren** (Atombau zusätzlich „Periodensystem“/„PSE“
   dahinter). Alle Einträge gleich gestaltet (Zeichen + Wort, aktiver Bereich mit rotem Strich); „Erklärung“ öffnet die Erklärung (kein eigener Bereich) und ist dort
   in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
-  egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: `quiz`, dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
+  egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: Üben (`quiz`, in Reaktionsgleichungen `ueben`), dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
   `probieren`, `start` – Kennungen und Speicher-Schlüssel nie umbenennen). Der beim Öffnen gezeigte Bereich bleibt die Werkbank.
 - **Üben in Kapiteln statt Erklärung + Quiz** (Gemische und Polymere): Leiste **Üben | Experimentieren** (Name zentral über `uebenTab`). „Üben“ (Tab-Kennung `quiz`,
   Zeichen Buch) zeigt die **Kapitel** wie die Level-Auswahl des Quiz. Ein Kapitel ist **ein Fluss**: beim ersten Antippen zuerst die **Lektion** des Kapitels
@@ -511,7 +512,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 6 Aufgaben,
   US-Niveau 1 und 2 nach der Zahl der Koeffizienten ≠ 1). Phosphor in der Unterstufe einheitlich als weißer Phosphor P₄ (P₄ + 5 O₂ → 2 P₂O₅, P₄ + 6 Cl₂ → 4 PCl₃), nie zugleich als einzelnes P (Test).
   Stoffnamen ohne ungenaue Trivialnamen (CaSO₄ „Calciumsulfat“, nicht „Gips“ – Gips ist CaSO₄ · 2 H₂O).
-- Aufbau (einfach, wenige Knöpfe): Bereiche **Experimentieren | Üben** – keine Erklärung, kein Quiz (die App startet mit Experimentieren). Experimentieren (Kennung `start`) = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
+- Aufbau (einfach, wenige Knöpfe): Bereiche **Üben | Experimentieren** (Reihenfolge wie in allen Modulen) – keine Erklärung, kein Quiz (die App startet mit Experimentieren). Experimentieren (Kennung `start`) = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
   nach dem letzten Beispiel „Zum Üben“. Mit `BalanceCard`:
   Titel, Teilchenbild (`MoleculeScene`, Kästen passen sich dem Inhalt an, nebeneinander oder übereinander), Ergebnis erst nach „Prüfen“ (`≠ O`, `kürzen : 2`, `✓ ausgeglichen`,
   Kastenrahmen grün bzw. rot gestrichelt) – bewusste Ausnahme von „Experimentieren stellt nie Fragen … kein ✓/✗“: Ausgleichen ist hier das Werkzeug selbst, „Prüfen“ zeigt nur den
@@ -842,6 +843,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Alle: Bereichsleiste einheitlich, Regeln und READMEs aktuell** – Reaktionsgleichungen zeigt die Bereiche wie alle Module als **Üben | Experimentieren** (vorher umgekehrt;
+  geöffnet wird weiter die Werkbank). Regel „Experimentieren stellt nie Fragen“ präzisiert: Zustandskennzeichen wie „✓ neutral“ oder „✓ ausgeglichen“ nach „Prüfen“ bewerten
+  keine Antwort und sind erlaubt; Bereichsleiste heißt „Erklärung | Üben | Experimentieren“. READMEs von Gemische (Experimentieren, sechs Kapitel im Üben, Satzbruch behoben)
+  und Nomenklatur (Erklärung, Üben) auf dem aktuellen Stand.
 - **Nomenklatur: Quiz-Moleküle gültig, Rückmeldungen je Regel, englische Namen, Stoffklassen** – Quiz nur mit chemisch möglichen Molekülen (vorher z. B. „2-Methylbutan-2-on“
   mit fünfbindigem C: kein Ast am Keton-C, `name()` lehnt überschrittene Wertigkeit ab, Test über alle Generatoren); Oxo-Vorsilben kommen in Level 4 vor (Bedingung war immer wahr).
   Rückmeldung zur anderen Zählrichtung nennt die entscheidende Regel mit Nummern (C1 der Gruppe, ranghöchste Gruppe, Mehrfachbindung, Äste, Alphabet; `reverse`) statt immer „dann

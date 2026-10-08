@@ -4,10 +4,10 @@ import { StartView } from "./views/StartView.tsx";
 import { UebenView } from "./ueben/UebenView.tsx";
 import { tr } from "@lern/i18n";
 
-// Bereiche: Experimentieren (Start) und Üben – keine Erklärung, kein Quiz
+// Bereiche: Üben und Experimentieren (Start, wie in allen Modulen rechts) – keine Erklärung, kein Quiz
 const TABS: ShellTab<Tab>[] = [
-  { id: "start", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
   uebenTab("ueben"),
+  { id: "start", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
 const Logo = () => (
