@@ -32,7 +32,7 @@ const US: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Von der **großen** zur **kleinen** Einheit wird die Zahl größer: **mal**. Von klein zu groß: **geteilt**.", "From the **large** to the **small** unit the number gets bigger: **multiply**. From small to large: **divide**."),
-    ask: tr("Ergänze: Du rechnest **7,5 cm** in **mm** um.", "Complete: you convert **7.5 cm** to **mm**."), answer: "· 10", options: ["· 10", tr(": 10", "÷ 10"), "· 100", tr(": 100", "÷ 100")],
+    ask: tr("Ergänze: Du rechnest **7,5 cm** in **mm** um.", "Complete: you convert **7.5 cm** to **mm**."), answer: "· 10", options: [tr(": 10", "÷ 10"), "· 10", tr(": 100", "÷ 100"), "· 100"],
     visual: () => <Chain from="cm" to="mm" />,
     why: { [tr(": 10", "÷ 10")]: tr("mm ist kleiner als cm – es werden mehr: mal.", "mm is smaller than cm – you get more: multiply."), "· 100": tr("cm → mm ist nur ein Schritt.", "cm → mm is only one step."), [tr(": 100", "÷ 100")]: tr("Kleinere Einheit → mehr Stück: mal.", "Smaller unit → more of them: multiply.") },
     ok: tr("cm → mm: · 10.", "cm → mm: · 10."),
@@ -80,7 +80,7 @@ const US: GuideStep[] = [
   {
     mode: "free",
     say: tr("Zum **Vergleichen** beide Angaben in **dieselbe** Einheit umrechnen.", "To **compare**, convert both to the **same** unit."),
-    ask: tr("Was ist mehr: **1,2 cm** oder **10,8 mm**?", "Which is more: **1.2 cm** or **10.8 mm**?"), answer: tr("1,2 cm", "1.2 cm"), options: [tr("1,2 cm", "1.2 cm"), tr("10,8 mm", "10.8 mm"), tr("gleich viel", "the same")],
+    ask: tr("Was ist mehr: **1,2 cm** oder **10,8 mm**?", "Which is more: **1.2 cm** or **10.8 mm**?"), answer: tr("1,2 cm", "1.2 cm"), options: [tr("10,8 mm", "10.8 mm"), tr("gleich viel", "the same"), tr("1,2 cm", "1.2 cm")],
     why: { [tr("10,8 mm", "10.8 mm")]: tr("1,2 cm = 12 mm – das ist mehr als 10,8 mm.", "1.2 cm = 12 mm – that is more than 10.8 mm."), [tr("gleich viel", "the same")]: tr("1,2 cm = 12 mm, nicht 10,8 mm.", "1.2 cm = 12 mm, not 10.8 mm.") },
     ok: tr("1,2 cm = 12 mm > 10,8 mm.", "1.2 cm = 12 mm > 10.8 mm."),
     lines: [tr("1,2 cm = 12 mm > 10,8 mm.", "1.2 cm = 12 mm > 10.8 mm.")],
@@ -145,7 +145,7 @@ const US: GuideStep[] = [
   {
     mode: "free",
     say: tr("Größenvorstellung hilft beim Prüfen.", "A sense of size helps you check."),
-    ask: tr("Welche Einheit passt? Eine **Briefmarke** hat etwa 6 ▢.", "Which unit fits? A **postage stamp** has about 6 ▢."), answer: "cm²", options: ["cm²", "mm²", "dm²", "m²"],
+    ask: tr("Welche Einheit passt? Eine **Briefmarke** hat etwa 6 ▢.", "Which unit fits? A **postage stamp** has about 6 ▢."), answer: "cm²", options: ["mm²", "cm²", "dm²", "m²"],
     why: { "mm²": tr("6 mm² wären nur 2 mm × 3 mm – viel zu klein für eine Briefmarke.", "6 mm² would be just 2 mm × 3 mm – far too small for a stamp."), "dm²": tr("6 dm² wäre so groß wie ein Heft.", "6 dm² would be as big as an exercise book."), "m²": tr("6 m² ist ein kleines Zimmer.", "6 m² is a small room.") },
     ok: tr("Etwa 2 cm × 3 cm = 6 cm².", "About 2 cm × 3 cm = 6 cm²."),
   },
@@ -190,7 +190,7 @@ const OS: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Umrechnungszahl = 10^(Hochzahl **vorher** − Hochzahl **nachher**).", "Conversion factor = 10^(exponent **before** − exponent **after**)."),
-    ask: tr("Ergänze: 1 nm = ? cm", "Complete: 1 nm = ? cm"), answer: "10⁻⁷ cm", options: ["10⁻⁷ cm", "10⁷ cm", "10⁻¹¹ cm", "10⁻⁹ cm"],
+    ask: tr("Ergänze: 1 nm = ? cm", "Complete: 1 nm = ? cm"), answer: "10⁻⁷ cm", options: ["10⁻¹¹ cm", "10⁻⁹ cm", "10⁻⁷ cm", "10⁷ cm"],
     visual: () => <Scale from="nm" to="cm" />,
     why: { "10⁷ cm": tr("Vorher −9, nachher −2: −9 − (−2) = −7.", "Before −9, after −2: −9 − (−2) = −7."), "10⁻¹¹ cm": tr("Abziehen, nicht addieren: −9 − (−2).", "Subtract, don't add: −9 − (−2)."), "10⁻⁹ cm": tr("10⁻⁹ wäre in m. In cm: −9 − (−2).", "10⁻⁹ would be in m. In cm: −9 − (−2).") },
     ok: tr("1 nm = 10⁻⁷ cm.", "1 nm = 10⁻⁷ cm."),
@@ -225,14 +225,14 @@ const OS: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Bei **Flächen** zählt die Hochzahl doppelt, bei **Volumen** dreifach: 1 mm² = (10⁻³)² m² = 10⁻⁶ m².", "For **areas** the exponent counts twice, for **volumes** three times: 1 mm² = (10⁻³)² m² = 10⁻⁶ m²."),
-    ask: tr("Ergänze: 1 cm² = ? m²", "Complete: 1 cm² = ? m²"), answer: "10⁻⁴ m²", options: ["10⁻⁴ m²", "10⁻² m²", "10⁻⁶ m²", "10² m²"],
+    ask: tr("Ergänze: 1 cm² = ? m²", "Complete: 1 cm² = ? m²"), answer: "10⁻⁴ m²", options: ["10⁻⁶ m²", "10⁻⁴ m²", "10⁻² m²", "10² m²"],
     why: { "10⁻² m²": tr("Bei m² doppelt: (10⁻²)² = 10⁻⁴.", "For m² twice: (10⁻²)² = 10⁻⁴."), "10⁻⁶ m²": tr("10⁻⁶ wäre mm².", "10⁻⁶ would be mm²."), "10² m²": tr("cm² ist kleiner als m².", "cm² is smaller than m².") },
     ok: tr("1 cm² = 10⁻⁴ m².", "1 cm² = 10⁻⁴ m²."),
     lines: [tr("1 cm = 10⁻² m.", "1 cm = 10⁻² m."), tr("Fläche: (10⁻²)² → 1 cm² = {?}", "Area: (10⁻²)² → 1 cm² = {?}")],
   },
   {
     mode: "free",
-    ask: tr("1 mm³ = ? m³", "1 mm³ = ? m³"), answer: "10⁻⁹ m³", options: ["10⁻⁹ m³", "10⁻³ m³", "10⁻⁶ m³"],
+    ask: tr("1 mm³ = ? m³", "1 mm³ = ? m³"), answer: "10⁻⁹ m³", options: ["10⁻⁹ m³", "10⁻⁶ m³", "10⁻³ m³"],
     why: { "10⁻³ m³": tr("Bei m³ dreifach: (10⁻³)³.", "For m³ three times: (10⁻³)³."), "10⁻⁶ m³": tr("Das wäre bei m² (doppelt).", "That would be for m² (twice).") },
     ok: tr("1 mm³ = 10⁻⁹ m³.", "1 mm³ = 10⁻⁹ m³."),
   },

@@ -609,6 +609,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Erklärung Level I (15 Schritte): **Säuren** · **Laugen und Wasser** (vorgemachte Wand ohne Reaktion) · **Salz und Gleichung**. Level II (14 Schritte): **Mehrprotonige Säuren** ·
   **Ausgleichen** · **Salze benennen** (Formiat, Perchlorat eingeführt; `known`: Nitrat, Sulfat, Carbonat, Hydrogencarbonat, Phosphat aus der Ionenbindung).
   Vor „Wie viele H⁺ kann CH₃COOH höchstens abgeben?“ nennt die Liste der einprotonigen Säuren CH₃COOH nicht (sonst stünde die Antwort schon da).
+  Auswahl-Schritte: die richtige Antwort steht an wechselnden Plätzen (die Erklärung mischt nicht; je Stufe höchstens 40 % an Platz 1, Ladungen nach Betrag geordnet; Test `guide.test.ts`).
 
 ## Nomenklatur (`modules/organik`)
 - Organische Verbindungen frei zeichnen, der Name folgt nach IUPAC (deutsche Schreibweise: Benzen, Oct, Ethansäure, Butansäureethylester), mit weiteren Namen
@@ -874,7 +875,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   („1 m² = ? dm²“: Quadrat 1 m aus dm², „1 m³ = ? dm³“: Würfel; `AreaGrid`/`Cube` mit `guess`, Raster und Anzahl erst nach der richtigen Antwort; das kleine Kästchen bzw. der kleine
   Würfel trägt seine Beschriftung über eine Hinweislinie, nie ein Pfeil ins Leere). Schrift in allen Bildern ≥ 14 px am Handy (SVG-Schrift 16–18 Einheiten, Lineal und Messbecher
   beschriften nur jeden zweiten Strich, wo die Zahlen sonst aneinanderstießen; Pfeilkette, `DimChain`, Stellenwerttafel, Einsetz-Kette 14 px);
-  der Merksatz (`say`) eines halb gelösten oder freien Schritts nennt die gesuchte Zahl nicht (Test `guide.test.ts`).
+  der Merksatz (`say`) eines halb gelösten oder freien Schritts nennt die gesuchte Zahl nicht (Test `guide.test.ts`). Auswahl-Schritte: die richtige Antwort steht an wechselnden
+  Plätzen (die Erklärung mischt nicht; je Stufe höchstens 40 % an Platz 1, Zahlen und Einheiten aufsteigend; Test).
 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
@@ -888,6 +890,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Einheiten, Neutralisation: Auswahl in der Erklärung an wechselnden Plätzen** – die richtige Antwort stand fast immer an Platz 1 (bis 8 von 8), die Erklärung war so ohne
+  Nachdenken lösbar (die Erklärung mischt nicht). Jetzt an wechselnden Plätzen; Zahlen und Einheiten aufsteigend, Ladungen nach Betrag; Test je Stufe höchstens 40 % an Platz 1.
 - **Reaktionsgleichungen, Neutralisation, Einheiten: Nachprüfung Runde 2** – Phosphorpentoxid als Molekül P₄O₁₀ (P₄ + 5 O₂ → P₄O₁₀, 4 PH₃ + 8 O₂ → P₄O₁₀ + 6 H₂O; vorher
   wurde P₂O₅ – nur die Verhältnisformel – als Molekül gezeichnet; neue Kennungen `p4o10`/`ph3-o2`, damit alte Stände nicht als gelöst gelten; keine Gleichung doppelt, Level II
   Mittel beginnt mit 4 PH₃ → P₄ + 6 H₂); alle 60 Üben-Tipps ohne vorweggenommenen Denkschritt (Muster „Atomzahl … je/jedes“ im Test); „Lösung angesehen – kein ✓“; Teilchenbild

@@ -14,3 +14,12 @@ test("halb gelöst und selbst: der Merksatz (say) nennt die gesuchte Zahl nicht 
     expect(new RegExp(`(^|[^0-9,\\p{L}])${a}([^0-9,\\p{L}]|$)`, "u").test(s.say), `${s.ask}: ${s.say}`).toBe(false);
   }
 });
+
+test("Erklärung: die richtige Auswahl steht an wechselnden Plätzen (je Stufe höchstens 40 % an Platz 1)", () => {
+  for (const st of ["us", "os"] as const) {
+    const steps = guideFor(st).steps.filter(s => s.mode !== "worked" && s.options?.length && s.answer !== undefined);
+    const first = steps.filter(s => s.options![0] === String(s.answer)).length;
+    expect(steps.length, st).toBeGreaterThanOrEqual(3);
+    expect(first / steps.length, `${st}: ${first} von ${steps.length} an Platz 1`).toBeLessThanOrEqual(.4);
+  }
+});

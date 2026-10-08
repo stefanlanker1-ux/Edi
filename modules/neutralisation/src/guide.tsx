@@ -46,14 +46,14 @@ const US: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Für jedes abgegebene H⁺ bleibt eine **negative Ladung** am Säurerest.", "For every H⁺ given off, one **negative charge** stays on the acid anion."),
-    ask: tr("Ergänze: Welche Ladung hat der Säurerest von **H₂SO₄**?", "Complete: what is the charge of the acid anion of **H₂SO₄**?"), answer: "2−", options: ["2−", "1−", "2+", "4−"],
+    ask: tr("Ergänze: Welche Ladung hat der Säurerest von **H₂SO₄**?", "Complete: what is the charge of the acid anion of **H₂SO₄**?"), answer: "2−", options: ["1−", "2−", "2+", "4−"],
     why: { "1−": tr("Zwei H⁺ gehen weg – also zwei negative Ladungen.", "Two H⁺ leave – so two negative charges."), "2+": tr("Der Rest wird negativ, nicht positiv.", "The anion becomes negative, not positive."), "4−": tr("Die 4 gehört zu den O-Atomen.", "The 4 belongs to the O atoms.") },
     ok: tr("H₂SO₄ → 2 H⁺ + SO₄²⁻ (Sulfat).", "H₂SO₄ → 2 H⁺ + SO₄²⁻ (sulfate)."),
     lines: [tr("H₂SO₄ gibt 2 H⁺ ab.", "H₂SO₄ gives off 2 H⁺."), tr("Je H⁺ bleibt eine negative Ladung → SO₄: {?}", "One negative charge stays per H⁺ → SO₄: {?}")],
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Welche Ionen entstehen aus **HNO₃** in Wasser?", "Your turn: which ions form from **HNO₃** in water?"), answer: "H⁺ + NO₃⁻", options: ["H⁺ + NO₃⁻", "H⁻ + NO₃⁺", "H₂ + NO₃", tr("HNO₃ bleibt ganz", "HNO₃ stays whole")],
+    ask: tr("Jetzt du: Welche Ionen entstehen aus **HNO₃** in Wasser?", "Your turn: which ions form from **HNO₃** in water?"), answer: "H⁺ + NO₃⁻", options: [tr("HNO₃ bleibt ganz", "HNO₃ stays whole"), "H₂ + NO₃", "H⁺ + NO₃⁻", "H⁻ + NO₃⁺"],
     lines: [tr("HNO₃ → H⁺ + NO₃⁻ (ein H, eine negative Ladung).", "HNO₃ → H⁺ + NO₃⁻ (one H, one negative charge).")],
     why: { "H⁻ + NO₃⁺": tr("Die Säure gibt ein **positives** H⁺ ab – der Rest wird negativ.", "The acid gives off a **positive** H⁺ – the anion becomes negative."), "H₂ + NO₃": tr("Es entstehen Ionen, kein Gas.", "Ions form, not a gas."), [tr("HNO₃ bleibt ganz", "HNO₃ stays whole")]: tr("In Wasser gibt die Säure ihr H⁺ ab.", "In water the acid gives off its H⁺.") },
     ok: tr("Genau: H⁺ + NO₃⁻.", "Exactly: H⁺ + NO₃⁻."),
@@ -69,7 +69,7 @@ const US: GuideStep[] = [
     mode: "faded",
     say: tr("Säurereste **ohne** Sauerstoff enden auf **-id**, **mit** Sauerstoff meist auf **-at**.", "Acid anions **without** oxygen end in **-ide**, **with** oxygen mostly in **-ate**."),
     ask: tr("Ergänze: Wie heißt **Cl⁻**?", "Complete: what is **Cl⁻** called?"), answer: tr("Chlorid", "chloride"),
-    options: [tr("Chlorid", "chloride"), tr("Chlorat", "chlorate"), tr("Chlor", "chlorine")],
+    options: [tr("Chlor", "chlorine"), tr("Chlorat", "chlorate"), tr("Chlorid", "chloride")],
     why: { [tr("Chlorat", "chlorate")]: tr("-at nur mit Sauerstoff. Cl⁻ hat keinen.", "-ate only with oxygen. Cl⁻ has none."), [tr("Chlor", "chlorine")]: tr("Chlor ist das Element Cl₂. Das Ion heißt anders.", "Chlorine is the element Cl₂. The ion has a different name.") },
     ok: tr("Cl⁻ = Chlorid (ohne O → -id).", "Cl⁻ = chloride (no O → -ide)."),
     lines: [tr("Cl⁻: kein Sauerstoff → Endung -id.", "Cl⁻: no oxygen → ending -ide."), tr("Name: {?}", "Name: {?}")],
@@ -77,7 +77,7 @@ const US: GuideStep[] = [
   {
     mode: "free",
     say: tr("Weitere Namen: NO₃⁻ **Nitrat**, SO₄²⁻ **Sulfat**, SO₃²⁻ **Sulfit**, CO₃²⁻ **Carbonat**, PO₄³⁻ **Phosphat**, CH₃COO⁻ **Acetat**.", "Names of acid anions: Cl⁻ **chloride**, NO₃⁻ **nitrate**, SO₄²⁻ **sulfate**, SO₃²⁻ **sulfite**, CO₃²⁻ **carbonate**, PO₄³⁻ **phosphate**, CH₃COO⁻ **acetate**."),
-    ask: tr("Wie heißt der Säurerest von **H₃PO₄**, wenn alle 3 H⁺ abgegeben sind?", "What is the acid anion of **H₃PO₄** called when all 3 H⁺ have been given off?"), answer: tr("Phosphat", "phosphate"), options: [tr("Phosphat", "phosphate"), tr("Phosphid", "phosphide"), tr("Phosphit", "phosphite"), tr("Sulfat", "sulfate")],
+    ask: tr("Wie heißt der Säurerest von **H₃PO₄**, wenn alle 3 H⁺ abgegeben sind?", "What is the acid anion of **H₃PO₄** called when all 3 H⁺ have been given off?"), answer: tr("Phosphat", "phosphate"), options: [tr("Phosphid", "phosphide"), tr("Phosphit", "phosphite"), tr("Phosphat", "phosphate"), tr("Sulfat", "sulfate")],
     why: { [tr("Phosphid", "phosphide")]: tr("-id hat nur ein einzelnes P³⁻ ohne Sauerstoff.", "-ide is only a single P³⁻ without oxygen."), [tr("Phosphit", "phosphite")]: tr("PO₄ heißt Phosphat.", "PO₄ is called phosphate."), [tr("Sulfat", "sulfate")]: tr("Sulfat ist SO₄ (Schwefel).", "Sulfate is SO₄ (sulfur).") },
     ok: tr("PO₄³⁻ = Phosphat.", "PO₄³⁻ = phosphate."),
     lines: [tr("PO₄³⁻ mit Sauerstoff → Phosphat.", "PO₄³⁻ with oxygen → phosphate.")],
@@ -94,7 +94,7 @@ const US: GuideStep[] = [
   {
     mode: "faded",
     say: tr("**Laugen** enthalten **Hydroxid-Ionen OH⁻**.", "**Alkalis** contain **hydroxide ions OH⁻**."),
-    ask: tr("Ergänze: Aus welchen Ionen besteht **Ca(OH)₂**?", "Complete: which ions make up **Ca(OH)₂**?"), answer: "Ca²⁺ + 2 OH⁻", options: ["Ca²⁺ + 2 OH⁻", "Ca⁺ + OH⁻", "Ca²⁺ + O²⁻ + H₂", tr("CaO + H₂O", "CaO + H₂O")],
+    ask: tr("Ergänze: Aus welchen Ionen besteht **Ca(OH)₂**?", "Complete: which ions make up **Ca(OH)₂**?"), answer: "Ca²⁺ + 2 OH⁻", options: ["Ca⁺ + OH⁻", "Ca²⁺ + 2 OH⁻", tr("CaO + H₂O", "CaO + H₂O"), "Ca²⁺ + O²⁻ + H₂"],
     why: { "Ca⁺ + OH⁻": tr("Calcium bildet Ca²⁺ – dazu passen zwei OH⁻.", "Calcium forms Ca²⁺ – two OH⁻ go with it."), "Ca²⁺ + O²⁻ + H₂": tr("OH⁻ bleibt als Hydroxid-Ion zusammen.", "OH⁻ stays together as a hydroxide ion."), [tr("CaO + H₂O", "CaO + H₂O")]: tr("Gefragt sind die Ionen.", "The question asks for the ions.") },
     ok: tr("Ca(OH)₂ → Ca²⁺ + 2 OH⁻.", "Ca(OH)₂ → Ca²⁺ + 2 OH⁻."),
     lines: [tr("Ca²⁺ hat Ladung 2+.", "Ca²⁺ has charge 2+."), tr("Neutral mit zwei OH⁻ → {?}", "Neutral with two OH⁻ → {?}")],
@@ -123,7 +123,7 @@ const US: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welches Salz entsteht aus **2 NaOH + H₂SO₄**?", "Complete: which salt forms from **2 NaOH + H₂SO₄**?"), answer: "Na₂SO₄", options: ["Na₂SO₄", "NaSO₄", "Na(SO₄)₂", "NaH₂SO₄"],
+    ask: tr("Ergänze: Welches Salz entsteht aus **2 NaOH + H₂SO₄**?", "Complete: which salt forms from **2 NaOH + H₂SO₄**?"), answer: "Na₂SO₄", options: ["NaSO₄", "Na(SO₄)₂", "NaH₂SO₄", "Na₂SO₄"],
     visual: c => <Wall c={c} base="naoh" acid="h2so4" nB={2} nA={1} />,
     why: { "NaSO₄": tr("SO₄²⁻ braucht zwei Na⁺.", "SO₄²⁻ needs two Na⁺."), "Na(SO₄)₂": tr("Na⁺ ist nur 1+ – es braucht mehr Na, nicht mehr SO₄.", "Na⁺ is only 1+ – it needs more Na, not more SO₄."), "NaH₂SO₄": tr("Beide H⁺ wurden zu Wasser.", "Both H⁺ have become water.") },
     labels: [{"at": ".nt-cat", "text": tr("Metall-Ion", "Metal ion"), "point": "left", "side": "left"}, {"at": ".nt-an", "text": tr("Säurerest", "Acid anion"), "point": "left", "side": "left"}],
@@ -132,7 +132,7 @@ const US: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Wie heißt **Na₂SO₄**?", "What is **Na₂SO₄** called?"), answer: tr("Natriumsulfat", "Sodium sulfate"), options: [tr("Natriumsulfat", "Sodium sulfate"), tr("Natriumsulfit", "Sodium sulfite"), tr("Natriumsulfid", "Sodium sulfide"), tr("Natriumschwefelsäure", "Sodium sulfuric acid")],
+    ask: tr("Wie heißt **Na₂SO₄**?", "What is **Na₂SO₄** called?"), answer: tr("Natriumsulfat", "Sodium sulfate"), options: [tr("Natriumsulfit", "Sodium sulfite"), tr("Natriumsulfat", "Sodium sulfate"), tr("Natriumschwefelsäure", "Sodium sulfuric acid"), tr("Natriumsulfid", "Sodium sulfide")],
     why: { [tr("Natriumsulfit", "Sodium sulfite")]: tr("Sulfit ist SO₃.", "Sulfite is SO₃."), [tr("Natriumsulfid", "Sodium sulfide")]: tr("Sulfid ist S²⁻ ohne Sauerstoff.", "Sulfide is S²⁻ without oxygen."), [tr("Natriumschwefelsäure", "Sodium sulfuric acid")]: tr("Im Salz steht der Säurerest: Sulfat.", "The salt contains the acid anion: sulfate.") },
     ok: tr("Natronlauge + Schwefelsäure → Natriumsulfat + Wasser.", "Sodium hydroxide solution + sulfuric acid → sodium sulfate + water."),
     lines: [tr("Natrium + Sulfat → Natriumsulfat.", "Sodium + sulfate → sodium sulfate.")],
@@ -143,7 +143,7 @@ const US: GuideStep[] = [
   {
     mode: "free",
     ask: tr("Welche Gleichung ist richtig ausgeglichen?", "Which equation is correctly balanced?"), answer: "2 NaOH + H₂SO₄ → Na₂SO₄ + 2 H₂O",
-    options: ["2 NaOH + H₂SO₄ → Na₂SO₄ + 2 H₂O", "NaOH + H₂SO₄ → NaSO₄ + H₂O", "2 NaOH + H₂SO₄ → Na₂SO₄ + H₂O", "NaOH + H₂SO₄ → Na₂SO₄ + 2 H₂O"],
+    options: ["NaOH + H₂SO₄ → NaSO₄ + H₂O", "NaOH + H₂SO₄ → Na₂SO₄ + 2 H₂O", "2 NaOH + H₂SO₄ → Na₂SO₄ + H₂O", "2 NaOH + H₂SO₄ → Na₂SO₄ + 2 H₂O"],
     why: {
       "NaOH + H₂SO₄ → NaSO₄ + H₂O": tr("NaSO₄ gibt es nicht – SO₄²⁻ braucht zwei Na⁺.", "NaSO₄ does not exist – SO₄²⁻ needs two Na⁺."),
       "2 NaOH + H₂SO₄ → Na₂SO₄ + H₂O": tr("2 OH⁻ und 2 H⁺ ergeben 2 H₂O.", "2 OH⁻ and 2 H⁺ make 2 H₂O."),
@@ -165,7 +165,7 @@ const OS: GuideStep[] = [
   {
     mode: "faded",
     say: tr("Mehrprotonige Säuren geben H⁺ **schrittweise** ab: H₃PO₄ → H₂PO₄⁻ → HPO₄²⁻ → PO₄³⁻.", "Polyprotic acids give off H⁺ **step by step**: H₃PO₄ → H₂PO₄⁻ → HPO₄²⁻ → PO₄³⁻."),
-    ask: tr("Ergänze: Welche Ladung hat der Rest, wenn H₃PO₄ **2 H⁺** abgibt?", "Complete: what is the charge of the anion when H₃PO₄ gives off **2 H⁺**?"), answer: "2−", options: ["2−", "1−", "3−"],
+    ask: tr("Ergänze: Welche Ladung hat der Rest, wenn H₃PO₄ **2 H⁺** abgibt?", "Complete: what is the charge of the anion when H₃PO₄ gives off **2 H⁺**?"), answer: "2−", options: ["1−", "2−", "3−"],
     why: { "1−": tr("Zwei H⁺ weg – zwei negative Ladungen.", "Two H⁺ gone – two negative charges."), "3−": tr("3− erst, wenn alle drei H⁺ abgegeben sind.", "3− only when all three H⁺ have been given off.") },
     ok: tr("Je abgegebenem H⁺ eine negative Ladung: **HPO₄²⁻**.", "One negative charge per H⁺ given off: **HPO₄²⁻**."),
     lines: [tr("H₃PO₄ gibt 2 H⁺ ab → HPO₄.", "H₃PO₄ gives off 2 H⁺ → HPO₄."), tr("Ladung: {?}", "Charge: {?}")],
@@ -189,7 +189,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie heißt der Rest, wenn **H₂CO₃** nur **1 H⁺** abgibt?", "Complete: what is the anion called when **H₂CO₃** gives off only **1 H⁺**?"), answer: tr("Hydrogencarbonat", "hydrogen carbonate"), options: [tr("Hydrogencarbonat", "hydrogen carbonate"), tr("Carbonat", "carbonate"), tr("Dihydrogencarbonat", "dihydrogen carbonate")],
+    ask: tr("Ergänze: Wie heißt der Rest, wenn **H₂CO₃** nur **1 H⁺** abgibt?", "Complete: what is the anion called when **H₂CO₃** gives off only **1 H⁺**?"), answer: tr("Hydrogencarbonat", "hydrogen carbonate"), options: [tr("Carbonat", "carbonate"), tr("Dihydrogencarbonat", "dihydrogen carbonate"), tr("Hydrogencarbonat", "hydrogen carbonate")],
     why: { [tr("Carbonat", "carbonate")]: tr("Carbonat (CO₃²⁻) erst nach 2 H⁺.", "Carbonate (CO₃²⁻) only after 2 H⁺."), [tr("Dihydrogencarbonat", "dihydrogen carbonate")]: tr("Ein H ist schon weg – es bleibt eines.", "One H has already gone – one remains.") },
     ok: tr("HCO₃⁻ = Hydrogencarbonat.", "HCO₃⁻ = hydrogen carbonate."),
     lines: [tr("H₂CO₃ gibt 1 H⁺ ab → HCO₃⁻.", "H₂CO₃ gives off 1 H⁺ → HCO₃⁻."), tr("Noch ein H im Rest → {?}", "One H still in the anion → {?}")],
@@ -224,14 +224,14 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welches Salz entsteht aus **KOH** und **H₂SO₄**?", "Complete: which salt forms from **KOH** and **H₂SO₄**?"), answer: "K₂SO₄", options: ["K₂SO₄", "KHSO₄", "KSO₄", "K(SO₄)₂"],
+    ask: tr("Ergänze: Welches Salz entsteht aus **KOH** und **H₂SO₄**?", "Complete: which salt forms from **KOH** and **H₂SO₄**?"), answer: "K₂SO₄", options: ["KSO₄", "K₂SO₄", "KHSO₄", "K(SO₄)₂"],
     why: { "KHSO₄": tr("KHSO₄ entsteht, wenn nur 1 H⁺ abgegeben wird.", "KHSO₄ forms when only 1 H⁺ is given off."), "KSO₄": tr("SO₄²⁻ braucht zwei K⁺.", "SO₄²⁻ needs two K⁺."), "K(SO₄)₂": tr("K⁺ ist 1+ – es braucht mehr K, nicht mehr SO₄.", "K⁺ is 1+ – it needs more K, not more SO₄.") },
     ok: tr("Kaliumsulfat **K₂SO₄**.", "Potassium sulfate **K₂SO₄**."),
     lines: [tr("2 K⁺ und 1 SO₄²⁻ (alle H⁺ abgegeben).", "2 K⁺ and 1 SO₄²⁻ (all H⁺ given off)."), tr("Salz: {?}", "Salt: {?}")],
   },
   {
     mode: "free",
-    ask: tr("Welches Salz entsteht aus **NaOH + H₃PO₄**, wenn nur **1 H⁺** abgegeben wird?", "Which salt forms from **NaOH + H₃PO₄** when only **1 H⁺** is given off?"), answer: "NaH₂PO₄", options: ["NaH₂PO₄", "Na₂HPO₄", "Na₃PO₄", "NaPO₄"],
+    ask: tr("Welches Salz entsteht aus **NaOH + H₃PO₄**, wenn nur **1 H⁺** abgegeben wird?", "Which salt forms from **NaOH + H₃PO₄** when only **1 H⁺** is given off?"), answer: "NaH₂PO₄", options: ["Na₃PO₄", "Na₂HPO₄", "NaH₂PO₄", "NaPO₄"],
     visual: c => <Wall c={c} base="naoh" acid="h3po4" step={1} nB={1} nA={1} />,
     why: { "Na₂HPO₄": tr("Das wäre nach 2 H⁺ (HPO₄²⁻).", "That would be after 2 H⁺ (HPO₄²⁻)."), "Na₃PO₄": tr("Das wäre nach allen 3 H⁺.", "That would be after all 3 H⁺."), "NaPO₄": tr("PO₄³⁻ bräuchte drei Na⁺.", "PO₄³⁻ would need three Na⁺.") },
     ok: tr("Natriumdihydrogenphosphat **NaH₂PO₄**.", "Sodium dihydrogen phosphate **NaH₂PO₄**."),
@@ -239,7 +239,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Wie heißt **Ca(HCO₃)₂**?", "What is **Ca(HCO₃)₂** called?"), answer: tr("Calciumhydrogencarbonat", "Calcium hydrogen carbonate"), options: [tr("Calciumhydrogencarbonat", "Calcium hydrogen carbonate"), tr("Calciumcarbonat", "Calcium carbonate"), tr("Calciumdihydrogencarbonat", "Calcium dihydrogen carbonate")],
+    ask: tr("Wie heißt **Ca(HCO₃)₂**?", "What is **Ca(HCO₃)₂** called?"), answer: tr("Calciumhydrogencarbonat", "Calcium hydrogen carbonate"), options: [tr("Calciumcarbonat", "Calcium carbonate"), tr("Calciumhydrogencarbonat", "Calcium hydrogen carbonate"), tr("Calciumdihydrogencarbonat", "Calcium dihydrogen carbonate")],
     visual: c => <Wall c={c} base="caoh2" acid="h2co3" step={1} nB={1} nA={2} />,
     why: { [tr("Calciumcarbonat", "Calcium carbonate")]: tr("Im Rest steckt noch ein H: HCO₃⁻.", "The anion still contains one H: HCO₃⁻."), [tr("Calciumdihydrogencarbonat", "Calcium dihydrogen carbonate")]: tr("HCO₃⁻ hat nur 1 H.", "HCO₃⁻ has only 1 H.") },
     labels: [{"at": ".nt-an", "text": tr("Säurerest mit H", "Acid anion with H"), "point": "left", "side": "left"}],
@@ -248,7 +248,7 @@ const OS: GuideStep[] = [
   {
     mode: "free",
     ask: tr("Welche Gleichung ist richtig ausgeglichen?", "Which equation is correctly balanced?"), answer: "3 Ba(OH)₂ + 2 H₃PO₄ → Ba₃(PO₄)₂ + 6 H₂O",
-    options: ["3 Ba(OH)₂ + 2 H₃PO₄ → Ba₃(PO₄)₂ + 6 H₂O", "Ba(OH)₂ + H₃PO₄ → BaPO₄ + H₂O", "3 Ba(OH)₂ + 2 H₃PO₄ → Ba₃(PO₄)₂ + 3 H₂O", "2 Ba(OH)₂ + 3 H₃PO₄ → Ba₂(PO₄)₃ + 6 H₂O"],
+    options: ["Ba(OH)₂ + H₃PO₄ → BaPO₄ + H₂O", "3 Ba(OH)₂ + 2 H₃PO₄ → Ba₃(PO₄)₂ + 3 H₂O", "2 Ba(OH)₂ + 3 H₃PO₄ → Ba₂(PO₄)₃ + 6 H₂O", "3 Ba(OH)₂ + 2 H₃PO₄ → Ba₃(PO₄)₂ + 6 H₂O"],
     why: {
       "Ba(OH)₂ + H₃PO₄ → BaPO₄ + H₂O": tr("Ba²⁺ und PO₄³⁻ gleichen sich so nicht aus.", "Ba²⁺ and PO₄³⁻ do not balance like this."),
       "3 Ba(OH)₂ + 2 H₃PO₄ → Ba₃(PO₄)₂ + 3 H₂O": tr("6 OH⁻ und 6 H⁺ ergeben 6 H₂O.", "6 OH⁻ and 6 H⁺ make 6 H₂O."),
