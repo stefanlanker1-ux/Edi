@@ -76,7 +76,8 @@ export function QuizView() {
         : t.mixPic ? <div className={`q-gm q-sep${t.type === "trennReihe" ? " q-reihe" : ""}`}><MixPic k={t.mixPic} label={MIX_LABEL()} /></div>
         : t.pic ? <div className="q-gm"><PicBeaker p={t.pic} /></div> : null)}
       renderOption={(t, o) => {
-        if (t.pics?.[o]) return <span className="gm-pic"><PicBeaker p={t.pics[o]} /><span className="sr-only">{describe(t.pics[o])}</span></span>;
+        // höchstens drei Bilder (Nach dem Mischen): untereinander und größer – Gitterbilder sind breit und flach
+        if (t.pics?.[o]) return <span className={`gm-pic${Object.keys(t.pics).length <= 3 ? " few" : ""}`}><PicBeaker p={t.pics[o]} /><span className="sr-only">{describe(t.pics[o])}</span></span>;
         const m = t.methods ? methodOf(o) : undefined;
         if (m) return <span className="gm-pic gm-method"><SepScene m={m} t={.55} label={o} /><span>{o}</span></span>;
         // reiner Text: McAnswer misst daran, ob ein Wort in seine Spalte passt (sonst einspaltig statt „Gasgemisc|h“)

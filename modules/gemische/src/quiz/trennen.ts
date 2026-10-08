@@ -13,7 +13,7 @@ interface Case { mix: () => string; goal?: () => string; pic: MixKind; m: Method
 
 const CASES: Case[] = [
   { mix: () => tr("Eisenpulver und Schwefelpulver", "iron powder and sulfur powder"), pic: "eisen", m: "magnet",
-    tip: () => tr("Beide Pulver sind gleich fein. Welche Eigenschaft hat nur das Eisen?", "Both powders are equally fine. Which property does only the iron have?"),
+    tip: () => tr("Welche Eigenschaft hat nur das Eisen?", "Which property does only the iron have?"),
     wrong: [["sieben", () => tr("Beide Pulver sind gleich fein. Sie fallen zusammen durchs Sieb.", "Both powders are equally fine. They fall through the sieve together.")],
       ["filtrieren", () => tr("Ein Filter hält beide Feststoffe zurück.", "A filter holds back both solids.")],
       ["auslesen", () => tr("Die Körnchen sind viel zu fein, um sie einzeln herauszunehmen.", "The grains are far too fine to pick out one by one.")]] },
@@ -28,12 +28,12 @@ const CASES: Case[] = [
       ["magnet", () => tr("Bohnen sind nicht magnetisch.", "Beans are not magnetic.")],
       ["filtrieren", () => tr("Filtrieren trennt Feststoff von Flüssigkeit. Hier ist keine Flüssigkeit.", "Filtering separates a solid from a liquid. There is no liquid here.")]] },
   { mix: () => tr("Wasser, in dem sich Sand abgesetzt hat", "water in which sand has settled"), goal: () => tr("klares Wasser gewinnen", "get clear water"), pic: "absetzen", m: "dekantieren",
-    tip: () => tr("Der Sand liegt schon unten. Wie bekommst du das Wasser darüber weg?", "The sand is already at the bottom. How do you get the water above it off?"),
+    tip: () => tr("Wie bekommst du das Wasser über dem Sand weg?", "How do you get the water above the sand off?"),
     wrong: [["sieben", () => tr("Das Wasser liefe mit dem feinen Sand durchs Sieb.", "The water would run through the sieve with the fine sand.")],
       ["magnet", () => tr("Sand ist nicht magnetisch.", "Sand is not magnetic.")],
       ["auslesen", () => tr("Die feinen Sandkörner kann man nicht einzeln herausnehmen.", "You cannot pick out the fine grains of sand one by one.")]] },
   { mix: () => tr("trübes Wasser mit feinem Sand", "cloudy water with fine sand"), goal: () => tr("klares Wasser gewinnen", "get clear water"), pic: "trueb", m: "filtrieren",
-    tip: () => tr("Die Sandkörner sind fest. Was hält feste Körner zurück und lässt Wasser durch?", "The sand grains are solid. What holds back solid grains and lets water through?"),
+    tip: () => tr("Was hält feste Körner zurück, lässt aber Wasser durch?", "What holds back solid grains but lets water through?"),
     wrong: [["dekantieren", () => tr("Feiner Sand schwebt noch im Wasser. Er fließt beim Abgießen mit.", "Fine sand is still floating in the water. It flows out when pouring.")],
       ["magnet", () => tr("Sand ist nicht magnetisch.", "Sand is not magnetic.")],
       ["sieben", () => tr("Die feinen Körner gehen mit dem Wasser durch die Maschen.", "The fine grains pass through the mesh with the water.")]] },
@@ -48,7 +48,7 @@ const CASES: Case[] = [
       ["filtrieren", () => tr("Gelöstes Salz geht mit dem Wasser durch den Filter.", "Dissolved salt passes through the filter with the water."), "filter-geloest"],
       ["dekantieren", () => tr("Gelöstes Salz setzt sich nicht ab.", "Dissolved salt does not settle.")]] },
   { mix: () => tr("Alkohol und Wasser", "alcohol and water"), pic: "alkohol", m: "destillieren",
-    tip: () => tr("Wird beim Erhitzen beides gleichzeitig zu Dampf?", "Do both turn into vapour at the same time when heated?"),
+    tip: () => tr("Was verdampft beim Erhitzen leichter – Alkohol oder Wasser?", "Which evaporates more easily when heated – alcohol or water?"),
     wrong: [["filtrieren", () => tr("Beide sind Flüssigkeiten. Beide laufen durch den Filter.", "Both are liquids. Both run through the filter.")],
       ["dekantieren", () => tr("Alkohol und Wasser sind gemischt. Nichts setzt sich ab.", "Alcohol and water are mixed. Nothing settles.")],
       ["magnet", () => tr("Alkohol und Wasser sind nicht magnetisch.", "Alcohol and water are not magnetic.")]] },
@@ -99,7 +99,7 @@ const PROP_WHY: Record<Method, () => string> = {
   dekantieren: () => tr("Sand hat eine größere Dichte als Wasser und sinkt ab. Das Wasser darüber gießt man vorsichtig ab.", "Sand has a greater density than water and sinks. You carefully pour off the water above it."),
   filtrieren: () => tr("Feste Körner bleiben im Filter hängen, die Flüssigkeit läuft durch.", "Solid grains get stuck in the filter, the liquid runs through."),
   eindampfen: () => tr("Wasser verdampft, das gelöste Salz bleibt zurück.", "Water evaporates, the dissolved salt stays behind."),
-  destillieren: () => tr("Was zuerst siedet, verdampft und wird im Kühler wieder flüssig.", "What boils first evaporates and turns liquid again in the condenser."),
+  destillieren: () => tr("Was leichter verdampft, sammelt sich im Dampf und wird im Kühler wieder flüssig.", "What evaporates more easily collects in the vapour and turns liquid again in the condenser."),
   chromatografie: () => tr("Die Farbstoffe lösen sich verschieden gut im Laufmittel und haften verschieden stark – sie wandern verschieden weit.", "The dyes dissolve differently well in the solvent and stick differently strongly – they move different distances."),
 };
 
@@ -192,7 +192,7 @@ export function trennTipp(methods: Method[] = K5_METHODS): Task {
 export function trennReihe(): Task {
   const iron = Math.random() < .4;
   const S = (...m: string[]) => m.join(" → ");
-  const L = () => tr("Lösen", "Dissolving"), F = () => METHOD_TEXT("filtrieren"), E = () => METHOD_TEXT("eindampfen"), M = () => METHOD_TEXT("magnet"), Si = () => METHOD_TEXT("sieben");
+  const L = () => tr("Lösen", "Dissolving"), F = () => METHOD_TEXT("filtrieren"), E = () => METHOD_TEXT("eindampfen"), M = () => METHOD_TEXT("magnet").replace(/\u00ad/g, ""), Si = () => METHOD_TEXT("sieben");
   const right = iron ? S(M(), L(), F(), E()) : S(L(), F(), E());
   return {
     ...mc(right, [
@@ -203,7 +203,7 @@ export function trennReihe(): Task {
     mixPic: iron ? "eisensalzsand" : "salzsand",
     prompt: iron ? tr("**Eisen, Sand und Salz** trennen: In welcher Reihenfolge?", "Separate **iron, sand and salt**: in which order?") : tr("**Salz und Sand** trennen: In welcher Reihenfolge?", "Separate **salt and sand**: in which order?"),
     hint: tr("Salz löst sich in Wasser, Sand nicht. Was hält der Filter zurück?", "Salt dissolves in water, sand does not. What does the filter hold back?"),
-    tip: tr("Salz und Sand sind beide Körner. Was macht nur einer der beiden in Wasser?", "Salt and sand are both grains. What does only one of them do in water?"),
+    tip: tr("Was macht nur das Salz in Wasser?", "What does only the salt do in water?"),
     explain: iron ? tr("Der Magnet holt das Eisen. Lösen, filtrieren: Sand bleibt im Filter. Eindampfen: Salz bleibt.", "The magnet takes the iron. Dissolve, filter: sand stays in the filter. Evaporate: salt stays.")
       : tr("Lösen, filtrieren: Sand bleibt im Filter. Eindampfen: Salz bleibt zurück.", "Dissolve, filter: sand stays in the filter. Evaporate: salt stays behind."),
   };

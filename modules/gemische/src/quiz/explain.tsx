@@ -17,7 +17,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
   ] },
   k2: { ex: "schutzgas", arr: ["nachher"], points: [
     "**Element:** nur **eine** Atomsorte – als einzelne Atome (He), als Moleküle (O₂) oder im Gitter (Cu).",
-    "**Verbindung:** **mehrere** Atomsorten, fest miteinander verbunden – in Molekülen (H₂O, CO₂) oder in einem Gitter (Kochsalz NaCl).",
+    "**Verbindung:** **mehrere** Atomsorten, fest verbunden und immer im gleichen **Zahlenverhältnis** – in Molekülen (Wasser H₂O, 2 : 1) oder in einem Gitter (Kochsalz NaCl, 1 : 1).",
     "Zähle **Stoffe**, nicht Teilchen: gleiche Teilchen sind ein Stoff.",
   ] },
   k3: { ex: "zucker", arr: ["vorher", "nachher"], points: [
@@ -26,7 +26,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Beim **Lösen** lagern sich Wasserteilchen an und lösen die Teilchen heraus; sie verteilen sich. Nichts verschwindet, die **Masse bleibt gleich**.",
   ] },
   k4: { ex: "messing", arr: ["nachher"], points: [
-    "Homogen: **Lösung** (Flüssigkeit mit gelöstem Stoff), **Legierung** (Metall + andere Elemente, geschmolzen), **Gasgemisch** (Gase).",
+    "Homogen: **Lösung** (Flüssigkeit mit gelöstem Stoff), **Gasgemisch** (Gase). **Legierung**: Metall mit anderen Elementen zusammen geschmolzen, Anteile frei wählbar – oft homogen (Messing).",
     "Heterogen: **Emulsion** (Tröpfchen in Flüssigkeit), **Suspension** (Körner in Flüssigkeit), **Gemenge** (feste Stücke), **Rauch** (fest in Gas), **Nebel** (Tröpfchen in Gas), **Schaum** (Gas in Flüssigkeit).",
     "„Rein“ auf einer Packung heißt: nichts dazugegeben. Ein **Reinstoff** ist nur **ein** Stoff.",
   ] },
@@ -37,7 +37,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
   ] },
   k6: { ex: "", arr: [], sep: "destillieren", points: [
     "Gelöstes trennt man über die **Siedetemperatur**: **Eindampfen** (das Salz bleibt) oder **Destillieren** (auch das Wasser wird aufgefangen).",
-    "Destillieren: Dampf wird im **Kühler** flüssig und tropft als **Destillat** in die **Vorlage**. Alkohol (78 °C) verdampft vor Wasser (100 °C).",
+    "Destillieren: Dampf wird im **Kühler** flüssig und tropft als **Destillat** in die **Vorlage**. Alkohol (78 °C) verdampft leichter als Wasser (100 °C) – im Dampf ist mehr Alkohol.",
     "**Chromatografie** trennt Farbstoffe. Manche Gemische brauchen **mehrere Schritte**: lösen, filtrieren, eindampfen.",
   ] },
 }, {
@@ -48,7 +48,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
   ] },
   k2: { ex: "schutzgas", arr: ["nachher"], points: [
     "**Element:** only **one** kind of atom – as single atoms (He), as molecules (O₂) or in a lattice (Cu).",
-    "**Compound:** **several** kinds of atoms, firmly bonded together – in molecules (H₂O, CO₂) or in a lattice (table salt NaCl).",
+    "**Compound:** **several** kinds of atoms, firmly bonded and always in the same **number ratio** – in molecules (water H₂O, 2 : 1) or in a lattice (table salt NaCl, 1 : 1).",
     "Count **substances**, not particles: identical particles are one substance.",
   ] },
   k3: { ex: "zucker", arr: ["vorher", "nachher"], points: [
@@ -57,7 +57,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "When **dissolving**, water particles attach themselves and pull the particles out; they spread out. Nothing disappears, the **mass stays the same**.",
   ] },
   k4: { ex: "messing", arr: ["nachher"], points: [
-    "Homogeneous: **solution** (liquid with a dissolved substance), **alloy** (metal + other elements, melted), **gas mixture** (gases).",
+    "Homogeneous: **solution** (liquid with a dissolved substance), **gas mixture** (gases). **Alloy**: a metal melted together with other elements, proportions freely chosen – often homogeneous (brass).",
     "Heterogeneous: **emulsion** (droplets in a liquid), **suspension** (grains in a liquid), **coarse mixture** (solid pieces), **smoke** (solid in gas), **fog** (droplets in gas), **foam** (gas in a liquid).",
     "“Pure” on a package means: nothing added. A **pure substance** is only **one** substance.",
   ] },
@@ -68,7 +68,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
   ] },
   k6: { ex: "", arr: [], sep: "destillieren", points: [
     "Dissolved substances are separated by their **boiling point**: **evaporation** (the salt stays) or **distillation** (the water is collected too).",
-    "Distillation: vapour turns liquid in the **condenser** and drips into the **receiver** as the **distillate**. Alcohol (78 °C) evaporates before water (100 °C).",
+    "Distillation: vapour turns liquid in the **condenser** and drips into the **receiver** as the **distillate**. Alcohol (78 °C) evaporates more easily than water (100 °C) – the vapour contains more alcohol.",
     "**Chromatography** separates dyes. Some mixtures need **several steps**: dissolve, filter, evaporate.",
   ] },
 });

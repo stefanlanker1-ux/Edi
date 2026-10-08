@@ -180,7 +180,7 @@ const K1: GuideStep[] = [
 const K2: GuideStep[] = [
   {
     mode: "worked",
-    say: tr("**Element**: nur **eine** Atomsorte – als einzelne Atome (Helium He), als Moleküle (Sauerstoff O₂) oder im **Gitter** (Kupfer Cu). **Verbindung**: **mehrere** Atomsorten, fest miteinander verbunden – in Molekülen (Wasser H₂O) oder in einem Gitter (Kochsalz NaCl).", "**Element**: only **one** kind of atom – as single atoms (helium He), as molecules (oxygen O₂) or in a **lattice** (copper Cu). **Compound**: **several** kinds of atoms, firmly bonded together – in molecules (water H₂O) or in a lattice (table salt NaCl)."),
+    say: tr("**Element**: nur **eine** Atomsorte – als einzelne Atome (Helium He), als Moleküle (Sauerstoff O₂) oder im **Gitter** (Kupfer Cu). **Verbindung**: **mehrere** Atomsorten, fest verbunden und immer im gleichen **Zahlenverhältnis** – in Molekülen (Wasser H₂O, 2 : 1) oder im Gitter (Kochsalz NaCl, 1 : 1).", "**Element**: only **one** kind of atom – as single atoms (helium He), as molecules (oxygen O₂) or in a **lattice** (copper Cu). **Compound**: **several** kinds of atoms, firmly bonded, always in the same **number ratio** – as molecules (water H₂O, 2 : 1) or a lattice (salt NaCl, 1 : 1)."),
     ask: tr("Element oder Verbindung?", "Element or compound?"),
     visual: () => <Picture p={{ mix: [["CO2", 3], ["Ne", 4]], state: "modell" }} />,
     labels: [{ at: "[data-f=\"Ne\"]", text: tr("Element", "Element"), side: "right" }, { at: "[data-f=\"CO2\"]", text: tr("Verbindung", "Compound"), side: "left" }],
@@ -324,8 +324,17 @@ const K4: GuideStep[] = [
     mode: "worked",
     say: tr("Viele Gemische haben eigene Namen. Man fragt: **was** ist verteilt, und **worin**?", "Many mixtures have their own names. Ask: **what** is spread out, and **in what**?"),
     ask: tr("Welche Arten von Gemischen gibt es?", "What types of mixtures are there?"),
-    lines: [tr("Feste Körner in Flüssigkeit → **Suspension** (Sand in Wasser).", "Solid grains in a liquid → **suspension** (sand in water)."), tr("Tröpfchen in Flüssigkeit → **Emulsion** (Milch).", "Droplets in a liquid → **emulsion** (milk)."), tr("Gasblasen in Flüssigkeit → **Schaum** (Schlagsahne).", "Gas bubbles in a liquid → **foam** (whipped cream)."), tr("Nur feste Stücke nebeneinander → **Gemenge** (Müsli).", "Only solid pieces side by side → **coarse mixture** (muesli)."), tr("Homogen: ein Metall mit anderen Elementen zusammen geschmolzen → **Legierung** (Messing: Kupfer und Zink).", "Homogeneous: a metal melted together with other elements → **alloy** (brass: copper and zinc).")],
+    lines: [tr("Feste Körner in Flüssigkeit → **Suspension** (Sand in Wasser).", "Solid grains in a liquid → **suspension** (sand in water)."), tr("Tröpfchen in Flüssigkeit → **Emulsion** (Milch).", "Droplets in a liquid → **emulsion** (milk)."), tr("Gasblasen in Flüssigkeit → **Schaum** (Eischnee).", "Gas bubbles in a liquid → **foam** (whisked egg white)."), tr("Nur feste Stücke nebeneinander → **Gemenge** (Müsli).", "Only solid pieces side by side → **coarse mixture** (muesli)."), tr("Metall mit anderen Elementen geschmolzen, Anteile frei wählbar → **Legierung**, oft homogen (Messing).", "Metal melted with other elements, proportions freely chosen → **alloy**, often homogeneous (brass).")],
     ok: tr("Zwei Fragen genügen: Was ist verteilt? Worin?", "Two questions are enough: what is spread out? In what?"),
+  },
+  {
+    mode: "worked",
+    say: tr("Auch in einem Gas kann etwas verteilt sein.", "Something can also be spread out in a gas."),
+    ask: tr("Was kann in Luft verteilt sein?", "What can be spread out in air?"),
+    lines: [tr("Andere Gase → **Gasgemisch** (Luft: Stickstoff, Sauerstoff, Argon).", "Other gases → **gas mixture** (air: nitrogen, oxygen, argon)."),
+      tr("Flüssige Tröpfchen → **Nebel** (Dunst über dem Teich).", "Liquid droplets → **fog** (mist over a pond)."),
+      tr("Feste Teilchen → **Rauch** (Ruß in der Luft).", "Solid particles → **smoke** (soot in the air).")],
+    ok: tr("Im Gas: Gasgemisch, Nebel oder Rauch – je nachdem, was verteilt ist.", "In a gas: gas mixture, fog or smoke – depending on what is spread out."),
   },
   {
     mode: "faded",
@@ -497,18 +506,18 @@ const K6: GuideStep[] = [
     say: tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C.", "Alcohol boils at 78 °C, water at 100 °C."),
     ask: tr("Alkohol und Wasser destillieren: Schalte den Brenner an.", "Distil alcohol and water: switch the burner on."),
     visual: () => <Device m="destillieren" alk start={BRENNER()} />,
-    lines: [tr("Beim Erhitzen verdampft zuerst vor allem Alkohol.", "When heated, mostly alcohol evaporates first."),
+    lines: [tr("Beim Erhitzen verdampft beides – Alkohol aber leichter: Im Dampf ist mehr Alkohol.", "When heated, both evaporate – but alcohol more easily: the vapour contains more alcohol."),
       tr("Das Gemisch siedet nicht bei einer festen Temperatur – sie steigt langsam von etwa 80 °C an.", "The mixture does not boil at one fixed temperature – it rises slowly from about 80 °C."),
       tr("Das Destillat enthält viel mehr Alkohol als vorher – rein ist es nicht.", "The distillate contains much more alcohol than before – it is not pure.")],
     ok: tr("Verschiedene Siedetemperaturen trennen zwei Flüssigkeiten.", "Different boiling points separate two liquids."),
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Was verdampft beim Erhitzen zuerst vor allem?", "Complete: what mostly evaporates first when heated?"), answer: tr("Alkohol", "Alcohol"), options: [tr("Wasser", "Water"), tr("beide gleich", "both the same"), tr("Alkohol", "Alcohol")],
+    ask: tr("Ergänze: Was verdampft beim Erhitzen leichter?", "Complete: what evaporates more easily when heated?"), answer: tr("Alkohol", "Alcohol"), options: [tr("Wasser", "Water"), tr("beide gleich", "both the same"), tr("Alkohol", "Alcohol")],
     visual: () => <div className="gm-g"><Fit className="gm-g-pic" min={0.3}><SepScene m="destillieren" alk t={1} /></Fit></div>,
-    lines: [tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C.", "Alcohol boils at 78 °C, water at 100 °C."), tr("Zuerst verdampft vor allem: {?}", "Mostly evaporates first: {?}")],
+    lines: [tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C.", "Alcohol boils at 78 °C, water at 100 °C."), tr("Leichter verdampft: {?}", "Evaporates more easily: {?}")],
     why: { [tr("Wasser", "Water")]: tr("Wasser siedet erst bei 100 °C, Alkohol schon bei 78 °C.", "Water only boils at 100 °C, alcohol already at 78 °C."), [tr("beide gleich", "both the same")]: tr("Die Siedetemperaturen sind verschieden: 78 °C und 100 °C.", "The boiling points are different: 78 °C and 100 °C.") },
-    ok: tr("Der Stoff mit der niedrigeren Siedetemperatur verdampft zuerst.", "The substance with the lower boiling point evaporates first."),
+    ok: tr("Der Stoff mit der niedrigeren Siedetemperatur verdampft leichter – im Dampf ist mehr davon.", "The substance with the lower boiling point evaporates more easily – the vapour contains more of it."),
   },
   {
     mode: "worked",
@@ -558,9 +567,9 @@ const T = (de: string, en: string) => tr(de, en);
 /** Lektionen der sechs Kapitel (Index = Level) */
 export const LESSONS: GuideDef[] = [
   { title: T("Teilchen und Atomsorten", "Particles and kinds of atoms"), steps: K1, outro: [T("Molekül und einzelnes Atom = ein Teilchen.", "Molecule and single atom = one particle."), T("Farben zeigen Atomsorten, gleiche Teilchen = ein Stoff.", "Colours show kinds of atoms, identical particles = one substance.")] },
-  { title: T("Elemente und Verbindungen", "Elements and compounds"), steps: K2, known: [T("Teilchen", "particle"), T("Stoff", "substance"), T("Atomsorte", "kind of atom")], outro: [T("Element: eine Atomsorte. Verbindung: mehrere Atomsorten fest verbunden.", "Element: one kind of atom. Compound: several kinds of atoms firmly bonded.")] },
+  { title: T("Elemente und Verbindungen", "Elements and compounds"), steps: K2, known: [T("Teilchen", "particle"), T("Stoff", "substance"), T("Atomsorte", "kind of atom")], outro: [T("Element: eine Atomsorte. Verbindung: mehrere Atomsorten fest verbunden, immer im gleichen Zahlenverhältnis.", "Element: one kind of atom. Compound: several kinds of atoms firmly bonded, always in the same number ratio.")] },
   { title: T("Reinstoffe und Gemische", "Pure substances and mixtures"), steps: K3, known: [T("Element", "element"), T("Verbindung", "compound")], outro: [T("Reinstoff oder Gemisch, homogen oder heterogen.", "Pure substance or mixture, homogeneous or heterogeneous."), T("Beim Lösen bleiben Teilchen und Masse erhalten.", "When dissolving, particles and mass are conserved.")] },
-  { title: T("Gemische im Alltag", "Mixtures in everyday life"), steps: K4, known: [T("Reinstoff", "pure substance"), T("Gemisch", "mixture"), T("Lösung", "solution"), T("homogen", "homogeneous"), T("heterogen", "heterogeneous")], outro: [T("Suspension, Emulsion, Schaum, Gemenge, Legierung.", "Suspension, emulsion, foam, coarse mixture, alloy."), T("„Rein“ auf der Packung ist kein Reinstoff.", "“Pure” on the package is not a pure substance.")] },
+  { title: T("Gemische im Alltag", "Mixtures in everyday life"), steps: K4, known: [T("Reinstoff", "pure substance"), T("Gemisch", "mixture"), T("Lösung", "solution"), T("homogen", "homogeneous"), T("heterogen", "heterogeneous")], outro: [T("Suspension, Emulsion, Schaum, Gemenge, Legierung, Gasgemisch, Nebel, Rauch.", "Suspension, emulsion, foam, coarse mixture, alloy, gas mixture, fog, smoke."), T("„Rein“ auf der Packung ist kein Reinstoff.", "“Pure” on the package is not a pure substance.")] },
   { title: T("Trennen nach Größe, Magnet, Dichte", "Separating by size, magnet, density"), steps: K5, known: [T("Eigenschaft", "property")], outro: [T("Sieben und Auslesen, Magnettrennung, Dekantieren (Dichte), Filtrieren.", "Sieving and hand-picking, magnetic separation, decanting (density), filtration."), T("Bodensatz, Rückstand und Filtrat erkennen.", "Recognising sediment, residue and filtrate.")] },
-  { title: T("Lösungen trennen", "Separating solutions"), steps: K6, known: [T("Salz", "salt"), T("Wasser", "water"), T("Alkohol", "alcohol"), T("Gelb", "Yellow"), T("Blau", "Blue"), T("Rot", "Red"), T("Rückstand", "residue"), T("Filtrat", "filtrate"), T("Filtrieren", "filtration"), T("Magnettrennung", "magnetic separation"), T("Sieben", "sieving")], outro: [T("Eindampfen und Destillieren nutzen die Siedetemperatur.", "Evaporating and distilling use the boiling point."), T("Chromatografie trennt Farbstoffe; manche Gemische brauchen mehrere Schritte.", "Chromatography separates dyes; some mixtures need several steps.")] },
+  { title: T("Lösungen trennen", "Separating solutions"), steps: K6, known: [T("Salz", "salt"), T("Wasser", "water"), T("Alkohol", "alcohol"), T("Gelb", "Yellow"), T("Blau", "Blue"), T("Rot", "Red"), T("Rückstand", "residue"), T("Filtrat", "filtrate"), T("Filtrieren", "filtration"), T("Magnettrennung", "magnetic separation"), T("Sieben", "sieving")], outro: [T("Eindampfen und Destillieren nutzen die Siedetemperatur.", "Evaporation and distillation use the boiling point."), T("Chromatografie trennt Farbstoffe; manche Gemische brauchen mehrere Schritte.", "Chromatography separates dyes; some mixtures need several steps.")] },
 ];

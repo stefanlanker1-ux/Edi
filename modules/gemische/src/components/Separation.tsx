@@ -514,5 +514,7 @@ export function MixPic({ k, label }: { k: "eisen" | "kies" | "bohnen" | "absetze
       {Array.from({ length: 18 }, (_, i) => <rect key={i} className="sp-salt" x={64 + rnd(i + 90) * 110} y={96 + rnd(i + 120) * 24} width={3.4} height={3.4} />)}
       {Array.from({ length: 14 }, (_, i) => { const x = 66 + rnd(i + 7) * 108, y = 98 + rnd(i + 17) * 22; return <line key={`e${i}`} className="sp-iron" x1={x - 3} y1={y} x2={x + 3} y2={y} transform={`rotate(${rnd(i + 27) * 180} ${x} ${y})`} />; })}</>,
   }[k];
-  return <svg className="sp sp-mix" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>{body}</svg>;
+  // Ausschnitt um das Gemisch (Schale, Glas, Papierstreifen) – die Stoffe füllen das Bild, Eisenspäne und Körner sind gut zu sehen
+  const view = ["absetzen", "trueb", "salz", "alkohol"].includes(k) ? "64 32 112 124" : k === "tinte" ? "84 14 72 152" : "36 82 168 56";
+  return <svg className="sp sp-mix" viewBox={view} role="img" aria-label={label}>{body}</svg>;
 }

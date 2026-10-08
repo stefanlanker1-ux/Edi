@@ -318,10 +318,14 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Zählen (`analyse`): Teilchen (Moleküle bzw. einzelne Atome), Stoffe, davon Verbindungen (mehrere Atomsorten) und Elemente (eine Atomsorte), Atomsorten.
   Die Erklärkarte nennt trotzdem alle Arten von Elementen (einzelne Atome, Metallgitter, Moleküle wie O₂), nur die Bilder zeigen keine Element-Moleküle.
   Teilchenbilder in fünf Arten (`pictureKind`): Element, Verbindung, Gemisch aus Elementen / aus Verbindungen / aus Element und Verbindung.
-  Gemisch aus Elementen als Metallgitter (Legierung, `alloy`) nur Kupfer mit höchstens einem Drittel Zink, zufällig verteilt (Messing, einphasig – andere Metallpaare
-  in beliebigem Verhältnis gibt es so nicht, Fe–Al, Fe–Zn, Cu–Al bilden intermetallische Phasen). Rückmeldungen zu Legierungsbildern: die Atome sind im Gitter verbunden,
-  aber zufällig verteilt, ohne festes Verhältnis – zwei Elemente, gemischt, keine Verbindung (nie „nicht verbunden“ oder „einzelne Atome“; Ablenker passen zum Bild:
-  „Reinstoff – alles ein Gitter“, „lauter Moleküle“ nur bei reinen Molekülbildern; Test).
+  Gemisch aus Elementen als Metallgitter (Legierung, `alloy`): 12 Atome (4 × 3), Kupfer mit 3–4 Zink, zufällig verteilt (Messing, einphasig; mit wenigen Atomen sähe
+  es nach festem Verhältnis aus) – die übrigen Paare aus Cu, Zn, Fe, Al gibt es nicht in beliebigem Verhältnis (Fe–Al, Fe–Zn, Cu–Al bilden intermetallische Phasen).
+  Test: jede mögliche Anordnung sichtbar zufällig (keine Zink-Reihe oder -Spalte, nicht spiegel- oder drehgleich, kein Muster, kein zusammenhängender Zinkblock).
+  Rückmeldungen zu Legierungsbildern: die Atome sind im Gitter verbunden, aber zufällig verteilt, ohne festes Zahlenverhältnis – zwei Elemente, gemischt, keine Verbindung
+  (nie „nicht verbunden“ oder „einzeln“; Ablenker passen zum Bild: „Reinstoff – alles ein Gitter“, „lauter Moleküle“ nur bei reinen Molekülbildern; Test).
+  **Definitionen** (Lektion 2, Erklärkarte k2, Lektion 4, k4; Test `definitions.test.ts`): Verbindung = mehrere Atomsorten, fest verbunden und immer im gleichen
+  **Zahlenverhältnis** (H₂O 2 : 1, NaCl 1 : 1); Legierung = Metall mit anderen Elementen zusammen geschmolzen, Anteile frei wählbar, oft homogen (Messing) – nie
+  pauschal unter „homogen“. Kapitel 1 zeigt keine Metallgitter (Zählbilder `someMix` nur im Zustand `modell`, Test), „Gitter“ erst in Kapitel 2.
 - Experimentieren (`views/MixView.tsx`, `components/FlowView.tsx`, Canvas): Gefäß mit allen Teilchen (klein) und **verschiebbarer Lupe**
   (anfassen und ziehen – Abstand zum Finger bleibt; daneben tippen – Lupe gleitet hin; Pfeiltasten), daneben bzw. darüber die Vergrößerung mit etwa 20 Teilchen
   als schattiertes Kalottenmodell (`lensRadius`). Die Lupe springt nie: sie gleitet, und das Bild ordnet sich nicht neu an (Statuszeile immer einzeilig,
@@ -365,7 +369,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Gase mischen sich nur ohne Trennwand, Messing wieder im Gitter (beim Erstarren Plätze nach kürzesten Wegen verteilt, Gleiten höchstens ¼ Radius je Schritt – kein Sprung; Wärmebewegung der Schmelze klingt in der letzten Sekunde aus, gleich nach dem Erstarren 1 s sanfter gebremst, `frozeAt`). Ohne Bewegung (reduzierte Bewegung): Knopf zeigt gleich das Ergebnis.
   Werkzeuge: Stoffe (Reinstoffe: Verbindungen | Elemente; beim Sprudel zusätzlich „entsteht in kleiner Menge“: Kohlensäure, `forms`) | Zählen | Farben („nur im Modell“) |
   Einteilung (Stoffe → Reinstoffe/Gemische mit allen Beispielen; niedrige Handys ohne Wurzel) | Arten (verteilter Stoff in Hauptstoff: Gemenge, Legierung, Suspension,
-  Lösung, Rauch, Emulsion, Nebel, Schaum, Gasgemisch mit Alltagsbeispiel; aktuelles Beispiel markiert) | Beispiele. Gespeichert (`gemische-v1`): Beispiel.
+  Lösung, Rauch, Emulsion, Nebel (Dunst über dem Teich), Schaum (Eischnee), Gasgemisch mit Alltagsbeispiel; aktuelles Beispiel markiert) | Beispiele.
+  Gespeichert (`gemische-v1`): Beispiel. Keine mehrdeutigen Beispiele im ganzen Modul (Schlagsahne enthält eine Emulsion, Wolken können Eis enthalten; Test).
 - **Lernen** (`src/quiz/tasks.ts`, Lektionen `src/lessons.tsx`, Katalog `misconceptions.ts`): sechs Kapitel (`gm-k1` … `gm-k6`) mit je einer Lektion und zehn Aufgaben
   in fester Reihenfolge, plus „Alles gemischt“, „Heute fällig“, „Schwächen üben“:
   1 **Teilchen und Atomsorten** (teilchen ×2, tippAtome ×2, atomsorten ×2, stoffe ×2, zwischen, farbe) ·
@@ -375,7 +380,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   5 **Trennen nach Größe, Magnet, Dichte** (trennWahl ×4, trennEigenschaft ×3, trennTipp ×3 – nur Auslesen, Sieben, Magnettrennung, Dekantieren, Filtrieren) ·
   6 **Lösungen trennen** (loesWahl ×3, loesEigenschaft ×2, loesTipp ×3, trennReihe ×2 – Eindampfen, Destillieren, Chromatografie, mehrere Schritte; `src/quiz/trennen.ts`,
   `K5_METHODS`/`K6_METHODS`; falsche Verfahren und Eigenschaften in Kapitel 5 nur aus Kapitel 5, „Siedetemperatur“ erst in Kapitel 6, Test).
-  **Keine Zahleneingabe**: Zählaufgaben werden zur Auswahl (`asChoice`: Fallen → diagnostische Distraktoren, Zahlen aufsteigend); Antippen im Teilchenbild
+  **Keine Zahleneingabe**: Zählaufgaben werden zur Auswahl (`asChoice`: Fallen → diagnostische Distraktoren, Zahlen aufsteigend; Nachbarzahlen mit dem Denkschritt
+  `recount`, z. B. „Verzählt? Zähle jede Teilchensorte einzeln …“). **Jede falsche Antwort hat eine eigene Rückmeldung** (Test): Art des Gemischs – was die gewählte Art
+  heißt und wie es hier ist („Rauch heißt: feste Teilchen in einem Gas – hier ist der Hauptstoff flüssig.“, `ART_INFO`), homogen/heterogen und Alltag – was die Wahl
+  hieße („Ein Reinstoff ist nur ein Stoff – hier sind es mehrere.“). Fallen mit Stolperstein stehen immer zur Wahl (`keyedFirst`: `mc` mischt sonst alle Ablenker
+  mit Rückmeldung gleich). Antippen im Teilchenbild
   (`tippAtome`: Teilchen aus n Atomen, `tippElement`/`tippVerbindung`). Stofftrennung: `trennWahl` (Bild des Gemischs ohne Geräte `MixPic`, Antworten als
   Bildkarten der Verfahren; 9 Fälle: Eisen/Schwefel → Magnet, Sand/Kies → Sieben, rote/weiße Bohnen (gleich groß, nur anders gefärbt) → Auslesen, abgesetzter Sand (Ziel: klares Wasser gewinnen) → Dekantieren, trübes Wasser →
   Filtrieren, Salzwasser → Eindampfen (Salz) bzw. Destillieren (Wasser), Alkohol/Wasser → Destillieren, Filzstift → Chromatografie; jede falsche Wahl mit
@@ -390,21 +399,28 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Merksätze nur in den Kapiteln, nicht in „Alles gemischt“, „Heute fällig“, „Schwächen üben“. Jede Aufgabe hat einen
   **zugeschnittenen Tipp** (`tip` → `hint`, `hintCue`) als **Denkschritt** („Was konnte nicht durch das Papier?“), nie als Lösungssatz (Tipps zu „Nach dem Mischen“
   sind Fragen, Test); Reinstoffe bei „homogen oder heterogen“ mit eigenem Tipp. Formeln: „Jede Atomsorte beginnt mit einem Großbuchstaben“, gleiche zählen einmal
-  (nie „jeder Großbuchstabe ist eine Atomsorte“ – C₂H₅OH, Test).
+  (nie „jeder Großbuchstabe ist eine Atomsorte“ – C₂H₅OH, Test). Tipps im Kapitel höchstens 85 Zeichen (passen ins Tippfeld; Test).
   Tests: kein Inhaltswort (≥ 4 Buchstaben, ohne Stoppwörter) der richtigen Antwort in Merksatz, `hint` oder `tip` – über alle Generatoren und Kapitel. Rückmeldungen begründen mit dem Bild. Sprudel nicht im Lernen (dort reagiert ein Teil zu Kohlensäure; Test).
   **Begriffe erst ab dem Kapitel, das sie einführt** (Test über alle Texte der Runden: Element, Verbindung, Gitter ab Kapitel 2; Reinstoff, homogen, Lösung ab 3;
   Legierung, Gemenge, Suspension, Emulsion, Schaum, Rauch, Nebel ab 4; Verfahren aus Kapitel 5 bzw. 6 erst dort). „Gemisch“ (Name des Moduls) steht schon in
-  Kapitel 2 zur Wahl. Nur fachlich eindeutige Beispiele: Art des Gemischs ohne Milch, Sahne oder Kakao, wenn „Emulsion“ falsch ist (Schaum: Eischnee, Suspension:
-  Mehl in kaltem Wasser; Test), Füllertinte (Lösung), Sprühstoß aus einer Blumenspritze (Nebel); „Rein“ im Alltag: Reinstoff nur destilliertes Wasser (Test: keine
-  Begründung mit „fast“). Satzanfänge in Frage und Lösungsweg groß (`cap` in beiden Sprachen, Test); Zahlen-Auswahl aufsteigend, auch mit Einheit (Masse, Test).
+  Kapitel 2 zur Wahl. Jeder abgefragte Begriff steht in einer **Lektion** bis zu diesem Kapitel fett (die Erklärkarte erscheint in Kapiteln mit Lektion nicht von
+  selbst; Test über alle Texte der Runden). Nur fachlich eindeutige Beispiele: Art des Gemischs ohne Milch, Sahne oder Kakao, wenn „Emulsion“ falsch ist (Schaum:
+  Eischnee, Suspension: Mehl in kaltem Wasser; Test), Füllertinte (Lösung), ein Sprühstoß aus einer Blumenspritze (Nebel); „Rein“ im Alltag: Reinstoff nur destilliertes
+  Wasser (Test: keine Begründung mit „fast“), Packungsaufschriften wie gedruckt („Reines Mineralwasser“). Satzanfänge in Frage und Lösungsweg groß (`cap` in beiden
+  Sprachen, auch nach Anführungszeichen; Test); Zahlen-Auswahl aufsteigend, auch mit Einheit (Masse, Test). Die Generatoren `homogen` (alle Alltagsbeispiele, auch
+  Edelstahl, Granit, Sand in Wasser) und `erhalten` stehen in keinem Kapitel – sie bleiben nur für ältere Einträge unter „Heute fällig“.
   Englisch: Artikel vor buchstabierten Formeln („an H₂O particle“), Elementnamen mitten im Satz klein (`english-grammar.test.ts`).
-  Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (zwei Spalten, Höhe begrenzt), Verfahren `sep` (t = −1 Animation, sonst Standbild), Gemisch `mixPic`,
+  „Nach dem Mischen“ bei Messing: 12 Atome (8 Cu : 4 Zn); „abwechselnd“ als festes Muster (Zink auf einem regelmäßigen Untergitter, `mixing.ts`), „getrennt“ als zwei
+  Blöcke (passt der Stoff nicht in ganze Spalten: Spalte für Spalte gefüllt), das richtige Bild sichtbar zufällig (Test). Jedes Antwortbild hat eine Beschreibung mit
+  Anordnung („gleichmäßig verteilt“, „C₁₂H₂₆ oben“, „zufällig verteilt“ …) – auch das richtige, sonst verriete das Vorlesen die Lösung (Test).
+  Bild der Aufgabe `pic`, Teilchenbilder als Antworten `pics` (zwei Spalten, Höhe begrenzt; höchstens drei Bilder untereinander und größer, Klasse `few`),
+  Verfahren `sep` (t = −1 Animation, sonst Standbild), Gemisch `mixPic` (Ausschnitt um Schale, Glas bzw. Papierstreifen – Eisenspäne, Sand und Salz gut zu sehen),
   Verfahren als Bildkarten `methods`; Text-Antworten gibt `renderOption` als reinen Text zurück (kein eigenes `span` – sonst misst `McAnswer` nicht, ob ein Wort in seine
   Spalte passt, und „Gasgemisch“ bräche zweispaltig mitten im Wort um). Stolpersteine u. a.: Verbindung für Gemisch gehalten, Gemisch aus Elementen für Verbindung, gelöster Stoff
-  verschwindet, gelöster Stoff bleibt als Kristall, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen, Teilchen haben die Farbe des Stoffs, „rein“ im Alltag,
+  verschwindet, gelöster Stoff bleibt als Kristall, Masse ändert sich, Luft zwischen den Teilchen, Teilchen ruhen (auch in der Schmelze), Teilchen haben die Farbe des Stoffs, „rein“ im Alltag,
   Legierung und Gemenge verwechselt, gemischte Metalle für Verbindung gehalten (Name ohne „Legierung“, kommt schon in Kapitel 3 vor), Gelöstes filtrierbar,
   Teile nach dem Trennen verwechselt, Reihenfolge vertauscht. Der Schlüssel passt zur gewählten Antwort (z. B. „fein verteilt für homogen gehalten“ nur bei
-  einer homogenen Antwort, „Gemisch aus Elementen für Reinstoff“ bei Messing und Edelstahl statt „klar“; Test).
+  einer homogenen Antwort, „Gemisch aus Elementen für Reinstoff“ bei Messing statt „klar“; Kakao mit Bodensatz „entmischt“; Test).
   Hilfsmittel „Farben“: alle Atomfarben (verrät nicht, welche vorkommen). Nie zwei Atomsorten mit ähnlicher Farbe (He/Ne, Cu/Fe, Zn/Al) in einer Aufgabe
   (`distinctColors`, Test); Argon violett. Artikel und Einzahl/Mehrzahl in erzeugten Sätzen beachten. Erklärkarte je Kapitel (`quiz/explain.tsx`, Kapitel 5 mit
   dem Bild des Filtrierens, Kapitel 6 mit **Vorlage**; „In diesem Kapitel hilft der Tipp …“).
@@ -434,10 +450,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   an wechselnden Plätzen, Zahlen aufsteigend – Test: höchstens 40 % an Platz 1): 1 Teilchen zählen,
   Teilchen aus 5 Atomen antippen, Atomsorten an den Farben, Stoffe, leerer Raum · 2 Element/Verbindung, Element antippen, Verbindungen zählen, Kupfer ·
   3 Reinstoff/Gemisch, homogen/heterogen (Zuckerwasser = Lösung, Milch, Gasgemisch), Lösen (Animation), Masse, Tinte · 4 Arten von Gemischen (Suspension,
-  Emulsion, Schaum, Gemenge, Legierung fett eingeführt), Öl in Wasser, Müsli, „rein“ · 5 Sieben, Magnettrennung, Auslesen (rote/weiße Bohnen), Dichte/Bodensatz/Dekantieren,
+  Emulsion, Schaum (Eischnee), Gemenge, Legierung – Anteile frei wählbar, oft homogen – fett eingeführt), in Gas (Gasgemisch, Nebel, Rauch fett eingeführt, eigener
+  vorgemachter Schritt), Öl in Wasser, Müsli, „rein“ · 5 Sieben, Magnettrennung, Auslesen (rote/weiße Bohnen), Dichte/Bodensatz/Dekantieren,
   Bodensatz antippen, Filtrieren (Rückstand, Filtrat), Rückstand antippen · 6 **Gerät selbst bedienen** (`SepDevice`: Bild bei t = 0, Brenner aus, Knopf „Brenner an“ bzw.
-  „Start“ spielt den Ablauf): Eindampfen, Destillieren von Salzwasser (Thermometer 100 °C), Destillieren von Alkohol und Wasser (`alk`: Temperatur steigt langsam von
-  etwa 80 °C an, kein fester Wert; Destillat nie „rein“), Chromatografie (Satz: weit = gut löslich im Laufmittel und schwach haftend), weitesten Farbstoff antippen,
+  „Start“ spielt den Ablauf): Eindampfen, Destillieren von Salzwasser (Thermometer 100 °C), Destillieren von Alkohol und Wasser (`alk`: beides verdampft, Alkohol
+  leichter – im Dampf ist mehr Alkohol; Temperatur steigt langsam von etwa 80 °C an, kein fester Wert; Destillat nie „rein“; auch Erklärkarte k6 und Tipp, Test), Chromatografie (Satz: weit = gut löslich im Laufmittel und schwach haftend), weitesten Farbstoff antippen,
   mehrere Schritte Salz + Sand (vorgemacht) und Eisen + Sand + Salz (Platz ① ergänzen: Magnettrennung; Schritt „Lösen“ wie in der Aufgabe). **Vorlage** fett eingeführt;
   der Rückstand beim Destillieren ist das salzige Wasser im Kolben (nie bis zur Trockne). Kapitel 4 beginnt mit „Viele Gemische haben eigene Namen“ (die Liste enthält
   auch die homogene Legierung). Englisch: Verfahren beim Einführen mit demselben Namen wie in den Aufgaben (filtration, evaporation, distillation, dissolving).
@@ -903,6 +920,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Gemische: Nachprüfung Runde 2** – Verbindung mit festem Zahlenverhältnis (H₂O 2 : 1, NaCl 1 : 1), Legierung mit frei wählbaren Anteilen und „oft homogen“ in Lektionen und
+  Erklärkarten (vorher passte die gelehrte Definition von „Verbindung“ auch auf Messing; Test); Messing nach dem Erstarren und Legierungsbilder mit 12 Atomen, „abwechselnd“ als
+  regelmäßiges Muster, „getrennt“ als zwei Blöcke, richtiges Bild sichtbar zufällig (Test), höchstens drei Bildantworten untereinander und größer; Kapitel 1 ohne Metallgitter (Gitter
+  erst in Kapitel 2); Gasgemisch, Nebel und Rauch in Lektion 4 eingeführt (Test: jeder abgefragte Begriff fett in einer Lektion bis zu diesem Kapitel); Eischnee und Dunst statt
+  Schlagsahne und Wolke; Alkohol „verdampft leichter – im Dampf ist mehr Alkohol“ statt „zuerst“; eigene Rückmeldung zu jeder falschen Antwort (Nachbarzahlen, Art des Gemischs,
+  homogen/Alltag), Fallen mit Stolperstein bleiben zur Wahl (`keyedFirst`); Tipps höchstens 85 Zeichen; Vorlesen der Bildantworten neutral; Gemischbild mit eigenem Ausschnitt
+  (Eisen sichtbar); Packungsaufschriften wie gedruckt; Stolperstein „Teilchen ruhen“.
 - **Nomenklatur: Nachprüfung Runde 2** – Lösungsweg „Nummerieren“ nennt die entscheidende Regel mit beiden Nummern (was von beiden Seiten gleich ist zuerst, dann Ast, Alphabet
   oder Z – vorher immer das erste vorhandene Kriterium, im Widerspruch zur Quiz-Rückmeldung), beim Heterocyclus zuerst „Heteroatom = 1“, bei Namen ohne Nummer den Grund, am
   Benzolring den eingeführten Namen (Benzenol → Phenol). Tipps als Denkschritte statt Zuordnung Gruppe → Endung oder Rangfolge (verrieten, was das Hilfsmittel bewusst verbirgt);

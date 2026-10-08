@@ -192,6 +192,11 @@ export function initial(spec: Spec, seed = 1, arrange: Arrange = "nachher"): Sim
       });
       return done(ps, before ? bs.slice(1).map(([a]) => a) : []);
     }
+    if (state === "fest") {
+      // passen die Stoffe nicht in ganze Spalten (8 Cu : 4 Zn in 4 × 3): Spalte für Spalte von links füllen – zwei Blöcke nebeneinander
+      const byCol = cells(grid).slice().sort((x, y) => (x % grid.cols) - (y % grid.cols) || rowOf(grid, y) - rowOf(grid, x));
+      return done(list.map((f, i) => mk(f, byCol[i], { bound: true })));
+    }
   }
   const bond = state === "fest" ? { bound: true } : {};
   if (arrange === "unten" && spec.solute) {
@@ -202,12 +207,18 @@ export function initial(spec: Spec, seed = 1, arrange: Arrange = "nachher"): Sim
     return done([...mine.map((f, i) => mk(f, low[i], bond)), ...rest.map((f, i) => mk(f, high[i], bond))]);
   }
   if (arrange === "abwechselnd" && state === "fest") {
-    // regelmäßig geordnet: bei gleich vielen Atomen wie ein Schachbrett, sonst die selteneren Atome in gleichen Abständen (festes Muster)
+    // regelmäßig geordnet (festes Muster): bei gleich vielen Atomen wie ein Schachbrett, sonst die selteneren Atome auf einem
+    // regelmäßigen Untergitter (jede 2. Spalte in jeder 2. Reihe …); nur wenn keines passt, in gleichen Abständen
     const [[a, na], [b, nb]] = items[0][1] >= items[1][1] ? [items[0], items[1]] : [items[1], items[0]];
-    if (na === nb) return done(cells(grid).slice(0, n).map(c => mk((Math.floor(c / grid.cols) + c % grid.cols) % 2 ? b : a, c, bond)));
+    const filled = cells(grid).slice(0, n);
+    if (na === nb) return done(filled.map(c => mk((Math.floor(c / grid.cols) + c % grid.cols) % 2 ? b : a, c, bond)));
+    for (const [sx, sy] of [[2, 2], [2, 1], [1, 2], [3, 1], [1, 3], [3, 3], [2, 3], [3, 2]]) {
+      const on = (c: number) => (c % grid.cols) % sx === 0 && (grid.rows - 1 - rowOf(grid, c)) % sy === 0;
+      if (filled.filter(on).length === nb) return done(filled.map(c => mk(on(c) ? b : a, c, bond)));
+    }
     const step = n / nb;
     const rare = new Set(Array.from({ length: nb }, (_, i) => Math.floor(i * step)));
-    return done(cells(grid).slice(0, n).map((c, i) => mk(rare.has(i) ? b : a, c, bond)));
+    return done(filled.map((c, i) => mk(rare.has(i) ? b : a, c, bond)));
   }
   // fest: Gitter von unten gefüllt; Gas und Modell: zufällig verteilt
   const where = state === "fest" ? cells(grid).slice(0, n) : shuffle(cells(grid), r).slice(0, n);

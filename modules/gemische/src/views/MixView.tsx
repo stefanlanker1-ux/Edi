@@ -162,8 +162,8 @@ const ARTEN: Partial<Record<`${Z}|${Z}`, [string, string, boolean][]>> = {
   "fest|flüssig": [["Suspension", tr("Sand in Wasser", "sand in water"), false], [tr("Lösung", "Solution"), tr("Zuckerwasser", "sugar water"), true]],
   "fest|Gas": [[tr("Rauch", "Smoke"), tr("Ruß in Luft", "soot in air"), false]],
   "flüssig|flüssig": [["Emulsion", tr("Milch", "milk"), false], [tr("Lösung", "Solution"), tr("Alkohol in Wasser", "alcohol in water"), true]],
-  "flüssig|Gas": [[tr("Nebel", "Fog"), tr("Wolke", "cloud"), false]],
-  "Gas|flüssig": [[tr("Schaum", "Foam"), tr("Schlagsahne", "whipped cream"), false], [tr("Lösung", "Solution"), tr("Sprudelwasser", "sparkling water"), true]],
+  "flüssig|Gas": [[tr("Nebel", "Fog"), tr("Dunst über dem Teich", "mist over a pond"), false]],
+  "Gas|flüssig": [[tr("Schaum", "Foam"), tr("Eischnee", "whisked egg white"), false], [tr("Lösung", "Solution"), tr("Sprudelwasser", "sparkling water"), true]],
   "Gas|Gas": [[tr("Gasgemisch", "Gas mixture"), tr("Luft", "air"), true]],
 };
 /** Zelle des Beispiels in der Tabelle: [verteilter Stoff, Hauptstoff] */

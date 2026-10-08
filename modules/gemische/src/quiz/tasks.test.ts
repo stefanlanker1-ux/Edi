@@ -4,7 +4,8 @@ import { K5_METHODS, PART_NAME } from "./trennen.ts";
 import { METHODS, METHOD_NAME } from "../components/Separation.tsx";
 import { MISS } from "./misconceptions.ts";
 import { analyse, isElement, pictureKind, PICTURE_LABEL } from "../mixtures.ts";
-import { initial } from "../mixing.ts";
+import { initial, seedOf } from "../mixing.ts";
+import { LESSONS } from "../lessons.tsx";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
 const picsOf = (t: Task): Pic[] => [...(t.pic ? [t.pic] : []), ...Object.values(t.pics ?? {})];
@@ -248,7 +249,7 @@ test("Rückmeldungen passen zum Bild: Metallatome im Gitter sind verbunden, einz
       if (!p) continue;
       const lattice = p.state === "fest" && p.mix.length > 1;
       if (lattice) alloys++;
-      if (lattice && /nicht (miteinander )?verbunden|einzelne Atome/.test(w)) bad.add(`${t.type}: ${w}`);
+      if (lattice && /nicht (miteinander )?verbunden|einzeln/.test(w)) bad.add(`${t.type}: ${w}`);
     }
     if (t.pic && t.pic.state !== "fest" && t.pic.mix.some(([f]) => isElement(f))) {
       for (const o of t.options) if (/Moleküle/.test(o)) bad.add(`${t.type}: Antwort „${o}“ bei einzelnen Atomen`);
@@ -390,7 +391,7 @@ test("Homogen oder heterogen: Tipp bei Reinstoffen ohne „im Glas vorstellen“
 });
 
 test("Reihenfolge der Trennschritte: Schritte heißen wie die Verfahren (Magnettrennung, nicht „Magnet“)", () => {
-  const names = new Set([...METHODS.map(METHOD_NAME), "Lösen"]);
+  const names = new Set([...METHODS.map(m => METHOD_NAME(m).replace(/\u00ad/g, "")), "Lösen"]);
   for (let k = 0; k < 200; k++) {
     const t = GENS.trennReihe();
     if (t.kind === "mc") for (const o of t.options) for (const s of o.split(" → ")) assert.ok(names.has(s), `${s} in ${o}`);
@@ -399,7 +400,7 @@ test("Reihenfolge der Trennschritte: Schritte heißen wie die Verfahren (Magnett
 
 test("Frage und Lösungsweg beginnen groß", () => {
   for (const t of [...all("mix", 200), ...chapters(20).flat()]) {
-    for (const x of [t.prompt, t.explain]) assert.ok(!/^[a-zäöüß]/.test(x.replace(/^\*+/, "")), x);
+    for (const x of [t.prompt, t.explain]) assert.ok(!/^[a-zäöüß]/.test(x.replace(/^[*„“"”]+/, "")), x);
   }
 });
 
@@ -409,5 +410,123 @@ test("Masse beim Lösen: Auswahl aufsteigend", () => {
     if (t.kind !== "mc") continue;
     const ns = t.options.map(o => parseFloat(o));
     assert.deepEqual(ns, [...ns].sort((a, b) => a - b), t.options.join(", "));
+  }
+});
+
+// ── Runde 2: Gitterbilder, Rückmeldung zu jeder falschen Antwort, Begriffe aus den Lektionen, kurze Tipps ──
+
+/** Zink im Gitterbild, so gezeichnet wie im Quiz (gleicher Startwert wie PicBeaker) */
+function zincOf(p: Pic) {
+  const s = initial({ items: p.mix, state: p.state, floats: p.floats, before: p.before, solute: p.solute }, seedOf(JSON.stringify(p)), p.arrange ?? "nachher");
+  const g = s.grid, at = (f: string) => s.ps.filter(x => x.f === f).map(x => [x.cell % g.cols, Math.floor(x.cell / g.cols)] as [number, number]);
+  return { g, zn: at("Zn"), cu: at("Cu") };
+}
+const key = (xs: [number, number][]) => xs.map(([c, r]) => `${c},${r}`).sort().join(" ");
+/** Zink auf einem regelmäßigen Untergitter (jede sx-te Spalte in jeder sy-ten Reihe) */
+function regular({ g, zn }: ReturnType<typeof zincOf>) {
+  for (let sx = 1; sx <= 3; sx++) for (let sy = 1; sy <= 3; sy++) for (let ox = 0; ox < sx; ox++) for (let oy = 0; oy < sy; oy++) {
+    const want: [number, number][] = [];
+    for (let c = 0; c < g.cols; c++) for (let r = 0; r < g.rows; r++) if (c % sx === ox && r % sy === oy) want.push([c, r]);
+    if (key(want) === key(zn)) return true;
+  }
+  return false;
+}
+/** zufällig aussehend: keine ganze Zn-Reihe oder -Spalte, nicht gespiegelt oder gedreht gleich, kein Muster, nicht ein zusammenhängender Block */
+function irregular(z: ReturnType<typeof zincOf>) {
+  const { g, zn } = z, k = key(zn);
+  const fullRow = [...Array(g.rows).keys()].some(r => zn.filter(([, y]) => y === r).length === g.cols);
+  const fullCol = [...Array(g.cols).keys()].some(c => zn.filter(([x]) => x === c).length === g.rows);
+  const mirror = key(zn.map(([c, r]) => [g.cols - 1 - c, r])) === k || key(zn.map(([c, r]) => [c, g.rows - 1 - r])) === k || key(zn.map(([c, r]) => [g.cols - 1 - c, g.rows - 1 - r])) === k;
+  const seen = new Set([`${zn[0][0]},${zn[0][1]}`]), todo = [zn[0]];
+  while (todo.length) { const [c, r] = todo.pop()!; for (const [x, y] of zn) if (!seen.has(`${x},${y}`) && Math.abs(x - c) + Math.abs(y - r) === 1) { seen.add(`${x},${y}`); todo.push([x, y]); } }
+  return !fullRow && !fullCol && !mirror && !regular(z) && seen.size < zn.length;
+}
+
+test("Messing nach dem Erstarren: 12 Atome; „abwechselnd“ ist ein festes Muster, „getrennt“ zwei Blöcke, das richtige Bild sichtbar zufällig", () => {
+  let seen = 0;
+  for (let k = 0; k < 200; k++) {
+    const t = GENS.nachher();
+    if (t.kind !== "mc" || !t.pics || !/Messing/.test(t.prompt)) continue;
+    seen++;
+    for (const [o, p] of Object.entries(t.pics)) {
+      assert.strictEqual(analyse(p.mix).teilchen, 12, o);
+      const z = zincOf(p);
+      if (p.arrange === "abwechselnd") assert.ok(regular(z), `kein Muster: ${o}`);
+      else if (p.arrange === "getrennt") assert.ok(Math.max(...z.cu.map(([c]) => c)) <= Math.min(...z.zn.map(([c]) => c)), `nicht getrennt: ${o}`);
+      else assert.ok(irregular(z), `richtiges Bild wirkt geordnet: ${o}`);
+    }
+  }
+  assert.ok(seen > 0);
+});
+
+test("Legierungsbilder: 12 Atome, Kupfer mit 3–4 Zink, jede mögliche Anordnung sichtbar zufällig", () => {
+  const bad = new Set<string>();
+  let n = 0;
+  for (const t of all("mix", 300)) for (const p of picsOf(t)) {
+    if (p.state !== "fest" || p.mix.length < 2) continue;
+    n++;
+    const a = analyse(p.mix), zn = p.mix.find(([f]) => f === "Zn")?.[1] ?? 0;
+    // erzeugte Legierungsbilder (ohne Anordnung); Messing aus „Experimentieren“ hat 12 : 6 Atome
+    if (!p.arrange && (a.teilchen !== 12 || zn < 3 || zn > 4 || !p.mix.some(([f]) => f === "Cu"))) bad.add(JSON.stringify(p.mix));
+    if ((p.arrange ?? "nachher") === "nachher" && !irregular(zincOf(p))) bad.add(`geordnet: ${JSON.stringify(p)}`);
+  }
+  assert.ok(n > 0, "kein Legierungsbild");
+  assert.deepEqual([...bad], []);
+});
+
+test("Kapitel 1: keine Metallgitter (der Begriff „Gitter“ kommt erst in Kapitel 2)", () => {
+  for (const t of chapters(60)[0]) for (const p of picsOf(t)) assert.notStrictEqual(p.state, "fest", `${t.type}: ${JSON.stringify(p.mix)}`);
+  for (const id of ["teilchen", "stoffe", "atomsorten", "zwischen"]) for (let k = 0; k < 100; k++) for (const p of picsOf(GENS[id]())) assert.notStrictEqual(p.state, "fest", id);
+});
+
+test("Jede falsche Antwort hat eine eigene Rückmeldung (auch Nachbarzahlen und zufällige Ablenker)", () => {
+  const bad = new Set<string>();
+  for (const t of [...all("mix", 200), ...chapters(30).flat()]) {
+    if (t.kind !== "mc") continue;
+    t.options.forEach((o, i) => { if (i !== t.answer && !(t.why?.[i] ?? "").trim()) bad.add(`${t.type}: „${o}“ (${t.prompt})`); });
+  }
+  assert.deepEqual([...bad].slice(0, 20), []);
+}, 60_000);
+
+test("Stolpersteine gehen nie zugunsten allgemeiner Rückmeldungen verloren (Fallen stehen immer zur Wahl)", () => {
+  for (let k = 0; k < 300; k++) {
+    const t = GENS.teilchen();
+    if (t.kind !== "mc") continue;
+    const a = analyse(t.pic!.mix);
+    for (const v of [a.atome, a.stoffe.length]) if (v !== a.teilchen) assert.ok(t.options.includes(String(v)), `${v} fehlt: ${t.options}`);
+  }
+  for (let k = 0; k < 300; k++) {
+    const t = GENS.gemischart();
+    if (t.kind === "mc") assert.ok(Object.keys(t.miss ?? {}).length >= 1, t.prompt);
+  }
+});
+
+test("Begriffe der Aufgaben stehen in einer Lektion bis zu diesem Kapitel fett (die Erklärkarte erscheint dort nicht von selbst)", () => {
+  const TERMS = ["Molekül", "Atomsorte", "Element", "Verbindung", "Gitter", "Zahlenverhältnis", "Reinstoff", "homogen", "heterogen", "Lösung", "Legierung", "Gemenge",
+    "Suspension", "Emulsion", "Schaum", "Rauch", "Nebel", "Gasgemisch", "Magnettrennung", "Sieben", "Auslesen", "Dekantieren", "Filtrieren", "Filtrat", "Rückstand",
+    "Bodensatz", "Dichte", "Eindampfen", "Destillieren", "Destillat", "Chromatografie", "Siedetemperatur", "Kühler", "Vorlage", "Laufmittel"];
+  const boldIn = (lv: number) => LESSONS.slice(0, lv + 1).flatMap(l => l.steps).flatMap(st => [st.say, st.ask, ...(st.lines ?? []), st.ok, st.tip, st.show, ...Object.values(st.why ?? {})])
+    .flatMap(x => [...(x ?? "").matchAll(/\*\*(.+?)\*\*/g)].map(m => m[1].replace(/­/g, "").toLowerCase()));
+  const bad = new Set<string>();
+  chapters(30).forEach((round, lv) => {
+    const bold = boldIn(lv);
+    for (const t of round) for (const x of textsOf(t)) for (const term of TERMS) {
+      if (!new RegExp(`\\b${term}`, "i").test(x.replace(/­/g, ""))) continue;
+      if (!bold.some(b => b.includes(term.toLowerCase()) || term.toLowerCase().startsWith(b))) bad.add(`${LEVELS[lv].id}: ${term} (${t.type})`);
+    }
+  });
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Tipps im Kapitel passen ins Tippfeld (höchstens 85 Zeichen)", () => {
+  const bad = new Set<string>();
+  for (const round of chapters(30)) for (const t of round) if (t.hint.replace(/\*\*/g, "").length > 85) bad.add(`${t.type}: ${t.hint}`);
+  assert.deepEqual([...bad], []);
+}, 60_000);
+
+test("Bilder nach dem Mischen: jedes Bild mit Anordnung in Worten (sonst verriete das Vorlesen das richtige)", () => {
+  for (let k = 0; k < 200; k++) {
+    const t = GENS.nachher();
+    if (t.kind === "mc") for (const o of t.options) assert.ok(/ – \S/.test(o), o);
   }
 });
