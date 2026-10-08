@@ -4,6 +4,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { REACTION_BY_ID } from "@lern/chem";
+import { progressKey } from "@lern/ui";
 import type { Lvl } from "./ueben/exercises.ts";
 
 export type Tab = "start" | "ueben";
@@ -127,7 +128,7 @@ export const useUeben = create<UebenState>()(persist((set, get) => {
     solved: id => { if (!get().peeked[id]) set({ done: { ...get().done, [id]: true } }); },
   };
 }, {
-  name: "reaktionsgleichungen-ueben",
+  name: progressKey("reaktionsgleichungen-ueben"),
   version: 1,
   storage: createJSONStorage(() => localStorage),
   partialize: s => ({ lvl: s.lvl, at: s.at, coeffs: s.coeffs, done: s.done, peeked: s.peeked }),

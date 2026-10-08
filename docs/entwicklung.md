@@ -789,6 +789,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Reaktionsgleichungen: Übungsfortschritt übersteht „Neu starten“** – `reaktionsgleichungen-ueben` als Fortschritt gekennzeichnet (`progressKey`); vorher löschte schon das erste
+  „Neu starten“ nach einem Absturz die gelösten Gleichungen (der Stand der Experimentier-Beispiele gilt weiter als Baukasten).
 - **Gemeinsame Pakete, Hülle, Workflows: Befunde der Prüfung behoben** – „Zum Inhalt springen“ setzt nur den Fokus (die Adresse `#main` führte zur Übersicht). Wiederholungsschutz
   wirkt wieder: `taskKey` ohne Felder, die vom Mischen der Antworten abhängen (`why`, `miss`) und ohne `stage`/`lead`/`hintCue`; `buildRound` prüft Dubletten damit; `freshRound`
   bei fester Reihenfolge nur mit Kandidaten desselben Platzes (sonst landete der Merksatz am falschen Platz; Wiederholungen gemessen von 47 bzw. 122 auf 0). „Neu starten“ nach einem
