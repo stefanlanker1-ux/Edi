@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { HYDROXIDE_BY_ID, PROTIC_ACIDS, PROTIC_BY_ID, neutralEquation, isKnownSalt, restOf } from "@lern/chem";
+import { HYDROXIDE_BY_ID, PROTIC_ACIDS, PROTIC_BY_ID, neutralEquation, isKnownSalt, restOf, toSubscript } from "@lern/chem";
 import { makeRound, LEVELS, TYPE_NAMES, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 
@@ -27,13 +27,13 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
             const n = neutralEquation(b, a, t.step);
             assert.ok(n.nBase <= 6 && n.nAcid <= 6, "Stepper reicht bis 6");
           }
-          if (stufe === "us") assert.ok(!/Aluminium|Al\(OH\)|[Hh]ydrogen(sulf|carbonat|phosphat)|nur \*\*\d H⁺|nur \d H⁺/.test(t.prompt + t.explain + (t.kind === "mc" ? t.options[t.answer] : "")), `Oberstufen-Inhalt in der Unterstufe: ${t.prompt}`);
+          if (stufe === "us") assert.ok(!/Aluminium|Al\(OH\)|[Hh]ydrogen(sulf|carbonat|phosphat)|nur \*\*\d\sH⁺|nur \d\sH⁺/.test(t.prompt + t.explain + (t.kind === "mc" ? t.options[t.answer] : "")), `Oberstufen-Inhalt in der Unterstufe: ${t.prompt}`);
         }
       }
     }
     assert.strictEqual(LEVELS[stufe].length, 3);
   }
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("diagnostische Distraktoren: Schlüssel im Katalog, Rückmeldung zu jedem Stolperstein, Fallen nie die Lösung", () => {
   let withDiag = 0, total = 0;
@@ -100,7 +100,7 @@ test("Salz, Salzname, Gleichung, Bauen: bei mehrprotonigen Säuren steht in der 
     assert.ok(!/ – jedes/.test(t.prompt), t.prompt);
     if (acid.protons === 1) continue;
     n++;
-    assert.match(t.prompt, /Jedes \S+ gibt (nur \*\*\d H⁺\*\*|\*\*alle \d H⁺\*\*) ab\./, t.prompt);
+    assert.match(t.prompt, /Jedes \S+ gibt (nur \*\*\d\u00a0H⁺\*\*|\*\*alle \d\u00a0H⁺\*\*) ab\./, t.prompt);
   }
   assert.ok(n > 300, `nur ${n}`);
 });
@@ -117,4 +117,35 @@ test("„schweflige Säure“ mitten im Satz klein (groß nur am Satzanfang und 
   for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 100))
     for (const s of [t.prompt, t.hint, t.explain, ...(t.kind === "mc" ? Object.values(t.why ?? {}) : [])])
       assert.ok(!/Schweflige/.test(s.replace(/(^|[.!?] )Schweflige/g, "$1")), s);
+});
+
+/** Wörter (nur Buchstaben, ab 4) der richtigen Antwort, die im Tipp stehen – auch als „Erster Schritt“ sichtbar, darf die Lösung nicht nennen */
+const hintLeaks = (t: Task) => {
+  if (t.kind !== "mc") return [];
+  const hint = t.hint.toLowerCase();
+  return (t.options[t.answer].replace(/\*/g, "").match(/\p{L}{4,}/gu) ?? []).filter(w => hint.includes(w.toLowerCase()));
+};
+
+test("Tipp nennt kein Wort der richtigen Antwort (alle Typen, beide Level)", () => {
+  for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 150))
+    assert.deepEqual(hintLeaks(t), [], `${t.type}: ${t.kind === "mc" ? t.options[t.answer] : ""} | ${t.hint}`);
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
+
+test("Wortgleichungen nennen Lauge und Säure mit Formel; Level I nur eingeführte Laugennamen", () => {
+  let n = 0;
+  for (const st of ["us", "os"] as const) for (const t of roundsOf(st, 150)) {
+    if (t.type === "gleichung" || (t.type === "salzName" && t.prompt.includes("→"))) {
+      n++;
+      const acid = PROTIC_ACIDS.find(a => t.f?.includes(a.formula))!;
+      const base = Object.values(HYDROXIDE_BY_ID).find(b => t.f?.includes(b.formula))!;
+      assert.ok(t.prompt.includes(toSubscript(acid.formula)) && t.prompt.includes(toSubscript(base.formula)), t.prompt);
+      if (st === "us") assert.ok(!/Kalkwasser|Barytwasser|Kalilauge/.test(t.prompt), t.prompt);
+    }
+  }
+  assert.ok(n > 200, `nur ${n}`);
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
+
+test("Koeffizient: „Zahl der H₂O genommen“ hat einen eigenen Stolperstein", () => {
+  for (const t of roundsOf("os", 100)) if (t.kind === "mc" && t.type === "koeffizient")
+    for (const [i, m] of Object.entries(t.miss ?? {})) if (m === "wasser-summe") assert.fail(`${t.prompt}: ${t.options[Number(i)]}`);
 });

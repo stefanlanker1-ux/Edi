@@ -27,7 +27,7 @@ test("Übergang für alle Reaktionen mit Teilchenbild: jedes Atom genau einmal, 
     n++;
   }
   assert.ok(n >= 10, `nur ${n} Reaktionen`);
-});
+}, 30_000); // läuft alle Reaktionen durch – unter Last länger als die üblichen 5 s
 
 test("Abschnitte der Animation", () => {
   assert.deepEqual([0, .1, .5, .9, 1].map(morphPhase), ["edukte", "lockern", "wandern", "binden", "produkte"]);

@@ -23,10 +23,11 @@ export function Ruler({ big, small, k, tone = "ruler" }: { big: string; small: s
   const X0 = 18, W = 300, u = W / 5;
   const topMinor = Math.min(k, 10);
   const n = k <= 60 ? k : 100;            // Striche im Zoom
-  const every = k === 10 ? 1 : k === 24 ? 6 : k === 60 ? 10 : 10;
+  // beschriftete Striche: so viele, dass die Zahlen (≥ 15 Einheiten Schrift) nicht aneinanderstoßen
+  const every = k === 10 ? 1 : k === 24 ? 6 : k === 60 ? 10 : 20;
   return (
     <figure className={`viz viz-ruler ${tone}`}>
-      <svg viewBox="0 0 356 168" role="img" aria-label={`1 ${big} = ${nf(k)} ${small}`}>
+      <svg viewBox="0 0 384 168" role="img" aria-label={`1 ${big} = ${nf(k)} ${small}`}>
         <rect x={X0 - 8} y={8} width={W + 16} height={36} rx={5} className="rl-body" />
         <rect x={X0} y={8} width={u} height={36} className="rl-hl" />
         {Array.from({ length: 6 }, (_, i) => (
@@ -38,21 +39,21 @@ export function Ruler({ big, small, k, tone = "ruler" }: { big: string; small: s
             ))}
           </Fragment>
         ))}
-        <text x={X0 + W + 12} y={30} className="rl-unit">{big}</text>
+        <text x={X0 + W + 26} y={30} className="rl-unit">{big}</text>
         <line x1={X0} y1={44} x2={X0} y2={84} className="rl-zoom" />
         <line x1={X0 + u} y1={44} x2={X0 + W} y2={84} className="rl-zoom" />
         <rect x={X0 - 8} y={84} width={W + 16} height={40} rx={5} className="rl-body zoom" />
         {Array.from({ length: n + 1 }, (_, i) => {
-          const x = X0 + (i * W) / n, lab = i % (k <= 60 ? every : 10) === 0;
-          const half = k <= 60 ? false : i % 5 === 0;
+          const x = X0 + (i * W) / n, lab = i % every === 0;
+          const major = k <= 60 ? lab : i % 10 === 0, half = k <= 60 ? false : i % 5 === 0;
           return (
             <Fragment key={i}>
-              <line x1={x} x2={x} y1={84} y2={lab ? 102 : half ? 96 : 92} className={`rl-tick${lab ? "" : " minor"}`} />
+              <line x1={x} x2={x} y1={84} y2={major ? 102 : half ? 96 : 92} className={`rl-tick${major ? "" : " minor"}`} />
               {lab && <text x={x} y={117} className="rl-num sm">{nf(Math.round((i * k) / n))}</text>}
             </Fragment>
           );
         })}
-        <text x={X0 + W + 12} y={108} className="rl-unit">{small}</text>
+        <text x={X0 + W + 26} y={108} className="rl-unit">{small}</text>
         <path d={`M${X0} 132 v6 H${X0 + W} v-6`} className="rl-brace" />
         <text x={X0 + W / 2} y={158} className="rl-cap">1 {big} = {nf(k)} {small}</text>
       </svg>
@@ -63,14 +64,17 @@ export function Ruler({ big, small, k, tone = "ruler" }: { big: string; small: s
 
 // ── Fläche: 10 × 10-Raster ──────────────────────────────────────────────────
 const SIDE: Record<string, string> = { "km²": "1 km", ha: "100 m", a: "10 m", "m²": "1 m", "dm²": "1 dm", "cm²": "1 cm", "mm²": "1 mm", "m³": "1 m", "dm³": "1 dm", "cm³": "1 cm", "mm³": "1 mm" };
-/** `guess`: nur das große Quadrat mit einem kleinen Kästchen (zum Schätzen, bevor das Raster erscheint) */
+/**
+ * `guess`: nur das große Quadrat mit einem kleinen Kästchen (zum Schätzen, bevor das Raster erscheint).
+ * Das kleine Kästchen ist wie beim Würfel mit einer Hinweislinie beschriftet (nie ein Pfeil ins Leere); Schrift ≥ 16 Einheiten (≥ 14 px am Handy).
+ */
 export function AreaGrid({ big, small, guess = false }: { big: string; small: string; guess?: boolean }) {
-  const X = 44, Y = 34, S = 170, c = S / 10;
+  const X = 44, Y = 36, S = 160, c = S / 10;
   return (
     <figure className="viz viz-area">
-      <svg viewBox="0 0 340 236" role="img" aria-label={`1 ${big} = ${guess ? "?" : 100} ${small}`}>
-        <text x={X + S / 2} y={20} className="ar-lab">10 · {SIDE[small]} = {SIDE[big]}</text>
-        <text x={X - 12} y={Y + S / 2} className="ar-lab" transform={`rotate(-90 ${X - 12} ${Y + S / 2})`}>{SIDE[big]}</text>
+      <svg viewBox="0 0 340 240" role="img" aria-label={`1 ${big} = ${guess ? "?" : 100} ${small}`}>
+        <text x={X + S / 2} y={22} className="ar-lab">10 · {SIDE[small]} = {SIDE[big]}</text>
+        <text x={X - 14} y={Y + S / 2} className="ar-lab" transform={`rotate(-90 ${X - 14} ${Y + S / 2})`}>{SIDE[big]}</text>
         <rect x={X} y={Y} width={S} height={S} className="ar-sq" />
         {!guess && <rect x={X} y={Y} width={S} height={c} className="ar-row" />}
         <rect x={X} y={Y} width={c} height={c} className="ar-cell" />
@@ -80,15 +84,17 @@ export function AreaGrid({ big, small, guess = false }: { big: string; small: st
             <line x1={X} x2={X + S} y1={Y + (i + 1) * c} y2={Y + (i + 1) * c} className="ar-line" />
           </Fragment>
         ))}
-        <path d={`M${X + S + 6} ${Y + c / 2} h14`} className="ar-arrow" />
-        <text x={X + S + 24} y={Y + c / 2 + 4} className="ar-note strong">1 {small}</text>
+        <path d={`M${X + c / 2} ${Y + c + 2} L${X + 20} ${Y + 40}`} className="ar-arrow" />
+        <text x={X + 22} y={Y + 58} className="ar-note strong">1 {small}</text>
         {!guess && <>
-          <text x={X + S + 24} y={Y + c + 12} className="ar-note">{tr("1 Reihe", "1 row")}: 10 {small}</text>
+          <path d={`M${X + S + 6} ${Y + c / 2} h12`} className="ar-arrow" />
+          <text x={X + S + 22} y={Y + c / 2 + 6} className="ar-note">{tr("1 Reihe:", "1 row:")}</text>
+          <text x={X + S + 22} y={Y + c / 2 + 26} className="ar-note strong">10 {small}</text>
           <path d={`M${X + S + 6} ${Y} v${S} h-4 M${X + S + 6} ${Y} h-4`} className="ar-brace" />
-          <text x={X + S + 24} y={Y + S - 8} className="ar-note">{tr("10 Reihen:", "10 rows:")}</text>
-          <text x={X + S + 24} y={Y + S + 8} className="ar-note strong">100 {small}</text>
+          <text x={X + S + 22} y={Y + S - 22} className="ar-note">{tr("10 Reihen:", "10 rows:")}</text>
+          <text x={X + S + 22} y={Y + S - 2} className="ar-note strong">100 {small}</text>
         </>}
-        <text x={X + S / 2} y={Y + S + 26} className="ar-cap">1 {big} = {guess ? "?" : 100} {small}</text>
+        <text x={X + S / 2} y={Y + S + 30} className="ar-cap">1 {big} = {guess ? "?" : 100} {small}</text>
       </svg>
       <figcaption>{SIDE[big]} · {SIDE[big]} = 10 · {SIDE[small]} · 10 · {SIDE[small]} → <b className="fx">{guess ? "?" : "· 100"}</b></figcaption>
     </figure>
@@ -99,7 +105,7 @@ export function AreaGrid({ big, small, guess = false }: { big: string; small: st
 const LITER: Record<string, string> = { "dm³": "1 l", "cm³": "1 ml" };
 /** `guess`: nur der große Würfel mit einem kleinen Würfel, Anzahl „?“ (zum Selbst-Ausrechnen, bevor das Raster erscheint) */
 export function Cube({ big, small, guess = false }: { big: string; small: string; guess?: boolean }) {
-  const X = 40, Y = 50, S = 140, dx = 62, dy = -40, c = S / 10; // Y so, dass die Zeile „1 dm³ = … = 1000 cm³“ (Y + S + 40) noch im Bild liegt
+  const X = 40, Y = 50, S = 140, dx = 62, dy = -40, c = S / 10; // Y so, dass die Zeile „1 dm³ = … = 1000 cm³“ (Y + S + 42) noch im Bild liegt
   const P = (x: number, y: number) => `${x},${y}`;
   const lines: ReactElement[] = [];
   for (let i = 1; i < 10; i++) {
@@ -114,7 +120,7 @@ export function Cube({ big, small, guess = false }: { big: string; small: string
   const sdx = dx / 10, sdy = dy / 10;
   return (
     <figure className="viz viz-cube">
-      <svg viewBox="0 0 340 236" role="img" aria-label={`1 ${big} = ${guess ? "?" : 1000} ${small}`}>
+      <svg viewBox="0 0 340 242" role="img" aria-label={`1 ${big} = ${guess ? "?" : 1000} ${small}`}>
         <polygon points={[P(X, Y), P(X + S, Y), P(X + S, Y + S), P(X, Y + S)].join(" ")} className="cb-front" />
         <polygon points={[P(X, Y), P(X + dx, Y + dy), P(X + S + dx, Y + dy), P(X + S, Y)].join(" ")} className="cb-top" />
         <polygon points={[P(X + S, Y), P(X + S + dx, Y + dy), P(X + S + dx, Y + S + dy), P(X + S, Y + S)].join(" ")} className="cb-side" />
@@ -124,8 +130,8 @@ export function Cube({ big, small, guess = false }: { big: string; small: string
         <polygon points={[P(X, Y), P(X + sdx, Y + sdy), P(X + c + sdx, Y + sdy), P(X + c, Y)].join(" ")} className="cb-small top" />
         <path d={`M${X + c / 2} ${Y + c + 2} L${X + 18} ${Y + 44}`} className="ar-arrow" />
         <text x={X + 22} y={Y + 58} className="ar-note strong on-cube">1 {small}{LITER[small] ? ` = ${LITER[small]}` : ""}</text>
-        <text x={X + S / 2} y={Y + S + 18} className="ar-lab">10 · {SIDE[small]} = {SIDE[big]}</text>
-        <text x={X + S / 2} y={Y + S + 40} className="ar-cap">1 {big}{LITER[big] ? ` = ${LITER[big]}` : ""} = {guess ? "?" : 1000} {small}</text>
+        <text x={X + S / 2} y={Y + S + 19} className="ar-lab">10 · {SIDE[small]} = {SIDE[big]}</text>
+        <text x={X + S / 2} y={Y + S + 42} className="ar-cap">1 {big}{LITER[big] ? ` = ${LITER[big]}` : ""} = {guess ? "?" : 1000} {small}</text>
       </svg>
       <figcaption>10 · 10 · 10 = {guess ? "?" : <>1000 → <b className="fx">· 1000</b></>}</figcaption>
     </figure>
@@ -145,7 +151,7 @@ export function Beaker({ big, small, k }: { big: string; small: string; k: numbe
           return (
             <Fragment key={i}>
               <line x1={X + W - 22} x2={X + W} y1={y} y2={y} className="rl-tick" />
-              {i > 0 && <text x={X + W + 8} y={y + 4} className="rl-num sm left">{nf((i * k) / 10)} {small}</text>}
+              {i > 0 && i % 2 === 0 && <text x={X + W + 8} y={y + 5} className="rl-num sm left">{nf((i * k) / 10)} {small}</text>}
             </Fragment>
           );
         })}

@@ -1,9 +1,10 @@
 import { test, assert } from "vitest";
 import { setLang } from "@lern/i18n";
 import { fmt, parseQ, eq, mul, div, toNumber, pow10, q } from "@lern/units";
-import { makeRound, LEVELS, TYPE_NAMES, solutionOf, checkInput, readInput, storedText, storedValue, type Task } from "./tasks.ts";
+import { makeRound, LEVELS, TYPE_NAMES, solutionOf, checkInput, readInput, storedText, storedValue, approxText, type Task } from "./tasks.ts";
 import { rare } from "../help.ts";
 import { dimOf } from "../components/DimChain.tsx";
+import { numText, shownExact } from "../format.tsx";
 
 type Input = Extract<Task, { kind: "input" }>;
 const inp = (value: string, from: string, to: string) => ({ kind: "input", value, from, to, prompt: "", hint: "", explain: "" }) as Input;
@@ -39,7 +40,7 @@ test("alle Niveaus erzeugen gültige, lösbare Aufgaben", () => {
     assert.strictEqual(LEVELS[st].length, 5);
     for (const l of LEVELS[st]) for (const id of l.types) { assert.ok(seen.has(id), `Typ ${id} nie erzeugt`); assert.ok(TYPE_NAMES[id], id); }
   }
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("Unterstufe: keine seltenen Vorsilben, keine zusammengesetzten Einheiten; Niveau 5 = Zeit", () => {
   for (let r = 0; r < 100; r++) for (const level of [0, 1, 2, 3, 4, "mix" as const]) for (const t of makeRound("us", level)) {
@@ -48,7 +49,7 @@ test("Unterstufe: keine seltenen Vorsilben, keine zusammengesetzten Einheiten; N
     assert.ok(c || t.type?.endsWith("_est"), `ohne Umrechnung: ${t.prompt}`);
   }
   for (let r = 0; r < 40; r++) for (const t of makeRound("us", 4)) assert.ok(/\b(h|min|s|d)\b/.test(t.prompt), t.prompt);
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("Vergleichen: richtige Antwort verteilt, jede falsche Antwort mit Rückmeldung", () => {
   const count: Record<string, number> = { gleich: 0, a: 0, b: 0 };
@@ -139,6 +140,25 @@ test("Antwort wird so gespeichert und gezeigt, wie sie gelesen wurde", () => {
     assert.ok(eq(parseQ(storedText(saved))!, v), input);
   }
   assert.strictEqual(storedText({ v: 0.25 }), "0,25"); // Speicherform früherer Versionen
+  assert.strictEqual(storedText({ v: 10000 }), "10\u202f000"); // gruppiert wie alle Zahlen
+  assert.strictEqual(storedText({ x: 0.00025 }), "0,000\u202f25");
+});
+
+test("Tafel und Bild: Faktor exakt wie im Quiztext (1/0,036 statt ≈ 27,7778)", () => {
+  assert.strictEqual(numText(q(250, 9)), "1/0,036"); // 1 km/h in cm/s
+  assert.strictEqual(numText(q(1, 60)), "1/60");
+  assert.strictEqual(numText(q(5, 18)), "1/3,6");
+  assert.strictEqual(numText(q(7, 3)), "≈ 2,3333"); // weder Zahl noch Kehrwert endet
+  assert.ok(shownExact(q(250, 9)) && !shownExact(q(7, 3)));
+});
+
+test("Gerundete Ergebnisse mit fester Stellenzahl (≈ 6,80, nicht ≈ 6,8)", () => {
+  assert.strictEqual(approxText(q(68, 10), 2), "6,80");
+  assert.strictEqual(approxText(q(13), 2), "13,00");
+  assert.strictEqual(approxText(q(73549875n, 10000000n), 2), "7,35");
+  assert.strictEqual(approxText(q(2, 3), 2), "0,67");
+  assert.strictEqual(approxText(q(123456, 10), 1), "12\u202f345,6");
+  assert.strictEqual(approxText(q(1, 3000), 2), "0,000\u202f333"); // rundet auf 0: gültige Ziffern statt „0,00“
 });
 
 test("Rechenweg in der Erklärung ist exakt (kein gerundeter Faktor ohne ≈)", () => {
@@ -146,21 +166,24 @@ test("Rechenweg in der Erklärung ist exakt (kein gerundeter Faktor ohne ≈)", 
   for (const t of many(30)) {
     if (t.kind !== "input") continue;
     const how = t.explain.split(" → ").pop()!;
-    const m = how.match(/^(.+?) (·|:) (≈ )?(.+?) = \*\*(≈ )?(.+?) (\S+)\*\*/);
+    const m = how.match(/^(.+?) (·|:) (≈ )?(.+?) (=|≈) \*\*(.+?) (\S+)\*\*/);
     assert.ok(m, t.explain);
-    const [, a, op, approxF, f, approxR, r] = m!;
+    assert.ok(!/= \*\*≈|= ≈/.test(t.explain), `„= ≈“: ${t.explain}`);
+    const [, a, op, approxF, f, sign, r] = m!;
+    const approxR = sign === "≈";
+    assert.strictEqual(approxR, t.round !== undefined, t.explain);
     const exact = op === "·" ? mul(parseQ(a)!, parseQ(f)!) : div(parseQ(a)!, parseQ(f)!);
     if (op === ":") viaDiv++;
     assert.ok(eq(exact, solutionOf(t).result) || approxF, `Faktor gerundet ohne ≈: ${t.explain}`);
     if (!approxR) assert.ok(eq(exact, parseQ(r)!), `Rechenweg stimmt nicht: ${t.explain}`);
     else {
       assert.ok(Math.abs(toNumber(solutionOf(t).result) - toNumber(parseQ(r)!)) <= toNumber(pow10(-(t.round ?? 0))) / 2 + 1e-12, t.explain);
-      if (toNumber(solutionOf(t).result) >= 0.1) assert.ok((r.split(",")[1] ?? "").replace(/\s/g, "").length <= t.round!, `nicht auf ${t.round} Stellen gerundet: ${t.explain}`);
+      if (toNumber(solutionOf(t).result) >= 0.1) assert.strictEqual((r.split(",")[1] ?? "").replace(/\s/g, "").length, t.round!, `nicht auf genau ${t.round} Stellen: ${t.explain}`);
     }
     n++;
   }
   assert.ok(n > 500 && viaDiv > 50, `${n} / ${viaDiv}`);
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("Umrechnungszahl: Rückmeldungen stimmen für ungleich große Stufen (kg → dag · 100, hl → l · 100)", () => {
   let seen = 0;
@@ -186,7 +209,16 @@ test("Umrechnungszahl: Rückmeldungen stimmen für ungleich große Stufen (kg �
     for (const w of Object.values(t.why ?? {})) assert.ok(!/zähle die Stufen/i.test(w), w);
   const hl = makeRoundOf("z_factor").find(t => t.kind === "mc" && /1 hl = \? l/.test(t.prompt));
   if (hl && hl.kind === "mc") assert.ok(!hl.options.some((o, i) => o === "10" && /Stufe/.test(hl.why?.[i] ?? "")), hl.options.join());
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
+test("Jede falsche Antwort hat eine Rückmeldung (alle Typen, beide Stufen)", () => {
+  let n = 0;
+  for (const t of many(30)) if (t.kind === "mc") t.options.forEach((o, i) => {
+    if (i === t.answer) return;
+    n++;
+    assert.ok(t.why?.[i], `${t.type}: ${t.prompt} → ${o} ohne Rückmeldung`);
+  });
+  assert.ok(n > 1000, `nur ${n}`);
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 const makeRoundOf = (type: string) => Array.from({ length: 400 }, () => makeRound("us", 0)).flat().filter(t => t.type === type);
 
 test("Größenvorstellung: Tipp nennt nicht das Ding aus der Frage", () => {

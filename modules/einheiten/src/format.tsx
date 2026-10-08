@@ -4,25 +4,31 @@ import { Fragment } from "react";
 import { fmt, fmtSci, isTerminating, toNumber, eq, ONE, type Q, type Row, type Term } from "@lern/units";
 import { tr } from "@lern/i18n";
 
+/** Kehrwert, wenn die Zahl positiv ist und der Kehrwert endet (250/9 → 0,036) – sonst null */
+export const invTerm = (v: Q): Q | null => {
+  if (v.n <= 0n) return null;
+  const inv = { n: v.d, d: v.n };
+  return isTerminating(inv) ? inv : null;
+};
+/** Wird die Zahl exakt gezeigt (endend oder „1/x“)? Sonst steht sie gerundet mit „≈“. */
+export const shownExact = (v: Q) => isTerminating(v) || !!invTerm(v);
+
 /**
- * Zahl: endende Dezimalzahl; sonst „1/x“, wenn der Kehrwert endet (1/60, 1/3,6, 1/3600);
+ * Zahl: endende Dezimalzahl; sonst „1/x“, wenn der Kehrwert endet (1/60, 1/3,6, 1/0,036 – wie im Quiztext, auch über 1);
  * sonst gerundet mit „≈“ (sign = false, wenn der Aufrufer das ≈ selbst setzt).
  */
 export function Num({ v, className, sign = true }: { v: Q; className?: string; sign?: boolean }) {
   if (isTerminating(v)) return <span className={className}>{fmt(v).text}</span>;
-  const inv = { n: v.d, d: v.n < 0n ? -v.n : v.n };
-  if (v.n === 1n || (isTerminating(inv) && v.n > 0n && v.n < v.d)) {
-    return <span className={`frac${className ? " " + className : ""}`}><span>1</span><span>{fmt(inv).text}</span></span>;
-  }
+  const inv = invTerm(v);
+  if (inv) return <span className={`frac${className ? " " + className : ""}`}><span>1</span><span>{fmt(inv).text}</span></span>;
   return <span className={className}>{sign ? "≈ " : ""}{fmt(v).text}</span>;
 }
 
 /** Text einer Zahl (für aria-Label und einfache Stellen) */
 export const numText = (v: Q) => {
   if (isTerminating(v)) return fmt(v).text;
-  const inv = { n: v.d, d: v.n < 0n ? -v.n : v.n };
-  if (v.n > 0n && v.n < v.d && isTerminating(inv)) return `1/${fmt(inv).text}`;
-  return `≈ ${fmt(v).text}`;
+  const inv = invTerm(v);
+  return inv ? `1/${fmt(inv).text}` : `≈ ${fmt(v).text}`;
 };
 
 /** Geteilt-Zeichen: „:“ (deutsch), „÷“ (englisch) */
@@ -46,9 +52,9 @@ function Product({ terms }: { terms: Term[] }) {
   return <>{terms.map((t, i) => <Fragment key={i}>{i > 0 && <span className="op"> · </span>}<TermView t={t} /></Fragment>)}</>;
 }
 
-/** Eine Zeile der Herleitung (ohne führendes „=“) */
-export function RowView({ row }: { row: Row }) {
-  if (row.unit !== undefined) return <span className="row-u"><Num v={row.coef} /> <span className="t-unit">{row.unit}</span></span>;
+/** Eine Zeile der Herleitung (ohne führendes „=“; `sign = false`, wenn davor schon „≈“ steht) */
+export function RowView({ row, sign = true }: { row: Row; sign?: boolean }) {
+  if (row.unit !== undefined) return <span className="row-u"><Num v={row.coef} sign={sign} /> <span className="t-unit">{row.unit}</span></span>;
   const num = row.num ?? [], den = row.den ?? [];
   return (
     <span className="row-t">
@@ -65,7 +71,11 @@ export function RowChain({ rows, lead }: { rows: Row[]; lead?: React.ReactNode }
   return (
     <span className="chain">
       {lead}
-      {rows.map((r, i) => <span key={i} className="chain-part">{i > 0 && <span className="eq">=</span>}<RowView row={r} /></span>)}
+      {rows.map((r, i) => {
+        // gerundete Zeile: „≈ x“ statt „= ≈ x“
+        const exact = r.unit === undefined || shownExact(r.coef);
+        return <span key={i} className="chain-part">{i > 0 && <span className="eq">{exact ? "=" : "≈"}</span>}<RowView row={r} sign={i === 0 || exact} /></span>;
+      })}
     </span>
   );
 }

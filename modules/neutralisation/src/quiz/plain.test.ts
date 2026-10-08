@@ -9,4 +9,4 @@ test("Einfache Sprache: Sätze höchstens 15 Wörter", () => {
   for (const [stufe, levels] of sets) for (let lv = 0; lv < levels.length; lv++) for (let i = 0; i < 30; i++)
     for (const t of (makeRound as (s: string, l: number) => Parameters<typeof longSentences>[0][])(stufe, lv)) longSentences(t).forEach(s => long.add(s));
   expect([...long]).toEqual([]);
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s

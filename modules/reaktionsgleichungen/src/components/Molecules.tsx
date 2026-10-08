@@ -29,13 +29,9 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
 }) {
   const n = eq.left.length, gid = useId().replace(/:/g, "");
   const all = [...eq.left, ...eq.right], boxes = all.map(kalotteBox);
-  const R = Math.max(rows, Math.ceil(Math.sqrt(1.5 * Math.max(...coeffs))));
-  const cols = all.map((_, k) => Math.max(1, Math.ceil(coeffs[k] / R)));
   const colW = all.map((_, k) => boxes[k].w + GAP);
-  const sideW = (from: number, to: number) => colW.slice(from, to).reduce((a, w, i) => a + w * cols[from + i], 0);
-  const W = Math.max(sideW(0, n), sideW(n, all.length)) + 2 * PAD;
-  const rowH = Math.max(...boxes.map(b => b.h)) + GAP;
-  const H = R * rowH + 2 * PAD;
+  // Zeilenhöhe je Stoff: ein großes Molekül (P₄O₁₀) macht nicht auch die Stapel der kleinen hoch
+  const rowH = all.map((_, k) => boxes[k].h + GAP);
   const AR = 3.2; // Platz für den Pfeil
   // Hoch- oder Querformat: je nachdem, was im verfügbaren Platz größer wird (Handy hochkant → Kästen übereinander)
   const wrap = useRef<HTMLDivElement>(null);
@@ -47,7 +43,21 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const across = !size || Math.min(size[0] / (2 * W + AR), size[1] / H) >= Math.min(size[0] / W, size[1] / (2 * H + AR)) * .92;
+  /** Anordnung mit höchstens R Zeilen je Stapel: Spalten je Stoff, Breite und Höhe eines Kastens (so hoch wie der höchste Stapel) */
+  const layout = (R: number) => {
+    const cols = all.map((_, k) => Math.max(1, Math.ceil(coeffs[k] / R)));
+    const sideW = (from: number, to: number) => colW.slice(from, to).reduce((a, w, i) => a + w * cols[from + i], 0);
+    const H = Math.max(...all.map((_, k) => Math.ceil(coeffs[k] / cols[k]) * rowH[k])) + 2 * PAD;
+    return { R, cols, sideW, W: Math.max(sideW(0, n), sideW(n, all.length)) + 2 * PAD, H };
+  };
+  const across1 = (L: ReturnType<typeof layout>) => !size || Math.min(size[0] / (2 * L.W + AR), size[1] / L.H) >= Math.min(size[0] / L.W, size[1] / (2 * L.H + AR)) * .92;
+  const scale = (L: ReturnType<typeof layout>) => (!size ? 0 : across1(L) ? Math.min(size[0] / (2 * L.W + AR), size[1] / L.H) : Math.min(size[0] / L.W, size[1] / (2 * L.H + AR)));
+  // so viele Zeilen, dass die Moleküle am größten werden (ein großes Molekül wie P₄O₁₀ macht jede Zeile hoch – dann lieber breiter)
+  const maxR = Math.max(rows, Math.ceil(Math.sqrt(1.5 * Math.max(...coeffs))));
+  let L = layout(maxR);
+  for (let r = rows; size && r < maxR; r++) { const c = layout(r); if (scale(c) > scale(L) * 1.05) L = c; }
+  const { R, cols, sideW, W, H } = L;
+  const across = across1(L);
   const [ox, oy] = across ? [W + AR, 0] : [0, H + AR];
   const side = (from: number, to: number, x0: number, y0: number) => {
     let x = x0 + (W - sideW(from, to)) / 2;
@@ -55,7 +65,7 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
       const k = from + i, p = Math.max(1, Math.ceil(coeffs[k] / R)), left = x + colW[k] * (cols[k] - p) / 2;
       x += colW[k] * cols[k];
       return Array.from({ length: coeffs[k] }, (_, j) => (
-        <Kalotte key={`${k}-${j}`} f={f} gid={gid} cx={left + colW[k] * (j % p + .5)} cy={y0 + H - PAD - rowH * (Math.floor(j / p) + .5)} />
+        <Kalotte key={`${k}-${j}`} f={f} gid={gid} cx={left + colW[k] * (j % p + .5)} cy={y0 + H - PAD - rowH[k] * (Math.floor(j / p) + .5)} />
       ));
     });
   };

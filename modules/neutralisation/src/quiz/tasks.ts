@@ -23,8 +23,19 @@ const withoutH = (f: string) => Object.entries(parseFormula(f)).filter(([el]) =>
 const lower = (s: string) => s.charAt(0).toLowerCase() + s.slice(1);
 /** Säurename mitten im Satz: „schweflige Säure“ (Adjektiv klein, nur in der Tabelle groß); englisch klein */
 const mid = (name: string) => tr(name.replace(/^Schweflige /, "schweflige "), lower(name));
+/** Name mitten im Satz: deutsch unverändert, englisch klein („is called chloride“, „(potassium phosphate)“) */
+const low = (name: string) => tr(name, lower(name));
+/** „alle 2 H⁺“ / „both H⁺“, „all 3 H⁺“ – Zahl und H⁺ nie getrennt */
+const allH = (k: number) => tr(`alle ${k}\u00a0H⁺`, k === 2 ? "both H⁺" : `all ${k}\u00a0H⁺`);
 /** Salzname aus Metall und Säurerest: „Natriumsulfat“ / „Sodium sulfate“ */
 const sname = (cat: string, rest: string) => tr(cat + rest, `${cat} ${lower(rest)}`);
+
+/**
+ * Lauge bzw. Säure in Wortgleichungen immer mit Name und Formel. Level I nur „Natronlauge“ (in der Erklärung eingeführt), sonst der Name des
+ * Hydroxids; Level II auch Kalilauge, Kalkwasser, Barytwasser (Erklärkarte „Salze & Gleichungen“).
+ */
+const baseLabel = (b: Hydroxide, os: boolean) => `${(os || b.id === "naoh") && b.lauge ? b.lauge : b.name} ${F(b.formula)}`;
+const acidLabel = (a: ProticAcid) => `${mid(a.aq ?? a.name)} ${F(a.formula)}`;
 
 /** Säuren der Stufe: Perchlorsäure (Perchlorat) führt erst Level II ein */
 const acidsFor = (os: boolean) => (os ? PROTIC_ACIDS : PROTIC_ACIDS.filter(a => a.id !== "hclo4"));
@@ -43,8 +54,8 @@ const partialText = (a: ProticAcid, k: number) => (k < a.protons ? tr(` – jede
  * Level II lehrt die teilweise Neutralisation, sonst wären Hydrogensalze als Antwort ebenso richtig.
  */
 const stepSentence = (a: ProticAcid, k: number) => (a.protons === 1 ? "" : k < a.protons
-  ? tr(`Jedes ${F(a.formula)} gibt nur **${k} H⁺** ab. `, `Each ${F(a.formula)} gives off only **${k} H⁺**. `)
-  : tr(`Jedes ${F(a.formula)} gibt **alle ${k} H⁺** ab. `, `Each ${F(a.formula)} gives off **all ${k} H⁺**. `));
+  ? tr(`Jedes ${F(a.formula)} gibt nur **${k}\u00a0H⁺** ab. `, `Each ${F(a.formula)} gives off only **${k}\u00a0H⁺**. `)
+  : tr(`Jedes ${F(a.formula)} gibt **${allH(k)}** ab. `, `Each ${F(a.formula)} gives off **${allH(k)}**. `));
 
 // Namensfamilien für die Endungen -id / -it / -at (nur Ionen, die es gibt)
 const FAMILY: [string, string][][] = tr([
@@ -101,7 +112,7 @@ function protolyse(): Task {
     prompt: tr(`Welche Ionen entstehen, wenn **${F(a.formula)}** (${mid(a.name)}) in Wasser H⁺ abgibt?`, `Which ions form when **${F(a.formula)}** (${mid(a.name)}) gives off H⁺ in water?`),
     hint: tr("Zähle die H, die als H⁺ weggehen: die H vorne in der Formel. Bei COOH-Säuren nur das H der COOH-Gruppe. Der Rest trägt genauso viele Minus, wie H⁺ weggegangen sind.",
       "Count the H that leave as H⁺: the H at the front of the formula. For COOH acids, only the H of the COOH group. The anion carries as many minus charges as H⁺ have left."),
-    explain: tr(`${protolysis(a)} – ${k === 1 ? "ein Plus und ein Minus" : `${k} Plus und ${k} Minus`}, zusammen neutral. Säurerest: **${restName(r)}**.`, `${protolysis(a)} – ${k === 1 ? "one plus and one minus" : `${k} plus and ${k} minus`}, neutral together. Acid anion: **${restName(r)}**.`),
+    explain: tr(`${protolysis(a)} – ${k === 1 ? "ein Plus und ein Minus" : `${k} Plus und ${k} Minus`}, zusammen neutral. Säurerest: **${restName(r)}**.`, `${protolysis(a)} – ${k === 1 ? "one plus and one minus" : `${k} plus and ${k} minus`}, neutral together. Acid anion: **${low(restName(r))}**.`),
     f: [a.formula],
   };
 }
@@ -112,13 +123,15 @@ function protonen(): Task {
   const a = Math.random() < 0.35 ? PROTIC_BY_ID[pick(["hcooh", "ch3cooh"])] : pick(PROTIC_ACIDS);
   const k = a.protons, hs = hAtoms(a), atoms = Object.values(parseFormula(a.formula)).reduce((x, y) => x + y, 0);
   const o = parseFormula(a.formula).O ?? 0;
-  const given = /COOH/.test(a.formula) ? tr("das H der COOH-Gruppe", "the H of the COOH group") : tr("die H vorne in der Formel", "the H at the front of the formula");
+  // „abgegeben wird nur das H …“ bzw. „werden nur die 2 H …“
+  const given = /COOH/.test(a.formula) ? tr("wird nur das H der COOH-Gruppe", "the H of the COOH group")
+    : k === 1 ? tr("wird nur das H vorne in der Formel", "the front H") : tr(`werden nur die ${k} H vorne in der Formel`, `the ${k} front H`);
   return {
     ...mc(String(k), [
       hs > k ? d(String(hs), "alle-h-sauer", tr(`${F(a.formula)} hat ${hs} H-Atome, aber nur das H der **COOH-Gruppe** ist sauer – die H am C bleiben gebunden.`, `${F(a.formula)} has ${hs} H atoms, but only the H of the **COOH group** is acidic – the H on C stay bonded.`)) : null,
       k > 1 ? d("1", "ein-proton", tr(`${F(a.formula)} ist ${proticWord(k)}: alle ${k} H vorne in der Formel können als H⁺ abgegeben werden (schrittweise).`, `${F(a.formula)} is ${proticWord(k)}: all ${k} front H can be given off as H⁺, step by step.`)) : null,
-      o > 0 && o !== k && o !== hs && o <= 4 ? d(String(o), "rest-ladung-sauerstoff", tr(`Die ${o} O-Atome geben nichts ab. Abgegeben wird nur ${given}: **${k}**.`, `The ${o} O atoms give off nothing. Only ${given} can be given off: **${k}**.`)) : null,
-      atoms <= 4 && atoms !== k && atoms !== hs && atoms !== o ? d(String(atoms), "atome-statt-h", tr(`${F(a.formula)} hat ${atoms} Atome – abgegeben wird nur ${given}: **${k}**.`, `${F(a.formula)} has ${atoms} atoms – only ${given} can be given off: **${k}**.`)) : null,
+      o > 0 && o !== k && o !== hs && o <= 4 ? d(String(o), "rest-ladung-sauerstoff", tr(`Die ${o} O-Atome geben nichts ab. Abgegeben ${given}: **${k}**.`, `The ${o} O atoms give off nothing. Only ${given} can be given off: **${k}**.`)) : null,
+      atoms <= 4 && atoms !== k && atoms !== hs && atoms !== o ? d(String(atoms), "atome-statt-h", tr(`${F(a.formula)} hat ${atoms} Atome – abgegeben ${given}: **${k}**.`, `${F(a.formula)} has ${atoms} atoms – only ${given} can be given off: **${k}**.`)) : null,
       "1", "2", "3", "4",
     ]),
     prompt: tr(`Wie viele **H⁺** kann ein Molekül **${F(a.formula)}** (${mid(a.name)}) höchstens abgeben?`, `How many **H⁺** can a molecule of **${F(a.formula)}** (${mid(a.name)}) give off at most?`),
@@ -138,19 +151,21 @@ function restNameQ(os: boolean): Task {
   const others = acidsFor(os).flatMap(x => (os ? x.rests : [restOf(x)])).map(restName).filter(n => n !== right);
   return {
     ...mc(right, [
-      ...family(right, os).map(([n, f]) => d(n, "endung-id-at-it", tr(`**${n}** wäre ${f}. Aus ${F(a.formula)} bleibt ${ionText(r)} übrig – das ist **${right}**.`, `**${n}** would be ${f}. From ${F(a.formula)}, ${ionText(r)} remains – that is **${right}**.`))),
-      LOOKALIKE[right] ? d(LOOKALIKE[right][0], "rest-verwechselt", tr(`**${LOOKALIKE[right][0]}** ist ${LOOKALIKE[right][1]} aus einer anderen Säure. Aus ${F(a.formula)} bleibt ${ionText(r)} übrig – das ist **${right}**.`, `**${LOOKALIKE[right][0]}** is ${LOOKALIKE[right][1]} from another acid. From ${F(a.formula)}, ${ionText(r)} remains – that is **${right}**.`)) : null,
-      d(a.name, "saeurename-statt-rest", tr(`${a.name} ist die Säure selbst. Was nach Abgabe der H⁺ übrig bleibt, heißt **${right}**.`, `${a.name} is the acid itself. What remains after the H⁺ are given off is called **${right}**.`)),
-      NAME_FROM_ACID[a.id] && k === a.protons ? d(NAME_FROM_ACID[a.id], "rest-aus-saeurename", tr(`Der Säurerest bekommt einen eigenen Namen: ${ionText(r)} heißt **${right}**.`, `The acid anion has its own name: ${ionText(r)} is called **${right}**.`)) : null,
+      ...family(right, os).map(([n, f]) => d(n, "endung-id-at-it", tr(`**${n}** wäre ${f}. Aus ${F(a.formula)} bleibt ${ionText(r)} übrig – das ist **${right}**.`, `**${n}** would be ${f}. From ${F(a.formula)}, ${ionText(r)} remains – that is **${low(right)}**.`))),
+      LOOKALIKE[right] ? d(LOOKALIKE[right][0], "rest-verwechselt", tr(`**${LOOKALIKE[right][0]}** ist ${LOOKALIKE[right][1]} aus einer anderen Säure. Aus ${F(a.formula)} bleibt ${ionText(r)} übrig – das ist **${right}**.`, `**${LOOKALIKE[right][0]}** is ${LOOKALIKE[right][1]} from another acid. From ${F(a.formula)}, ${ionText(r)} remains – that is **${low(right)}**.`)) : null,
+      d(a.name, "saeurename-statt-rest", tr(`${a.name} ist die Säure selbst. Was nach Abgabe der H⁺ übrig bleibt, heißt **${right}**.`, `${a.name} is the acid itself. What remains after the H⁺ are given off is called **${low(right)}**.`)),
+      NAME_FROM_ACID[a.id] && k === a.protons ? d(NAME_FROM_ACID[a.id], "rest-aus-saeurename", tr(`Der Säurerest bekommt einen eigenen Namen: ${ionText(r)} heißt **${right}**.`, `The acid anion has its own name: ${ionText(r)} is called **${low(right)}**.`)) : null,
       ...(os ? a.rests.filter(x => x !== r).map(x => d(restName(x), "hydrogen-verzaehlt",
-        tr(`${restName(x)} ist ${ionText(x)}. ${ionText(r)} ${r.formula.startsWith("H") ? `hat noch ${parseFormula(r.formula).H} H` : "hat kein H mehr"} → **${right}**.`, `${restName(x)} is ${ionText(x)}. ${ionText(r)} ${r.formula.startsWith("H") ? `still has ${parseFormula(r.formula).H} H` : "has no H left"} → **${right}**.`))) : []),
+        tr(`${restName(x)} ist ${ionText(x)}. ${ionText(r)} ${r.formula.startsWith("H") ? `hat noch ${parseFormula(r.formula).H} H` : "hat kein H mehr"} → **${right}**.`, `${restName(x)} is ${ionText(x)}. ${ionText(r)} ${r.formula.startsWith("H") ? `still has ${parseFormula(r.formula).H} H` : "has no H left"} → **${low(right)}**.`))) : []),
       ...shuffle(others).slice(0, 3),
     ]),
     prompt: byIon
       ? tr(`Wie heißt das Ion **${ionText(r)}**?`, `What is the ion **${ionText(r)}** called?`)
-      : tr(`Wie heißt der Säurerest, wenn **${F(a.formula)}** ${k === a.protons ? (k === 1 ? "sein H⁺" : `alle ${k} H⁺`) : `nur ${k} H⁺`} abgibt?`, `What is the acid anion called when **${F(a.formula)}** gives off ${k === a.protons ? (k === 1 ? "its H⁺" : `all ${k} H⁺`) : `only ${k} H⁺`}?`),
-    hint: os ? tr("Endungen: -id (kein O), -it (ein O weniger), -at. Bleibt H im Ion: Hydrogen-, bei zwei H Dihydrogen-.", "Endings: -ide (no O), -ite (one O fewer), -ate. If H stays in the ion: hydrogen, with two H dihydrogen.") : tr("Endungen: -id ohne Sauerstoff (Chlorid, Sulfid), -at mit Sauerstoff (Sulfat, Nitrat); -it hat ein O weniger als -at.", "Endings: -ide without oxygen (chloride, sulfide), -ate with oxygen (sulfate, nitrate); -ite has one O fewer than -ate."),
-    explain: tr(`${protolysis(a, k)} → ${ionText(r)} heißt **${right}**.`, `${protolysis(a, k)} → ${ionText(r)} is called **${right}**.`),
+      : tr(`Wie heißt der Säurerest, wenn **${F(a.formula)}** ${k === a.protons ? (k === 1 ? "sein H⁺" : allH(k)) : `nur ${k}\u00a0H⁺`} abgibt?`, `What is the acid anion called when **${F(a.formula)}** gives off ${k === a.protons ? (k === 1 ? "its H⁺" : allH(k)) : `only ${k}\u00a0H⁺`}?`),
+    // nur die Regel – kein Beispielname, der die Antwort sein könnte
+    hint: os ? tr("Endungen: -id (kein O), -it (ein O weniger als -at), -at. Wie viele H stecken noch im Ion? Das steht vorn im Namen.", "Endings: -ide (no O), -ite (one O fewer than -ate), -ate. How many H are still in the ion? That goes at the front of the name.")
+      : tr("Endungen: -id ohne Sauerstoff, -at mit Sauerstoff, -it mit einem O weniger als -at. Schau, ob O im Ion steckt.", "Endings: -ide without oxygen, -ate with oxygen, -ite with one O fewer than -ate. Check whether the ion contains O."),
+    explain: tr(`${protolysis(a, k)} → ${ionText(r)} heißt **${right}**.`, `${protolysis(a, k)} → ${ionText(r)} is called **${low(right)}**.`),
     f: [a.formula],
   };
 }
@@ -169,9 +184,9 @@ function restLadung(os: boolean): Task {
       k < a.protons ? d(chargeFull(-a.protons), "stufe-ignoriert", tr(`Es gehen nur **${k} H⁺** weg, nicht alle ${a.protons} – also nur ${k} Minus: ${ionText(r)}.`, `Only **${k} H⁺** leave, not all ${a.protons} – so only ${k} minus: ${ionText(r)}.`)) : null,
       "1−", "2−", "3−", "2+",
     ]),
-    prompt: tr(`**${F(a.formula)}** gibt ${k === a.protons ? (k === 1 ? "sein H⁺" : `alle ${k} H⁺`) : `nur ${k} H⁺`} ab. Welche Ladung hat der Säurerest ${F(r.formula)}?`, `**${F(a.formula)}** gives off ${k === a.protons ? (k === 1 ? "its H⁺" : `all ${k} H⁺`) : `only ${k} H⁺`}. What is the charge of the acid anion ${F(r.formula)}?`),
+    prompt: tr(`**${F(a.formula)}** gibt ${k === a.protons ? (k === 1 ? "sein H⁺" : allH(k)) : `nur ${k}\u00a0H⁺`} ab. Welche Ladung hat der Säurerest ${F(r.formula)}?`, `**${F(a.formula)}** gives off ${k === a.protons ? (k === 1 ? "its H⁺" : allH(k)) : `only ${k}\u00a0H⁺`}. What is the charge of the acid anion ${F(r.formula)}?`),
     hint: tr("So viele H⁺ (Plus) weggehen, so viele Minus bleiben am Rest.", "As many H⁺ (plus) as leave, that many minus remain on the anion."),
-    explain: tr(`${protolysis(a, k)}: ${k} H⁺ weg → Rest **${chargeFull(-k)}** (${restName(r)}).`, `${protolysis(a, k)}: ${k} H⁺ gone → anion **${chargeFull(-k)}** (${restName(r)}).`),
+    explain: tr(`${protolysis(a, k)}: ${k} H⁺ weg → Rest **${chargeFull(-k)}** (${restName(r)}).`, `${protolysis(a, k)}: ${k} H⁺ gone → anion **${chargeFull(-k)}** (${low(restName(r))}).`),
     f: [a.formula],
   };
 }
@@ -251,7 +266,7 @@ function koeffizient(os: boolean): Task {
     ...mc(String(right), [
       right !== 1 ? d("1", "koeff-1zu1", tr(`Mit 1 wären es ${askBase ? `${q} OH⁻ gegen ${n.water} H⁺` : `${n.water} OH⁻ gegen ${k} H⁺`} – nicht ausgeglichen.`, `With 1 it would be ${askBase ? `${q} OH⁻ against ${n.water} H⁺` : `${n.water} OH⁻ against ${k} H⁺`} – not balanced.`)) : null,
       other !== right ? d(String(other), "koeff-vertauscht", tr(`${other} gehört vor ${F(askBase ? a.formula : b.formula)}. Zähle: ${n.water} H₂O brauchen ${n.water} ${askBase ? "OH⁻" : "H⁺"}, also ${n.water} : ${askBase ? q : k} = **${right}**.`, `${other} belongs in front of ${F(askBase ? a.formula : b.formula)}. Count: ${n.water} H₂O need ${n.water} ${askBase ? "OH⁻" : "H⁺"}, so ${n.water} ÷ ${askBase ? q : k} = **${right}**.`)) : null,
-      n.water !== right ? d(String(n.water), "wasser-summe", tr(`${n.water} ist die Zahl der H₂O. Davor steht, wie viele Formeleinheiten nötig sind: ${n.water} : ${askBase ? q : k} = **${right}**.`, `${n.water} is the number of H₂O. In front goes how many formula units are needed: ${n.water} ÷ ${askBase ? q : k} = **${right}**.`)) : null,
+      n.water !== right ? d(String(n.water), "wasser-als-koeffizient", tr(`${n.water} ist die Zahl der H₂O. Davor steht, wie viele Formeleinheiten nötig sind: ${n.water} : ${askBase ? q : k} = **${right}**.`, `${n.water} is the number of H₂O. In front goes how many formula units are needed: ${n.water} ÷ ${askBase ? q : k} = **${right}**.`)) : null,
       (askBase ? k : q) !== right && (askBase ? k : q) !== other && (askBase ? k : q) !== n.water
         ? d(String(askBase ? k : q), "ladung-statt-anzahl", tr(`${askBase ? `${k} H⁺ gibt ein ${F(a.formula)} ab` : `${q} OH⁻ bringt ein ${F(b.formula)}`} – gefragt ist, wie viele ${F(askBase ? b.formula : a.formula)} man braucht: ${n.water} : ${askBase ? q : k} = **${right}**.`, `${askBase ? `One ${F(a.formula)} gives off ${k} H⁺` : `One ${F(b.formula)} brings ${q} OH⁻`} – the question is how many ${F(askBase ? b.formula : a.formula)} you need: ${n.water} ÷ ${askBase ? q : k} = **${right}**.`)) : null,
       "1", "2", "3", "4", "6",
@@ -282,7 +297,7 @@ function salz(os: boolean): Task {
       q > 1 && saltFormula(c, r, 1, q) !== n.salt ? d(F(saltFormula(c, r, 1, q)), "index-aus-formel", tr(`Die ${q} in ${F(b.formula)} zählt die OH⁻. Im Salz zählen die Ladungen: ${ionText(c)} und ${ionText(r)} → **${F(n.salt)}**.`, `The ${q} in ${F(b.formula)} counts the OH⁻. In the salt the charges count: ${ionText(c)} and ${ionText(r)} → **${F(n.salt)}**.`)) : null,
       k > 1 && saltFormula(c, r, k, 1) !== n.salt ? d(F(saltFormula(c, r, k, 1)), "index-aus-formel", tr(`Die ${k} in ${F(a.formula)} zählt die H⁺. Im Salz zählen die Ladungen: ${ionText(c)} und ${ionText(r)} → **${F(n.salt)}**.`, `The ${k} in ${F(a.formula)} counts the H⁺. In the salt the charges count: ${ionText(c)} and ${ionText(r)} → **${F(n.salt)}**.`)) : null,
       LOOKALIKE_ACID[a.id] && known(restOf(PROTIC_BY_ID[LOOKALIKE_ACID[a.id]])) ? d(F(saltFormula(c, restOf(PROTIC_BY_ID[LOOKALIKE_ACID[a.id]]))), "rest-verwechselt",
-        tr(`Das wäre der Säurerest von ${mid(PROTIC_BY_ID[LOOKALIKE_ACID[a.id]].name)}. Aus ${F(a.formula)} entsteht ${ionText(r)} → **${F(n.salt)}**.`, `That would be the acid anion of ${mid(PROTIC_BY_ID[LOOKALIKE_ACID[a.id]].name)}. ${F(a.formula)} gives ${ionText(r)} → **${F(n.salt)}**.`)) : null,
+        tr(`Das wäre der Säurerest von ${acidLabel(PROTIC_BY_ID[LOOKALIKE_ACID[a.id]])}. Aus ${F(a.formula)} entsteht ${ionText(r)} → **${F(n.salt)}**.`, `That would be the acid anion of ${acidLabel(PROTIC_BY_ID[LOOKALIKE_ACID[a.id]])}. ${F(a.formula)} gives ${ionText(r)} → **${F(n.salt)}**.`)) : null,
       d(F(b.formula), "edukt-statt-salz", tr(`${F(b.formula)} ist das Hydroxid, mit dem es anfängt. Im Salz steckt statt OH⁻ der Säurerest: **${F(n.salt)}**.`, `${F(b.formula)} is the hydroxide you start with. In the salt the acid anion replaces OH⁻: **${F(n.salt)}**.`)),
       rr.nC === 1 && rr.nA === 1 ? d(F(c.formula + a.formula), "h-im-salz", tr(`Das H⁺ der Säure wird mit OH⁻ zu Wasser – im Salz bleibt nur der Säurerest: **${F(n.salt)}**.`, `The H⁺ of the acid becomes water with OH⁻ – only the acid anion stays in the salt: **${F(n.salt)}**.`)) : null,
       // erst filtern, dann 3 nehmen: mit Al³⁺ gibt es manche Salze nicht (sonst blieben zu wenige Optionen)
@@ -290,7 +305,7 @@ function salz(os: boolean): Task {
     ]),
     prompt: tr(`${stepSentence(a, k)}Welches Salz entsteht aus **${F(b.formula)}** und **${F(a.formula)}**?`, `${stepSentence(a, k)}Which salt forms from **${F(b.formula)}** and **${F(a.formula)}**?`),
     hint: tr("Das Kation der Lauge und der Säurerest bleiben übrig. Gleiche ihre Ladungen aus wie in der Ionenbindung.", "The cation of the alkali and the acid anion remain. Balance their charges as in ionic bonding."),
-    explain: `${ionText(c)} ${tr("und", "and")} ${ionText(r)} (${restName(r)}) → ${rr.nC} : ${rr.nA} → **${F(n.salt)}** (${n.saltName}).`,
+    explain: `${ionText(c)} ${tr("und", "and")} ${ionText(r)} (${low(restName(r))}) → ${rr.nC} : ${rr.nA} → **${F(n.salt)}** (${low(n.saltName)}).`,
     f: [b.formula, a.formula],
   };
 }
@@ -303,21 +318,22 @@ function salzName(os: boolean): Task {
   const words = Math.random() < 0.4;
   return {
     ...mc(right, [
-      ...family(restName(r), os).map(([nm, f]) => d(sname(cat, lower(nm)), "endung-id-at-it", tr(`-${lower(nm)} wäre ${f}. Im Salz steckt ${ionText(r)} – das ist **${restName(r)}** → ${right}.`, `${nm} would be ${f}. The salt contains ${ionText(r)} – that is **${restName(r)}** → ${right}.`))),
-      LOOKALIKE[restName(r)] ? d(sname(cat, lower(LOOKALIKE[restName(r)][0])), "rest-verwechselt", tr(`-${lower(LOOKALIKE[restName(r)][0])} wäre ${LOOKALIKE[restName(r)][1]}. Im Salz steckt ${ionText(r)} – das ist **${restName(r)}** → ${right}.`, `${LOOKALIKE[restName(r)][0]} would be ${LOOKALIKE[restName(r)][1]}. The salt contains ${ionText(r)} – that is **${restName(r)}** → ${right}.`)) : null,
-      NAME_FROM_ACID[a.id] && k === a.protons ? d(sname(cat, lower(NAME_FROM_ACID[a.id])), "rest-aus-saeurename", tr(`Der Säurerest hat einen eigenen Namen: ${ionText(r)} heißt **${restName(r)}** → ${right}.`, `The acid anion has its own name: ${ionText(r)} is called **${restName(r)}** → ${right}.`)) : null,
-      d(sname(cat, lower(a.name.replace("Schweflige Säure", "Schwefligsäure"))), "saeurename-statt-rest", tr(`Im Salznamen steht der **Säurerest**, nicht die Säure: ${restName(r)} statt ${mid(a.name)} → ${right}.`, `The salt name contains the **acid anion**, not the acid: ${restName(r)} instead of ${mid(a.name)} → ${right}.`)),
+      ...family(restName(r), os).map(([nm, f]) => d(sname(cat, lower(nm)), "endung-id-at-it", tr(`-${lower(nm)} wäre ${f}. Im Salz steckt ${ionText(r)} – das ist **${restName(r)}** → ${right}.`, `${nm} would be ${f}. The salt contains ${ionText(r)} – that is **${low(restName(r))}** → ${low(right)}.`))),
+      LOOKALIKE[restName(r)] ? d(sname(cat, lower(LOOKALIKE[restName(r)][0])), "rest-verwechselt", tr(`-${lower(LOOKALIKE[restName(r)][0])} wäre ${LOOKALIKE[restName(r)][1]}. Im Salz steckt ${ionText(r)} – das ist **${restName(r)}** → ${right}.`, `${LOOKALIKE[restName(r)][0]} would be ${LOOKALIKE[restName(r)][1]}. The salt contains ${ionText(r)} – that is **${low(restName(r))}** → ${low(right)}.`)) : null,
+      NAME_FROM_ACID[a.id] && k === a.protons ? d(sname(cat, lower(NAME_FROM_ACID[a.id])), "rest-aus-saeurename", tr(`Der Säurerest hat einen eigenen Namen: ${ionText(r)} heißt **${restName(r)}** → ${right}.`, `The acid anion has its own name: ${ionText(r)} is called **${low(restName(r))}** → ${low(right)}.`)) : null,
+      d(sname(cat, lower(a.name.replace("Schweflige Säure", "Schwefligsäure"))), "saeurename-statt-rest", tr(`Im Salznamen steht der **Säurerest**, nicht die Säure: ${restName(r)} statt ${mid(a.name)} → ${right}.`, `The salt name contains the **acid anion**, not the acid: ${low(restName(r))} instead of ${mid(a.name)} → ${low(right)}.`)),
       ...(os ? a.rests.filter(x => x !== r && isKnownSalt(b, x)).map(x => d(sname(cat, x.part), x.formula.startsWith("H") || r.formula.startsWith("H") ? "hydrogen-verzaehlt" : "stufe-ignoriert",
-        tr(`${cat + x.part} wäre ${F(saltFormula(c, x))} mit ${ionText(x)}. Hier: ${ionText(r)} → **${right}**.`, `${sname(cat, x.part)} would be ${F(saltFormula(c, x))} with ${ionText(x)}. Here: ${ionText(r)} → **${right}**.`))) : []),
+        tr(`${cat + x.part} wäre ${F(saltFormula(c, x))} mit ${ionText(x)}. Hier: ${ionText(r)} → **${right}**.`, `${sname(cat, x.part)} would be ${F(saltFormula(c, x))} with ${ionText(x)}. Here: ${ionText(r)} → **${low(right)}**.`))) : []),
       // Level I ohne Hydrogen-Namen als Falle (erst in Level II eingeführt)
       ...shuffle(acidsFor(os).filter(x => x !== a)).slice(0, 3).map(x => sname(cat, restOf(x).part)),
     ]),
     prompt: words
-      ? tr(`${b.lauge ?? b.name} + ${mid(a.aq ?? a.name)} → **?** + Wasser. ${stepSentence(a, k)}Wie heißt das Salz?`, `${b.lauge ?? b.name} + ${mid(a.aq ?? a.name)} → **?** + water. ${stepSentence(a, k)}What is the salt called?`)
+      ? tr(`${baseLabel(b, os)} + ${acidLabel(a)} → **?** + Wasser H₂O. ${stepSentence(a, k)}Wie heißt das Salz?`, `${baseLabel(b, os)} + ${acidLabel(a)} → **?** + water H₂O. ${stepSentence(a, k)}What is the salt called?`)
       : tr(`Wie heißt das Salz **${F(n.salt)}**?`, `What is the salt **${F(n.salt)}** called?`),
-    hint: os ? tr("Zuerst das Metall, dann der Name des Säurerests (Chlorid, Sulfat, Hydrogencarbonat …).", "First the metal, then the name of the acid anion (chloride, sulfate, hydrogen carbonate …).")
-      : tr("Zuerst das Metall, dann der Name des Säurerests (Chlorid, Sulfat, Phosphat …).", "First the metal, then the name of the acid anion (chloride, sulfate, phosphate …)."),
-    explain: tr(`${F(n.salt)} besteht aus ${ionText(c)} und ${ionText(r)} (${restName(r)}) → **${right}**.`, `${F(n.salt)} consists of ${ionText(c)} and ${ionText(r)} (${restName(r)}) → **${right}**.`),
+    // nur die Regel – kein Beispielname, der die Antwort sein könnte
+    hint: os ? tr("Zuerst das Metall, dann der Name des Säurerests. Achte auf die Endung und darauf, wie viele H noch im Säurerest stecken.", "First the metal, then the name of the acid anion. Watch the ending and how many H are still in the anion.")
+      : tr("Zuerst das Metall, dann der Name des Säurerests. Achte auf die Endung: -id, -it oder -at.", "First the metal, then the name of the acid anion. Watch the ending: -ide, -ite or -ate."),
+    explain: tr(`${F(n.salt)} besteht aus ${ionText(c)} und ${ionText(r)} (${restName(r)}) → **${right}**.`, `${F(n.salt)} consists of ${ionText(c)} and ${ionText(r)} (${low(restName(r))}) → **${low(right)}**.`),
     f: [b.formula, a.formula, n.salt],
   };
 }
@@ -340,7 +356,7 @@ function gleichung(os: boolean): Task {
       s11 !== n.salt ? wrong({ left: n.eq.left, right: [s11, "H2O"] }, [1, 1, 1, 1], "salz-1zu1", tr(`${F(s11)} ist nicht neutral: ${ionText(c)} und ${ionText(r)} → ${F(n.salt)}.`, `${F(s11)} is not neutral: ${ionText(c)} and ${ionText(r)} → ${F(n.salt)}.`)) : null,
       wrong(n.eq, [n.nBase, n.nAcid, 1, 2 * w], "wasser-atome", tr(`Aus einem H⁺ und einem OH⁻ wird **ein** H₂O – also ${w}, nicht ${2 * w}.`, `One H⁺ and one OH⁻ make **one** H₂O – so ${w}, not ${2 * w}.`)),
     ]),
-    prompt: tr(`${stepSentence(a, k)}Welche Gleichung für ${b.lauge ?? b.name} + ${mid(a.aq ?? a.name)} ist richtig ausgeglichen?`, `${stepSentence(a, k)}Which equation for ${lower(b.lauge ?? b.name)} + ${mid(a.aq ?? a.name)} is correctly balanced?`),
+    prompt: tr(`${stepSentence(a, k)}Welche Gleichung für ${baseLabel(b, os)} + ${acidLabel(a)} ist richtig ausgeglichen?`, `${stepSentence(a, k)}Which equation for ${lower(baseLabel(b, os))} + ${acidLabel(a)} is correctly balanced?`),
     hint: tr("Prüfe: gleich viele OH⁻ wie H⁺, Salz neutral, so viele H₂O wie H⁺.", "Check: as many OH⁻ as H⁺, salt neutral, as many H₂O as H⁺."),
     explain: tr(`**${right}** – ${w} OH⁻ + ${w} H⁺ → ${w} H₂O, das Salz ${F(n.salt)} ist neutral.`, `**${right}** – ${w} OH⁻ + ${w} H⁺ → ${w} H₂O, the salt ${F(n.salt)} is neutral.`),
     f: [b.formula, a.formula, n.salt],

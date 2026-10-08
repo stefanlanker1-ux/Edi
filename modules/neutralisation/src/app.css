@@ -53,7 +53,7 @@ button.nw-unit:hover { transform: translateY(-2px); }
 .nw-gap { height: var(--h); border: 2px dashed var(--faint); border-radius: var(--radius-sm); opacity: .7; }
 .nw-link { justify-self: center; width: 3px; height: 100%; border-radius: 2px; background: var(--border); }
 .nw-link.on { background: var(--w-tile-b); }
-.nw-tag { justify-self: center; font-size: .8rem; font-weight: 700; color: var(--muted); padding: 2px 0 4px; }
+.nw-tag { justify-self: center; font-size: .875rem; font-weight: 700; color: var(--muted); padding: 2px 0 4px; }
 .nw-result { display: grid; gap: 4px; justify-items: center; text-align: center; }
 .nw-eq { margin: 0; display: flex; align-items: center; justify-content: center; column-gap: 0; row-gap: 2px; flex-wrap: wrap; font-size: clamp(1.05rem, 5cqw, 1.7rem); font-weight: 800; letter-spacing: -.01em; white-space: pre; }
 .nw-term { white-space: nowrap; }
@@ -68,7 +68,7 @@ button.nw-unit:hover { transform: translateY(-2px); }
 .nw-controls .ui-stepper-ctl { grid-template-columns: 44px minmax(32px, 52px) 44px; }
 .nw-go {
   display: grid; justify-items: center; align-content: center; gap: 2px; min-width: 64px; min-height: 58px; padding: 6px 8px;
-  border-radius: var(--radius-md); border: 1.5px solid var(--accent); background: var(--accent); color: var(--on-accent); font-weight: 750; font-size: .78rem;
+  border-radius: var(--radius-md); border: 1.5px solid var(--accent); background: var(--accent); color: var(--on-accent); font-weight: 750; font-size: .875rem;
 }
 .nw-go:disabled { background: transparent; color: var(--text); opacity: .35; }
 .nw-go.on { background: transparent; color: var(--text); }
@@ -85,7 +85,7 @@ button.nw-unit:hover { transform: translateY(-2px); }
   border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface); transition: transform .1s;
 }
 .ip-chip b { font-size: 1.05rem; font-weight: 800; }
-.ip-chip span { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.ip-chip span { font-size: .875rem; color: var(--muted); font-weight: 600; }
 .ip-chip:active { transform: scale(.96); }
 .ip-chip.on { background: var(--cat-tile-a); border-color: var(--cat-tile-border); color: var(--cat-tile-text); }
 .ip-chip.on span { color: inherit; }
@@ -131,7 +131,7 @@ button.at-rest { min-height: 44px; }
 /* nach der Antwort hat die Rückmeldung Vorrang: Wand flacher, Verbindungsreihe schmal */
 .task-card.answered .answer-nw { gap: 4px; }
 .task-card.answered .answer-nw .nw-grid { --h: clamp(22px, calc(var(--u) * .5), 30px); row-gap: 2px; grid-template-rows: auto auto 6px auto auto; }
-.task-card.answered .answer-nw .nw-balance { font-size: .82rem; }
+.task-card.answered .answer-nw .nw-balance { font-size: .875rem; }
 @media (max-height: 720px) { .task-card.answered .answer-nw .nw-grid { display: none; } }
 .hero-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: 100%; }
 .hero-tiles i { height: 18px; border-radius: var(--radius-sm); border: 1.5px solid; }

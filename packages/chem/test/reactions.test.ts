@@ -51,6 +51,19 @@ describe("balance", () => {
     expect(us).toContain("P4");
     expect(us).not.toContain("P");
   });
+  it("Phosphorpentoxid als Molekül P₄O₁₀, nie P₂O₅ (nur Verhältnisformel)", () => {
+    expect(REACTIONS.flatMap(r => [...r.left, ...r.right])).not.toContain("P2O5");
+    expect(REACTIONS.find(r => r.id === "p4o10")!.coeffs).toEqual([1, 5, 1]);
+    expect(REACTIONS.find(r => r.id === "ph3-o2")!.coeffs).toEqual([4, 8, 1, 6]);
+  });
+  it("keine Gleichung doppelt (auch nicht in beiden Stufen)", () => {
+    const key = (r: { left: string[]; right: string[] }) => `${[...r.left].sort().join("+")}→${[...r.right].sort().join("+")}`;
+    const seen = new Map<string, string>();
+    for (const r of REACTIONS) {
+      expect(seen.get(key(r)), `${r.id} = ${seen.get(key(r))}`).toBeUndefined();
+      seen.set(key(r), r.id);
+    }
+  });
   it("nennt die Elemente mit falscher Bilanz", () => {
     expect(unbalancedElements({ left: ["H2", "O2"], right: ["H2O"] }, [1, 1, 1])).toEqual(["O"]);
     expect(unbalancedElements({ left: ["H2", "O2"], right: ["H2O"] }, [2, 1, 1])).toEqual(["H", "O"]);

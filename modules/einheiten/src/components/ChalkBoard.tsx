@@ -3,7 +3,7 @@
 // Seltene Vorsilben (nm, km, MW …) direkt als Zehnerpotenz, sonst die Kette über die Nachbareinheiten.
 
 import { mul, unitSi, div, eq, ONE, isTerminating, fmt, prefixStep, type Solution } from "@lern/units";
-import { DIV, Num, RowChain, RowView, sciNeeded, sci, timeMixed, numText } from "../format.tsx";
+import { DIV, Num, RowChain, RowView, sciNeeded, sci, timeMixed, numText, shownExact } from "../format.tsx";
 import { tr } from "@lern/i18n";
 
 export function ChalkBoard({ s, os, title = tr("Rechenweg", "Working") }: { s: Solution; os: boolean; title?: string }) {
@@ -16,6 +16,9 @@ export function ChalkBoard({ s, os, title = tr("Rechenweg", "Working") }: { s: S
   const st = os ? prefixStep(from, to) : null;
   const short = !!st && st.diff !== 0;
   const P = ({ k }: { k: number }) => <>10<sup>{k < 0 ? `−${-k}` : k}</sup></>;
+  // Einsetzen wie im Quiztext: endet F nicht, nur „a : Teiler“ (0,072 : 0,036) – nie mit gerundetem F („0,072 · ≈ 27,7778“)
+  const viaDiv = !short && !!divisor && !eq(divisor, ONE);
+  const showMul = !short && (!viaDiv || isTerminating(rel.F));
   return (
     <figure className="chalkboard" aria-label={`${tr("Rechenweg", "Working")}: ${numText(value)} ${from} = ${numText(result)} ${to}`}>
       <figcaption className="cb-title">{title}</figcaption>
@@ -40,10 +43,9 @@ export function ChalkBoard({ s, os, title = tr("Rechenweg", "Working") }: { s: S
       <div className="cb-eq cb-result">
         <span className="chain">
           <span className="chain-part"><Num v={value} /> {from}</span>
-          {short
-            ? <span className="chain-part"><span className="eq">=</span><Num v={value} /><span className="op"> · </span><P k={st.exp} /> {to}</span>
-            : <span className="chain-part"><span className="eq">=</span><Num v={value} /><span className="op"> · </span><Num v={rel.F} /> {to}</span>}
-          {!short && divisor && !eq(divisor, ONE) && <span className="chain-part"><span className="eq">=</span><Num v={value} /><span className="op"> {DIV} </span><Num v={divisor} /> {to}</span>}
+          {short && <span className="chain-part"><span className="eq">=</span><Num v={value} /><span className="op"> · </span><P k={st.exp} /> {to}</span>}
+          {showMul && <span className="chain-part"><span className="eq">{shownExact(rel.F) ? "=" : "≈"}</span><Num v={value} /><span className="op"> · </span><Num v={rel.F} sign={false} /> {to}</span>}
+          {viaDiv && <span className="chain-part"><span className="eq">=</span><Num v={value} /><span className="op"> {DIV} </span><Num v={divisor} /> {to}</span>}
           <span className="chain-part"><span className="eq">{approx ? "≈" : "="}</span><span className="cb-res">{approx ? fmt(result).text : <Num v={result} className="res-num" />} {to}</span></span>
           {os && sciNeeded(result) && <span className="chain-part"><span className="eq">=</span>{sci(result)} {to}</span>}
           {mixed && <span className="chain-part"><span className="eq">=</span>{mixed}</span>}

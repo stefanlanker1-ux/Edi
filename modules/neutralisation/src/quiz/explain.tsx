@@ -33,7 +33,7 @@ const TEXT_DE: Record<string, Ex> = {
     "Essig- und Ameisensäure sind **einprotonig**: Nur das H der COOH-Gruppe ist sauer.",
   ] },
   "os-2": { b: "caoh2", a: "h3po4", points: [
-    "Eine **Formeleinheit** ist eine Einheit der Formel: 1 Ca(OH)₂ bringt 1 Ca²⁺ und 2 OH⁻.",
+    "Eine **Formeleinheit** ist die kleinste Gruppe, die die Formel angibt – bei Hydroxiden und Salzen aus Ionen: 1 Ca(OH)₂ = 1 Ca²⁺ + 2 OH⁻.",
     "Zahl der H₂O = Zahl der OH⁻ = Zahl der H⁺ = kgV aus Ladung des Metall-Ions und abgegebenen H⁺.",
     "3 Ca(OH)₂ + 2 H₃PO₄ → Ca₃(PO₄)₂ + 6 H₂O.",
     "Gibt die Säure nur einen Teil der H⁺ ab, entsteht ein **Hydrogensalz**: NaOH + H₃PO₄ → NaH₂PO₄ + H₂O.",
@@ -42,6 +42,7 @@ const TEXT_DE: Record<string, Ex> = {
     "Das Salz aus Metall-Ion und Säurerest – Ladungen ausgleichen, Klammern bei mehratomigen Ionen.",
     "Achtung: Sulfid S²⁻ ≠ Sulfit SO₃²⁻ ≠ Sulfat SO₄²⁻; Carbonat ≠ Hydrogencarbonat.",
     "Ca(OH)₂ + 2 H₂CO₃ → Ca(HCO₃)₂ + 2 H₂O (Calciumhydrogencarbonat).",
+    "Laugen: **Natronlauge** NaOH, **Kalilauge** KOH, **Kalkwasser** Ca(OH)₂, **Barytwasser** Ba(OH)₂ – Hydroxide in Wasser gelöst.",
   ] },
 };
 const TEXT_EN: Record<string, Ex> = {
@@ -67,7 +68,7 @@ const TEXT_EN: Record<string, Ex> = {
     "Acetic and formic acid are **monoprotic**: only the H of the COOH group is acidic.",
   ] },
   "os-2": { b: "caoh2", a: "h3po4", points: [
-    "A **formula unit** is one unit of the formula: 1 Ca(OH)₂ brings 1 Ca²⁺ and 2 OH⁻.",
+    "A **formula unit** is the smallest group the formula stands for – in hydroxides and salts made of ions: 1 Ca(OH)₂ = 1 Ca²⁺ + 2 OH⁻.",
     "Number of H₂O = number of OH⁻ = number of H⁺ = LCM of the metal ion's charge and the H⁺ given off.",
     "3 Ca(OH)₂ + 2 H₃PO₄ → Ca₃(PO₄)₂ + 6 H₂O.",
     "If the acid gives off only some of its H⁺, a **hydrogen salt** forms: NaOH + H₃PO₄ → NaH₂PO₄ + H₂O.",
@@ -76,6 +77,7 @@ const TEXT_EN: Record<string, Ex> = {
     "The salt from metal ion and acid anion – balance charges, brackets for polyatomic ions.",
     "Careful: sulfide S²⁻ ≠ sulfite SO₃²⁻ ≠ sulfate SO₄²⁻; carbonate ≠ hydrogen carbonate.",
     "Ca(OH)₂ + 2 H₂CO₃ → Ca(HCO₃)₂ + 2 H₂O (calcium hydrogen carbonate).",
+    "Alkalis: **sodium hydroxide solution** NaOH, **potassium hydroxide solution** KOH, **limewater** Ca(OH)₂, **baryta water** Ba(OH)₂ – hydroxides dissolved in water.",
   ] },
 };
 const TEXT = tr(TEXT_DE, TEXT_EN);

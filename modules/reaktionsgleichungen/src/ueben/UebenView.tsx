@@ -29,7 +29,7 @@ export function UebenView() {
     <BalanceCard key={id} r={r} coeffs={coeffs} hint={HINTS[id]} model={model}
       onChange={(k, v) => u.setCoeff(id, k, v)}
       onSolved={() => u.solved(id)}
-      onSolution={() => u.showSolution(id, r.coeffs)}
+      onSolution={() => u.showSolution(id, r.coeffs)} peeked={!!u.peeked[id]}
       onNext={onNext} nextLabel={nextLabel}
       head={
         <div className="rg-head rg-ueben-head">

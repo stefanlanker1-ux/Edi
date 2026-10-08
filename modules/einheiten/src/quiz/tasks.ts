@@ -70,12 +70,22 @@ function roundTo(v: Q, k: number): Q {
   if ((m < 0n ? -m : m) * 2n >= v.d) r += v.n < 0n ? -1n : 1n;
   return q(r, 10n ** BigInt(k));
 }
-/** gerundetes Ergebnis ohne „≈“: endende Zahlen auf k Stellen, nicht endende wie fmt (kleine Zahlen mit gültigen Ziffern) */
-export const approxText = (v: Q, k: number) => (isTerminating(v) ? T(roundTo(v, k)) : fmt(v, { digits: k }).text);
+/**
+ * gerundetes Ergebnis ohne „≈“ mit fester Stellenzahl: auf 2 Stellen 6,80 (nicht 6,8), 13,00.
+ * Rundet die Zahl auf 0, gültige Ziffern wie fmt (0,000 12) – sonst stünde dort nur „0,00“.
+ */
+export function approxText(v: Q, k: number): string {
+  const r = roundTo(v, k);
+  if (r.n === 0n) return isTerminating(v) ? T(v) : fmt(v, { digits: k }).text;
+  const sep = tr(",", ".");
+  const [int, frac = ""] = T(r).split(sep);
+  const digits = frac.replace(/\s/g, "").padEnd(k, "0");
+  return k ? `${int}${sep}${digits.length <= 4 ? digits : digits.replace(/(\d{3})(?=\d)/g, "$1\u202f")}` : int;
+}
 
 function makeInput(value: string, from: string, to: string, s: Solution, round?: number, table?: string[]): Task {
   if (round !== undefined && tidy(s.result, round)) round = undefined; // exaktes Ergebnis: nicht runden
-  const res = round !== undefined ? `≈ ${approxText(s.result, round)}` : T(s.result);
+  const res = round !== undefined ? approxText(s.result, round) : T(s.result);
   // exakter Rechenweg: endet F nicht, durch den Kehrwert teilen (0,072 : 0,036), nie mit gerundetem F ohne „≈“
   const how = s.divisor ? `${value} ${DIV} ${T(s.divisor)}` : `${value} · ${isTerminating(s.rel.F) ? "" : "≈ "}${T(s.rel.F)}`;
   const rel = `1 ${from} = ${isTerminating(s.rel.F) ? T(s.rel.F) : s.divisor ? `1/${T(s.divisor)}` : `≈ ${T(s.rel.F)}`} ${to}`;
@@ -90,7 +100,8 @@ function makeInput(value: string, from: string, to: string, s: Solution, round?:
       : same ? tr(`${from} und ${to} sind gleich groß. Wie viele ${to} sind 1 ${from}?`, `${from} and ${to} are the same size. How many ${to} are 1 ${from}?`)
       : s.bigger ? tr(`Große → kleine Einheit: Die Zahl wird größer. Wie viele ${to} sind 1 ${from}?`, `Large → small unit: the number gets bigger. How many ${to} are 1 ${from}?`)
       : tr(`Kleine → große Einheit: Die Zahl wird kleiner. Wie viele ${from} sind 1 ${to}?`, `Small → large unit: the number gets smaller. How many ${from} are 1 ${to}?`),
-    explain: `${comp ? rowsText(s) : rel} → ${how} = **${res} ${to}**.${s.shift ? tr(` Komma um ${Math.abs(s.shift)} ${Math.abs(s.shift) === 1 ? "Stelle" : "Stellen"} nach ${s.shift > 0 ? "rechts" : "links"}.`,
+    // gerundet: „a · F ≈ x“ (nie „= ≈ x“)
+    explain: `${comp ? rowsText(s) : rel} → ${how} ${round !== undefined ? "≈" : "="} **${res} ${to}**.${s.shift ? tr(` Komma um ${Math.abs(s.shift)} ${Math.abs(s.shift) === 1 ? "Stelle" : "Stellen"} nach ${s.shift > 0 ? "rechts" : "links"}.`,
       ` Move the decimal point ${Math.abs(s.shift)} ${Math.abs(s.shift) === 1 ? "place" : "places"} to the ${s.shift > 0 ? "right" : "left"}.`) : ""}`,
   };
 }
@@ -171,7 +182,11 @@ function ruleTask(units: string[]): Task {
         ? tr(`${a} ist die größere Einheit – in ${b} braucht man mehr davon: Die Zahl wird größer, also mal.`, `${a} is the larger unit – you need more ${b}: the number gets bigger, so multiply.`)
         : tr(`${a} ist die kleinere Einheit – in ${b} braucht man weniger davon: Die Zahl wird kleiner, also geteilt.`, `${a} is the smaller unit – you need fewer ${b}: the number gets smaller, so divide.`)),
       ...kk.map(x => dis(`${op} ${T(x)}`, tr(`Die Richtung stimmt, die Zahl nicht. Auf der Pfeilkette: ${chain}.`, `The direction is right, the number is not. On the arrow chain: ${chain}.`))),
-      ...kk.map(x => `${other} ${T(x)}`),
+      ...kk.map(x => dis(`${other} ${T(x)}`, s.bigger
+        ? tr(`Richtung und Zahl stimmen nicht. ${a} ist die größere Einheit, also mal. Auf der Pfeilkette: ${chain}.`,
+          `Neither the direction nor the number is right. ${a} is the larger unit, so multiply. On the arrow chain: ${chain}.`)
+        : tr(`Richtung und Zahl stimmen nicht. ${a} ist die kleinere Einheit, also geteilt. Auf der Pfeilkette: ${chain}.`,
+          `Neither the direction nor the number is right. ${a} is the smaller unit, so divide. On the arrow chain: ${chain}.`))),
     ]),
     conv: { value, from: a, to: b },
     prompt: tr(`Du rechnest **${value} ${a}** in **${b}** um. Wie rechnest du?`, `You convert **${value} ${a}** to **${b}**. What do you do?`),
@@ -300,10 +315,26 @@ const ESTIMATE_HINT = {
   cube: tr("Stell dir Würfel vor. 1 cm³: Kante 1 cm. 1 dm³: Kante 10 cm. 1 m³: Kante 1 m.", "Picture cubes. 1 cm³: edge 1 cm. 1 dm³: edge 10 cm. 1 m³: edge 1 m."),
   liter: tr("Stell dir Würfel vor. 1 Liter füllt einen Würfel mit 10 cm Kantenlänge.", "Picture cubes. 1 litre fills a cube with 10 cm edges."),
 };
+/** Größe einer Einheit zum Vorstellen (Rückmeldung bei falscher Einheit) */
+const PICTURE: Record<string, [string, string]> = {
+  "mm²": ["ein Quadrat mit 1 mm Seite", "a square with 1 mm sides"], "cm²": ["ein Quadrat mit 1 cm Seite", "a square with 1 cm sides"],
+  "dm²": ["ein Quadrat mit 10 cm Seite", "a square with 10 cm sides"], "m²": ["ein Quadrat mit 1 m Seite", "a square with 1 m sides"],
+  a: ["ein Quadrat mit 10 m Seite", "a square with 10 m sides"], ha: ["ein Quadrat mit 100 m Seite", "a square with 100 m sides"],
+  "km²": ["ein Quadrat mit 1 km Seite", "a square with 1 km sides"],
+  "mm³": ["ein Würfel mit 1 mm Kante", "a cube with 1 mm edges"], "cm³": ["ein Würfel mit 1 cm Kante", "a cube with 1 cm edges"],
+  "dm³": ["ein Würfel mit 10 cm Kante", "a cube with 10 cm edges"], "m³": ["ein Würfel mit 1 m Kante", "a cube with 1 m edges"],
+  ml: ["ein Würfel mit 1 cm Kante", "a cube with 1 cm edges"], l: ["ein Würfel mit 10 cm Kante", "a cube with 10 cm edges"],
+  hl: ["100 l, so viel wie 100 Würfel mit 10 cm Kante", "100 l, as much as 100 cubes with 10 cm edges"],
+};
 function estimateTask(filter: string[]): Task {
   const [text, right, wrongs] = pick(ESTIMATES.filter(e => filter.includes(e[1])));
+  const n = text.match(/(\d[\d,.]*) __/)?.[1] ?? "1";
+  const why = (u: string) => {
+    const big = toNumber(unitSi(u)) > toNumber(unitSi(right)), pic = tr(PICTURE[u][0], PICTURE[u][1]);
+    return tr(`${n} ${u} wäre viel zu ${big ? "groß" : "klein"}: 1 ${u} ist ${pic}.`, `${n} ${u} would be far too ${big ? "large" : "small"}: 1 ${u} is ${pic}.`);
+  };
   return {
-    ...mc(right, wrongs),
+    ...mc(right, wrongs.map(u => dis(u, why(u)))),
     prompt: `${tr("Welche Einheit passt?", "Which unit fits?")} ${text.replace("__", "▢")}`,
     hint: /²|\ba\b|ha/.test(right) ? ESTIMATE_HINT.area : /l$/.test(right) ? ESTIMATE_HINT.liter : ESTIMATE_HINT.cube,
     explain: `${text.replace("__", `**${right}**`)} (${unitName(right)})`,
@@ -362,15 +393,23 @@ const NAMED_PAIRS: [string, string][] = [["hPa", "bar"], ["bar", "Pa"], ["N/cm²
 
 function factorComp(): Task {
   const [a, b, right, wrongs] = pick([
-    ["km/h", "m/s", num("1/3,6"), [dis(num("3,6"), tr("Das ist 1 m/s in km/h – die Gegenrichtung.", "That is 1 m/s in km/h – the other direction.")), dis("1000", tr("1 km = 1000 m, aber 1 h hat auch 3600 s: 1000 m / 3600 s.", "1 km = 1000 m, but 1 h also has 3600 s: 1000 m / 3600 s.")), num("0,36")]],
-    ["m/s", "km/h", num("3,6"), [dis(num("1/3,6"), tr("Das ist 1 km/h in m/s – die Gegenrichtung.", "That is 1 km/h in m/s – the other direction.")), dis("1000", tr("1 m = 0,001 km und 1 s = 1/3600 h: 0,001 km / (1/3600 h).", "1 m = 0.001 km and 1 s = 1/3600 h: 0.001 km / (1/3600 h).")), "36"]],
-    ["g/cm³", "kg/m³", "1000", [dis("1", tr("1 g/cm³ = 1 kg/dm³ – gefragt ist aber kg/m³.", "1 g/cm³ = 1 kg/dm³ – but the question asks for kg/m³.")), dis(num("0,001"), tr("Gegenrichtung: 1 kg/m³ = 0,001 g/cm³.", "Other direction: 1 kg/m³ = 0.001 g/cm³.")), "100"]],
-    ["kWh", "kJ", "3600", [dis("1000", tr("kW bleibt kW – nur h wird zu s: 1 h = 3600 s.", "kW stays kW – only h becomes s: 1 h = 3600 s.")), dis("60", tr("1 h = 60 min, gefragt sind aber Sekunden: 3600 s.", "1 h = 60 min, but the question asks for seconds: 3600 s.")), "360"]],
-    ["bar", "hPa", "1000", [dis("100", tr("1 bar = 100 000 Pa und 1 hPa = 100 Pa.", "1 bar = 100 000 Pa and 1 hPa = 100 Pa.")), dis("100 000", tr("Das wären Pa: 1 bar = 100 000 Pa.", "That would be Pa: 1 bar = 100 000 Pa.")), "10"]],
-    ["Ah", "C", "3600", [dis("60", tr("1 C = 1 A · s und 1 h = 3600 s.", "1 C = 1 A · s and 1 h = 3600 s.")), dis("1000", tr("Hier gibt es keine Vorsilbe – 1 h = 3600 s.", "There is no prefix here – 1 h = 3600 s.")), num("3,6")]],
-    ["l/min", "l/h", "60", [dis("1/60", tr("Gegenrichtung: 1 l/h = 1/60 l/min.", "Other direction: 1 l/h = 1/60 l/min.")), dis("3600", tr("1 h = 60 min (nicht Sekunden).", "1 h = 60 min (not seconds).")), "100"]],
-    ["m³/h", "l/h", "1000", [dis("100", tr("1 m³ = 1000 dm³ = 1000 l.", "1 m³ = 1000 dm³ = 1000 l.")), dis(num("0,001"), tr("Gegenrichtung: 1 l = 0,001 m³.", "Other direction: 1 l = 0.001 m³.")), "10"]],
-  ] as [string, string, string, (string | ReturnType<typeof dis>)[]][]);
+    ["km/h", "m/s", num("1/3,6"), [dis(num("3,6"), tr("Das ist 1 m/s in km/h – die Gegenrichtung.", "That is 1 m/s in km/h – the other direction.")), dis("1000", tr("1 km = 1000 m, aber 1 h hat auch 3600 s: 1000 m / 3600 s.", "1 km = 1000 m, but 1 h also has 3600 s: 1000 m / 3600 s.")),
+      dis(num("0,36"), tr("1000 m / 3600 s = 1/3,6 m/s ≈ 0,28 m/s, nicht 0,36.", "1000 m / 3600 s = 1/3.6 m/s ≈ 0.28 m/s, not 0.36."))]],
+    ["m/s", "km/h", num("3,6"), [dis(num("1/3,6"), tr("Das ist 1 km/h in m/s – die Gegenrichtung.", "That is 1 km/h in m/s – the other direction.")), dis("1000", tr("1 m = 0,001 km und 1 s = 1/3600 h: 0,001 km / (1/3600 h).", "1 m = 0.001 km and 1 s = 1/3600 h: 0.001 km / (1/3600 h).")),
+      dis("36", tr("Eine Null zu viel: 0,001 km / (1/3600 h) = 3600 : 1000 km/h = 3,6 km/h.", "One zero too many: 0.001 km / (1/3600 h) = 3600 ÷ 1000 km/h = 3.6 km/h."))]],
+    ["g/cm³", "kg/m³", "1000", [dis("1", tr("1 g/cm³ = 1 kg/dm³ – gefragt ist aber kg/m³.", "1 g/cm³ = 1 kg/dm³ – but the question asks for kg/m³.")), dis(num("0,001"), tr("Gegenrichtung: 1 kg/m³ = 0,001 g/cm³.", "Other direction: 1 kg/m³ = 0.001 g/cm³.")),
+      dis("100", tr("Volumen: 1 m³ = 1 000 000 cm³ (· 100 · 100 · 100), dazu 1 kg = 1000 g: 1 000 000 : 1000 = 1000.", "Volume: 1 m³ = 1 000 000 cm³ (· 100 · 100 · 100), and 1 kg = 1000 g: 1 000 000 ÷ 1000 = 1000."))]],
+    ["kWh", "kJ", "3600", [dis("1000", tr("kW bleibt kW – nur h wird zu s: 1 h = 3600 s.", "kW stays kW – only h becomes s: 1 h = 3600 s.")), dis("60", tr("1 h = 60 min, gefragt sind aber Sekunden: 3600 s.", "1 h = 60 min, but the question asks for seconds: 3600 s.")),
+      dis("360", tr("Eine Null zu wenig: 1 h = 3600 s, also 1 kWh = 3600 kJ.", "One zero too few: 1 h = 3600 s, so 1 kWh = 3600 kJ."))]],
+    ["bar", "hPa", "1000", [dis("100", tr("1 bar = 100 000 Pa und 1 hPa = 100 Pa.", "1 bar = 100 000 Pa and 1 hPa = 100 Pa.")), dis("100 000", tr("Das wären Pa: 1 bar = 100 000 Pa.", "That would be Pa: 1 bar = 100 000 Pa.")),
+      dis("10", tr("1 bar = 100 000 Pa und 1 hPa = 100 Pa: 100 000 : 100 = 1000.", "1 bar = 100 000 Pa and 1 hPa = 100 Pa: 100 000 ÷ 100 = 1000."))]],
+    ["Ah", "C", "3600", [dis("60", tr("1 C = 1 A · s und 1 h = 3600 s.", "1 C = 1 A · s and 1 h = 3600 s.")), dis("1000", tr("Hier gibt es keine Vorsilbe – 1 h = 3600 s.", "There is no prefix here – 1 h = 3600 s.")),
+      dis(num("3,6"), tr("3,6 gehört zu km/h und m/s. Hier: 1 h = 3600 s, also 1 Ah = 3600 A · s = 3600 C.", "3.6 belongs to km/h and m/s. Here: 1 h = 3600 s, so 1 Ah = 3600 A · s = 3600 C."))]],
+    ["l/min", "l/h", "60", [dis("1/60", tr("Gegenrichtung: 1 l/h = 1/60 l/min.", "Other direction: 1 l/h = 1/60 l/min.")), dis("3600", tr("1 h = 60 min (nicht Sekunden).", "1 h = 60 min (not seconds).")),
+      dis("100", tr("Zeit rechnet nicht in Zehnern: 1 h = 60 min.", "Time does not work in tens: 1 h = 60 min."))]],
+    ["m³/h", "l/h", "1000", [dis("100", tr("1 m³ = 1000 dm³ = 1000 l.", "1 m³ = 1000 dm³ = 1000 l.")), dis(num("0,001"), tr("Gegenrichtung: 1 l = 0,001 m³.", "Other direction: 1 l = 0.001 m³.")),
+      dis("10", tr("Volumen: jede Stufe · 10 · 10 · 10. 1 m³ = 1000 dm³ = 1000 l.", "Volume: each step · 10 · 10 · 10. 1 m³ = 1000 dm³ = 1000 l."))]],
+  ] as [string, string, string, ReturnType<typeof dis>[]][]);
   return {
     ...mc(right, wrongs),
     conv: { value: "1", from: a, to: b },
@@ -468,7 +507,9 @@ export function storedValue(v: Q): Record<string, number> {
 export function storedText(values: Record<string, number>): string {
   if (values.n !== undefined && values.d !== undefined) return fmt(q(values.n, values.d)).text;
   const x = values.x ?? values.v; // v: Speicherform früherer Versionen
-  return x === undefined ? "" : String(x).replace(".", tr(",", "."));
+  if (x === undefined) return "";
+  const v = Number.isFinite(x) ? parseQ(String(x)) : null; // „10000“ → „10 000“ wie alle Zahlen
+  return v ? T(v) : String(x).replace(".", tr(",", "."));
 }
 /** Antwort prüfen (exakt bzw. mit Rundung) */
 export function checkInput(t: Extract<Task, { kind: "input" }>, input: string): boolean | null {

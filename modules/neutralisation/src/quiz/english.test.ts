@@ -8,10 +8,18 @@ test("Quiz auf Englisch ohne deutsche Reste", async () => {
   setLang("en", false);
   const tasks = await import("./tasks.ts");
   const miss = await import("./misconceptions.ts").catch(() => ({}));
-  const texts = new Set<string>(), long = new Set<string>(), low = new Set<string>();
-  // Sätze beginnen groß (auch Rückmeldungen: „Nitrite would be NO₂⁻.“, nicht „nitrite would be …“)
-  const lowStart = (t: { prompt: string; hint: string; explain: string; why?: Record<number, string> }) =>
-    [t.prompt, t.hint, t.explain, ...Object.values(t.why ?? {})].forEach(s => { if (/(?:^|[.!?] )[a-z]/.test(s)) low.add(s); });
+  const texts = new Set<string>(), long = new Set<string>(), low = new Set<string>(), caps = new Set<string>(), leak = new Set<string>();
+  // Sätze beginnen groß („Nitrite would be NO₂⁻.“), Namen mitten im Satz klein („is called chloride“, „(potassium phosphate)“),
+  // der Tipp nennt kein Wort der richtigen Antwort
+  const lowStart = (t: { prompt: string; hint: string; explain: string; why?: Record<number, string>; options?: string[]; answer?: number }) => {
+    for (const s of [t.prompt, t.hint, t.explain, ...Object.values(t.why ?? {})]) {
+      if (/(?:^|[.!?] )[a-z]/.test(s)) low.add(s);
+      for (const sentence of s.replace(/\*\*/g, "").split(/[.!?]\s+/))
+        if (sentence.split(/\s+/).slice(1).some(w => /^[(\[]?[A-Z][a-z]{2,}/.test(w))) caps.add(sentence);
+    }
+    if (t.options && t.answer !== undefined)
+      for (const w of t.options[t.answer].match(/\p{L}{4,}/gu) ?? []) if (t.hint.toLowerCase().includes(w.toLowerCase())) leak.add(`${w} | ${t.hint}`);
+  };
   const walk = (x: unknown): void => {
     if (typeof x === "string") texts.add(x);
     else if (Array.isArray(x)) x.forEach(walk);
@@ -32,4 +40,6 @@ test("Quiz auf Englisch ohne deutsche Reste", async () => {
   expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s))).toEqual([]);
   expect([...long]).toEqual([]);
   expect([...low]).toEqual([]);
+  expect([...caps]).toEqual([]);
+  expect([...leak]).toEqual([]);
 }, 120_000);

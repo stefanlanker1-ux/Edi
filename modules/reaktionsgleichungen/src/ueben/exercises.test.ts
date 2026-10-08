@@ -14,6 +14,8 @@ describe("Übungen", () => {
   it("je Stufe und Schwierigkeit genau 10, insgesamt 60 verschiedene", () => {
     for (const s of ["us", "os"] as const) for (const l of LVLS) expect(EXERCISES[s][l]).toHaveLength(10);
     expect(new Set(all).size).toBe(60);
+    // auch als Gleichung verschieden (nicht dieselbe Reaktion unter zwei Kennungen)
+    expect(new Set(all.map(id => { const r = REACTION_BY_ID[id]; return `${r.left.join("+")}→${r.right.join("+")}`; })).size).toBe(60);
   });
   it("keine Gleichung aus dem Experimentieren", () => {
     for (const s of ["us", "os"] as const) for (const id of STARTS[s]) expect(LVLS.flatMap(l => EXERCISES[s][l])).not.toContain(id);
@@ -39,6 +41,9 @@ describe("Übungen", () => {
       });
       // kein Satz, der die Lösung vorwegnimmt („schon ausgeglichen“) oder den Denkschritt erledigt („F₂ bringt 2 F-Atome, jedes HF nur eines“)
       expect(h, id).not.toMatch(/schon ausgeglichen|already balanced|\bnur eine?s?\b|\bonly one\b/);
+      // kein „X hat 4 H-Atome, jedes H₂ liefert 2 davon“: keine Atomzahlen (auch nicht als Liste „2 C, 4 H“), kein „je/jedes/each“ – nur womit beginnen, was vergleichen
+      expect(h, `${id}: Atomzahl`).not.toMatch(/\d+\s*(C|H|N|O|S|P|F|Cl|Br|I)(-|\s)[Aa]tom|\b(ein|eine|einem|zwei|drei|one|two|three)\s+(C|H|N|O|S|P|F|Cl|Br|I)(-|\s)[Aa]tom|\d+ (C|H|N|O|S|P|Cl)(,| und| and)/);
+      expect(h, `${id}: je/jedes`).not.toMatch(/\bje\b|\b[Jj]ede[smnr]?\b|\b[Ee]ach\b/);
     }
   });
 });

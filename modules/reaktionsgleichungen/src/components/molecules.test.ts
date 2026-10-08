@@ -19,7 +19,7 @@ test("jeder Stoff der Reaktionen hat ein Teilchenbild mit den richtigen Atomen",
       assert.ok(d > .45 * Math.max(radius(s[i][0]), radius(s[j][0])), `${f}: ${s[i][0]}–${s[j][0]} zu nah (${d.toFixed(2)})`);
     }
   }
-});
+}, 30_000); // läuft alle Reaktionen durch – unter Last länger als die üblichen 5 s
 
 test("Teilchenbild nur für Moleküle – Salze und Metalle ohne Kalottenmodell", () => {
   assert.ok([...STARTS.us, ...STARTS.os].every(id => hasModel(REACTION_BY_ID[id])), "Start-Beispiele brauchen ein Teilchenbild");

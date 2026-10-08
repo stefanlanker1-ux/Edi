@@ -13,13 +13,15 @@ import { tr } from "@lern/i18n";
 
 const gcdAll = (xs: number[]) => xs.reduce((g, x) => { while (x) [g, x] = [x, g % x]; return g; }, 0);
 
-export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr("Weiter", "Next"), onSolved, onSolution, hint, model = true }: {
+export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr("Weiter", "Next"), onSolved, onSolution, peeked = false, hint, model = true }: {
   r: Reaction; coeffs: number[]; onChange: (k: number, v: number) => void;
   head: ReactNode;
   onNext?: () => void; nextLabel?: string;
   onSolved?: () => void;
   /** nach zwei Fehlversuchen: Lösung zeigen */
   onSolution?: () => void;
+  /** Lösung angesehen: nach „Prüfen“ steht dabei, warum das Kästchen im Fortschritt leer bleibt */
+  peeked?: boolean;
   /** Hinweis zu dieser Gleichung (Knopf „Tipp“) */
   hint?: string;
   /** Teilchenbild zeigen (Üben: einklappbar, nur Text) */
@@ -47,6 +49,7 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
         {!balanced && unbalancedElements(r, coeffs).map(el => <Tag key={el} tone="signal">≠ {el}</Tag>)}
         {balanced && !ok && <Tag tone="signal">{tr("kürzen :", "simplify ÷")} {g}</Tag>}
         {ok && <Tag tone="ok">✓ {tr("ausgeglichen", "balanced")}</Tag>}
+        {ok && peeked && <Tag>{tr("Lösung angesehen – kein ✓", "Solution viewed – no ✓")}</Tag>}
         {canAnim && <AnimButton r={r} coeffs={coeffs} />}
       </> : undefined}
       controls={

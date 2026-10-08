@@ -123,21 +123,21 @@
 .rl-hl { fill: var(--ruler-hl); }
 .rl-tick { stroke: var(--ruler-ink); stroke-width: 1.4; }
 .rl-tick.minor { stroke-width: .9; }
-.rl-num { font-size: 11px; fill: var(--ruler-ink); text-anchor: middle; font-weight: 600; }
+.rl-num { font-size: 17px; fill: var(--ruler-ink); text-anchor: middle; font-weight: 600; }
 .viz-beaker .rl-num, .viz-clock .rl-num { fill: var(--text); }
 .viz-beaker .rl-tick, .viz-clock .rl-tick { stroke: var(--text); }
-.rl-num.sm { font-size: 9.5px; }
+.rl-num.sm { font-size: 17px; }
 .rl-num.left { text-anchor: start; }
-.rl-unit { font-size: 12px; font-weight: 800; fill: var(--text); }
+.rl-unit { font-size: 17px; font-weight: 800; fill: var(--text); }
 .rl-zoom { stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 4 3; }
 .rl-brace, .ar-brace { fill: none; stroke: var(--bad); stroke-width: 1.6; }
-.rl-cap, .ar-cap { font-size: 14px; font-weight: 800; text-anchor: middle; fill: var(--bad); }
+.rl-cap, .ar-cap { font-size: 18px; font-weight: 800; text-anchor: middle; fill: var(--bad); }
 .ar-sq { fill: var(--surface); stroke: var(--text); stroke-width: 1.6; }
 .ar-line, .cb-line { stroke: var(--muted); stroke-width: .7; }
 .ar-row { fill: var(--grid-row); }
 .ar-cell { fill: var(--grid-hl); }
-.ar-lab { font-size: 12px; font-weight: 700; text-anchor: middle; fill: var(--text); }
-.ar-note { font-size: 11px; fill: var(--text); }
+.ar-lab { font-size: 16px; font-weight: 700; text-anchor: middle; fill: var(--text); }
+.ar-note { font-size: 16px; fill: var(--text); }
 .ar-note.strong { font-weight: 800; fill: var(--accent); }
 .ar-note, .ar-lab, .ar-cap, .rl-cap { paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
 .ar-arrow { stroke: var(--accent); stroke-width: 1.6; fill: none; }
@@ -150,14 +150,14 @@
 .bk-water { fill: var(--water); }
 .ck-face { fill: var(--surface); stroke: var(--text); stroke-width: 2; }
 .ck-sweep { fill: var(--grid-row); }
-.ck-center { font-size: 16px; font-weight: 800; text-anchor: middle; fill: var(--accent); }
+.ck-center { font-size: 18px; font-weight: 800; text-anchor: middle; fill: var(--accent); }
 .viz-subst { justify-items: stretch; }
 .sf-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 4px; }
 .sf-list li { display: flex; align-items: center; gap: 4px; }
 .sf-box { padding: 6px 10px; border-radius: var(--radius-md); background: var(--surface-2); border: 1.5px solid var(--border); font-weight: 700; font-size: 1.1rem; }
 .sf-end .sf-box { background: var(--accent-soft); border-color: var(--accent); }
 .sf-arrow { display: grid; justify-items: center; color: var(--muted); font-size: 1.1rem; line-height: 1; }
-.sf-arrow em { font-style: normal; font-weight: 700; font-size: .66rem; }
+.sf-arrow em { font-style: normal; font-weight: 700; font-size: .875rem; }
 
 /* ── Stellenwerttafel ──────────────────────────────────────────────────── */
 .pv-wrap { margin: 12px 0 6px; padding-right: 6px; } /* Platz für den Komma-Punkt hinter der letzten Spalte */
@@ -165,20 +165,20 @@
 .pv th, .pv td { border: 1.5px solid var(--border); text-align: center; }
 .pv th { font-size: .85rem; padding: 4px 6px; background: var(--surface-2); }
 .pv .pv-h { font-size: 1rem; font-weight: 800; line-height: 1.05; min-width: 34px; vertical-align: bottom; }
-.pv .pv-h small { display: block; font-size: .68rem; font-weight: 700; color: var(--muted); }
+.pv .pv-h small { display: block; font-size: .875rem; font-weight: 700; color: var(--muted); }
 .pv .alt { background: var(--pv-alt); }
 .pv .g0 { border-left-width: 3px; }
 .pv .pv-h.from { box-shadow: inset 0 -4px 0 var(--pv-from); }
 .pv .pv-h.to { box-shadow: inset 0 -4px 0 var(--pv-to); }
 .pv .pv-h.from.to { box-shadow: inset 0 -4px 0 var(--pv-from), inset 0 -8px 0 var(--pv-to); }
-.pv .pv-sub { color: var(--muted); font-weight: 700; font-size: .78rem; }
+.pv .pv-sub { color: var(--muted); font-weight: 700; font-size: .875rem; }
 .pv td { position: relative; min-width: 34px; height: 46px; font-size: 1.35rem; font-weight: 800; }
 /* viele Spalten am Handy (z. B. l → mm³: 9 Spalten): enger, damit keine Stelle hinter dem Rand verschwindet */
 @media (max-width: 599px) {
   .pv:has(thead tr:first-child > :nth-child(8)) th { padding: 3px 1px; }
   .pv:has(thead tr:first-child > :nth-child(8)) .pv-h { font-size: .86rem; min-width: 0; }
-  .pv:has(thead tr:first-child > :nth-child(8)) .pv-h small { font-size: .6rem; }
-  .pv:has(thead tr:first-child > :nth-child(8)) .pv-sub { font-size: .68rem; }
+  .pv:has(thead tr:first-child > :nth-child(8)) .pv-h small { font-size: .875rem; }
+  .pv:has(thead tr:first-child > :nth-child(8)) .pv-sub { font-size: .875rem; }
   .pv:has(thead tr:first-child > :nth-child(8)) td { min-width: 0; height: 40px; font-size: 1.15rem; }
 }
 .pv .pv-task, .pv .pv-res { font-size: .95rem; padding: 0 8px; white-space: nowrap; font-weight: 700; }
@@ -229,7 +229,7 @@
 .viz.ac svg { width: auto; max-width: 100%; height: auto; overflow: visible; }
 .ac-arrow path { fill: none; stroke: var(--arrow-soft); stroke-width: 1.6; }
 .ac-arrow polygon { fill: var(--arrow-soft); }
-.ac-arrow .ac-fac { font-size: 12px; font-weight: 700; text-anchor: middle; fill: var(--faint); }
+.ac-arrow .ac-fac { font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--faint); }
 .ac-arrow.on path { stroke: var(--arrow); stroke-width: 2.8; stroke-dasharray: 1; animation: draw .45s ease-out both; }
 .ac-arrow.on polygon { fill: var(--arrow); }
 .ac-arrow.on .ac-fac { fill: var(--arrow); font-size: 14px; font-weight: 800; }
@@ -238,7 +238,7 @@
 .ac-unit.path rect { fill: var(--accent-soft); stroke: var(--accent); }
 .ac-unit.from rect { fill: var(--ps-from); stroke: var(--pv-from); stroke-width: 3; }
 .ac-unit.to rect { fill: var(--ps-to); stroke: var(--pv-to); stroke-width: 3; }
-.ac-unit .ac-val { font-size: 13px; font-weight: 800; fill: var(--accent); }
+.ac-unit .ac-val { font-size: 14px; font-weight: 800; fill: var(--accent); }
 .ac figcaption { max-width: 60ch; }
 
 /* Vorsilben-Skala */
@@ -280,18 +280,18 @@
 .qty-chip:active, .unit-chip:active, .qty-more-item:active { box-shadow: var(--key-edge-pressed); }
 
 /* Pfeilkette für Flächen und Volumen: Längen darüber */
-.dc-len text { font-size: 12px; font-weight: 700; text-anchor: middle; fill: var(--faint); }
+.dc-len text { font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--faint); }
 .dc-len.path text { fill: var(--text); }
-.dc-len .dc-lf { font-size: 11px; }
+.dc-len .dc-lf { font-size: 14px; }
 .dc-tie { stroke: var(--border); stroke-width: 1.2; stroke-dasharray: 2 3; }
-.dc .dc-parts { font-size: 11px; font-weight: 700; text-anchor: middle; fill: var(--arrow); }
+.dc .dc-parts { font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--arrow); }
 
 /* Quiz: Bild der Aufgabe (von → in, mit Namen) */
 .tb { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 4px; }
 .tb-glyph { width: 40px; height: 40px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linejoin: round; }
 .tb-u { display: grid; justify-items: center; gap: 2px; text-align: center; }
 .tb-u b { font-size: clamp(1.9rem, 9cqw, 2.6rem); font-weight: 800; white-space: nowrap; }
-.tb-u span { font-size: .8rem; color: var(--muted); max-width: 11em; }
+.tb-u span { font-size: .875rem; color: var(--muted); max-width: 11em; }
 .tb-arrow { font-size: 1.6rem; color: var(--faint); }
 /* nach dem Antworten braucht die Rückmeldung den Platz */
 .task-card.answered .q-visual:has(.tb) { display: none; }

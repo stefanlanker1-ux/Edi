@@ -541,7 +541,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Reaktionen in `REACTIONS` mit `stufe` (us/os) und `niveau` 1–4 (`reactionsFor(stufe, …niveaus)`), Titel, Art, Formeln ASCII wie `Ca(OH)2`; Stoffnamen in `SPECIES_NAMES` (jeder Stoff braucht einen Namen).
   Niveaus: US 1 höchstens eine Zahl ≠ 1 · 2 zwei bis drei Zahlen (2 H₂ + O₂ → 2 H₂O) · 3 Verbrennungen/Metalloxide · 4 knifflig (halbe Zahl → verdoppeln, Al + HCl); OS 1 Salze/Säuren (Ionen als Block) · 2 Zerfall/Fällung/Neutralisation ·
   3 mehrere Produkte · 4 Redox und große Zahlen (KMnO₄ + HCl, Cu + HNO₃, Oktan). Neue Reaktion nur mit eindeutiger Lösung (der Test prüft Bilanz und Kürzung, je Stufe und Niveau ≥ 6 Aufgaben,
-  US-Niveau 1 und 2 nach der Zahl der Koeffizienten ≠ 1). Phosphor in der Unterstufe einheitlich als weißer Phosphor P₄ (P₄ + 5 O₂ → 2 P₂O₅, P₄ + 6 Cl₂ → 4 PCl₃), nie zugleich als einzelnes P (Test).
+  US-Niveau 1 und 2 nach der Zahl der Koeffizienten ≠ 1; keine Gleichung doppelt, auch nicht in beiden Stufen). Phosphor in der Unterstufe einheitlich als weißer Phosphor P₄ (P₄ + 5 O₂ → P₄O₁₀, P₄ + 6 Cl₂ → 4 PCl₃), nie zugleich als einzelnes P (Test).
+  Phosphorpentoxid nur als Molekül **P₄O₁₀** (P₂O₅ ist nur die Verhältnisformel; Name „Tetraphosphordecaoxid (Phosphorpentoxid)“, 4 PH₃ + 8 O₂ → P₄O₁₀ + 6 H₂O; Test). Die Kennungen
+  `p4o10`/`ph3-o2` sind neu, damit ein alter Übungsstand zur P₂O₅-Gleichung (`p2o5`/`ph3`) nicht als gelöst erscheint.
   Stoffnamen ohne ungenaue Trivialnamen (CaSO₄ „Calciumsulfat“, nicht „Gips“ – Gips ist CaSO₄ · 2 H₂O).
 - Aufbau (einfach, wenige Knöpfe): Bereiche **Üben | Experimentieren** (Reihenfolge wie in allen Modulen) – keine Erklärung, kein Quiz (die App startet mit Experimentieren). Experimentieren (Kennung `start`) = je Stufe 5 Beispielreaktionen nur aus Molekülen (`STARTS` im Store, Stand je Stufe gespeichert: US Knallgas, HCl, NH₃, Methan, Propan; OS = Level II bewusst komplexer: Gärung, Fotosynthese, Ethanol verbrennt, Ostwald-Verfahren, Oktan verbrennt; Knöpfe 1–5, ✓ wenn gelöst; nach ✓ „Ablauf ansehen“),
   nach dem letzten Beispiel „Zum Üben“. Mit `BalanceCard`:
@@ -550,7 +552,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   **Zustand** der Gleichung als Kennzeichen (wie „✓ neutral“ in Neutralisation), stellt keine Frage, vergibt keine Punkte und zählt keine Fehlversuche (keine „Lösung“ im Experimentieren), Gleichung **immer einzeilig, nie umbrechen** (`EquationRow`: Fit-Text – Schrift passt sich der Breite an, 26 → min. 10 px; jeder Stoff ist ein Tippziel ≥ 44 px, antippen → Zahlenauswahl 1–12, Niveau 4 bis 40), ein Hauptknopf. Keine Werkzeugleiste, kein 3D.
   Teilchenbild nur, wenn alle Stoffe Moleküle aus Nichtmetallen sind (`hasModel` in `Molecules.tsx`, `isMolecular` in `@lern/chem`) – Salze und Metalle nie als Kalotten (sähe aus wie Elektronenpaarbindung); dann bleibt die Bühne leer (Start hat nur Moleküle).
   Elemente, die die Gleichung als einzelnes Atom schreibt, obwohl im Stoff viele Atome verbunden sind (Kohlenstoff C, Schwefel S), zeichnet das Bild als eine Kugel und kennzeichnet das
-  darunter („Modell: S als einzelnes Atom gezeichnet“, `singleAtoms`, `.ms-note`).
+  darunter („Modell: S als einzelnes Atom gezeichnet“, `singleAtoms`, `.ms-note`, 14 px). Kasten so hoch wie der höchste Stapel (Zeilenhöhe je Stoff – ein großes Molekül wie P₄O₁₀
+  macht die Stapel der kleinen nicht hoch), Zeilen je Stapel so, dass die Moleküle am größten werden.
 - Stoff-Info (gemeinsam: `@lern/chem-ui` `Substance.tsx`, hier `components/Substance.tsx`): Stoffnamen sind Knöpfe (Experimentieren und Üben: Wortgleichung unter dem Titel, `NameLine`). Blatt: Summenformel, Art (Molekül mit Atomzahlen, Ionenverbindung mit Ionen,
   Metall, Element), Strukturformel (`layout2D`: Ketten gerade, sonst ebene Zeichnung aus `MOL3D`; Käfige wie P₄O₁₀ nur 3D) und 3D-Modell
   (`Molecule3D` mit `data` aus `MOL3D`).
@@ -561,20 +564,21 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Ablauf der Reaktion auf Abruf** (`components/AnimSheet.tsx` → `ReactionMorph` in `components/Morph.tsx`, Logik `morph.ts`): Start nach ✓ Knopf „Ablauf ansehen“ in der Statuszeile
   → Blatt mit Gleichung (Zahlen rot) und Animation: Edukt-Moleküle lockern sich (Bindungen brechen) → Atome wandern zum nächstgelegenen Platz gleicher Sorte im Produkt →
   rücken zusammen (neue Bindungen). Kein Atom verschwindet oder kommt dazu; Atomzahlen je Element stehen darunter. „Abspielen“/„Noch einmal“ und Regler Edukte ↔ Produkte
-  (links „Edukte (Ausgangsstoffe)“ zweizeilig – das Modul hat keine Erklärung, die den Begriff sonst einführt), Abschnittsname als `Tag` (am Anfang ebenfalls „Edukte (Ausgangsstoffe)“). Beim Üben ebenfalls erst nach ✓ (vorher würde sie die Zahlen verraten).
+  (links „Edukte (Ausgangsstoffe)“ zweizeilig, beide Zeilen 14 px; englisch „Reactants (starting materials)“ – das Modul hat keine Erklärung, die den Begriff sonst einführt), Abschnittsname als `Tag` (am Anfang ebenfalls „Edukte (Ausgangsstoffe)“). Beim Üben ebenfalls erst nach ✓ (vorher würde sie die Zahlen verraten).
   Nur für Gleichungen aus Molekülen (`hasModel`). Höhe im Blatt `min(62dvh, 560px)` – auf kleinen Handys hat die Animation in der Karte keinen Platz.
 - Gespeichert: Stand der Start-Beispiele je Stufe (`reaktionsgleichungen-v2`, Version 3 übernimmt den alten Stand der Unterstufe); Üben in `reaktionsgleichungen-ueben` (Schwierigkeit je Stufe, gewählte Aufgabe, gesetzte Zahlen, ✓ je Gleichung und `peeked` = Lösung angesehen).
   Stufen-Schalter Level I/II (Start immer Level I, nicht gespeichert).
 - **Üben** (`src/ueben/`): je Stufe drei Schwierigkeiten **Einfach | Mittel | Schwer** mit je 10 festen Gleichungen (`EXERCISES` in `exercises.ts`, 60 verschiedene,
-  keine aus dem Experimentieren). Alle nur aus Molekülen (`hasModel`), damit nach ✓ bei jeder Gleichung „Ablauf ansehen“ (Animation) geht; Moleküle, deren Kugelmodell
+  keine aus dem Experimentieren, auch als Gleichung verschieden – Level II Mittel beginnt deshalb mit 4 PH₃ → P₄ + 6 H₂ statt noch einmal P₄ + 5 O₂ → P₄O₁₀). Alle nur aus Molekülen (`hasModel`), damit nach ✓ bei jeder Gleichung „Ablauf ansehen“ (Animation) geht; Moleküle, deren Kugelmodell
   nicht jedes Atom zeigt (SF₆, PCl₅), sind deshalb nicht dabei. Gleiche Karte wie im Experimentieren (`BalanceCard`): Teilchenbild, Gleichung, „Prüfen“, nach zwei
-  Fehlversuchen „Lösung“ (`showSolution`): danach zeigt „Prüfen“ zwar „✓ ausgeglichen“ und den Ablauf, die Aufgabe zählt aber **nicht** als selbst gelöst (kein ✓ im Fortschritt);
+  Fehlversuchen „Lösung“ (`showSolution`): danach zeigt „Prüfen“ zwar „✓ ausgeglichen“ und den Ablauf, die Aufgabe zählt aber **nicht** als selbst gelöst (kein ✓ im Fortschritt,
+  daneben der Hinweis „Lösung angesehen – kein ✓“);
   beim Weitergehen (andere Aufgabe oder Schwierigkeit) beginnt die Gleichung von vorn (alle Zahlen 1), damit sie später selbst gelöst werden kann (Test `store.test.ts`). Kopf: Schwierigkeit (`Segmented`), Aufgabe ‹ n / 10 ›, Schalter **„Teilchen“** (Kugelbild ein-/ausklappen, dann nur Text; Standard an, nicht gespeichert), Fortschritt als 10 Kästchen (✓ gelöst). Knopf **„Tipp“** zeigt einen festen, von Hand
   geschriebenen Hinweis zu genau dieser Gleichung (`HINTS`, DE/EN) über der Gleichungszeile – er zeigt den Weg (womit beginnen, was vergleichen, was zuletzt, wann verdoppeln), nennt aber
-  keine gesuchte Zahl vor einem Stoff und nimmt den Denkschritt nicht vorweg (nicht „F₂ bringt 2 F-Atome, jedes HF nur eines“, sondern „Vergleiche die F-Atome: F₂ links, HF rechts“;
-  nie „schon ausgeglichen“). Nach der letzten Aufgabe einer Schwierigkeit „Weiter zu Mittel/Schwer“.
-  Test `exercises.test.ts`: 3 × 10 je Stufe, eindeutig ausgleichbar, nur Moleküle, Zahlen im Bereich der Auswahl, Hinweise vorhanden, Sätze ≤ 22 Wörter, keine Lösung „2 HF“,
-  kein „nur eines“/„only one“ und kein „schon ausgeglichen“ im Hinweis.
+  keine gesuchte Zahl vor einem Stoff und nimmt den Denkschritt nicht vorweg (nicht „F₂ bringt 2 F-Atome, jedes HF nur eines“ oder „CH₄ hat 4 H-Atome, jedes H₂ liefert 2“,
+  sondern „Vergleiche die F-Atome: F₂ links, HF rechts“; nie „schon ausgeglichen“). Nach der letzten Aufgabe einer Schwierigkeit „Weiter zu Mittel/Schwer“.
+  Test `exercises.test.ts`: 3 × 10 je Stufe, 60 verschiedene Gleichungen, eindeutig ausgleichbar, nur Moleküle, Zahlen im Bereich der Auswahl, Hinweise vorhanden, Sätze ≤ 22 Wörter, keine Lösung „2 HF“,
+  kein „nur eines“/„only one“, keine Atomzahl zusammen mit „je/jedes/each“ und kein „schon ausgeglichen“ im Hinweis.
 
 ## Neutralisation (`modules/neutralisation`)
 - Lauge + Säure → Salz + Wasser mit Ionen-Bausteinen wie in der Ionenbindung (Breite = Ladung): Reihe 1 Metall-Ionen (gold), Reihe 2 OH⁻ (blau), Verbindungsstriche = H₂O,
@@ -587,16 +591,21 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   MgS gibt es in Wasser nicht (`isKnownSalt`). Säurenamen: Chlorwasserstoff, Bromwasserstoff.
 - Unterstufe nur vollständige Neutralisation; Oberstufe wählt in der Säuretabelle (Werkzeug „Säure“) auch den Säurerest = wie viele H⁺ abgegeben werden (Hydrogensalze).
   Säuretabelle nach Anzahl abgebbarer H⁺ (Gruppen senkrecht beschriftet), passt auch breit (≥ 1024 × 768) ganz ins Register. Gespeichert (`neutralisation-v1`): Lauge, Säure, Stufe der Abgabe, Anzahlen.
-- Salzformeln ionisch, Kation zuerst (NaCH₃COO, KHCOO, Ca(HCO₃)₂). Wortgleichung mit Laugen-/Säurenamen (Natronlauge + Salzsäure → Natriumchlorid + Wasser).
+- Salzformeln ionisch, Kation zuerst (NaCH₃COO, KHCOO, Ca(HCO₃)₂). Wortgleichung mit Laugen-/Säurenamen **und Formel** (Natronlauge NaOH + Salzsäure HCl → ? + Wasser H₂O; Regel
+  „Stoffe immer mit Name und Formel“). Level I nennt als Laugennamen nur Natronlauge (sonst den Namen des Hydroxids: Calciumhydroxid Ca(OH)₂); Kalilauge, Kalkwasser, Barytwasser
+  führt die Erklärkarte „Salze & Gleichungen“ der Oberstufe ein (Test).
   Säurenamen mitten im Satz bzw. in der Wortgleichung klein, wo sie ein Adjektiv haben („Kalilauge + schweflige Säure“; groß nur in der Tabelle und am Satzanfang, Test).
 - Quiz (`src/quiz/tasks.ts`, Katalog `misconceptions.ts`): protolyse, protonen (OS), restName, restLadung, hydroxid, bauen (Bausteine, Fallen 1 : 1 / vertauscht / nicht gekürzt),
   wasser, koeffizient (OS), salz, salzName, gleichung. Namensfallen nur mit Ionen, die es gibt (-id/-it/-at derselben Familie, Hydrogen-Formen nur beim Schwefel – also nur für
   Hydrogensulfid/-sulfit/-sulfat, nie Schwefel-Namen bei Hydrogencarbonat oder -phosphat –, Formiat ↔ Acetat; Test). Säuretabelle als Hilfsmittel nur Oberstufe und nur bei Aufgaben, die nicht nach Namen/Ladung der Säurereste fragen.
   **Level I** ohne Perchlorsäure/Perchlorat (erst in Level II eingeführt), ohne Hydrogen-Namen und ohne „einprotonig“/„Formeleinheit“ (Level II; **Formeleinheit** führt die Erklärkarte „Neutralisieren“ der Oberstufe ein) – auch nicht als falsche Antwort, im Tipp oder in einer Rückmeldung (Test über alle Texte;
-  `acidsFor(os)`, Tipp zu Salznamen je Stufe). Salz, Salzname (Wortgleichung), Gleichung und Bauen nennen bei mehrprotonigen Säuren als **eigenen Satz vor der Frage**, wie viele H⁺ jede
-  Säure abgibt („Jedes H₂SO₄ gibt **alle 2 H⁺** ab.“ bzw. „nur **1 H⁺**“) – Level II lehrt die teilweise Neutralisation, sonst wären Hydrogensalze ebenso richtig (Test).
+  `acidsFor(os)`, Tipp zu Salznamen je Stufe). **Formeleinheit** = kleinste Gruppe, die die Formel angibt (1 Ca(OH)₂ = 1 Ca²⁺ + 2 OH⁻). Tipps nennen nur die Regel (Endungen -id/-it/-at,
+  Hydrogen-/Dihydrogen-), nie einen Beispielnamen, der die gesuchte Antwort sein könnte – der Tipp ist auch als „Erster Schritt“ sichtbar (Test: kein Wort der Antwort im Tipp, alle Typen, beide Level, DE/EN).
+  Jeder Stolperstein hat einen eigenen Schlüssel (Koeffizient: „Zahl der H₂O als Koeffizient genommen“ `wasser-als-koeffizient`). Salz, Salzname (Wortgleichung), Gleichung und Bauen nennen bei mehrprotonigen Säuren als **eigenen Satz vor der Frage**, wie viele H⁺ jede
+  Säure abgibt („Jedes H₂SO₄ gibt **alle 2 H⁺** ab.“ bzw. „nur **1 H⁺**“, Zahl und H⁺ mit geschütztem Leerzeichen; englisch „both H⁺“, „all 3 H⁺“) – Level II lehrt die teilweise Neutralisation, sonst wären Hydrogensalze ebenso richtig (Test).
   Tipp „Säuren in Wasser“: die H vorne in der Formel, bei COOH-Säuren nur das H der COOH-Gruppe (die Erklärkarte Level I führt **COOH-Gruppe** ein); Rückmeldungen zu Essig- und
-  Ameisensäure sprechen vom H der COOH-Gruppe, nie von „H vorne in der Formel“ (Test). Englisch: jeder Satz beginnt groß (Test in `english.test.ts`).
+  Ameisensäure sprechen vom H der COOH-Gruppe, nie von „H vorne in der Formel“ (Test); „abgegeben wird nur das H …“ bzw. „werden nur die 2 H …“. Englisch: jeder Satz beginnt groß,
+  Namen mitten im Satz klein („is called chloride“, „(potassium phosphate)“; Test in `english.test.ts`).
 - Erklärung Level I (15 Schritte): **Säuren** · **Laugen und Wasser** (vorgemachte Wand ohne Reaktion) · **Salz und Gleichung**. Level II (14 Schritte): **Mehrprotonige Säuren** ·
   **Ausgleichen** · **Salze benennen** (Formiat, Perchlorat eingeführt; `known`: Nitrat, Sulfat, Carbonat, Hydrogencarbonat, Phosphat aus der Ionenbindung).
   Vor „Wie viele H⁺ kann CH₃COOH höchstens abgeben?“ nennt die Liste der einprotonigen Säuren CH₃COOH nicht (sonst stünde die Antwort schon da).
@@ -825,13 +834,14 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   `wasserTap`/`freieStelleTap`, Nebenprodukt-Bild unbeschriftet), `guide*.test.ts` (Lektionen auf Deutsch und Englisch).
 
 ## Einheiten (`modules/einheiten`)
-- Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 oder nicht endendem F zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
-  Der Rechenweg ist immer exakt: endet F nicht, wird durch den Kehrwert geteilt (`divisor`: 0,072 km/h = 0,072 : 0,036 cm/s), nie mit gerundetem F ohne „≈“ (Test über alle Aufgaben).
+- Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
+  Der Rechenweg ist immer exakt: endet F nicht, wird nur durch den Kehrwert geteilt (`divisor`: 0,072 km/h = 0,072 : 0,036 cm/s) – im Quiztext, auf der Tafel und im Bild gleich;
+  F selbst steht dann als „1/0,036“ (`Num`/`numText`: „1/x“, wenn der Kehrwert endet, auch über 1), nie gerundet und nie „= ≈“ (Test über alle Aufgaben).
   Definitionen genau: 1 PS = 735,498 75 W (75 kp · m/s), nicht 735,5 W.
 - Rechnen nur mit exakten Brüchen (`Q`, BigInt); Anzeige deutsch (Komma, 10 000, 0,000 01), nicht endende Zahlen als 1/60, 1/3,6 bzw. „≈“.
   Schülereingaben (`parseAnswer`, Quiz und Umrechnen): Einheit dahinter erlaubt („0,06 m“), Trennzeichen nach der Sprache – Deutsch „,“ Dezimalkomma, „.“ Tausenderpunkt
   (`1.000` = 1000, nie 1), Englisch umgekehrt (`1,000` = 1000, `1.5` = 1,5); mehrdeutige Eingaben nur so gelesen (sonst zählte „1.000 statt 1“ als richtig), eindeutige andere
-  Schreibweisen (0.5, 1.250,5) gehen weiter. Die Quiz-Antwort wird als exakter Bruch gespeichert (`storedValue`: n, d) und so angezeigt, wie sie gelesen wurde (`storedText`; Tests DE/EN).
+  Schreibweisen (0.5, 1.250,5) gehen weiter. Die Quiz-Antwort wird als exakter Bruch gespeichert (`storedValue`: n, d) und so angezeigt, wie sie gelesen wurde (`storedText`, auch alte Stände gruppiert: 10 000; Tests DE/EN).
 - Neue Einheit: Atom in `ATOMS` (Familie, Faktor, ggf. `def`), in `QUANTITIES` eintragen – der Test prüft jede Kombination gegen SI-Faktoren.
 - Stufen (Umschalter in der Kopfzeile, nicht gespeichert, Start Unterstufe): Unterstufe Länge, Fläche, Volumen, Masse, Zeit ohne seltene Vorsilben (`unitsFor(qt, false)`,
   `quantitiesFor(false)`); Oberstufe alle Größen und Einheiten. Seltene Vorsilben (µm, ms, MHz … – `rare` in `src/help.ts`): Tafel ohne Kette, direkt ① `1 nm = 10⁻⁷ cm`
@@ -853,13 +863,17 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   „eine Null zu viel/zu wenig“ mit der Kette über die Nachbareinheiten – dort sind die Stufen verschieden groß: km → m · 1000, kg → dag · 100, hl → l · 100; Test). Die Erklärung zeigt
   die Kette über die Nachbareinheiten (1 kg = 100 dag = 1000 g), bei einer Stufe den Schritt – nie nur das Ergebnis noch einmal.
   Größenvorstellung: der Tipp nennt nur Vergleiche, die in keiner Frage vorkommen (Fingernagel, Tischplatte, Quadrat bzw. Würfel mit Kantenlänge; nicht Würfelzucker, Klassenzimmer,
-  „1 dm³ = 1 Liter“ bei der Milchpackung; Test). Ohne „schönes“ Ergebnis (PS ↔ kW) wird auf 2 Dezimalstellen gerundet, auch endende Zahlen (`approxText`).
+  „1 dm³ = 1 Liter“ bei der Milchpackung; Test); jede falsche Einheit mit Rückmeldung („60 cm² wäre viel zu klein: 1 cm² ist ein Quadrat mit 1 cm Seite“). Ohne „schönes“ Ergebnis (PS ↔ kW) wird auf 2 Dezimalstellen gerundet,
+  auch endende Zahlen, mit fester Stellenzahl (`approxText`: ≈ 6,80, nicht ≈ 6,8); die Erklärung schreibt dann „a · F ≈ x“ (nie „= ≈“).
+  Jede falsche Antwort jedes Aufgabentyps hat eine Rückmeldung (auch „Mal oder geteilt?“ mit falscher Richtung und Zahl, Umrechnungszahlen zusammengesetzt; Test).
 - Quiz-Hilfsmittel passend zur Aufgabe, ohne Ergebnis (nicht bei Fragen nach der Umrechnungszahl): Pfeile (bzw. `DimChain`), Skala (wenn `prefixStep`), Stellen (Stellenwerttafel), sonst Einsetzen.
   `DimChain` (Volumen) nur, wenn eine Einheit ein Längen³-Maß ist (`dimOf`); Hohlmaße untereinander (l ↔ ml) bleiben auf der Kette hl → l → dl → cl → ml (Test).
   Eingabe-Aufgaben zeigen als Bild die Aufgabe groß mit Einheitennamen (`TaskBanner`, Quadrat/Würfel bei Fläche/Volumen).
 - Erklärung Level I (17 Schritte): **Längen** · **Masse und Hohlmaße** · **Fläche und Volumen** · **Zeit** (`known`: „gleich lang“). Level II (14 Schritte):
   **Vorsilben** · **Flächen und Volumen** · **Zeit und zusammengesetzte Einheiten**. Halb gelöste Schritte zeigen das passende Bild ohne die gesuchte Zahl
-  („1 m² = ? dm²“: Quadrat 1 m aus dm², „1 m³ = ? dm³“: Würfel; `AreaGrid`/`Cube` mit `guess`, Raster und Anzahl erst nach der richtigen Antwort);
+  („1 m² = ? dm²“: Quadrat 1 m aus dm², „1 m³ = ? dm³“: Würfel; `AreaGrid`/`Cube` mit `guess`, Raster und Anzahl erst nach der richtigen Antwort; das kleine Kästchen bzw. der kleine
+  Würfel trägt seine Beschriftung über eine Hinweislinie, nie ein Pfeil ins Leere). Schrift in allen Bildern ≥ 14 px am Handy (SVG-Schrift 16–18 Einheiten, Lineal und Messbecher
+  beschriften nur jeden zweiten Strich, wo die Zahlen sonst aneinanderstießen; Pfeilkette, `DimChain`, Stellenwerttafel, Einsetz-Kette 14 px);
   der Merksatz (`say`) eines halb gelösten oder freien Schritts nennt die gesuchte Zahl nicht (Test `guide.test.ts`).
 
 ## Prüfen vor dem Commit
@@ -874,6 +888,14 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Reaktionsgleichungen, Neutralisation, Einheiten: Nachprüfung Runde 2** – Phosphorpentoxid als Molekül P₄O₁₀ (P₄ + 5 O₂ → P₄O₁₀, 4 PH₃ + 8 O₂ → P₄O₁₀ + 6 H₂O; vorher
+  wurde P₂O₅ – nur die Verhältnisformel – als Molekül gezeichnet; neue Kennungen `p4o10`/`ph3-o2`, damit alte Stände nicht als gelöst gelten; keine Gleichung doppelt, Level II
+  Mittel beginnt mit 4 PH₃ → P₄ + 6 H₂); alle 60 Üben-Tipps ohne vorweggenommenen Denkschritt (Muster „Atomzahl … je/jedes“ im Test); „Lösung angesehen – kein ✓“; Teilchenbild
+  mit Zeilenhöhe je Stoff (größere Moleküle). Neutralisation: Tipps nennen nur die Regel, keinen Beispielnamen, der die Antwort sein könnte (Test über alle Typen); Wortgleichungen
+  immer mit Name und Formel, Level I nur eingeführte Laugennamen (Kalilauge, Kalk- und Barytwasser in der Erklärkarte Level II); Formeleinheit definiert; eigener Stolperstein „Zahl
+  der H₂O als Koeffizient“; „das H“ statt „die H“; Englisch „both H⁺“, Namen mitten im Satz klein. Einheiten: Rundung mit fester Stellenzahl („≈ 6,80“, „a · F ≈ x“), Tafel und
+  Bild exakt wie der Quiztext (1/0,036, a : Teiler), jede falsche Antwort mit Rückmeldung, Flächenbild mit Hinweislinie, Schrift in Bildern ≥ 14 px (auch Neutralisation und
+  Reaktionsgleichungen), alte Antworten gruppiert. Rechenintensive Tests mit eigenem Zeitlimit (liefen unter Last in die 5 s).
 - **Quiz: Wiederholungsschutz ohne Nebenwirkungen** – die Nachprüfung der vorigen Änderung fand drei Rückschritte: „Heute fällig“/„Schwächen üben“ ließen fällige Fertigkeiten
   mit kleinem Vorrat ganz weg (Typtausch), verschiedene Fragen mit gleichem Text und anderer Lösung hatten dieselbe Kennung (Fertigkeiten verschwanden aus ihrem Level), und der
   Rundenstart in Nomenklatur Level 1 dauerte nach einigen Runden bis 3 s. Jetzt: `taskKey` enthält die richtige Antwort als Text (unabhängig von der Mischung); `freshRound` mit

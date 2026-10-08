@@ -45,7 +45,8 @@ export function ArrowChain({ from, to, value, os = false, showValues = true, cap
   const valueIn = (u: string) => (value ? mul(value, div(unitSi(ch.from), unitSi(u))) : null);
   // Zahlen unter den Einheiten dürfen sich nie überlappen: zu lange versetzt in zwei Zeilen, passt es auch so nicht, weglassen (Ergebnis steht ohnehin darüber)
   const vals = units.map((u, i) => (vb && i >= lo && i <= hi ? valueIn(u) : null));
-  const textW = (v: Q) => [...fmt(v).text].reduce((s, c) => s + (/[\d]/.test(c) ? 8 : /[ ,.]/.test(c) ? 3.7 : 8.5), 0);
+  // Breite bei 14 px fetter Schrift (Ziffer ≈ 8,6, Komma/Leerzeichen ≈ 4)
+  const textW = (v: Q) => [...fmt(v).text].reduce((s, c) => s + (/[\d]/.test(c) ? 8.6 : /[ ,.\u202f]/.test(c) ? 4 : 9.2), 0);
   const stag = vals.some(v => v && textW(v) > W - 6);
   const showVal = (v: Q) => textW(v) <= (stag ? 2 * W - 8 : W - 6);
   const H = vb ? (stag ? 166 : 150) : 118;

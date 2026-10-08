@@ -147,7 +147,7 @@ const SPECIES_DE: Record<string, string> = {
   CuSO4: "Kupfer(II)-sulfat", FeSO4: "Eisen(II)-sulfat", H2SO4: "Schwefelsäure", CaCl2: "Calciumchlorid", KClO3: "Kaliumchlorat", KCl: "Kaliumchlorid",
   NaHCO3: "Natriumhydrogencarbonat (Natron)", Na2CO3: "Natriumcarbonat (Soda)", "Pb(NO3)2": "Blei(II)-nitrat", KI: "Kaliumiodid", PbI2: "Blei(II)-iodid",
   KNO3: "Kaliumnitrat", H3PO4: "Phosphorsäure", Na3PO4: "Natriumphosphat", HNO3: "Salpetersäure", "Ca(NO3)2": "Calciumnitrat",
-  NO2: "Stickstoffdioxid", NaClO: "Natriumhypochlorit", P4: "Phosphor (weiß)", P4O10: "Tetraphosphordecaoxid",
+  NO2: "Stickstoffdioxid", NaClO: "Natriumhypochlorit", P4: "Phosphor (weiß)", P4O10: "Tetraphosphordecaoxid (Phosphorpentoxid)",
   "Al2(SO4)3": "Aluminiumsulfat", "Ca3(PO4)2": "Calciumphosphat", CaSO4: "Calciumsulfat", CH3OH: "Methanol", MnO2: "Mangan(IV)-oxid (Braunstein)",
   MnCl2: "Mangan(II)-chlorid", "Cu(NO3)2": "Kupfer(II)-nitrat", KMnO4: "Kaliumpermanganat", FeS2: "Eisen(II)-disulfid (Pyrit)", C8H18: "Oktan (Benzin)",
   K2Cr2O7: "Kaliumdichromat", CrCl3: "Chrom(III)-chlorid",
@@ -178,7 +178,7 @@ const SPECIES_EN: Record<string, string> = {
   CuSO4: "Copper(II) sulfate", FeSO4: "Iron(II) sulfate", H2SO4: "Sulfuric acid", CaCl2: "Calcium chloride", KClO3: "Potassium chlorate", KCl: "Potassium chloride",
   NaHCO3: "Sodium hydrogen carbonate (baking soda)", Na2CO3: "Sodium carbonate (soda)", "Pb(NO3)2": "Lead(II) nitrate", KI: "Potassium iodide", PbI2: "Lead(II) iodide",
   KNO3: "Potassium nitrate", H3PO4: "Phosphoric acid", Na3PO4: "Sodium phosphate", HNO3: "Nitric acid", "Ca(NO3)2": "Calcium nitrate",
-  NO2: "Nitrogen dioxide", NaClO: "Sodium hypochlorite", P4: "Phosphorus (white)", P4O10: "Tetraphosphorus decaoxide",
+  NO2: "Nitrogen dioxide", NaClO: "Sodium hypochlorite", P4: "Phosphorus (white)", P4O10: "Tetraphosphorus decaoxide (phosphorus pentoxide)",
   "Al2(SO4)3": "Aluminium sulfate", "Ca3(PO4)2": "Calcium phosphate", CaSO4: "Calcium sulfate", CH3OH: "Methanol", MnO2: "Manganese(IV) oxide",
   MnCl2: "Manganese(II) chloride", "Cu(NO3)2": "Copper(II) nitrate", KMnO4: "Potassium permanganate", FeS2: "Iron(II) disulfide (pyrite)", C8H18: "Octane (petrol)",
   K2Cr2O7: "Potassium dichromate", CrCl3: "Chromium(III) chloride",
@@ -218,7 +218,7 @@ const TITLE_EN: Record<string, string> = {
   fes: "Iron and sulfur", cuo: "Copper turns black", hcl: "Hydrogen and chlorine", zns: "Zinc and sulfur", caco3: "Burning limestone",
   hgo: "Splitting mercury oxide", wasser: "Splitting water (electrolysis)", "zn-hcl": "Zinc in hydrochloric acid", "mg-hcl": "Magnesium in hydrochloric acid",
   "cuo-h2": "Copper oxide and hydrogen", neutral: "Neutralisation",
-  fe2o3: "Iron rusts", al2o3: "Aluminium burns", alcl3: "Aluminium and chlorine", nh3: "Ammonia synthesis", p2o5: "Phosphorus burns",
+  fe2o3: "Iron rusts", al2o3: "Aluminium burns", alcl3: "Aluminium and chlorine", nh3: "Ammonia synthesis", p4o10: "Phosphorus burns",
   na2o: "Sodium in air", h2o2: "Hydrogen peroxide decomposes", ag2o: "Splitting silver oxide", "na-h2o": "Sodium in water", "k-h2o": "Potassium in water",
   "ca-h2o": "Calcium in water", methan: "Methane burns", "mg-co2": "Magnesium burns in CO₂",
   fecl3: "Iron in chlorine", magnetit: "Iron burns (magnetite)", fotosynthese: "Photosynthesis", propan: "Propane burns", pentan: "Pentane burns",
@@ -232,7 +232,7 @@ const TITLE_EN: Record<string, string> = {
   "agno3-cacl2": "Silver nitrate and calcium chloride",
   kclo3: "Potassium chlorate decomposes", natron: "Baking soda in baking", gaerung: "Alcoholic fermentation", pbi2: "Golden rain (lead iodide)",
   "h3po4-naoh": "Phosphoric acid and sodium hydroxide", "ca-hno3": "Milk of lime and nitric acid", no2: "Nitrogen monoxide in air",
-  p4: "White phosphorus burns", chlorbleiche: "Chlorine bleach",
+  chlorbleiche: "Chlorine bleach",
   "al-cuso4": "Aluminium in copper sulfate", ca3po4: "Calcium phosphate precipitates", superphosphat: "Phosphoric acid from phosphate",
   "fe2o3-hcl": "Rust in hydrochloric acid", ostwald: "Ostwald process", "no2-h2o": "Making nitric acid", methanol: "Methanol burns",
   braunstein: "Chlorine from manganese dioxide", "cu-hno3-konz": "Copper in conc. nitric acid",
@@ -249,7 +249,7 @@ const TITLE_EN: Record<string, string> = {
   harnstoff: "Urea is broken down", "essig-o2": "Acetic acid burns", "ameisen-o2": "Formic acid burns", "zucker-gaerung": "Sugar ferments",
   aceton: "Acetone burns", ethanal: "Ethanol turns into ethanal", benzol: "Benzene burns", dodecan: "Diesel burns (dodecane)",
   "zucker-o2": "Sugar burns", "nh3-no2": "Ammonia to nitrogen dioxide", glycin: "Glycine burns", hcn: "Hydrogen cyanide burns",
-  "harnstoff-o2": "Urea burns", ph3: "Phosphine burns", claus: "Claus process", "h2s-cl2": "Hydrogen sulfide in chlorine water",
+  "harnstoff-o2": "Urea burns", "ph3-o2": "Phosphine burns", "ph3-zerfall": "Phosphine decomposes", claus: "Claus process", "h2s-cl2": "Hydrogen sulfide in chlorine water",
 };
 
 const R = (stufe: "us" | "os", niveau: Niveau) => (id: string, title: string, kind: ReactionKind, left: string[], right: string[]): Reaction => {
@@ -274,6 +274,9 @@ export const REACTIONS: Reaction[] = [
   U1("cuo-h2", "Kupferoxid und Wasserstoff", "umsetzung", ["CuO", "H2"], ["Cu", "H2O"]),
   U1("neutral", "Neutralisation", "umsetzung", ["NaOH", "HCl"], ["NaCl", "H2O"]),
   U1("ca-h2o", "Calcium in Wasser", "umsetzung", ["Ca", "H2O"], ["Ca(OH)2", "H2"]),
+  // Phosphorpentoxid besteht aus P₄O₁₀-Molekülen (P₂O₅ ist nur die Verhältnisformel). Neue Kennungen p4o10/ph3-o2:
+  // ein alter Übungsstand zur P₂O₅-Gleichung (gespeichert unter p2o5/ph3) erscheint so nicht als gelöst
+  U1("p4o10", "Phosphor verbrennt", "synthese", ["P4", "O2"], ["P4O10"]),
   // Unterstufe · Niveau 2: zwei bis drei Zahlen (2 H₂ + O₂ → 2 H₂O)
   U2("knallgas", "Knallgasreaktion", "synthese", ["H2", "O2"], ["H2O"]),
   U2("mgo", "Magnesium verbrennt", "synthese", ["Mg", "O2"], ["MgO"]),
@@ -285,7 +288,6 @@ export const REACTIONS: Reaction[] = [
   U2("al2o3", "Aluminium verbrennt", "synthese", ["Al", "O2"], ["Al2O3"]),
   U2("alcl3", "Aluminium und Chlor", "synthese", ["Al", "Cl2"], ["AlCl3"]),
   U2("nh3", "Ammoniak-Synthese", "synthese", ["N2", "H2"], ["NH3"]),
-  U2("p2o5", "Phosphor verbrennt", "synthese", ["P4", "O2"], ["P2O5"]),
   U2("na2o", "Natrium an der Luft", "synthese", ["Na", "O2"], ["Na2O"]),
   U2("h2o2", "Wasserstoffperoxid zerfällt", "analyse", ["H2O2"], ["H2O", "O2"]),
   U2("ag2o", "Silberoxid zerlegen", "analyse", ["Ag2O"], ["Ag", "O2"]),
@@ -333,7 +335,6 @@ export const REACTIONS: Reaction[] = [
   O2("h3po4-naoh", "Phosphorsäure und Natronlauge", "umsetzung", ["H3PO4", "NaOH"], ["Na3PO4", "H2O"]),
   O2("ca-hno3", "Kalkmilch und Salpetersäure", "umsetzung", ["Ca(OH)2", "HNO3"], ["Ca(NO3)2", "H2O"]),
   O2("no2", "Stickstoffmonoxid an der Luft", "synthese", ["NO", "O2"], ["NO2"]),
-  O2("p4", "Weißer Phosphor verbrennt", "synthese", ["P4", "O2"], ["P4O10"]),
   O2("chlorbleiche", "Chlorbleiche", "umsetzung", ["Cl2", "NaOH"], ["NaCl", "NaClO", "H2O"]),
   // Oberstufe · Niveau 3
   O3("al-cuso4", "Aluminium in Kupfersulfat", "umsetzung", ["Al", "CuSO4"], ["Al2(SO4)3", "Cu"]),
@@ -380,6 +381,7 @@ export const REACTIONS: Reaction[] = [
   O1("hi-zerfall", "Iodwasserstoff zerfällt", "analyse", ["HI"], ["H2", "I2"]),
   O1("h2s-s", "Schwefelwasserstoff verbrennt mit wenig Luft", "umsetzung", ["H2S", "O2"], ["S", "H2O"]),
   O1("formaldehyd", "Methanol wird zu Methanal", "umsetzung", ["CH3OH", "O2"], ["CH2O", "H2O"]),
+  O2("ph3-zerfall", "Phosphan zerfällt", "analyse", ["PH3"], ["P4", "H2"]),
   O2("h3po4", "Phosphorsäure aus P₄O₁₀", "synthese", ["P4O10", "H2O"], ["H3PO4"]),
   O2("harnstoff-syn", "Harnstoff-Synthese", "umsetzung", ["CO2", "NH3"], ["CO(NH2)2", "H2O"]),
   O2("harnstoff", "Harnstoff wird gespalten", "umsetzung", ["CO(NH2)2", "H2O"], ["CO2", "NH3"]),
@@ -391,7 +393,7 @@ export const REACTIONS: Reaction[] = [
   O3("zucker-o2", "Zucker verbrennt", "umsetzung", ["C12H22O11", "O2"], ["CO2", "H2O"]),
   O3("nh3-no2", "Ammoniak zu Stickstoffdioxid", "umsetzung", ["NH3", "O2"], ["NO2", "H2O"]),
   O3("harnstoff-o2", "Harnstoff verbrennt", "umsetzung", ["CO(NH2)2", "O2"], ["CO2", "H2O", "N2"]),
-  O3("ph3", "Phosphan verbrennt", "umsetzung", ["PH3", "O2"], ["P2O5", "H2O"]),
+  O3("ph3-o2", "Phosphan verbrennt", "umsetzung", ["PH3", "O2"], ["P4O10", "H2O"]),
   O3("claus", "Claus-Verfahren", "umsetzung", ["H2S", "SO2"], ["S", "H2O"]),
   O4("benzol", "Benzol verbrennt", "umsetzung", ["C6H6", "O2"], ["CO2", "H2O"]),
   O4("dodecan", "Dieselöl verbrennt (Dodecan)", "umsetzung", ["C12H26", "O2"], ["CO2", "H2O"]),

@@ -45,7 +45,7 @@ export function DimChain({ from, to }: { from: string; to: string }) {
   const n = cols.length;
   const W = Math.min(110, Math.max(64, width / n));
   const x = (i: number) => W / 2 + i * W;
-  const yL = 16, yU = 74, H = 142;
+  const yL = 16, yU = 74, H = 152; // H: Platz für „10 · 10“ unter dem Bogen (14 px)
   const step = p === 2 ? "100" : "1000";
   const parts = p === 2 ? "10 · 10" : "10 · 10 · 10";
   const on = (i: number) => i >= lo && i < hi;

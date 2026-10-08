@@ -173,12 +173,12 @@ const OS: GuideStep[] = [
   {
     mode: "free",
     // ohne CH₃COOH in der Liste – sonst stünde die Antwort schon da
-    say: tr("**einprotonig**: HCl, HNO₃ · **zweiprotonig**: H₂SO₄, H₂CO₃, H₂S · **dreiprotonig**: H₃PO₄. Bei COOH-Säuren gibt nur das H der COOH-Gruppe H⁺ ab.", "**monoprotic**: HCl, HNO₃ · **diprotic**: H₂SO₄, H₂CO₃, H₂S · **triprotic**: H₃PO₄. In COOH acids only the H of the COOH group is given off."),
+    say: tr("**einprotonig**: HCl, HNO₃ · **zweiprotonig**: H₂SO₄, H₂CO₃, H₂S · **dreiprotonig**: H₃PO₄. Bei COOH-Säuren wird nur das H der **COOH-Gruppe** als H⁺ abgegeben.", "**monoprotic**: HCl, HNO₃ · **diprotic**: H₂SO₄, H₂CO₃, H₂S · **triprotic**: H₃PO₄. In COOH acids only the H of the **COOH group** is given off as H⁺."),
     ask: tr("Jetzt du: Wie viele H⁺ kann **CH₃COOH** höchstens abgeben?", "Your turn: how many H⁺ can **CH₃COOH** give off at most?"), answer: 1, num: {},
     why: { "4": tr("Die H-Atome am C werden nicht abgegeben – nur das H der COOH-Gruppe.", "The H atoms on C are not given off – only the H of the COOH group.") },
     tip: tr("Zähle in CH₃COOH nur die H, die an einem O-Atom sitzen – die H am C bleiben.", "In CH₃COOH count only the H that sit on an O atom – the H on C stay."),
     ok: tr("Essigsäure ist einprotonig: CH₃COOH → H⁺ + CH₃COO⁻.", "Acetic acid is monoprotic: CH₃COOH → H⁺ + CH₃COO⁻."),
-    lines: [tr("Nur das H an der COO-Gruppe wird abgegeben → 1.", "Only the H on the COO group is given off → 1.")],
+    lines: [tr("Nur das H der COOH-Gruppe wird abgegeben → 1.", "Only the H of the COOH group is given off → 1.")],
   },
   {
     mode: "worked",
