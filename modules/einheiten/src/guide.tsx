@@ -96,9 +96,10 @@ const US: GuideStep[] = [
   },
   {
     mode: "faded",
-    say: tr("**Fläche** = Länge · Länge. Darum sind Flächen-Nachbarn **· 100** voneinander entfernt.", "**Area** = length · length. So area neighbours are **· 100** apart."),
+    say: tr("**Fläche** = Länge · Länge. Darum zählt bei Flächen jeder Längenschritt zweimal.", "**Area** = length · length. So for areas each length step counts twice."),
     ask: "1 m² = ? dm²", answer: 100, num: { unit: "dm²" },
-    visual: () => <Box><AreaGrid big="dm²" small="cm²" /></Box>,
+    // passendes Bild (m² aus dm²), die Anzahl erst nach der richtigen Antwort
+    visual: ({ solved }) => <Box><AreaGrid big="m²" small="dm²" guess={!solved} /></Box>,
     why: { "10": tr("Ein Quadrat 10 × 10 hat 100 kleine Quadrate.", "A 10 × 10 square has 100 small squares."), "1000": tr("1000 ist der Schritt bei Volumen.", "1000 is the step for volumes.") },
     tip: tr("Ein Flächenschritt ist 10 · 10.", "An area step is 10 · 10."),
     ok: tr("Flächen-Nachbarn: · 100. 1 m² = 100 dm².", "Area neighbours: · 100. 1 m² = 100 dm²."),
@@ -124,9 +125,9 @@ const US: GuideStep[] = [
   },
   {
     mode: "faded",
-    say: tr("**Volumen** = Länge · Länge · Länge: 1 dm³ = 10 · 10 · 10 = **1000 cm³**. Volumen-Nachbarn: **· 1000**.", "**Volume** = length · length · length: 1 dm³ = 10 · 10 · 10 = **1000 cm³**. Volume neighbours: **· 1000**."),
+    say: tr("**Volumen** = Länge · Länge · Länge. Darum zählt bei Volumen jeder Längenschritt dreimal.", "**Volume** = length · length · length. So for volumes each length step counts three times."),
     ask: "1 m³ = ? dm³", answer: 1000, num: { unit: "dm³" },
-    visual: () => <Box><Cube big="dm³" small="cm³" /></Box>,
+    visual: ({ solved }) => <Box><Cube big="m³" small="dm³" guess={!solved} /></Box>,
     why: { "100": tr("100 ist der Schritt bei Flächen. Ein Würfel: 10 · 10 · 10.", "100 is the step for areas. A cube: 10 · 10 · 10."), "10": tr("10 ist der Schritt bei Längen.", "10 is the step for lengths.") },
     tip: tr("Ein Volumenschritt ist 10 · 10 · 10.", "A volume step is 10 · 10 · 10."),
     ok: tr("Volumen-Nachbarn: · 1000. 1 m³ = 1000 dm³.", "Volume neighbours: · 1000. 1 m³ = 1000 dm³."),
@@ -145,7 +146,7 @@ const US: GuideStep[] = [
     mode: "free",
     say: tr("Größenvorstellung hilft beim Prüfen.", "A sense of size helps you check."),
     ask: tr("Welche Einheit passt? Eine **Briefmarke** hat etwa 6 ▢.", "Which unit fits? A **postage stamp** has about 6 ▢."), answer: "cm²", options: ["cm²", "mm²", "dm²", "m²"],
-    why: { "mm²": tr("6 mm² wäre kleiner als ein Stecknadelkopf.", "6 mm² would be smaller than a pinhead."), "dm²": tr("6 dm² wäre so groß wie ein Heft.", "6 dm² would be as big as an exercise book."), "m²": tr("6 m² ist ein kleines Zimmer.", "6 m² is a small room.") },
+    why: { "mm²": tr("6 mm² wären nur 2 mm × 3 mm – viel zu klein für eine Briefmarke.", "6 mm² would be just 2 mm × 3 mm – far too small for a stamp."), "dm²": tr("6 dm² wäre so groß wie ein Heft.", "6 dm² would be as big as an exercise book."), "m²": tr("6 m² ist ein kleines Zimmer.", "6 m² is a small room.") },
     ok: tr("Etwa 2 cm × 3 cm = 6 cm².", "About 2 cm × 3 cm = 6 cm²."),
   },
   {
@@ -262,7 +263,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    say: tr("Zeit: 1 h = 60 min = 3600 s, 1 d = 24 h.", "Time: 1 h = 60 min = 3600 s, 1 d = 24 h."),
+    say: tr("Zeit: 1 h = 60 min, 1 min = 60 s, 1 d = 24 h.", "Time: 1 h = 60 min, 1 min = 60 s, 1 d = 24 h."),
     ask: tr("1 h = ? s", "1 h = ? s"), answer: 3600, num: { unit: "s" },
     why: { "60": tr("60 sind die Minuten. Jede Minute hat 60 s.", "60 are the minutes. Each minute has 60 s."), "100": tr("Zeit hat keine Zehnerschritte.", "Time has no steps of ten.") },
     tip: tr("Erst h → min, dann min → s: zweimal · 60.", "First h → min, then min → s: · 60 twice."),

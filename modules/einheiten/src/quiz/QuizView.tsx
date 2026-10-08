@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Button, uebenLabel } from "@lern/ui";
 import { QuizScreen, createQuizStore, type Answered, type QuizTool, type Submit } from "@lern/quiz";
 import { fmt, parseQ, solve, chainFor, unitName } from "@lern/units";
-import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, tableFor, type Task } from "./tasks.ts";
+import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, readInput, storedText, storedValue, approxText, tableFor, type Task } from "./tasks.ts";
 import { useApp } from "../store.ts";
 import { explainFor } from "./explain.tsx";
 import { ChalkBoard } from "../components/ChalkBoard.tsx";
@@ -25,11 +25,11 @@ type InputTask = Extract<Task, { kind: "input" }>;
 function InputAnswer({ task, answered, submit }: { task: InputTask; answered: Answered | null; submit: Submit }) {
   const [val, setVal] = useState("");
   const [err, setErr] = useState(false);
-  const shown = answered?.values?.v !== undefined ? fmt(parseQ(String(answered.values.v))!).text : val;
+  const shown = answered?.values ? storedText(answered.values) : val;
   const check = () => {
-    const ok = checkInput(task, val);
-    if (ok === null) { setErr(true); return; }
-    submit({ ok, values: { v: Number(val.replace(/[\s ]/g, "").replace(",", ".").replace(/·10\^?/, "e")) || 0 } });
+    const v = readInput(task, val), ok = checkInput(task, val);
+    if (!v || ok === null) { setErr(true); return; }
+    submit({ ok, values: storedValue(v) });
   };
   return (
     <form className={`answer-input${answered ? (answered.ok ? " ok" : " bad") : ""}`} onSubmit={e => { e.preventDefault(); if (!answered) check(); }}>
@@ -107,7 +107,7 @@ export function QuizView() {
       heroArt={<span className="hero-ruler" aria-hidden="true">{Array.from({ length: 11 }, (_, i) => <i key={i} className={i % 5 === 0 ? "l" : ""} />)}</span>}
       renderVisual={t => (t.kind === "input" ? <TaskBanner from={t.from} to={t.to} value={t.value} /> : null)}
       renderAnswer={(t, a, submit) => (t.kind === "input" ? <InputAnswer key={t.prompt} task={t} answered={a} submit={submit} /> : null)}
-      solution={t => (t.kind === "input" ? (() => { const s = solutionOf(t); return `${t.round !== undefined ? "≈ " + fmt(s.result, { digits: t.round }).text : fmt(s.result).text} ${t.to}`; })() : null)}
+      solution={t => (t.kind === "input" ? (() => { const s = solutionOf(t); return `${t.round !== undefined ? "≈ " + approxText(s.result, t.round) : fmt(s.result).text} ${t.to}`; })() : null)}
       feedbackExtra={t => (t.kind === "input" || t.conv ? <FeedbackExtra task={t} oberstufe={stufe === "os"} /> : null)}
       tools={t => toolsFor(t, stufe === "os")}
       explain={(level, task) => explainFor(stufe, level, task)}

@@ -97,7 +97,8 @@ export function AreaGrid({ big, small, guess = false }: { big: string; small: st
 
 // ── Volumen: Würfel aus 10 · 10 · 10 kleinen Würfeln ───────────────────────
 const LITER: Record<string, string> = { "dm³": "1 l", "cm³": "1 ml" };
-export function Cube({ big, small }: { big: string; small: string }) {
+/** `guess`: nur der große Würfel mit einem kleinen Würfel, Anzahl „?“ (zum Selbst-Ausrechnen, bevor das Raster erscheint) */
+export function Cube({ big, small, guess = false }: { big: string; small: string; guess?: boolean }) {
   const X = 40, Y = 50, S = 140, dx = 62, dy = -40, c = S / 10; // Y so, dass die Zeile „1 dm³ = … = 1000 cm³“ (Y + S + 40) noch im Bild liegt
   const P = (x: number, y: number) => `${x},${y}`;
   const lines: ReactElement[] = [];
@@ -113,20 +114,20 @@ export function Cube({ big, small }: { big: string; small: string }) {
   const sdx = dx / 10, sdy = dy / 10;
   return (
     <figure className="viz viz-cube">
-      <svg viewBox="0 0 340 236" role="img" aria-label={`1 ${big} = 1000 ${small}`}>
+      <svg viewBox="0 0 340 236" role="img" aria-label={`1 ${big} = ${guess ? "?" : 1000} ${small}`}>
         <polygon points={[P(X, Y), P(X + S, Y), P(X + S, Y + S), P(X, Y + S)].join(" ")} className="cb-front" />
         <polygon points={[P(X, Y), P(X + dx, Y + dy), P(X + S + dx, Y + dy), P(X + S, Y)].join(" ")} className="cb-top" />
         <polygon points={[P(X + S, Y), P(X + S + dx, Y + dy), P(X + S + dx, Y + S + dy), P(X + S, Y + S)].join(" ")} className="cb-side" />
-        {lines}
+        {!guess && lines}
         {/* kleiner Würfel vorne oben links */}
         <polygon points={[P(X, Y), P(X + c, Y), P(X + c, Y + c), P(X, Y + c)].join(" ")} className="cb-small" />
         <polygon points={[P(X, Y), P(X + sdx, Y + sdy), P(X + c + sdx, Y + sdy), P(X + c, Y)].join(" ")} className="cb-small top" />
         <path d={`M${X + c / 2} ${Y + c + 2} L${X + 18} ${Y + 44}`} className="ar-arrow" />
         <text x={X + 22} y={Y + 58} className="ar-note strong on-cube">1 {small}{LITER[small] ? ` = ${LITER[small]}` : ""}</text>
         <text x={X + S / 2} y={Y + S + 18} className="ar-lab">10 · {SIDE[small]} = {SIDE[big]}</text>
-        <text x={X + S / 2} y={Y + S + 40} className="ar-cap">1 {big}{LITER[big] ? ` = ${LITER[big]}` : ""} = 1000 {small}</text>
+        <text x={X + S / 2} y={Y + S + 40} className="ar-cap">1 {big}{LITER[big] ? ` = ${LITER[big]}` : ""} = {guess ? "?" : 1000} {small}</text>
       </svg>
-      <figcaption>10 · 10 · 10 = 1000 → <b className="fx">· 1000</b></figcaption>
+      <figcaption>10 · 10 · 10 = {guess ? "?" : <>1000 → <b className="fx">· 1000</b></>}</figcaption>
     </figure>
   );
 }

@@ -687,8 +687,13 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   einfache Sprache, Englisch), `guide*.test.ts` (Lektionen auf Deutsch und Englisch).
 
 ## Einheiten (`modules/einheiten`)
-- Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
+- Ein Verfahren für alles: ① Umrechnungszahl (`relation`: Kette über Nachbareinheiten, Flächen/Volumen als Produkt, zusammengesetzte Einheiten durch Einsetzen, Definitionen wie 1 l = 1 dm³, 1 J = 1 W·s) → ② Einsetzen und ausrechnen in einer Zeile (a · F, bei F < 1 oder nicht endendem F zusätzlich a : 1/F, = Ergebnis). Logik in `packages/units` (`solve`).
+  Der Rechenweg ist immer exakt: endet F nicht, wird durch den Kehrwert geteilt (`divisor`: 0,072 km/h = 0,072 : 0,036 cm/s), nie mit gerundetem F ohne „≈“ (Test über alle Aufgaben).
+  Definitionen genau: 1 PS = 735,498 75 W (75 kp · m/s), nicht 735,5 W.
 - Rechnen nur mit exakten Brüchen (`Q`, BigInt); Anzeige deutsch (Komma, 10 000, 0,000 01), nicht endende Zahlen als 1/60, 1/3,6 bzw. „≈“.
+  Schülereingaben (`parseAnswer`, Quiz und Umrechnen): Einheit dahinter erlaubt („0,06 m“), Trennzeichen nach der Sprache – Deutsch „,“ Dezimalkomma, „.“ Tausenderpunkt
+  (`1.000` = 1000, nie 1), Englisch umgekehrt (`1,000` = 1000, `1.5` = 1,5); mehrdeutige Eingaben nur so gelesen (sonst zählte „1.000 statt 1“ als richtig), eindeutige andere
+  Schreibweisen (0.5, 1.250,5) gehen weiter. Die Quiz-Antwort wird als exakter Bruch gespeichert (`storedValue`: n, d) und so angezeigt, wie sie gelesen wurde (`storedText`; Tests DE/EN).
 - Neue Einheit: Atom in `ATOMS` (Familie, Faktor, ggf. `def`), in `QUANTITIES` eintragen – der Test prüft jede Kombination gegen SI-Faktoren.
 - Stufen (Umschalter in der Kopfzeile, nicht gespeichert, Start Unterstufe): Unterstufe Länge, Fläche, Volumen, Masse, Zeit ohne seltene Vorsilben (`unitsFor(qt, false)`,
   `quantitiesFor(false)`); Oberstufe alle Größen und Einheiten. Seltene Vorsilben (µm, ms, MHz … – `rare` in `src/help.ts`): Tafel ohne Kette, direkt ① `1 nm = 10⁻⁷ cm`
@@ -705,12 +710,19 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   5 Unterstufe Zeit (umrechnen, Umrechnungszahl, „Was dauert länger?“ mit Falle 1 h = 100 min) bzw. Oberstufe zusammengesetzt, in der Runde nach Schwierigkeit sortiert (`STAGE`):
   Zeit → nur Zähler → nur Nenner → beide → Einheiten mit eigenem Namen (Pa, J, C …); Werte alltagsnah (`PLAUSIBLE`, z. B. Dichte ≤ 23 g/cm³).
   Level-Kennungen: Unterstufe n1–n5 (bisheriger Fortschritt), Oberstufe os-n1 … os-n5. Vergleichen: etwa jede vierte Aufgabe „gleich viel“, jede vierte eine Falle
-  (Umrechnungszahl eine Stufe falsch bzw. wie bei Längen), jede falsche Antwort mit Rückmeldung. Nicht endende Zahlen als Bruch (1/60, 1/3,6).
-  Umrechnungszahl-Aufgaben mit diagnostischen Distraktoren (`dis`: Gegenrichtung, „wie bei Längen“, Stufe zu viel/zu wenig).
+  (Umrechnungszahl mit einer Null zu viel bzw. wie bei Längen), jede falsche Antwort mit Rückmeldung; „Mal oder geteilt?“ zeigt bei falscher Zahl die Kette über die Nachbareinheiten. Nicht endende Zahlen als Bruch (1/60, 1/3,6).
+  Umrechnungszahl-Aufgaben mit diagnostischen Distraktoren (`dis`: Gegenrichtung, „wie bei Längen“, bei Flächen/Volumen eine Stufe zu viel/zu wenig; bei Längen, Massen und Hohlmaßen
+  „eine Null zu viel/zu wenig“ mit der Kette über die Nachbareinheiten – dort sind die Stufen verschieden groß: km → m · 1000, kg → dag · 100, hl → l · 100; Test). Die Erklärung zeigt
+  die Kette über die Nachbareinheiten (1 kg = 100 dag = 1000 g), bei einer Stufe den Schritt – nie nur das Ergebnis noch einmal.
+  Größenvorstellung: der Tipp nennt nur Vergleiche, die in keiner Frage vorkommen (Fingernagel, Tischplatte, Quadrat bzw. Würfel mit Kantenlänge; nicht Würfelzucker, Klassenzimmer,
+  „1 dm³ = 1 Liter“ bei der Milchpackung; Test). Ohne „schönes“ Ergebnis (PS ↔ kW) wird auf 2 Dezimalstellen gerundet, auch endende Zahlen (`approxText`).
 - Quiz-Hilfsmittel passend zur Aufgabe, ohne Ergebnis (nicht bei Fragen nach der Umrechnungszahl): Pfeile (bzw. `DimChain`), Skala (wenn `prefixStep`), Stellen (Stellenwerttafel), sonst Einsetzen.
+  `DimChain` (Volumen) nur, wenn eine Einheit ein Längen³-Maß ist (`dimOf`); Hohlmaße untereinander (l ↔ ml) bleiben auf der Kette hl → l → dl → cl → ml (Test).
   Eingabe-Aufgaben zeigen als Bild die Aufgabe groß mit Einheitennamen (`TaskBanner`, Quadrat/Würfel bei Fläche/Volumen).
 - Erklärung Level I (17 Schritte): **Längen** · **Masse und Hohlmaße** · **Fläche und Volumen** · **Zeit** (`known`: „gleich lang“). Level II (14 Schritte):
-  **Vorsilben** · **Flächen und Volumen** · **Zeit und zusammengesetzte Einheiten**.
+  **Vorsilben** · **Flächen und Volumen** · **Zeit und zusammengesetzte Einheiten**. Halb gelöste Schritte zeigen das passende Bild ohne die gesuchte Zahl
+  („1 m² = ? dm²“: Quadrat 1 m aus dm², „1 m³ = ? dm³“: Würfel; `AreaGrid`/`Cube` mit `guess`, Raster und Anzahl erst nach der richtigen Antwort);
+  der Merksatz (`say`) eines halb gelösten oder freien Schritts nennt die gesuchte Zahl nicht (Test `guide.test.ts`).
 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
@@ -724,6 +736,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Einheiten: Eingabe, Rechenweg und Rückmeldungen korrigiert** – Eingaben werden nach der Sprache gelesen (Deutsch „1.000“ = 1000, nie 1; Englisch „1,000“ = 1000) –
+  vorher galt „1.000“ bei „1000 m = ? km“ als richtig, gerade der typische Fehler „nicht umgerechnet“; auch im Umrechnen. Antwort exakt gespeichert und so angezeigt, wie sie gelesen wurde.
+  Rechenweg immer exakt (endet die Umrechnungszahl nicht, durch den Kehrwert teilen statt gerundeter Faktor ohne „≈“); 1 PS = 735,498 75 W. Rückmeldungen zur Umrechnungszahl
+  und „Mal oder geteilt?“ für ungleich große Stufen (Masse, Hohlmaß, km) mit der Kette über die Nachbareinheiten. Tipp der Größenvorstellung ohne das Ding der Frage; l ↔ ml auf der
+  Hohlmaß-Pfeilkette statt der Volumenkette; halb gelöste Erklärschritte mit passendem Bild ohne vorweggenommene Zahl; Briefmarke/Stecknadelkopf fachlich richtig.
 - **Elektronenpfeile zentral (`CurlyArrow`, `@lern/chem-ui`)** – gleichmäßige Bögen, deutliche gefüllte Spitzen bzw. Widerhaken, blau, so kräftig wie die Bindungen, weichen Atomen aus; Polymere nutzt sie (O–O-Homolyse nach außen, Pfeil-Atome am Rand sichtbar, Polyaddition zeigt das –OH); kürzere Rückmeldung bei „Mehr Starter“.
 - **Polymere: Namen im Bild und Begriffe in Lektionen** – Monomer-Bilder mit Name und Merkmal; Lektion K1 zeigt Styrol, Ethan und Vinylchlorid vor der Frage; PVC ausgeschrieben; Begriffe auch in Lektionen antippbar (Blatt schließt die Lektion nicht mehr mit).
 - **Polymere: Begriffe und Tipps beim Üben** – Stoffnamen, Starter und funktionelle Gruppen in Aufgaben antippbar (Karte „Was ist das?“, zentral `TermScope` in `@lern/ui`, `terms` an `QuizScreen`), Hilfsmittel „Begriffe“; zugeschnittener Tipp für alle 38 Fertigkeiten ohne eigenen Tipp; kürzere Rückmeldungen bei „Lebende Ketten“ und PE-HD/PE-LD (Bild bleibt mit „Lesbar“ auf 375 × 667 groß genug).

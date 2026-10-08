@@ -2,7 +2,7 @@
 // Werkzeuge: Stellenwerttafel | Tafel (Rechenweg in Kreide) | Bild (Lineal, Fläche …).
 
 import { Fit, IconButton, Workbench, buzz, type WorkbenchTool } from "@lern/ui";
-import { QUANTITY, unitsFor, parseQ, solve, unitSi, mul, isTerminating, fmt, ladderFor } from "@lern/units";
+import { QUANTITY, unitsFor, parseAnswer, solve, unitSi, mul, isTerminating, fmt, ladderFor } from "@lern/units";
 import { useApp } from "../store.ts";
 import { QuantitySelect, UnitSelect } from "../components/Pickers.tsx";
 import { ChalkBoard } from "../components/ChalkBoard.tsx";
@@ -16,7 +16,7 @@ import { tr, num } from "@lern/i18n";
 const EXAMPLES_RAW: Record<string, [string, string, string]> = {
   len: ["0,1", "m", "cm"], area: ["2,5", "m²", "dm²"], vol: ["1,5", "l", "ml"], mass: ["2,5", "kg", "g"], time: ["1,5", "h", "min"],
   speed: ["72", "km/h", "m/s"], density: ["2,7", "g/cm³", "kg/m³"], pressure: ["1013", "hPa", "bar"], force: ["2,5", "kN", "N"],
-  energy: ["1", "kWh", "kJ"], power: ["150", "PS", "kW"], voltage: ["230", "V", "kV"], current: ["250", "mA", "A"],
+  energy: ["1", "kWh", "kJ"], power: ["100", "PS", "kW"], voltage: ["230", "V", "kV"], current: ["250", "mA", "A"],
   resistance: ["4,7", "kΩ", "Ω"], charge: ["3000", "mAh", "C"], freq: ["88,5", "MHz", "kHz"], conc: ["150", "mmol/l", "mol/l"], flow: ["12", "l/min", "m³/h"],
 };
 export const EXAMPLES: Record<string, [string, string, string]> =
@@ -28,7 +28,8 @@ export function ConvertView() {
   const os = scaleMode(stufe === "os", conv.from, conv.to);
   const qt = QUANTITY[conv.qty];
   const units = unitsFor(qt, stufe === "os");
-  const v = parseQ(conv.value);
+  // Eingabe wie im Quiz lesen: „1.000“ ist im Deutschen 1000 (Tausenderpunkt), im Englischen „1,000“
+  const v = parseAnswer(conv.value)[0] ?? null;
   const s = v ? solve(v, conv.from, conv.to) : null;
   const pickQty = (id: string) => { buzz(); const [value, from, to] = EXAMPLES[id]; setConv({ qty: id, value, from, to }); };
   const mixed = s && qt.kind === "time" ? timeMixed(mul(s.result, unitSi(s.to))) : null;

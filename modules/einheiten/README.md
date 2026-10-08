@@ -15,9 +15,10 @@ Einheiten umrechnen – immer mit **demselben Verfahren**:
     Umrechnungszahl = 10^(Hochzahl vorher − Hochzahl nachher), bei m² bzw. m³ Hochzahl mal 2 bzw. 3.
 - **Rechenweg an der Tafel** (eigener Knopf): Tafelbild mit Kreideschrift zum Abschreiben.
 - **Veranschaulichung**: Lineal mit Zoom, 10 × 10-Raster, Würfel aus 1000 kleinen Würfeln, Messbecher, Uhr, Streifen.
-- **Quiz**: 5 Niveaus – Zehnerschritte, beliebige Zahlen, Flächen, Volumen, zusammengesetzte Einheiten (stufenweise).
+- **Üben**: 5 Niveaus – Zehnerschritte, beliebige Zahlen, Flächen, Volumen, Level I Zeit bzw. Level II zusammengesetzte Einheiten (stufenweise).
   Hilfen auf Wunsch passend zur Aufgabe (Pfeile, Skala, Stellenwerttafel, Einsetzen), bei Flächen/Volumen Pfeilkette mit den Längen darüber (· 10 · 10 = · 100).
-  Eingabe mit Komma (auch `2,5·10^-4`), in jeder Rückmeldung Pfeilkette/Skala und Rechenweg an der Tafel.
+  Eingabe mit Komma (auch `2,5·10^-4`); der Punkt ist auf Deutsch ein Tausenderpunkt (`1.000` = 1000), auf Englisch umgekehrt.
+  In jeder Rückmeldung Pfeilkette/Skala und Rechenweg an der Tafel.
 
 Die Rechenlogik liegt in `packages/units` (`@lern/units`): exakte Brüche (keine Rundungsfehler), Einheitenkatalog,
 Herleitung der Umrechnungszahl (wird für jede Einheitenkombination gegen SI-Faktoren getestet) und Stellenwerttafel.

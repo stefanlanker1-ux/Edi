@@ -77,8 +77,10 @@ export function parseQ(input: string): Q | null {
 }
 
 /**
- * Mögliche Werte einer Schülereingabe: die Einheit darf dahinter stehen („0,06 m“), und „48.000“ ist mehrdeutig
- * (Dezimalpunkt oder Tausenderpunkt) – dann zählen beide Lesarten.
+ * Wert einer Schülereingabe (leer, wenn es keine Zahl ist; sonst genau eine Lesart). Die Einheit darf dahinter stehen („0,06 m“).
+ * Trennzeichen wie in der Sprache der Oberfläche: Deutsch „,“ = Dezimalkomma, „.“ = Tausenderpunkt – „1.000“ ist 1000, nie 1;
+ * Englisch umgekehrt („1,000“ = 1000, „1.5“ = 1,5). Mehrdeutige Schreibweisen werden nur so gelesen, nie zusätzlich anders
+ * (sonst zählte der typische Fehler „1.000 statt 1“ als richtig). Eindeutige andere Schreibweisen gehen weiter: „0.5“, „1.250,5“, „0,25“.
  */
 export function parseAnswer(input: string, unit?: string): Q[] {
   let s = input.trim();
@@ -86,13 +88,17 @@ export function parseAnswer(input: string, unit?: string): Q[] {
     const esc = unit.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
     s = s.replace(new RegExp(`\\s*${esc}\\s*$`), "").trim();
   }
-  const out: Q[] = [];
-  const v = parseQ(s);
-  if (v) out.push(v);
-  if (/^-?\d{1,3}\.\d{3}$/.test(s)) { const t = parseQ(s.replace(".", "")); if (t) out.push(t); }
-  // Englisch: „48,000“ kann Tausenderkomma sein
-  if (getLang() === "en" && /^-?\d{1,3}(,\d{3})+$/.test(s)) { const t = parseQ(s.replace(/,/g, "")); if (t) out.push(t); }
-  return out;
+  // Zehnerpotenz abtrennen, damit auch „1.000 · 10³“ nach derselben Regel gelesen wird
+  const m = s.match(/^(.*?)((?:\s*[·x×*⋅]\s*10\s*(?:\^\s*[-−]?\d+|[⁻⁺]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+))|[eE][-−]?\d+)$/);
+  let mant = (m ? m[1] : s).replace(/[\s  ']/g, "");
+  const rest = m ? m[2] : "";
+  // Tausender-Gruppen: erste Gruppe 1–3 Ziffern ohne führende 0, dann je genau drei Ziffern
+  const groups = (sep: string, dec: string) => new RegExp(`^[-−–]?[1-9]\\d{0,2}(\\${sep}\\d{3})+(\\${dec}\\d*)?$`);
+  if (getLang() === "en") {
+    if (groups(",", ".").test(mant)) mant = mant.replace(/,/g, "");
+  } else if (groups(".", ",").test(mant)) mant = mant.replace(/\./g, "");
+  const v = parseQ(mant + rest);
+  return v ? [v] : [];
 }
 
 /** Gruppiert Ziffern in Dreiergruppen (ab 5 Stellen), z. B. 10 000, 3450 */

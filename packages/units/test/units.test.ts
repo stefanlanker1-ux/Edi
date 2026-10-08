@@ -1,4 +1,5 @@
 import { test, assert } from "vitest";
+import { getLang, setLang } from "@lern/i18n";
 import { parseQ, parseAnswer, fmt, fmtSci, q, eq, mul, div, pow10, type Q } from "../src/rational.ts";
 import { QUANTITIES, unitSi, unitDim, unitName, chainFor } from "../src/units.ts";
 import { relation, solve, sameValue, type Row } from "../src/convert.ts";
@@ -42,6 +43,14 @@ test("Beispiele aus dem Unterricht", () => {
   assert.ok(eq(solve("1", "km²", "ha").result, q(100)));
   assert.ok(eq(solve("2", "h", "min").result, q(120)));
   assert.ok(eq(solve("2500", "mAh", "C").result, q(9000)));
+});
+
+test("genaue Werte: 1 PS = 735,498 75 W; endet die Umrechnungszahl nicht, wird durch den Kehrwert geteilt", () => {
+  assert.strictEqual(chain("PS", "W"), "1 PS = 735,498\u202f75 W");
+  const s = solve("0,072", "km/h", "cm/s");
+  assert.ok(eq(s.divisor!, Qs("0,036")) && eq(s.result, q(2)));
+  assert.strictEqual(solve("1", "m/s", "km/h").divisor, null); // 3,6 endet: mal 3,6
+  assert.ok(eq(solve("72", "km/h", "m/s").divisor!, Qs("3,6")));
 });
 
 test("Rechenwege sehen aus wie an der Tafel", () => {
@@ -156,10 +165,25 @@ test("Schülereingaben: Tausenderpunkte, Einheit dahinter, mehrdeutiger Punkt", 
   assert.ok(eq(parseQ("40.000.000")!, Qs("40000000")));
   assert.ok(eq(parseQ("1.250,5")!, Qs("1250,5")));
   assert.ok(eq(parseQ("0.5")!, Qs("0,5")));
-  const c = parseAnswer("48.000", "dm");
-  assert.ok(c.some(v => eq(v, Qs("48000"))) && c.some(v => eq(v, Qs("48"))));
   assert.ok(eq(parseAnswer("0,0605 m", "m")[0], Qs("0,0605")));
   assert.ok(eq(parseAnswer("0,0605m", "m")[0], Qs("0,0605")));
   assert.ok(eq(parseAnswer("3 m²", "m²")[0], Qs("3")));
   assert.strictEqual(parseAnswer("abc", "m").length, 0);
+});
+
+test("Schülereingaben: Trennzeichen nach der Sprache, mehrdeutige Eingaben nur eine Lesart", () => {
+  const read = (s: string, unit?: string) => { const v = parseAnswer(s, unit); assert.ok(v.length <= 1, `${s}: mehrere Lesarten`); return v[0] ?? null; };
+  const is = (s: string, want: string, unit?: string) => { const v = read(s, unit); assert.ok(v && eq(v, Qs(want)), `${getLang()}: ${s} → ${v && fmt(v).text}, erwartet ${want}`); };
+  // Deutsch: „,“ Dezimalkomma, „.“ Tausenderpunkt – d.ddd nur als Tausender
+  setLang("de", false);
+  is("1.000", "1000"); is("48.000", "48000"); is("100.000", "100000"); is("1.250,5", "1250,5"); is("40.000.000", "40000000");
+  is("1,000", "1"); is("0,1", "0,1"); is("1 000", "1000"); is("1.000 m", "1000", "m"); is("1.000·10^3", "1000000");
+  is("0.5", "0,5"); is("0.00014", "0,00014"); is("1.5", "1,5"); is("0.001", "0,001"); // eindeutig: so kein Tausenderpunkt
+  is("2,5·10^-4", "0,00025"); is("2,5 · 10⁻⁴", "0,00025"); is("1,4e-4", "0,00014");
+  // Englisch: „.“ Dezimalpunkt, „,“ Tausenderkomma
+  setLang("en", false);
+  try {
+    is("1,000", "1000"); is("48,000", "48000"); is("1,250.5", "1250,5"); is("1,000,000", "1000000");
+    is("1.000", "1"); is("1.125", "1,125"); is("0,5", "0,5"); is("2.5·10^-4", "0,00025");
+  } finally { setLang("de", false); }
 });

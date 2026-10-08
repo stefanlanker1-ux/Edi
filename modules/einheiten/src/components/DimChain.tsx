@@ -14,9 +14,11 @@ const VOL_LEN = ["m", "dm", "cm", "mm"];
 const LITER: Record<string, string> = { l: "dm³", ml: "cm³", "µl": "mm³" };
 const LITER_OF: Record<string, string> = { "dm³": "l", "cm³": "ml", "mm³": "µl" };
 
-/** Hochzahl der Einheit (2 = Fläche, 3 = Volumen), sonst null */
+/** Hochzahl der Einheit (2 = Fläche, 3 = Volumen), sonst null. Volumen nur, wenn eine Einheit ein Längen³-Maß ist –
+ *  l ↔ ml bleibt auf der Hohlmaß-Kette hl → l → dl → cl → ml (Volumen kommt erst in Niveau 4). */
 export function dimOf(from: string, to: string): 2 | 3 | null {
   if (AREA.includes(from) && AREA.includes(to)) return 2;
+  if (!VOL.includes(from) && !VOL.includes(to)) return null;
   const f = LITER[from] ?? from, t = LITER[to] ?? to;
   if (VOL.includes(f) && VOL.includes(t) && f !== t) return 3;
   return null;

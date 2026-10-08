@@ -167,7 +167,8 @@ export interface Solution {
   result: Q;
   /** F = 10^k → Komma um |k| Stellen verschieben (k > 0 nach rechts) */
   shift: number | null;
-  /** Wenn F < 1: gleichwertige Division a : (1/F), falls 1/F „schön“ ist (100 000, 3,6, 60) */
+  /** Wenn F < 1 oder F nicht endet: gleichwertige Division a : (1/F), falls 1/F „schön“ ist (100 000, 3,6, 60, 0,036) –
+   *  so bleibt der Rechenweg exakt (0,072 km/h = 0,072 : 0,036 cm/s statt mit gerundetem 27,7778) */
   divisor: Q | null;
   /** große → kleine Einheit (Zahl wird größer) */
   bigger: boolean;
@@ -180,7 +181,7 @@ export function solve(value: Q | string, from: string, to: string): Solution {
   const rel = relation(from, to);
   const F = rel.F;
   const d = inv(F);
-  const divisor = cmp(F, ONE) < 0 && isTerminating(d) && d.n < 10n ** 13n ? d : null;
+  const divisor = (cmp(F, ONE) < 0 || !isTerminating(F)) && isTerminating(d) && d.n < 10n ** 13n ? d : null;
   return { value: v, from, to, rel, result: mul(v, F), shift: log10Exact(F), divisor, bigger: cmp(F, ONE) > 0, equal: eq(F, ONE) };
 }
 

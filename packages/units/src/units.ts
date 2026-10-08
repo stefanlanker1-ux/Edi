@@ -76,7 +76,8 @@ export const ATOMS: Atom[] = [
   A("kcal", tr("Kilokalorie", "kilocalorie"), "energy", "4186,8", { os: true, ladder: false }), A("J", tr("Joule", "joule"), "energy", "1", { os: true, def: "W·s" }),
   A("kWh", tr("Kilowattstunde", "kilowatt hour"), "wh", "1000", { os: true, def: "kW·h" }), A("Wh", tr("Wattstunde", "watt hour"), "wh", "1", { os: true, def: "W·h" }),
   A("GW", tr("Gigawatt", "gigawatt"), "power", "1000000000", { os: true }), A("MW", tr("Megawatt", "megawatt"), "power", "1000000", { os: true }), A("kW", tr("Kilowatt", "kilowatt"), "power", "1000", { os: true }),
-  A("PS", tr("Pferdestärke", "metric horsepower"), "power", "735,5", { os: true, ladder: false }), A("W", tr("Watt", "watt"), "power", "1", { os: true }),
+  // 1 PS = 75 kp · m/s = 75 · 9,806 65 W = 735,498 75 W (genau; 735,5 W wäre gerundet)
+  A("PS", tr("Pferdestärke", "metric horsepower"), "power", "735,49875", { os: true, ladder: false }), A("W", tr("Watt", "watt"), "power", "1", { os: true }),
   A("mW", tr("Milliwatt", "milliwatt"), "power", "0,001", { os: true }),
   // Elektrik
   A("kV", tr("Kilovolt", "kilovolt"), "volt", "1000", { os: true }), A("V", tr("Volt", "volt"), "volt", "1", { os: true }), A("mV", tr("Millivolt", "millivolt"), "volt", "0,001", { os: true }),
