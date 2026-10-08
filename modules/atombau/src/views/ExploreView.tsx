@@ -81,7 +81,10 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
     [tr("Ordnungszahl", "Atomic number"), Z],
     [tr("Atommasse", "Atomic mass"), `${el.mass.toLocaleString(LOC)} u`],
     ["p⁺ · n · e⁻", `${Z} · ${N} · ${Z}`],
-    [tr("Periode", "Period"), tr(`${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`, `${el.period} (${sh.length} shell${sh.length > 1 ? "s" : ""})`)],
+    // Pd [Kr] 4d¹⁰: Periode 5, aber die 5s-Unterschale ist leer
+    [tr("Periode", "Period"), sh.length < el.period
+      ? tr(`${el.period} (${sh.length} besetzte Schalen, ${el.period}s leer)`, `${el.period} (${sh.length} occupied shells, ${el.period}s empty)`)
+      : tr(`${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`, `${el.period} (${sh.length} shell${sh.length > 1 ? "s" : ""})`)],
     os || mainGroupNumber(Z) === null
       ? [tr("Gruppe", "Group"), el.group === null ? tr("Lanthanoide", "Lanthanoids") : `${el.group}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`]
       : [tr("Hauptgruppe", "Main group"), `${ROMAN[mainGroupNumber(Z)!]}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`],
@@ -108,7 +111,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
           <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
         </div>
       </div>
-      {os && configException(Z) && <div className="ui-tags"><ExceptionTag Z={Z} /></div>}
+      {os && configException(Z) && <div className="ui-tags d-exc"><ExceptionTag Z={Z} /></div>}
       <dl className="d-facts">{key.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
     </FitDown>
   );

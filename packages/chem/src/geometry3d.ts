@@ -6,7 +6,7 @@
 
 import { ELEMENTS } from "./elements.ts";
 import { TRENDS } from "./trends.ts";
-import { electronsOf, bondsOf, canonicalKey, REAL_ANGLES, formatAngle, type Molecule } from "./molecules.ts";
+import { electronsOf, bondsOf, canonicalKey, enDelta, POLAR_DELTA, REAL_ANGLES, formatAngle, type Molecule } from "./molecules.ts";
 import { MOL3D, type Mol3D } from "./mol3d.ts";
 
 export type Vec = [number, number, number];
@@ -391,6 +391,41 @@ function embedEPA(m: Molecule, mode: AngleMode): Embedded3D {
     for (const lp of lonePairs) if (side.has(lp.atom)) lp.dir = rotate(lp.dir, u, Math.PI);
   }
 
+  // Diederwinkel X–A…B–Y auf t setzen: alles hinter B (ohne die Seite von A bzw. `before`) um die Achse A→B drehen
+  const twist = (X: number, A: number, B: number, Y: number, t: number, before = A) => {
+    const pa = pos.get(A)!, u = norm(sub(pos.get(B)!, pa));
+    const perp = (v: Vec) => sub(v, mul(u, dot(v, u)));
+    const vx = perp(sub(pos.get(X)!, pa)), vy = perp(sub(pos.get(Y)!, pos.get(B)!));
+    if (len(vx) < 1e-6 || len(vy) < 1e-6) return;
+    const r = t - Math.atan2(dot(cross(vx, vy), u), dot(vx, vy));
+    const side = new Set([B]), stack = [B];
+    while (stack.length) for (const nb of nbs(stack.pop()!)) if (nb.id !== before && !side.has(nb.id)) { side.add(nb.id); stack.push(nb.id); }
+    for (const id of side) if (id !== B) pos.set(id, add(pa, rotate(sub(pos.get(id)!, pa), u, r)));
+    for (const lp of lonePairs) if (side.has(lp.atom)) lp.dir = rotate(lp.dir, u, r);
+  };
+
+  // Einfachbindung zwischen zwei Zweifachbindungen (Butadien, Glyoxal): eben und s-trans, die bevorzugte Lage
+  for (const bd of m.bonds) {
+    const c = conjugated(m, bd);
+    if (c) twist(c[0], c[1], c[2], c[3], Math.PI);
+  }
+
+  // Kumulierte Zweifachbindungen (Allen H₂C=C=CH₂): bei gerader Zahl stehen die Endgruppen senkrecht zueinander
+  const doubles = (id: number) => bondsOf(m, id).filter(b => b.order === 2).map(b => (b.a === id ? b.b : b.a));
+  const middle = (id: number) => nbs(id).length === 2 && doubles(id).length === 2;
+  for (const start of m.atoms) {
+    if (middle(start.id) || doubles(start.id).length !== 1 || nbs(start.id).length < 2) continue;
+    const chain = [start.id, doubles(start.id)[0]];
+    while (middle(chain[chain.length - 1]) && chain.length <= m.atoms.length) {
+      const [prev, cur] = chain.slice(-2);
+      chain.push(doubles(cur).find(x => x !== prev)!);
+    }
+    const end = chain[chain.length - 1];
+    if (chain.length < 3 || chain.length % 2 === 0 || end < start.id || nbs(end).length < 2 || middle(end)) continue;
+    const X = nbs(start.id).find(x => x.id !== chain[1])!.id, Y = nbs(end).find(x => x.id !== chain[chain.length - 2])!.id;
+    twist(X, start.id, end, Y, Math.PI / 2, chain[chain.length - 2]);
+  }
+
   // Peroxid-artige Ketten X–A–B–Y (A, B mit je 2 Bindungen und 2 freien Paaren, z. B. H–O–O–H) sind verdrillt:
   // Diederwinkel ca. 111° – nicht eben, sonst höben sich die Bindungsdipole von H₂O₂ auf.
   for (const bd of m.bonds) {
@@ -553,13 +588,17 @@ export function embedMol3D(d: Mol3D): Embedded3D {
 /** Teil-Dipol: Vektor und die Atome, zu denen er gehört (Bindung bzw. Atom mit freiem Paar) */
 interface DipolePart { atoms: number[]; v: Vec }
 
-/** Bindungsdipole polarer Bindungen (ΔEN ≥ 0,4): ΔEN · Richtung von δ+ nach δ− */
-function bondDipoles(e: Embedded3D, enOf: (el: string) => number): DipolePart[] {
+/**
+ * Bindungsdipole (ΔEN · Richtung von δ+ nach δ−, ΔEN wie bei `polarBonds` gerundet): „polar“ = ΔEN ≥ 0,4;
+ * „weak“ = 0 < ΔEN < 0,4 ohne C–H (Kohlenwasserstoffe gelten als unpolar).
+ */
+function bondDipoles(e: Embedded3D, enOf: (el: string) => number, kind: "polar" | "weak" = "polar"): DipolePart[] {
   const out: DipolePart[] = [];
   for (const b of e.bonds) {
     const A = e.atoms.find(a => a.id === b.a)!, B = e.atoms.find(a => a.id === b.b)!;
-    const diff = enOf(B.el) - enOf(A.el);
-    if (Math.abs(diff) < 0.4) continue;
+    const diff = enDelta(A.el, B.el, enOf);
+    const polar = Math.abs(diff) >= POLAR_DELTA;
+    if (kind === "polar" ? !polar : polar || diff === 0 || [A.el, B.el].sort().join() === "C,H") continue;
     out.push({ atoms: [b.a, b.b], v: mul(norm(sub(B.pos, A.pos)), diff) });
   }
   return out;
@@ -570,8 +609,24 @@ export function dipoleVector(e: Embedded3D, enOf: (el: string) => number): Vec {
   return bondDipoles(e, enOf).reduce((d, p) => add(d, p.v), [0, 0, 0] as Vec);
 }
 
-/** Ab diesem Betrag heben sich Teil-Dipole nicht auf (eine einzelne polare Bindung hat ΔEN ≥ 0,4) */
+/** Ab diesem Betrag zeigt die 3D-Ansicht den Dipolpfeil (eine einzelne polare Bindung hat ΔEN ≥ 0,4) */
 export const DIPOLE_MIN = 0.2;
+/** Ab diesem Betrag heben sich Teil-Dipole nicht auf – nur Spielraum für Rundung (ClC≡N: 0,61 − 0,49 = 0,12 bleibt polar) */
+export const DIPOLE_EPS = 0.01;
+
+/**
+ * Einfachbindung zwischen zwei Zweifachbindungen (konjugiert: Butadien, Glyoxal) als [X, A, B, Y] mit X=A–B=Y, sonst null.
+ * Solche Bindungen drehen sich nicht frei: das Molekül ist eben, bevorzugt s-trans (X und Y auf verschiedenen Seiten).
+ */
+function conjugated(m: Molecule, bd: Molecule["bonds"][number]): [number, number, number, number] | null {
+  if (bd.order !== 1 || inRing(m, bd)) return null;
+  const partner = (id: number) => {
+    const multi = bondsOf(m, id).filter(x => x !== bd && x.order >= 2);
+    return multi.length === 1 && multi[0].order === 2 ? (multi[0].a === id ? multi[0].b : multi[0].a) : null;
+  };
+  const X = partner(bd.a), Y = partner(bd.b);
+  return X !== null && Y !== null ? [X, bd.a, bd.b, Y] : null;
+}
 
 /**
  * Bleibt von den Teil-Dipolen ein Dipol übrig? Summe in der räumlichen Lage (gemessen bzw. EPA).
@@ -579,10 +634,10 @@ export const DIPOLE_MIN = 0.2;
  * Dipole schräg zur Achse, hängt die Summe von der Drehung ab – im Mittel bleibt ein Dipol, auch wenn eine Lage symmetrisch wäre.
  */
 function netDipole(m: Molecule, e: Embedded3D, parts: DipolePart[]): boolean {
-  if (len(parts.reduce((d, p) => add(d, p.v), [0, 0, 0] as Vec)) > DIPOLE_MIN) return true;
+  if (len(parts.reduce((d, p) => add(d, p.v), [0, 0, 0] as Vec)) > DIPOLE_EPS) return true;
   const P = (id: number) => e.atoms.find(a => a.id === id)!.pos;
   for (const b of m.bonds) {
-    if (b.order !== 1 || bondsOf(m, b.a).length < 2 || bondsOf(m, b.b).length < 2 || inRing(m, b)) continue;
+    if (b.order !== 1 || bondsOf(m, b.a).length < 2 || bondsOf(m, b.b).length < 2 || inRing(m, b) || conjugated(m, b)) continue;
     // Atome auf der Seite von a (ohne die Bindung a–b)
     const side = new Set([b.a]), stack = [b.a];
     while (stack.length) {
@@ -600,7 +655,7 @@ function netDipole(m: Molecule, e: Embedded3D, parts: DipolePart[]): boolean {
       if (p.atoms.length === 2 && p.atoms.includes(b.a) && p.atoms.includes(b.b)) continue;
       if (p.atoms.every(id => side.has(id))) sa = add(sa, p.v); else sb = add(sb, p.v);
     }
-    if (across(sa) > DIPOLE_MIN && across(sb) > DIPOLE_MIN) return true;
+    if (across(sa) > DIPOLE_EPS && across(sb) > DIPOLE_EPS) return true;
   }
   return false;
 }
@@ -611,8 +666,12 @@ export function hasBondDipole(m: Molecule, enOf: (el: string) => number): boolea
   return netDipole(m, e, bondDipoles(e, enOf));
 }
 
-/** Ungleich verteilte freie Elektronenpaare an Zentralatomen (gewinkelt, pyramidal: H₂S, PH₃) – kleiner Dipol ohne polare Bindungen */
-export function hasLonePairDipole(m: Molecule): boolean {
+/**
+ * Kleiner Dipol ohne (wirksame) polare Bindungen: Bindungen mit 0 < ΔEN < 0,4 außer C–H (CH₃I, H₂C=S) oder
+ * ungleich verteilte freie Elektronenpaare an Zentralatomen (gewinkelt, pyramidal: H₂S, PH₃), die sich nicht aufheben
+ */
+export function hasWeakDipole(m: Molecule, enOf: (el: string) => number): boolean {
   const e = embed3D(m);
-  return netDipole(m, e, e.lonePairs.filter(lp => bondsOf(m, lp.atom).length >= 2).map(lp => ({ atoms: [lp.atom], v: norm(lp.dir) })));
+  return netDipole(m, e, bondDipoles(e, enOf, "weak"))
+    || netDipole(m, e, e.lonePairs.filter(lp => bondsOf(m, lp.atom).length >= 2).map(lp => ({ atoms: [lp.atom], v: norm(lp.dir) })));
 }

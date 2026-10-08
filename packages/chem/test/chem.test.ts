@@ -80,6 +80,17 @@ test("Kationen der Übergangsmetalle aus dem gemessenen Grundzustand: zuerst die
   assert.strictEqual(ion(58, 3), "[Xe] 4f¹");       // Ce³⁺
   assert.strictEqual(ion(64, 3), "[Xe] 4f⁷");       // Gd³⁺
   assert.strictEqual(ion(57, 3), "[Xe]");           // La³⁺
+  // gemessene Grundzustände einfach geladener Kationen, die von der Regel abweichen (NIST)
+  assert.strictEqual(ion(23, 1), "[Ar] 3d⁴");       // V⁺
+  assert.strictEqual(ion(27, 1), "[Ar] 3d⁸");       // Co⁺
+  assert.strictEqual(ion(28, 1), "[Ar] 3d⁹");       // Ni⁺
+  assert.strictEqual(ion(39, 1), "[Kr] 5s²");       // Y⁺
+  assert.strictEqual(ion(57, 1), "[Xe] 5d²");       // La⁺
+  assert.strictEqual(ion(58, 2), "[Xe] 4f²");       // Ce²⁺
+  assert.strictEqual(ion(71, 1), "[Xe] 6s² 4f¹⁴");  // Lu⁺
+  assert.strictEqual(ion(72, 1), "[Xe] 6s² 4f¹⁴ 5d¹"); // Hf⁺
+  assert.strictEqual(ion(23, 2), "[Ar] 3d³");       // V²⁺ nach Regel
+  assert.strictEqual(ion(26, 1), "[Ar] 4s¹ 3d⁶");   // Fe⁺ nach Regel
 });
 
 test("Ausnahmen sind gekennzeichnet (halb/voll besetzte d-Unterschale …)", () => {
@@ -88,8 +99,12 @@ test("Ausnahmen sind gekennzeichnet (halb/voll besetzte d-Unterschale …)", () 
   for (const Z of [29, 46, 47, 79]) assert.strictEqual(configException(Z), "d10", String(Z));
   assert.strictEqual(configException(64), "f7");
   for (const Z of [41, 44, 45, 57, 58, 78]) assert.strictEqual(configException(Z), "other", String(Z));
-  assert.strictEqual(configException(29, 28), "d10");   // Cu⁺: nach Regel 4s¹ 3d⁹
-  assert.strictEqual(configException(29, 27), null);    // Cu²⁺: wie nach Regel
+  // Ionen: das Atom ist die Ausnahme, das Ion folgt der Regel (Cu⁺ = Cu [Ar] 4s¹ 3d¹⁰ ohne 4s) – bzw. das Ion selbst (V⁺)
+  assert.strictEqual(configException(29, 28), "atom");  // Cu⁺
+  assert.strictEqual(configException(29, 27), "atom");  // Cu²⁺
+  assert.strictEqual(configException(23, 22), "ion");   // V⁺ [Ar] 3d⁴
+  assert.strictEqual(configException(23, 21), null);    // V²⁺
+  assert.strictEqual(configException(26, 24), null);    // Fe²⁺
   assert.strictEqual(configException(26), null);
   assert.strictEqual(configException(11, 10), null);
 });

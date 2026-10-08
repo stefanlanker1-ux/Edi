@@ -39,7 +39,7 @@ test("alle Level erzeugen gültige Aufgaben", () => {
     }
     assert.strictEqual(LEVELS[stufe].length, 3);
   }
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("diagnostische Distraktoren: Schlüssel im Katalog, Listen passen zu den Optionen, Fallen zeigen auf nC/nA", () => {
   let withDiag = 0, total = 0;

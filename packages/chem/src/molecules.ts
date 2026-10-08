@@ -4,7 +4,7 @@
 import { num, tr } from "@lern/i18n";
 import { ELEMENTS } from "./elements.ts";
 // Zyklischer Import: geometry3d nutzt molecules erst beim Aufruf, nicht beim Laden
-import { hasBondDipole, hasLonePairDipole } from "./geometry3d.ts";
+import { hasBondDipole, hasWeakDipole } from "./geometry3d.ts";
 
 export const VALENCE: Record<string, number> = { H: 1, C: 4, N: 5, O: 6, F: 7, Cl: 7, Br: 7, I: 7, S: 6, P: 5 };
 export const BONDING_ELEMENTS = Object.keys(VALENCE);
@@ -19,6 +19,10 @@ const DIR: Record<Side, [number, number]> = { up: [0, -1], right: [1, 0], down: 
 
 const bySymbol = Object.fromEntries(ELEMENTS.map(e => [e.symbol, e]));
 export const en = (el: string) => bySymbol[el]?.en ?? 0;
+/** Ab dieser Elektronegativitätsdifferenz gilt eine Bindung als polar */
+export const POLAR_DELTA = 0.4;
+/** ΔEN der Bindung a → b (EN(b) − EN(a)), auf zwei Stellen wie die Tabellenwerte – eine Rechnung für Teilladungen und Dipole */
+export const enDelta = (a: string, b: string, enOf: (el: string) => number = en) => Math.round((enOf(b) - enOf(a)) * 100) / 100;
 export const elementName = (el: string) => bySymbol[el]?.name ?? el;
 /** Edelgaskonfiguration: 2 Elektronen für H (Duett), sonst 8 (Oktett) */
 export const target = (el: string) => (el === "H" ? 2 : 8);
@@ -177,28 +181,27 @@ export interface PolarBond { a: number; b: number; delta: number; plus: number; 
 /** Polare Bindungen (ΔEN ≥ 0,4) mit δ+ und δ− */
 export function polarBonds(m: Molecule): PolarBond[] {
   return m.bonds.map(b => {
-    const ea = en(atom(m, b.a).el), eb = en(atom(m, b.b).el);
-    const delta = Math.round(Math.abs(ea - eb) * 100) / 100;
-    return { a: b.a, b: b.b, delta, plus: ea < eb ? b.a : b.b, minus: ea < eb ? b.b : b.a };
-  }).filter(p => p.delta >= 0.4);
-}
-
-/**
- * Schwach polar: keine Bindung mit ΔEN ≥ 0,4, aber ein Zentralatom mit freien Elektronenpaaren, die sich nicht aufheben
- * (gewinkelt, pyramidal) – z. B. H₂S (gemessen 0,97 D) und PH₃ (0,57 D).
- */
-export function isWeaklyPolar(m: Molecule): boolean {
-  if (polarBonds(m).length) return false;
-  return hasLonePairDipole(m);
+    const d = enDelta(atom(m, b.a).el, atom(m, b.b).el);
+    return { a: b.a, b: b.b, delta: Math.abs(d), plus: d > 0 ? b.a : b.b, minus: d > 0 ? b.b : b.a };
+  }).filter(p => p.delta >= POLAR_DELTA);
 }
 
 /**
  * Polarität des Moleküls: polare Bindungen (ΔEN ≥ 0,4), deren Dipole sich in der räumlichen Lage nicht aufheben
- * (Vektorsumme, `hasBondDipole`) – H₂O, NH₃, CHCl₃ polar; CO₂, CCl₄, Cl₂C=CCl₂, N≡C–C≡N unpolar.
+ * (Vektorsumme, `hasBondDipole`) – H₂O, NH₃, CHCl₃, ClC≡N polar; CO₂, CCl₄, Cl₂C=CCl₂, N≡C–C≡N unpolar.
  */
 export function isPolar(m: Molecule): boolean {
   if (!polarBonds(m).length) return false;
   return hasBondDipole(m, en);
+}
+
+/**
+ * Schwach polar: nicht polar, aber ein kleiner Dipol aus Bindungen mit 0 < ΔEN < 0,4 (ohne C–H: Kohlenwasserstoffe
+ * gelten als unpolar) oder aus freien Elektronenpaaren an Zentralatomen, die sich nicht aufheben (`hasWeakDipole`) –
+ * z. B. H₂S, PH₃, CH₃I, H₂C=S, CH₃–S–CH₃.
+ */
+export function isWeaklyPolar(m: Molecule): boolean {
+  return !isPolar(m) && hasWeakDipole(m, en);
 }
 
 // ── Bekannte Moleküle ───────────────────────────────────────────────────────

@@ -143,7 +143,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welche Formel hat die Verbindung aus N und H?", "Complete: what is the formula of the compound of N and H?"), answer: "NH₃", options: ["NH₃", "NH₂", "NH₄", "N₃H"],
+    ask: tr("Ergänze: Welche Formel hat die Verbindung aus N und H?", "Complete: what is the formula of the compound of N and H?"), answer: "NH₃", options: ["NH₂", "NH₃", "NH₄", "N₃H"],
     visual: () => <Lewis m={mol([["N", 0, 0]])} />,
     lines: [tr("N hat 3 einzelne Elektronen.", "N has 3 single electrons."), tr("Also binden 3 H → {?}", "So 3 H bond → {?}")],
     why: { "NH₂": tr("Dann bliebe 1 einzelnes Elektron übrig.", "Then 1 single electron would be left over."), "NH₄": tr("N hat nur 3 einzelne Elektronen.", "N has only 3 single electrons."), "N₃H": tr("Ein N bindet 3 H, nicht umgekehrt.", "One N binds 3 H, not the other way round.") },
@@ -151,7 +151,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Wie heißt **NH₃**?", "Your turn: what is **NH₃** called?"), answer: tr("Ammoniak", "ammonia"), options: [tr("Ammoniak", "ammonia"), tr("Methan", "methane"), tr("Wasser", "water"), tr("Chlorwasserstoff", "hydrogen chloride")],
+    ask: tr("Jetzt du: Wie heißt **NH₃**?", "Your turn: what is **NH₃** called?"), answer: tr("Ammoniak", "ammonia"), options: [tr("Methan", "methane"), tr("Wasser", "water"), tr("Ammoniak", "ammonia"), tr("Chlorwasserstoff", "hydrogen chloride")],
     visual: () => <Lewis m={known("NH3")} />,
     why: { [tr("Methan", "methane")]: tr("Methan ist CH₄.", "Methane is CH₄."), [tr("Wasser", "water")]: tr("Wasser ist H₂O.", "Water is H₂O."), [tr("Chlorwasserstoff", "hydrogen chloride")]: tr("Chlorwasserstoff ist HCl.", "Hydrogen chloride is HCl.") },
     lines: [tr("NH₃ = Ammoniak.", "NH₃ = ammonia.")],
@@ -167,7 +167,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welche Formel hat **Fluor**?", "Complete: what is the formula of **fluorine**?"), answer: "F₂", options: ["F₂", "F", tr("2 F", "2 F"), "F₃"],
+    ask: tr("Ergänze: Welche Formel hat **Fluor**?", "Complete: what is the formula of **fluorine**?"), answer: "F₂", options: ["F", tr("2 F", "2 F"), "F₂", "F₃"],
     why: { F: tr("Ein einzelnes F-Atom hätte kein Oktett.", "A single F atom would not have an octet."), [tr("2 F", "2 F")]: tr("2 F sind zwei getrennte Atome. Verbunden schreibt man F₂.", "2 F are two separate atoms. Bonded, you write F₂."), "F₃": tr("Jedes F bindet nur einmal – zwei Atome reichen.", "Each F bonds only once – two atoms are enough.") },
     lines: [tr("F hat wie Cl 7 Außenelektronen: 1 einzelnes.", "Like Cl, F has 7 outer electrons: 1 single."), tr("Zwei F-Atome teilen es: F–F → {?}", "Two F atoms share it: F–F → {?}")],
     ok: tr("**F₂** – wie H₂, N₂, O₂ und Cl₂.", "**F₂** – like H₂, N₂, O₂ and Cl₂."),
@@ -228,7 +228,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welchen **Bindungswinkel** hat Wasser?", "Complete: what is the **bond angle** in water?"), answer: tr("104,5°", "104.5°"), options: [tr("104,5°", "104.5°"), tr("109,5°", "109.5°"), "120°", "180°"],
+    ask: tr("Ergänze: Welchen **Bindungswinkel** hat Wasser?", "Complete: what is the **bond angle** in water?"), answer: tr("104,5°", "104.5°"), options: [tr("109,5°", "109.5°"), tr("104,5°", "104.5°"), "120°", "180°"],
     visual: () => <Lewis m={known("H2O")} note={FLAT} />,
     lines: [tr("O: 2 bindende + 2 freie Paare = 4 Bereiche.", "O: 2 bonding + 2 lone pairs = 4 regions."), tr("Freie Paare drücken stärker → unter 109,5°: {?}", "Lone pairs push harder → below 109.5°: {?}")],
     why: { [tr("109,5°", "109.5°")]: tr("109,5° ist der Tetraederwinkel. Die zwei freien Paare drücken stärker.", "109.5° is the tetrahedral angle. The two lone pairs push harder."), "120°": tr("120° gilt für 3 Bereiche (trigonal-planar).", "120° applies to 3 regions (trigonal planar)."), "180°": tr("Wasser ist gewinkelt, nie linear.", "Water is bent, never linear.") },
@@ -236,7 +236,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Welchen Bindungswinkel hat **CO₂** (O=C=O)?", "Your turn: what is the bond angle in **CO₂** (O=C=O)?"), answer: "180°", options: ["180°", "120°", tr("109,5°", "109.5°"), tr("104,5°", "104.5°")],
+    ask: tr("Jetzt du: Welchen Bindungswinkel hat **CO₂** (O=C=O)?", "Your turn: what is the bond angle in **CO₂** (O=C=O)?"), answer: "180°", options: [tr("109,5°", "109.5°"), "120°", tr("104,5°", "104.5°"), "180°"],
     visual: () => <Lewis m={known("CO2")} />,
     why: { "120°": tr("C hat keine freien Paare – nur 2 Bereiche (zwei Zweifachbindungen).", "C has no lone pairs – only 2 regions (two double bonds)."), [tr("109,5°", "109.5°")]: tr("Eine Zweifachbindung zählt wie ein Bereich: nur 2 Bereiche.", "A double bond counts as one region: only 2 regions."), [tr("104,5°", "104.5°")]: tr("Das gilt für Wasser mit 2 freien Paaren.", "That applies to water with 2 lone pairs.") },
     lines: [tr("2 Bereiche → linear, 180°.", "2 regions → linear, 180°.")],
@@ -244,7 +244,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Welchen Bindungswinkel ergibt das EPA-Modell für **Methanal** (H₂C=O)?", "What bond angle does the VSEPR model give for **methanal** (H₂C=O)?"), answer: "120°", options: ["120°", tr("109,5°", "109.5°"), "180°", "90°"],
+    ask: tr("Welchen Bindungswinkel ergibt das EPA-Modell für **Methanal** (H₂C=O)?", "What bond angle does the VSEPR model give for **methanal** (H₂C=O)?"), answer: "120°", options: [tr("109,5°", "109.5°"), "90°", "120°", "180°"],
     visual: () => <Lewis m={known("CH2O")} note={FLAT} />,
     why: { [tr("109,5°", "109.5°")]: tr("C hat nur 3 Bereiche (2 × C–H, 1 × C=O).", "C has only 3 regions (2 × C–H, 1 × C=O)."), "180°": tr("Das wären nur 2 Bereiche.", "That would be only 2 regions."), "90°": tr("Die Bereiche gehen so weit wie möglich auseinander.", "The regions spread as far apart as possible.") },
     lines: [tr("3 Bereiche → trigonal-planar, ca. 120°.", "3 regions → trigonal planar, approx. 120°.")],
@@ -261,14 +261,14 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welche Bindung ist **am stärksten polar**?", "Complete: which bond is **the most polar**?"), answer: "H–F", options: ["H–F", "H–Cl", "C–H", "Cl–Cl"],
+    ask: tr("Ergänze: Welche Bindung ist **am stärksten polar**?", "Complete: which bond is **the most polar**?"), answer: "H–F", options: ["C–H", "H–Cl", "H–F", "Cl–Cl"],
     lines: [tr("ΔEN: H–F 1,8 · H–Cl 1,0 · C–H 0,35 · Cl–Cl 0.", "ΔEN: H–F 1.8 · H–Cl 1.0 · C–H 0.35 · Cl–Cl 0."), tr("Größtes ΔEN: {?}", "Largest ΔEN: {?}")],
     why: { "H–Cl": tr("Polar, aber H–F hat das größere ΔEN.", "Polar, but H–F has the larger ΔEN."), "C–H": tr("ΔEN ≈ 0,35 – unter 0,4, also unpolar.", "ΔEN ≈ 0.35 – below 0.4, so non-polar."), "Cl–Cl": tr("Gleiche Atome: ΔEN = 0, unpolar.", "Identical atoms: ΔEN = 0, non-polar.") },
     ok: tr("H–F ist am stärksten polar.", "H–F is the most polar."),
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: In **H–F**: Welches Atom trägt δ−?", "Your turn: in **H–F**, which atom carries δ−?"), answer: "F", options: ["F", "H"],
+    ask: tr("Jetzt du: In **H–F**: Welches Atom trägt δ−?", "Your turn: in **H–F**, which atom carries δ−?"), answer: "F", options: ["H", "F"],
     why: { H: tr("F hat die größere EN – es zieht das Paar zu sich und wird δ−.", "F has the higher EN – it pulls the pair towards itself and becomes δ−.") },
     lines: [tr("EN(F) 3,98 > EN(H) 2,20 → F δ−, H δ+.", "EN(F) 3.98 > EN(H) 2.20 → F δ−, H δ+.")],
     ok: tr("Genau: F δ−.", "Exactly: F δ−."),

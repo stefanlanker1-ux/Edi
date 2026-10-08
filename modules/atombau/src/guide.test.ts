@@ -7,6 +7,13 @@ test("Erklärung Unterstufe und Oberstufe", () => {
   expect([...checkGuide(guideFor("us")), ...checkGuide(guideFor("os"))]).toEqual([]);
 });
 
+test("die richtige Antwort steht an wechselnden Plätzen (höchstens 40 % an Platz 1)", () => {
+  const steps = [...guideFor("us").steps, ...guideFor("os").steps].filter(s => s.options?.length && s.answer !== undefined);
+  const first = steps.filter(s => s.options![0] === String(s.answer)).length;
+  expect(steps.length).toBeGreaterThan(5);
+  expect(first / steps.length).toBeLessThanOrEqual(.4);
+});
+
 test("Rückmeldung: erst Begründung, ab dem zweiten Versuch mit Tipp; ohne Begründung gleich der Tipp", () => {
   const step = guideFor("us").steps.find(s => s.tip && s.why)!;
   const why = Object.values(step.why!)[0];

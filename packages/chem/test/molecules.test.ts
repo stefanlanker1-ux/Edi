@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
-import { KNOWN, KNOWN_BY_ID as K, toMolecule, isComplete, electronsOf, sumFormula, identify, shapeAt, isPolar, canBond, sideLayout, loneLayout, en, type Molecule } from "../src/molecules.ts";
-import { embed3D, dipoleVector, gridCisTrans } from "../src/geometry3d.ts";
+import { KNOWN, KNOWN_BY_ID as K, toMolecule, isComplete, electronsOf, sumFormula, identify, shapeAt, isPolar, isWeaklyPolar, polarBonds, canBond, sideLayout, loneLayout, en, type Molecule } from "../src/molecules.ts";
+import { embed3D, dipoleVector, gridCisTrans, storedMol3D, DIPOLE_MIN, type Vec } from "../src/geometry3d.ts";
 
 test("alle bekannten Moleküle erfüllen die Oktettregel und werden erkannt", () => {
   for (const k of KNOWN) {
@@ -124,6 +124,65 @@ test("Polarität aus der Vektorsumme der Bindungsdipole – auch mit mehreren Ze
   // Polarität und 3D-Dipol widersprechen sich nicht
   for (const m of [C2Cl4, NCCN, dce(2), ...KNOWN.map(k => toMolecule(k))]) {
     const d = dipoleVector(embed3D(m), en);
-    if (Math.hypot(...d) > 0.2) assert.ok(isPolar(m), JSON.stringify(m.atoms.map(a => a.el)));
+    if (Math.hypot(...d) > DIPOLE_MIN) assert.ok(isPolar(m), JSON.stringify(m.atoms.map(a => a.el)));
   }
+});
+
+test("Polarität: ΔEN gerundet wie die Teilladungen, kleine Restdipole, schwach polar, Kohlenwasserstoffe unpolar", () => {
+  const line = (els: string[], orders: number[]) => grid(els.map((el, i) => [el, i, 0]), orders.map((o, i) => [i, i + 1, o]));
+  // N=O: ΔEN 3,44 − 3,04 = 0,40 (gerundet wie in polarBonds) → polar, auch als Dipol
+  for (const X of ["Cl", "Br", "I"]) {
+    const m = line([X, "N", "O"], [1, 2]);
+    assert.ok(polarBonds(m).some(b => b.delta === 0.4), `NO${X}: N=O polar`);
+    assert.strictEqual(isPolar(m), true, `NO${X}`);
+  }
+  // kleine Restdipole (ClCN 0,61 − 0,49, BrCN 0,41 − 0,49, CBrCl₃ 0,61 − 0,41) bleiben polar – gemessen 2,8 / 2,9 / 0,2 D
+  const T4 = (a: string, b: string, c: string, d: string) => grid([["C", 1, 1], [a, 1, 0], [b, 0, 1], [c, 2, 1], [d, 1, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]]);
+  const transClBr = grid([["C", 1, 1], ["C", 2, 1], ["Cl", 1, 0], ["H", 1, 2], ["H", 2, 0], ["Br", 2, 2]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
+  for (const [name, m] of Object.entries({ ClCN: line(["Cl", "C", "N"], [1, 3]), BrCN: line(["Br", "C", "N"], [1, 3]), CBrCl3: T4("Br", "Cl", "Cl", "Cl"), BrCCCl: line(["Br", "C", "C", "Cl"], [1, 3, 1]), transClBr })) {
+    assert.strictEqual(isPolar(m), true, name);
+  }
+  // ohne polare Bindung, aber mit Dipol aus kleinen ΔEN (C–I, C=S, S–H) oder freien Paaren: schwach polar
+  const CH3SH = grid([["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 1, 2], ["S", 2, 1], ["H", 3, 1]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [4, 5, 1]]);
+  const SMe2 = grid([["C", 0, 1], ["S", 1, 1], ["C", 2, 1], ["H", 0, 0], ["H", 0, 2], ["H", -1, 1], ["H", 2, 0], ["H", 2, 2], ["H", 3, 1]], [[0, 1, 1], [1, 2, 1], [0, 3, 1], [0, 4, 1], [0, 5, 1], [2, 6, 1], [2, 7, 1], [2, 8, 1]]);
+  const H2CS = grid([["S", 1, 0], ["C", 1, 1], ["H", 0, 1], ["H", 2, 1]], [[0, 1, 2], [1, 2, 1], [1, 3, 1]]);
+  for (const [name, m] of Object.entries({ CH3I: T4("H", "H", "I", "H"), CH2I2: T4("I", "I", "H", "H"), CHI3: T4("I", "I", "I", "H"), H2CS, CH3SH, SMe2 })) {
+    assert.ok(isComplete(m), name);
+    assert.strictEqual(isPolar(m), false, name);
+    assert.strictEqual(isWeaklyPolar(m), true, name);
+  }
+  // Kohlenwasserstoffe (C–H zählt wie in der Schule als unpolar) und symmetrische Moleküle: unpolar
+  const propene = grid([["C", 0, 1], ["C", 1, 1], ["C", 2, 1], ["H", 0, 0], ["H", -1, 1], ["H", 1, 0], ["H", 2, 0], ["H", 3, 1], ["H", 2, 2]], [[0, 1, 2], [1, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [2, 6, 1], [2, 7, 1], [2, 8, 1]]);
+  const cyclobutane = grid([["C", 1, 1], ["C", 2, 1], ["C", 2, 2], ["C", 1, 2], ["H", 0, 1], ["H", 1, 0], ["H", 3, 1], ["H", 2, 0], ["H", 3, 2], ["H", 2, 3], ["H", 0, 2], ["H", 1, 3]], [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1], [0, 4, 1], [0, 5, 1], [1, 6, 1], [1, 7, 1], [2, 8, 1], [2, 9, 1], [3, 10, 1], [3, 11, 1]]);
+  for (const [name, m] of Object.entries({ propene, cyclobutane, CH4: toMolecule(K.CH4), C2H6: toMolecule(K.C2H6), CCl4: toMolecule(K.CCl4), CO2: toMolecule(K.CO2) })) {
+    assert.strictEqual(isPolar(m) || isWeaklyPolar(m), false, name);
+  }
+});
+
+test("Räumliche Lage: Glyoxal s-trans, Allen mit senkrechten Endgruppen, Hydrazin gauche", () => {
+  const P = (e: ReturnType<typeof embed3D>, id: number) => e.atoms.find(a => a.id === id)!.pos;
+  const dihedral = (p: Vec[]) => {
+    const s = (a: Vec, b: Vec): Vec => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    const c = (a: Vec, b: Vec): Vec => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    const d = (a: Vec, b: Vec) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    const b1 = s(p[1], p[0]), b2 = s(p[2], p[1]), b3 = s(p[3], p[2]);
+    const n1 = c(b1, b2), n2 = c(b2, b3), l = Math.hypot(...b2);
+    return Math.abs((Math.atan2(d(c(n1, n2), b2) / l, d(n1, n2)) * 180) / Math.PI);
+  };
+  // Glyoxal O=CH–CH=O: Einfachbindung zwischen zwei Zweifachbindungen ist eben und s-trans → Dipole heben sich auf (gemessen 0 D)
+  const glyoxal = grid([["O", 0, 0], ["C", 1, 0], ["C", 2, 0], ["O", 3, 0], ["H", 1, 1], ["H", 2, 1]], [[0, 1, 2], [1, 2, 1], [2, 3, 2], [1, 4, 1], [2, 5, 1]]);
+  const eg = embed3D(glyoxal, "ideal");
+  assert.ok(Math.abs(dihedral([1, 2, 3, 4].map(id => P(eg, id))) - 180) < 1);
+  assert.strictEqual(isPolar(glyoxal), false);
+  // Allen: H–C1…C3–H 90°; 1,3-Dichlorallen dadurch polar
+  const allene = (X: string) => grid([["C", 0, 1], ["C", 1, 1], ["C", 2, 1], [X, 0, 0], ["H", -1, 1], ["H", 2, 0], [X, 3, 1]], [[0, 1, 2], [1, 2, 2], [0, 3, 1], [0, 4, 1], [2, 5, 1], [2, 6, 1]]);
+  for (const mode of ["real", "ideal"] as const) {
+    const e = embed3D(allene("H"), mode);
+    assert.ok(Math.abs(dihedral([4, 1, 3, 7].map(id => P(e, id))) - 90) < 1, mode);
+  }
+  assert.strictEqual(isPolar(allene("Cl")), true);
+  // Hydrazin: hinterlegte Struktur gauche (gemessen 1,75 D) – der Dipol der gespeicherten Lage ist deutlich
+  const N2H4 = grid([["N", 1, 1], ["N", 2, 1], ["H", 0, 1], ["H", 1, 0], ["H", 3, 1], ["H", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
+  assert.ok(storedMol3D(N2H4));
+  assert.ok(Math.hypot(...dipoleVector(embed3D(N2H4), en)) > DIPOLE_MIN);
 });

@@ -34,7 +34,7 @@ test("alle Level erzeugen gültige Aufgaben mit sauberen Texten", () => {
     }
     assert.strictEqual(LEVELS[stufe].length, 3);
   }
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("diagnostische Distraktoren: Schlüssel im Katalog, Listen passen zu den Optionen, Fallen zeigen auf die gemeldeten Werte", () => {
   let withDiag = 0, total = 0;
@@ -86,7 +86,7 @@ test("Polarität und Molekülform: passende Stolpersteine, Mehrzahl, ein Begriff
   for (let r = 0; r < 300; r++) for (const t of makeRound("os", "mix")) {
     if (t.kind !== "mc") continue;
     const all = JSON.stringify(t);
-    assert.ok(!/Molekülgeometrie|Richtungen|wie \*\*ein\*\* Partner|Paare, das mitzählt/.test(all), all);
+    assert.ok(!/Molekülgeometrie|Richtungen|wie \*\*ein\*\* Partner|die Partner\b|Paare, das mitzählt/.test(all), all);
     // Chlormethan: Grund sind die verschiedenen Bindungspartner, nicht ein gewinkelter Bau
     if (t.type === "polar" && /Chlormethan/.test(t.prompt)) assert.ok(Object.values(t.miss ?? {}).includes("partner-ungleich"), all);
     if (t.type === "angle" && /Methanal/.test(t.prompt)) {

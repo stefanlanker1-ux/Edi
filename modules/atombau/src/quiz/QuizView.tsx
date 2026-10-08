@@ -14,6 +14,8 @@ import { MISS } from "./misconceptions.ts";
 
 /** Aufgaben zu Elektronen in s-, p-, d-, f-Orbitalen: PSE nach Blöcken gefärbt (nicht bei „In welchem Block?“ – dort wäre es die Lösung) */
 const BLOCK_TYPES = ["config", "short", "boxes", "unpaired", "ionConfig", "isoelectronic", "fromConfig", "periodGroup"];
+/** Antworten in Kurzschreibweise ([Ar] 4s² 3d⁶): ohne Zeilenumbruch */
+const NOWRAP_TYPES = ["short", "ionConfig"];
 
 /** Hilfsmittel: Periodensystem (Angaben wie auf einem gedruckten PSE), Elemente aus der Aufgabe markiert (nicht bei „Finde im PSE“) */
 function toolsFor(t: Task, stufe: Stufe): QuizTool[] {
@@ -43,6 +45,8 @@ export function QuizView() {
         : t.visual.kind === "fill" ? <div className="q-fill"><FillScheme key={t.prompt} Z={t.visual.Z} electrons={t.visual.E} /></div>
         : <div className="q-bohr"><Bohr Z={t.visual.Z} N={t.visual.N} E={t.visual.E} labels={t.visual.labels} counts={false} /></div>}
       renderAnswer={(t, a, submit) => <AnswerArea key={t.prompt} task={t} answered={a} onAnswer={submit} />}
+      // Kurzschreibweisen nie mitten durch umbrechen („[Ar] 4s² / 3d⁷“) – passt eine nicht in ihre Spalte, wird die Auswahl einspaltig
+      renderOption={(t, o) => <span className={NOWRAP_TYPES.includes(t.type ?? "") ? "cfg-opt" : t.kind === "mc" && t.options.some(x => x.length > 22) ? "mono" : undefined}>{o}</span>}
       solution={t => (t.kind === "mc" ? null : solutionText(t))}
       tools={t => toolsFor(t, stufe)}
       explain={(level, task) => <ExplainCard id={explainLevelId(stufe, level, task?.type)} />}

@@ -61,7 +61,7 @@ export function BuildView() {
           { id: "ok", label: tr("Aus\u00ADgleichen", "Balance"), icon: "check", disabled: simplest, onClick: () => set({ nC: r.nC, nA: r.nA }) },
           { id: "reset", label: tr("Zurück", "Reset"), icon: "reset", onClick: () => set({ nC: 1, nA: 1 }) },
         ]} />
-      <IonSheet ion={sheet} onClose={() => setSheet(null)} />
+      <IonSheet ion={sheet} os={os} onClose={() => setSheet(null)} />
     </>
   );
 }

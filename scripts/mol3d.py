@@ -10,7 +10,7 @@ Neu erzeugen:  pip install rdkit && python3 scripts/mol3d.py
 from pathlib import Path
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem, rdMolTransforms
 
 # Schlüssel = Formel wie in KNOWN (Elektronenpaarbindung) bzw. REACTIONS (ASCII)
 SMILES = {
@@ -72,8 +72,9 @@ MEASURED = {
 }
 
 
-# Gemessene Verdrillung (Diederwinkel) H–O–O–H im Wasserstoffperoxid
-DIHEDRAL = {"H2O2": 111.5}
+# Gemessene Verdrillung (Diederwinkel): H–O–O–H im Wasserstoffperoxid 111,5°; Hydrazin gauche – die beiden NH₂-Gruppen
+# (und damit die freien Elektronenpaare) stehen ca. 91° gegeneinander verdreht (gestaffelt-anti wäre unpolar, gemessen 1,75 D)
+DIHEDRAL = {"H2O2": 111.5, "N2H4": 91.0}
 
 
 def real_constraints(m, ff, skip=frozenset()):
@@ -138,9 +139,20 @@ def embed(smi: str, key: str):
         real_constraints(m, ff, {k for k in meas if ":" in k})
         measured_constraints(m, ff, meas)
         if key in DIHEDRAL:
-            chain = [a.GetIdx() for a in m.GetAtoms() if a.GetSymbol() == "O"]
-            h = [next(n.GetIdx() for n in m.GetAtomWithIdx(o).GetNeighbors() if n.GetSymbol() == "H") for o in chain]
-            ff.MMFFAddTorsionConstraint(h[0], chain[0], chain[1], h[1], False, DIHEDRAL[key], DIHEDRAL[key], 1e6)
+            chain = [a.GetIdx() for a in m.GetAtoms() if a.GetSymbol() in ("O", "N")]
+            hs = [[n.GetIdx() for n in m.GetAtomWithIdx(x).GetNeighbors() if n.GetSymbol() == "H"] for x in chain]
+            pairs = list(zip(hs[0], hs[1]))
+            if len(pairs) == 2:
+                # NH₂–NH₂: je ein H beider N gleich ausgerichtet paaren (beide Diederwinkel gleich) – dann gilt der Winkel auch für die Gruppen
+                conf = m.GetConformer(ids[best])
+                def spread(ps):
+                    d = [rdMolTransforms.GetDihedralDeg(conf, p, chain[0], chain[1], q) for p, q in ps]
+                    return abs((d[0] - d[1] + 180) % 360 - 180)
+                crossed = list(zip(hs[0], hs[1][::-1]))
+                if spread(crossed) < spread(pairs):
+                    pairs = crossed
+            for h0, h1 in pairs:
+                ff.MMFFAddTorsionConstraint(h0, chain[0], chain[1], h1, False, DIHEDRAL[key], DIHEDRAL[key], 1e6)
         ff.Minimize(maxIts=5000)
     c = m.GetConformer(ids[best])
     pos = [tuple(c.GetAtomPosition(i)) for i in range(m.GetNumAtoms())]

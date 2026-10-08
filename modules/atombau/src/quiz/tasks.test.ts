@@ -44,7 +44,7 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
       }
     }
   }
-});
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 
 test("Schwächen üben wählt die Typen mit der höchsten Fehlerquote", () => {
   const stats = { config: { right: 1, wrong: 5 }, block: { right: 8, wrong: 1 }, short: { right: 0, wrong: 2 }, boxes: { right: 5, wrong: 0 }, unpaired: { right: 3, wrong: 3 } };

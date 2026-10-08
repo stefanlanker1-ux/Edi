@@ -76,7 +76,7 @@ export function BuildView() {
     );
   // Polarität aus der räumlichen Lage (Vektorsumme der Bindungsdipole) – nur für fertige Moleküle
   const polar = useMemo(() => done && isPolar(mol), [done, mol]);
-  const polarity = useMemo(() => !done ? null : polar ? "polar" : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : isWeaklyPolar(mol) ? tr("schwach polar", "weakly polar") : tr("unpolar", "non-polar"), [done, polar, mol]);
+  const polarity = useMemo(() => !done ? null : polar ? "polar" : isWeaklyPolar(mol) ? tr("schwach polar", "weakly polar") : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : tr("unpolar", "non-polar"), [done, polar, mol]);
   const tools: WorkbenchTool[] = [
     {
       id: "formel", label: tr("Formel", "Formula"), title: showWedge ? tr("Geometrische Strukturformel", "Wedge-dash formula") : tr("Strukturformel", "Structural formula"), icon: "bond", content: (

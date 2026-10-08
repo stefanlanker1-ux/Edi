@@ -49,17 +49,31 @@ const GROUND_STATE: Record<number, Record<string, number>> = {
 /** Elemente, deren Grundzustand vom Aufbauprinzip abweicht (Cr, Cu, Nb, Mo, Ru, Rh, Pd, Ag, La, Ce, Gd, Pt, Au) */
 export const AUFBAU_EXCEPTIONS: readonly number[] = Object.keys(GROUND_STATE).map(Number);
 
+/**
+ * Gemessene Grundzustände von Kationen, die von „zuerst die äußerste Schale abgeben“ abweichen (Schlüssel „Z:Ladung“,
+ * nur die abweichenden Unterschalen): V⁺ [Ar] 3d⁴, Co⁺ [Ar] 3d⁸, Ni⁺ [Ar] 3d⁹, Y⁺ [Kr] 5s², La⁺ [Xe] 5d², Ce⁺ [Xe] 4f¹ 5d²,
+ * Ce²⁺ [Xe] 4f², Lu⁺ [Xe] 6s² 4f¹⁴, Lu²⁺ [Xe] 6s¹ 4f¹⁴, Hf⁺ [Xe] 6s² 4f¹⁴ 5d¹.
+ */
+const ION_STATE: Record<string, Record<string, number>> = {
+  "23:1": { "4s": 0, "3d": 4 }, "27:1": { "4s": 0, "3d": 8 }, "28:1": { "4s": 0, "3d": 9 }, "39:1": { "5s": 2, "4d": 0 },
+  "57:1": { "6s": 0, "5d": 2 }, "58:1": { "6s": 0, "5d": 2 }, "58:2": { "4f": 2, "5d": 0 },
+  "71:1": { "6s": 2, "5d": 0 }, "71:2": { "6s": 1, "5d": 0 }, "72:1": { "6s": 2, "5d": 1 },
+};
+
+/** Besetzung `cfg` mit einzelnen Unterschalen aus `counts` ersetzt */
+const withCounts = (cfg: Occupied[], counts: Record<string, number>) =>
+  MADELUNG.map(o => ({ ...o, count: counts[o.key] ?? cfg.find(c => c.key === o.key)?.count ?? 0 })).filter(o => o.count > 0);
+
 /** Grundzustand des neutralen Atoms: Aufbauprinzip, bei den Ausnahmen die gemessene Besetzung */
 export function groundState(Z: number): Occupied[] {
-  const cfg = aufbau(Z), exc = GROUND_STATE[Z];
-  if (!exc) return cfg;
-  return MADELUNG.map(o => ({ ...o, count: exc[o.key] ?? cfg.find(c => c.key === o.key)?.count ?? 0 })).filter(o => o.count > 0);
+  const exc = GROUND_STATE[Z];
+  return exc ? withCounts(aufbau(Z), exc) : aufbau(Z);
 }
 
 /**
  * Von `start` (neutrales Atom mit Z Elektronen) zu `electrons` Elektronen:
  * Kationen geben von außen nach innen ab – zuerst die äußerste Schale (höchstes n: p vor s),
- * dann (n−1)d, dann (n−2)f → Fe²⁺ = [Ar] 3d⁶, Cu⁺ = [Ar] 3d¹⁰, Eu³⁺ = [Xe] 4f⁶, Pb²⁺ = [Xe] 4f¹⁴ 5d¹⁰ 6s².
+ * dann (n−1)d, dann (n−2)f → Fe²⁺ = [Ar] 3d⁶, Cu⁺ = [Ar] 3d¹⁰, Eu³⁺ = [Xe] 4f⁶, Pb²⁺ = [Xe] 6s² 4f¹⁴ 5d¹⁰.
  * Anionen: weitere Elektronen in die tiefste noch freie Unterschale (Madelung).
  */
 function ionize(start: Occupied[], Z: number, electrons: number): Occupied[] {
@@ -84,12 +98,13 @@ function ionize(start: Occupied[], Z: number, electrons: number): Occupied[] {
 
 /**
  * Elektronenkonfiguration für Z Protonen und `electrons` Elektronen – gemessener Grundzustand
- * (Cr [Ar] 4s¹ 3d⁵, Cu [Ar] 4s¹ 3d¹⁰ …), Ionen von dort aus (Cu⁺ [Ar] 3d¹⁰, Cu²⁺ [Ar] 3d⁹).
+ * (Cr [Ar] 4s¹ 3d⁵, Cu [Ar] 4s¹ 3d¹⁰ …), Ionen von dort aus (Cu⁺ [Ar] 3d¹⁰, Cu²⁺ [Ar] 3d⁹), gemessene Abweichungen wie V⁺ [Ar] 3d⁴.
  */
 export function configuration(Z: number, electrons = Z): Occupied[] {
   if (electrons <= 0) return [];
   if (Z <= 0) return aufbau(electrons);
-  return ionize(groundState(Z), Z, electrons);
+  const cfg = ionize(groundState(Z), Z, electrons), ion = ION_STATE[`${Z}:${Z - electrons}`];
+  return ion ? withCounts(cfg, ion) : cfg;
 }
 
 /** Konfiguration allein nach dem Aufbauprinzip (ohne gemessene Ausnahmen), Ionen wie bei `configuration` */
@@ -99,10 +114,14 @@ export function ruleConfiguration(Z: number, electrons = Z): Occupied[] {
   return ionize(aufbau(Z), Z, electrons);
 }
 
-/** Art der Abweichung vom Aufbauprinzip: halb bzw. voll besetzte d-Unterschale, halb besetzte f-Unterschale, sonstige */
-export type ConfigException = "d5" | "d10" | "f7" | "other";
-/** Weicht die gemessene Konfiguration vom Aufbauprinzip ab (Cr, Cu, Cu⁺, Pd …)? Sonst null. */
+/**
+ * Art der Abweichung vom Aufbauprinzip: halb bzw. voll besetzte d-Unterschale, halb besetzte f-Unterschale, sonstige;
+ * bei Ionen: „ion“ = das Ion selbst ist gemessen anders besetzt (V⁺), „atom“ = das Atom ist eine Ausnahme, das Ion folgt der Regel (Cu⁺).
+ */
+export type ConfigException = "d5" | "d10" | "f7" | "other" | "ion" | "atom";
+/** Weicht die gemessene Konfiguration vom Aufbauprinzip ab (Cr, Cu, Pd …; Ionen: V⁺, Cu⁺ …)? Sonst null. */
 export function configException(Z: number, electrons = Z): ConfigException | null {
+  if (electrons !== Z) return ION_STATE[`${Z}:${Z - electrons}`] ? "ion" : GROUND_STATE[Z] ? "atom" : null;
   if (!GROUND_STATE[Z]) return null;
   const real = configuration(Z, electrons), rule = ruleConfiguration(Z, electrons);
   const count = (c: Occupied[], key: string) => c.find(o => o.key === key)?.count ?? 0;

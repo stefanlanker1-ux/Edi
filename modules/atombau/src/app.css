@@ -119,9 +119,16 @@
   .ab-g-orb .orb-atom { gap: 4px; }
 }
 
-/* PSE als Antwort (Oberstufe): Ordnungszahlen auch am Handy zeigen – gefragt wird u. a. „Tippe auf das Element mit der Ordnungszahl …“
-   (das schmale PSE blendet sie sonst aus) */
+/* Steckbrief: Kennzeichen „Ausnahme“ mit Abstand zu den Angaben darunter */
+.d-exc { margin-bottom: 10px; }
+
+/* Antwort in Kurzschreibweise ([Ar] 4s² 3d⁶) nie mitten durch umbrechen – passt sie nicht, wird die Auswahl einspaltig (`renderOption` in QuizView) */
+.cfg-opt { white-space: nowrap; }
+
+/* PSE als Antwort: Ordnungszahlen lesbar (mindestens 9 px), auch am Handy – gefragt wird u. a. „Tippe auf das Element mit der
+   Ordnungszahl …“ (das schmale Oberstufen-PSE blendet sie sonst aus). Höchstens zwei Ziffern, mittig unter dem Symbol. */
+.pse-z .pse-us.fit .pc-z { font-size: clamp(9px, 1.6cqw, .65rem); }
 @container (max-width: 600px) {
-  .pse-z .pse-os.fit .pc-z { display: block; font-size: max(6.5px, 1.75cqw); bottom: 1px; left: 1px; opacity: .8; }
-  .pse-z .pse-os.fit .pse-cell:not(.pse-ph) { padding-bottom: 7px; }
+  .pse-z .pse-os.fit .pc-z { display: block; font-size: 9px; left: 0; right: 0; bottom: 2px; text-align: center; letter-spacing: -.04em; opacity: .85; }
+  .pse-z .pse-os.fit .pse-cell:not(.pse-ph) { padding-bottom: 12px; }
 }

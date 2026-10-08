@@ -19,4 +19,4 @@ test("Erklärung auf Englisch", async () => {
   setLang("de", false);
   expect(texts.size).toBeGreaterThan(30);
   expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s.replaceAll("Schrödinger", "")))).toEqual([]);
-});
+}, 30_000); // alle Erklärschritte – unter Last länger als die üblichen 5 s

@@ -6,6 +6,7 @@ import { ION_BY_ID } from "@lern/chem";
 import { Bohr, PeriodicTable } from "@lern/chem-ui";
 import { IonWall } from "./components/IonWall.tsx";
 import { IonLabel } from "./components/IonTile.tsx";
+import { IonLattice } from "./components/IonLattice.tsx";
 import { tr } from "@lern/i18n";
 
 const ion = (id: string) => ION_BY_ID[id];
@@ -76,7 +77,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze für **Aluminium**.", "Complete for **aluminium**."), answer: "Al³⁺", options: ["Al³⁺", "Al³⁻", "Al⁺", "Al⁵⁻"],
+    ask: tr("Ergänze für **Aluminium**.", "Complete for **aluminium**."), answer: "Al³⁺", options: ["Al³⁻", "Al⁺", "Al³⁺", "Al⁵⁻"],
     visual: () => <Pse mark={13} />,
     lines: [tr("Aluminium: III. Hauptgruppe → 3 Außenelektronen.", "Aluminium: main group III → 3 outer electrons."), tr("Alle 3 abgeben → Ion: {?}", "Lose all 3 → ion: {?}")],
     why: { "Al³⁻": tr("Metalle geben Elektronen ab – sie werden positiv.", "Metals lose electrons – they become positive."), "Al⁺": tr("Alle 3 Außenelektronen gehen weg.", "All 3 outer electrons go."), "Al⁵⁻": tr("5 aufnehmen ist viel mehr als 3 abgeben.", "Gaining 5 is much more than losing 3.") },
@@ -84,7 +85,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Welches Ion bildet **Kalium**?", "Your turn: which ion does **potassium** form?"), answer: "K⁺", options: ["K⁺", "K⁻", "K⁷⁻", "K²⁺"],
+    ask: tr("Jetzt du: Welches Ion bildet **Kalium**?", "Your turn: which ion does **potassium** form?"), answer: "K⁺", options: ["K⁻", "K⁺", "K²⁺", "K⁷⁻"],
     visual: () => <Pse mark={19} />,
     why: { "K⁻": tr("Kalium ist ein Metall – es gibt ab und wird positiv.", "Potassium is a metal – it loses and becomes positive."), "K⁷⁻": tr("7 aufnehmen ist viel schwerer als 1 abgeben.", "Gaining 7 is much harder than losing 1."), "K²⁺": tr("Kalium steht in der I. Hauptgruppe: nur 1 Außenelektron.", "Potassium is in main group I: only 1 outer electron.") },
     lines: [tr("I. Hauptgruppe → 1 Elektron abgeben → K⁺.", "Main group I → lose 1 electron → K⁺.")],
@@ -110,7 +111,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Welches Ion bildet **Stickstoff** (V. Hauptgruppe)?", "Your turn: which ion does **nitrogen** (main group V) form?"), answer: "N³⁻", options: ["N³⁻", "N⁵⁺", "N³⁺", "N⁵⁻"],
+    ask: tr("Jetzt du: Welches Ion bildet **Stickstoff** (V. Hauptgruppe)?", "Your turn: which ion does **nitrogen** (main group V) form?"), answer: "N³⁻", options: ["N⁵⁺", "N³⁺", "N⁵⁻", "N³⁻"],
     visual: () => <Pse mark={7} />,
     why: { "N⁵⁺": tr("Nichtmetalle nehmen auf – 3 aufnehmen ist leichter als 5 abgeben.", "Non-metals gain – gaining 3 is easier than losing 5."), "N³⁺": tr("Aufnehmen macht negativ.", "Gaining makes it negative."), "N⁵⁻": tr("Es fehlen 8 − 5 = 3 Elektronen.", "8 − 5 = 3 electrons are missing.") },
     lines: [tr("8 − 5 = 3 aufnehmen → N³⁻ (Nitrid-Ion).", "8 − 5 = 3 gained → N³⁻ (nitride ion).")],
@@ -141,7 +142,7 @@ const US = (): GuideStep[] => [
     [tr("Plus-Reihe 6 breit, Minus-Reihe erst 4 → noch ein O²⁻.", "Plus row 6 wide, minus row only 4 → one more O²⁻.")]),
   {
     mode: "free",
-    ask: tr("Welche Formel hat diese Verbindung?", "What is the formula of this compound?"), answer: "Al₂O₃", options: ["Al₂O₃", "AlO", "Al₃O₂", "Al₂O₂"],
+    ask: tr("Welche Formel hat diese Verbindung?", "What is the formula of this compound?"), answer: "Al₂O₃", options: ["AlO", "Al₃O₂", "Al₂O₃", "Al₂O₂"],
     visual: c => <Wall c={c} cat="Al3+" an="O2-" nC={2} nA={3} />,
     why: { AlO: tr("3+ und 2− gleichen sich nicht aus.", "3+ and 2− do not balance."), "Al₃O₂": tr("Zähle: 2 Aluminium-Ionen, 3 Oxid-Ionen.", "Count: 2 aluminium ions, 3 oxide ions."), "Al₂O₂": tr("2 · 3+ = 6+, aber 2 · 2− = 4−.", "2 · 3+ = 6+, but 2 · 2− = 4−.") },
     lines: [tr("2 Al³⁺, 3 O²⁻ → Al₂O₃ (Aluminiumoxid).", "2 Al³⁺, 3 O²⁻ → Al₂O₃ (aluminium oxide).")],
@@ -166,7 +167,7 @@ const US = (): GuideStep[] => [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie heißt **Na₂S**?", "Complete: what is **Na₂S** called?"), answer: tr("Natriumsulfid", "Sodium sulfide"), options: [tr("Natriumsulfid", "Sodium sulfide"), tr("Dinatriumsulfid", "Disodium sulfide"), tr("Natriumschwefel", "Sodium sulfur")],
+    ask: tr("Ergänze: Wie heißt **Na₂S**?", "Complete: what is **Na₂S** called?"), answer: tr("Natriumsulfid", "Sodium sulfide"), options: [tr("Dinatriumsulfid", "Disodium sulfide"), tr("Natriumsulfid", "Sodium sulfide"), tr("Natriumschwefel", "Sodium sulfur")],
     lines: [tr("Metall: Natrium.", "Metal: sodium."), tr("S = Schwefel → Sulfid. Keine Anzahl im Namen.", "S = sulfur → sulfide. No number in the name."), tr("→ {?}", "→ {?}")],
     why: { [tr("Dinatriumsulfid", "Disodium sulfide")]: tr("Bei Ionenverbindungen nennt man keine Anzahl – sie folgt aus den Ladungen.", "Ionic compound names give no numbers – they follow from the charges."), [tr("Natriumschwefel", "Sodium sulfur")]: tr("Das Anion bekommt -id: Sulfid.", "The anion gets -ide: sulfide.") },
     ok: tr("**Natriumsulfid**.", "**Sodium sulfide**."),
@@ -180,16 +181,18 @@ const US = (): GuideStep[] => [
     ok: tr("Genau: **CaBr₂**.", "Exactly: **CaBr₂**."),
   },
   {
-    mode: "worked",
+    mode: "worked", part: tr("Ionengitter", "Ionic lattice"),
     say: tr("Positive und negative Ionen ziehen sich an. Im Feststoff liegen sehr viele Ionen abwechselnd im **Ionengitter**.", "Positive and negative ions attract each other. In the solid, very many ions alternate in an **ionic lattice**."),
-    ask: tr("Was bedeutet die Formel **CaCl₂**?", "What does the formula **CaCl₂** mean?"),
-    lines: [tr("Die Anziehung der entgegengesetzt geladenen Ionen im Gitter ist die **Ionenbindung**.", "The attraction between the oppositely charged ions in the lattice is the **ionic bond**."), tr("Es gibt kein einzelnes „CaCl₂-Teilchen“ – kein Molekül.", "There is no single “CaCl₂ particle” – no molecule."), tr("Die Formel nennt nur das **Verhältnis** im Gitter.", "The formula only gives the **ratio** in the lattice."), tr("CaCl₂: auf 1 Ca²⁺ kommen 2 Cl⁻.", "CaCl₂: 2 Cl⁻ for every Ca²⁺.")],
-    ok: tr("Formel = Verhältnis der Ionen.", "Formula = ratio of the ions."),
+    ask: tr("Was bedeutet die Formel **NaCl**?", "What does the formula **NaCl** mean?"),
+    visual: () => <IonLattice />,
+    lines: [tr("Die Anziehung der entgegengesetzt geladenen Ionen im Gitter ist die **Ionenbindung**.", "The attraction between the oppositely charged ions in the lattice is the **ionic bond**."), tr("Es gibt kein einzelnes „NaCl-Teilchen“ – kein Molekül.", "There is no single “NaCl particle” – no molecule."), tr("Die Formel nennt nur das **Verhältnis** im Gitter.", "The formula only gives the **ratio** in the lattice."), tr("NaCl: auf 1 Na⁺ kommt 1 Cl⁻.", "NaCl: one Cl⁻ for every Na⁺.")],
+    ok: tr("Formel = Verhältnis der Ionen. CaCl₂: auf 1 Ca²⁺ kommen 2 Cl⁻.", "Formula = ratio of the ions. CaCl₂: 2 Cl⁻ for every Ca²⁺."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Was bedeutet **Al₂O₃**?", "Complete: what does **Al₂O₃** mean?"), answer: tr("2 Al³⁺ auf 3 O²⁻", "2 Al³⁺ for 3 O²⁻"),
-    options: [tr("2 Al³⁺ auf 3 O²⁻", "2 Al³⁺ for 3 O²⁻"), tr("ein Molekül aus 5 Atomen", "a molecule of 5 atoms"), tr("Aluminium und Sauerstoff gemischt", "aluminium and oxygen mixed")],
+    visual: c => <Wall c={c} cat="Al3+" an="O2-" nC={2} nA={3} />,
+    options: [tr("ein Molekül aus 5 Atomen", "a molecule of 5 atoms"), tr("2 Al³⁺ auf 3 O²⁻", "2 Al³⁺ for 3 O²⁻"), tr("Aluminium und Sauerstoff gemischt", "aluminium and oxygen mixed")],
     lines: [tr("Ionengitter – kein Molekül.", "Ionic lattice – no molecule."), tr("Die Formel nennt das Verhältnis: {?}", "The formula gives the ratio: {?}")],
     why: { [tr("ein Molekül aus 5 Atomen", "a molecule of 5 atoms")]: tr("Ionenverbindungen bilden keine Moleküle, sondern ein Gitter.", "Ionic compounds do not form molecules but a lattice."), [tr("Aluminium und Sauerstoff gemischt", "aluminium and oxygen mixed")]: tr("Es sind Ionen, fest im Gitter gebunden – kein Gemisch.", "They are ions, held firmly in the lattice – not a mixture.") },
     ok: tr("Im Gitter: immer 2 Al³⁺ auf 3 O²⁻.", "In the lattice: always 2 Al³⁺ for 3 O²⁻."),
@@ -197,10 +200,11 @@ const US = (): GuideStep[] => [
   {
     mode: "free",
     ask: tr("Jetzt du: Was hält die Ionen im Ionengitter zusammen?", "Your turn: what holds the ions together in the ionic lattice?"), answer: tr("Anziehung von Plus und Minus", "attraction of plus and minus"),
-    options: [tr("Anziehung von Plus und Minus", "attraction of plus and minus"), tr("wandernde Elektronen", "moving electrons"), tr("gemeinsame Elektronenpaare", "shared electron pairs")],
+    visual: () => <IonLattice focus />,
+    options: [tr("wandernde Elektronen", "moving electrons"), tr("geteilte Elektronen", "shared electrons"), tr("Anziehung von Plus und Minus", "attraction of plus and minus")],
     why: {
       [tr("wandernde Elektronen", "moving electrons")]: tr("Die Elektronen sind bei der Bildung der Ionen übergegangen und bleiben dort – sie wandern nicht hin und her. Im Gitter ziehen sich die Ionen an.", "The electrons passed over when the ions formed and stay there – they do not move back and forth. In the lattice the ions attract each other."),
-      [tr("gemeinsame Elektronenpaare", "shared electron pairs")]: tr("Gemeinsame Elektronenpaare teilen Nichtmetall-Atome in Molekülen. Im Salz gibt es keine Moleküle, sondern Ionen, die sich anziehen.", "Non-metal atoms share electron pairs in molecules. A salt has no molecules but ions that attract each other."),
+      [tr("geteilte Elektronen", "shared electrons")]: tr("Geteilt wird nichts: Die Elektronen sind ganz zum Nichtmetall übergegangen. Zusammen hält die Ionen die Anziehung von Plus und Minus.", "Nothing is shared: the electrons have passed completely to the non-metal. The ions are held together by the attraction of plus and minus."),
     },
     lines: [tr("Plus zieht Minus an – jedes Ion zieht viele Nachbarn im Gitter an: **Ionenbindung**.", "Plus attracts minus – each ion attracts many neighbours in the lattice: **ionic bond**.")],
     ok: tr("Genau: Die Ionenbindung ist die Anziehung der Ionen im Gitter.", "Exactly: the ionic bond is the attraction between the ions in the lattice."),
@@ -225,13 +229,13 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welche Ladung hat das **Sulfat-Ion**?", "Complete: what is the charge of the **sulfate ion**?"), answer: "2−", options: ["2−", "1−", "3−", "4−"],
+    ask: tr("Ergänze: Welche Ladung hat das **Sulfat-Ion**?", "Complete: what is the charge of the **sulfate ion**?"), answer: "2−", options: ["1−", "2−", "3−", "4−"],
     lines: [tr("SO₄²⁻: unten die 4 = Zahl der O-Atome.", "SO₄²⁻: the 4 at the bottom = number of O atoms."), tr("Oben rechts = Ladung: {?}", "Top right = charge: {?}")],
     why: { "1−": tr("1− hat Nitrat (NO₃⁻).", "Nitrate (NO₃⁻) has 1−."), "3−": tr("3− hat Phosphat (PO₄³⁻).", "Phosphate (PO₄³⁻) has 3−."), "4−": tr("Die 4 gehört zu den O-Atomen, nicht zur Ladung.", "The 4 belongs to the O atoms, not to the charge.") },
     ok: tr("**SO₄²⁻**: Ladung 2−.", "**SO₄²⁻**: charge 2−."),
   },
   missing("Ca2+", "OH-", 1, 1, "A",
-    tr("Jetzt du: Mit mehratomigen Ionen gleicht man genauso aus – der Block zählt als ein Baustein.", "Your turn: polyatomic ions are balanced the same way – the block counts as one tile."),
+    tr("Jetzt du: Mehratomige Ionen gleicht man genauso aus – ein Block, ein Baustein.", "Your turn: polyatomic ions are balanced the same way – one block, one tile."),
     tr("1 · 2+ = 2+ und 2 · 1− = 2−.", "1 · 2+ = 2+ and 2 · 1− = 2−."),
     [tr("Ca²⁺ ist 2 breit, OH⁻ 1 breit → zwei OH⁻.", "Ca²⁺ is 2 wide, OH⁻ 1 wide → two OH⁻.")]),
   // ── Klammern ──
@@ -255,7 +259,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Welche Formel hat **Aluminiumsulfat**?", "Your turn: what is the formula of **aluminium sulfate**?"), answer: "Al₂(SO₄)₃", options: ["Al₂(SO₄)₃", "Al₂SO₄₃", "Al₃(SO₄)₂", "AlSO₄"],
+    ask: tr("Jetzt du: Welche Formel hat **Aluminiumsulfat**?", "Your turn: what is the formula of **aluminium sulfate**?"), answer: "Al₂(SO₄)₃", options: ["Al₂SO₄₃", "Al₃(SO₄)₂", "Al₂(SO₄)₃", "AlSO₄"],
     visual: c => <Wall c={c} cat="Al3+" an="SO42-" nC={2} nA={3} />,
     why: { "Al₂SO₄₃": tr("Ohne Klammer stünde da „43 O-Atome“. Der Block SO₄ kommt in Klammern.", "Without brackets it would say “43 O atoms”. The SO₄ block goes in brackets."), "Al₃(SO₄)₂": tr("Zähle: 2 Aluminium-Ionen, 3 Sulfat-Ionen.", "Count: 2 aluminium ions, 3 sulfate ions."), "AlSO₄": tr("3+ und 2− gleichen sich nicht aus.", "3+ and 2− do not balance.") },
     lines: [tr("2 Al³⁺, 3 SO₄²⁻ → Al₂(SO₄)₃.", "2 Al³⁺, 3 SO₄²⁻ → Al₂(SO₄)₃.")],
@@ -280,7 +284,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Welche Ladung hat das Kupfer-Ion in **CuO**?", "Complete: what is the charge of the copper ion in **CuO**?"), answer: "2+", options: ["2+", "1+", "2−", "3+"],
+    ask: tr("Ergänze: Welche Ladung hat das Kupfer-Ion in **CuO**?", "Complete: what is the charge of the copper ion in **CuO**?"), answer: "2+", options: ["1+", "2−", "3+", "2+"],
     lines: [tr("O²⁻ bringt 2−.", "O²⁻ brings 2−."), tr("Ein Cu muss ausgleichen → Ladung {?}", "One Cu must balance → charge {?}")],
     why: { "1+": tr("Nur 2+ gleicht O²⁻ aus – das eine Cu trägt also 2+.", "Only 2+ balances O²⁻ – so the one Cu carries 2+."), "2−": tr("Metall-Ionen sind positiv.", "Metal ions are positive."), "3+": tr("Dann wäre CuO nicht neutral.", "Then CuO would not be neutral.") },
     ok: tr("CuO = Kupfer(II)-oxid.", "CuO = copper(II) oxide."),
@@ -294,7 +298,7 @@ const OS: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie heißt **Na₂SO₃**?", "Complete: what is **Na₂SO₃** called?"), answer: tr("Natriumsulfit", "Sodium sulfite"), options: [tr("Natriumsulfit", "Sodium sulfite"), tr("Natriumsulfat", "Sodium sulfate"), tr("Natriumsulfid", "Sodium sulfide")],
+    ask: tr("Ergänze: Wie heißt **Na₂SO₃**?", "Complete: what is **Na₂SO₃** called?"), answer: tr("Natriumsulfit", "Sodium sulfite"), options: [tr("Natriumsulfat", "Sodium sulfate"), tr("Natriumsulfid", "Sodium sulfide"), tr("Natriumsulfit", "Sodium sulfite")],
     lines: [tr("SO₃: 3 O – eins weniger als Sulfat.", "SO₃: 3 O – one fewer than sulfate."), tr("→ {?}", "→ {?}")],
     why: { [tr("Natriumsulfat", "Sodium sulfate")]: tr("Sulfat ist SO₄ – hier sind nur 3 O.", "Sulfate is SO₄ – here there are only 3 O."), [tr("Natriumsulfid", "Sodium sulfide")]: tr("Sulfid ist S²⁻ ohne Sauerstoff.", "Sulfide is S²⁻ without oxygen.") },
     ok: tr("SO₃²⁻ = Sulfit.", "SO₃²⁻ = sulfite."),

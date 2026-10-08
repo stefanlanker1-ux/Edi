@@ -68,7 +68,7 @@ const TEXT_DE: Record<string, Explanation> = {
   "os-3": {
     points: [
       "Hauptgruppen-Ionen haben Edelgaskonfiguration: Na⁺, Mg²⁺ und O²⁻ sind **isoelektronisch** mit Neon – kurz `[Ne]`.",
-      "**Übergangsmetalle** (d-Block, Gruppe 3–12) geben zuerst die **4s**-Elektronen ab: Fe²⁺ = `[Ar] 3d⁶`, Cu⁺ = `[Ar] 3d¹⁰`.",
+      "**Übergangsmetalle** (d-Block, Gruppe 3–12) geben zuerst die **4s**-Elektronen ab: Fe²⁺ = `[Ar] 3d⁶`, Cu⁺ = `[Ar] 3d¹⁰` (aus Cu `[Ar] 4s¹ 3d¹⁰`).",
       "Aus der Konfiguration ablesen: höchstes n = **Periode**; Außenelektronen (s + p) = **Gruppe**, im p-Block + 10; zuletzt befüllte Unterschale = **Block**.",
     ],
     example: { kind: "energy", Z: 26 },
@@ -130,7 +130,7 @@ const TEXT_EN: Record<string, Explanation> = {
   "os-3": {
     points: [
       "Main group ions have a noble gas configuration: Na⁺, Mg²⁺ and O²⁻ are **isoelectronic** with neon – in short `[Ne]`.",
-      "**Transition metals** (d block, groups 3–12) lose the **4s** electrons first: Fe²⁺ = `[Ar] 3d⁶`, Cu⁺ = `[Ar] 3d¹⁰`.",
+      "**Transition metals** (d block, groups 3–12) lose the **4s** electrons first: Fe²⁺ = `[Ar] 3d⁶`, Cu⁺ = `[Ar] 3d¹⁰` (from Cu `[Ar] 4s¹ 3d¹⁰`).",
       "Reading the configuration: highest n = **period**; outer electrons (s + p) = **group**, in the p block + 10; last subshell filled = **block**.",
     ],
     example: { kind: "energy", Z: 26 },

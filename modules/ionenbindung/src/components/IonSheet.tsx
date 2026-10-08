@@ -2,7 +2,7 @@
 
 import { Chip, Icon, Sheet, Tag } from "@lern/ui";
 import { Bohr, Nuclide } from "@lern/chem-ui";
-import { BY_Z, shells, SHELL_NAMES, standardNeutrons, composition, ionText, type Ion } from "@lern/chem";
+import { BY_Z, shells, configuration, sup, SHELL_NAMES, standardNeutrons, composition, ionText, type Ion } from "@lern/chem";
 import { tr } from "@lern/i18n";
 
 const NOBLE = new Set([2, 10, 18, 36, 54, 86]);
@@ -20,20 +20,25 @@ function AtomBox({ Z, E, title }: { Z: number; E: number; title: string }) {
   );
 }
 
-export function IonSheet({ ion, onClose }: { ion: Ion | null; onClose: () => void }) {
+export function IonSheet({ ion, os, onClose }: { ion: Ion | null; os: boolean; onClose: () => void }) {
   return (
     <Sheet open={!!ion} title={ion ? `${ion.name} ${ionText(ion)}` : ""} onClose={onClose}>
-      {ion && (ion.Z ? <Mono ion={ion} Z={ion.Z} /> : <Poly ion={ion} />)}
+      {ion && (ion.Z ? <Mono ion={ion} Z={ion.Z} os={os} /> : <Poly ion={ion} />)}
     </Sheet>
   );
 }
 
-function Mono({ ion, Z }: { ion: Ion; Z: number }) {
+function Mono({ ion, Z, os }: { ion: Ion; Z: number; os: boolean }) {
   const el = BY_Z[Z];
   const E = Z - ion.charge;
   const n = Math.abs(ion.charge);
   const give = ion.charge > 0;
   const outer = shells(Z)[shells(Z).length - 1];
+  // ohne Edelgaskonfiguration (Fe³⁺, Cu²⁺, Pb²⁺) passt „so viele Außenelektronen, wie abgegeben“ nicht –
+  // Oberstufe: aus welchen Unterschalen die Elektronen kommen (Fe³⁺: 4s², 3d¹), Unterstufe: kein Außenelektronen-Kennzeichen
+  const noble = NOBLE.has(E);
+  const ionCfg = configuration(Z, E);
+  const lost = configuration(Z).map(o => ({ key: o.key, n: o.count - (ionCfg.find(c => c.key === o.key)?.count ?? 0) })).filter(x => x.n > 0);
   return (
     <>
       <div className="ion-atom">
@@ -45,8 +50,9 @@ function Mono({ ion, Z }: { ion: Ion; Z: number }) {
         <AtomBox Z={Z} E={E} title={ion.name} />
       </div>
       <div className="ui-tags ion-tags">
-        <Tag>{outer} {tr(`Außenelektron${outer === 1 ? "" : "en"}`, `outer electron${outer === 1 ? "" : "s"}`)}</Tag>
+        {noble && <Tag>{outer} {tr(`Außenelektron${outer === 1 ? "" : "en"}`, `outer electron${outer === 1 ? "" : "s"}`)}</Tag>}
         <Tag tone="signal">{give ? tr(`gibt ${n} e⁻ ab`, `loses ${n} e⁻`) : tr(`nimmt ${n} e⁻ auf`, `gains ${n} e⁻`)}</Tag>
+        {!noble && os && give && <Tag>{tr("aus", "from")} {lost.map(x => `${x.key}${sup(x.n)}`).join(", ")}</Tag>}
         <Tag>{Z} p⁺ − {E} e⁻ = {give ? "+" : "−"}{n}</Tag>
         {NOBLE.has(E) ? <Tag tone="ok">✓ {tr("Edelgaskonfiguration wie", "Noble gas configuration like")} {BY_Z[E].name}</Tag> : <Tag>{tr("keine Edelgaskonfiguration", "no noble gas configuration")}{ion.part.endsWith(")") ? tr(" · römische Zahl = Ladung", " · Roman numeral = charge") : ""}</Tag>}
       </div>
