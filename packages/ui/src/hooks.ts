@@ -1,4 +1,24 @@
-import { useLayoutEffect, useState, useSyncExternalStore, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+
+/**
+ * Zurück-Taste (Android, Browser) schließt ein offenes Blatt bzw. die Erklärung, statt die App zu verlassen: eigener Verlaufseintrag je Öffnen
+ * (`kind` = Name im Verlaufszustand). Steht der Verlauf nach „Zurück“ wieder auf dem eigenen Eintrag (ein Blatt darüber wurde geschlossen), bleibt es offen.
+ * Die Kennung ist je Öffnen neu: ein Eintrag, der nach dem Neuladen stehen blieb, gehört zu keinem Blatt mehr.
+ */
+export function useBackClose(open: boolean, onClose: () => void, kind: string) {
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!open) return;
+    const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    history.pushState({ [kind]: id }, "");
+    let popped = false;
+    const mine = () => (history.state as Record<string, unknown> | null)?.[kind] === id;
+    const onPop = () => { if (mine()) return; popped = true; close.current(); };
+    addEventListener("popstate", onPop);
+    return () => { removeEventListener("popstate", onPop); if (!popped && mine()) history.back(); };
+  }, [open, kind]);
+}
 
 /** Reagiert live auf eine CSS-Media-Query, z. B. useMediaQuery("(max-width: 899px)") */
 export function useMediaQuery(query: string): boolean {

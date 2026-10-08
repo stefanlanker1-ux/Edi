@@ -1,9 +1,9 @@
 // Quiz-Oberfläche: Levelauswahl → Erklärung (beim ersten Mal) → Aufgaben → Auswertung.
 // Multiple Choice ist eingebaut; weitere Aufgabentypen stellt die App über renderAnswer bereit.
 
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import type { StoreApi, UseBoundStore } from "zustand";
-import { Button, Card, Fit, Guide, Icon, IconButton, NoTerms, Note, ResultBar, RichText, Sheet, Stars, Tag, TermScope, buzz, ding, getLang, tr, type GuideDef, type IconName, type TermDef } from "@lern/ui";
+import { Button, Card, Fit, Guide, Icon, IconButton, NoTerms, Note, ResultBar, RichText, Sheet, Stars, Tag, TermScope, buzz, ding, getLang, progressKey, tr, type GuideDef, type IconName, type TermDef } from "@lern/ui";
 import { counted, diagnose, starsFor, weakTypes, type Answered, type BaseTask, type Game, type LevelKey, type McTask, type QuizLevel, type Submit } from "./types.ts";
 import type { QuizState } from "./store.ts";
 import { STAGES, dayStart, daysUntilDue, dueSkills, examDays, inExam, stageCounts, stageOf, weeklyDone, type Exam, type Skills, type Stage } from "./skills.ts";
@@ -55,9 +55,12 @@ function termTool<T extends BaseTask>(p: QuizScreenProps<T>, terms: TermDef[]): 
     content: <div className="q-terms">{terms.map(d => <section key={d.term} className="q-term"><h3>{d.title}</h3>{d.body}</section>)}</div> }];
 }
 
-/** localStorage-Schlüssel: welche Lektionen schon durchlaufen sind (gehört in `storage` des Moduls) */
-export const LESSON_KEY = "lern-lektionen";
-const lessonsDone = (): Record<string, boolean> => { try { return JSON.parse(localStorage.getItem(LESSON_KEY) ?? "{}"); } catch { return {}; } };
+/** localStorage-Schlüssel: welche Lektionen schon durchlaufen sind (gehört in `storage` des Moduls). Fortschritt, den mehrere Module teilen –
+ *  „Neu starten“ nach einem Absturz behält ihn (sonst verlöre z. B. Polymere die Lektionen, wenn Gemische zurückgesetzt wird). */
+export const LESSON_KEY = progressKey("lern-lektionen", true);
+const lessonsDone = (): Record<string, boolean> => {
+  try { const d: unknown = JSON.parse(localStorage.getItem(LESSON_KEY) ?? "{}"); return d && typeof d === "object" && !Array.isArray(d) ? d as Record<string, boolean> : {}; } catch { return {}; }
+};
 const markLesson = (id: string) => { try { localStorage.setItem(LESSON_KEY, JSON.stringify({ ...lessonsDone(), [id]: true })); } catch { /* egal */ } };
 
 /** Hilfsmittel während einer Aufgabe: Inhalt passt sich der Aufgabe an */
@@ -113,22 +116,39 @@ export function speakable(text: string): string {
     .trim();
 }
 
-/** Vorlesen mit der Sprachausgabe des Geräts (Deutsch); vorhandene Ausgabe wird abgebrochen */
+/**
+ * Stimme zum Vorlesen: nur eine Stimme des Geräts (`localService`) – eine Netzwerkstimme schickte den Text an einen fremden Dienst.
+ * Bevorzugt die übliche Variante (de-AT bzw. en-GB), sonst irgendeine lokale Stimme der Sprache.
+ */
+export function localVoice(voices: readonly SpeechSynthesisVoice[], l = getLang()): SpeechSynthesisVoice | undefined {
+  const want = l === "en" ? "en-gb" : "de-at";
+  const own = voices.filter(v => v.localService && v.lang.toLowerCase().replace("_", "-").startsWith(l));
+  return own.find(v => v.lang.toLowerCase().replace("_", "-") === want) ?? own[0];
+}
+const voices = () => { try { return typeof speechSynthesis === "undefined" ? [] : speechSynthesis.getVoices(); } catch { return []; } };
+
+/** Vorlesen mit einer lokalen Stimme des Geräts; vorhandene Ausgabe wird abgebrochen. Ohne lokale Stimme kein Vorlesen. */
 export function speak(text: string) {
   try {
-    if (!("speechSynthesis" in window)) return;
+    const v = localVoice(voices());
+    if (!v) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(speakable(text));
-    const l = getLang();
-    u.lang = l === "en" ? "en-GB" : "de-AT";
+    u.voice = v;
+    u.lang = v.lang.replace("_", "-");
     u.rate = 0.95;
-    const v = speechSynthesis.getVoices().find(x => x.lang.startsWith(l));
-    if (v) u.voice = v;
     speechSynthesis.speak(u);
   } catch { /* keine Sprachausgabe */ }
 }
 
-const canSpeak = typeof window !== "undefined" && "speechSynthesis" in window;
+/** gibt es eine lokale Stimme? Die Liste kommt oft erst nach dem Laden (`voiceschanged`) */
+function useCanSpeak(): boolean {
+  return useSyncExternalStore(cb => {
+    if (typeof speechSynthesis === "undefined" || !speechSynthesis.addEventListener) return () => {};
+    speechSynthesis.addEventListener("voiceschanged", cb);
+    return () => speechSynthesis.removeEventListener("voiceschanged", cb);
+  }, () => !!localVoice(voices()), () => false);
+}
 
 export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, answered, explain, read }: {
   tools?: QuizTool[]; hint?: boolean; hintCue?: boolean; onHint?: () => void; hintUsed?: boolean; answered: boolean; explain?: ReactNode;
@@ -136,6 +156,7 @@ export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, answered
   read?: string;
 }) {
   const [open, setOpen] = useState<string | null>(null);
+  const canSpeak = useCanSpeak();
   const tool = tools.find(t => t.id === open);
   return (
     <>
@@ -172,6 +193,15 @@ const STAGE_DE: Record<Stage, string> = { neu: "neu", geübt: "geübt", sicher: 
 const STAGE_EN: Record<Stage, string> = { neu: "new", geübt: "practised", sicher: "secure", gemeistert: "mastered" };
 const stageName = (st: Stage) => tr(STAGE_DE, STAGE_EN)[st];
 
+/** Was gerade „Heute fällig“ und „Schwächen üben“ füllt – für das Menü und für „Nochmal“ nach einer solchen Runde */
+export function pending<T extends BaseTask>(p: Pick<QuizScreenProps<T>, "stufe" | "levels" | "typeName">, s: Pick<QuizState<T>, "skills" | "typeStats" | "exams">, now = Date.now()) {
+  const allTypes = [...new Set(p.levels.flatMap(l => l.types ?? []))];
+  return {
+    due: dueSkills(s.skills[p.stufe] ?? {}, allTypes, now, s.exams[p.stufe]),
+    weak: p.typeName ? weakTypes(s.typeStats[p.stufe], id => !!p.typeName!(id)) : [],
+  };
+}
+
 /** „Schularbeit in 5 Tagen“, „morgen“, „heute“ */
 const examWhen = (days: number) => (days === 0 ? tr("heute", "today") : days === 1 ? tr("morgen", "tomorrow") : tr(`in ${days} Tagen`, `in ${days} days`));
 const skillsWord = (n: number) => (n === 1 ? tr("Fertigkeit", "skill") : tr("Fertigkeiten", "skills"));
@@ -187,8 +217,7 @@ function Menu<T extends BaseTask>({ p, onStart }: { p: QuizScreenProps<T>; onSta
   const examIn = exam ? examDays(exam) : null;
   // Termin vorbei → still löschen, es gelten wieder die normalen Abstände
   useEffect(() => { if (exam && examIn !== null && examIn < 0) setExam(p.stufe, null); }, [exam, examIn, p.stufe, setExam]);
-  const due = dueSkills(sk, allTypes, Date.now(), exam);
-  const weak = p.typeName ? weakTypes(typeStats[p.stufe], id => !!p.typeName!(id)) : [];
+  const { due, weak } = pending(p, { skills, typeStats, exams });
   const done = weeklyDone(rounds[p.stufe]);
   // Rückkehr nach einer Pause von mindestens 7 Tagen: begrüßen statt Wochenziel zeigen (keine Schuld)
   const lastRound = Math.max(0, ...(rounds[p.stufe] ?? []));
@@ -412,8 +441,8 @@ function Play<T extends BaseTask>({ p, game, onPause }: { p: QuizScreenProps<T>;
           <div className="q-prog-lbl"><span>{p.levelName(game.level)}</span><span>{game.tasks[game.i]?.stage === "worked" ? tr("Beispiel", "Example") : <>{tr("Aufgabe", "Task")} {counted(game.tasks.slice(0, game.i + 1)).length} / {counted(game.tasks).length}</>}</span></div>
           <ResultBar results={game.answers.filter((_, k) => game.tasks[k].stage !== "worked").map(a => (a ? a.ok : null))} />
         </div>
-        <div className="q-score" aria-label={tr(`${game.score} Punkte`, `${game.score} points`)}>{game.score}<small>{tr("Pkt", "pts")}</small></div>
-        <div className={`q-streak${game.streak >= 2 ? " hot" : ""}`} aria-label={tr(`Serie ${game.streak}`, `Streak ${game.streak}`)}><Icon name="fire" />{game.streak}</div>
+        <div className="q-score" role="img" aria-label={tr(`${game.score} Punkte`, `${game.score} points`)}>{game.score}<small>{tr("Pkt", "pts")}</small></div>
+        <div className={`q-streak${game.streak >= 2 ? " hot" : ""}`} role="img" aria-label={tr(`Serie ${game.streak}`, `Streak ${game.streak}`)}><Icon name="fire" />{game.streak}</div>
       </div>
       {game.intro && game.i === 0 && !game.answers[0] && p.explain && !(typeof game.level === "number" && p.lesson?.(game.level))
         ? (
@@ -454,20 +483,22 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const extra = a ? p.feedbackExtra?.(t, a) : null;
   const diag = a ? diagnose(t, a) : null;
   const terms = p.terms?.(t, !!a) ?? [];
+  // erster Schritt sichtbar: der Tipp steht schon da – kein Tipp-Knopf (er kostete sonst Punkte für etwas, das schon zu sehen ist)
+  const faded = t.stage === "faded";
   return (
     <TermScope terms={terms}>
     <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}`}>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt" ref={promptRef} tabIndex={-1}><RichText text={t.prompt} /></p>
       {/* neue Fertigkeit, zweite Begegnung: erster Schritt steht unter der Frage (verdeckt keine Antwortfläche) */}
-      {t.stage === "faded" && !a && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
+      {faded && !a && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
       <div className="q-body">
         {visual && <div className="q-visual"><Fit>{visual}</Fit></div>}
         {isMc ? <McAnswer task={t as unknown as McTask} answered={a} submit={submit} renderOption={p.renderOption && (o => p.renderOption!(t, o))} /> : p.renderAnswer?.(t, a, submit)}
-        {game.hintUsed && t.stage !== "faded" && !a && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
+        {game.hintUsed && !faded && !a && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
         {a && (
           <div className={`q-feedback ${a.ok ? "ok" : "bad"}`} role="status">
-            <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>
+            <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed && !faded, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>
             {(diag?.why || (a.ok && t.rule)) && <p className={`fb-why${a.ok ? " ok" : ""}`}><Icon name={a.ok ? "check" : "bulb"} size={18} /><span><RichText text={diag?.why || t.rule!} /></span></p>}
             {!a.ok && !isMc && p.solution && <div className="fb-sol"><span>{tr("Richtig: ", "Correct: ")}</span>{p.solution(t)}</div>}
             {!a.ok && <p className="fb-exp"><RichText text={t.explain} /></p>}
@@ -476,7 +507,7 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
       </div>
       <div className="q-actions" ref={nextRef}>
         <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termTool(p, terms), ...(extra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra }] : [])]}
-          hint hintCue={t.hintCue} onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
+          hint={!faded} hintCue={t.hintCue} onHint={() => takeHint(p.stufe)} hintUsed={game.hintUsed} answered={!!a} explain={p.explain?.(game.level, t)}
           read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => `${"ABCD"[i]}: ${o}`) : [])].filter(Boolean).join(". ")} />
         {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
       </div>
@@ -554,7 +585,10 @@ export function McAnswer({ task, answered, submit, renderOption }: { task: McTas
 }
 
 function Result<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game: Game<T> }) {
-  const { start, quit } = p.useQuiz();
+  const { start, quit, skills, typeStats, exams } = p.useQuiz();
+  // „Heute fällig“ und „Schwächen üben“: nochmal nur, solange noch etwas fällig bzw. schwach ist (sonst wäre es eine Runde aus Level 1 unter falschem Namen)
+  const open = pending(p, { skills, typeStats, exams });
+  const again = game.level === "due" ? open.due.length > 0 : game.level === "weak" ? open.weak.length > 0 : true;
   const [review, setReview] = useState(false);
   const total = counted(game.tasks).length;
   const s = starsFor(game.correct, total);
@@ -582,8 +616,8 @@ function Result<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game: 
         {game.newBest && <p className="new-best"><Icon name="trophy" size={18} /> {tr("Neuer Rekord", "New record")}: {game.score} {tr("Punkte", "points")}</p>}
         <p className="res-sub">{game.score} {tr("Punkte", "points")} · {tr("längste Serie", "longest streak")} {game.bestStreak}</p>
         <div className="btn-row center">
-          <Button variant="primary" icon="reset" onClick={() => { start(p.stufe, game.level); window.scrollTo({ top: 0 }); }}>{tr("Nochmal", "Again")}</Button>
-          <Button onClick={() => quit(p.stufe)}>{tr("Zur Levelauswahl", "Back to levels")}</Button>
+          {again && <Button variant="primary" icon="reset" onClick={() => { start(p.stufe, game.level, game.level === "due" ? open.due : undefined); window.scrollTo({ top: 0 }); }}>{tr("Nochmal", "Again")}</Button>}
+          <Button variant={again ? undefined : "primary"} onClick={() => quit(p.stufe)}>{tr("Zur Levelauswahl", "Back to levels")}</Button>
         </div>
         {wrong.length > 0 && <Button variant="quiet" icon="book" onClick={() => setReview(true)}>{tr("Zum Wiederholen", "To review")} ({wrong.length})</Button>}
       </Card>

@@ -281,6 +281,8 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
         }
       });
       renderer.dispose();
+      // WebGL-Kontext sofort freigeben: Browser erlauben nur etwa 16 gleichzeitig (häufiges Umschalten → „Too many active WebGL contexts“)
+      renderer.forceContextLoss();
       box.innerHTML = "";
     };
   }, [key, mol, data, computed, showAngles, showLonePairs, showDipole, dipoleArrow, autoRotate, angleMode, look]);

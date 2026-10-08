@@ -6,8 +6,10 @@
 //   Quelltext     keine Regex-Lookbehinds (?<= (?<! – ältere Safari-Versionen (iOS < 16.4) brechen beim Laden ab
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, resolve, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = resolve(dirname(new URL(import.meta.url).pathname), "..");
+// fileURLToPath: Pfade mit Leerzeichen und unter Windows (URL.pathname wäre „%20“ bzw. „/C:/…“)
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const errors = [];
 const err = (file, msg) => errors.push(`${relative(ROOT, file)}: ${msg}`);
 
@@ -46,7 +48,8 @@ for (const id of moduleIds) {
 
 for (const f of files(join(ROOT, "packages"))) {
   for (const spec of importsOf(readFileSync(f, "utf8"))) {
-    if (/^@edi\//.test(spec) || (spec.startsWith(".") && /[\\/](modules|apps)[\\/]/.test(resolve(dirname(f), spec) + sep)))
+    // Ziel relativ zum Repository: ein Ordner „apps“ oder „modules“ oberhalb des Repositorys (z. B. ~/apps/Edi) zählt nicht
+    if (/^@edi\//.test(spec) || (spec.startsWith(".") && /^(modules|apps)[\\/]/.test(relative(ROOT, resolve(dirname(f), spec)) + sep)))
       err(f, `Paket importiert „${spec}“ – Pakete kennen weder Module noch App`);
   }
 }

@@ -97,7 +97,7 @@ export function Chip({ children, active, className }: { children: ReactNode; act
 
 export function Stars({ value, size = 18 }: { value: number; size?: number }) {
   return (
-    <span className="ui-stars" aria-label={tr(`${value} von 3 Sternen`, `${value} of 3 stars`)}>
+    <span className="ui-stars" role="img" aria-label={tr(`${value} von 3 Sternen`, `${value} of 3 stars`)}>
       {[1, 2, 3].map(i => <span key={i} className={cx("ui-star", i <= value && "on")}><Icon name="star" size={size} /></span>)}
     </span>
   );

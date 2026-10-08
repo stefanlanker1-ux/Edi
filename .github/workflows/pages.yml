@@ -1,12 +1,12 @@
 # Baut die App und veröffentlicht sie auf GitHub Pages:
 #   …/Edi/  App (#/<modul>) · …/Edi/edi-offline.html  Einzeldatei · …/Edi/<modul>/  Weiterleitung früherer Adressen
-# Läuft bei jedem Push auf main oder manuell über "Run workflow".
+# Läuft bei jedem Push auf main, der die App betrifft (Pfade unten, alles was Prüfung und Build lesen), oder manuell über "Run workflow".
 name: App auf GitHub Pages veröffentlichen
 
 on:
   push:
     branches: [main]
-    paths: ["apps/**", "modules/**", "packages/**", "scripts/**", "package.json", "package-lock.json", ".github/workflows/pages.yml"]
+    paths: ["apps/**", "modules/**", "packages/**", "scripts/**", "package.json", "package-lock.json", "tsconfig.base.json", ".github/workflows/pages.yml"]
   workflow_dispatch:
 
 permissions:

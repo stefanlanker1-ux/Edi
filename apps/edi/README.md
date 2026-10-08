@@ -20,7 +20,8 @@ App-Icons und Startbild entstehen aus `assets/` mit `npx @capacitor/assets gener
 Kraftfeld MMFF94 (`packages/chem/src/mmff`, Einstieg `@lern/chem/mmff`, wird erst bei Bedarf geladen und rechnet im Hintergrund-Thread `packages/chem-ui/src/ff.worker.ts`):
 räumliche Lage frei gebauter Moleküle (Elektronenpaarbindung) und gezeichneter Moleküle (Organik), sofern keine gemessene Struktur hinterlegt ist
 (`packages/chem/src/mol3d.ts`, erzeugt von `scripts/mol3d.py`). Web und App gleich. Prüfung gegen RDKit: `scripts/mmff-reference.py` und `packages/chem/test/mmff-reference.test.ts`.
-Der Workflow „Android- und iOS-App bauen“ baut bei jedem Push auf main eine Debug-APK (Download unter „Artifacts“) und prüft den iOS-Build für den Simulator.
+Der Workflow „Android- und iOS-App bauen“ (`native.yml`) baut bei jedem Push auf main, der die App betrifft, eine Debug-APK (Download unter „Artifacts“) und prüft den iOS-Build für den Simulator.
+Das signierte App-Bundle für den Play Store baut `release.yml` (nur von Hand gestartet; Eingaben, Secrets und Ablauf siehe `docs/entwicklung.md`).
 
 ```bash
 cd apps/edi

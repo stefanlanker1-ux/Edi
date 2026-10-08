@@ -49,7 +49,8 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
   ))];
   return (
     <>
-      <a className="ui-skip" href="#main">{tr("Zum Inhalt springen", "Skip to content")}</a>
+      {/* Fokus direkt auf den Inhalt: die Adresse (#/<modul>) bleibt – „#main“ als Adresse wäre für die Hülle ein unbekanntes Modul (→ Übersicht) */}
+      <a className="ui-skip" href="#main" onClick={e => { e.preventDefault(); document.getElementById("main")?.focus(); }}>{tr("Zum Inhalt springen", "Skip to content")}</a>
       <header className="ui-topbar">
         {homeHref
           ? <a className="ui-brand" href={homeHref} title={tr("Zur Übersicht", "All apps")}>{logo}<h1 className="ui-brand-name">{name}</h1></a>
@@ -68,7 +69,7 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
           </button>
         </div>
       </header>
-      <main id="main" className="ui-main"><Rescue key={`${active}-${lang}`} storage={storage}>{children}</Rescue></main>
+      <main id="main" className="ui-main" tabIndex={-1}><Rescue key={`${active}-${lang}`} storage={storage}>{children}</Rescue></main>
       <nav className="ui-bottom-nav" aria-label={tr("Bereiche", "Sections")}>{nav("ui-bn-tab")}</nav>
     </>
   );

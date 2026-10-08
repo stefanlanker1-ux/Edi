@@ -186,9 +186,12 @@ export function diagnose(t: BaseTask, a: { ok: boolean; choice?: number; values?
   return null;
 }
 
-/** Kennung einer Frage (kurze Prüfsumme, FNV-1a) – gleiche Frage, gleiche Kennung, auch wenn die Antwortmöglichkeiten anders gemischt sind */
+/**
+ * Kennung einer Frage (kurze Prüfsumme, FNV-1a) – gleiche Frage, gleiche Kennung, auch wenn die Antwortmöglichkeiten anders gemischt sind.
+ * Ohne alles, was am Antwort-Index hängt (`why`, `miss`) oder von der Runde bzw. dem Level kommt (`stage`, `lead`, `hintCue`, Tipp, Erklärung).
+ */
 export function taskKey(t: BaseTask): string {
-  const { options: _o, answer: _a, why: _w, type: _t, hint: _h, explain: _e, praise: _p, traps: _tr, rule: _r, ...rest } = t as BaseTask & Record<string, unknown>;
+  const { options: _o, answer: _a, why: _w, miss: _m, type: _t, hint: _h, hintCue: _hc, explain: _e, praise: _p, traps: _tr, rule: _r, stage: _s, lead: _l, ...rest } = t as BaseTask & Record<string, unknown>;
   const s = JSON.stringify(rest);
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
@@ -201,27 +204,34 @@ export const RECENT_MAX = 400;
 /**
  * Runde ohne Wiederholungen: erzeugt mehrere Kandidaten-Runden und nimmt für jeden Platz eine Frage desselben Typs,
  * die zuletzt nicht gestellt wurde – gibt es keine mehr, die am längsten zurückliegende. `recent`: Kennungen, neueste zuletzt.
- * `keepType`: jeder Platz behält seinen Typ (Level mit fester Reihenfolge der Aufgabentypen).
+ * `keepType`: jeder Platz behält seinen Typ (Level mit fester Reihenfolge der Aufgabentypen) – und nimmt nur Kandidaten desselben Platzes,
+ * denn dort hängt am Platz mehr als der Typ (z. B. der Merksatz `lead`).
  */
 export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly string[], extra = 10, keepType = false): T[] {
   const first = make();
   const age = new Map<string, number>();
   recent.forEach((k, i) => age.set(k, i));
-  const pool = [first];
+  const keys = new Map<T, string>();
+  const key = (t: T) => { let k = keys.get(t); if (k === undefined) { k = taskKey(t); keys.set(t, k); } return k; };
+  // Kandidaten mit ihrem Platz in der erzeugten Runde
+  const cands: { t: T; at: number }[] = [];
+  const add = (round: T[]) => round.forEach((t, at) => cands.push({ t, at }));
+  add(first);
   const need = new Map<string | undefined, number>();
   for (const t of first) need.set(t.type, (need.get(t.type) ?? 0) + 1);
-  const enough = () => [...need].every(([type, n]) =>
-    new Set(pool.flat().filter(c => c.type === type).map(taskKey).filter(k => !age.has(k))).size >= n);
+  const enough = () => (keepType
+    ? first.every((_, at) => cands.some(c => c.at === at && !age.has(key(c.t))))
+    : [...need].every(([type, n]) => new Set(cands.filter(c => c.t.type === type).map(c => key(c.t)).filter(k => !age.has(k))).size >= n));
   // weitere Kandidaten nur, solange nicht für jeden Platz eine neue Frage da ist
-  for (let i = 0; i < extra && !enough(); i++) pool.push(make());
-  const cands = pool.flat();
+  for (let i = 0; i < extra && !enough(); i++) add(make());
   const used = new Set<string>();
   const count = new Map<string | undefined, number>();
-  const pick = (type: string | undefined | null): [T | null, number] => {
+  const pick = (type: string | undefined | null, at: number): [T | null, number] => {
     let best: T | null = null, bestAge = Infinity;
-    for (const c of cands) {
+    for (const { t: c, at: cAt } of cands) {
       if (type !== null && c.type !== type) continue;
-      const k = taskKey(c);
+      if (keepType && cAt !== at) continue;
+      const k = key(c);
       if (used.has(k)) continue;
       const a = age.get(k) ?? -1;
       // bei gleichem Alter den im Moment seltensten Typ nehmen (Mischung bleibt ausgewogen)
@@ -230,17 +240,17 @@ export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly
     return [best, bestAge];
   };
   let searched = false;
-  return first.map(slot => {
-    let [best, a] = pick(slot.type);
+  return first.map((slot, at) => {
+    let [best, a] = pick(slot.type, at);
     // nur schon gestellte Fragen dieses Typs gezogen: einmal je Runde gezielt weitersuchen – der Zufall kann neue übersehen haben
     if (a >= 0 && !searched) {
       searched = true;
-      for (let i = 0; i < extra * 3 && a >= 0; i++) { cands.push(...make()); [best, a] = pick(slot.type); }
+      for (let i = 0; i < extra * 3 && a >= 0; i++) { add(make()); [best, a] = pick(slot.type, at); }
     }
     // Typ wirklich erschöpft → neue Frage eines anderen Typs dieses Levels (außer bei fester Reihenfolge)
-    if (a >= 0 && !keepType) { const [other, b] = pick(null); if (other && b < 0) best = other; }
+    if (a >= 0 && !keepType) { const [other, b] = pick(null, at); if (other && b < 0) best = other; }
     best ??= slot;
-    used.add(taskKey(best));
+    used.add(key(best));
     count.set(best.type, (count.get(best.type) ?? 0) + 1);
     return best;
   });
@@ -257,7 +267,8 @@ export function buildRound<T extends BaseTask>(ids: string[], gens: Record<strin
   return order.slice(0, count).map(id => {
     let t = gens[id]();
     for (let tries = 0; tries < 12; tries++) {
-      const sig = JSON.stringify({ ...t, options: undefined, answer: undefined });
+      // gleiche Frage = gleiche Kennung (Mischung der Antworten und ihre Rückmeldungen je Index zählen nicht)
+      const sig = taskKey(t);
       if (!seen.has(sig)) { seen.add(sig); break; }
       t = gens[id]();
     }

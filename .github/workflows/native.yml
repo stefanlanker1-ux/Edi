@@ -1,12 +1,12 @@
 # Baut die Android- und die iOS-App (Capacitor) aus derselben Web-Version.
 # Android: Debug-APK als Download unter „Artifacts“. iOS: Build für den Simulator (ohne Signatur) als Prüfung.
-# Läuft bei jedem Push auf main oder manuell über "Run workflow".
+# Läuft bei jedem Push auf main, der die App betrifft (Pfade unten, alles was der Build liest), oder manuell über "Run workflow".
 name: Android- und iOS-App bauen
 
 on:
   push:
     branches: [main]
-    paths: ["apps/**", "modules/**", "packages/**", "package.json", "package-lock.json", ".github/workflows/native.yml"]
+    paths: ["apps/**", "modules/**", "packages/**", "scripts/**", "package.json", "package-lock.json", "tsconfig.base.json", ".github/workflows/native.yml"]
   workflow_dispatch:
 
 permissions:

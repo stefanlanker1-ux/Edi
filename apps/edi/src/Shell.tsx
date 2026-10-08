@@ -3,7 +3,7 @@
 // als <html data-modul="…"> am Dokument – nur dann gelten seine Stile (scripts/modul-scope.ts).
 
 import { Component, Suspense, lazy, useLayoutEffect, useSyncExternalStore, type ComponentType, type LazyExoticComponent, type ReactNode } from "react";
-import { HomeLink, tr, useLang, type LernModule } from "@lern/ui";
+import { CurrentModul, HomeLink, tr, useLang, type LernModule } from "@lern/ui";
 import { MODULES, moduleById } from "./modules.ts";
 import { Overview, modName } from "./Overview.tsx";
 
@@ -50,11 +50,13 @@ function ModuleView({ m }: { m: LernModule }) {
   }, [m, lang]);
   return (
     <HomeLink.Provider value="#/">
-      <LoadError name={modName(m)}>
-        <Suspense fallback={<div className="edi-loading" aria-busy="true" />}>
-          <View />
-        </Suspense>
-      </LoadError>
+      <CurrentModul.Provider value={m}>
+        <LoadError name={modName(m)}>
+          <Suspense fallback={<div className="edi-loading" aria-busy="true" />}>
+            <View />
+          </Suspense>
+        </LoadError>
+      </CurrentModul.Provider>
     </HomeLink.Provider>
   );
 }

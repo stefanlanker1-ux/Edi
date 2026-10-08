@@ -3,6 +3,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { progressKey } from "@lern/ui";
 import { RECENT_MAX, counted, freshRound, recordStat, starsFor, taskKey, type Answered, type BaseTask, type Game, type LevelKey, type LevelProgress, type TypeStats } from "./types.ts";
 import { STAGES, clearMisses, dueSkills, recordAnswer, stageOf, type Exam, type Skills } from "./skills.ts";
 
@@ -149,8 +150,9 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
           set({ misses: { ...get().misses, [stufe]: r.misses }, missBy: { ...(get().missBy ?? {}), [stufe]: r.missBy } });
         }
         const streak = a.ok ? g.streak + 1 : 0;
-        // in Leveln mit Tipp (hintCue) kostet der Tipp keine Punkte – er gehört dort zum Lernweg
-        const gained = a.ok ? (g.hintUsed && !g.tasks[g.i]?.hintCue ? 5 : 10) + (streak >= 3 ? Math.min(10, (streak - 2) * 2) : 0) : 0;
+        // in Leveln mit Tipp (hintCue) kostet der Tipp keine Punkte – er gehört dort zum Lernweg; ebenso nicht, wenn er als erster Schritt schon dasteht („faded“)
+        const cur = g.tasks[g.i];
+        const gained = a.ok ? (g.hintUsed && !cur?.hintCue && cur?.stage !== "faded" ? 5 : 10) + (streak >= 3 ? Math.min(10, (streak - 2) * 2) : 0) : 0;
         const answers = g.answers.slice();
         answers[g.i] = { ...a, gained };
         return { ...g, answers, streak, upgrades, bestStreak: Math.max(g.bestStreak, streak), correct: g.correct + (a.ok ? 1 : 0), score: g.score + gained };
@@ -179,7 +181,8 @@ export function createQuizStore<T extends BaseTask>(cfg: QuizConfig<T>) {
       quit: stufe => set({ games: { ...get().games, [stufe]: undefined } }),
     };
   }, {
-    name: cfg.storageKey,
+    // Fortschritt: „Neu starten“ nach einem Absturz behält ihn beim ersten Mal (nur laufende Runden fallen weg)
+    name: progressKey(cfg.storageKey),
     version: 1,
     storage: createJSONStorage(() => localStorage),
     partialize: s => ({ games: s.games, progress: s.progress, typeStats: s.typeStats, skills: s.skills, rounds: s.rounds, misses: s.misses, ...(cfg.missRecovery ? { missBy: s.missBy } : {}), exams: s.exams, recent: s.recent }),

@@ -30,6 +30,7 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-bn-tab .ic { width: 58px; height: 32px; padding: 4px 17px; }
 .ui-bn-tab.active::before { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 3px; background: var(--signal); }
 .ui-main { padding: 16px max(16px, env(safe-area-inset-right)) calc(var(--bottom-h) + 28px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); max-width: 1360px; margin: 0 auto; }
+.ui-main:focus { outline: none; } /* Ziel von „Zum Inhalt springen“ (tabIndex −1), kein Rahmen um die ganze Seite */
 /* App-Name ist die Hauptüberschrift (h1) in der Schrift der Kopfzeile; schmal nur für Screenreader */
 .ui-brand-name { font: inherit; letter-spacing: inherit; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-brand { flex-shrink: 1; } /* min-width 44 px bleibt: Name wird gekürzt, Logo nie */

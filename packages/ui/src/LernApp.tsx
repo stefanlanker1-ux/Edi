@@ -12,7 +12,7 @@ import { createRoot } from "react-dom/client";
 import { AppShell, type ShellTab } from "./AppShell.tsx";
 import { IconButton, Segmented } from "./components.tsx";
 import { applyTheme } from "./hooks.ts";
-import { HomeLink } from "./modul.ts";
+import { CurrentModul, HomeLink } from "./modul.ts";
 import { Guide, type GuideDef } from "./Guide.tsx";
 
 /** läuft als Android/iOS-App (Capacitor) */
@@ -54,6 +54,19 @@ export interface StufeSwitch<S extends string> {
 
 const US_OS = [{ value: "us", label: "Level I", short: "I" }, { value: "os", label: "Level II", short: "II" }];
 
+/** localStorage-Schlüssel „Erklärung ganz durchlaufen“ – mit der sprachunabhängigen Kennung des Moduls */
+export const guideDoneKey = (id: string) => `lern-erklaert-${id}`;
+
+/** Erklärung schon durchlaufen? Früher hing der (übersetzte) Name am Schlüssel – ein solcher Stand gilt weiter und wird übernommen. */
+export function guideDone(key: string, oldNames: (string | undefined)[]): boolean {
+  try {
+    if (localStorage.getItem(key)) return true;
+    if (!oldNames.some(n => n && localStorage.getItem(guideDoneKey(n)))) return false;
+    localStorage.setItem(key, "1");
+    return true;
+  } catch { return false; }
+}
+
 export function LernApp<T extends string, S extends string = "us" | "os">({ name, logo, tabs, tab, onTab, storage, stufe, actions, guide, children }: {
   name: string;
   logo: ReactNode;
@@ -74,7 +87,11 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   const lang = useLang();
   const homeHref = useContext(HomeLink);
   useEffect(() => applyTheme(theme), [theme]);
-  useEffect(() => { document.documentElement.toggleAttribute("data-beamer", beamer); }, [beamer]);
+  // beim Verlassen (Übersicht, anderes Modul) aufräumen – sonst bliebe die Übersicht vergrößert
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-beamer", beamer);
+    return () => document.documentElement.removeAttribute("data-beamer");
+  }, [beamer]);
   const stufeValue = stufe?.value;
   useEffect(() => {
     if (stufeValue) document.body.dataset.stufe = stufeValue;
@@ -83,9 +100,10 @@ export function LernApp<T extends string, S extends string = "us" | "os">({ name
   }, [stufeValue]);
 
   const [guideOpen, setGuideOpen] = useState(false);
-  // Knopf hervorgehoben, bis die Erklärung einmal ganz durchlaufen ist (je App, nur auf diesem Gerät)
-  const doneKey = `lern-erklaert-${name}`;
-  const [fresh, setFresh] = useState(() => { try { return !localStorage.getItem(doneKey); } catch { return true; } });
+  // Knopf hervorgehoben, bis die Erklärung einmal ganz durchlaufen ist (je Modul, nur auf diesem Gerät)
+  const modul = useContext(CurrentModul);
+  const doneKey = guideDoneKey(modul?.id ?? name);
+  const [fresh, setFresh] = useState(() => !guideDone(doneKey, [name, modul?.name, modul?.nameEn]));
   const quizTab = tabs.find(t => t.id === "quiz");
   const finish = () => {
     try { localStorage.setItem(doneKey, "1"); } catch { /* egal */ }

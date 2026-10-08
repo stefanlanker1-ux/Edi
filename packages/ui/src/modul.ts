@@ -24,3 +24,6 @@ export interface LernModule {
 
 /** Link zur Übersicht (Logo in der Kopfzeile); ohne Hülle kein Link */
 export const HomeLink = createContext<string | undefined>(undefined);
+
+/** das offene Modul (von der Hülle gesetzt): sprachunabhängige Kennung, z. B. für Speicher-Schlüssel; ohne Hülle undefined */
+export const CurrentModul = createContext<Pick<LernModule, "id" | "name" | "nameEn"> | undefined>(undefined);

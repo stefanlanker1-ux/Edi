@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { freshRound, taskKey, type BaseTask } from "../src/types.ts";
+import { buildRound, d, freshRound, mc, taskKey, type BaseTask } from "../src/types.ts";
 
 // Generator mit kleinem Vorrat: 6 verschiedene Fragen je Typ
 const gen = (type: string) => (): BaseTask => {
@@ -39,4 +39,51 @@ test("viele Runden hintereinander: über 6 Fragen hinweg keine Wiederholung", ()
     for (const t of round) { asked.push(t.prompt); recent = [...recent, taskKey(t)]; }
   }
   assert.strictEqual(new Set(asked).size, 6);
+});
+
+// Distraktoren mit Diagnose: mc() mischt, Rückmeldung (`why`) und Stolperstein (`miss`) hängen am Index der Antwort
+const genMc = (n = Math.floor(Math.random() * 6)): BaseTask =>
+  ({ ...mc(`${n}`, [d(`${n + 1}`, "plus-eins", "eins zu viel"), d(`${n + 2}`, "plus-zwei", "zwei zu viel"), `${n + 3}`]), type: "a", prompt: `Frage ${n}`, hint: "h", explain: "e" });
+
+test("taskKey: gemischte Distraktoren, gelöstes Beispiel, Merksatz und Tipp-Hervorhebung ändern die Kennung nicht", () => {
+  const a = genMc(2);
+  let b = genMc(2);
+  while (JSON.stringify((b as BaseTask & { miss?: unknown }).miss) === JSON.stringify((a as BaseTask & { miss?: unknown }).miss)) b = genMc(2);
+  assert.strictEqual(taskKey(a), taskKey(b));
+  assert.strictEqual(taskKey(a), taskKey({ ...b, stage: "faded", lead: "Merksatz des Platzes", hintCue: true }));
+  assert.notStrictEqual(taskKey(a), taskKey(genMc(3)));
+});
+
+test("viele Runden mit Distraktoren: über 6 Fragen hinweg keine Wiederholung (auch nach einem gelösten Beispiel)", () => {
+  for (let run = 0; run < 100; run++) {
+    let recent: string[] = [];
+    const asked: string[] = [];
+    for (let r = 0; r < 3; r++) {
+      const round = freshRound(() => [genMc(), genMc()], recent, 40);
+      // so merkt sich der Store die Fragen: mit `stage` (die erste Aufgabe einer neuen Fertigkeit zeigt den ersten Schritt)
+      round.forEach((t, i) => { asked.push(t.prompt); recent = [...recent, taskKey(i === 0 ? { ...t, stage: "faded" } : t)]; });
+    }
+    assert.strictEqual(new Set(asked).size, 6, asked.join(" | "));
+  }
+});
+
+test("buildRound: dieselbe Frage mit anders gemischten Antworten kommt nicht doppelt", () => {
+  for (let r = 0; r < 100; r++) {
+    const round = buildRound(["a"], { a: () => genMc() }, 3);
+    assert.strictEqual(new Set(round.map(t => t.prompt)).size, 3, round.map(t => t.prompt).join(" | "));
+  }
+});
+
+test("feste Reihenfolge: ersetzte Fragen kommen vom selben Platz – der Merksatz bleibt an seinem Platz", () => {
+  const seq = ["a", "a", "b", "a"], leads = ["L0", "L1", "L2", "L3"];
+  const make = () => seq.map((type, i) => ({ ...gen(type)(), lead: leads[i] }));
+  for (let run = 0; run < 20; run++) {
+    let recent: string[] = [];
+    for (let r = 0; r < 12; r++) {
+      const round = freshRound(make, recent, 10, true);
+      assert.deepEqual(round.map(t => t.type), seq);
+      assert.deepEqual(round.map(t => t.lead), leads);
+      recent = [...recent, ...round.map(taskKey)];
+    }
+  }
 });

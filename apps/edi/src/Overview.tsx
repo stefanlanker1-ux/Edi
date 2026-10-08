@@ -1,7 +1,7 @@
 // Übersicht: alle Module als Kacheln. Die Liste kommt aus modules.ts – hier nichts pro Modul eintragen.
 
-import { useLayoutEffect, type CSSProperties } from "react";
-import { Icon, LangButton, applyTheme, isWeb, tr, useLang, type LernModule } from "@lern/ui";
+import { useEffect, useLayoutEffect, useState, type CSSProperties } from "react";
+import { Icon, LangButton, Sheet, applyTheme, isWeb, tr, useLang, type LernModule } from "@lern/ui";
 import { MODULES } from "./modules.ts";
 
 /** Kachel-Überschrift: lange Namen mit weichen Trennstellen */
@@ -21,10 +21,9 @@ export function Overview() {
   useLayoutEffect(() => {
     applyTheme("light");
     document.title = tr("Edi – Lern-Apps", "Edi – Learning apps");
-    // Beschreibung der Seite in der gewählten Sprache (Teilen-Vorschau, Suche)
-    document.querySelector('meta[name="description"]')?.setAttribute("content", tr(
-      "Lern-Apps für Chemie und Einheiten: Gemische, Atombau, Ionenbindung, Elektronenpaarbindung, Reaktionsgleichungen, Neutralisation, Einheiten umrechnen.",
-      "Learning apps for chemistry and units: mixtures, atomic structure, ionic bonding, covalent bonding, chemical equations, neutralisation, unit conversion."));
+    // Beschreibung der Seite in der gewählten Sprache (Teilen-Vorschau, Suche) – aus dem Register, damit kein Modul fehlt
+    document.querySelector('meta[name="description"]')?.setAttribute("content",
+      `${tr("Lern-Apps für Chemie und Einheiten", "Learning apps for chemistry and units")}: ${MODULES.map(modName).join(", ")}.`);
   }, [lang]);
   return (
     <div className="ov">
@@ -48,8 +47,37 @@ export function Overview() {
       <footer className="ov-foot">
         {/* Offline-Datei nur im Web (in der Handy-App und in der Datei selbst ergibt sie keinen Sinn) */}
         {isWeb ? <p className="ov-dl"><a href="edi-offline.html" download>{tr("Offline-Datei", "Offline file")}</a> <span>{tr("alle Module in einer Datei, per Doppelklick nutzbar", "all modules in one file, open with a double click")}</span></p> : <span />}
-        <a className="ov-lic" href="lizenzen.txt">{tr("Lizenzen", "Licences")}</a>
+        <Licenses />
       </footer>
     </div>
+  );
+}
+
+/** Lizenzhinweise der Open-Source-Bausteine (scripts/licenses.ts): Web und Handy-App als Datei lizenzen.txt neben der App,
+ *  Einzeldatei als Kommentar am Dateiende (eine lizenzen.txt gibt es dort nicht) */
+async function licenseText(): Promise<string> {
+  if (import.meta.env.MODE === "single") {
+    const c = [...document.childNodes].find(n => n.nodeType === Node.COMMENT_NODE)?.textContent?.trim();
+    if (!c) throw new Error("keine Lizenzhinweise");
+    return c;
+  }
+  const r = await fetch("lizenzen.txt");
+  if (!r.ok) throw new Error(`lizenzen.txt: ${r.status}`);
+  return r.text();
+}
+
+/** im Blatt statt als eigene Seite: die Handy-App hat keinen Zurück-Knopf, die Einzeldatei keine lizenzen.txt */
+function Licenses() {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState<string | null>(null);
+  useEffect(() => { if (open && text === null) licenseText().then(setText, () => setText("")); }, [open, text]);
+  return (
+    <>
+      <button type="button" className="ov-lic" aria-haspopup="dialog" onClick={() => setOpen(true)}>{tr("Lizenzen", "Licences")}</button>
+      <Sheet open={open} wide title={tr("Lizenzen", "Licences")} onClose={() => setOpen(false)}>
+        {text ? <pre className="ov-lic-text">{text}</pre>
+          : <p>{text === null ? "…" : tr("Die Lizenzhinweise ließen sich nicht laden.", "The licence notices could not be loaded.")}</p>}
+      </Sheet>
+    </>
   );
 }

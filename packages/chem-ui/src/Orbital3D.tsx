@@ -134,6 +134,8 @@ export default function Orbital3D({ items, iso, axes = true, autoRotate = true, 
         }
       });
       renderer.dispose();
+      // WebGL-Kontext sofort freigeben: Browser erlauben nur etwa 16 gleichzeitig (häufiges Umschalten → „Too many active WebGL contexts“)
+      renderer.forceContextLoss();
       box.innerHTML = "";
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -29,7 +29,9 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   und, wo möglich, eine automatische Prüfung (Test, `checkGuide`) ergänzen.
 - **Zweige:** Entwickelt wird auf `entwicklung`. Veröffentlichen = beide Zweige pushen: `git push origin entwicklung` und `git push origin entwicklung:main`.
   Ein Push auf `main` startet die Workflows „App auf GitHub Pages veröffentlichen“ (`pages.yml`: typecheck, test, site, Deploy) und „Android- und iOS-App bauen“
-  (`native.yml`: Debug-APK als Artefakt, iOS-Simulator-Build). Erst wenn beide Läufe für den neuen Commit grün sind, gilt etwas als veröffentlicht.
+  (`native.yml`: Debug-APK als Artefakt, iOS-Simulator-Build) – beide nur, wenn der Push etwas ändert, das Prüfung oder Build lesen (`paths`: `apps/`, `modules/`,
+  `packages/`, `scripts/`, `package.json`, `package-lock.json`, `tsconfig.base.json`, der Workflow selbst; reine Doku-Commits starten nichts, neue Build-Eingaben dort ergänzen).
+  Erst wenn beide Läufe für den neuen Commit grün sind, gilt etwas als veröffentlicht.
   Pull-Requests laufen durch `check.yml` (typecheck, test, build).
 - Abgeschlossene, geprüfte Arbeiten werden ohne weitere Rückfrage veröffentlicht. Größere Aufträge über mehrere Module: je Modul fertigstellen, prüfen, veröffentlichen.
 - **Grafiken von Anfang an sorgfältig und schön** (Pflicht, gilt für jede neue oder geänderte Zeichnung, Animation und jedes Teilchenbild – nicht erst nach Rückmeldung):
@@ -49,8 +51,14 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   reinen Korrekturen ohne neue Regel erlaubt.
 - **Commit-Nachrichten** auf Deutsch, rein technisch, Form „<Modul oder Paket>: <was geändert wurde>“ (mehrere Punkte mit Strichpunkt).
   Keine Zusatzzeilen (keine Mitwirkenden-, Sitzungs- oder Werkzeughinweise), keine Namen.
-- **Android-Release** (`release.yml`, nur von Hand gestartet, Eingabe Versionsname): baut ein signiertes App-Bundle (AAB) als Artefakt; `versionCode` = Laufnummer des Workflows
-  (steigt automatisch). Signatur aus den Repository-Secrets `UPLOAD_KEYSTORE_BASE64` (Keystore als Base64) und `UPLOAD_KEYSTORE_PASSWORD`;
+- **Android-Release** (`release.yml`, nur von Hand gestartet): prüft (typecheck, alle Tests), baut ein signiertes App-Bundle (AAB) als Artefakt und **lädt es
+  standardmäßig in die Play Console hoch**. Eingaben: `version_name` (Versionsname, z. B. 1.0), `play_track` (Ziel-Track: `internal` = Interner Test – Voreinstellung,
+  `alpha` = Geschlossener Test, `production`, `keiner` = nur bauen, kein Upload), `play_status` (`draft` – Voreinstellung, solange die App im Store noch nicht
+  veröffentlicht ist, Google nimmt dann nur Entwürfe an; danach `completed`, damit der Rollout gleich startet). `versionCode` = Laufnummer des Workflows (steigt automatisch).
+  Repository-Secrets: `UPLOAD_KEYSTORE_BASE64` (Upload-Schlüssel .p12 als Base64) und `UPLOAD_KEYSTORE_PASSWORD` (immer), `PLAY_SERVICE_ACCOUNT_JSON`
+  (JSON-Schlüssel eines Google-Cloud-Service-Kontos mit Release-Rechten für die App in der Play Console; nötig, außer bei `play_track` = `keiner` – fehlt es, bricht der Lauf
+  mit Hinweis ab). Die allererste Version einer neuen App muss einmal von Hand in der Play Console hochgeladen werden, erst danach geht der Upload automatisch.
+  Hochgeladen wird mit der Action `r0adkll/upload-google-play`, festgelegt auf den Commit von v1.1.5 (fremde Actions nur mit Commit-SHA, nie nur mit Tag).
   `apps/edi/android/app/build.gradle` liest `UPLOAD_KEYSTORE_FILE`/`UPLOAD_KEYSTORE_PASSWORD`, `VERSION_CODE`, `VERSION_NAME` aus der Umgebung.
   Schlüsseldateien (`*.p12`, `*.jks`, `*.keystore`) und Passwörter **nie** ins Repository (`.gitignore`), nie in Logs, nie im Gespräch abfragen.
 - App-Kennung `app.edi.lernen` (Capacitor `appId`, Android `applicationId`/`namespace`/Paket von `MainActivity`, iOS Bundle-ID) **nie ändern** –
@@ -93,7 +101,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 - **Nicht überladen**: Funktionen nur dort, wo sie gebraucht werden; Oberstufen-Inhalte nur in Level II; ein Hauptknopf je Ansicht.
 - **Üben mit Abstand** (verteilte Wiederholung, Fertigkeiten-Stufen, „Heute fällig“, „Schwächen üben“, Prüfungstermin) – siehe „Quiz“.
 - **Barrierearm**: richtig/falsch nie nur über Farbe (zusätzlich ✓/✗, Muster, gestrichelt), Tippziele ≥ 44 px, Tastatur bedienbar, `aria-label` für Bilder und Knöpfe,
-  Schalter „Lesbar“ (mehr Abstände), Klang standardmäßig aus, Vorlesen im Quiz.
+  Schalter „Lesbar“ (mehr Abstände), Klang standardmäßig aus, Vorlesen im Quiz (nur mit einer Stimme des Geräts, `localService` – eine Netzwerkstimme
+  schickte den Text an einen fremden Dienst; ohne lokale Stimme kein Knopf), „Zum Inhalt springen“ setzt nur den Fokus (die Adresse bleibt).
 
 ## Lernprinzipien, Motivation, Oberfläche (Begründung der Regeln)
 Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach entscheiden:
@@ -130,7 +139,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 
 ## Erklärung (`@lern/ui` `Guide`, je Modul `src/guide.tsx`)
 - „Erklärung“ ist der erste Eintrag der Bereichsleiste (siehe „Bereichsleiste“), rotes Abspiel-Zeichen; roter Ring um das Zeichen, bis die Erklärung einmal ganz durchlaufen
-  ist (`lern-erklaert-<App>`). Ganzer Bildschirm, nie scrollen. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
+  ist (`lern-erklaert-<Modul-Kennung>`, sprachunabhängig über `CurrentModul` der Hülle; ein alter Stand unter dem Namen der App wird übernommen). Ganzer Bildschirm, nie scrollen. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
 - Aufbau: `GuideDef { title, steps, outro, known? }`. 10–48 Schritte; ab 16 Schritten in **Kapiteln** (`part` am ersten Schritt, Name im Kopf, Fortschrittsbalken in Abschnitten),
   jedes Kapitel höchstens 8 Schritte. Ende: Zusammenfassung „Das kannst du jetzt“ (`outro`), Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab.
 - **Schrittarten** (`mode`, Pflicht bei jedem Schritt; Kennzeichen oben: „Vorgemacht“ / „Halb gelöst – ergänze“ / „Jetzt du“):
@@ -173,7 +182,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (danach im Hintergrund vorgeladen, damit es offline sofort geht). `entry.tsx` importiert `app.css` (und Schriften) und exportiert `App` als `default`.
 - Neues Modul: Ordner anlegen (package.json `@edi/<id>`, tsconfig wie die anderen), in `apps/edi/src/modules.ts` und `apps/edi/package.json` eintragen, `npm install`.
 - Adressen: `#/<id>` (Hash, funktioniert auf GitHub Pages, in der Offline-Datei und in Capacitor gleich). Hülle `apps/edi/src/Shell.tsx`: setzt `<html data-modul="<id>">`
-  und den Fenstertitel, liefert `HomeLink` (Logo → Übersicht), fängt Ladefehler ab („Neu laden“). Unbekannte Adresse → Übersicht.
+  und den Fenstertitel, liefert `HomeLink` (Logo → Übersicht), fängt Ladefehler ab („Neu laden“). Unbekannte Adresse → Übersicht – deshalb nie Sprungmarken über die Adresse (`#main` wäre ein unbekanntes Modul). `CurrentModul` (Kontext) nennt den Paketen
+  das offene Modul (Kennung, Namen), z. B. für Speicher-Schlüssel.
 - Stile: CSS unter `modules/<id>/src/` gilt nur im offenen Modul (`scripts/modul-scope.ts`, PostCSS: `:root` → `:root:where([data-modul=id])`, sonst
   `:where(:root[data-modul=id]) …`, ohne zusätzliche Spezifität). Stile der Hülle (`apps/edi/src/shell.css`) nur mit Präfix `ov-`/`edi-`; Pakete mit `ui-` bzw. eigenem Präfix.
 - Gespeichert wird je Modul unter eigenen localStorage-Schlüsseln (`storage` im Modul). **Schlüssel nie umbenennen** und **Adresse der Website nie ändern** –
@@ -207,8 +217,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Optional: Level mit Tipp (`QuizLevel.tip` = Glühbirne an der Karte, Aufgabe `hintCue` = Tipp-Knopf hervorgehoben, Tipp kostet keine Punkte) und feste Reihenfolge (`fixedOrder`).
   Fertigkeiten (`skills.ts`): neu → geübt → sicher (2 Treffer in Folge) → gemeistert (Treffer nach ≥ 7 Tagen Abstand); Wiederholung nach 1-3-7-14-30 Tagen
   (Abstand wächst nur mit einem Treffer an einem neuen Tag, fällig ab Mitternacht des Fälligkeitstags), Fehler = morgen wieder fällig. Level "due" = „Heute fällig“; „Schwächen üben“ = Fertigkeiten mit Fehlern, die seitdem nicht wieder sicher sind (`recordStat`). Menü zeigt Wochenziel (3 Runden), Stufen je Level und die Landkarte (Blatt); Auswertung nennt Trefferquote, Zeit
-  und erreichte Stufen. Keine Wiederholungen: der Store merkt sich die zuletzt gestellten Fragen (`recent`, Prüfsumme `taskKey`, 400 je Stufe),
-  `freshRound` nimmt je Platz eine neue Frage desselben Typs, sonst eines anderen Typs des Levels, erst danach die am längsten zurückliegende. Sprache: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Schuld.
+  und erreichte Stufen. Keine Wiederholungen: der Store merkt sich die zuletzt gestellten Fragen (`recent`, Prüfsumme `taskKey`, 400 je Stufe; ohne Antworten, ohne alles, was am
+  Antwort-Index hängt – `why`, `miss` – und ohne `stage`, `lead`, `hintCue`, Tipp, Erklärung: dieselbe Frage hat bei jeder Mischung dieselbe Kennung, Test),
+  `freshRound` nimmt je Platz eine neue Frage desselben Typs, sonst eines anderen Typs des Levels, erst danach die am längsten zurückliegende; bei fester Reihenfolge
+  (`fixedOrder`) nur Fragen, die für denselben Platz erzeugt wurden (dort hängt z. B. der Merksatz am Platz, Test). „Nochmal“ nach „Heute fällig“ bzw.
+  „Schwächen üben“ nur, solange noch etwas fällig bzw. schwach ist (`pending`), sonst nur „Zur Levelauswahl“. Sprache: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Schuld.
   Prüfungstermin (`Exam`, Blatt „Schularbeit“ im Menü, trägt der Lernende selbst ein, bleibt auf dem Gerät): bis dahin Abstand höchstens halbe Restzeit
   (`examInterval`, `effectiveDue`), neue Fertigkeiten zuerst fällig, Menü zeigt Countdown und „x / n sicher“; nach dem Tag löscht sich der Termin.
 - Antwortform **Antippen im Bild** (Gemische, `kind: "tap"`): `parts` = antippbare Teile (Formeln im Teilchenbild bzw. `data-part` eines Trennverfahrens),
@@ -217,7 +230,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Gelöstes Beispiel im Quiz** (`withExamples` in `packages/quiz/src/store.ts`): vor der ersten Aufgabe jeder Fertigkeit der Runde, die noch nie geübt wurde,
   steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, höchstens 3 je Runde, Schlüssel = ganze Aufgabe als JSON):
   `stage: "worked"` → Karte `WorkedCard` mit Frage, markierter Lösung, „1. Tipp 2. Erklärung“ und Knopf „Verstanden – jetzt du“; zählt nicht für Punkte und Statistik (`counted`).
-  Die erste echte Aufgabe dieser Fertigkeit bekommt `stage: "faded"`: der erste Schritt (der Tipp) steht unter der Frage (`.q-first`, kostet nichts).
+  Die erste echte Aufgabe dieser Fertigkeit bekommt `stage: "faded"`: der erste Schritt (der Tipp) steht unter der Frage (`.q-first`, kostet nichts; dort kein Tipp-Knopf, der Store zieht dafür auch keine Punkte ab).
   Nicht in „Heute fällig“ und „Schwächen üben“. Damit das Beispiel passt, muss jeder Aufgabentyp genug verschiedene Aufgaben erzeugen.
 - Weitere Bausteine von `QuizScreen`: `renderVisual` (Bild über der Frage, per `Fit`), `renderOption` (eigene Darstellung von Antworten), `renderAnswer` (eigene Antwortform),
   `solution` (Lösung nach Fehlern), `feedbackExtra` (zusätzliches Blatt „Lösung“ nach der Antwort, z. B. Ablauf der Reaktion), `tools` (Hilfsmittel), `explain` (Erklärkarte je Level),
@@ -234,13 +247,16 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   der Stolperstein (`clearMisses`, Test mit simulierter Uhr). Ohne Schalter bleibt alles wie bisher.
   Distraktoren mit Diagnose kommen vor zufälligen; die Tests prüfen Schlüssel, Listenlängen und Fallen-Felder. Rückmeldung nie beschämend, immer mit dem richtigen Weg.
 - Baukasten – neue Module nur aus gemeinsamen Teilen: Build der App über `appConfig(…)` (`scripts/app-vite.ts`, PWA + Einzeldatei + `lizenzen.txt`
-  über `scripts/licenses.ts`), `App.tsx` des Moduls = `<LernApp name logo tabs tab onTab storage stufe?>` (`@lern/ui`: Link zur Übersicht,
-  Stufen-Umschalter, Beamer, Farbschema – nicht im App-Store halten). Quiz-Antworten: `McAnswer` (automatisch), `NumberAnswer` (`@lern/quiz`, ganz/dezimal, Einheit).
+  über `scripts/licenses.ts`; in der Übersicht öffnet „Lizenzen“ ein Blatt – Web und Handy-App lesen `lizenzen.txt`, die Einzeldatei den Kommentar am Dateiende), `App.tsx` des Moduls = `<LernApp name logo tabs tab onTab storage stufe?>` (`@lern/ui`: Link zur Übersicht,
+  Stufen-Umschalter, Beamer, Farbschema – nicht im App-Store halten; Beamer und Stufe werden beim Verlassen des Moduls am Dokument aufgeräumt). Quiz-Antworten: `McAnswer` (automatisch), `NumberAnswer` (`@lern/quiz`, ganz/dezimal, Einheit).
   PSE überall als `pseTool({ stufe, mark })` (`@lern/chem-ui`) in Werkbank- und Quiz-`tools`.
 - Logo in jedem Modul verlinkt zur Übersicht (`HomeLink` der Hülle). Kopfzeile hat automatisch den Klang-Schalter (`@lern/ui` `feedback.ts`: `ding(ok)` nur wenn eingeschaltet, Standard aus; Vibration `buzz` immer)
   und den Schalter „Lesbar“ (`readable.ts`, localStorage `lern-lesbar`, Attribut `data-lesbar` auf `<html>`, Stile in `tokens.css`: mehr Buchstaben-/Wort-/Zeilenabstand; Überschriften unverändert). Browser-Prüfung `scripts/check-ui.mjs` zusätzlich mit `LESBAR=1` laufen lassen.
 - Auffangnetz: `AppShell` fängt Abstürze einer Ansicht ab (`Rescue`, Karte „Hier hakt etwas.“); jedes Modul übergibt `storage` = seine localStorage-Schlüssel (Baukasten + Quiz),
-  „Neu starten“ setzt zuerst nur Baukasten und laufende Runden zurück, beim zweiten Mal alles.
+  „Neu starten“ setzt zuerst nur Baukasten und laufende Runden zurück; Fortschritt bleibt – welche Schlüssel Fortschritt sind, ist **ausdrücklich gekennzeichnet**
+  (`progressKey`: jeder Quiz-Store über `createQuizStore`, `LESSON_KEY`; eigene Fortschritts-Stores eines Moduls rufen `progressKey(schlüssel)` auf). Stürzt dieselbe App
+  innerhalb von 10 Minuten nach einem „Neu starten“ wieder ab, setzt das nächste alles dieser App zurück (Merkzeichen je App in sessionStorage, Test `rescue.test.ts`) –
+  außer Schlüsseln, die mehrere Module teilen (`progressKey(k, true)`, z. B. `LESSON_KEY` von Gemische und Polymere): die bleiben, solange sie lesbar sind.
 - Mobile first: keine horizontale Seiten-Scrollbar bei 390 px, Tippziele ≥ 44 px, Pointer Events zum Ziehen.
 - Farben nur über Design-Tokens (`packages/ui/src/styles/tokens.css`, modulspezifisch in `app.css`), hell und dunkel.
 - Design: Swiss Style – Weiß/Schwarz, ein Rot (`--signal`) nur als Auszeichnung (Kartentitel, aktiver Tab, Kennziffern), Schrift Inter (lokal: `packages/ui/src/fonts/inter.woff2`, erzeugt mit `scripts/inter-subset.py` aus `inter-ui` – Latein, Griechisch,
@@ -251,7 +267,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Signalrot nur für die Oberfläche. Ausnahme: Kreidetafel (Einheiten). ✓ immer grün (`--ok`), nie rot.
 - **Nie scrollen** (Handy 390 × 844 und 375 × 667, Desktop): jede Ansicht füllt genau den Bildschirm (`--screen-h`, Klasse `ui-screen`).
   Freies Ausprobieren = `Workbench` (`@lern/ui`): Bühne füllt den Platz, Hauptbedienung direkt darunter (`controls`), alles Weitere in der Werkzeugleiste (`tools`) –
-  am Handy öffnet jedes Werkzeug ein Blatt (Zurück-Taste schließt es), breit (≥ 900 px) stehen die Werkzeuge als Register daneben. Nie mehrere Bereiche gleichzeitig offen.
+  am Handy öffnet jedes Werkzeug ein Blatt (Zurück-Taste schließt es: `useBackClose`, eigener Verlaufseintrag mit neuer Kennung je Öffnen – auch nach Neuladen
+  genügt ein „Zurück“, ein Blatt über einem Blatt bzw. über der Erklärung schließt nur sich), breit (≥ 900 px) stehen die Werkzeuge als Register daneben. Nie mehrere Bereiche gleichzeitig offen.
   Übungen/Quiz: Aufgabe = ein Bildschirm (Frage, Bild passt sich per `Fit` an, Antwort, kurze Rückmeldung, „Weiter“ immer sichtbar); Lösungsweg und Hilfsmittel als Blatt.
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
   Prüfen im Browser (z. B. Playwright): in allen Ansichten, Werkzeugen und Quizaufgaben darf weder die Seite noch Werkbank/Aufgabenkarte überlaufen, und nichts darf von einem
@@ -772,6 +789,15 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Gemeinsame Pakete, Hülle, Workflows: Befunde der Prüfung behoben** – „Zum Inhalt springen“ setzt nur den Fokus (die Adresse `#main` führte zur Übersicht). Wiederholungsschutz
+  wirkt wieder: `taskKey` ohne Felder, die vom Mischen der Antworten abhängen (`why`, `miss`) und ohne `stage`/`lead`/`hintCue`; `buildRound` prüft Dubletten damit; `freshRound`
+  bei fester Reihenfolge nur mit Kandidaten desselben Platzes (sonst landete der Merksatz am falschen Platz; Wiederholungen gemessen von 47 bzw. 122 auf 0). „Neu starten“ nach einem
+  Absturz: Merkzeichen je App und nur 10 Minuten (vorher löschte nach einem Absturz in einem Modul schon der erste Neustart in einem anderen allen Fortschritt), Fortschritt ausdrücklich
+  gekennzeichnet (`progressKey`), geteilte Lektionen bleiben. „Nochmal“ nach „Heute fällig“/„Schwächen üben“ nur, solange etwas fällig bzw. schwach ist (`pending`); beim ersten Schritt
+  kein Tipp-Knopf und kein Abzug. Erklärungs-Ring mit Modul-Kennung (`CurrentModul`, erschien nach Sprachwechsel wieder); Beamer beim Verlassen aufgeräumt; Zurück-Taste mit Kennung je
+  Öffnen (`useBackClose`); WebGL-Kontext beim Abbau freigegeben; Lizenzen als Blatt (auch in der Einzeldatei); Vorlesen nur mit Stimmen des Geräts (keine Online-Stimme, Datenschutz);
+  Blatt-Namen und Sterne für Screenreader. Workflows: `native.yml`/`pages.yml` reagieren auch auf `scripts/` und `tsconfig.base.json`, Release prüft vor dem Bauen und nutzt die
+  Upload-Action per Commit-SHA; Architektur-Prüfung relativ zum Repository; README und Meta-Beschreibung aktuell.
 - **Gemische: Prüfbefunde im Üben behoben** – „Eisen, Sand und Salz“ zeigt das Eisen im Bild; Legierungsbilder nur Kupfer mit höchstens einem Drittel Zink (einphasig; andere
   Metallpaare bilden intermetallische Phasen) und fachlich begründet (Atome im Gitter verbunden, aber zufällig verteilt, ohne festes Verhältnis – keine Verbindung) statt „Atome nicht
   verbunden“; Ablenker passend zum Bild (keine „Moleküle“ bei Einzelatomen). Stolpersteine passend zur gewählten Antwort (neu „Legierung und Gemenge verwechselt“, „Gelöster Stoff

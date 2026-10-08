@@ -1,6 +1,7 @@
 # Baut die Android-App für den Play Store: signiertes App-Bundle (.aab) als Download unter „Artifacts“
 # und lädt es automatisch in die Play Console hoch (Track wählbar; „keiner“ = nur bauen).
 # Nur manuell über "Run workflow". versionCode = Laufnummer dieses Workflows (steigt bei jedem Lauf automatisch).
+# Vor dem Bauen: typecheck und alle Tests (wie pages.yml).
 #
 # Benötigte Secrets (Settings → Secrets and variables → Actions):
 #   UPLOAD_KEYSTORE_BASE64      Upload-Schlüssel (.p12) als Base64
@@ -82,6 +83,9 @@ jobs:
           distribution: temurin
           java-version: 21
       - run: npm ci
+      # nur Geprüftes geht in den Store: dieselben Prüfungen wie vor dem Veröffentlichen der Website
+      - run: npm run typecheck
+      - run: npm test
       - run: npm run build -w apps/edi
       - run: npx cap sync android
         working-directory: apps/edi
@@ -110,7 +114,8 @@ jobs:
           if-no-files-found: error
       - name: In die Play Console hochladen (${{ inputs.play_track }})
         if: ${{ inputs.play_track != 'keiner' }}
-        uses: r0adkll/upload-google-play@v1.1.5
+        # fremde Action: auf den Commit von v1.1.5 festgelegt (ein verschobenes Tag kann so keinen anderen Code mit dem Service-Konto ausführen)
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: app.edi.lernen

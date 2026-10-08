@@ -14,7 +14,7 @@ import { Icon } from "./icons.tsx";
 import { RichText } from "./RichText.tsx";
 import { NoTerms, TermScope, type TermDef } from "./Terms.tsx";
 import { ding } from "./feedback.ts";
-import { buzz } from "./hooks.ts";
+import { buzz, useBackClose } from "./hooks.ts";
 import { Callouts, type Callout } from "./Callouts.tsx";
 
 /** Was ein Bild bekommt: `pick` meldet ein angetipptes Ziel, `show` = Lösung markieren, `solved` = schon richtig */
@@ -119,23 +119,14 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const show = tries >= GUIDE_TRIES && !solved;
 
   // öffnen/schließen als modaler Dialog; Zurück-Taste schließt
-  const close = useRef(onClose);
-  close.current = onClose;
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
     if (open && !d.open) d.showModal();
     if (!open && d.open) d.close();
   }, [open]);
-  useEffect(() => {
-    if (!open) return;
-    history.pushState({ uiGuide: true }, "");
-    let popped = false;
-    // ein Blatt über der Erklärung (Begriff) geht beim Schließen einen Schritt zurück – dann steht der Verlauf wieder auf der Erklärung
-    const onPop = () => { if (history.state?.uiGuide) return; popped = true; close.current(); };
-    addEventListener("popstate", onPop);
-    return () => { removeEventListener("popstate", onPop); if (!popped && history.state?.uiGuide) history.back(); };
-  }, [open]);
+  // ein Blatt über der Erklärung (Begriff) geht beim Schließen einen Schritt zurück – dann steht der Verlauf wieder auf der Erklärung, sie bleibt offen
+  useBackClose(open, onClose, "uiGuide");
   // jedes Öffnen beginnt vorn
   useEffect(() => { if (open) { setI(0); reset(); } }, [open]);
   // Tastatur und Vorlesen: nach jedem Schritt steht der Fokus am neuen Text
