@@ -92,6 +92,9 @@
 /* Quiz */
 .q-og { width: 100%; height: 100%; min-height: 0; display: grid; place-items: center; container-type: size; }
 .q-og .mol-svg { width: 100%; height: 100%; }
+/* Aufgabenbild füllt die Bildfläche, die Formel passt sich per viewBox ein (mit Rand für jede Beschriftung) – nie unten abgeschnitten */
+.q-visual:has(.q-og) .ui-fit-inner { height: 100%; }
+.q-visual .q-og { display: block; }
 /* Name → Formel: vier Formeln 2 × 2, sie teilen sich die Höhe der Karte (nie abgeschnitten); Buchstabe über der Formel,
    damit die Formel die ganze Breite der Zelle hat */
 .q-body > .mc-grid:has(.og-opt) { flex: 1 1 0; min-height: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); }

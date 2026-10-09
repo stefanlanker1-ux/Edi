@@ -88,11 +88,25 @@ export interface MolSvgProps {
 }
 
 /** Ausschnitt in SVG-Einheiten */
-export function viewBoxOf(mol: Mol, view: View, minW = 4, minH = 3): [number, number, number, number] {
+export function viewBoxOf(mol: Mol, view: View, minW = 4, minH = 3, labelScale = 1): [number, number, number, number] {
   const pad = view === "lewis" ? 0.95 : 0.7;
   if (!mol.atoms.length) return [-minW / 2 * U, -minH / 2 * U, minW * U, minH * U];
-  const xs = mol.atoms.map(a => a.x), ys = mol.atoms.map(a => a.y);
-  let x0 = Math.min(...xs) - pad, x1 = Math.max(...xs) + pad, y0 = Math.min(...ys) - pad, y1 = Math.max(...ys) + pad;
+  // Rand: mindestens `pad`, dazu jede Beschriftung ganz (Gerüstformel: NH₂, OH, Cl … mit H auf der freien Seite; Lewis: H rundum).
+  // Breite ≈ 0,6 Schriftgröße je Zeichen, Höhe ≈ Schriftgröße (22 · labelScale Einheiten = 0,44 · labelScale Bindungslängen)
+  const g = graph(mol), k = labelScale, f = 0.44 * k;
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const a of mol.atoms) {
+    let l = a.x - pad, r = a.x + pad, t = a.y - pad, b = a.y + pad;
+    const shown = view === "lewis" || a.el !== "C" || g.nb.get(a.id)!.length === 0;
+    if (shown) {
+      const h = view === "lewis" ? 0 : hCount(g, a.id), w = 0.6 * f * ((a.el === "NO2" ? 3 : a.el.length) + (h ? (h > 1 ? 2 : 1) : 0));
+      const right = bondAngles(mol, g, a.id).reduce((sum, d) => sum + Math.cos(d * RAD), 0) > 0.3;
+      const [lx, rx] = !h ? [a.x - w / 2, a.x + w / 2] : right ? [a.x + 0.17 - w, a.x + 0.17] : [a.x - 0.17, a.x - 0.17 + w];
+      l = Math.min(l, lx - 0.1); r = Math.max(r, rx + 0.1); t = Math.min(t, a.y - f / 2 - 0.1); b = Math.max(b, a.y + f / 2 + 0.1);
+      if (view === "lewis") { const e = 0.66 + 0.17 * k + 0.1; l = Math.min(l, a.x - e); r = Math.max(r, a.x + e); t = Math.min(t, a.y - e); b = Math.max(b, a.y + e); }
+    }
+    x0 = Math.min(x0, l); x1 = Math.max(x1, r); y0 = Math.min(y0, t); y1 = Math.max(y1, b);
+  }
   if (x1 - x0 < minW) { const c = (x0 + x1) / 2; x0 = c - minW / 2; x1 = c + minW / 2; }
   if (y1 - y0 < minH) { const c = (y0 + y1) / 2; y0 = c - minH / 2; y1 = c + minH / 2; }
   return [x0 * U, y0 * U, (x1 - x0) * U, (y1 - y0) * U];
@@ -106,7 +120,7 @@ export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, ez
   // Gerüstformel: C ohne Beschriftung (außer allein stehend)
   const shown = (id: number) => lewis || g.el.get(id) !== "C" || g.nb.get(id)!.length === 0;
   const R = 0.22 * U * labelScale;
-  const vb = viewBox ?? viewBoxOf(mol, view, minW, minH);
+  const vb = viewBox ?? viewBoxOf(mol, view, minW, minH, labelScale);
   // Mittelpunkt des Rings je Ringbindung: Doppelbindung als zweiter Strich innen (wie üblich gezeichnet)
   const ringCenter = new Map<string, { x: number; y: number }>();
   for (const r of findRings(g).rings) {

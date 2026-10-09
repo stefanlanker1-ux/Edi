@@ -1083,6 +1083,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Nomenklatur: Aufgabenbild im Üben (Level 4) nie unten abgeschnitten** – die Schlussprüfung fand bei 375×667 und 360×640 halb abgeschnittene Beschriftungen der gefragten
+  Gruppe (NH₂, OH, Cl, =O). Jetzt passt sich die Formel der Bildfläche an, und der Rand der viewBox umfasst jede Atombeschriftung, auch vergrößert (`viewBoxOf`, Test).
 - **Polymere: kein unlesbarer Bildrest nach der Antwort** – ein Aufgabenbild mit Atomzeichen, das nach der Antwort unter 110 px schrumpfen würde (Atomschrift unter etwa 10 px,
   z. B. „Welches Polymer entsteht aus diesem Monomer?“ bei 375×667: 5,7 px), entfällt ganz; Bilder ohne Atomzeichen bleiben bis 40 px.
 - **PSE der Unterstufe: Ordnungszahlen überall ≥ 9 px** – die Schlussprüfung fand, dass die Aussage „Ordnungszahlen im PSE ≥ 9 px“ (Eintrag Runde 3) nur für die Atombau-Ansicht

@@ -6,7 +6,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createQuizStore, NumberAnswer, QuizScreen } from "@lern/quiz";
 import type { Mol } from "../chem/mol.ts";
 import { orient } from "../chem/layout.ts";
-import { MolSvg, type View } from "../components/MolSvg.tsx";
+import { MolSvg, viewBoxOf, type View } from "../components/MolSvg.tsx";
 import { Segmented, tr, uebenLabel } from "@lern/ui";
 import { Groups } from "../views/DrawView.tsx";
 import { STEM } from "../chem/rings.ts";
@@ -29,16 +29,23 @@ function QuizMol({ mol, small }: { mol: Mol; small?: boolean }) {
     const el = svg.current;
     if (!el || typeof ResizeObserver === "undefined") return;
     const update = () => {
-      const r = el.getBoundingClientRect(), vb = el.viewBox.baseVal;
-      if (!r.width || !vb?.width) return;
-      const px = Math.min(r.width / vb.width, r.height / vb.height) * 22;
-      setK(Math.round(Math.min(1.8, Math.max(1, ATOM_PX / px)) * 20) / 20);
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      // der Rand des Bilds wächst mit der Beschriftung (viewBoxOf): kleinstes k, bei dem die Schrift ATOM_PX erreicht, sonst das beste bis 1,8
+      let best = 1, bestPx = 0;
+      for (let k = 1; k <= 1.8 + 1e-9; k += 0.05) {
+        const vb = viewBoxOf(m, small ? "skelett" : view, small ? 2.5 : 3, small ? 1.8 : 2, k);
+        const px = Math.min(r.width / vb[2], r.height / vb[3]) * 22 * k;
+        if (px > bestPx + 0.05) { best = k; bestPx = px; }
+        if (px >= ATOM_PX) break;
+      }
+      setK(Math.round(best * 20) / 20);
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [m]);
+  }, [m, small, view]);
   return <MolSvg mol={m} view={small ? "skelett" : view} label={tr("Strukturformel", "Structural formula")} minW={small ? 2.5 : 3} minH={small ? 1.8 : 2} className={small ? "opt" : "q"} labelScale={k} svgRef={svg} />;
 }
 /** kleinste Höhe der Atom-Beschriftung (px) in Aufgabenbild und Antwortformeln */
@@ -88,7 +95,7 @@ export function QuizView() {
       missName={id => MISS[id]}
       heroArt={<svg viewBox="0 0 120 60" width="120" height="60" aria-hidden="true"><polyline points="10,40 35,22 60,40 85,22 110,40" fill="none" stroke="currentColor" strokeWidth="4" strokeLinejoin="round" strokeLinecap="round" /></svg>}
       // data-min-h: wird ein Bild kleiner, stehen Tipp und erster Schritt in einem Blatt (Formel bleibt lesbar)
-      renderVisual={t => (t.mol ? <div className="q-og" data-min-h="96"><QuizMol mol={t.mol} /></div> : null)}
+      renderVisual={t => (t.mol ? <div className="q-og" data-min-h="56"><QuizMol mol={t.mol} /></div> : null)}
       renderOption={(t, o) => (t.mols?.[o] ? <span className="og-opt" data-min-h="72"><QuizMol mol={t.mols[o]} small /></span> : o)}
       // Strukturformel als Antwort: der Antworttext ist der Name (= die Lösung) – vorgelesen wird nur „Antwort A“
       optionLabel={(t, o) => (t.mols?.[o] ? "" : undefined)}

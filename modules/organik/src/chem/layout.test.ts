@@ -5,6 +5,7 @@ import { addRing, append, connect, cycleBond, replace, start } from "./edit.ts";
 import type { Mol } from "./mol.ts";
 import { smilesMol } from "./smiles.ts";
 import { orient } from "./layout.ts";
+import { U, viewBoxOf } from "../components/MolSvg.tsx";
 
 const minDist = (m: Mol) => {
   let d = Infinity;
@@ -47,6 +48,18 @@ test("orient: in 30°-Schritten gedreht, Bindungen gleich lang, passt besser in 
   for (const b of r.bonds) {
     const p = r.atoms.find(a => a.id === b.a)!, q = r.atoms.find(a => a.id === b.b)!;
     expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeCloseTo(1, 2);
+  }
+});
+
+test("viewBoxOf: jede Beschriftung liegt ganz im Bild, auch vergrößert (Aufgabenbild Level 4)", () => {
+  for (const s of ["NC(C)C(Cl)C(C)C=O", "OC(=O)C(O)CC(C)CC", "CC(N)CCC(=O)O"]) for (const k of [1, 1.4, 1.8]) {
+    const m = smilesMol(s), [x, y, w, h] = viewBoxOf(m, "skelett", 3, 2, k).map(v => v / U);
+    for (const a of m.atoms.filter(a => a.el !== "C")) {
+      expect(a.y - 0.22 * k, s).toBeGreaterThan(y);
+      expect(a.y + 0.22 * k, s).toBeLessThan(y + h);
+      expect(a.x - 0.2 * k, s).toBeGreaterThan(x);
+      expect(a.x + 0.2 * k, s).toBeLessThan(x + w);
+    }
   }
 });
 
