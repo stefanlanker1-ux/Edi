@@ -104,3 +104,11 @@ test("gleicher Startwert, gleiche Bewegung (ruhige Endbilder sind fest)", () => 
   const a = warm(vessel(), at(900), 3), b = warm(vessel(), at(900), 3);
   expect(a.b.map(p => [p.x, p.y])).toEqual(b.b.map(p => [p.x, p.y]));
 });
+
+test("Tempo: doppelt so schnell = dieselbe Bewegung in der halben Zeit (Schmelze bei 1000 °C)", () => {
+  const a = vessel(), b = vessel();
+  a.m = b.m = 1; a.free = b.free = true;
+  for (let i = 0; i < 10; i++) advance(a, { ...at(1000), speed: 2 }, 0.05);
+  for (let i = 0; i < 20; i++) advance(b, at(1000), 0.05);
+  a.b.forEach((p, k) => { expect(p.x).toBeCloseTo(b.b[k].x, 6); expect(p.y).toBeCloseTo(b.b[k].y, 6); });
+});

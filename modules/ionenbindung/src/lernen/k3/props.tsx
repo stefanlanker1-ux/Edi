@@ -86,7 +86,9 @@ function HeatSim({ cat, an, tm, t, cols, rows, seed }: { cat: Ion; an: Ion; tm: 
   const sites = useMemo(() => grid(cols, rows, u, x0 + 0.8 * u, y1 - 0.55 * u - (rows - 1) * u), [cols, rows]);
   const free = t >= tm;
   const amp = 1 + 6 * Math.min(t, tm) / tm;
-  const drive: Drive = { free, heat: heatOf(t, tm), amp, gravity: true };
+  // Schmelze: je heißer, desto schneller – erst ab der Schmelztemperatur, je 200 °C darüber einmal so schnell (NaCl bei 1000 °C doppelt), höchstens 2,5-mal
+  const speed = free ? Math.min(2.5, 1 + (t - tm) / 200) : 1;
+  const drive: Drive = { free, heat: heatOf(t, tm), amp, gravity: true, speed };
   const make = () => makeWorld(sites, q => (q > 0 ? rC : rA), u, [x0, y0, x1, y1], false, seed);
   // beim Öffnen schon geschmolzen (gelöste Folie): gleich als Schmelze zeigen
   const [live] = useState(() => (free ? warm(make(), drive, 4) : make()));

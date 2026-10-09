@@ -617,7 +617,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   quer oder hochkant je nach Bühne – Texte ohne Richtungswörter) · **Das Ionengitter** (Ionenverbindungen heißen auch **Salze**; Schicht füllen `LatticeFill`, Nachbarn antippen –
   4 in der Schicht, räumliches Gitter `Lattice3D` mit der Schicht in der Bildebene und je 1 Gegen-Ion davor und dahinter, Verhältnis aus dem MgO-Ausschnitt `FormulaModel`) ·
   **Hart und spröde** (Temperatur-Schieber `ThermoLattice`: Kristall im Tiegel, kleine Teilchensimulation `k3/sim.ts` – fest schwingen die Ionen um ihre Plätze, Ausschlag
-  wächst mit der Temperatur; ab der Schmelztemperatur (NaCl 801 °C) verlassen sie die Plätze und gleiten ständig ungeordnet aneinander vorbei, dicht, ohne Überlappung,
+  wächst mit der Temperatur; ab der Schmelztemperatur (NaCl 801 °C) verlassen sie die Plätze und gleiten ständig ungeordnet aneinander vorbei – je heißer, desto schneller (erst ab der
+  Schmelztemperatur, je 200 °C darüber einmal so schnell: NaCl bei 1000 °C doppelt, höchstens 2,5-mal; `speed` = Zeitraffer der Simulation) –, dicht, ohne Überlappung,
   Gegen-Ionen nah (Anziehungslinien je nach Abstand weich ein- und ausgeblendet); darunter gleitet jedes Ion auf einen freien Platz seiner Ladung zurück; `ThermoPair`: NaCl
   und MgO (2852 °C) mit einem Schieber, je 4 × 3 Ionen – „NaCl flüssig, MgO fest“; Schichten verschieben `ShiftLayers`: nach einem ganzen Platz stehen gleiche Ladungen
   gegenüber → Abstoßung, Riss) · **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: Becherglas mit Batterie, Schalter, Lampe – fest
@@ -1146,6 +1147,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung Kapitel 3: Schmelze bewegt sich heißer schneller** – über der Schmelztemperatur läuft die Bewegung der Ionen mit der Temperatur schneller (je 200 °C
+  einmal so schnell, Natriumchlorid bei 1000 °C doppelt, höchstens 2,5-mal); darunter unverändert. Umgesetzt als Zeitraffer der Simulation (`speed`), Test: doppeltes Tempo =
+  dieselbe Bewegung in der halben Zeit.
 - **Ionenbindung Kapitel 3: Ionen wandern bei Spannung schneller** – in Schmelze und Lösung wandern die Ionen bei geschlossenem Schalter 70 % schneller zu ihrem Pol
   (Faktor 1,7 auf die Wanderung, Wärmebewegung unverändert), damit die Wanderung neben der ungeordneten Bewegung klar zu sehen ist.
 - **Ionenbindung Kapitel 3: Schmelzen und Strom leiten als Teilchensimulation** (`k3/sim.ts` statt CSS-Animation) – vorher froren die Ionen beim Schmelzen in eine zweite

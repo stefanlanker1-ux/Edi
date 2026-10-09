@@ -47,6 +47,8 @@ export interface Drive {
   amp: number;
   /** Wandern im Strom (px/s): Kationen nach +x bei > 0, Anionen umgekehrt */
   drift?: number;
+  /** Tempo der ganzen Bewegung (Zeitraffer, 1 = normal): die Schmelze wird mit der Temperatur schneller */
+  speed?: number;
   /** gelöst: keine Anziehung, die Ionen bleiben auf Abstand (dazwischen Wasser) */
   apart?: boolean;
   /** schwache Schwerkraft im Gefäß (die Schmelze bleibt unten) */
@@ -239,7 +241,7 @@ const H = 1 / 120;
 
 /** Zeit dt (s) weiterrechnen, in festen kleinen Schritten (stabil bei jeder Bildrate) */
 export function advance(w: World, d: Drive, dt: number) {
-  const k = Math.max(1, Math.round(Math.min(dt, 0.05) / H));
+  const k = Math.max(1, Math.round((Math.min(dt, 0.05) * (d.speed ?? 1)) / H));
   for (let i = 0; i < k; i++) substep(w, d, H);
 }
 
