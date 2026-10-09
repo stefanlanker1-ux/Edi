@@ -23,7 +23,7 @@
 .k5-sub-key { font-weight: 750; font-size: 1rem; text-align: right; }
 .k5-boxes { display: flex; }
 .k5-box {
-  display: grid; grid-auto-flow: column; place-content: center; gap: 2px; width: max(44px, var(--bx)); height: max(44px, var(--bx)); padding: 0; margin-left: -1.5px;
+  display: grid; grid-auto-flow: column; place-content: center; gap: 2px; width: max(46px, var(--bx)); height: max(46px, var(--bx)); padding: 0; margin-left: -1.5px;
   border: 1.5px solid var(--rule); background: var(--surface); color: var(--hue-blue-deep); font: 800 calc(var(--bx) * .46) / 1 var(--font);
   box-shadow: var(--key-edge); cursor: pointer; touch-action: manipulation;
 }

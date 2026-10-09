@@ -164,8 +164,8 @@ export function LatticeFill({ c, cat, an, cols, rows, open, caption }: { c: Guid
               <g key={`${i}-${j}`}>
                 {x && <Ball ion={x} x={at(i)} y={at(j)} r={R(x)} cls={o >= 0 ? "k3-pop" : undefined} />}
                 {o >= 0 && <circle className="k3-open" cx={at(i)} cy={at(j)} r={R(an) + 4} />}
-                {o >= 0 && (
-                  <rect className="k3-hit" x={at(i) - u / 2} y={at(j) - u / 2} width={u} height={u} role="button" tabIndex={c.solved ? -1 : 0}
+                {o >= 0 && !c.solved && (
+                  <rect className="k3-hit" x={at(i) - u / 2} y={at(j) - u / 2} width={u} height={u} role="button" tabIndex={0}
                     aria-label={tr(`Platz ${o + 1}: ${name(st[o])}`, `Place ${o + 1}: ${name(st[o])}`)} onClick={() => tap(o)}
                     onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tap(o); } }} />
                 )}
