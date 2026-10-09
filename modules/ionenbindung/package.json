@@ -16,7 +16,6 @@
     "@lern/i18n": "*",
     "@lern/chem": "*",
     "@lern/chem-ui": "*",
-    "@lern/quiz": "*",
     "@lern/ui": "*",
     "react": "^19.3.0",
     "zustand": "^5.0.15"
