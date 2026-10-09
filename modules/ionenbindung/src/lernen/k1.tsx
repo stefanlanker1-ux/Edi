@@ -158,7 +158,7 @@ const steps = (): GuideStep[] => [
   {
     mode: "free",
     ask: tr("Vergleiche im gleichen Maßstab: Welches Teilchen ist kleiner?", "Compare at the same scale: which particle is smaller?"),
-    visual: () => <Row items={[{ Z: 11, E: 11, title: tr("Natrium-Atom", "Sodium atom") }, { Z: 11, E: 10, title: tr("Natrium-Ion", "Sodium ion") }]} />,
+    visual: () => <Row items={[{ Z: 11, E: 11, title: tr("Natrium-Atom", "Sodium atom") }, { Z: 11, E: 10, title: tr("Natrium-Ion", "Sodium ion"), ghost: false }]} />,
     answer: "Na⁺",
     options: ["Na", tr("beide gleich", "both the same"), "Na⁺"],
     why: {

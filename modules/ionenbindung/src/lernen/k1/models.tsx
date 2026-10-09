@@ -58,10 +58,12 @@ export interface AtomProps {
   /** Lösung markieren (gestrichelt grün) */
   hint?: Set<string>;
   label?: string;
+  /** leere Schalen eines Kations gestrichelt zeigen (Standard) */
+  ghost?: boolean;
 }
 
 /** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien, Hülle als Fläche (Größe des Teilchens) */
-export function Atom({ Z, E, ext, got = 0, slots, onOuter, onSlot, marked, onMark, hint, label }: AtomProps) {
+export function Atom({ Z, E, ext, got = 0, slots, onOuter, onSlot, marked, onMark, hint, label, ghost = true }: AtomProps) {
   const sh = shellsOf(E), neutral = shellsOf(Z);
   const last = sh.length - 1;
   const rOut = ringR(Z, E, last, true);
@@ -74,7 +76,7 @@ export function Atom({ Z, E, ext, got = 0, slots, onOuter, onSlot, marked, onMar
     <svg className="k1-atom" viewBox={`${-X} ${-X} ${2 * X} ${2 * X}`} role="img"
       aria-label={label ?? tr(`${BY_Z[Z].name}: ${Z} Protonen, ${E} Elektronen, Schalen ${shellText(E)}`, `${BY_Z[Z].name}: ${Z} protons, ${E} electrons, shells ${shellText(E)}`)}>
       <circle r={rOut + 8} className={`k1-halo${E > Z ? " an" : E < Z ? " cat" : ""}`} />
-      {neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className="k1-ring ghost" />)}
+      {ghost && neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className="k1-ring ghost" />)}
       {sh.map((_, i) => <circle key={`r${i}`} r={ringR(Z, E, i, i === last)} className={`k1-ring${i === last ? " outer" : ""}`} />)}
       {/* Anion: Außenschale des Atoms gestrichelt zum Vergleich */}
       {E > Z && <circle r={R[neutral.length - 1]} className="k1-outline" />}
@@ -125,17 +127,17 @@ export function Caption({ Z, E, noble, big, compact }: { Z: number; E: number; n
 }
 
 /** Teilchen mit Beschriftung (für Bilder ohne Bedienung) */
-export function Particle({ Z, E, ext, got, slots, noble, title, compact }: { Z: number; E: number; ext?: number; got?: number; slots?: boolean; noble?: boolean; title?: string; compact?: boolean }) {
+export function Particle({ Z, E, ext, got, slots, noble, title, compact, ghost }: { Z: number; E: number; ext?: number; got?: number; slots?: boolean; noble?: boolean; title?: string; compact?: boolean; ghost?: boolean }) {
   return (
     <figure className="k1-fig">
-      <div className="k1-fig-svg"><Atom Z={Z} E={E} ext={ext} got={got} slots={slots} /></div>
+      <div className="k1-fig-svg"><Atom Z={Z} E={E} ext={ext} got={got} slots={slots} ghost={ghost} /></div>
       <figcaption>{title && <span className="k1-title">{title}</span>}<Caption Z={Z} E={E} noble={noble} compact={compact} /></figcaption>
     </figure>
   );
 }
 
 /** mehrere Teilchen nebeneinander im gleichen Maßstab, dazwischen optional Pfeile */
-export function Row({ items, arrows }: { items: { Z: number; E: number; got?: number; title?: string; noble?: boolean; slots?: boolean }[]; arrows?: ReactNode[] }) {
+export function Row({ items, arrows }: { items: { Z: number; E: number; got?: number; title?: string; noble?: boolean; slots?: boolean; ghost?: boolean }[]; arrows?: ReactNode[] }) {
   const ext = Math.max(...items.map(i => extentOf(i.Z, i.E)));
   return (
     <div className={`k1-row n${items.length}`}>
