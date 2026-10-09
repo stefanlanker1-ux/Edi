@@ -8,7 +8,7 @@ import { pseTool } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 import { useApp } from "../store.ts";
 import { kapitelFor } from "./chapters.ts";
-import { useLernen } from "./progress.ts";
+import { LERNEN_KEY, useLernen } from "./progress.ts";
 import type { Kapitel } from "./types.ts";
 
 /** Abschnitt (0, 1, …) einer Folie: Zahl der Abschnittsanfänge bis dahin */
@@ -39,12 +39,12 @@ export function LernenView() {
     <div className="lk ui-screen">
       <h1 className="lk-title">{tr("Lernen", "Learn")} <span>· {stufe === "us" ? "Level I" : "Level II"}</span></h1>
       {stufe === "os" && <p className="lk-note">{tr("Baut auf Kapitel 1–3 (Level I) auf.", "Builds on chapters 1–3 (Level I).")}</p>}
-      <ol className="lk-list">
+      <ol className="lk-list" data-store={LERNEN_KEY}>
         {list.map(x => {
           const n = x.def.steps.length, b = Math.min(best[x.id] ?? 0, n), fin = !!done[x.id];
           return (
             <li key={x.id}>
-              <button type="button" className={`lk-card${fin ? " done" : ""}`} onClick={() => setOpenId(x.id)}>
+              <button type="button" className={`lk-card${fin ? " done" : ""}`} data-kapitel={x.id} onClick={() => setOpenId(x.id)}>
                 <span className="lk-nr" aria-hidden="true">{x.nr}</span>
                 <span className="lk-txt">
                   <span className="lk-name">{x.title}</span>

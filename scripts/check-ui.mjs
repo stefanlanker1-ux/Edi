@@ -8,6 +8,8 @@
 // LEARN="pm-k1,us:pm-k1,…" (Schlüssel der erledigten Lektionen) spielt zusätzlich „Üben“ Kapitel für Kapitel (Lektionen als erledigt markiert): Elemente mit `data-auto` werden der Reihe nach
 // angetippt, zuletzt die mit `data-auto="last"` (z. B. „Prüfen“), sonst der Reihe nach Antworten bzw. Teile im Bild, bis „Weiter“ erscheint (`answer`); geprüft wird vor und nach
 // der Antwort, jede der zehn Aufgaben je Kapitel (sonst Befund). Elemente mit `data-min-h="N"` müssen mindestens N px hoch sein. Antwortknöpfe: kein Wort über zwei Zeilen.
+// KAPITEL=1 spielt „Lernen“ in Kapiteln (Ionenbindung, beide Stufen): jede Folie vor und nach dem Lösen (`guideSolve`: Modell „Prüfen“ bis zur markierten Lösung,
+// Auswahl/Zahl/Bild bis zur Lösung), dazu einmal je Kapitel die Hilfsmittel PSE, Tipp, Erklärung; eine Folie ohne „Weiter“ ist ein Befund.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 import http from "node:http";
 import fs from "node:fs";
@@ -278,6 +280,86 @@ async function answer(page) {
   return done();
 }
 
+/**
+ * Folie der Kapitel lösen (ohne Kenntnis der Lösung): vorgemacht weiterblättern; Modell bzw. Zahl/Auswahl so lange falsch beantworten,
+ * bis die Lösung markiert ist (4 Versuche), dann die markierte Lösung bzw. „Prüfen“ mit der Lösung im Modell. Ergebnis: „Weiter“ erreicht?
+ */
+async function guideSolve(page) {
+  const g = page.locator("dialog.ui-guide[open]");
+  const weiter = g.locator(".ui-guide-next", { hasText: /^\s*(Weiter|Next)/ });
+  const done = async () => (await weiter.count()) > 0;
+  const click = l => l.evaluate(e => e.click()).catch(() => {});
+  for (let j = 0; j < 12 && !(await done()); j++) {
+    const step = g.locator(".ui-guide-next", { hasText: /Nächster Schritt|Next step/ });
+    if (await step.count()) { await click(step.first()); await page.waitForTimeout(80); continue; }
+    const check = g.locator(".lm-check");
+    if (await check.count()) { await click(check.first()); await page.waitForTimeout(150); continue; }
+    const sol = g.locator(".ui-guide-opt.sol, .ui-guide-visual .g-sol");
+    if (await sol.count()) { await click(sol.first()); await page.waitForTimeout(150); continue; }
+    const num = g.locator(".ui-guide-num input");
+    if (await num.count()) {
+      const ph = await num.getAttribute("placeholder");
+      await num.fill(ph && ph !== "?" ? ph : "987654").catch(() => {});
+      await click(g.locator(".ui-guide-num button[type=submit]"));
+      await page.waitForTimeout(150); continue;
+    }
+    const opts = g.locator(".ui-guide-opt:not(.right)");
+    if (await opts.count()) { await click(opts.nth(j % await opts.count())); await page.waitForTimeout(150); continue; }
+    const targets = g.locator(".ui-guide-visual button:not(:disabled), .ui-guide-visual [role=button]");
+    if (await targets.count()) { await click(targets.nth(j % await targets.count())); await page.waitForTimeout(150); continue; }
+    break;
+  }
+  return done();
+}
+
+async function kapitelCheck(page, app, vp) {
+  const tab = page.locator("nav button:visible", { hasText: /^(Lernen|Learn)/ }).first();
+  if (!(await tab.count())) return;
+  for (const stufe of ["I", "II"]) {
+    const sw = page.locator("header button:visible", { hasText: new RegExp(`^${stufe}$`) }).first();
+    if (await sw.count()) await sw.click({ timeout: 800 }).catch(() => {});
+    await tab.click({ timeout: 1500 }).catch(() => {});
+    const store = await page.locator(".lk-list").getAttribute("data-store").catch(() => null);
+    const ids = await page.locator(".lk-card").evaluateAll(es => es.map(e => e.getAttribute("data-kapitel")));
+    for (const id of ids) {
+      let k = 0, tools = false;
+      for (let guard = 0; guard < 40; guard++) {
+        // Kapitel bei Folie k öffnen
+        if (!(await page.locator("dialog.ui-guide[open]").count())) {
+          await page.evaluate(([store, id, k]) => { const v = JSON.parse(localStorage.getItem(store) || "{}"); const st = v.state ?? { pos: {}, best: {}, done: {} };
+            st.pos = { ...st.pos, [id]: k }; localStorage.setItem(store, JSON.stringify({ state: st, version: v.version ?? 1 })); }, [store, id, k]);
+          await page.reload({ waitUntil: "networkidle" }).catch(() => {});
+          if (await sw.count()) await page.locator("header button:visible", { hasText: new RegExp(`^${stufe}$`) }).first().click({ timeout: 800 }).catch(() => {});
+          await page.locator("nav button:visible", { hasText: /^(Lernen|Learn)/ }).first().click({ timeout: 1500 }).catch(() => {});
+          await page.locator(`.lk-card[data-kapitel="${id}"]`).click({ timeout: 1500 }).catch(() => {});
+          await page.waitForTimeout(300);
+        }
+        const count = (await page.locator("dialog.ui-guide[open] .ui-guide-count").textContent().catch(() => "")) ?? "";
+        if (!/\d+ \/ \d+/.test(count)) break; // fertig
+        await check(page, app, vp, `kapitel ${id} ${count.trim()}`);
+        // Hilfsmittel einmal je Kapitel (an der ersten Folie mit Tipp)
+        if (!tools && await page.locator("dialog.ui-guide[open] .ui-guide-tool:not(:disabled)").count() === 3) {
+          tools = true;
+          for (const b of await page.locator("dialog.ui-guide[open] .ui-guide-tool").all()) {
+            const nm = ((await b.textContent()) ?? "").trim();
+            await b.click({ timeout: 800 }).catch(() => {});
+            await check(page, app, vp, `kapitel ${id} ${count.trim()} blatt:${nm}`);
+            await page.keyboard.press("Escape"); await page.waitForTimeout(150);
+          }
+        }
+        const ok = await guideSolve(page);
+        await check(page, app, vp, `kapitel ${id} ${count.trim()} gelöst`);
+        if (!ok) { note(app, vp, `kapitel ${id} ${count.trim()}`, "Folie ließ sich nicht lösen (kein „Weiter“)"); await closeDialogs(page); k++; continue; }
+        await page.locator("dialog.ui-guide[open] .ui-guide-next").first().click({ timeout: 800 }).catch(() => {});
+        k++;
+        await page.waitForTimeout(120);
+      }
+      await check(page, app, vp, `kapitel ${id} Ende`);
+      await closeDialogs(page);
+    }
+  }
+}
+
 for (const app of APPS) {
   for (const [w, h] of VIEWPORTS) {
     const vp = `${w}×${h}`;
@@ -397,6 +479,8 @@ for (const app of APPS) {
         if (await back.count()) await back.click({ timeout: 800 }).catch(() => {});
       }
     }
+    // Lernen in Kapiteln (freiwillig über KAPITEL=1, Ionenbindung): jede Folie jedes Kapitels vor und nach dem Lösen, Hilfsmittel einmal je Kapitel
+    if (process.env.KAPITEL) await kapitelCheck(page, app, vp);
     } catch (e) { note(app, vp, "skript", "Abbruch: " + String(e).split("\n")[0].slice(0, 120)); }
     await ctx.close();
   }
