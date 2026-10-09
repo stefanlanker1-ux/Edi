@@ -24,3 +24,10 @@ test("Beispiel ist nie die gleiche Frage mit anderer Antwortauswahl (gleiche Fra
   const out = withExamples(round, {}, () => [q("a", 1, ["3-", "2+", "1+"]), q("a", 2, ["1+", "2-", "0"])]);
   expect(out.map(x => [x.prompt, x.stage])).toEqual([["Ladung von 2?", "worked"], ["Ladung von 1?", "faded"]]);
 });
+
+test("Beispiel auch dann, wenn die ersten weiteren Runden nur dieselbe Frage bringen (es wird weitergezogen, bis eine andere da ist)", () => {
+  const q = (n: number): BaseTask => ({ kind: "mc", type: "a", prompt: `Frage ${n}`, hint: "h", explain: "e" });
+  let calls = 0;
+  const out = withExamples([q(1)], {}, () => { calls++; return calls < 10 ? [q(1), q(1)] : [q(2)]; });
+  expect(out.map(x => [x.prompt, x.stage])).toEqual([["Frage 2", "worked"], ["Frage 1", "faded"]]);
+});

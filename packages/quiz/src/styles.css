@@ -54,13 +54,17 @@
 .q-prompt code, .fb-exp code, .rv-e code { background: var(--surface-2); padding: 1px 6px; border-radius: var(--radius-sm); }
 .q-bohr { width: min(240px, 64vw); aspect-ratio: 1; }
 .mc-grid { display: grid; gap: 8px; }
-.mc-grid:not(.one) { grid-template-columns: 1fr 1fr; }
+.mc-grid:not(.one) { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } /* gleich breit; passt ein Wort nicht, misst McAnswer und geht einspaltig */
+.mc-grid.tight1 .mc-btn { font-size: .95rem; } .mc-grid.tight2 .mc-btn { font-size: .875rem; } /* einspaltig und ein Wort zu breit: kleiner statt mitten im Wort */
+.mc-grid.tight2 .mc-btn .mono { font-size: .875rem; }
 .mc-btn { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 52px; padding: 8px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface); font-weight: 600; font-size: 1.02rem; min-width: 0; hyphens: auto; overflow-wrap: break-word; transition: border-color .15s, background .15s, transform .1s; }
 .mc-btn:hover:not(:disabled) { border-color: var(--rule); }
 .mc-btn:active:not(:disabled) { transform: translateY(1px); }
 .mc-btn .mono { font-family: var(--mono); font-size: .95rem; }
 .mc-btn .mc-own { flex: 1 1 0; min-width: 0; }
-.mc-btn > span:not(.mc-key) { min-width: 0; overflow-wrap: anywhere; } /* sehr lange Namen (Magnesiumdihydrogenphosphat) brechen statt überzustehen */
+/* Umbruch nur an Leerzeichen und erlaubten Trennstellen (Silbentrennung); ein Wort bricht erst, wenn es allein nicht in die Zeile passt – nie „3d|⁷“
+   in einer Zeile, die Platz hätte (anywhere verkleinerte die Mindestbreite und ließ Formeln mitten durch umbrechen) */
+.mc-btn > span:not(.mc-key) { min-width: 0; overflow-wrap: break-word; }
 .mc-key { display: grid; place-items: center; width: 30px; height: 30px; border-radius: var(--radius-md); background: var(--surface-2); color: var(--muted); font-size: .8rem; flex: none; }
 .mc-btn.right { border-color: var(--ok); background: var(--ok-soft); }
 .mc-btn.right .mc-key { background: var(--ok); color: #fff; }
@@ -71,7 +75,7 @@
 .answer-form { display: grid; gap: 10px; }
 .num-grid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
 .num-field { display: grid; gap: 6px; }
-.num-field > span { font-size: .86rem; font-weight: 650; color: var(--muted); }
+.num-field > span { font-size: .875rem; font-weight: 650; color: var(--muted); }
 .num-field input, .num-field select { width: 100%; min-height: 48px; padding: 8px 12px; border-radius: var(--radius-md); border: 1.5px solid var(--border); background: var(--surface-2); font-size: 1.25rem; font-weight: 750; text-align: center; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
 .num-field input::-webkit-inner-spin-button, .num-field input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .num-field input:focus, .num-field select:focus { border-color: var(--accent); outline: none; background: var(--surface); }
@@ -97,7 +101,7 @@
 /* Tipp bzw. erster Schritt im Blatt (passte nicht in die Karte) */
 .q-hint-sheet { display: flex; gap: 10px; margin: 0; line-height: 1.45; hyphens: auto; }
 /* neue Fertigkeit: vorgemachtes Beispiel (zählt nicht) und erster Schritt bei der nächsten Aufgabe */
-.q-worked-tag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: .78rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; color: var(--text); }
+.q-worked-tag { display: flex; align-items: center; gap: 6px; margin: 0; font-size: .875rem; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; color: var(--text); }
 .task-card.worked { border-style: dashed; }
 .q-worked-way .fb-exp { display: flex; gap: 6px; }
 .q-first { display: flex; gap: 6px; align-items: flex-start; margin: 0; padding: 4px 8px; border: 1.5px dashed var(--rule); border-radius: var(--radius-sm); font-size: .9rem; line-height: 1.3; }
@@ -183,8 +187,9 @@
   .task-card.answered .q-lead { display: none; }
   .task-card.answered .q-body > .q-visual { min-height: 0; }
 }
-/* … passt es dann selbst verkleinert nicht mehr (Fit meldet data-cut: abgeschnitten oder niedriger als 56 px), fällt es nach der Antwort ganz weg – kein Bildrest */
-.task-card.answered .q-body > .q-visual:has(> .ui-fit[data-cut]) { display: none; }
+/* … passt es dann selbst verkleinert nicht mehr (Fit meldet data-cut: abgeschnitten oder niedriger als 56 px), ist es nach der Antwort nicht zu sehen – kein Bildrest.
+   Unsichtbar statt display: none: der Rahmen bleibt messbar, wird der Bildschirm wieder größer (Handy hochkant, geteilter Bildschirm), kommt das Bild zurück */
+.task-card.answered .q-body > .q-visual:has(> .ui-fit[data-cut]) { visibility: hidden; }
 
 /* ── Fertigkeiten: Wochenziel, Stufen-Marken, Landkarte ─────────────────── */
 .quiz-menu { gap: 10px; }

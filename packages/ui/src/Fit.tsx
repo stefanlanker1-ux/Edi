@@ -24,7 +24,9 @@ export function Fit({ children, className, min = 0.4, minHeight = 0 }: {
       const k = Number.isFinite(s) && s > 0 ? Math.max(min, s) : 1;
       // passt der Inhalt selbst verkleinert nicht (bzw. nur unter minHeight): data-cut am Rahmen – wer Fit nutzt, kann das Bild dann ganz
       // ausblenden statt einen Rest zu zeigen
-      setT({ k, y: Math.max(0, (o.clientHeight - h * k) / 2), cut: Number.isFinite(s) && (s < min || (s < 1 && h * k < minHeight)) });
+      // zu klein auch, wenn der Rahmen selbst niedriger als minHeight ist und der Inhalt ihn füllt (Zeichnungen, die sich per cqh selbst einpassen)
+      const tiny = minHeight > 0 && ((s < 1 && h * k < minHeight) || (o.clientHeight < minHeight && h >= o.clientHeight - 1));
+      setT({ k, y: Math.max(0, (o.clientHeight - h * k) / 2), cut: Number.isFinite(s) && (s < min || tiny) });
     };
     update();
     if (typeof ResizeObserver === "undefined") return;

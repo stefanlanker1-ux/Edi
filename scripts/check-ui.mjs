@@ -43,7 +43,9 @@ async function check(page, app, vp, view) {
     for (const e of els) {
       const cs = getComputedStyle(e);
       if (cs.display === "none" || cs.visibility === "hidden") continue;
-      const b = e.getBoundingClientRect();
+      // sichtbares Auswahlkästchen in einem <label>: Tippfläche ist das Label (versteckte Inputs bleiben wie bisher ausgenommen, siehe unten)
+      const own = e.getBoundingClientRect();
+      const b = own.width > 1 && own.height > 1 && e.matches("input[type=checkbox], input[type=radio]") && e.closest("label") ? e.closest("label").getBoundingClientRect() : own;
       if (b.width === 0 || b.height === 0) continue;
       if (b.bottom < 0 || b.top > innerHeight) continue;
       if (e.closest(".sr-only")) continue; // nur für Tastatur und Vorlesen, unsichtbar
@@ -68,7 +70,7 @@ async function check(page, app, vp, view) {
     // sichtbare Größe des Aufgabenbilds: das größte Bildelement (Zeichnung, Canvas, Bild oder direkter Inhalt) im Rahmen, soweit es der Rahmen zeigt
     const picSize = card => {
       const fit = card.querySelector(".q-visual > .ui-fit"), fb = fit?.getBoundingClientRect();
-      if (!fit || !fb.height || getComputedStyle(fit.parentElement).display === "none") return null;
+      if (!fit || !fb.height || getComputedStyle(fit.parentElement).display === "none" || getComputedStyle(fit.parentElement).visibility === "hidden") return null;
       let w = 0, h = 0;
       for (const e of [...fit.querySelectorAll(".ui-fit-inner > *, svg, canvas, img")]) {
         const r = e.getBoundingClientRect();
@@ -89,7 +91,7 @@ async function check(page, app, vp, view) {
       if (pic && pic.w > 0 && pic.h < 24) over.push(`Bild der Aufgabe nur ${Math.round(pic.w)}×${Math.round(pic.h)} px`);
       // Bild passt selbst verkleinert nicht (Fit meldet data-cut) und ist trotzdem zu sehen: nur ein abgeschnittener Rest
       const cutPic = card.querySelector(".q-visual > .ui-fit[data-cut]");
-      if (cutPic && cutPic.getBoundingClientRect().height > 0) over.push(`Bild der Aufgabe abgeschnitten (passt auch verkleinert nicht, ${Math.round(cutPic.getBoundingClientRect().height)} px Platz)`);
+      if (cutPic && cutPic.getBoundingClientRect().height > 0 && getComputedStyle(cutPic).visibility !== "hidden") over.push(`Bild der Aufgabe abgeschnitten (passt auch verkleinert nicht, ${Math.round(cutPic.getBoundingClientRect().height)} px Platz)`);
     }
     // Mindesthöhe (freiwillig je Element): Bilder dürfen nicht unter eine lesbare Größe schrumpfen
     const tiny = [...document.querySelectorAll("[data-min-h]")].filter(e => e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().height < Number(e.getAttribute("data-min-h")))
@@ -210,10 +212,12 @@ const MIN_PIC = 56;
  * von `.q-body`, ohne das Bild unter MIN_PIC px zu stauchen, oder im Blatt. Steht der erste Schritt im Blatt („Schritt 1“), wird es geöffnet.
  */
 async function hintCheck(page, app, vp, view) {
-  const tip = page.locator(".task-card .q-help button:not(:disabled)", { hasText: /^\s*(Tipp|Tip|Schritt 1|Step 1)\s*$/ }).first();
+  const tip = page.locator(".task-card .q-help button:not(:disabled):not([aria-disabled=true])", { hasText: /^\s*(Tipp|Tip|Schritt 1|Step 1)\s*$/ }).first();
   if (!(await page.locator(".task-card .q-first").count()) && !(await tip.count())) return;
+  // Höhe des Bildrahmens vor „Tipp“ – danach darf er nicht unter max(56 px, 60 %) schrumpfen (auch Bilder, die sich selbst einpassen)
+  const visBefore = await page.evaluate(() => document.querySelector(".task-card:not(.answered) .q-body > .q-visual")?.getBoundingClientRect().height ?? 0);
   if (await tip.count()) { await tip.click({ timeout: 800 }).catch(() => {}); await page.waitForTimeout(200); }
-  const r = await page.evaluate(MIN => {
+  const r = await page.evaluate(([MIN, visBefore]) => {
     const out = [];
     const card = document.querySelector(".task-card:not(.answered)");
     if (!card) return out;
@@ -233,11 +237,13 @@ async function hintCheck(page, app, vp, view) {
       for (const e of fit.querySelectorAll(".ui-fit-inner > *, svg, canvas, img")) { const r = e.getBoundingClientRect(); h = Math.max(h, Math.min(r.bottom, fb.bottom) - Math.max(r.top, fb.top)); }
       if (fit.firstElementChild.scrollHeight > MIN && h < MIN - 1) out.push(`Bild neben ${hint ? "Tipp" : "erstem Schritt"} nur ${Math.round(h)} px hoch (< ${MIN})`);
     }
+    const vis = card.querySelector(".q-body > .q-visual"), visNow = vis?.getBoundingClientRect().height ?? 0;
+    if (hint && visBefore && visNow < visBefore - 1 && visNow < Math.max(MIN, 0.6 * visBefore)) out.push(`Bildrahmen mit Tipp von ${Math.round(visBefore)} auf ${Math.round(visNow)} px gestaucht`);
     // im Blatt: Text vorhanden
     const sheet = [...document.querySelectorAll("dialog[open]")].pop();
     if (sheet && sheet.querySelector(".q-hint-sheet") && !sheet.querySelector(".q-hint-sheet").textContent.trim()) out.push("Tipp-Blatt leer");
     return out;
-  }, MIN_PIC);
+  }, [MIN_PIC, visBefore]);
   for (const o of r) note(app, vp, view, o);
   await check(page, app, vp, `${view} Tipp`);
   await closeDialogs(page);
@@ -320,6 +326,12 @@ for (const app of APPS) {
     if (await quizTab.count()) {
       try { await quizTab.click({ timeout: 2000 }); } catch { /* egal */ }
       await check(page, app, vp, "quiz-menü");
+      // Blätter im Menü: Landkarte, Schularbeit
+      for (const b of await page.locator(".quiz-menu .q-map-btn:visible, .quiz-menu .q-exam:visible").all()) {
+        const nm = (await b.getAttribute("aria-label")) || (await b.textContent()) || "";
+        try { await b.click({ timeout: 800 }); await check(page, app, vp, `quiz-menü/blatt:${nm.trim().slice(0, 16)}`); } catch { /* egal */ }
+        await closeDialogs(page);
+      }
       const start = page.locator("main").locator("button:has-text('Start'), button:has-text('Los'), button:has-text('Let'), button:has-text('Runde'), button:has-text('üben'), button:has-text('Üben'), .level-card").first();
       if (await start.count()) {
         try { await start.click({ timeout: 2000 }); } catch { /* egal */ }
@@ -360,7 +372,17 @@ for (const app of APPS) {
           await page.waitForTimeout(250);
           const ex = page.getByRole("button", { name: /Verstanden|Got it/ });
           if (await ex.count()) { await ex.first().click().catch(() => {}); continue; }
-          if (!(await page.locator(".task-card").count())) break; // Auswertung erreicht
+          if (!(await page.locator(".task-card").count())) {
+            // Auswertung erreicht: prüfen, dazu ihre Blätter („Neue Stufen“, „Zum Wiederholen“)
+            if (await page.locator(".result-card").count()) {
+              await check(page, app, vp, `lernen ${lv + 1} Auswertung`);
+              for (const b of await page.locator(".result-card button:visible", { hasText: /Neue Stufen|New stages|Zum Wiederholen|To review/ }).all()) {
+                try { await b.click({ timeout: 800 }); await check(page, app, vp, `lernen ${lv + 1} Auswertung/blatt`); } catch { /* egal */ }
+                await closeDialogs(page);
+              }
+            }
+            break;
+          }
           await check(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
           await hintCheck(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
           const ok = await answer(page);

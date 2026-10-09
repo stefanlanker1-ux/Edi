@@ -267,7 +267,8 @@ export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly
     return [best, bestAge];
   };
   let searched = false, swaps = 0;
-  return first.map((slot, at) => {
+  const swapped = new Set<T>();
+  const picked = first.map((slot, at) => {
     let [best, a] = pick(at);
     // nur schon gestellte Fragen dieses Typs gezogen: einmal je Runde gezielt weitersuchen – der Zufall kann neue übersehen haben
     // (doppelt so geduldig wie die erste Suche: bei kleinem Vorrat bringen auch mehrere Runden in Folge zufällig nichts Neues)
@@ -279,12 +280,23 @@ export function freshRound<T extends BaseTask>(make: () => T[], recent: readonly
       }
     }
     // Typ wirklich erschöpft → neue Frage eines anderen Typs dieses Levels, höchstens einmal je Runde (nie bei keepType)
-    if (a >= 0 && !keepType && swaps < 1) { const [other, b] = pick(at, true); if (other && b < 0) { best = other; swaps++; } }
-    best ??= slot;
+    if (a >= 0 && !keepType && swaps < 1) { const [other, b] = pick(at, true); if (other && b < 0) { best = other; swaps++; swapped.add(other); } }
+    // keine Frage mehr, die in dieser Runde noch nicht dran war: Platz weglassen statt dieselbe Frage zweimal (z. B. „Schwächen üben“ mit kleinem
+    // Vorrat) – nur bei fester Reihenfolge bleibt der Platz (dort hängt der Merksatz am Platz)
+    if (!best) { if (!samePlace && at > 0) return null; best = slot; }
     used.add(key(best));
     count.set(best.type, (count.get(best.type) ?? 0) + 1);
     return best;
-  });
+  }).filter((t): t is T => t !== null);
+  // eine getauschte Frage steht hinter den anderen Fragen ihres Typs statt am Platz des fremden Typs – Levels, die der Generator ordnet (z. B. nach
+  // Schwierigkeit), bleiben geordnet; in gemischten Runden stehen dann zwei Fragen eines Typs nebeneinander
+  for (const t of swapped) {
+    const from = picked.indexOf(t), last = picked.map((x, i) => (x !== t && x.type === t.type ? i : -1)).reduce((m, i) => Math.max(m, i), -1);
+    if (from < 0 || last < 0) continue;
+    picked.splice(from, 1);
+    picked.splice(last < from ? last + 1 : last, 0, t);
+  }
+  return picked;
 }
 
 /**

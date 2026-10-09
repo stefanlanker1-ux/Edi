@@ -171,7 +171,7 @@ export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, hintAgai
     <>
       <span className="q-help">
         {read && canSpeak && <Button variant="quiet" icon="sound" aria-label={tr("Aufgabe vorlesen", "Read task aloud")} onClick={() => speak(read)}>{tr("Vorlesen", "Read aloud")}</Button>}
-        {hint && !answered && <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={onHint} disabled={hintUsed && !hintAgain}
+        {hint && !answered && <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={hintUsed && !hintAgain ? undefined : onHint} aria-disabled={hintUsed && !hintAgain ? true : undefined}
           aria-label={hintCue ? tr("Tipp zu dieser Aufgabe", "Tip for this task") : undefined}>{tr("Tipp", "Tip")}</Button>}
         {firstStep && !answered && <Button variant="quiet" icon="bulb" className="q-hint-cue" onClick={firstStep}
           aria-label={tr("Erster Schritt", "First step")}>{tr("Schritt 1", "Step 1")}</Button>}
@@ -366,8 +366,9 @@ function ExamForm({ levels, exam, onSave }: { levels: QuizLevel[]; exam?: Exam; 
   );
 }
 
-/** Nie scrollen: setzt data-fit = 0, 1, … max, bis weder die Seite noch ein scrollbarer Vorfahr (Blatt) überläuft; misst bei Größenänderung neu */
-function useFitSteps(ref: RefObject<HTMLElement | null>, max: number, deps: unknown[]) {
+/** Nie scrollen: setzt data-fit = 0, 1, … max, bis weder die Seite noch ein scrollbarer Vorfahr (Blatt) überläuft; misst bei Größenänderung neu.
+ *  `orScroll`: hilft auch die letzte Stufe nicht, bleibt es bei Lesegröße (0) und der Rahmen scrollt – kleiner und trotzdem scrollen hilft niemandem */
+function useFitSteps(ref: RefObject<HTMLElement | null>, max: number, deps: unknown[], orScroll = false) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -381,6 +382,7 @@ function useFitSteps(ref: RefObject<HTMLElement | null>, max: number, deps: unkn
     const fit = () => {
       el.dataset.fit = "0";
       for (let k = 1; k <= max && over(); k++) el.dataset.fit = String(k);
+      if (orScroll && over()) el.dataset.fit = "0";
     };
     fit();
     addEventListener("resize", fit);
@@ -409,7 +411,7 @@ function SkillMap({ levels, skills, name, misses, missName, exam }: {
   const stones = Object.entries(misses).filter(([k, n]) => n >= 2 && missName?.(k)).sort((a, b) => b[1] - a[1]).slice(0, 5);
   // passt die Karte nicht ins Blatt (kleines Handy, Lesbar): 1 engere Zeilen, 2 noch enger
   const mapRef = useRef<HTMLDivElement>(null);
-  useFitSteps(mapRef, 2, [levels.length, stones.length, !!exam]);
+  useFitSteps(mapRef, 2, [levels.length, stones.length, !!exam], true);
   return (
     <div className="q-map" ref={mapRef}>
       {exam && examIn !== null && examIn >= 0 && <p className="q-map-exam"><Icon name="calendar" size={16} /> {tr("Schularbeit", "Test")} {examWhen(examIn)}</p>}
@@ -499,10 +501,16 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const firstInline = faded && !a && !aside.first;
   // eben „Tipp“ gedrückt: passt er nicht, geht sein Blatt gleich auf (nach dem Neuladen nicht – dann erst auf „Tipp“)
   const tookHint = useRef(false);
+  const hintRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const took = tookHint.current;
     tookHint.current = false;
-    if (!(hintInline || firstInline) || !bodyRef.current || !crowded(bodyRef.current)) return;
+    if (!(hintInline || firstInline) || !bodyRef.current) return;
+    if (!crowded(bodyRef.current)) {
+      // Tastatur und Screenreader: der Fokus geht auf den eben gezeigten Tipp (der Knopf bleibt fokussierbar, aria-disabled)
+      if (took && hintInline) hintRef.current?.focus({ preventScroll: true });
+      return;
+    }
     setAside(s => ({ hint: s.hint || hintInline, first: s.first || firstInline }));
     if (took && hintInline) setSheet("hint");
   });
@@ -524,7 +532,7 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
         {/* nach der Antwort darf das Bild kleiner werden; wäre es dann noch abgeschnitten oder winzig, fällt es weg (styles.css) */}
         {visual && <div className="q-visual"><Fit min={a ? 0.25 : undefined} minHeight={a ? MIN_PIC : undefined}>{visual}</Fit></div>}
         {isMc ? <McAnswer task={t as unknown as McTask} answered={a} submit={submit} renderOption={p.renderOption && (o => p.renderOption!(t, o))} optionLabel={p.optionLabel && (o => p.optionLabel!(t, o))} /> : p.renderAnswer?.(t, a, submit)}
-        {hintInline && <div className="q-hint"><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
+        {hintInline && <div className="q-hint" ref={hintRef} tabIndex={-1}><Icon name="bulb" /><span><RichText text={t.hint} /></span></div>}
         {a && (
           <div className={`q-feedback ${a.ok ? "ok" : "bad"}`} role="status">
             <div className="fb-head"><Icon name={a.ok ? "check" : "x"} /><b>{a.ok ? praiseFor(t, game.hintUsed && !faded, game.streak, game.i) : t.explain ? tr("Noch nicht – hier der Grund", "Not yet – here is why") : tr("Noch nicht", "Not yet")}</b>{a.ok && <span className="fb-pts">+{a.gained}</span>}</div>
@@ -553,11 +561,22 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
 /** Mindesthöhe eines Aufgabenbilds in px: niedriger gestaucht ist es nicht mehr zu erkennen */
 const MIN_PIC = 56;
 /** Reicht der Platz der Karte nicht? Inhalt läuft über, ein Element mit `data-min-h` (Mindesthöhe des Moduls, z. B. eine Antwortfläche) ist niedriger,
- *  oder das Bild ist in der Höhe so gestaucht, dass es abgeschnitten (Fit-Minimum 0,4) oder niedriger als MIN_PIC wäre.
- *  Gerechnet wird mit den Maßen selbst, nicht mit Fits Ergebnis (das steht im selben Durchlauf noch aus). */
+ *  der Bildrahmen schrumpft durch Tipp bzw. ersten Schritt unter max(MIN_PIC, 60 % seiner Höhe ohne sie) – auch bei Bildern, die sich selbst einpassen
+ *  (Container-Einheiten, Fit verkleinert dann nichts) –, oder das Bild ist in der Höhe so gestaucht, dass es abgeschnitten (Fit-Minimum 0,4) oder
+ *  niedriger als MIN_PIC wäre. Gerechnet wird mit den Maßen selbst, nicht mit Fits Ergebnis (das steht im selben Durchlauf noch aus). */
 function crowded(body: HTMLElement): boolean {
   if (body.scrollHeight > body.clientHeight + 1) return true;
   for (const e of body.querySelectorAll<HTMLElement>("[data-min-h]")) if (e.getBoundingClientRect().height < Number(e.dataset.minH) - 0.5) return true;
+  const vis = body.querySelector<HTMLElement>(":scope > .q-visual");
+  const extra = [...(body.closest(".task-card")?.querySelectorAll<HTMLElement>(".q-hint, .q-first") ?? [])];
+  if (vis && extra.length) {
+    // Höhe des Bildrahmens mit und (kurz ausgeblendet, im selben Durchlauf – nichts flackert) ohne Tipp bzw. ersten Schritt
+    const now = vis.getBoundingClientRect().height;
+    extra.forEach(e => { e.style.display = "none"; });
+    const before = vis.getBoundingClientRect().height;
+    extra.forEach(e => { e.style.display = ""; });
+    if (now < before - 1 && now < Math.max(MIN_PIC, 0.6 * before)) return true;
+  }
   const o = body.querySelector<HTMLElement>(":scope > .q-visual > .ui-fit"), i = o?.firstElementChild as HTMLElement | null;
   if (!o || !i || !o.clientWidth) return false;
   const h = Math.max(1, i.scrollHeight), sv = o.clientHeight / h;
@@ -627,22 +646,29 @@ export function McAnswer({ task, answered, submit, renderOption, optionLabel }: 
   // zweispaltig nur, wenn jede Antwort in ihre Spalte passt (schmale Handys: „Kohlensäure“ ragte hinaus) – sonst einspaltig
   const ref = useRef<HTMLDivElement>(null);
   const [narrow, setNarrow] = useState(false);
+  // einspaltig und trotzdem ein Wort zu breit (Formel, Elektronenkonfiguration, langer Name in „Lesbar“): Schrift in zwei Stufen etwas kleiner (bis 14 px)
+  const [tight, setTight] = useState(0);
   const one = long || narrow || task.options.some(o => o.length > 12);
-  useLayoutEffect(() => setNarrow(false), [task]);
+  useLayoutEffect(() => { setNarrow(false); setTight(0); }, [task]);
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || one) return;
-    // ein Wort, das nicht in seine Spalte passt, bräche mitten im Wort um („Thermoplas|t“) – dann ebenfalls einspaltig.
-    // Gemessen wird jedes Wort jedes Textstücks im Knopf (auch bei eigener Darstellung, fett gesetzten Teilen, Formeln)
+    if (!el) return;
+    // ein Wort, das nicht in seine Spalte passt, bräche mitten im Wort um („Thermoplas|t“, „3d|⁷“) – dann einspaltig, danach kleiner.
+    // Gemessen wird jedes Wort jedes Textstücks im Knopf (auch bei eigener Darstellung, fett gesetzten Teilen, Formeln); umbrochen wird nur
+    // an Leerzeichen und erlaubten Trennstellen (styles.css: overflow-wrap: break-word, nicht anywhere)
     const split = (b: HTMLElement) => wordBroken(b, b.querySelector(".mc-key"));
-    const check = () => { if ([...el.querySelectorAll<HTMLElement>(".mc-btn")].some(b => b.scrollWidth > b.clientWidth + 1 || split(b))) setNarrow(true); };
+    const check = () => {
+      if (![...el.querySelectorAll<HTMLElement>(".mc-btn")].some(b => b.scrollWidth > b.clientWidth + 1 || split(b))) return;
+      if (!one) setNarrow(true); else setTight(t => Math.min(2, t + 1));
+    };
+    if (one && tight >= 2) return;
     check();
     addEventListener("resize", check);
     return () => removeEventListener("resize", check);
   });
   return (
     <NoTerms>
-    <div ref={ref} className={`mc-grid${long ? " long" : ""}${one ? " one" : ""}`}>
+    <div ref={ref} className={`mc-grid${long ? " long" : ""}${one ? " one" : ""}${tight ? ` tight${tight}` : ""}`}>
       {task.options.map((o, i) => {
         const cls = answered ? (i === task.answer ? " right" : i === answered.choice ? " wrong" : " faded") : "";
         return (

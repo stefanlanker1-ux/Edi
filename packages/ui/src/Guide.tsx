@@ -8,7 +8,7 @@
 // dann ein halb gelöster (eine Lücke im Lösungsweg) und dann selbst lösen – und wieder von vorn mit dem nächsten Gedanken.
 
 import { num, readNumber, tr } from "./i18n.ts";
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Button, IconButton } from "./components.tsx";
 import { Icon } from "./icons.tsx";
 import { RichText } from "./RichText.tsx";
@@ -133,6 +133,26 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const textRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (open && i > 0) textRef.current?.focus({ preventScroll: true }); }, [i, open]);
 
+  // nie abgeschnitten: wächst der Text (Rückmeldung nach einer falschen Antwort, Lösungsweg) über den Bildschirm, stufenweise enger (data-fit,
+  // components.css) – zuletzt behält das Bild 72 px und der Text darf scrollen, statt unten abgeschnitten zu werden
+  const inRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = inRef.current;
+    if (!el) return;
+    // Maß sind die Kästen von Bild und Text (ohne Verschiebungen beim Einblenden – „Weiter“ gleitet 4 px von unten herein)
+    const over = () => {
+      const limit = el.getBoundingClientRect().bottom - parseFloat(getComputedStyle(el).paddingBottom) + 1;
+      return [...el.querySelectorAll<HTMLElement>(":scope > .ui-guide-body > *, :scope > .ui-guide-end")].some(c => c.getBoundingClientRect().bottom > limit);
+    };
+    // noch nicht zu sehen (Dialog öffnet gerade): nichts messen – die Kästen haben dann keine Größe
+    const fit = () => { if (!el.clientHeight) return; el.dataset.fit = "0"; for (let k = 1; k <= 2 && over(); k++) el.dataset.fit = String(k); };
+    fit();
+    // noch einmal, wenn Bild und Einblendungen stehen (gleich nach dem Rendern kann die Höhe kurz zu groß sein)
+    const raf = requestAnimationFrame(fit), late = setTimeout(fit, 450);
+    addEventListener("resize", fit);
+    return () => { cancelAnimationFrame(raf); clearTimeout(late); removeEventListener("resize", fit); };
+  }, [open, i, msg, solved, tries, seen, done]);
+
   function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); setSeen(1); }
   // vorgemacht: nächste Zeile zeigen; nach der letzten ist der Schritt fertig
   const reveal = () => { const k = seen + 1; setSeen(k); if (k >= lines.length) setSolved(true); };
@@ -167,7 +187,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
     <dialog ref={ref} className="ui-guide" onClose={e => { if (e.target === e.currentTarget) onClose(); /* nicht das Blatt eines Begriffs */ }} aria-label={`${tr("Erklärung", "Explanation")}: ${def.title}`}>
       {open && (
         <TermScope terms={def.terms ?? []}>
-        <div className="ui-guide-in">
+        <div className="ui-guide-in" ref={inRef}>
           <header className="ui-guide-head">
             <span className="ui-guide-badge"><Icon name="play" size={16} /><span>{tr("Erklärung", "Explanation")}</span></span>
             <h2 title={def.title}>{part?.name && !done ? <><span className="ui-guide-part">{tr(`Teil ${parts.indexOf(part) + 1}`, `Part ${parts.indexOf(part) + 1}`)}</span> {part.name}</> : def.title}</h2>

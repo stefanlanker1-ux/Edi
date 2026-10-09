@@ -135,3 +135,24 @@ test("feste Reihenfolge ohne Merksatz: Fragen desselben Typs von anderen Plätze
   for (let r = 0; r < 2; r++) { const round = freshRound(make, recent, 20, true); for (const t of round) { asked.push(t.prompt); recent = [...recent, taskKey(t)]; } }
   assert.strictEqual(new Set(asked).size, 6, asked.join(" | "));
 });
+
+test("kein Platz doppelt: ist der Vorrat erschöpft, wird die Runde kürzer statt dieselbe Frage zweimal zu stellen („Schwächen üben“)", () => {
+  // eine schwache Fertigkeit mit nur drei möglichen Fragen, die Runde hätte zehn Plätze
+  const make = () => Array.from({ length: 10 }, () => ({ kind: "mc", type: "w", prompt: `w ${Math.floor(Math.random() * 3)}`, hint: "", explain: "" }) as BaseTask);
+  for (let r = 0; r < 50; r++) {
+    const round = freshRound(make, [], 10, { keepType: true });
+    assert.strictEqual(new Set(round.map(taskKey)).size, round.length, round.map(t => t.prompt).join(" | "));
+    assert.ok(round.length >= 1 && round.length <= 3);
+  }
+});
+
+test("nach Typ geordnetes Level (z. B. nach Schwierigkeit): eine getauschte Frage steht bei ihrem Typ, die Reihenfolge bleibt", () => {
+  const order = ["leicht", "leicht", "mittel", "mittel", "schwer", "schwer"];
+  const make = () => order.map(type => ({ kind: "mc", type, prompt: type === "leicht" ? "leicht 0" : `${type} ${Math.floor(Math.random() * 50)}`, hint: "", explain: "" }) as BaseTask);
+  // „leicht“ hat nur eine Frage und war zuletzt dran → ein Platz wird getauscht
+  for (let r = 0; r < 30; r++) {
+    const round = freshRound(make, [taskKey(make()[0])], 10);
+    const rank = round.map(t => order.indexOf(t.type!));
+    assert.deepEqual(rank, [...rank].sort((a, b) => a - b), round.map(t => t.type).join(","));
+  }
+});

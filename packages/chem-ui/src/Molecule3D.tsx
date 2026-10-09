@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
-import { embed3D, embedComputed, embedMol3D, dipoleVector, polarBonds, en, type AngleMode, type Mol3D, type Molecule, type Vec } from "@lern/chem";
+import { DIPOLE_MIN, embed3D, embedComputed, embedMol3D, dipoleVector, polarBonds, en, type AngleMode, type Mol3D, type Molecule, type Vec } from "@lern/chem";
 import { tr } from "@lern/i18n";
 
 // Farbfamilien nach CPK, Werte aus der gemeinsamen Palette (tokens.css --hue-*; three.js braucht feste Zahlen)
@@ -187,7 +187,8 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
         group.add(l);
       }
       const d = v3(dipoleVector(e, en));
-      if (dipoleArrow && d.length() > 0.2) {
+      // Schwelle für den Pfeil aus @lern/chem (DIPOLE_MIN) – eine Stelle für App und Tests
+      if (dipoleArrow && d.length() > DIPOLE_MIN) {
         const dir = d.clone().normalize();
         // Pfeil wie üblich mitten durch das Molekül (von δ+ nach δ−), an beiden Enden etwas überstehend
         const along = [...pos.values()].map(p => p.dot(dir));

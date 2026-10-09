@@ -141,7 +141,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 
 ## Erklärung (`@lern/ui` `Guide`, je Modul `src/guide.tsx`)
 - „Erklärung“ ist der erste Eintrag der Bereichsleiste (siehe „Bereichsleiste“), rotes Abspiel-Zeichen; roter Ring um das Zeichen, bis die Erklärung einmal ganz durchlaufen
-  ist (`lern-erklaert-<Modul-Kennung>`, sprachunabhängig über `CurrentModul` der Hülle; ein alter Stand unter dem Namen der App wird übernommen). Ganzer Bildschirm, nie scrollen. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
+  ist (`lern-erklaert-<Modul-Kennung>`, sprachunabhängig über `CurrentModul` der Hülle; ein alter Stand unter dem Namen der App wird übernommen). Ganzer Bildschirm, nie scrollen; wächst der Text (Rückmeldung, Lösungsweg) über den Bildschirm, wird
+  die Erklärung enger (`data-fit`, gemessen an den Kästen von Bild und Text, nicht an Einblend-Verschiebungen), zuletzt behält das Bild 72 px und der Text scrollt –
+  nie unten abgeschnitten. Jedes Modul übergibt `guide` an `LernApp` (je Stufe eigene Erklärung, Funktion `guideFor(stufe)` bzw. `GUIDE`).
 - Aufbau: `GuideDef { title, steps, outro, known? }`. 10–48 Schritte; ab 16 Schritten in **Kapiteln** (`part` am ersten Schritt, Name im Kopf, Fortschrittsbalken in Abschnitten),
   jedes Kapitel höchstens 8 Schritte. Ende: Zusammenfassung „Das kannst du jetzt“ (`outro`), Knopf „Zum Quiz“. Inhalte decken alle Aufgabentypen des Quiz der Stufe ab.
 - **Schrittarten** (`mode`, Pflicht bei jedem Schritt; Kennzeichen oben: „Vorgemacht“ / „Halb gelöst – ergänze“ / „Jetzt du“):
@@ -228,7 +230,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   erschöpft, bekommt höchstens ein Platz je Runde eine neue Frage eines anderen Typs, sonst kommt die am längsten zurückliegende (keine Fertigkeit verschwindet aus ihrem Level).
   `keepType` (feste Reihenfolge, „Heute fällig“, „Schwächen üben“): nie den Typ tauschen – jede gewählte bzw. fällige Fertigkeit bleibt in der Runde (Test);
   `samePlace` (feste Reihenfolge): nur Fragen dieses Platzes oder mit gleichem Typ und gleichem Merksatz (Test). Die Suche nach neuen Fragen ist begrenzt
-  (Abbruch, wenn erzeugte Runden nacheinander nichts Neues bringen, höchstens 250 ms) – der Rundenstart bleibt flüssig. „Nochmal“ nach „Heute fällig“ bzw.
+  (Abbruch, wenn erzeugte Runden nacheinander nichts Neues bringen, höchstens 250 ms; Rundenstart mit Beispielen zusammen ≈ 320 ms) – der Rundenstart bleibt flüssig.
+  Keine Frage zweimal in einer Runde: ist der Vorrat erschöpft, wird die Runde kürzer (nur bei fester Reihenfolge bleibt der Platz); eine getauschte Frage steht hinter den Fragen
+  ihres Typs – vom Generator geordnete Levels (z. B. nach Schwierigkeit) bleiben geordnet (Tests). „Nochmal“ nach „Heute fällig“ bzw.
   „Schwächen üben“ nur, solange noch etwas fällig bzw. schwach ist (`pending`), sonst nur „Zur Levelauswahl“. Sprache: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Schuld.
   Prüfungstermin (`Exam`, Blatt „Schularbeit“ im Menü, trägt der Lernende selbst ein, bleibt auf dem Gerät): bis dahin Abstand höchstens halbe Restzeit
   (`examInterval`, `effectiveDue`), neue Fertigkeiten zuerst fällig, Menü zeigt Countdown und „x / n sicher“; nach dem Tag löscht sich der Termin.
@@ -236,11 +240,14 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   gemeldet als `values.pick` (Index), Fallen `traps: [{ values: { pick }, miss, why }]`; nach der Antwort ist die Lösung gestrichelt grün markiert; für Tastatur
   und Vorlesen dieselben Teile als unsichtbare Knöpfe.
 - **Gelöstes Beispiel im Quiz** (`withExamples` in `packages/quiz/src/store.ts`): vor der ersten Aufgabe jeder Fertigkeit der Runde, die noch nie geübt wurde,
-  steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, höchstens 3 je Runde, andere Frage = andere `taskKey` – Daten und richtige Antwort, andere Ablenker zählen nicht):
+  steht ein gelöstes Beispiel derselben Art (andere Frage, aus weiteren erzeugten Runden gesucht, bis jede neue Fertigkeit eine verwendbare hat – höchstens 24 Runden und bis zur gemeinsamen Frist des Rundenstarts,
+  höchstens 3 je Runde, andere Frage = andere `taskKey` – Daten und richtige Antwort, andere Ablenker zählen nicht; ein Typ mit nur einer möglichen Frage hat kein Beispiel):
   `stage: "worked"` → Karte `WorkedCard` mit Frage, markierter Lösung, „1. Tipp 2. Erklärung“ und Knopf „Verstanden – jetzt du“; zählt nicht für Punkte und Statistik (`counted`).
   Die erste echte Aufgabe dieser Fertigkeit bekommt `stage: "faded"`: der erste Schritt (der Tipp) steht unter der Frage (`.q-first`, kostet nichts; dort kein Tipp-Knopf, der Store zieht dafür auch keine Punkte ab).
-  Tipp und erster Schritt sind immer ganz zu lesen, ohne das Bild zu zerdrücken: passen sie nicht in die Karte (Inhalt liefe über, Bild abgeschnitten oder niedriger als 56 px, ein Element unter seiner Mindesthöhe `data-min-h` –
-  `crowded` in `QuizScreen.tsx`, gemessen beim Erscheinen), stehen sie in einem Blatt; „Tipp“ öffnet es wieder (kostet nur beim ersten Mal), statt des ersten Schritts steht
+  Tipp und erster Schritt sind immer ganz zu lesen, ohne das Bild zu zerdrücken: passen sie nicht in die Karte (Inhalt liefe über, ein Element unter seiner Mindesthöhe `data-min-h`,
+  der Bildrahmen schrumpft unter max(56 px, 60 % seiner Höhe ohne sie) – auch bei Bildern, die sich per Container-Einheiten selbst einpassen –, oder das Bild wäre
+  abgeschnitten bzw. niedriger als 56 px; `crowded` in `QuizScreen.tsx`, gemessen beim Erscheinen), stehen sie in einem Blatt; nach „Tipp“ steht der Fokus auf dem Tipp
+  (der Knopf bleibt fokussierbar, `aria-disabled`); „Tipp“ öffnet es wieder (kostet nur beim ersten Mal), statt des ersten Schritts steht
   „Schritt 1“ in der Leiste.
   Nicht in „Heute fällig“ und „Schwächen üben“. Damit das Beispiel passt, muss jeder Aufgabentyp genug verschiedene Aufgaben erzeugen.
 - Weitere Bausteine von `QuizScreen`: `renderVisual` (Bild über der Frage, per `Fit`), `renderOption` (eigene Darstellung von Antworten), `renderAnswer` (eigene Antwortform),
@@ -288,12 +295,16 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Übungen/Quiz: Aufgabe = ein Bildschirm (Frage, Bild passt sich per `Fit` an, Antwort, kurze Rückmeldung, „Weiter“ immer sichtbar); Lösungsweg und Hilfsmittel als Blatt.
   Leiste unter der Aufgabe: jedes Hilfsmittel mit ganzer Beschriftung, nichts überdeckt sich – passt sie nicht neben „Weiter“ (viele Hilfsmittel, Englisch, „Lesbar“),
   steht „Weiter“ in einer eigenen Zeile darunter. Nach der Antwort darf das Bild kleiner werden (`Fit` bis 0,25); wäre es dann noch abgeschnitten oder niedriger als 56 px
-  (`Fit` setzt `data-cut`, `minHeight`), fällt es ganz weg statt als Rest. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
+  (`Fit` setzt `data-cut`, `minHeight`; auch ein Rahmen unter 56 px, den eine selbst einpassende Zeichnung füllt), ist es unsichtbar statt als Rest zu sehen
+  (`visibility: hidden` – der Rahmen bleibt messbar: wird der Bildschirm wieder größer, kommt das Bild zurück). Landkarte: hilft auch die kleinste Stufe nicht,
+  bleibt sie bei Lesegröße und scrollt. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
   Prüfen im Browser (z. B. Playwright): in allen Ansichten, Werkzeugen und Quizaufgaben darf weder die Seite noch Werkbank/Aufgabenkarte überlaufen, und nichts darf von einem
   Rahmen mit `overflow: hidden` abgeschnitten werden (Gleichungen, Formeln). Breiten: 390 × 844, 375 × 667, dazu schmale Android-Handys 360 × 740 und 412 × 915
   (Quiz ab ≤ 370 px Breite kompakt wie bei niedrigen Bildschirmen). Nie mitten im Wort umbrechen: Auswahl-Antworten stehen nur zweispaltig, wenn jedes Wort
-  in seine Spalte passt (`McAnswer` misst jedes Wort jedes Textstücks im Knopf, auch bei eigener Darstellung, sonst einspaltig); im kompaktesten Menü (Stufe 5) stehen Sterne über Tipp und Pfeil, damit Level-Namen breit genug bleiben.
+  in seine Spalte passt (`McAnswer` misst jedes Wort jedes Textstücks im Knopf, auch bei eigener Darstellung, sonst einspaltig; umbrochen wird nur an Leerzeichen
+  und erlaubten Trennstellen – `overflow-wrap: break-word`, nie `anywhere`, das Formeln wie „3d⁷“ mitten durch brach –, einspaltig und trotzdem zu breit:
+  Schrift in zwei Stufen kleiner, bis 14 px); im kompaktesten Menü (Stufe 5) stehen Sterne über Tipp und Pfeil, damit Level-Namen breit genug bleiben.
 - Knopf oder Anzeige – auf einen Blick: alles Antippbare sieht aus wie eine Taste (dunkler Rahmen `--rule`, Unterkante `--key-edge`,
   gedrückt `--key-edge-pressed`; neue Knopf-Klassen bekommen beides), Anzeigen haben keinen Rahmen, nur eine ruhige Fläche (`Tag`, `Chip`, Ergebnis).
   Beantwortete Auswahl verliert die Unterkante.
@@ -1041,7 +1052,8 @@ Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5,gm-k6"`, Polymere
 tippt weitere Antworten bzw. Teile im Bild an, bis „Weiter“ erscheint, und meldet ein Kapitel mit weniger als zehn geprüften Aufgaben).
 check-ui meldet außerdem: sich überdeckende Tippziele, abgeschnittene oder herausragende Knopf-Beschriftungen (gewollte Auslassungspunkte ausgenommen), Wörter in
 Antwortknöpfen über zwei Zeilen (weicher Trennstrich und Nullbreite-Leerzeichen sind Trennstellen), abgeschnittene Aufgabenbilder; vor jeder Antwort drückt es „Tipp“ bzw.
-„Schritt 1“ und prüft, dass Tipp bzw. erster Schritt ganz zu lesen sind und das Bild daneben ≥ 56 px hoch bleibt;
+„Schritt 1“ und prüft, dass Tipp bzw. erster Schritt ganz zu lesen sind und das Bild daneben ≥ 56 px hoch bleibt und der Bildrahmen nicht unter max(56 px, 60 %
+seiner Höhe vor „Tipp“) schrumpft; es öffnet die Blätter im Menü (Landkarte, Schularbeit) und prüft im LEARN-Lauf die Auswertung samt ihren Blättern;
 es schließt offene Blätter und die Erklärung selbst und gibt Chromium eine lokale Prüfstimme, damit „Vorlesen“ wie auf Geräten in der Leiste steht.
 In dieser Umgebung: Chromium liegt unter `/opt/pw-browsers/chromium` (`CHROMIUM=/opt/pw-browsers/chromium`), Playwright global (`PLAYWRIGHT=…/playwright/index.mjs`); nie `playwright install`.
 Zusätzlich gezielt prüfen, was geändert wurde: Ansicht öffnen (`#/<modul>`), Level umschalten, Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende
@@ -1051,6 +1063,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Pakete, Skripte: Nachprüfung Runde 3** – Tipp und erster Schritt stauchen auch selbst einpassende Bilder nicht mehr (Bildrahmen bleibt ≥ max(56 px, 60 % von vorher), sonst
+  Blatt) – die vorige Doku-Aussage dazu stimmte für Polymere- und Gemische-Bilder nicht (Schrift bis 5 px); Fokus nach „Tipp“ auf dem Tipp bzw. im Blatt, danach zurück auf „Tipp“;
+  ein ausgeblendetes Aufgabenbild kommt zurück, wenn wieder Platz ist; gelöste Beispiele auch bei kleinem Vorrat (gemeinsame Frist mit dem Rundenstart); keine Frage zweimal in einer
+  Runde (Runde wird bei erschöpftem Vorrat kürzer); geordnete Levels bleiben geordnet; Antworten brechen nur an Leerzeichen und erlaubten Trennstellen (nie „3d|⁷“); Erklärungstext
+  nie abgeschnitten; Bohrmodell-Schalenbuchstaben nicht mehr von Elektronen verdeckt; Landkarte scrollt in Lesegröße statt auf 12,8 px zu schrumpfen; Stepper bei 360 px ohne
+  Überdeckung; Lesetext ≥ 14 px; Dipolpfeil mit `DIPOLE_MIN`. check-ui vergleicht Bildrahmen vor/nach „Tipp“, öffnet Menü-Blätter und prüft die Auswertung.
 - **Gemische: Nachprüfung Runde 3** – Vorgemachte Antipp-Beispiele zeigen das Bild mit markierter Lösung, im Beispiel wird das Bild nie ausgeblendet (vorher gelöste Beispiele ohne
   Bild). Dekantieren physikalisch stimmig (Kippen im Uhrzeigersinn um den Ausguss, Wasser waagrecht, Strahl aus dem Ausguss ins anfangs leere zweite Glas, Gläser getrennt; vorher
   falsch herum gekippt). Alkohol wird mit Heizhaube destilliert („Heizen an“, brennbar – keine offene Flamme), Eindampfen auf Drahtnetz und Dreifuß. Thermometer-Anzeige ≥ 14 px;

@@ -58,7 +58,7 @@ a.ui-brand { color: inherit; text-decoration: none; }
   transition: background .15s, color .15s, border-color .15s;
 }
 .ui-btn:active:not(:disabled) { transform: translateY(1px); }
-.ui-btn:disabled { opacity: .45; }
+.ui-btn:disabled, .ui-btn[aria-disabled="true"] { opacity: .45; } /* aria-disabled: bleibt fokussierbar (Tipp schon genommen) */
 .ui-btn-lg { min-height: 52px; padding: 12px 24px; font-size: 1.05rem; }
 .ui-btn-primary { background: var(--accent); color: var(--on-accent); }
 @media (hover: hover) { .ui-btn-primary:hover:not(:disabled) { background: var(--signal); color: var(--on-signal); } }
@@ -123,7 +123,8 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-stepper-ctl input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
 .ui-stepper-ctl input::-webkit-inner-spin-button, .ui-stepper-ctl input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 .ui-stepper.compact { grid-template-columns: 1fr auto; align-items: center; }
-.ui-stepper.compact .ui-stepper-ctl { grid-template-columns: 44px 56px 44px; }
+.ui-stepper.compact .ui-stepper-ctl { grid-template-columns: 44px minmax(44px, 56px) 44px; } /* schmal: Zahlfeld gibt bis 44 px nach (Tippziel), zwei Stepper nebeneinander überdecken sich nicht */
+@media (max-width: 370px) { .ui-stepper.compact .ui-stepper-ctl { gap: 4px; } }
 .ui-stepper.stack { justify-items: center; gap: 2px; }
 .ui-stepper.stack .ui-stepper-label { justify-content: center; white-space: nowrap; }
 .ui-stepper.stack .ui-stepper-ctl { grid-template-columns: minmax(44px, 1fr) minmax(44px, 1fr); grid-template-areas: "v v" "m p"; gap: 4px; width: 100%; }
@@ -352,6 +353,14 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
   .ui-guide-ask { font-size: .98rem; }
   .ui-guide-opt { min-height: 44px; padding: 6px 10px; }
 }
+/* Text passt nicht (Guide misst, data-fit): 1 engere Abstände; 2 das Bild behält 72 px, der Text darf scrollen – nie unten abgeschnitten */
+.ui-guide-in:is([data-fit="1"], [data-fit="2"]) { gap: 6px; }
+.ui-guide-in:is([data-fit="1"], [data-fit="2"]) .ui-guide-body { gap: 6px; }
+.ui-guide-in:is([data-fit="1"], [data-fit="2"]) .ui-guide-text { gap: 4px; }
+.ui-guide-in:is([data-fit="1"], [data-fit="2"]) .ui-guide-visual { padding: 4px; }
+.ui-guide-in:is([data-fit="1"], [data-fit="2"]) :is(.ui-guide-say, .ui-guide-ask, .ui-guide-msg) { line-height: 1.25; }
+.ui-guide-in[data-fit="2"] .ui-guide-body:not(.no-visual) { grid-template-rows: minmax(72px, 1fr) minmax(0, auto); }
+.ui-guide-in[data-fit="2"] .ui-guide-text { min-height: 0; overflow-y: auto; align-content: start; overscroll-behavior: contain; }
 /* schmal: nur das rote Play-Zeichen statt „Erklärung“, damit der App-Name ganz zu lesen ist */
 @media (max-width: 479px) { .ui-guide-badge span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .ui-guide-head { gap: 4px 8px; } }
 .ui-guide-text:focus { outline: none; }

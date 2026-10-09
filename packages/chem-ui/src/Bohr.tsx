@@ -40,6 +40,23 @@ function nucleusLayout(Z: number, N: number) {
   return { pr, pos, r: rmax + pr };
 }
 
+/**
+ * Winkel des Schalenbuchstabens auf dem Ring (Radius r, n Elektronen ab „oben“ gleichmäßig verteilt): unten rechts (45°), wenn dort Platz ist,
+ * sonst die Mitte der Lücke zwischen zwei Elektronen, die 45° am nächsten liegt – der Buchstabe verdeckt nie ein Elektron (und umgekehrt).
+ */
+export function labelAngle(r: number, n: number): number {
+  const want = Math.PI / 4;
+  if (!n) return want;
+  const step = (2 * Math.PI) / n;
+  const er = Math.min(4.8, ((2 * Math.PI * r) / n) * 0.36);
+  // Abstand der Elektronenmitte zu 45° (auf dem Ring) – Platz für Elektron und halben Buchstaben (7 px Schrift, Hof)
+  const off = ((want + Math.PI / 2) % step + step) % step;
+  const near = Math.min(off, step - off) * r;
+  if (near >= er + 5) return want;
+  const k = Math.floor((want + Math.PI / 2) / step);
+  return -Math.PI / 2 + (k + 0.5) * step;
+}
+
 export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, counts = true, shellCounts, onParticleDown }: Props) {
   const uid = useId().replace(/:/g, "");
   const g = (name: string) => `url(#${uid}-${name})`;
@@ -76,10 +93,6 @@ export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, c
           return <circle key={i} r={r} className={`ring${i >= perShell.length ? " ghost" : ""}`} />;
         })}
       </g>
-      {labels && Array.from({ length: S }, (_, i) => {
-        const r = r0 + gap * (i + 1) - gap * 0.15;
-        return <text key={i} x={r * 0.7071 + 3} y={r * 0.7071 + 3} className="ring-lbl">{SHELL_NAMES[i]}</text>;
-      })}
       <g className="nuc">
         {n === 0 && <circle r={6} className="nuc-empty" />}
         {big && (
@@ -113,6 +126,12 @@ export function Bohr({ Z, N, E, colorByOrbital, animate, ghost, labels = true, c
             })}
           </g>
         );
+      })}
+      {/* Schalenbuchstaben nach den Elektronen (liegen obenauf, mit Hof): auf dem Ring unten rechts – sitzt dort ein Elektron, in der Lücke daneben */}
+      {labels && Array.from({ length: S }, (_, i) => {
+        const r = r0 + gap * (i + 1) - gap * 0.15;
+        const a = labelAngle(r, perShell[i]?.length ?? 0);
+        return <text key={`l${i}`} x={r * Math.cos(a)} y={r * Math.sin(a)} className="ring-lbl">{SHELL_NAMES[i]}</text>;
       })}
     </svg>
   );
