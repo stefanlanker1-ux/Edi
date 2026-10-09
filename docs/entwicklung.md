@@ -622,7 +622,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   und MgO (2852 °C) mit einem Schieber, je 4 × 3 Ionen – „NaCl flüssig, MgO fest“; Schichten verschieben `ShiftLayers`: nach einem ganzen Platz stehen gleiche Ladungen
   gegenüber → Abstoßung, Riss) · **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: Becherglas mit Batterie, Schalter, Lampe – fest
   Salzkörner, Schmelze 801 °C, Lösung „in Wasser H₂O“ – und eine Lupe „Ausschnitt“ aus der Mitte (neben oder unter dem Glas, Hinweislinien): fest schwingen die Ionen nur, in
-  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich langsam – Kationen zum Minuspol, Anionen zum Pluspol, gemischt; der
+  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich deutlich sichtbar (Wanderung Schmelze 1,19 · LU/s, Lösung 0,51 · LU/s)
+  – Kationen zum Minuspol, Anionen zum Pluspol, gemischt; der
   Ausschnitt ist größer als die Lupe, was hinausgleitet, kommt außerhalb des Sichtbaren wieder herein; Pole am Lupenrand, Legende „Na⁺ ← zum Minuspol“; was an den Elektroden
   passiert, bleibt offen („lernst du später“) – nie getrennte Ladungsblöcke, nie Ein-/Ausblenden mitten im Bild; Test `k3/sim.test.ts`). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196,
   Mg²⁺ 72, O²⁻ 140 pm), Ladung in der Kugel; Anziehung als Linie (→ ←), Abstoßung rot gestrichelt (← →) – nicht nur über Farbe. Wasser nur als Stoff „Wasser H₂O“; Lösen knüpft
@@ -1145,6 +1146,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung Kapitel 3: Ionen wandern bei Spannung schneller** – in Schmelze und Lösung wandern die Ionen bei geschlossenem Schalter 70 % schneller zu ihrem Pol
+  (Faktor 1,7 auf die Wanderung, Wärmebewegung unverändert), damit die Wanderung neben der ungeordneten Bewegung klar zu sehen ist.
 - **Ionenbindung Kapitel 3: Schmelzen und Strom leiten als Teilchensimulation** (`k3/sim.ts` statt CSS-Animation) – vorher froren die Ionen beim Schmelzen in eine zweite
   feste Anordnung ein und verließen ihre Plätze nicht sichtbar; beim Leiten glitten sie in Schleifen ein Stück zum Pol und wurden mitten im Bild ein- und ausgeblendet. Jetzt:
   Tiegel mit Schwingen → Verlassen der Plätze → ständige ungeordnete Bewegung, Rückkehr ins Gitter beim Abkühlen; Leitfähigkeit mit Lupe (Ausschnitt), in der die Ionen langsam

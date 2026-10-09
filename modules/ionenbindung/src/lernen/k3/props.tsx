@@ -285,11 +285,12 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
     const i = k % 4, j = Math.floor(k / 4);
     return { x: -LHALF + 30 + i * 60 + (j % 2) * 26, y: -LHALF + 40 + j * 80, q: (i + j) % 2 === 0 ? 1 : -1 };
   }), []);
-  // Strom: Kationen wandern zum Minuspol, Anionen zum Pluspol – langsam gegenüber der Wärmebewegung
-  const dir = minusLeft ? -1 : 1;
+  // Strom: Kationen wandern zum Minuspol, Anionen zum Pluspol – deutlich sichtbar, aber gemischt und mit Wärmebewegung
+  // (Wanderung mit Spannung: Schmelze 1,19 · LU, Lösung 0,51 · LU je Sekunde – 70 % schneller als die erste Fassung)
+  const dir = minusLeft ? -1 : 1, FLOW = 1.7;
   const solidDrive: Drive = { free: false, heat: 0.3, amp: 1.6 };
-  const meltDrive: Drive = { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, drift: flow ? dir * 0.7 * LU : 0 };
-  const solDrive: Drive = { free: true, heat: 0.75, amp: 0, apart: true, drift: flow ? dir * 0.3 * LU : 0 };
+  const meltDrive: Drive = { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, drift: flow ? dir * FLOW * 0.7 * LU : 0 };
+  const solDrive: Drive = { free: true, heat: 0.75, amp: 0, apart: true, drift: flow ? dir * FLOW * 0.3 * LU : 0 };
   const loosen = (list: Site[], seed: number, d: Drive) => { const w = makeWorld(list, radius, LU, box, true, seed); w.m = 1; w.free = true; return warm(w, { ...d, drift: 0 }, 4); };
   const make = (k: Zustand) => (k === "fest" ? makeWorld(sites, radius, LU, box, true, 11) : k === "schmelze" ? loosen(melted, 12, meltDrive) : loosen(loose, 13, solDrive));
   // jede Probe behält ihre Teilchen, solange die Folie offen ist (Wechsel = andere Probe, kurz eingeblendet)
