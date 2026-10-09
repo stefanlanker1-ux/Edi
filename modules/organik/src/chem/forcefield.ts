@@ -1,4 +1,4 @@
-// Gezeichnetes Molekül als Eingabe für das Kraftfeld (nur App): alle H einzeln, NO₂ als Nitrogruppe mit Ladungen,
+// Gezeichnetes Molekül als Eingabe für das Kraftfeld (3D-Ansicht): alle H einzeln, NO₂ als Nitrogruppe mit Ladungen,
 // E/Z jeder Doppelbindung außerhalb von Ringen so, wie sie gezeichnet ist.
 
 import type { FFInput } from "@lern/chem-ui";

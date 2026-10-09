@@ -136,7 +136,7 @@ export function BuildView() {
         </>
       ),
     }] : []),
-    // 3D für bekannte Moleküle (gespeicherte Lage); in der App auch für frei gebaute (Kraftfeld, berechnet)
+    // 3D für bekannte Moleküle (gespeicherte Lage), für frei gebaute mit dem Kraftfeld berechnet
     { id: "3d", label: "3D", icon: "cube", disabled: !stored && !canCompute, onClick: () => setShow3d(true) },
     {
       id: "beispiel", label: tr("Beispiel", "Example"), icon: "sample", title: tr("Beispiel laden", "Load example"), content: (

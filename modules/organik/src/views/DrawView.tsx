@@ -1,5 +1,5 @@
 // Zeichnen und benennen: Zeichenfläche als Bühne, darunter Stifte (Elemente, Ringe), Modus und Namensleiste.
-// Werkzeuge: Beispiele | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht Lewis/Gerüst | 3D (nur App) | Rückgängig | Neu.
+// Werkzeuge: Beispiele | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht Lewis/Gerüst | 3D | Rückgängig | Neu.
 
 import { useMemo, useState } from "react";
 import { Button, RichText, Segmented, Sheet, Tag, tr, Workbench, type WorkbenchTool } from "@lern/ui";

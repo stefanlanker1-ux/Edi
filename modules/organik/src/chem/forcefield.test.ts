@@ -28,6 +28,6 @@ test("Kraftfeld: E/Z wie gezeichnet bleibt in 3D erhalten", () => {
 test("hinterlegte Strukturen (gemessene Werte) werden auch für gezeichnete Moleküle gefunden", () => {
   for (const smi of ["CCO", "CC(=O)O", "CC(C)=O", "C1=CC=CC=C1", "CC=O", "OC=O", "CC", "C=C", "C#C", "CO", "ClC(Cl)Cl"])
     assert.ok(storedFor(ffInput(smilesMol(smi))), smi);
-  // nicht hinterlegt → in der App mit dem Kraftfeld
+  // nicht hinterlegt → mit dem Kraftfeld berechnet
   for (const smi of ["CCCO", "CC(C)O", "CC1=CC=CC=C1"]) assert.equal(storedFor(ffInput(smilesMol(smi))), null, smi);
 });

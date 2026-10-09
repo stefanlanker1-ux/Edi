@@ -1,4 +1,4 @@
-Kraftfeld MMFF94 (packages/chem/src/mmff, nur in der Android/iOS-App aktiv)
+Kraftfeld MMFF94 (packages/chem/src/mmff; berechnet die 3D-Ansicht frei gebauter und gezeichneter Moleküle – im Web, in der Offline-Datei und in der Android/iOS-App)
 
 Parametertabellen: MMFF94, Copyright (c) Merck and Co., Inc., 1994, 1995, 1996. All Rights Reserved.
 Atomtyp-Regeln, Ladungen, empirische Regeln und Energieterme übertragen aus RDKit (Code/ForceField/MMFF,

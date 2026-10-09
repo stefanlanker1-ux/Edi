@@ -638,7 +638,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Erklärung Level I (Wasser, Ammoniak, Methan, Chlorwasserstoff, Fluorwasserstoff, Tetrachlormethan, Kohlendioxid; Test).
 - Handy mit niedriger Höhe (≤ 760 px): Atom-Leiste mit 44-px-Tasten ohne Namen, Formel im Kopf kleiner – das Baufeld bekommt mehr Platz.
 - 3D frei gebauter Moleküle: Kraftfeld MMFF94 (`packages/chem/src/mmff`, Einstieg `@lern/chem/mmff`, erst bei Bedarf geladen, rechnet im Hintergrund-Thread
-  `packages/chem-ui/src/ff.worker.ts`); für bekannte Moleküle gemessene Strukturen (`mol3d.ts`). Prüfung gegen RDKit: `scripts/mmff-reference.py`, `packages/chem/test/mmff-reference.test.ts`.
+  `packages/chem-ui/src/ff.worker.ts`; im Web, in der Offline-Datei und in der App); für bekannte Moleküle gemessene Strukturen (`mol3d.ts`). Herkunft und Lizenz
+  (Parameter Merck, Regeln aus RDKit, BSD-3) in `packages/chem/NOTICE.txt` – erscheint unter „Lizenzen“. Prüfung gegen RDKit: `scripts/mmff-reference.py`, `packages/chem/test/mmff-reference.test.ts`.
   3D-Darstellung: gemeinsame Geometrien, Beschriftungen nur bei Bedarf, ohne Kantenglättung bei hoher Pixeldichte (flüssig auf Handys).
 
 ## Reaktionsgleichungen (`modules/reaktionsgleichungen`)
@@ -1084,6 +1085,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Lizenzhinweise: Kraftfeld MMFF94 auch im Web** – `packages/chem/NOTICE.txt` (erscheint unter „Lizenzen“) nannte das Kraftfeld noch „nur in der Android/iOS-App aktiv“;
+  es berechnet die 3D-Ansicht aber auch im Web und in der Offline-Datei (im Browser geprüft: Propan-1-ol, Methylbenzen, je etwa 0,9 s im Hintergrund-Thread).
+  Hinweis berichtigt, ebenso veraltete Kommentare „3D (nur App)“ in Nomenklatur und Elektronenpaarbindung; Doku nennt Herkunft und Lizenz (Merck-Parameter, RDKit BSD-3).
 - **Android-App: Zurück-Taste schließt Blätter** – bisher beendete die Hardware-Zurück-Taste die App sofort, auch bei offenem Blatt oder im Modul. Jetzt `@capacitor/app`
   (8.1.2, MIT) mit Listener in `apps/edi/src/native.ts`: Zurück im Verlauf der WebView wie im Browser (schließt Blatt/Erklärung über `useBackClose`, führt zur Übersicht),
   erst auf der Startseite beendet sie die App. Nur in der Android-App nachgeladen; Lizenzliste des Web-Builds um `@capacitor/app` und `@capacitor/core` ergänzt;
