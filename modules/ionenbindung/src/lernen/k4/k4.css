@@ -16,7 +16,7 @@
 .k4-step > button:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
 .k4-step > button:disabled { opacity: .35; }
 .k4-step-v { display: grid; justify-items: center; line-height: 1.1; min-width: 0; }
-.k4-step-v small { font-size: .78rem; font-weight: 650; color: var(--muted); white-space: nowrap; }
+.k4-step-v small { font-size: .875rem; font-weight: 650; color: var(--muted); white-space: nowrap; }
 .k4-step-v b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .k4-step-v .ion-label { font-size: .95rem; color: var(--text); }
 
@@ -66,10 +66,12 @@
 .k4-wall .iw-formula { font-size: 2rem; }
 
 /* Formel schreiben */
-.k4-write { display: grid; justify-items: center; gap: 6px; padding: 4px 0; }
-.k4-write .ion-wall { max-width: 280px; }
-.k4-write-f { font-size: 2rem; font-weight: 800; line-height: 1.1; }
-.k4-cnt { border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.k4-write { display: grid; grid-template-rows: minmax(0, 1fr) auto auto; justify-items: center; align-items: center; width: 100%; height: 100%; min-height: 0; gap: 4px; }
+.k4-write .ion-wall { max-width: 280px; margin: 0 auto; }
+/* wenig Höhe: Ionenwand weg, Formel und Zähltabelle bleiben in Lesegröße */
+@container (max-height: 210px) { .k4-write .k4-wall { display: none; } .k4-write { grid-template-rows: auto auto; align-content: center; } }
+.k4-write-f { font-size: 1.9rem; font-weight: 800; line-height: 1.1; }
+.k4-cnt { border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; } /* 14,4 px, nie verkleinert */
 .k4-cnt th { text-align: right; padding: 2px 8px 2px 0; color: var(--muted); font-weight: 650; }
 .k4-cnt td { padding: 2px 6px; font-weight: 700; white-space: nowrap; }
 .k4-cnt td.ok { color: var(--ok); }
@@ -85,11 +87,12 @@
 .k4-mix figcaption { font-weight: 700; text-align: center; font-size: .95rem; }
 .k4-mix-no figcaption b { color: var(--muted); }
 .k4-mix-yes figcaption b { color: var(--ok); }
-.k4-mix-ions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; max-width: 160px; }
-.k4-mix-i { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 2px solid; font-weight: 750; font-size: 1rem; }
+.k4-mix figure { container-type: inline-size; width: 100%; }
+.k4-mix-ions { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 4cqw 5cqw; width: 100%; }
+.k4-mix-i { display: grid; place-items: center; width: 24cqw; height: 24cqw; max-width: 64px; max-height: 64px; border-radius: 50%; border: 2px solid; font-weight: 750; font-size: clamp(.8rem, 7cqw, 1.1rem); }
 .k4-mix-i sup { font-size: .62em; }
 .k4-mix-i.O { background: var(--hue-red-soft); border-color: var(--hue-red-deep); }
-.k4-mix-i.S { background: var(--hue-yellow-soft); border-color: var(--hue-yellow-deep); width: 54px; height: 54px; }
+.k4-mix-i.S { background: var(--hue-yellow-soft); border-color: var(--hue-yellow-deep); width: 30cqw; height: 30cqw; max-width: 78px; max-height: 78px; }
 
 /* große Formel */
 .k4-big { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; min-height: 0; }
