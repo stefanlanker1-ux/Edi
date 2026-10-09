@@ -344,15 +344,15 @@ function steps(): GuideStep[] {
     },
     {
       mode: "free",
-      ask: tr("Mit welcher Probe zwischen den Elektroden leuchtet die Lampe?", "With which sample between the electrodes does the lamp light up?"),
+      ask: tr("Kaliumbromid KBr zwischen den Elektroden: Bei welcher Probe leuchtet die Lampe?", "Potassium bromide KBr between the electrodes: with which sample does the lamp light up?"),
       options: [
-        tr("Kaliumbromid KBr, gelöst in Wasser H₂O", "potassium bromide KBr, dissolved in water H₂O"),
-        tr("Kaliumbromid KBr, fest", "potassium bromide KBr, solid"),
+        tr("KBr gelöst in Wasser", "KBr dissolved in water"),
+        tr("KBr fest", "solid KBr"),
         tr("reines Wasser H₂O", "pure water H₂O"),
       ],
-      answer: tr("Kaliumbromid KBr, gelöst in Wasser H₂O", "potassium bromide KBr, dissolved in water H₂O"),
+      answer: tr("KBr gelöst in Wasser", "KBr dissolved in water"),
       why: {
-        [tr("Kaliumbromid KBr, fest", "potassium bromide KBr, solid")]: tr("Im festen KBr sitzen K⁺ und Br⁻ im Gitter fest – kein Strom.", "In solid KBr, K⁺ and Br⁻ are fixed in the lattice – no current."),
+        [tr("KBr fest", "solid KBr")]: tr("Im festen KBr sitzen K⁺ und Br⁻ im Gitter fest – kein Strom.", "In solid KBr, K⁺ and Br⁻ are fixed in the lattice – no current."),
         [tr("reines Wasser H₂O", "pure water H₂O")]: tr("Reines Wasser enthält fast keine Ionen – kaum geladene Teilchen, die wandern.", "Pure water contains almost no ions – hardly any charged particles that move."),
       },
       ok: tr("Gelöst sind K⁺ und Br⁻ beweglich: K⁺ wandert zum Minuspol, Br⁻ zum Pluspol – die Lampe leuchtet.", "Dissolved, K⁺ and Br⁻ can move: K⁺ moves to the negative pole, Br⁻ to the positive pole – the lamp lights up."),

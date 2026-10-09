@@ -46,7 +46,7 @@ function Boxes({ l, count, label, onTap, off }: { l: number; count: number; labe
           // vorgemacht bzw. gelöst: nur Anzeige, keine Knöpfe
           return off ? <span key={i} className="k5-box">{arrows}</span> : (
             <button key={i} type="button" className="k5-box" disabled={count === 0} onClick={onTap}
-              aria-label={tr(`${label}: ${count} Elektronen – ein Elektron abgeben`, `${label}: ${count} electrons – remove one electron`)}>{arrows}</button>
+              aria-label={tr(`${label}: ${count} Elektronen – ein Elektron abgeben`, `${label}: ${count} electron${count === 1 ? "" : "s"} – remove one electron`)}>{arrows}</button>
           );
         })}
       </div>

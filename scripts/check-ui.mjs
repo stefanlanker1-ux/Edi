@@ -286,7 +286,7 @@ async function answer(page) {
  */
 async function guideSolve(page) {
   const g = page.locator("dialog.ui-guide[open]");
-  const weiter = g.locator(".ui-guide-next", { hasText: /^\s*(Weiter|Next)/ });
+  const weiter = g.locator(".ui-guide-next", { hasText: /^\s*(Weiter|Next)\s*$/ });
   const done = async () => (await weiter.count()) > 0;
   const click = l => l.evaluate(e => e.click()).catch(() => {});
   for (let j = 0; j < 12 && !(await done()); j++) {
