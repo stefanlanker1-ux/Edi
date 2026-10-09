@@ -1,0 +1,78 @@
+/* Kapitel 2 „Formel und Name“: Ionenwand mit Steppern, Formel-Baukasten, Namens-Baukasten, Ionenwahl – Farben nur aus Tokens */
+
+.k2-m .lm-stage { width: 100%; }
+.k2-fit { width: 100%; height: 100%; min-height: 0; overflow: hidden; }
+.k2-fit .ion-wall { max-width: 100%; }
+/* auf großen Bühnen etwas größere Bausteine (Fit verkleinert bei Bedarf) */
+.k2-fit .iw-stack { --u: min(96px, calc((100cqw - 8px - (var(--cols) - 1) * 5px) / var(--cols))); --h: clamp(40px, calc(var(--u) * .75), 66px); }
+.k2-static { width: 100%; height: 100%; min-height: 0; display: grid; place-items: center; }
+.k2-crystal .ib-lat svg { max-width: 420px; }
+
+/* Bedienung: fieldset sperrt alle Knöpfe, wenn gelöst (disabled) */
+.k2-ctl { border: 0; margin: 0; padding: 0; min-inline-size: 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px 12px; }
+/* Wand und Formel: Zähler fließen mit „Prüfen“ in die Zeile (zwei Zähler nebeneinander, „Prüfen“ daneben oder darunter) */
+.k2-pair, .k2-fm-ctl { display: contents; }
+.k2-count { display: flex; align-items: center; gap: 3px; }
+.k2-count output { min-width: 20px; text-align: center; font-weight: 800; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.k2-count .k2-key { padding: 0; width: 44px; }
+.k2-count-l { min-width: 26px; padding: 2px 3px; border-radius: var(--radius-sm); font-weight: 800; font-size: 1rem; text-align: center; border-bottom: 4px solid transparent; }
+.k2-count.cation .k2-count-l { border-bottom-color: var(--hue-yellow); }
+.k2-count.anion .k2-count-l { border-bottom-color: var(--hue-green); }
+.k2-count .k2-key:disabled { opacity: .35; }
+/* gelöst bzw. vorgemacht: Bedienung gesperrt – auf niedrigen Bildschirmen ausgeblendet, damit das Modell Platz hat */
+@media (max-height: 720px) { .k2-ctl:disabled { display: none; } }
+
+/* Taste (Wortteil, Ladung, Reihenfolge): sieht aus wie eine Taste */
+.k2-key {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; min-width: 44px; padding: 0 12px;
+  border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
+  font-weight: 750; font-size: 1rem; box-shadow: var(--key-edge); cursor: pointer; touch-action: manipulation;
+}
+.k2-key:active:not(:disabled) { box-shadow: var(--key-edge-pressed); transform: translateY(1px); }
+.k2-key:disabled { opacity: .4; box-shadow: none; cursor: default; }
+.k2-key[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); box-shadow: var(--key-edge-pressed); }
+
+/* Formel-Baukasten */
+.k2-fm { width: 100%; height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); justify-items: center; gap: 6px; }
+.k2-fm-f { font-size: clamp(2rem, 13cqh, 3.2rem); font-weight: 800; line-height: 1.15; letter-spacing: .01em; display: flex; align-items: baseline; }
+.k2-fm-el { border-bottom: 4px solid transparent; }
+.k2-fm-el + .k2-fm-el { margin-left: .04em; }
+.k2-fm-el.cation { border-bottom-color: var(--hue-yellow); }
+.k2-fm-el.anion { border-bottom-color: var(--hue-green); }
+.k2-idx { font-size: .62em; color: var(--hue-blue-deep); }
+.k2-fm .ion-wall { gap: 8px; }
+.k2-fm .iw-stack { --h: clamp(36px, calc(var(--u) * .7), 48px); }
+@media (max-width: 420px) { .k2-swap-t { display: none; } }
+.k2-swap[aria-pressed="true"] { background: var(--hue-red-soft); color: var(--text); border-color: var(--rule); }
+
+/* Namens-Baukasten */
+.k2-nm { width: 100%; display: grid; justify-items: center; align-content: center; gap: 6px; text-align: center; }
+.k2-nm-f { font-size: clamp(1.8rem, 12cqh, 2.6rem); font-weight: 800; line-height: 1.1; }
+.k2-nm-arrow { transform: rotate(90deg); color: var(--muted); }
+.k2-nm-parts { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 34px; }
+.k2-part { display: inline-grid; place-items: center; min-height: 32px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-weight: 700; }
+.k2-part.k-m, .k2-piece.k-m { background: var(--hue-yellow-soft); }
+.k2-part.k-s, .k2-piece.k-s { background: var(--hue-green-soft); }
+.k2-part.k-e, .k2-piece.k-e { background: var(--hue-blue-soft); }
+.k2-part.k-n, .k2-piece.k-n { background: var(--surface-2); }
+.k2-part.k-empty { border-style: dashed; color: var(--muted); min-width: 64px; }
+.k2-nm-name { font-size: clamp(1.25rem, 9cqh, 1.8rem); font-weight: 800; overflow-wrap: break-word; max-width: 100%; }
+.k2-nm-name.empty { color: var(--faint); }
+.k2-tray { gap: 6px; }
+.k2-piece { padding: 0 10px; }
+.k2-back { font-size: 1.2rem; }
+
+/* Ionenwahl: Ladung und Anzahl je Ion untereinander, die beiden Ionen nebeneinander */
+.k2-pick { display: grid; grid-template-columns: repeat(2, minmax(0, max-content)); justify-content: center; gap: 6px 14px; }
+.k2-col { display: grid; gap: 6px; justify-items: center; min-width: 0; }
+.k2-z { display: flex; gap: 4px; }
+.k2-z .k2-key { padding: 0 6px; min-width: 46px; font-size: 1rem; }
+.k2-z.cation .k2-key[aria-pressed="true"] { background: var(--cat-tile-a); color: var(--cat-tile-text); border-color: var(--cat-tile-border); }
+.k2-z.anion .k2-key[aria-pressed="true"] { background: var(--an-tile-a); color: var(--an-tile-text); border-color: var(--an-tile-border); }
+
+/* niedrige Bildschirme: Bedienung enger */
+@media (max-height: 700px) {
+  .k2-ctl { gap: 6px 10px; }
+  .k2-pick { row-gap: 4px; }
+  .k2-col { gap: 4px; }
+}
