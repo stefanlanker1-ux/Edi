@@ -22,6 +22,7 @@ const PATHS = {
   bulb: <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.4 1 1.1 1 1.8V16h5v-.3c0-.7.4-1.4 1-1.8A6 6 0 0 0 12 3z" />,
   arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
   back: <path d="M19 12H5M11 6l-6 6 6 6" />,
+  home: <><path d="M3.5 11.2 12 3.8l8.5 7.4" /><path d="M5.8 9.4v11.1h4.4v-6h3.6v6h4.4V9.4" /></>,
   target: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="3" /></>,
   fire: <path d="M12 3c1 3 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5 0 2 1 3 2 3 0-3-1-5 1-8.5z" />,
   play: <path d="M8 5.5v13l10.5-6.5z" />,

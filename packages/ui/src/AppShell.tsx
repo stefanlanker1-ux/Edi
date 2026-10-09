@@ -52,14 +52,19 @@ export function AppShell<T extends string>({ name, logo, homeHref, tabs, active,
       {/* Fokus direkt auf den Inhalt: die Adresse (#/<modul>) bleibt – „#main“ als Adresse wäre für die Hülle ein unbekanntes Modul (→ Übersicht) */}
       <a className="ui-skip" href="#main" onClick={e => { e.preventDefault(); document.getElementById("main")?.focus(); }}>{tr("Zum Inhalt springen", "Skip to content")}</a>
       <header className="ui-topbar">
-        {homeHref
-          ? <a className="ui-brand" href={homeHref} title={tr("Zur Übersicht", "All apps")}>{logo}<h1 className="ui-brand-name">{name}</h1></a>
-          : <div className="ui-brand">{logo}<h1 className="ui-brand-name">{name}</h1></div>}
+        {/* in der Gesamt-App: Home-Knopf statt Modul-Symbol (zurück zur Übersicht); allein gebaut: Symbol */}
+        <div className="ui-brand">
+          {homeHref
+            ? <a className="ui-icon-btn ui-home" href={homeHref} aria-label={tr("Zur Übersicht", "Overview")} title={tr("Zur Übersicht aller Apps", "All apps")}><Icon name="home" /></a>
+            : logo}
+          <h1 className="ui-brand-name">{name}</h1>
+        </div>
         <nav className="ui-top-tabs" aria-label={tr("Bereiche", "Sections")}>{nav("ui-top-tab")}</nav>
         <div className="ui-top-actions">
           {actions}
           <LangButton />
-          <button type="button" className={`ui-icon-btn${readable ? " pressed" : ""}`} aria-pressed={readable} aria-label={readable ? tr("Lesbar ausschalten", "Readable mode off") : tr("Lesbar: mehr Abstand", "Readable: more spacing")}
+          {/* „Lesbar“: am Handy ausgeblendet (zu wenig Platz in der Kopfzeile) – eingeschaltet bleibt er sichtbar, damit man ihn ausschalten kann */}
+          <button type="button" className={`ui-icon-btn ui-readable${readable ? " pressed" : ""}`} aria-pressed={readable} aria-label={readable ? tr("Lesbar ausschalten", "Readable mode off") : tr("Lesbar: mehr Abstand", "Readable: more spacing")}
             title={readable ? tr("Lesbar ausschalten", "Readable mode off") : tr("Lesbar: mehr Abstand zwischen Buchstaben, Wörtern und Zeilen", "Readable: more space between letters, words and lines")} onClick={() => setReadable(!readable)}>
             <Icon name="text" />
           </button>

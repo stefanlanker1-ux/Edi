@@ -193,7 +193,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (danach im Hintergrund vorgeladen, damit es offline sofort geht). `entry.tsx` importiert `app.css` (und Schriften) und exportiert `App` als `default`.
 - Neues Modul: Ordner anlegen (package.json `@edi/<id>`, tsconfig wie die anderen), in `apps/edi/src/modules.ts` und `apps/edi/package.json` eintragen, `npm install`.
 - Adressen: `#/<id>` (Hash, funktioniert auf GitHub Pages, in der Offline-Datei und in Capacitor gleich). Hülle `apps/edi/src/Shell.tsx`: setzt `<html data-modul="<id>">`
-  und den Fenstertitel, liefert `HomeLink` (Logo → Übersicht), fängt Ladefehler ab („Neu laden“). Unbekannte Adresse → Übersicht – deshalb nie Sprungmarken über die Adresse (`#main` wäre ein unbekanntes Modul). `CurrentModul` (Kontext) nennt den Paketen
+  und den Fenstertitel, liefert `HomeLink` (Home-Knopf → Übersicht), fängt Ladefehler ab („Neu laden“). Unbekannte Adresse → Übersicht – deshalb nie Sprungmarken über die Adresse (`#main` wäre ein unbekanntes Modul). `CurrentModul` (Kontext) nennt den Paketen
   das offene Modul (Kennung, Namen), z. B. für Speicher-Schlüssel.
 - Stile: CSS unter `modules/<id>/src/` gilt nur im offenen Modul (`scripts/modul-scope.ts`, PostCSS: `:root` → `:root:where([data-modul=id])`, sonst
   `:where(:root[data-modul=id]) …`, ohne zusätzliche Spezifität). Stile der Hülle (`apps/edi/src/shell.css`) nur mit Präfix `ov-`/`edi-`; Pakete mit `ui-` bzw. eigenem Präfix.
@@ -273,8 +273,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   über `scripts/licenses.ts`; in der Übersicht öffnet „Lizenzen“ ein Blatt – Web und Handy-App lesen `lizenzen.txt`, die Einzeldatei den Kommentar am Dateiende), `App.tsx` des Moduls = `<LernApp name logo tabs tab onTab storage stufe?>` (`@lern/ui`: Link zur Übersicht,
   Stufen-Umschalter, Beamer, Farbschema – nicht im App-Store halten; Beamer und Stufe werden beim Verlassen des Moduls am Dokument aufgeräumt). Quiz-Antworten: `McAnswer` (automatisch), `NumberAnswer` (`@lern/quiz`, ganz/dezimal, Einheit).
   PSE überall als `pseTool({ stufe, mark })` (`@lern/chem-ui`) in Werkbank- und Quiz-`tools`.
-- Logo in jedem Modul verlinkt zur Übersicht (`HomeLink` der Hülle). Kopfzeile hat automatisch den Klang-Schalter (`@lern/ui` `feedback.ts`: `ding(ok)` nur wenn eingeschaltet, Standard aus; Vibration `buzz` immer)
-  und den Schalter „Lesbar“ (`readable.ts`, localStorage `lern-lesbar`, Attribut `data-lesbar` auf `<html>`, Stile in `tokens.css`: mehr Buchstaben-/Wort-/Zeilenabstand; Überschriften unverändert). Browser-Prüfung `scripts/check-ui.mjs` zusätzlich mit `LESBAR=1` laufen lassen.
+- Oben links in jedem Modul ein **Home-Knopf** (Haus, 44 px, zur Übersicht; `HomeLink` der Hülle) an Stelle des Modul-Symbols – das Symbol steht nur noch,
+  wenn ein Modul allein gebaut ist (ohne `HomeLink`), und in der Übersicht. Kopfzeile hat automatisch den Klang-Schalter (`@lern/ui` `feedback.ts`: `ding(ok)` nur wenn eingeschaltet, Standard aus; Vibration `buzz` immer)
+  und den Schalter „Lesbar“ (`readable.ts`, localStorage `lern-lesbar`, Attribut `data-lesbar` auf `<html>`, Stile in `tokens.css`: mehr Buchstaben-/Wort-/Zeilenabstand; Überschriften unverändert;
+  am Handy (≤ 640 px) ausgeblendet, außer er ist eingeschaltet – dann bleibt er zum Ausschalten sichtbar). Browser-Prüfung `scripts/check-ui.mjs` zusätzlich mit `LESBAR=1` laufen lassen.
 - Auffangnetz: `AppShell` fängt Abstürze einer Ansicht ab (`Rescue`, Karte „Hier hakt etwas.“); jedes Modul übergibt `storage` = seine localStorage-Schlüssel (Baukasten + Quiz),
   „Neu starten“ setzt zuerst nur Baukasten und laufende Runden zurück; Fortschritt bleibt – welche Schlüssel Fortschritt sind, ist **ausdrücklich gekennzeichnet**
   (`progressKey`: jeder Quiz-Store über `createQuizStore`, `LESSON_KEY`; eigene Fortschritts-Stores eines Moduls rufen `progressKey(schlüssel)` auf). Stürzt dieselbe App
@@ -337,8 +339,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf DE/EN in der Kopfzeile
   (`lern-sprache`; Wechsel lädt die Seite neu, Stände bleiben). Tests laufen auf Deutsch; je Modul `english.test.ts`/`guide-english.test.ts` prüfen, dass nichts Deutsches
   in der englischen Fassung bleibt. Fachnamen englisch nach IUPAC (alkene, ethanoic acid …).
-- Kopfzeile (`LernApp`): Logo (→ Übersicht), Bereichsleiste (ab 900 px), Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
-  nicht gespeichert), Farbschema hell/dunkel (Start hell, nicht gespeichert), DE/EN, „Lesbar“, Klang. Am Handy (≤ 374 px) engere Abstände, damit nichts übersteht.
+- Kopfzeile (`LernApp`): Home-Knopf (→ Übersicht), Bereichsleiste (ab 900 px), Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
+  nicht gespeichert), Farbschema hell/dunkel (Start hell, nicht gespeichert), DE/EN, „Lesbar“ (nicht am Handy), Klang. Am Handy (≤ 374 px) engere Abstände, damit nichts übersteht.
 - Offline-fähig: Web-Build mit Service Worker, zusätzlich Einzeldatei mit allen Modulen (`vite build --mode single` → `edi-offline.html`).
 - Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`. Einziges Plugin: `@capacitor/app` (Zurück-Taste); nach Änderung der Plugins
   `npm run build` und `npx cap sync` (im Ordner `apps/edi`), die erzeugten `capacitor.settings.gradle`, `app/capacitor.build.gradle` und `CapApp-SPM/Package.swift` mit committen.
@@ -1147,6 +1149,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Kopfzeile: Home-Knopf, „Lesbar“ nicht am Handy** (`@lern/ui` `AppShell`, alle Module) – oben links steht in jedem Modul ein Home-Knopf (Haus, zur Übersicht) statt des
+  Modul-Symbols, damit klar ist, wie man zurückkommt. Der Knopf „Lesbar“ ist am Handy (≤ 640 px) ausgeblendet (Wunsch, Platz); eingeschaltet bleibt er sichtbar, damit man ihn ausschalten kann.
 - **Ionenbindung Kapitel 3: Schmelze bewegt sich heißer schneller** – über der Schmelztemperatur läuft die Bewegung der Ionen mit der Temperatur schneller (je 200 °C
   einmal so schnell, Natriumchlorid bei 1000 °C doppelt, höchstens 2,5-mal); darunter unverändert. Umgesetzt als Zeitraffer der Simulation (`speed`), Test: doppeltes Tempo =
   dieselbe Bewegung in der halben Zeit.

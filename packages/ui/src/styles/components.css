@@ -9,6 +9,8 @@
   border-bottom: 1px solid var(--border);
 }
 a.ui-brand { color: inherit; text-decoration: none; }
+.ui-home { margin-left: 5px; } /* Home-Knopf (zur Übersicht) an Stelle des Modul-Symbols; .ui-brand rückt sonst 5 px nach links */
+@media (max-width: 640px) { .ui-readable:not(.pressed) { display: none; } } /* „Lesbar“ nicht am Handy */
 .ui-brand { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 44px; min-height: 44px; margin-left: -5px; font-weight: 800; font-size: 1.15rem; letter-spacing: -.03em; } /* Tippziel ≥ 44 px, auch wenn nur das Logo sichtbar ist */
 .ui-top-tabs { display: none; gap: 4px; margin: 0 auto; align-self: stretch; }
 .ui-top-tab { display: flex; align-items: center; gap: 8px; padding: 0 16px; border: 0; background: transparent; color: var(--muted); font-weight: 600; box-shadow: inset 0 -3px 0 transparent; transition: color .2s, box-shadow .2s; }
