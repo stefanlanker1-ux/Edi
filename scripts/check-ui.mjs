@@ -315,9 +315,10 @@ async function guideSolve(page) {
 async function kapitelCheck(page, app, vp) {
   const tab = page.locator("nav button:visible", { hasText: /^(Lernen|Learn)/ }).first();
   if (!(await tab.count())) return;
-  for (const stufe of ["I", "II"]) {
-    const sw = page.locator("header button:visible", { hasText: new RegExp(`^${stufe}$`) }).first();
-    if (await sw.count()) await sw.click({ timeout: 800 }).catch(() => {});
+  // Stufen-Umschalter: 1. Knopf = Level I, 2. = Level II (der Text enthält Lang- und Kurzform, deshalb über die Stelle)
+  const setStufe = async j => { const b = page.locator('header .ui-seg[aria-label="Level"] button').nth(j); if (await b.count()) await b.click({ timeout: 800 }).catch(() => {}); };
+  for (const [j, stufe] of [[0, "I"], [1, "II"]]) {
+    await setStufe(j);
     await tab.click({ timeout: 1500 }).catch(() => {});
     const store = await page.locator(".lk-list").getAttribute("data-store").catch(() => null);
     const ids = await page.locator(".lk-card").evaluateAll(es => es.map(e => e.getAttribute("data-kapitel")));
@@ -329,7 +330,7 @@ async function kapitelCheck(page, app, vp) {
           await page.evaluate(([store, id, k]) => { const v = JSON.parse(localStorage.getItem(store) || "{}"); const st = v.state ?? { pos: {}, best: {}, done: {} };
             st.pos = { ...st.pos, [id]: k }; localStorage.setItem(store, JSON.stringify({ state: st, version: v.version ?? 1 })); }, [store, id, k]);
           await page.reload({ waitUntil: "networkidle" }).catch(() => {});
-          if (await sw.count()) await page.locator("header button:visible", { hasText: new RegExp(`^${stufe}$`) }).first().click({ timeout: 800 }).catch(() => {});
+          await setStufe(j);
           await page.locator("nav button:visible", { hasText: /^(Lernen|Learn)/ }).first().click({ timeout: 1500 }).catch(() => {});
           await page.locator(`.lk-card[data-kapitel="${id}"]`).click({ timeout: 1500 }).catch(() => {});
           await page.waitForTimeout(300);
