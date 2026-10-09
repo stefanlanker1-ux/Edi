@@ -1,5 +1,5 @@
 // Englische Oberfläche: alle Texte erzeugter Aufgaben ohne deutsche Buchstaben (ä, ö, ü, ß) und ohne deutsche Anführungszeichen;
-// einfache Sprache wie im Deutschen (Sätze höchstens 15 Wörter).
+// einfache Sprache wie im Deutschen (Sätze höchstens 15 Wörter); Elementnamen mitten im Satz klein („which ion does sodium form“).
 import { test, expect } from "vitest";
 import { setLang } from "@lern/i18n";
 import { longSentences } from "@lern/quiz";
@@ -7,6 +7,7 @@ import { longSentences } from "@lern/quiz";
 test("Quiz auf Englisch ohne deutsche Reste", async () => {
   setLang("en", false);
   const tasks = await import("./tasks.ts");
+  const { namesInSentence } = await import("@lern/chem"); // erst nach setLang laden: Elementnamen englisch
   const miss = await import("./misconceptions.ts").catch(() => ({}));
   const texts = new Set<string>(), long = new Set<string>();
   const walk = (x: unknown): void => {
@@ -24,8 +25,10 @@ test("Quiz auf Englisch ohne deutsche Reste", async () => {
     for (let i = 0; i < lv.length; i++) for (let k = 0; k < 15; k++) { const r = make(stufe, i); walk(r); for (const x of r) longSentences(x as Parameters<typeof longSentences>[0]).forEach(l => long.add(l)); }
     for (let k = 0; k < 10; k++) walk(make(stufe, "mix"));
   }
+  const capital = [...texts].filter(s => namesInSentence(s) !== s);
   setLang("de", false);
   expect(texts.size).toBeGreaterThan(200);
   expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s))).toEqual([]);
   expect([...long]).toEqual([]);
+  expect(capital).toEqual([]);
 }, 120_000);

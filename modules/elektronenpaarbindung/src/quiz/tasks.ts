@@ -1,9 +1,9 @@
 // Quiz-Aufgaben zur Elektronenpaarbindung (reine Daten).
 
 import {
-  KNOWN, KNOWN_BY_ID, toMolecule, electronsOf, shapeAt, isPolar, polarBonds, bondName, elementName, geometryName, VALENCE, en, composition, type KnownMolecule,
+  KNOWN, KNOWN_BY_ID, toMolecule, electronsOf, shapeAt, isPolar, polarBonds, bondName, elementName, geometryName, VALENCE, en, composition, namesInSentenceTask, type KnownMolecule,
 } from "@lern/chem";
-import { buildRound, mc, d, pick, shuffle, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
+import { buildRound, mc, d, dis, pick, shuffle, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import type { Stufe } from "../store.ts";
 import { article, num as dec, tr } from "@lern/i18n";
 
@@ -195,7 +195,15 @@ function nameQ(os: boolean): Task {
   };
 }
 
-const GEOMS = (["linear", "gewinkelt", "trigonal-planar", "trigonal-pyramidal", "tetraedrisch"] as const).map(g => geo(g));
+const SHAPES = ["linear", "gewinkelt", "trigonal-planar", "trigonal-pyramidal", "tetraedrisch"] as const;
+/** Was eine Form am Zentralatom voraussetzt (für die Rückmeldung zu falschen Formen) */
+const NEEDS: Record<(typeof SHAPES)[number], () => string> = {
+  linear: () => tr("2 Bindungspartner und kein freies Paar", "2 bonding partners and no lone pair"),
+  gewinkelt: () => tr("2 Bindungspartner und freie Paare", "2 bonding partners and lone pairs"),
+  "trigonal-planar": () => tr("3 Bindungspartner und kein freies Paar", "3 bonding partners and no lone pair"),
+  "trigonal-pyramidal": () => tr("3 Bindungspartner und 1 freies Paar", "3 bonding partners and 1 lone pair"),
+  tetraedrisch: () => tr("4 Bindungspartner und kein freies Paar", "4 bonding partners and no lone pair"),
+};
 function geometry(): Task {
   const k = pick(KNOWN.filter(x => ["H2O", "NH3", "CH4", "CO2", "CCl4", "H2S", "PH3", "HCN", "CH2O", "CH3Cl"].includes(x.id)));
   const m = mols(k), c = centerOf(k), s = shapeAt(m, c.id)!;
@@ -208,7 +216,9 @@ function geometry(): Task {
     s.pairs > 0 && s.neighbors + s.pairs === 4 ? d(geo("tetraedrisch"), "elektronen-statt-atome", tr(`Die 4 Bereiche zeigen zwar in die Ecken eines Tetraeders – die Form beschreibt aber nur die **Atome**: ${s.neighbors} Bindungspartner + ${pairsDe(s.pairs)} → ${G}.`, `The 4 regions do point to the corners of a tetrahedron – but the shape only describes the **atoms**: ${s.neighbors} bonding partners + ${pairsEn(s.pairs)} → ${G}.`)) : null,
     s.pairs === 0 && s.neighbors === 2 ? d(geo("gewinkelt"), "aussen-paare-gezaehlt", tr(`Nur das Zentralatom ${c.el} zählt – und es hat kein freies Paar. Die freien Paare der Außenatome ändern die Form nicht → linear.`, `Only the central atom ${c.el} counts – and it has no lone pair. The lone pairs of the outer atoms do not change the shape → linear.`)) : null,
     hasMulti && s.geometry !== "tetraedrisch" ? d(geo("tetraedrisch"), "mehrfachbindung-doppelt-gezaehlt", tr(`Eine Mehrfachbindung zählt wie **ein** Bereich. ${c.el} hat ${s.neighbors + s.pairs} Bereiche → ${G}.`, `A multiple bond counts as **one** region. ${c.el} has ${s.neighbors + s.pairs} regions → ${G}.`)) : null,
-    ...GEOMS,
+    // übrige Formen: was sie voraussetzen würden – im Vergleich mit dem Zentralatom
+    ...SHAPES.filter(g => g !== s.geometry).map(g => dis(geo(g), tr(`„${geo(g)}“ hieße ${NEEDS[g]()}. ${c.el} hat ${s.neighbors} Bindungspartner und ${s.pairs ? pairsDe(s.pairs) : "kein freies Paar"} → ${G}.`,
+      `“${geo(g)}” would mean ${NEEDS[g]()}. ${c.el} has ${s.neighbors} bonding partners and ${s.pairs ? pairsEn(s.pairs) : "no lone pair"} → ${G}.`))),
   ];
   return {
     ...mc(G, wrongs),
@@ -345,7 +355,8 @@ export function makeRound(stufe: string, level: LevelKey, stats?: TypeStats, due
     : level === "due" ? due.filter(id => levels.some(l => l.types.includes(id)))
     : levels[level].types;
   if (!ids.length) ids = levels[0].types;
-  return buildRound(ids, GENS(stufe === "os"), 10);
+  // englisch: Elementnamen mitten im Satz klein
+  return buildRound(ids, GENS(stufe === "os"), 10).map(namesInSentenceTask);
 }
 
 export { KNOWN_BY_ID };

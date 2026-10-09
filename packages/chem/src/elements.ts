@@ -1,6 +1,6 @@
 // Elementdaten Z = 1–86 (Wasserstoff bis Radon) inkl. Lanthanoide. Namen deutsch oder englisch (Sprache der Oberfläche).
 
-import { tr } from "@lern/i18n";
+import { tr, getLang } from "@lern/i18n";
 
 export type Category =
   | "alkali" | "earth" | "transition" | "lanthanoid" | "metal"
@@ -148,6 +148,30 @@ export const ELEMENTS: Element[] = RAW.map(([Z, symbol, name, mass, en]) => {
 export const BY_Z: Record<number, Element> = Object.fromEntries(ELEMENTS.map(e => [e.Z, e]));
 export const BY_SYMBOL: Record<string, Element> = Object.fromEntries(ELEMENTS.map(e => [e.symbol, e]));
 export const MAX_Z = ELEMENTS.length;
+
+const EN_NAME_RE = new RegExp(`\\b(?:${EN_NAMES.join("|")})\\b`, "g");
+/**
+ * Englisch: Elementnamen mitten im Satz klein – auch am Anfang von Stoffnamen („Which ion does **sodium** form?“, „the formula of **iron(III) oxide**“).
+ * Am Satzanfang (auch nach Markdown-Sternchen) bleibt der Großbuchstabe. Deutsch bleibt unverändert.
+ */
+export function namesInSentence(text: string): string {
+  if (getLang() !== "en") return text;
+  return text.replace(EN_NAME_RE, (w: string, i: number) =>
+    /(^|[.!?]\s+|\n\s*)$/.test(text.slice(0, i).replace(/[*„“"'(]+$/, "")) ? w : w[0].toLowerCase() + w.slice(1));
+}
+
+/** {@link namesInSentence} für die Sätze einer Quizaufgabe: Frage, Tipp, Erklärung, Rückmeldungen (Antwortoptionen stehen für sich und bleiben) */
+export function namesInSentenceTask<T extends { prompt: string; hint?: string; explain?: string; why?: Record<number, string>; traps?: { why?: string }[] }>(t: T): T {
+  if (getLang() !== "en") return t;
+  const f = namesInSentence;
+  return {
+    ...t, prompt: f(t.prompt),
+    ...(t.hint !== undefined ? { hint: f(t.hint) } : {}),
+    ...(t.explain !== undefined ? { explain: f(t.explain) } : {}),
+    ...(t.why ? { why: Object.fromEntries(Object.entries(t.why).map(([i, w]) => [i, f(w)])) } : {}),
+    ...(t.traps ? { traps: t.traps.map(x => (x.why !== undefined ? { ...x, why: f(x.why) } : x)) } : {}),
+  };
+}
 
 /** Neutronenzahlen der stabilen Isotope für Z ≤ 20 */
 export const STABLE_N: Record<number, number[]> = {

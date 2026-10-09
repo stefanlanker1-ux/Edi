@@ -176,7 +176,6 @@
   .ab-controls { gap: 6px; }
   .q-body > .q-visual { min-height: 44px; }
   .num-field input, .num-field select { min-height: 44px; }
-  .ab-controls .ui-stepper.stack .ui-stepper-ctl input, .ab-controls .ui-stepper.stack .ui-stepper-ctl output { height: 26px; min-height: 26px; }
   .ab-controls .ui-stepper.stack { gap: 0; }
   .q-lead { font-size: .88rem; line-height: 1.3; }
 }

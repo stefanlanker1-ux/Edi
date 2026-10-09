@@ -103,3 +103,14 @@ test("Unterstufe: jeder abgefragte Molekülname steht in der Erklärung (Level I
   const missing = KNOWN.filter(k => !k.os && new Set(k.atoms.map(a => a[0])).size > 1 && !text.includes(k.name)).map(k => k.name);
   assert.deepEqual(missing, []);
 });
+
+test("Molekülform: jede falsche Form hat eine eigene Rückmeldung", () => {
+  let n = 0;
+  for (let r = 0; r < 200; r++) for (const t of makeRound("os", "mix")) {
+    if (t.type !== "geometry" || t.kind !== "mc") continue;
+    n++;
+    t.options.forEach((o, i) => { if (i !== t.answer) assert.ok(t.why?.[i], `${t.prompt}: ${o}`); });
+  }
+  assert.ok(n > 0);
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
+

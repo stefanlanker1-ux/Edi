@@ -1083,6 +1083,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Letzte Feinarbeiten Runde 3** – Elektronenpaarbindung: jede falsche Molekülform mit eigener Rückmeldung (z. B. „trigonal-planar“ für H₂O: übersieht die zwei freien Paare);
+  Ionenbindung: jede falsche Formel- und Namensoption mit eigener Rückmeldung (Ladungsrechnung, Name des Anions); englische Element- und Stoffnamen mitten im Satz klein (Test).
+  Gemeinsam: gestapelte Zähler mit Zahlfeld ≥ 44 px (Atombau „Schalen füllen“ war auf 26 px gestaucht), Energieniveau-Beschriftung ≥ 14 px, Winkelbeschriftung im 3D-Modell weicht
+  δ+/δ− aus; Polymere: Halbstrukturformeln unter Bild-Antworten am Handy einspaltig (brachen bei 360 px um).
 - **Atombau, Ionenbindung, Elektronenpaarbindung, `@lern/chem`: Nachprüfung Runde 3** – Elektronegativität eingeführt: EN-Tabelle (H, C, N, O, F, P, S, Cl, Br, I mit Trends) in der
   Erklärung Level II und als Hilfsmittel im Quiz zur Polarität (vorher waren „Polare Bindungen“ ohne EN-Werte nicht lösbar). Level-I-Namen (HF, CCl₄, CO₂) in der Erklärung eingeführt
   (Test). Gemessene Bindungswinkel ergänzt (Dimethylether 111,7°, Trimethylamin 110,9° …), Tetraeder mit verschiedenen Partnern „ca. 109,5°“. Ablenker „3d zuerst abgegeben“ als

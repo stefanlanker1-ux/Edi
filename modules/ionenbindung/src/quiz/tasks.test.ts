@@ -91,3 +91,13 @@ test("Rückmeldungen zu mehratomigen Ionen: Ammonium ist ein Kation", () => {
     for (const why of Object.values(t.why ?? {})) assert.ok(!/alle anderen mehratomigen Ionen hier sind Anionen/.test(why), why);
   }
 });
+
+test("Formel, Name, Verhältnis: jede falsche Option hat eine eigene Rückmeldung", () => {
+  const seen = new Set<string>();
+  for (const stufe of ["us", "os"] as const) for (let r = 0; r < 150; r++) for (const t of makeRound(stufe, "mix")) {
+    if (t.kind !== "mc" || !["formula", "name", "count"].includes(t.type!)) continue;
+    seen.add(t.type!);
+    t.options.forEach((o, i) => { if (i !== t.answer) assert.ok(t.why?.[i], `${t.type}: ${t.prompt} → „${o}“ ohne Rückmeldung`); });
+  }
+  assert.strictEqual(seen.size, 3);
+}, 30_000);

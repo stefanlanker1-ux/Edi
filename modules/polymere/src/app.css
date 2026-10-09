@@ -237,6 +237,8 @@
 .pm-opt-txt { display: none; }
 @media (max-width: 480px) {
   .pm-opt-pic.has-txt { height: 48px; }
+  /* Halbstrukturformel als Text: einspaltig, damit sie in eine Zeile passt (zweispaltig brach „–CH₂=CH(C₆H₅)–“ bei 360 px um) */
+  .mc-grid:has(.pm-opt-pic.has-txt) { grid-template-columns: minmax(0, 1fr); }
   .pm-opt-pic.has-txt > :not(.pm-opt-txt):not(.sr-only) { display: none; }
   .pm-opt-pic.has-txt > .pm-opt-txt { display: grid; place-items: center; height: 100%; padding: 0 4px 0 22px; font-size: .95rem; font-weight: 700; text-align: center; line-height: 1.2; }
 }

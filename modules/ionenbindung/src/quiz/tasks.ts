@@ -2,7 +2,7 @@
 
 import {
   CATIONS, ANIONS, ION_BY_ID, ionsFor, ratio, formula, toSubscript, compoundName, ionText, chargeFull, isKnownCompound, BY_Z, type Ion, groupLabel,
-  elementPronoun,
+  elementPronoun, namesInSentenceTask,
 } from "@lern/chem";
 import { buildRound, mc, d, dis, pick, shuffle, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { weakTypes } from "@lern/quiz";
@@ -142,7 +142,9 @@ function formulaMc(os: boolean): Task {
     r.nC !== r.nA ? d(F(c, a, r.nA, r.nC), "indizes-vertauscht", tr(`Der Index ist die Anzahl, nicht die eigene Ladung: ${balance(c, a, r.nC, r.nA)}.`, `The subscript is the number, not the ion's own charge: ${balance(c, a, r.nC, r.nA)}.`)) : null,
     r.nC !== 1 || r.nA !== 1 ? d(F(c, a, 1, 1), "ionen-1zu1", tr(`Ein ${c.name} (${chargeFull(c.charge)}) und ein ${a.name} (${chargeFull(a.charge)}) sind zusammen nicht neutral.`, `One ${nm(c)} (${chargeFull(c.charge)}) and one ${nm(a)} (${chargeFull(a.charge)}) together are not neutral.`)) : null,
     g > 1 ? d(F(c, a, abs(a.charge), abs(c.charge)), "nicht-gekuerzt", tr(`Neutral, aber nicht gekürzt: ${abs(a.charge)} : ${abs(c.charge)} = ${r.nC} : ${r.nA}.`, `Neutral, but not simplified: ${abs(a.charge)} : ${abs(c.charge)} = ${r.nC} : ${r.nA}.`)) : null,
-    F(c, a, r.nC, r.nA + 1), F(c, a, r.nC + 1, r.nA),
+    // übrige Verhältnisse: Ladungsrechnung zeigt, dass die Verbindung geladen wäre
+    ...[[r.nC, r.nA + 1], [r.nC + 1, r.nA]].map(([nC, nA]) => dis(F(c, a, nC, nA), tr(`${balance(c, a, nC, nA)} – nicht gleich, die Verbindung wäre geladen. Richtig: ${balance(c, a, r.nC, r.nA)}.`,
+      `${balance(c, a, nC, nA)} – not equal, the compound would be charged. Correct: ${balance(c, a, r.nC, r.nA)}.`))),
   ];
   return {
     ...mc(F(c, a), wrongs),
@@ -165,7 +167,12 @@ function name(os: boolean): Task {
     // Eisen(II) ↔ Eisen(III)
     ...p.cat.filter(x => x.id !== c.id && x.Z === c.Z).map(x =>
       d(compoundName(x, a), "roemisch-falsch", tr(`Die römische Zahl ist die Ladung des Metall-Ions, nicht seine Anzahl: ${balance(c, a, r.nC, r.nA)} → ${c.name}.`, `The Roman numeral is the charge of the metal ion, not the number of ions: ${balance(c, a, r.nC, r.nA)} → ${nm(c)}.`))),
-    ...shuffle(p.an.filter(x => x.id !== a.id)).slice(0, 3).map(x => compoundName(c, x)),
+    // Ladung vergessen: Metall mit mehreren möglichen Ionen ohne römische Zahl
+    c.part.endsWith(")") ? d(tr(`${BY_Z[c.Z!].name}${a.part}`, `${BY_Z[c.Z!].name} ${a.part}`), "roemisch-vergessen", tr(`${BY_Z[c.Z!].name} kann verschieden geladene Ionen bilden. Die Ladung gehört als römische Zahl in den Namen: ${balance(c, a, r.nC, r.nA)} → ${c.part}.`,
+      `${BY_Z[c.Z!].name} can form ions with different charges. The charge goes into the name as a Roman numeral: ${balance(c, a, r.nC, r.nA)} → ${c.part[0].toLowerCase() + c.part.slice(1)}.`)) : null,
+    // anderes Anion: welches Ion in der Formel steht und wie es heißt
+    ...shuffle(p.an.filter(x => x.id !== a.id)).slice(0, 3).map(x => dis(compoundName(c, x), tr(`In ${F(c, a)} steckt ${ionText(a)} – das ${a.name}. ${compoundName(c, x)} enthielte ${ionText(x)}.`,
+      `${F(c, a)} contains ${ionText(a)} – that is the ${nm(a)}. ${compoundName(c, x)} would contain ${ionText(x)}.`))),
   ];
   return {
     ...mc(compoundName(c, a), wrongs),
@@ -265,7 +272,8 @@ export function makeRound(stufe: string, level: LevelKey, stats?: TypeStats, due
     : level === "due" ? due.filter(id => levels.some(l => l.types.includes(id)))
     : levels[level].types;
   if (!ids.length) ids = levels[0].types;
-  return buildRound(ids, GENS(s === "os"), 10);
+  // englisch: Elementnamen (auch in Stoffnamen) mitten im Satz klein
+  return buildRound(ids, GENS(s === "os"), 10).map(namesInSentenceTask);
 }
 
 export const ionsOf = (t: Extract<Task, { kind: "build" }>) => ({ cation: ION_BY_ID[t.cation], anion: ION_BY_ID[t.anion] });

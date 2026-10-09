@@ -183,7 +183,12 @@ export default function Molecule3D({ mol, data, computed, showAngles = true, sho
       for (const p of polarBonds(mol)) { signs.set(p.plus, "δ+"); signs.set(p.minus, "δ−"); }
       for (const [id, s] of signs) {
         const l = label(s, s === "δ+" ? "delta plus" : "delta minus");
-        l.position.copy(pos.get(id)!).add(new THREE.Vector3(0.32, 0.38, 0));
+        // vom Atom weg nach außen (weg von seinen Bindungen) – dort liegt kein Winkelbogen, der Winkel steht innen zwischen den Bindungen
+        // (Methanol: δ+ am H der OH-Gruppe wurde sonst vom Winkel C–O–H verdeckt); ohne klare Richtung (symmetrisch) oben rechts wie bisher
+        const P = pos.get(id)!, out = new THREE.Vector3();
+        for (const b of e.bonds) if (b.a === id || b.b === id) out.add(new THREE.Vector3().subVectors(P, pos.get(b.a === id ? b.b : b.a)!).normalize());
+        if (out.lengthSq() < 0.04) l.position.copy(P).add(new THREE.Vector3(0.32, 0.38, 0));
+        else l.position.copy(P).addScaledVector(out.normalize(), 0.5);
         group.add(l);
       }
       const d = v3(dipoleVector(e, en));

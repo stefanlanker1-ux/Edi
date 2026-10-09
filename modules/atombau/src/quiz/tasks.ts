@@ -5,7 +5,7 @@
 import {
   BY_Z, STABLE_N, standardNeutrons, configuration, configString, shortConfigString, shells,
   unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed, minus, groupLabel,
-  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, aufbau, type Occupied,
+  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, aufbau, namesInSentenceTask, type Occupied,
 } from "@lern/chem";
 import { mc, d, dis, validTraps, type Trap } from "@lern/quiz";
 import { article, tr } from "@lern/i18n";
@@ -702,6 +702,7 @@ export function makeRound(stufe: Stufe, level: LevelKey, count = 10, stats?: Typ
       if (!seen.has(sig)) { seen.add(sig); break; }
       t = gen(pool);
     }
-    return { ...t, type: id };
+    // englisch: Elementnamen mitten im Satz klein
+    return namesInSentenceTask({ ...t, type: id });
   });
 }

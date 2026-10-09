@@ -52,10 +52,10 @@
 
 /* ── Energieschema ──────────────────────────────────────────────────────── */
 .energy { display: flex; gap: 10px; padding: 6px 0; width: max-content; min-width: 100%; }
-.en-axis { writing-mode: vertical-rl; transform: rotate(180deg); font-size: .68rem; color: var(--faint); text-transform: uppercase; letter-spacing: .12em; border-left: 2px solid var(--border); display: flex; justify-content: center; }
+.en-axis { writing-mode: vertical-rl; transform: rotate(180deg); font-size: .875rem; color: var(--faint); text-transform: uppercase; letter-spacing: .12em; border-left: 2px solid var(--border); display: flex; justify-content: center; }
 .en-grid { display: grid; row-gap: 6px; align-items: center; }
 .en-row { display: flex; align-items: center; gap: 8px; padding-left: calc(var(--n) * 18px); }
-.en-lbl { font-size: .78rem; font-weight: 700; color: var(--muted); min-width: 22px; text-align: right; }
+.en-lbl { font-size: .875rem; font-weight: 700; color: var(--muted); min-width: 24px; text-align: right; } /* Lesetext ≥ 14 px */
 .en-boxes { display: flex; }
 .en-box { display: grid; place-items: center; width: 28px; height: 30px; margin-left: -1.5px; border: 1.5px solid var(--text); background: var(--surface); font-size: 15px; font-weight: 700; letter-spacing: -2px; padding: 0; line-height: 1; color: var(--text); }
 .en-boxes .en-box:first-child { border-radius: 6px 0 0 6px; } .en-boxes .en-box:last-child { border-radius: 0 6px 6px 0; }
