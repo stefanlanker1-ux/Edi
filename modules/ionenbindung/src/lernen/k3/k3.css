@@ -93,7 +93,7 @@
 .k3-liquid.water { stroke: var(--hue-blue); }
 .k3-electrode { fill: var(--surface, var(--bg)); stroke: var(--text); stroke-width: 2; }
 .k3-pole { text-anchor: middle; font-family: var(--font); font-weight: 800; font-size: 28px; fill: var(--text); }
-.k3-note { text-anchor: middle; font-family: var(--font); font-weight: 650; font-size: 14px; fill: var(--muted); }
+.k3-note { text-anchor: middle; font-family: var(--font); font-weight: 650; font-size: 17px; fill: var(--muted); }
 /* festes Salz: Körner im Glas */
 .k3-grains rect { fill: var(--surface, var(--bg)); stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; }
 /* Lupe: Ausschnitt aus der Mitte, Hinweislinien zur Markierung im Glas */
@@ -104,7 +104,7 @@
 .k3-halo { paint-order: stroke; stroke: var(--surface, var(--bg)); stroke-width: 5px; stroke-linejoin: round; }
 .k3-lens-bg.water { fill: var(--hue-blue-soft); }
 .k3-lpole { text-anchor: middle; font-family: var(--font); font-weight: 800; font-size: 22px; fill: var(--text); }
-.k3-ltext { font-family: var(--font); font-weight: 650; font-size: 14px; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
+.k3-ltext { font-family: var(--font); font-weight: 650; font-size: 17px; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
 .k3-legend .k3-ion circle { stroke-width: 1.5; }
 .k3-arrow.tiny { stroke-width: 2.2; }
 .k3-arrow.tiny.cat { stroke: var(--hue-yellow-deep); }

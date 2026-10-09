@@ -616,12 +616,18 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): **Anziehen, abstoßen** (Ion wählen `ChargePair`, Ion in der Reihe verschieben `IonRow`,
   quer oder hochkant je nach Bühne – Texte ohne Richtungswörter) · **Das Ionengitter** (Ionenverbindungen heißen auch **Salze**; Schicht füllen `LatticeFill`, Nachbarn antippen –
   4 in der Schicht, räumliches Gitter `Lattice3D` mit der Schicht in der Bildebene und je 1 Gegen-Ion davor und dahinter, Verhältnis aus dem MgO-Ausschnitt `FormulaModel`) ·
-  **Hart und spröde** (Temperatur-Schieber `ThermoLattice`: NaCl 801 °C, Schmelze ungeordnet, aber weiter mit Anziehung zum nächsten Gegen-Ion; `ThermoPair`: NaCl und MgO
-  (2852 °C) mit einem Schieber – „NaCl flüssig, MgO fest“; Schichten verschieben `ShiftLayers`: nach einem ganzen Platz stehen gleiche Ladungen gegenüber → Abstoßung, Riss) ·
-  **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: fest / Schmelze / Lösung, Schalter, Pole tauschen; die Ionen bleiben gemischt und
-  driften sichtbar zu ihrem Pol – Kationen zum Minuspol –, nie getrennte Ladungsblöcke). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196,
+  **Hart und spröde** (Temperatur-Schieber `ThermoLattice`: Kristall im Tiegel, kleine Teilchensimulation `k3/sim.ts` – fest schwingen die Ionen um ihre Plätze, Ausschlag
+  wächst mit der Temperatur; ab der Schmelztemperatur (NaCl 801 °C) verlassen sie die Plätze und gleiten ständig ungeordnet aneinander vorbei, dicht, ohne Überlappung,
+  Gegen-Ionen nah (Anziehungslinien je nach Abstand weich ein- und ausgeblendet); darunter gleitet jedes Ion auf einen freien Platz seiner Ladung zurück; `ThermoPair`: NaCl
+  und MgO (2852 °C) mit einem Schieber, je 4 × 3 Ionen – „NaCl flüssig, MgO fest“; Schichten verschieben `ShiftLayers`: nach einem ganzen Platz stehen gleiche Ladungen
+  gegenüber → Abstoßung, Riss) · **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: Becherglas mit Batterie, Schalter, Lampe – fest
+  Salzkörner, Schmelze 801 °C, Lösung „in Wasser H₂O“ – und eine Lupe „Ausschnitt“ aus der Mitte (neben oder unter dem Glas, Hinweislinien): fest schwingen die Ionen nur, in
+  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich langsam – Kationen zum Minuspol, Anionen zum Pluspol, gemischt; der
+  Ausschnitt ist größer als die Lupe, was hinausgleitet, kommt außerhalb des Sichtbaren wieder herein; Pole am Lupenrand, Legende „Na⁺ ← zum Minuspol“; was an den Elektroden
+  passiert, bleibt offen („lernst du später“) – nie getrennte Ladungsblöcke, nie Ein-/Ausblenden mitten im Bild; Test `k3/sim.test.ts`). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196,
   Mg²⁺ 72, O²⁻ 140 pm), Ladung in der Kugel; Anziehung als Linie (→ ←), Abstoßung rot gestrichelt (← →) – nicht nur über Farbe. Wasser nur als Stoff „Wasser H₂O“; Lösen knüpft
-  an Gemische an („Wasserteilchen lagern sich an und lösen die Ionen heraus“), das Warum kommt bei der Elektronenpaarbindung. Reduzierte Bewegung: gleich das Endbild.
+  an Gemische an („Wasserteilchen lagern sich an und lösen die Ionen heraus“), das Warum kommt bei der Elektronenpaarbindung. Reduzierte Bewegung: ruhige Endbilder
+  (fest: Gitter mit gestricheltem Schwingungsring, beweglich: ungeordnete Momentaufnahme).
 - Kapitel 4 **Ionen aus mehreren Atomen** (Level II, `k4.tsx`, `k4/Models.tsx`): **Atomgruppen mit Ladung** (mehratomiges Ion als Atomkugeln in eckigen Klammern mit der
   Ladung oben rechts – als Modell gekennzeichnet, das echte Ion ist räumlich; Zähler für Atome und Ladung, Formel sofort; nicht aus einzelnen Ionen
   zusammengesetzt – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
@@ -1139,6 +1145,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung Kapitel 3: Schmelzen und Strom leiten als Teilchensimulation** (`k3/sim.ts` statt CSS-Animation) – vorher froren die Ionen beim Schmelzen in eine zweite
+  feste Anordnung ein und verließen ihre Plätze nicht sichtbar; beim Leiten glitten sie in Schleifen ein Stück zum Pol und wurden mitten im Bild ein- und ausgeblendet. Jetzt:
+  Tiegel mit Schwingen → Verlassen der Plätze → ständige ungeordnete Bewegung, Rückkehr ins Gitter beim Abkühlen; Leitfähigkeit mit Lupe (Ausschnitt), in der die Ionen langsam
+  zu ihrem Pol wandern und gemischt bleiben; Beschriftungen der Lupe größer. Texte und Merksätze angepasst; Test `k3/sim.test.ts`.
 - **Bohrmodell: feste Schalen überall** (chem-ui, Atombau, Ionenbindung) – Schalen füllten bisher immer den ganzen Rahmen: mehr Schalen machten alle Schalen kleiner,
   ein größerer Kern schob sie nach außen, und in Ionenbindung Kapitel 1 rückte die Außenschale beim Anion nach außen. Das verwirrte didaktisch. Jetzt hat jede Schale einen
   festen Radius (`shellRadius`); der Rahmen bietet je Ansicht Platz für eine feste Zahl von Schalen (`slots`). Das Atom wächst bzw. schrumpft nur, wenn eine Schale dazukommt

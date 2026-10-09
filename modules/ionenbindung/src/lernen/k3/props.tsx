@@ -301,7 +301,7 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
   const water = z === "loesung";
   const drive = z === "fest" ? solidDrive : z === "schmelze" ? meltDrive : solDrive;
   const ion = (q: number) => (q > 0 ? NA : CL);
-  const rowY = [LR + 27, LR + 50];
+  const rowY = [LR + 30, LR + 56];
   return (
     <g className="k3-lensg">
       <clipPath id={clip}><circle r={LR - 1.5} /></clipPath>
