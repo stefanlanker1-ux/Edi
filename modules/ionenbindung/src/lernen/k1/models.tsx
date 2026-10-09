@@ -376,12 +376,12 @@ export function trWhy(M: number, N: number, start: [number, number], solution: [
     const eL = plural(left, "Außenelektron", "Außenelektronen", "outer electron", "outer electrons");
     const fP = plural(free, "freien Platz", "freie Plätze", "empty space", "empty spaces");
     out[r] = total === 0 ? tr("Noch ist kein Elektron übergegangen. Tippe auf „e⁻ übertragen“.", "No electron has passed over yet. Tap “transfer e⁻”.")
-      : left > 0 && free > 0 ? tr(`Es geht weiter: Bei ${ms} sind noch ${eL}, bei ${ns} noch ${fP}.`, `Keep going: ${ms} still has ${eL}, ${ns} still has ${fP}.`)
+      : left > 0 && free > 0 ? tr(`Es geht weiter: ${ms} hat noch ${eL}, ${ns} hat noch ${fP}.`, `Keep going: ${ms} still has ${eL}, ${ns} still has ${fP}.`)
       : left > 0 ? (adjust === "n"
-        ? tr(`Bei ${ms} sind noch ${eL}, aber alle ${ns}-Atome sind voll. Nimm ein ${ns}-Atom dazu.`, `${ms} still has ${eL}, but all ${ns} atoms are full. Add a ${ns} atom.`)
+        ? tr(`${ms} hat noch ${eL}, aber alle ${ns}-Atome sind voll. Nimm ein ${ns}-Atom dazu.`, `${ms} still has ${eL}, but all ${ns} atoms are full. Add a ${ns} atom.`)
         : tr(`${plural(restM, `${ms}-Atom bleibt`, `${ms}-Atome bleiben`, `${ms} atom is`, `${ms} atoms are`)} übrig: ${ns} nimmt nur ${8 - vn} auf. Nimm weniger ${ms}-Atome.`, `${plural(restM, "", "", `${ms} atom is`, `${ms} atoms are`)} left over: ${ns} gains only ${8 - vn}. Use fewer ${ms} atoms.`))
       : adjust === "m"
-        ? tr(`Bei ${ns} sind noch ${fP}, aber alle ${ms}-Atome haben abgegeben. Nimm ein ${ms}-Atom dazu.`, `${ns} still has ${fP}, but all ${ms} atoms have given theirs. Add a ${ms} atom.`)
+        ? tr(`${ns} hat noch ${fP}, aber alle ${ms}-Atome haben abgegeben. Nimm ein ${ms}-Atom dazu.`, `${ns} still has ${fP}, but all ${ms} atoms have given theirs. Add a ${ms} atom.`)
         : tr(`${plural(restN, `${ns}-Atom bleibt`, `${ns}-Atome bleiben`, "", "")} übrig: ${ms} gibt nur ${vm} ab. Nimm weniger ${ns}-Atome.`, `${plural(restN, "", "", `${ns} atom is`, `${ns} atoms are`)} left over: ${ms} loses only ${vm}. Use fewer ${ns} atoms.`);
   }
   return out;

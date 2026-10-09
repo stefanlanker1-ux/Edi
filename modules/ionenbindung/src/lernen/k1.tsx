@@ -94,7 +94,6 @@ const steps = (): GuideStep[] => [
     ask: tr("Was passiert, wenn Natrium sein Außenelektron abgibt?", "What happens when sodium loses its outer electron?"),
     visual: () => <Row items={[{ Z: 11, E: 11, title: tr("Atom", "Atom") }, { Z: 11, E: 10, title: tr("Ion", "Ion"), ghost: false }]} arrows={["−1 e⁻ →"]} />,
     lines: [
-      tr("Natrium-Atom: 11 p⁺ · 11 e⁻ → neutral.", "Sodium atom: 11 p⁺ · 11 e⁻ → neutral."),
       tr("1 Elektron weg: 11 p⁺ · 10 e⁻ → Ladung 1+, das Ion **Na⁺**.", "1 electron gone: 11 p⁺ · 10 e⁻ → charge 1+, the ion **Na⁺**."),
       tr("Na⁺ hat 2 · 8 wie Neon. Die M-Schale ist leer – Na⁺ ist kleiner als das Atom.", "Na⁺ has 2 · 8 like neon. The M shell is empty – Na⁺ is smaller than the atom."),
     ],
@@ -161,7 +160,6 @@ const steps = (): GuideStep[] => [
     ask: tr("Was passiert, wenn Chlor ein Elektron aufnimmt?", "What happens when chlorine gains an electron?"),
     visual: () => <Row items={[{ Z: 17, E: 17, title: tr("Atom", "Atom"), slots: true }, { Z: 17, E: 18, got: 1, title: tr("Ion", "Ion") }]} arrows={["+1 e⁻ →"]} />,
     lines: [
-      tr("Chlor-Atom: 2 · 8 · 7 – ein Platz außen ist frei.", "Chlorine atom: 2 · 8 · 7 – one space on the outside is empty."),
       tr("1 Elektron dazu: 17 p⁺ · 18 e⁻ → 17 − 18 = 1−.", "1 electron added: 17 p⁺ · 18 e⁻ → 17 − 18 = 1−."),
       tr("**Cl⁻** hat 2 · 8 · 8 wie Argon.", "**Cl⁻** has 2 · 8 · 8 like argon."),
       tr("Modell: Mehr Elektronen stoßen sich ab. Die Außenschale von Cl⁻ liegt weiter außen als beim Atom (gestrichelt).", "Model: more electrons repel each other. The outer shell of Cl⁻ lies further out than in the atom (dashed)."),
@@ -240,7 +238,7 @@ const steps = (): GuideStep[] => [
       tr("Na⁺ (2 · 8) und Cl⁻ (2 · 8 · 8) haben Edelgaskonfiguration.", "Na⁺ (2 · 8) and Cl⁻ (2 · 8 · 8) have a noble gas configuration."),
       tr("**Gesamtladung**: (1+) + (1−) = 0.", "**Total charge**: (1+) + (1−) = 0."),
     ],
-    ok: tr("Kein Elektron geht verloren: Kation und Anion entstehen gemeinsam. Im Schalenmodell sind die Größen nur ungefähr.", "No electron is lost: cation and anion form together. In the shell model the sizes are only approximate."),
+    ok: tr("Kein Elektron geht verloren: Kation und Anion entstehen gemeinsam.", "No electron is lost: cation and anion form together."),
   }),
   model({
     mode: "faded",
@@ -287,6 +285,7 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
+    say: tr("Im Schalenmodell sind die Größen nur ungefähr: In Wirklichkeit ist Ca²⁺ kleiner als F⁻.", "In the shell model the sizes are only approximate: in reality Ca²⁺ is smaller than F⁻."),
     ask: tr("Jetzt du: Calcium und Fluor. Stelle die Zahl der Fluor-Atome ein und übertrage. Dann prüfe.", "Your turn: calcium and fluorine. Set the number of fluorine atoms and transfer. Then check."),
     answer: "Ca²⁺ + 2 F⁻",
     why: trWhy(20, 9, [1, 1], [1, 2], "n"),
@@ -353,6 +352,7 @@ export const kapitel1 = (): Kapitel => ({
     [
       tr("**Modell der Ionenbildung**: Bei der Reaktion gehen Elektronen vom Metall-Atom zum Nichtmetall-Atom über (**Elektronenübergang**).", "**Model of ion formation**: in the reaction electrons pass from the metal atom to the non-metal atom (**electron transfer**)."),
       tr("Kein Elektron geht verloren: Die **Gesamtladung** bleibt 0, z. B. Na⁺ + Cl⁻: (1+) + (1−) = 0.", "No electron is lost: the **total charge** stays 0, e.g. Na⁺ + Cl⁻: (1+) + (1−) = 0."),
+      tr("Im Schalenmodell sind die Größen der Teilchen nur ungefähr.", "In the shell model the sizes of the particles are only approximate."),
       tr("Gibt das Metall-Atom mehr Elektronen ab, als ein Nichtmetall-Atom aufnimmt, braucht man mehrere, z. B. Ca²⁺ + 2 Cl⁻.", "If the metal atom loses more electrons than one non-metal atom gains, you need several, e.g. Ca²⁺ + 2 Cl⁻."),
     ],
   ],

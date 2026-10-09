@@ -73,6 +73,12 @@
 .k1-tr-sum { grid-column: 1 / -1; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 14px; font-size: .875rem; color: var(--muted); }
 .k1-dim { color: var(--faint); }
 
+/* niedriges Bild (vorgemacht mit viel Text, kleines Handy): Zeile p⁺ · e⁻ weglassen – sie steht im Lösungsweg; die Teilchen bleiben groß genug */
+@container (max-height: 300px) {
+  .k1-tr-col .k1-pe, .k1-tr-col .k1-sh, .k1-row .k1-pe, .k1-row .k1-title { display: none; }
+  .k1-tr-sum span:first-child { display: none; }
+}
+
 /* Bedienung */
 .k1-m .lm-controls .ui-btn { padding-inline: 12px; }
 .k1-steppers { display: flex; gap: 10px; justify-content: center; }
