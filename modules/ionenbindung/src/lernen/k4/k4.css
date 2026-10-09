@@ -1,0 +1,97 @@
+/* Kapitel 4 – Ionen aus mehreren Atomen: Atomkugeln (O rot, N blau, S gelb, C grau, H hell, P orange), Zähler, Namensbaukasten */
+
+.k4-m .lm-controls { gap: 6px; }
+.k4-ctl { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; flex: 0 0 auto; max-width: 100%; }
+/* gelöst bzw. vorgemacht auf niedrigen Bildschirmen: Bedienung (gesperrt) weg, das Modell bekommt den Platz */
+@media (max-height: 760px) { .k4-m.k4-solved .lm-controls { display: none; } }
+/* wenig Platz: Formel und Name kleiner */
+@container (max-height: 190px) { .k4-ion-f { font-size: 1.4rem; } .k4-ion-n { font-size: .85rem; } .k4-name-out { font-size: 1.25rem; } }
+
+/* Zähler [−] Wert [+] */
+.k4-step { display: grid; grid-template-columns: 44px minmax(56px, auto) 44px; align-items: center; gap: 3px; }
+.k4-step > button {
+  display: grid; place-items: center; height: 44px; border-radius: var(--radius-sm); border: 1.5px solid var(--rule); background: var(--surface);
+  color: var(--text); box-shadow: var(--key-edge); touch-action: manipulation;
+}
+.k4-step > button:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
+.k4-step > button:disabled { opacity: .35; }
+.k4-step-v { display: grid; justify-items: center; line-height: 1.1; min-width: 0; }
+.k4-step-v small { font-size: .78rem; font-weight: 650; color: var(--muted); white-space: nowrap; }
+.k4-step-v b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.k4-step-v .ion-label { font-size: .95rem; color: var(--text); }
+
+/* Ion als Atomkugeln */
+.k4-ion { display: grid; grid-template-rows: minmax(0, 340px) auto auto; align-content: center; justify-items: center; align-items: center; width: 100%; height: 100%; min-height: 0; gap: 2px; }
+.k4-ion-pic { position: relative; min-height: 0; height: 100%; width: 100%; }
+.k4-block { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.k4-brk { fill: none; stroke: var(--text); stroke-width: 3; }
+.k4-at circle { stroke-width: 2; }
+.k4-at text { text-anchor: middle; font-family: var(--font); font-weight: 750; fill: var(--text); }
+.k4-at.O circle { fill: var(--hue-red-soft); stroke: var(--hue-red-deep); }
+.k4-at.N circle { fill: var(--hue-blue-soft); stroke: var(--hue-blue-deep); }
+.k4-at.S circle { fill: var(--hue-yellow-soft); stroke: var(--hue-yellow-deep); }
+.k4-at.C circle { fill: var(--hue-grey-soft); stroke: var(--hue-grey-deep); }
+.k4-at.P circle { fill: var(--hue-orange-soft); stroke: var(--hue-orange-deep); }
+.k4-at.H circle { fill: var(--surface); stroke: var(--hue-grey-deep); }
+.k4-charge { font-family: var(--font); font-weight: 800; font-size: 34px; fill: var(--text); }
+.k4-charge.none { fill: var(--muted); }
+.k4-ion-f { font-size: 1.9rem; font-weight: 800; line-height: 1.15; white-space: nowrap; }
+.k4-ion-n { font-weight: 650; color: var(--muted); font-size: .95rem; }
+.k4-none { color: var(--muted); }
+
+/* Namensbaukasten */
+.k4-name { display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; width: 100%; height: 100%; min-height: 0; gap: 6px; }
+.k4-name-fig { min-height: 0; height: 100%; width: 100%; display: grid; place-items: center; }
+.k4-name-fig .k4-wall { width: 100%; height: 100%; }
+.k4-name-out { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; font-size: 1.5rem; font-weight: 800; min-height: 1.4em; }
+.k4-name-out .gap { color: var(--muted); min-width: 2.2em; text-align: center; border-bottom: 2px dashed var(--muted); margin: 0 3px; }
+.k4-name-out .on { border-bottom: 2px solid var(--text); margin: 0 1px; }
+.k4-kit { display: grid; gap: 6px; justify-items: center; }
+.k4-kit-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.k4-chip {
+  min-height: 44px; min-width: 52px; padding: 4px 12px; border-radius: var(--radius-sm); border: 1.5px solid var(--rule); background: var(--surface);
+  color: var(--text); font-weight: 750; font-size: 1.02rem; box-shadow: var(--key-edge); touch-action: manipulation;
+}
+.k4-chip:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
+.k4-chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+.k4-chip[aria-pressed="true"]::before { content: "✓ "; font-size: .85em; }
+.k4-chip.cation[aria-pressed="true"] { background: var(--cat-tile-a); color: var(--cat-tile-text); border-color: var(--cat-tile-border); }
+.k4-chip.anion[aria-pressed="true"] { background: var(--an-tile-a); color: var(--an-tile-text); border-color: var(--an-tile-border); }
+.k4-chip:disabled { cursor: default; }
+.k4-br small { font-weight: 600; font-size: .8rem; color: inherit; opacity: .85; }
+
+/* Ionenwand */
+.k4-wall { width: 100%; height: 100%; min-height: 0; overflow: hidden; }
+.k4-wall .ion-wall { max-width: 100%; }
+.k4-wall .iw-formula { font-size: 2rem; }
+
+/* Formel schreiben */
+.k4-write { display: grid; justify-items: center; gap: 6px; padding: 4px 0; }
+.k4-write .ion-wall { max-width: 280px; }
+.k4-write-f { font-size: 2rem; font-weight: 800; line-height: 1.1; }
+.k4-cnt { border-collapse: collapse; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.k4-cnt th { text-align: right; padding: 2px 8px 2px 0; color: var(--muted); font-weight: 650; }
+.k4-cnt td { padding: 2px 6px; font-weight: 700; white-space: nowrap; }
+.k4-cnt td.ok { color: var(--ok); }
+.k4-cnt td.bad { color: var(--text); text-decoration: underline dashed var(--signal); text-underline-offset: 3px; }
+
+/* Ionen wählen: noch leer */
+.k4-empty { display: flex; gap: 10px; }
+.k4-slot { display: grid; place-items: center; min-width: 96px; height: 60px; padding: 0 10px; border: 2px dashed var(--faint); border-radius: var(--radius-sm); font-weight: 800; font-size: 1.2rem; color: var(--muted); }
+
+/* kein Gemisch */
+.k4-mix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; height: 100%; min-height: 0; align-items: center; }
+.k4-mix figure { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; justify-items: center; align-items: center; height: min(100%, 300px); min-height: 0; gap: 6px; }
+.k4-mix figcaption { font-weight: 700; text-align: center; font-size: .95rem; }
+.k4-mix-no figcaption b { color: var(--muted); }
+.k4-mix-yes figcaption b { color: var(--ok); }
+.k4-mix-ions { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px; max-width: 160px; }
+.k4-mix-i { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; border: 2px solid; font-weight: 750; font-size: 1rem; }
+.k4-mix-i sup { font-size: .62em; }
+.k4-mix-i.O { background: var(--hue-red-soft); border-color: var(--hue-red-deep); }
+.k4-mix-i.S { background: var(--hue-yellow-soft); border-color: var(--hue-yellow-deep); width: 54px; height: 54px; }
+
+/* große Formel */
+.k4-big { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; min-height: 0; }
+.k4-big .k4-ion-pic { flex: 1 1 0; }
+.k4-big-f { font-size: clamp(2.2rem, 18cqmin, 4rem); font-weight: 800; }
