@@ -2,12 +2,12 @@
 // Namens-Baukasten (Wortteile antippen) und Ionenwahl (Ladung aus dem PSE einstellen, dann ausgleichen). Jede Änderung zeigt das Modell sofort,
 // „Prüfen“ meldet das Gebaute als Text (Schlüssel für `why` über die Funktionen hier – dieselben Texte wie beim Prüfen).
 
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Fit, Icon, type GuideCtx } from "@lern/ui";
 import { ION_BY_ID, formula, ionText, toSubscript, type Ion } from "@lern/chem";
 import { getLang, tr } from "@lern/i18n";
 import { IonWall } from "../../components/IonWall.tsx";
-import { IonLabel } from "../../components/IonTile.tsx";
+import { IonLabel, IonTile } from "../../components/IonTile.tsx";
 import { IonLattice } from "../../components/IonLattice.tsx";
 import { ModelFrame, useModel } from "../model.tsx";
 
@@ -47,8 +47,8 @@ function Wall({ cat, an, nC, nA, formula: f = false }: { cat: Ion; an: Ion; nC: 
 }
 
 /** Bild ohne Bedienung: Ionenwand */
-export function StaticWall({ cat, an, nC, nA }: { cat: string; an: string; nC: number; nA: number }) {
-  return <div className="k2-static"><Wall cat={ionOf(cat)} an={ionOf(an)} nC={nC} nA={nA} /></div>;
+export function StaticWall({ cat, an, nC, nA, calc = true }: { cat: string; an: string; nC: number; nA: number; calc?: boolean }) {
+  return <div className={`k2-static${calc ? "" : " k2-nocalc"}`}><Wall cat={ionOf(cat)} an={ionOf(an)} nC={nC} nA={nA} /></div>;
 }
 
 /** Bild ohne Bedienung: Ausschnitt aus dem Kochsalz-Kristall */
@@ -177,17 +177,46 @@ export function NameModel({ c, f, pieces, sol }: { c: GuideCtx; f: string; piece
 
 interface PState { z: [number, number]; n: [number, number] }
 
+/** Ergebnis der Ionenwahl, solange eine Ladung noch nicht gewählt ist */
+export const PICK_NONE = "?";
+
+/** Wand, solange nicht beide Ionen stimmen: nicht gewählte Ladung = gestrichelter Baustein „Ca ?“, gewählte = Baustein in seiner Breite;
+ *  keine Ladungsrechnung, kein ✓ und keine Formel (ein Ion wie Ca⁺ gibt es nicht) */
+function PendingWall({ sym, z, n }: { sym: [string, string]; z: [number, number]; n: [number, number] }) {
+  const row = (k: 0 | 1) => {
+    const ion = z[k] ? ionOf(idOf(sym[k], z[k])) : null;
+    const cls = k ? "anion" : "cation";
+    return Array.from({ length: n[k] }, (_, i) => ion
+      ? <IonTile key={i} ion={ion} />
+      : <span key={i} className={`ion-tile ${cls} k2-q`} style={{ gridColumn: "span 1" }}>{sym[k]} ?</span>);
+  };
+  const width = (k: 0 | 1) => n[k] * Math.max(1, Math.abs(z[k]));
+  return (
+    <Fit className="k2-fit" min={0.3}>
+      <div className="ion-wall k2-pw">
+        <div className="iw-stack" style={{ "--cols": Math.max(width(0), width(1)) } as CSSProperties}>
+          <div className="iw-row">{row(0)}</div>
+          <div className="iw-row">{row(1)}</div>
+        </div>
+        {(!z[0] || !z[1]) && <p className="iw-balance">{tr("Ladungen wählen", "Choose the charges")}</p>}
+      </div>
+    </Fit>
+  );
+}
+
 /**
- * Vom Namen zur Formel: Ladung des Metall- und des Nichtmetall-Ions wählen (die Bausteine werden sofort breiter/schmaler),
- * dann die Anzahlen einstellen. Prüfen meldet ein falsch geladenes Ion („Ca⁺“) oder die gebaute Formel (`builtKey`).
+ * Vom Namen zur Formel: Ladung des Metall- und des Nichtmetall-Ions wählen (anfangs keine; die Bausteine werden sofort breiter/schmaler),
+ * dann die Anzahlen einstellen. Ausgleich, ✓ und Formel erst, wenn beide Ladungen stimmen. Prüfen meldet „?“ (Ladung fehlt),
+ * ein Ion, das das Element nicht bildet („Ca⁺“), oder die gebaute Formel (`builtKey`).
  */
-export function PickModel({ c, cat, an, start = [[1, -1], [1, 1]], sol, max = 4 }: {
-  c: GuideCtx; cat: string; an: string; start?: [[number, number], [number, number]]; sol: [[number, number], [number, number]]; max?: number;
+export function PickModel({ c, cat, an, sol, max = 4 }: {
+  c: GuideCtx; cat: string; an: string; sol: [[number, number], [number, number]]; max?: number;
 }) {
-  const [s, set] = useModel<PState>(c, { z: start[0], n: start[1] }, { z: sol[0], n: sol[1] });
-  const cId = idOf(cat, s.z[0]), aId = idOf(an, s.z[1]);
-  const ci = ionOf(cId), ai = ionOf(aId);
-  const result = () => (s.z[0] !== sol[0][0] ? ionText(ci) : s.z[1] !== sol[0][1] ? ionText(ai) : builtKey(cId, aId, s.n[0], s.n[1]));
+  const [s, set] = useModel<PState>(c, { z: [0, 0], n: [1, 1] }, { z: sol[0], n: sol[1] });
+  const real = s.z[0] === sol[0][0] && s.z[1] === sol[0][1];
+  const cId = idOf(cat, s.z[0] || 1), aId = idOf(an, s.z[1] || -1);
+  const result = () => (!s.z[0] || !s.z[1] ? PICK_NONE
+    : s.z[0] !== sol[0][0] ? ionText(ionOf(cId)) : s.z[1] !== sol[0][1] ? ionText(ionOf(aId)) : builtKey(cId, aId, s.n[0], s.n[1]));
   const charges = (sym: string, k: 0 | 1): ReactNode => (
     <div className={`k2-z ${k ? "anion" : "cation"}`} role="group" aria-label={tr(`Ladung ${sym}`, `Charge ${sym}`)}>
       {[1, 2, 3].map(v => {
@@ -202,8 +231,7 @@ export function PickModel({ c, cat, an, start = [[1, -1], [1, 1]], sol, max = 4 
   );
   return (
     <ModelFrame c={c} className="k2-m"
-      // Formel nur für Ionen, die es gibt (sonst stünde eine falsche Formel wie „CaBr“ da) – die Ladungsrechnung zeigt die Wand immer
-      stage={<Wall cat={ci} an={ai} nC={s.n[0]} nA={s.n[1]} formula={s.z[0] === sol[0][0] && s.z[1] === sol[0][1]} />}
+      stage={real ? <Wall cat={ionOf(cId)} an={ionOf(aId)} nC={s.n[0]} nA={s.n[1]} formula /> : <PendingWall sym={[cat, an]} z={s.z} n={s.n} />}
       controls={
         <fieldset className="k2-ctl k2-pick" disabled={c.solved}>
           <div className="k2-col">{charges(cat, 0)}<Count aria={tr(`Anzahl ${cat}`, `Number of ${cat}`)} value={s.n[0]} max={max} set={v => set({ ...s, n: [v, s.n[1]] })} /></div>

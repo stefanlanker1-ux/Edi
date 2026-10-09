@@ -3,6 +3,13 @@
 .k2-m .lm-stage { width: 100%; }
 .k2-fit { width: 100%; height: 100%; min-height: 0; overflow: hidden; }
 .k2-fit .ion-wall { max-width: 100%; }
+/* Ladung im Baustein auch bei vielen Spalten lesbar (Hochzahl mindestens 12 px) */
+.k2-fit .ion-tile { font-size: max(16px, calc(var(--h) * .36)); }
+.k2-fit .ion-label sup { font-size: max(.72em, 12px); }
+/* Ionenwahl: Ladung noch nicht gewählt – gestrichelter Baustein „Ca ?“ */
+.ion-tile.cation.k2-q, .ion-tile.anion.k2-q { background: var(--surface); border: 2px dashed var(--rule); color: var(--muted); }
+/* Bild ohne Ladungsrechnung (die Auswahl fragt danach) */
+.k2-nocalc .iw-balance { display: none; }
 /* auf großen Bühnen etwas größere Bausteine (Fit verkleinert bei Bedarf) */
 .k2-fit .iw-stack { --u: min(96px, calc((100cqw - 8px - (var(--cols) - 1) * 5px) / var(--cols))); --h: clamp(40px, calc(var(--u) * .75), 66px); }
 .k2-static { width: 100%; height: 100%; min-height: 0; display: grid; place-items: center; }
@@ -42,7 +49,6 @@
 .k2-idx { font-size: .62em; color: var(--hue-blue-deep); }
 .k2-fm .ion-wall { gap: 8px; }
 .k2-fm .iw-stack { --h: clamp(36px, calc(var(--u) * .7), 48px); }
-@media (max-width: 420px) { .k2-swap-t { display: none; } }
 .k2-swap[aria-pressed="true"] { background: var(--hue-red-soft); color: var(--text); border-color: var(--rule); }
 
 /* Namens-Baukasten */
@@ -50,11 +56,7 @@
 .k2-nm-f { font-size: clamp(1.8rem, 12cqh, 3.4rem); font-weight: 800; line-height: 1.1; }
 .k2-nm-arrow { transform: rotate(90deg); color: var(--muted); }
 .k2-nm-parts { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 34px; }
-.k2-part { display: inline-grid; place-items: center; min-height: 32px; padding: 0 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-weight: 700; }
-.k2-part.k-m, .k2-piece.k-m { background: var(--hue-yellow-soft); }
-.k2-part.k-s, .k2-piece.k-s { background: var(--hue-green-soft); }
-.k2-part.k-e, .k2-piece.k-e { background: var(--hue-blue-soft); }
-.k2-part.k-n, .k2-piece.k-n { background: var(--surface-2); }
+.k2-part { display: inline-grid; place-items: center; min-height: 32px; padding: 0 10px; border: 1.5px solid var(--border); background: var(--surface-2); border-radius: var(--radius-sm); font-weight: 700; }
 .k2-part.k-empty { border-style: dashed; color: var(--muted); min-width: 64px; }
 .k2-nm-name { font-size: clamp(1.25rem, 8cqh, 2.4rem); font-weight: 800; overflow-wrap: break-word; max-width: 100%; }
 .k2-nm-name.empty { color: var(--faint); }
