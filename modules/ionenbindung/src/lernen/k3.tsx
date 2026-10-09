@@ -8,9 +8,10 @@ import type { Kapitel } from "./types.ts";
 import { model } from "./model.tsx";
 import { BR, CA, CL, K, MG, NA, O } from "./k3/draw.tsx";
 import {
-  ChargePair, FormulaModel, IonRow, Lattice3D, LatticeFill, NeighborTap, PairStatic,
+  ChargePair, FormulaModel, IonRow, LatticeFill, NeighborTap, PairStatic,
   allCounter, both, diag, far, gapRes, likeNb, notNeutral, onlyAtt, onlyRep, unreduced,
 } from "./k3/forces.tsx";
+import { Lattice3D } from "./k3/lattice3d.tsx";
 import { Conduct, ShiftLayers, ThermoLattice, ThermoPair, bothLiquid, bothSolid, naclOnly, circuitOpen, halfway, holds, lampOff, lampOn, leftMinus, leftPlus, molten, repels, solid, type Leit } from "./k3/props.tsx";
 import "./k3/k3.css";
 
@@ -155,7 +156,7 @@ function steps(): GuideStep[] {
     model({
       mode: "worked",
       say: tr("Das Gitter besteht aus vielen Schichten: davor und dahinter liegen weitere.", "The lattice consists of many layers: more lie in front and behind."),
-      ask: tr("Zähle mit: Wie viele Cl⁻ umgeben ein Na⁺ im Raum?", "Count with us: how many Cl⁻ surround an Na⁺ in space?"),
+      ask: tr("Ziehe am Bild zum Drehen. Zähle mit: Wie viele Cl⁻ umgeben ein Na⁺ im Raum?", "Drag the picture to turn it. Count with us: how many Cl⁻ surround an Na⁺ in space?"),
       lines: [
         tr("In seiner Schicht: 4 Cl⁻ (links, rechts, oben, unten).", "In its layer: 4 Cl⁻ (left, right, above, below)."),
         tr("Dazu davor und dahinter je 1 Cl⁻.", "Plus 1 Cl⁻ in front and 1 behind."),
