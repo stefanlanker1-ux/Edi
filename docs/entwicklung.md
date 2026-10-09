@@ -304,6 +304,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (`visibility: hidden` – der Rahmen bleibt messbar: wird der Bildschirm wieder größer, kommt das Bild zurück). Landkarte: hilft auch die kleinste Stufe nicht,
   bleibt sie bei Lesegröße und scrollt. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
+- **Schalenmodelle mit festen Schalen** (überall, wo Bohr- bzw. Schalenmodelle gezeichnet werden): Jede Schale (K, L, M, …) hat immer denselben Durchmesser – unabhängig
+  von Protonen-, Neutronen- und Elektronenzahl. Der Kern verschiebt keine Schale, die K-Schale liegt außerhalb auch des größten Kerns. Ein Atom bzw. Ion wird nur größer oder
+  kleiner, wenn eine Schale dazukommt oder wegfällt. Innerhalb einer Ansicht bzw. eines Modells ändert sich der Maßstab beim Bedienen nie: der Rahmen bietet Platz für alle
+  Schalen, die dort vorkommen können (`slots` an `Bohr` in `@lern/chem-ui`, `extentOf` in Ionenbindung Kapitel 1). Grund: wachsende oder schrumpfende Schalen verwirren.
+  Echte Ionengrößen gehören zu den Ionenradien (Ionenbindung Kapitel 3), nicht ins Schalenmodell. Test `packages/chem-ui/test/bohr.test.ts`.
   Prüfen im Browser (z. B. Playwright): in allen Ansichten, Werkzeugen und Quizaufgaben darf weder die Seite noch Werkbank/Aufgabenkarte überlaufen, und nichts darf von einem
   Rahmen mit `overflow: hidden` abgeschnitten werden (Gleichungen, Formeln). Breiten: 390 × 844, 375 × 667, dazu schmale Android-Handys 360 × 740 und 412 × 915
   (Quiz ab ≤ 370 px Breite kompakt wie bei niedrigen Bildschirmen). Nie mitten im Wort umbrechen: Auswahl-Antworten stehen nur zweispaltig, wenn jedes Wort
@@ -548,6 +553,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   `.pse-z` in `app.css` – das schmale PSE blendet sie sonst aus). Kurzschreibweisen als Antwort ohne Zeilenumbruch (`.cfg-opt` über `renderOption` in `QuizView.tsx`):
   nie mitten durch umbrochen („[Ar] 4s² / 3d⁷“) – passt eine nicht in ihre Spalte, wird die Auswahl einspaltig.
   Schalen-Antwort: nach dem Prüfen stehen die eigenen Zahlen auf allen Schalen (auch ein Elektron auf einer Schale zu viel).
+- Bohrmodell (`Bohr`, `shellRadius`, `bohrLayout`): feste Schalenradien (K 38, je 15 weiter außen), Elektronen immer gleich groß. Rahmen je Ansicht (`slots`): Baukasten
+  Level I 4, Level II 7 (gestrichelte nächste Schale nur, wenn sie hineinpasst); Steckbrief 4/6; Quiz-Bild und „Atom bauen“ 4 (Elektronen höchstens 36, also höchstens 4 Schalen);
+  „Schalen füllen“ = Schalenzahl der Aufgabe; Erklärung und Erklärkarte 3; Kachel 2; Quiz-Startbild 2/4. Ziehbare und antippbare Elektronen haben einen unsichtbaren Rand
+  als größere Trefferfläche.
 - PSE nach Blöcken färben (`PeriodicTable blocks`, `BlockLegend`, Farben `--b-s|p|d|f` passend zu den Orbitalfarben `--o-*`): im Periodensystem der Oberstufe unter „Farben → Blöcke“,
   im Quiz als Hilfsmittel bei Aufgaben zur Elektronenkonfiguration (`BLOCK_TYPES` in `QuizView.tsx`), nicht bei „Blöcke im PSE“ (wäre die Lösung).
 - Chemie: Elemente Z = 1–86. Konfiguration überall = **gemessener Grundzustand** (`configuration`/`groundState` in `packages/chem/src/config.ts`): Aufbauprinzip,
@@ -594,8 +603,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Kapitel 1 **Vom Atom zum Ion** (Level I, `k1.tsx`, Modelle `k1/models.tsx`): **Außenelektronen und Edelgase** · **Metall-Atome werden Kationen** · **Nichtmetall-Atome werden
   Anionen** · **Elektronenübergang**. Eigenes Bohrmodell der Unterstufe (Schalen 2·8·8 mit festen Radien und 8 Plätzen, freie Plätze gestrichelt; Elektronen abgeben
   bzw. aufnehmen über die Knöpfe „e⁻ abgeben“/„e⁻ aufnehmen“ (≥ 44 px; die Elektronen im Bild sind nur beim Markieren der Außenelektronen eigene Tippziele);
-  Kation zeigt die leere Schale gepunktet und ist kleiner, Anion zeigt die Außenschale weiter außen und die des Atoms gestrichelt – Größen im Schalenmodell nur ungefähr,
-  so gekennzeichnet; aufgenommene Elektronen mit Ring). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel (Wasserstoff, Bor, IV. Hauptgruppe
+  feste Schalenradien ohne Ausnahme: das Teilchen wird nur kleiner, wenn eine Schale wegfällt (Kation: leere Schale gepunktet, Hülle kleiner), und nur größer, wenn eine neue
+  dazukommt; ein Anion ist so groß wie sein Atom; jedes Modell hat einen festen Maßstab für alle erreichbaren Teilchen – Protonen ändern verschiebt keine Schale; Folie 24 und
+  Merksatz: „Im Schalenmodell hat jede Schale eine feste Größe. Die echte Größe der Ionen zeigt es nicht: Ca²⁺ ist kleiner als F⁻“; aufgenommene Elektronen mit Ring). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel (Wasserstoff, Bor, IV. Hauptgruppe
   und Edelgase bilden in diesem Modell keine einfachen Ionen), Elektronenübergang mit „e⁻ übertragen“, einstellbarer Zahl der Atome und immer sichtbarer Gesamtladung;
   Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
 - Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionenwand mit Zählern) · **Die Formel** (Verhältnisformel, Index, kleinstes
@@ -624,7 +634,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   ist in Wasser weniger beständig als Cu²⁺). Gedachte Ionen (Fe⁺, Cu³⁺ …) sind als „gibt es nicht“ gekennzeichnet; die Rechnung mit ✓ und der Name erscheinen erst nach dem Prüfen. Test `k5/k5.test.ts`.
 - **Experimentieren** (Werkbank, unverändert): Ionen-Bausteine Kationen gold, Anionen grün, Breite = Ladung; neutral, wenn beide Reihen gleich lang sind. Startet gelöst
   (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu 2·8·18·1 → Cu⁺ 2·8·18); Kennzeichen „n Außenelektronen“
-  nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“.
+  nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“;
+  Atom und Ion im selben Rahmen (`slots` = Schalen des Atoms).
 - Ionen, Formeln (`formula`, `ratio`) und Namen (`compoundName`) in `packages/chem/src/ions.ts`. Unterstufe nur Hauptgruppen-Ionen, Oberstufe zusätzlich Übergangsmetalle und Blei
   (römische Zahlen) und mehratomige Ionen (NH₄⁺, OH⁻, NO₂⁻, NO₃⁻, HCO₃⁻, SO₃²⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻). Nicht beständige Verbindungen (FeI₃, CuI₂, Fe₂S₃, Al₂(CO₃)₃, AgOH, Na₃N, K₃N,
   Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN` (`isKnownCompound`): Kapitel fragen sie nicht ab, der Baukasten zeigt einen Hinweis.
@@ -1128,6 +1139,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Bohrmodell: feste Schalen überall** (chem-ui, Atombau, Ionenbindung) – Schalen füllten bisher immer den ganzen Rahmen: mehr Schalen machten alle Schalen kleiner,
+  ein größerer Kern schob sie nach außen, und in Ionenbindung Kapitel 1 rückte die Außenschale beim Anion nach außen. Das verwirrte didaktisch. Jetzt hat jede Schale einen
+  festen Radius (`shellRadius`); der Rahmen bietet je Ansicht Platz für eine feste Zahl von Schalen (`slots`). Das Atom wächst bzw. schrumpft nur, wenn eine Schale dazukommt
+  bzw. wegfällt. Kapitel 1: Texte, Rückmeldungen und Merksätze ohne „Anion größer/weiter außen“; ehrlicher Hinweis, dass das Schalenmodell keine echten Ionengrößen zeigt.
+  Tests `bohr.test.ts`, `k1.test.ts`.
 - **Reaktionsgleichungen: Gleichungszeile springt nicht mehr** – auf dem iPhone (Safari) wechselte die Gleichung im Experimentieren (z. B. „Methan verbrennt“) ständig zwischen
   zu groß (rechts abgeschnitten) und winzig: die Breite des Rahmens hing von der Schriftgröße der Zeile ab, die Schriftanpassung beobachtete auch die Zeile selbst. Jetzt hängt der
   Rahmen nie vom Inhalt ab (`contain: inline-size`, Raster `minmax(0, 1fr)`), angepasst wird nur bei echter Breitenänderung des Platzes, höchstens 8-mal ohne Pause, mit 1 px Luft.
