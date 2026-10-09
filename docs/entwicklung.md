@@ -600,7 +600,13 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Verhältnis; Formel-Baukasten mit Index-Zählern, Reihenfolge-Tausch, Ionenwand darunter) · **Der Name** (Metall + Wortstamm + -id; Oxid, Sulfid, Nitrid; Namens-Baukasten aus
   Wortteilen mit -it und di/tri als Fallen) · **Formel und Name** (Ladung aus der Hauptgruppe einstellen, dann ausgleichen; beide Richtungen). Nur ionische Beispiele
   (AlF₃ statt AlCl₃); die Ionenwahl zeigt eine Formel nur für Ionen, die es gibt. Test `k2/models.test.ts`.
-- Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): K3_PLATZHALTER
+- Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): **Anziehung und Abstoßung** (Ion wählen `ChargePair`, Ion in der Reihe verschieben `IonRow`,
+  quer oder hochkant je nach Bühne) · **Das Ionengitter** (Schicht füllen `LatticeFill`, Nachbarn antippen – 4 in der Schicht, räumliches Gitter `Lattice3D` mit 6 Nachbarn,
+  Formel aus dem MgO-Ausschnitt `FormulaModel`) · **Hart, spröde, hohe Schmelztemperatur** (Temperatur-Schieber `ThermoLattice`: NaCl 801 °C, MgO 2852 °C, Schmelze ungeordnet
+  ohne Überlappung; Schichten verschieben `ShiftLayers`: gleiche Ladungen gegenüber → Abstoßung, Riss) · **Wann leiten Salze Strom?** (`Conduct`: fest / Schmelze / Lösung,
+  Schalter, Pole tauschen; Kationen wandern zum Minuspol). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196, Mg²⁺ 72, O²⁻ 140 pm), Ladung in der
+  Kugel; Anziehung als Linie (→ ←), Abstoßung rot gestrichelt (← →) – nicht nur über Farbe. Wasser nur als Stoff „Wasser H₂O“ (warum es Ionen löst: Elektronenpaarbindung).
+  Reduzierte Bewegung: gleich das Endbild, Schwingweite als gestrichelter Ring.
 - Kapitel 4 **Ionen aus mehreren Atomen** (Level II, `k4.tsx`, `k4/Models.tsx`): **Atomgruppen mit Ladung** (mehratomiges Ion als Atomkugeln in eckigen Klammern mit der
   Ladung oben rechts, Zähler für Atome und Ladung, Formel sofort; kein Gemisch einzelner Ionen – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
   Name und Ladung sofort; H⁺ dazu → Hydrogen-, Ladung eins weniger negativ; Hydroxid, Ammonium) · **Formeln mit Klammern** („Formel schreiben“: Klammer an/aus und Index,
