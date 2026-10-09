@@ -1,7 +1,7 @@
 // Kapitel 3, Teil 1–2: Anziehung und Abstoßung zweier Ionen, ein Ion in einer Reihe verschieben, Gitter-Schicht füllen,
 // Nachbarn antippen, räumliches Gitter (6 Nachbarn), Formel aus dem Gitterausschnitt. Jede Eingabe ändert das Bild sofort.
 
-import { Button, Segmented, Stepper, Tag, type GuideCtx } from "@lern/ui";
+import { Button, Segmented, Tag, type GuideCtx } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
 import { Arrow, Ball, CL, ForceIcon, MG, NA, O, bondCls, ionText, rad, useTall, type Ion } from "./draw.tsx";
@@ -28,7 +28,7 @@ export function ChargePair({ c, left, choices, start, sol, demo }: { c: GuideCtx
             {pull
               ? <><Arrow x1={xl} y1={ay} x2={cx - 6} y2={ay} /><Arrow x1={xr} y1={ay} x2={cx + 6} y2={ay} /></>
               : <><Arrow x1={xl + 10} y1={ay} x2={xl - 34} y2={ay} /><Arrow x1={xr - 10} y1={ay} x2={xr + 34} y2={ay} /></>}
-            <text className="k3-cap" x={cx} y={ay + 28}>{pull ? att() : rep()}</text>
+            {c.solved && <text className="k3-cap" x={cx} y={ay + 28}>{pull ? att() : rep()}</text>}
           </g>
         </svg>
       }
@@ -81,15 +81,18 @@ export function IonRow({ c, mover, fixed, start, sol, demo }: { c: GuideCtx; mov
 
 function RowSvg({ vert, mover, fixed, g, kinds, label }: { vert: boolean; mover: Ion; fixed: Ion[]; g: number; kinds: string[]; label: string }) {
   const ref = [mover, ...fixed].reduce((a, b) => (b.pm > a.pm ? b : a));
-  const u = 56, pad = 34, cy = vert ? 70 : 92, n = fixed.length, W = (n - 1) * 2 * u + 2 * pad;
+  // kleinstes Kation mindestens r = 17 (lesbar), Abstand so knapp, dass sich nichts berührt
+  const cat = [mover, ...fixed].find(x => x.q > 0)!, RA = Math.max(27, (17 * ref.pm) / cat.pm);
+  const rr = (x: Ion) => rad(x, ref, RA);
+  const u = rr(mover) + Math.max(...fixed.map(rr)) + 5, pad = RA + 3, cy = RA + 34, n = fixed.length, W = (n - 1) * 2 * u + 2 * pad;
   const P = (a: number, b: number) => (vert ? [b, a] : [a, b]);
   const fx = (i: number) => pad + i * 2 * u, gx = (j: number) => pad + (2 * j + 1) * u;
-  const xm = gx(g), r = (x: Ion) => rad(x, ref, 27);
-  const icon = (a: number, att: boolean) => { const [x, y] = P(a, cy - 48); return <g transform={vert ? `rotate(90 ${x} ${y})` : undefined}><ForceIcon x={x} y={y} att={att} /></g>; };
+  const xm = gx(g), r = rr;
+  const icon = (a: number, att: boolean) => { const [x, y] = P(a, cy - RA - 16); return <g transform={vert ? `rotate(90 ${x} ${y})` : undefined}><ForceIcon x={x} y={y} att={att} /></g>; };
   const line = (a1: number, a2: number, cls: string) => { const [x1, y1] = P(a1, cy), [x2, y2] = P(a2, cy); return <line className={cls} x1={x1} y1={y1} x2={x2} y2={y2} />; };
   const ball = (a: number, ion: Ion, cls?: string) => { const [x, y] = P(a, cy); return <Ball ion={ion} x={x} y={y} r={r(ion)} cls={cls} />; };
   return (
-    <svg className="k3-svg" viewBox={vert ? `0 0 ${cy + 40} ${W}` : `0 0 ${W} ${cy + 40}`} role="img" aria-label={label}>
+    <svg className="k3-svg" viewBox={vert ? `0 0 ${cy + RA + 4} ${W}` : `0 0 ${W} ${cy + RA + 4}`} role="img" aria-label={label}>
       {line(pad - 30, W - pad + 30, "k3-axis")}
       {fixed.slice(1).map((_, j) => { if (j === g) return null; const [x, y] = P(gx(j), cy); return <circle key={j} className="k3-slot" cx={x} cy={y} r={r(mover)} />; })}
       <g key={g} className="k3-fade">
@@ -245,20 +248,24 @@ export function Lattice3D() {
             return <g key={k}>{e.map(([p, q], j) => <line key={j} x1={p[0]} y1={p[1]} x2={q[0]} y2={q[1]} />)}</g>;
           })}
         </g>
+        {/* die Schicht des Na⁺ (in der Bildebene) */}
+        {(() => { const c4 = [P(-1.4, -1.4, 0), P(1.4, -1.4, 0), P(1.4, 1.4, 0), P(-1.4, 1.4, 0)]; return <path className="k3-layer" d={`M${c4.map(q => q.join(" ")).join(" L")} Z`} />; })()}
         {nbs.map(([x, y, z], k) => {
           if (!x && !y && !z) return <g key={k}><Ball ion={NA} x={cx} y={cy} r={rad(NA, CL, R)} cls="k3-hot" /></g>;
           const [px, py] = P(x, y, z), [mx, my] = P(1.45 * x, 1.45 * y, 1.45 * z);
+          // Tiefe: vorn größer, hinten kleiner und blasser
+          const depth = z > 0 ? " k3-back" : z < 0 ? " k3-front" : "";
           return (
             <g key={k}>
               <line className="k3-more-l" x1={px} y1={py} x2={mx} y2={my} />
-              <line className="k3-bond att strong" x1={cx} y1={cy} x2={px} y2={py} />
-              <Ball ion={CL} x={px} y={py} r={R} />
+              <line className={`k3-bond att strong${depth}`} x1={cx} y1={cy} x2={px} y2={py} />
+              <Ball ion={CL} x={px} y={py} r={R * (1 - 0.12 * z)} cls={depth.trim() || undefined} />
             </g>
           );
         })}
         <Ball ion={NA} x={cx} y={cy} r={rad(NA, CL, R)} cls="k3-hot" />
       </svg>
-      <figcaption>{tr("Natriumchlorid NaCl: Na⁺ in der Mitte, 6 Cl⁻ als Nachbarn; das Gitter geht weiter", "Sodium chloride NaCl: Na⁺ in the middle, 6 Cl⁻ as neighbours; the lattice continues")}</figcaption>
+      <figcaption>{tr("Natriumchlorid NaCl: Na⁺ in der Mitte, 4 Cl⁻ in der Schicht, 1 davor, 1 dahinter", "Sodium chloride NaCl: Na⁺ in the middle, 4 Cl⁻ in the layer, 1 in front, 1 behind")}</figcaption>
     </figure>
   );
 }
@@ -269,43 +276,44 @@ const sub = (n: number) => (n === 1 ? "" : String(n).split("").map(d => SUB[Numb
 export const unreduced = () => tr("ungekürzt", "not reduced");
 export const notNeutral = () => tr("nicht neutral", "not neutral");
 
-/** Formel aus dem Gitterausschnitt (Magnesiumoxid 4 × 4): Anzahl Mg²⁺ und O²⁻ einstellen – markierte Ionen und Formel sofort */
+/** Formel aus dem Gitterausschnitt (Magnesiumoxid 4 × 2): Verhältnis Mg²⁺ : O²⁻ wählen – markierte Ionen, Formel und Ladungsrechnung sofort */
+const RATIOS: [number, number][] = [[4, 4], [2, 2], [1, 1], [2, 1], [1, 2]];
 export function FormulaModel({ c }: { c: GuideCtx }) {
-  const [s, set] = useModel(c, { a: 8, b: 8 }, { a: 1, b: 1 });
-  const N = 4, u = 58, pad = 38, W = (N - 1) * u + 2 * pad, RO = 31;
+  const [k, set] = useModel(c, 0, 2);
+  const [a, b] = RATIOS[k];
+  const N = 4, M = 2, u = 62, pad = 40, W = (N - 1) * u + 2 * pad, H = (M - 1) * u + 2 * pad, RO = 34;
   const at = (i: number) => pad + i * u;
   let na = 0, nb = 0;
-  const f = `Mg${sub(s.a)}O${sub(s.b)}`;
-  const q = 2 * s.a - 2 * s.b;
+  const f = `Mg${sub(a)}O${sub(b)}`;
+  const q = 2 * a - 2 * b;
   return (
     <ModelFrame c={c} className="k3-m"
       stage={
-        <div className="k3-row">
-          <svg className="k3-svg" viewBox={`0 0 ${W} ${W}`} role="img" aria-label={tr(`Ausschnitt aus dem Magnesiumoxid-Gitter, markiert: ${s.a} Mg²⁺ und ${s.b} O²⁻`, `Section of the magnesium oxide lattice, marked: ${s.a} Mg²⁺ and ${s.b} O²⁻`)}>
-            <g className="k3-grid">{Array.from({ length: N }, (_, k) => <g key={k}><line x1={at(0) - 24} y1={at(k)} x2={at(N - 1) + 24} y2={at(k)} /><line x1={at(k)} y1={at(0) - 24} x2={at(k)} y2={at(N - 1) + 24} /></g>)}</g>
-            {Array.from({ length: N * N }, (_, p) => {
-              const i = p % N, j = Math.floor(p / N), ion = isCat(i, j) ? MG : O;
-              const on = ion === MG ? ++na <= s.a : ++nb <= s.b;
-              return (
-                <g key={p}>
-                  {on && <circle className="k3-mark dash" cx={at(i)} cy={at(j)} r={rad(ion, O, RO) + 4} />}
-                  <Ball ion={ion} x={at(i)} y={at(j)} r={rad(ion, O, RO)} />
-                </g>
-              );
-            })}
-          </svg>
-          <div className="k3-formula" aria-live="polite">
-            <span className="k3-f">{f}</span>
-            <span className="k3-q">{`${s.a} · (2+) + ${s.b} · (2−) = ${q === 0 ? "0" : q > 0 ? `${q}+` : `${-q}−`}`}</span>
-          </div>
-        </div>
+        <svg className="k3-svg" viewBox={`0 0 ${W} ${H + 66}`} role="img" aria-label={tr(`Ausschnitt aus dem Magnesiumoxid-Gitter, markiert: ${a} Mg²⁺ und ${b} O²⁻, Formel ${f}`, `Section of the magnesium oxide lattice, marked: ${a} Mg²⁺ and ${b} O²⁻, formula ${f}`)}>
+          <g className="k3-grid">
+            {Array.from({ length: M }, (_, j) => <line key={`r${j}`} x1={at(0) - 30} y1={at(j)} x2={at(N - 1) + 30} y2={at(j)} />)}
+            {Array.from({ length: N }, (_, i) => <line key={`c${i}`} x1={at(i)} y1={at(0) - 30} x2={at(i)} y2={at(M - 1) + 30} />)}
+          </g>
+          {Array.from({ length: N * M }, (_, p) => {
+            const i = p % N, j = Math.floor(p / N), ion = isCat(i, j) ? MG : O;
+            const on = ion === MG ? ++na <= a : ++nb <= b;
+            return (
+              <g key={p}>
+                {on && <circle className="k3-mark dash" cx={at(i)} cy={at(j)} r={rad(ion, O, RO) + 4} />}
+                <Ball ion={ion} x={at(i)} y={at(j)} r={rad(ion, O, RO)} />
+              </g>
+            );
+          })}
+          <text className="k3-ftext" x={W / 2} y={H + 30}>{f}</text>
+          <text className="k3-qtext" x={W / 2} y={H + 56}>{`${a} · (2+) + ${b} · (2−) = ${q === 0 ? "0" : q > 0 ? `${q}+` : `${-q}−`}`}</text>
+        </svg>
       }
       controls={
         <fieldset className="k3-fs" disabled={c.solved}>
-          <Stepper compact editable={false} tone="cation" label="Mg²⁺" value={s.a} min={1} max={8} onChange={v => set({ ...s, a: v })} />
-          <Stepper compact editable={false} tone="anion" label="O²⁻" value={s.b} min={1} max={8} onChange={v => set({ ...s, b: v })} />
+          <Segmented label={tr("Verhältnis Mg²⁺ : O²⁻", "Ratio Mg²⁺ : O²⁻")} value={String(k)} onChange={v => set(Number(v))}
+            options={RATIOS.map(([x, y], j) => ({ value: String(j), label: `${x} : ${y}` }))} />
         </fieldset>
       }
-      onCheck={() => c.pick(s.a !== s.b ? notNeutral() : s.a > 1 ? unreduced() : "MgO")} />
+      onCheck={() => c.pick(a !== b ? notNeutral() : a > 1 ? unreduced() : "MgO")} />
   );
 }

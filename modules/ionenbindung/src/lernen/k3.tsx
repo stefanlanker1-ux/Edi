@@ -11,7 +11,7 @@ import {
   ChargePair, FormulaModel, IonRow, Lattice3D, LatticeFill, NeighborTap, PairStatic,
   allCounter, both, diag, far, gapRes, likeNb, notNeutral, onlyAtt, onlyRep, unreduced,
 } from "./k3/forces.tsx";
-import { Conduct, ShiftLayers, ThermoLattice, circuitOpen, halfway, holds, lampOff, lampOn, leftMinus, leftPlus, molten, repels, solid, type Leit } from "./k3/props.tsx";
+import { Conduct, ShiftLayers, ThermoLattice, ThermoPair, bothLiquid, bothSolid, naclOnly, circuitOpen, halfway, holds, lampOff, lampOn, leftMinus, leftPlus, molten, repels, solid, type Leit } from "./k3/props.tsx";
 import "./k3/k3.css";
 
 const att = () => tr("Anziehung", "attraction");
@@ -24,7 +24,7 @@ function steps(): GuideStep[] {
   return [
     // ── Teil 1: Anziehung und Abstoßung ─────────────────────────────────────
     model({
-      mode: "worked", part: tr("Anziehung und Abstoßung", "Attraction and repulsion"),
+      mode: "worked", part: tr("Anziehen, abstoßen", "Attract, repel"),
       say: tr("Ionen sind geladen. **Entgegengesetzte Ladungen** ziehen sich an: **Anziehung**. **Gleiche Ladungen** stoßen sich ab: **Abstoßung**.",
         "Ions are charged. **Opposite charges** pull on each other: **attraction**. **Like charges** push each other away: **repulsion**."),
       ask: tr("Sieh dir an, was ein Na⁺ und ein Cl⁻ tun.", "See what an Na⁺ and a Cl⁻ do."),
@@ -63,8 +63,8 @@ function steps(): GuideStep[] {
       say: tr("In einer Reihe aus Ionen spürt ein Ion beide Nachbarn.", "In a row of ions, an ion feels both neighbours."),
       ask: tr("Sieh dir an, welche Kräfte das Na⁺ auf diesem Platz spürt.", "See which forces the Na⁺ feels in this place."),
       lines: [
-        tr("Links ein Na⁺: gleiche Ladung → Abstoßung (rot gestrichelt, ← →).", "On the left an Na⁺: like charge → repulsion (red dashed, ← →)."),
-        tr("Rechts ein Cl⁻: entgegengesetzte Ladung → Anziehung (Linie, → ←).", "On the right a Cl⁻: opposite charge → attraction (line, → ←)."),
+        tr("Der Na⁺-Nachbar: gleiche Ladung → Abstoßung (rot gestrichelt).", "The Na⁺ neighbour: like charge → repulsion (red dashed)."),
+        tr("Der Cl⁻-Nachbar: entgegengesetzte Ladung → Anziehung (Linie).", "The Cl⁻ neighbour: opposite charge → attraction (line)."),
         tr("Auf diesem Platz wirkt beides.", "In this place, both act."),
       ],
       ok: tr("Ein Ion spürt jeden Nachbarn: entgegengesetzte Ladung zieht an, gleiche Ladung stößt ab.", "An ion feels every neighbour: opposite charge attracts, like charge repels."),
@@ -92,19 +92,20 @@ function steps(): GuideStep[] {
         [both()]: tr("Ein Nachbar ist ein Cl⁻ und stößt ab. Schiebe weiter.", "One neighbour is a Cl⁻ and repels. Move on."),
       },
       tip: tr("Ein negatives Ion wird von positiven Nachbarn angezogen.", "A negative ion is attracted by positive neighbours."),
-      ok: tr("Cl⁻ zwischen zwei Na⁺: nur Anziehung. So liegen die Ionen im Salz – immer abwechselnd.", "Cl⁻ between two Na⁺: only attraction. This is how ions lie in a salt – always alternating."),
+      ok: tr("Cl⁻ zwischen zwei Na⁺: nur Anziehung. So liegen die Ionen auch im Kochsalz – immer abwechselnd.", "Cl⁻ between two Na⁺: only attraction. This is how ions lie in table salt too – always alternating."),
       visual: c => <IonRow c={c} mover={CL} fixed={[CL, CL, NA, NA]} start={0} sol={2} />,
     }),
 
     // ── Teil 2: Das Ionengitter ─────────────────────────────────────────────
     model({
       mode: "worked", part: tr("Das Ionengitter", "The ionic lattice"),
-      say: tr("Im festen Salz liegen sehr viele Ionen abwechselnd im **Ionengitter**. Die Anziehung zwischen Kationen und Anionen im Gitter heißt **Ionenbindung**.",
-        "In a solid salt, a huge number of ions alternate in an **ionic lattice**. The attraction between cations and anions in the lattice is called an **ionic bond**."),
+      say: tr("Ionenverbindungen heißen auch **Salze**, z. B. Kochsalz NaCl oder Kaliumbromid KBr. Im festen Salz liegen sehr viele Ionen abwechselnd im **Ionengitter**.",
+        "Ionic compounds are also called **salts**, e.g. table salt NaCl or potassium bromide KBr. In a solid salt, a huge number of ions alternate in an **ionic lattice**."),
       ask: tr("Sieh dir eine Schicht aus dem Gitter von Natriumchlorid NaCl an.", "Look at one layer of the lattice of sodium chloride NaCl."),
       lines: [
         tr("Jedes Na⁺ hat links, rechts, oben und unten ein Cl⁻ – und jedes Cl⁻ dort ein Na⁺.", "Every Na⁺ has a Cl⁻ on the left, right, above and below – and every Cl⁻ an Na⁺."),
         tr("Die Nachbarn sind immer **Gegen-Ionen**: Ionen mit entgegengesetzter Ladung.", "The neighbours are always **counter-ions**: ions with the opposite charge."),
+        tr("Die Anziehung zwischen Kationen und Anionen im Gitter heißt **Ionenbindung**.", "The attraction between cations and anions in the lattice is called an **ionic bond**."),
       ],
       ok: tr("Im Ionengitter ist jedes Ion nur von Gegen-Ionen umgeben – überall Anziehung.", "In the ionic lattice, every ion is surrounded only by counter-ions – attraction everywhere."),
       visual: c => <LatticeFill c={c} cat={NA} an={CL} cols={5} rows={3} open={[]}
@@ -153,11 +154,11 @@ function steps(): GuideStep[] {
     }),
     model({
       mode: "worked",
-      say: tr("Das Gitter geht auch nach vorn, hinten, oben und unten weiter.", "The lattice also continues to the front, back, top and bottom."),
-      ask: tr("Zähle mit: Wie viele Cl⁻ umgeben ein Na⁺ im Raum?", "Count along: how many Cl⁻ surround an Na⁺ in space?"),
+      say: tr("Das Gitter besteht aus vielen Schichten: davor und dahinter liegen weitere.", "The lattice consists of many layers: more lie in front and behind."),
+      ask: tr("Zähle mit: Wie viele Cl⁻ umgeben ein Na⁺ im Raum?", "Count with us: how many Cl⁻ surround an Na⁺ in space?"),
       lines: [
-        tr("In seiner Schicht: 4 Cl⁻ (links, rechts, vorn, hinten).", "In its layer: 4 Cl⁻ (left, right, front, back)."),
-        tr("Dazu oben und unten je 1 Cl⁻.", "Plus 1 Cl⁻ above and 1 below."),
+        tr("In seiner Schicht: 4 Cl⁻ (links, rechts, oben, unten).", "In its layer: 4 Cl⁻ (left, right, above, below)."),
+        tr("Dazu davor und dahinter je 1 Cl⁻.", "Plus 1 Cl⁻ in front and 1 behind."),
         tr("Zusammen 6 Cl⁻ um jedes Na⁺ – und 6 Na⁺ um jedes Cl⁻.", "Together 6 Cl⁻ around every Na⁺ – and 6 Na⁺ around every Cl⁻."),
       ],
       ok: tr("Jedes Ion zieht alle 6 Nachbarn gleich stark an. Darum gibt es im Gitter keine Paare.", "Every ion attracts all 6 neighbours equally strongly. So there are no pairs in the lattice."),
@@ -165,15 +166,15 @@ function steps(): GuideStep[] {
     }),
     model({
       mode: "faded",
-      say: tr("Die **Verhältnisformel** nennt das kleinste Zahlenverhältnis der Ionen im Gitter.", "The **ratio formula** gives the smallest number ratio of the ions in the lattice."),
-      ask: tr("Im Ausschnitt aus dem Gitter von Magnesiumoxid sind 8 Mg²⁺ und 8 O²⁻ markiert. Stelle die Verhältnisformel ein.", "In the section of the magnesium oxide lattice, 8 Mg²⁺ and 8 O²⁻ are marked. Set the ratio formula."),
-      lines: [tr("Mg²⁺ : O²⁻ = 8 : 8, gekürzt 1 : 1.", "Mg²⁺ : O²⁻ = 8 : 8, reduced 1 : 1."), tr("Verhältnisformel: {?}", "Ratio formula: {?}")],
+      say: tr("Die Verhältnisformel nennt das kleinste Zahlenverhältnis der Ionen im Gitter.", "The empirical formula gives the smallest number ratio of the ions in the lattice."),
+      ask: tr("Im Ausschnitt aus dem Gitter von Magnesiumoxid sind 4 Mg²⁺ und 4 O²⁻ markiert. Stelle die Verhältnisformel ein.", "In the section of the magnesium oxide lattice, 4 Mg²⁺ and 4 O²⁻ are marked. Set the empirical formula."),
+      lines: [tr("Mg²⁺ : O²⁻ = 4 : 4, gekürzt 1 : 1.", "Mg²⁺ : O²⁻ = 4 : 4, reduced 1 : 1."), tr("Verhältnisformel: {?}", "Empirical formula: {?}")],
       answer: "MgO",
       why: {
         [unreduced()]: tr("So viele Ionen sind nur in diesem Ausschnitt. Das Gitter geht weiter – die Formel nennt das kleinste Verhältnis.", "That many ions are only in this section. The lattice goes on – the formula gives the smallest ratio."),
         [notNeutral()]: tr("Die Ladungen gleichen sich nicht aus. Bei 2+ und 2− braucht man gleich viele Ionen.", "The charges do not balance. With 2+ and 2− you need equal numbers of ions."),
       },
-      tip: tr("Kürze das Verhältnis 8 : 8 so weit wie möglich.", "Reduce the ratio 8 : 8 as far as possible."),
+      tip: tr("Kürze das Verhältnis 4 : 4 so weit wie möglich.", "Reduce the ratio 4 : 4 as far as possible."),
       ok: tr("Magnesiumoxid MgO: Mg²⁺ und O²⁻ im Verhältnis 1 : 1, denn 1 · (2+) + 1 · (2−) = 0.", "Magnesium oxide MgO: Mg²⁺ and O²⁻ in the ratio 1 : 1, because 1 · (2+) + 1 · (2−) = 0."),
       visual: c => <FormulaModel c={c} />,
     }),
@@ -195,7 +196,7 @@ function steps(): GuideStep[] {
 
     // ── Teil 3: Hart, spröde, hohe Schmelztemperatur ───────────────────────
     model({
-      mode: "worked", part: tr("Hart, spröde, hohe Schmelztemperatur", "Hard, brittle, high melting point"),
+      mode: "worked", part: tr("Hart und spröde", "Hard and brittle"),
       say: tr("Die Ionen im Gitter schwingen ständig ein wenig um ihren Platz. Je höher die Temperatur, desto stärker schwingen sie.",
         "The ions in the lattice constantly vibrate a little around their places. The higher the temperature, the more strongly they vibrate."),
       ask: tr("Sieh dir Natriumchlorid NaCl bei 400 °C an.", "Look at sodium chloride NaCl at 400 °C."),
@@ -214,18 +215,22 @@ function steps(): GuideStep[] {
       lines: [tr("Natriumchlorid schmilzt bei 801 °C.", "Sodium chloride melts at 801 °C."), tr("Die Ionen verlassen ihre Plätze → das Salz ist {?}.", "The ions leave their places → the salt is {?}.")],
       answer: molten(),
       why: { [solid()]: tr("Noch fest: Die Ionen schwingen nur um ihre Plätze. Schiebe die Temperatur höher.", "Still solid: the ions only vibrate around their places. Push the temperature higher.") },
-      tip: tr("Lies die Schmelztemperatur im Lösungsweg ab und stelle mindestens so viel ein.", "Read the melting point in the solution steps and set at least that much."),
-      ok: tr("Ab 801 °C ist Natriumchlorid geschmolzen: Die Ionen sind jetzt beweglich.", "From 801 °C, sodium chloride is molten: the ions can now move about."),
+      tip: tr("Was passiert mit den Ionen bei der Schmelztemperatur?", "What happens to the ions at the melting point?"),
+      ok: tr("Ab 801 °C ist Natriumchlorid geschmolzen: Die Ionen ziehen sich weiter an, haben aber keine festen Plätze mehr.", "From 801 °C, sodium chloride is molten: the ions still attract each other but no longer have fixed places."),
       visual: c => <ThermoLattice c={c} cat={NA} an={CL} tm={801} max={1000} step={1} start={20} sol={850} />,
     }),
     model({
       mode: "free",
-      ask: tr("Magnesiumoxid MgO besteht aus Mg²⁺ und O²⁻. Erhitze es, bis es schmilzt.", "Magnesium oxide MgO consists of Mg²⁺ and O²⁻. Heat it until it melts."),
-      answer: molten(),
-      why: { [solid()]: tr("Noch fest. Mg²⁺ und O²⁻ sind doppelt geladen und ziehen sich stärker an als Na⁺ und Cl⁻. Heize weiter.", "Still solid. Mg²⁺ and O²⁻ carry double charges and attract each other more strongly than Na⁺ and Cl⁻. Keep heating.") },
-      tip: tr("Doppelte Ladungen ziehen sich stärker an. Probiere auch sehr hohe Temperaturen aus.", "Double charges attract more strongly. Also try very high temperatures."),
-      ok: tr("Magnesiumoxid schmilzt erst bei 2852 °C: höhere Ladungen, stärkere Anziehung, höhere Schmelztemperatur.", "Magnesium oxide only melts at 2852 °C: higher charges, stronger attraction, higher melting point."),
-      visual: c => <ThermoLattice c={c} cat={MG} an={O} tm={2852} max={3000} step={10} start={20} sol={2900} />,
+      say: tr("Magnesiumoxid MgO besteht aus Mg²⁺ und O²⁻ – die Ladungen sind doppelt so groß wie bei Na⁺ und Cl⁻.", "Magnesium oxide MgO consists of Mg²⁺ and O²⁻ – the charges are twice as large as for Na⁺ and Cl⁻."),
+      ask: tr("Stelle eine Temperatur ein, bei der Natriumchlorid schon flüssig, Magnesiumoxid aber noch fest ist.", "Set a temperature at which sodium chloride is already liquid but magnesium oxide is still solid."),
+      answer: naclOnly(),
+      why: {
+        [bothSolid()]: tr("Noch ist auch Natriumchlorid fest. Heize, bis sein Gitter zerfällt.", "Sodium chloride is still solid too. Heat until its lattice falls apart."),
+        [bothLiquid()]: tr("Jetzt ist auch Magnesiumoxid geschmolzen – das war zu heiß. Gehe mit der Temperatur zurück.", "Now magnesium oxide has melted too – that was too hot. Turn the temperature down."),
+      },
+      tip: tr("Doppelte Ladungen ziehen sich stärker an. Welcher Stoff braucht also mehr Wärme zum Schmelzen?", "Double charges attract more strongly. So which substance needs more heat to melt?"),
+      ok: tr("Natriumchlorid schmilzt bei 801 °C, Magnesiumoxid erst bei 2852 °C: höhere Ladungen, stärkere Anziehung, höhere Schmelztemperatur.", "Sodium chloride melts at 801 °C, magnesium oxide only at 2852 °C: higher charges, stronger attraction, higher melting point."),
+      visual: c => <ThermoPair c={c} start={20} sol={1500} />,
     }),
     model({
       mode: "worked",
@@ -238,7 +243,7 @@ function steps(): GuideStep[] {
         tr("Sie stoßen sich ab – der Kristall bricht.", "They repel each other – the crystal breaks."),
       ],
       ok: tr("Hart wegen der starken Anziehung, spröde wegen der Abstoßung nach dem Verschieben.", "Hard because of the strong attraction, brittle because of the repulsion after shifting."),
-      visual: c => <ShiftLayers c={c} cat={NA} an={CL} start={2} sol={2} demo />,
+      visual: c => <ShiftLayers c={c} cat={NA} an={CL} start={4} sol={4} demo />,
     }),
     model({
       mode: "faded",
@@ -271,9 +276,9 @@ function steps(): GuideStep[] {
 
     // ── Teil 4: Wann leiten Salze Strom? ────────────────────────────────────
     model({
-      mode: "worked", part: tr("Wann leiten Salze Strom?", "When do salts conduct electricity?"),
-      say: tr("**Elektrischer Strom** ist eine Bewegung geladener Teilchen. Ein Stoff **leitet** Strom, wenn sich darin geladene Teilchen frei bewegen können.",
-        "An **electric current** is a movement of charged particles. A substance **conducts** electricity if charged particles can move freely in it."),
+      mode: "worked", part: tr("Strom leiten", "Conducting"),
+      say: tr("**Elektrischer Strom** ist eine gerichtete Bewegung geladener Teilchen. Ein Stoff **leitet** Strom, wenn sich darin geladene Teilchen frei bewegen können.",
+        "An **electric current** is a directed movement of charged particles. A substance **conducts** electricity if charged particles can move freely in it."),
       ask: tr("Sieh dir festes Natriumchlorid NaCl zwischen zwei Metallstäben an.", "Look at solid sodium chloride NaCl between two metal rods."),
       lines: [
         tr("Die Metallstäbe heißen **Elektroden**: einer ist der **Minuspol** (−), einer der **Pluspol** (+).", "The metal rods are called **electrodes**: one is the **negative pole** (−), one the **positive pole** (+)."),
@@ -285,8 +290,8 @@ function steps(): GuideStep[] {
     }),
     model({
       mode: "faded",
-      say: tr("Schmilzt man das Salz oder löst man es in Wasser H₂O, verlassen die Ionen das Gitter. Warum Wasser das schafft, lernst du bei der Elektronenpaarbindung.",
-        "If you melt the salt or dissolve it in water H₂O, the ions leave the lattice. Why water can do this, you will learn with covalent bonds."),
+      say: tr("Beim Schmelzen verlassen die Ionen das Gitter. Beim Lösen in Wasser H₂O lagern sich Wasserteilchen an und lösen die Ionen heraus – warum, lernst du bei der Elektronenpaarbindung.",
+        "On melting, the ions leave the lattice. On dissolving in water H₂O, water particles attach and pull the ions out – why, you will learn with covalent bonds."),
       ask: tr("Stelle einen Zustand ein, in dem die Lampe leuchtet. Dann prüfe.", "Set a state in which the lamp lights up. Then check."),
       lines: [
         tr("Ionen beweglich: Kationen wandern zum Minuspol, Anionen zum Pluspol.", "Ions mobile: cations move to the negative pole, anions to the positive pole."),
@@ -366,8 +371,8 @@ export const kapitel3 = (): Kapitel => ({
     title: tr("Ionengitter und Eigenschaften", "Ionic lattice and properties"),
     known: [
       tr("Ion", "ion"), tr("Kation", "cation"), tr("Anion", "anion"), tr("Ladung", "charge"), tr("Ionenverbindung", "ionic compound"),
-      tr("Verhältnisformel", "ratio formula"), tr("Molekül", "molecule"), tr("Teilchen", "particle"), tr("Gitter", "lattice"),
-      tr("Lösung", "solution"), tr("Außenschale", "outer shell"), tr("Temperatur", "temperature"), tr("Salz", "salt"), tr("Wasser", "water"),
+      tr("Verhältnisformel", "empirical formula"), tr("Molekül", "molecule"), tr("Teilchen", "particle"), tr("Gitter", "lattice"),
+      tr("Lösung", "solution"), tr("Außenschale", "outer shell"), tr("Temperatur", "temperature"), tr("Wasser", "water"),
     ],
     steps: steps(),
     outro: [
@@ -387,7 +392,7 @@ export const kapitel3 = (): Kapitel => ({
       tr("**Ionengitter**: Kationen und Anionen liegen abwechselnd, jedes Ion ist nur von **Gegen-Ionen** umgeben.", "**Ionic lattice**: cations and anions alternate, every ion is surrounded only by **counter-ions**."),
       tr("**Ionenbindung**: die Anziehung zwischen Kationen und Anionen im Ionengitter.", "**Ionic bond**: the attraction between cations and anions in the ionic lattice."),
       tr("Im Raum hat bei Natriumchlorid jedes Ion 6 Gegen-Ionen als Nachbarn – keine Paare, keine Moleküle.", "In space, every ion in sodium chloride has 6 counter-ions as neighbours – no pairs, no molecules."),
-      tr("Die **Verhältnisformel** nennt das kleinste Verhältnis, z. B. Calciumchlorid CaCl₂: Ca²⁺ : Cl⁻ = 1 : 2.", "The **ratio formula** gives the smallest ratio, e.g. calcium chloride CaCl₂: Ca²⁺ : Cl⁻ = 1 : 2."),
+      tr("Die **Verhältnisformel** nennt das kleinste Verhältnis, z. B. Calciumchlorid CaCl₂: Ca²⁺ : Cl⁻ = 1 : 2.", "The **empirical formula** gives the smallest ratio, e.g. calcium chloride CaCl₂: Ca²⁺ : Cl⁻ = 1 : 2."),
     ],
     [
       tr("Die Ionen schwingen um ihre Plätze – je heißer, desto stärker.", "The ions vibrate around their places – the hotter, the more strongly."),
