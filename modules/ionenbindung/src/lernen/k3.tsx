@@ -243,7 +243,7 @@ function steps(): GuideStep[] {
         tr("Sie stoßen sich ab – der Kristall bricht.", "They repel each other – the crystal breaks."),
       ],
       ok: tr("Hart wegen der starken Anziehung, spröde wegen der Abstoßung nach dem Verschieben.", "Hard because of the strong attraction, brittle because of the repulsion after shifting."),
-      visual: c => <ShiftLayers c={c} cat={NA} an={CL} start={2} sol={2} demo />,
+      visual: c => <ShiftLayers c={c} cat={NA} an={CL} start={4} sol={4} demo />,
     }),
     model({
       mode: "faded",
