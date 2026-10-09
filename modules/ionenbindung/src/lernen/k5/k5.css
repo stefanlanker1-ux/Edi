@@ -63,9 +63,9 @@
 .k5-steps .ui-stepper { min-width: 150px; }
 
 /* ── PSE: Metalle wählen ───────────────────────────────────────────────── */
-.k5-pse { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; width: 100%; height: 100%; min-height: 0; }
+.k5-pse { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 2px; width: 100%; height: 100%; min-height: 0; }
 .k5-pse-fit { min-height: 0; }
-.k5-pse-sel { margin: 0; text-align: center; font-size: 1rem; min-height: 1.5em; display: grid; align-content: start; gap: 2px; }
+.k5-pse-sel { margin: 0; text-align: center; font-size: .9rem; line-height: 1.3; min-height: 1.3em; display: grid; align-content: start; gap: 0; }
 .k5-pse-sel p { margin: 0; }
 /* alle Zellen gleich gefärbt: die Farben der Elementgruppen verrieten die Einordnung (Übergangsmetalle blau); nicht angebotene blass,
    auch der Platzhalter 57–71 (wirkt sonst antippbar) */
@@ -78,8 +78,6 @@
 .k5-pse-fit .pse-os.fit .pse-head { font-size: clamp(.7rem, 2.9cqw, .95rem); color: var(--muted); }
 /* schmales PSE: das ✓-Zeichen der richtigen Zellen würde das Symbol verdecken – dort bleibt der Rahmen, die Liste darunter nennt die Metalle */
 @container (max-width: 600px) { .k5-pse-fit .pse-cell.right::after { display: none; } }
-/* sehr niedrige Bühne (viel Text): die Zusammenfassung steht auch im Lösungsweg – das PSE bekommt den Platz */
-@container (max-height: 240px) { .k5-pse-sel { display: none; } }
 
 /* große Knöpfe für die angebotenen Metalle (die PSE-Zellen sind am Handy nur gut 15 px breit) */
 .k5-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; flex: 1 0 100%; }
@@ -90,25 +88,25 @@
 .k5-chip:active { box-shadow: var(--key-edge-pressed); }
 .k5-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: var(--key-edge-pressed); }
 
-/* ── Spalten des großen PSE: Gruppe 1–18, darunter Hauptgruppe I–VIII, dazwischen die Nebengruppen ── */
+/* ── Spalten des großen PSE: 1 | 2 | 3–12 | 13 | 14 | 15–18, darunter die Hauptgruppen; Größen wachsen mit der Bühne (cqh), nie unter 14 px ── */
 .k5-strip {
-  display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 4px 1px; width: 100%; max-width: 760px; margin: 0 auto; align-items: center;
-  font-variant-numeric: tabular-nums; text-align: center;
+  display: grid; grid-template-columns: 1fr 1fr 3.2fr 1fr 1fr 1.6fr; gap: clamp(3px, 3.2cqh - 2px, 18px) 4px; width: 100%; max-width: 720px; margin: 0 auto;
+  align-items: center; text-align: center; font-variant-numeric: tabular-nums;
 }
-.k5-strip-cap { font-size: .8rem; font-weight: 700; color: var(--muted); text-align: left; }
-.k5-strip-g { letter-spacing: -.04em; font-size: clamp(.7rem, 3cqw, 1rem); font-weight: 700; color: var(--muted); padding: 3px 0; border-bottom: 1.5px solid var(--border); }
-.k5-strip-g.main { color: var(--text); }
-.k5-strip-h { font-size: clamp(.7rem, 3cqw, 1rem); font-weight: 800; padding: 4px 0; white-space: nowrap; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); }
-.k5-strip-n { font-size: clamp(.75rem, 3.2cqw, 1rem); font-weight: 700; color: var(--muted); padding: 4px 0; border: 1.5px dashed var(--faint); border-radius: var(--radius-sm); }
 .k5-strip > * { min-width: 0; }
-.k5-strip-m { display: grid; gap: 1px; justify-items: center; padding: 3px 0; margin-top: 6px; border-radius: var(--radius-sm); }
-.k5-strip-m b { font-size: clamp(.7rem, 3.3cqw, 1.2rem); letter-spacing: -.04em; }
-.k5-strip-m small { font-size: clamp(.62rem, 2.6cqw, .85rem); font-weight: 700; }
+.k5-strip-cap { font-size: max(14px, min(4cqh, 1.05rem)); font-weight: 700; color: var(--muted); text-align: left; line-height: 1.15; }
+.k5-strip-g { font-size: max(14px, min(6cqh, 4.4cqw, 1.35rem)); font-weight: 700; color: var(--muted); padding: 1px 0; border-bottom: 1.5px solid var(--border); white-space: nowrap; line-height: 1.2; }
+.k5-strip-g.main { color: var(--text); }
+.k5-strip-h, .k5-strip-n { font-size: max(14px, min(6cqh, 4.4cqw, 1.35rem)); font-weight: 800; padding: max(2px, 2cqh - 1.5px) 0; border-radius: var(--radius-sm); white-space: nowrap; line-height: 1.2; }
+.k5-strip-h { border: 1.5px solid var(--rule); }
+.k5-strip-n { font-weight: 700; color: var(--muted); border: 1.5px dashed var(--faint); letter-spacing: -.02em; }
+.k5-strip-ms { display: flex; justify-content: center; gap: 4px; }
+.k5-strip-m { display: grid; gap: 0; justify-items: center; flex: 1 1 0; max-width: 64px; min-width: 0; padding: max(2px, 2cqh - 1.5px) 0; border-radius: var(--radius-sm); }
+.k5-strip-m b { font-size: max(16px, min(8cqh, 5.6cqw, 1.8rem)); line-height: 1.1; }
+.k5-strip-m small { font-size: max(14px, min(6cqh, 4.4cqw, 1.35rem)); font-weight: 700; line-height: 1.1; }
 .k5-strip-m.grp { background: var(--hue-yellow-soft); border: 1.5px solid var(--hue-yellow-deep); }
 .k5-strip-m.name { background: var(--surface); border: 1.5px dashed var(--text); }
-.k5-strip-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin-top: 10px; font-size: .875rem; color: var(--muted); }
+.k5-strip-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 14px; margin-top: clamp(4px, 4cqh - 3px, 24px); font-size: max(14px, min(4cqh, 1rem)); color: var(--muted); }
 .k5-strip-key i { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px; }
 .k5-strip-key i.grp { background: var(--hue-yellow-soft); border: 1.5px solid var(--hue-yellow-deep); }
 .k5-strip-key i.name { border: 1.5px dashed var(--text); }
-/* niedrige Bühne: Überschriften und Legende der Spalten weglassen, die Spalten selbst bleiben groß */
-@container (max-height: 230px) { .k5-strip-cap, .k5-strip-key { display: none; } }

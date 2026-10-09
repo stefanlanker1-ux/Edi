@@ -63,20 +63,20 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "worked",
-    say: NE("Im großen PSE zählt man alle 18 Spalten: Gruppe 1, 2 = **I., II. Hauptgruppe**, Gruppe 13–18 = **III.–VIII. Hauptgruppe**. Dazwischen: die **Nebengruppen** (3–12) mit den **Nebengruppenmetallen**.",
-      "The large periodic table counts all 18 columns: groups 1, 2 = **main groups I, II**, groups 13–18 = **main groups III–VIII**. In between are groups 3–12 with the **transition metals**."),
+    say: NE("Im großen PSE zählt man 18 Spalten: Gruppe 1, 2 = **I., II. Hauptgruppe**, Gruppe 13–18 = **III.–VIII. Hauptgruppe**. Dazwischen: die **Nebengruppen** mit den **Nebengruppenmetallen**.",
+      "The large periodic table has 18 columns: groups 1, 2 = **main groups I, II**, groups 13–18 = **main groups III–VIII**. In between: groups 3–12 with the **transition metals**."),
     ask: NE("Woher kennst du die Ladung eines Metall-Ions?", "Where do you get the charge of a metal ion from?"),
     lines: [
-      NE("Al: Gruppe 13 = III. Hauptgruppe → Al³⁺, Ladung aus der Hauptgruppe.", "Al: group 13 = main group III → Al³⁺, charge from the main group."),
-      NE("Fe: Gruppe 8 (Nebengruppe) – es gibt Eisen(II)-chlorid FeCl₂ und Eisen(III)-chlorid FeCl₃.", "Fe: group 8 (transition metal) – there is iron(II) chloride FeCl₂ and iron(III) chloride FeCl₃."),
+      NE("Al: Gruppe 13 = III. Hauptgruppe → Al³⁺.", "Al: group 13 = main group III → Al³⁺."),
+      NE("Fe: Nebengruppe – Eisen(II)-chlorid FeCl₂ oder Eisen(III)-chlorid FeCl₃.", "Fe: transition metal – iron(II) chloride FeCl₂ or iron(III) chloride FeCl₃."),
     ],
-    ok: NE("I. bis III. Hauptgruppe: Ladung aus der Hauptgruppe. Alle anderen Metalle: römische Zahl im Namen.", "Main groups I to III: charge from the main group. All other metals: Roman numeral in the name."),
+    ok: NE("I. bis III. Hauptgruppe (z. B. Natrium, Aluminium): Ladung aus der Hauptgruppe. Sonst: römische Zahl im Namen.", "Main groups I to III (e.g. sodium, aluminium): charge from the main group. Otherwise: Roman numeral in the name."),
     visual: c => <GroupStrip c={c} metals={[11, MG, FE, CU, AL, PB]} />,
   }),
   model({
     mode: "faded",
     ask: NE("Ergänze: Wähle die Metalle, deren Ladung im Namen stehen muss. Dann prüfe.", "Complete: choose the metals whose charge must be in the name. Then check."),
-    lines: [NE("I. bis III. Hauptgruppe (Gruppe 1, 2, 13): Ladung aus der Hauptgruppe.", "Main groups I to III (groups 1, 2, 13): charge from the main group."), NE("Nebengruppen (Gruppen 3–12): Ladung im Namen.", "Groups 3–12 (transition metals): charge in the name."), NE("Wählen: {?}", "Choose: {?}")],
+    lines: [NE("I. bis III. Hauptgruppe (Gruppe 1, 2, 13, z. B. Aluminium): Ladung aus der Hauptgruppe.", "Main groups I to III (groups 1, 2, 13, e.g. aluminium): charge from the main group."), NE("Nebengruppen (Gruppen 3–12): Ladung im Namen.", "Groups 3–12 (transition metals): charge in the name."), NE("Wählen: {?}", "Choose: {?}")],
     answer: "Fe Cu",
     why: pseWhy(PSE_A, [FE, CU]),
     tip: NE("Schau auf die Gruppennummer über der Spalte: Hauptgruppe oder Nebengruppe?", "Look at the group number above the column: main group or transition metal?"),
@@ -93,7 +93,7 @@ const steps = (): GuideStep[] => [
     tip: NE("Nur die I. bis III. Hauptgruppe verraten die Ladung. Welche Gruppennummern sind das?", "Only main groups I to III give the charge. Which group numbers are they?"),
     lines: [NE("K: I. Hauptgruppe → K⁺, Ba: II. Hauptgruppe → Ba²⁺, Al: Gruppe 13 = III. Hauptgruppe → Al³⁺.", "K: main group I → K⁺, Ba: main group II → Ba²⁺, Al: group 13 = main group III → Al³⁺.")],
     ok: NE("K⁺, Ba²⁺, Al³⁺ aus der Hauptgruppe. Fe, Cu und Pb (Gruppe 14 = IV. Hauptgruppe): Ladung im Namen.", "K⁺, Ba²⁺, Al³⁺ from the main group. Fe, Cu and Pb (group 14 = main group IV): charge in the name."),
-    visual: c => <PseMetals c={c} cands={PSE_B} answer={[AL, K, BA]} />,
+    visual: c => <PseMetals c={c} cands={PSE_B} answer={[AL, K, BA]} bare />,
   }),
   {
     mode: "free",
@@ -252,7 +252,7 @@ const steps = (): GuideStep[] => [
     tip: NE("Erst die Anzahlen der Formel. Dann die Ladung der Cl⁻ ausrechnen.", "Numbers of the formula first. Then work out the charge of the Cl⁻."),
     lines: [NE("2 · (1−) = 2− → Cu²⁺ → Kupfer(II)-chlorid.", "2 · (1−) = 2− → Cu²⁺ → copper(II) chloride.")],
     ok: NE("CuCl₂: 2 · (1−) = 2− → Cu²⁺ → Kupfer(II)-chlorid.", "CuCl₂: 2 · (1−) = 2− → Cu²⁺ → copper(II) chloride."),
-    visual: c => <WallModel c={c} Z={CU} anion="Cl-" charges={[1, 2, 3]} numerals stepC stepA report="name" given="CuCl2" init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
+    visual: c => <WallModel c={c} Z={CU} anion="Cl-" charges={[1, 2, 3]} numerals stepC stepA report="name" given="CuCl2" init={{ q: 1, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
   }),
   {
     mode: "free",
@@ -357,7 +357,7 @@ export const kapitel5 = (): Kapitel => ({
     steps: steps(),
     outro: [
       tr("Gleiche Elemente, andere Ladung des Metall-Ions → anderer Stoff: schwarzes FeO, rotbraunes Fe₂O₃.", "Same elements, different charge of the metal ion → different substance: black FeO, red-brown Fe₂O₃."),
-      tr("Metalle der I. bis III. Hauptgruppe (Gruppe 1, 2, 13): Ladung aus der Hauptgruppe. Alle anderen Metalle: **römische Zahl** im Namen.", "Metals of main groups I to III (groups 1, 2, 13): charge from the main group. All other metals: **Roman numeral** in the name."),
+      tr("Metalle der I. bis III. Hauptgruppe (z. B. Natrium, Aluminium): Ladung aus der Hauptgruppe. Alle anderen Metalle: **römische Zahl** im Namen.", "Metals of main groups I to III (e.g. sodium, aluminium): charge from the main group. All other metals: **Roman numeral** in the name."),
       tr("Vom Namen zur Formel: Eisen(III)-chlorid = FeCl₃.", "From name to formula: iron(III) chloride = FeCl₃."),
       tr("Von der Formel zum Namen: Fe₂O₃ → 6− auf 2 Fe → Eisen(III)-oxid.", "From formula to name: Fe₂O₃ → 6− shared by 2 Fe → iron(III) oxide."),
       tr("Mit mehratomigen Ionen und Klammern: Fe₂(SO₄)₃, Cu(NO₃)₂.", "With polyatomic ions and brackets: Fe₂(SO₄)₃, Cu(NO₃)₂."),
@@ -367,7 +367,7 @@ export const kapitel5 = (): Kapitel => ({
     [
       tr("Gleiche Elemente können verschiedene Stoffe bilden, wenn das Metall-Ion verschiedene Ladungen hat.", "The same elements can form different substances if the metal ion has different charges."),
       tr("Im großen PSE: Gruppe 1, 2 = I., II. Hauptgruppe; Gruppe 13–18 = III.–VIII. Hauptgruppe; dazwischen die Nebengruppen.", "In the large periodic table: groups 1, 2 = main groups I, II; groups 13–18 = main groups III–VIII; in between the transition metals."),
-      tr("Metalle der I. bis III. Hauptgruppe: Ladung aus der Hauptgruppe, z. B. Mg²⁺.", "Metals of main groups I to III: charge from the main group, e.g. Mg²⁺."),
+      tr("Metalle der I. bis III. Hauptgruppe (z. B. Natrium, Magnesium, Aluminium): Ladung aus der Hauptgruppe, z. B. Mg²⁺.", "Metals of main groups I to III (e.g. sodium, magnesium, aluminium): charge from the main group, e.g. Mg²⁺."),
       tr("Bei allen anderen Metallen – **Nebengruppenmetalle** (Gruppen 3–12) und Blei – steht die Ladung als **römische Zahl** im Namen.", "For all other metals – **transition metals** (groups 3–12) and lead – the charge is a **Roman numeral** in the name."),
     ],
     [
