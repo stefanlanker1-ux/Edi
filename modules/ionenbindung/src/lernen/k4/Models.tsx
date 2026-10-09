@@ -107,7 +107,7 @@ export function IonModel({ c, center, lig, init, sol, steps, showFormula = true,
         <div className="k4-ion">
           <div className="k4-ion-pic"><IonBlock center={center} lig={lig} n={s.n} extra={s.h} q={q} hideCharge={auto && !known} /></div>
           <div className="k4-ion-f" aria-live="polite">{shown ? (auto && !known ? <span className="k4-none">{toSubscript(f)} ?</span> : ionStr(f, q)) : "?"}</div>
-          {(showName || c.solved) && <div className="k4-ion-n">{known && (!steps.includes("q") || known.charge === q) ? known.name : auto ? tr("kein Ion der Liste", "not an ion on the list") : "–"}</div>}
+          {(showName || c.solved) && <div className="k4-ion-n">{known && (!steps.includes("q") || known.charge === q) ? known.name : auto ? tr("kein Ion aus diesem Kapitel", "no ion from this chapter") : "–"}</div>}
         </div>
       }
       controls={
@@ -152,7 +152,7 @@ export function NameKit({ c, figure, slots, sol, join = "" }: {
           ))}
         </div>
       }
-      onCheck={() => c.pick(name)} />
+      onCheck={() => c.pick(s.every(Boolean) ? name : "–")} />
   );
 }
 
@@ -212,19 +212,19 @@ export function WriteModel({ c, cat, an, nC, nA, which, init, sol }: {
   return (
     <ModelFrame c={c} className={`k4-m${c.solved ? " k4-solved" : ""}`}
       stage={
-        <Fit className="k4-wall" min={0.3}><div className="k4-write">
-          <IonWall cation={ci} anion={ai} nC={nC} nA={nA} showFormula={false} />
+        <div className="k4-write">
+          <Fit className="k4-wall" min={0.3}><IonWall cation={ci} anion={ai} nC={nC} nA={nA} showFormula={false} /></Fit>
           <div className="k4-write-f" aria-live="polite"><Formula f={f} /></div>
           <table className="k4-cnt">
             <tbody>
-              <tr><th scope="row">{tr("Ionenwand", "Ion wall")}</th>{els.map(e => <td key={e}>{e} {want[e]}</td>)}</tr>
+              <tr><th scope="row">{tr("Ionen", "Ions")}</th>{els.map(e => <td key={e}>{e} {want[e]}</td>)}</tr>
               <tr><th scope="row">{tr("Formel", "Formula")}</th>{els.map(e => {
                 const ok = (have[e] ?? 0) === want[e];
                 return <td key={e} className={ok ? "ok" : "bad"}>{ok ? "✓" : "≠"} {e} {have[e] ?? 0}</td>;
               })}</tr>
             </tbody>
           </table>
-        </div></Fit>
+        </div>
       }
       controls={
         <div className="k4-ctl">
@@ -264,7 +264,7 @@ export function PickModel({ c, cats, ans, sol }: { c: GuideCtx; cats: string[]; 
   );
 }
 
-/* ── Bild: kein Gemisch einzelner Ionen ── */
+/* ── Bild: nicht aus einzelnen Ionen zusammengesetzt ── */
 export function NotMixture() {
   return (
     <div className="k4-mix">
@@ -277,7 +277,7 @@ export function NotMixture() {
       </figure>
       <figure className="k4-mix-yes">
         <div className="k4-ion-pic"><IonBlock center="S" lig="O" n={4} q={-2} /></div>
-        <figcaption><b>✓</b> {tr("eine Gruppe: 2−", "one group: 2−")}</figcaption>
+        <figcaption><b>✓</b> {tr("eine Atomgruppe: 2−", "one atom group: 2−")}</figcaption>
       </figure>
     </div>
   );
