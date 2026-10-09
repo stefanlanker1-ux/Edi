@@ -140,8 +140,8 @@ export const kapitel4 = (): Kapitel => ({
       // ── Namen ──
       model({
         mode: "worked", part: tr("Namen: -at, -it, Hydrogen-", "Names: -ate, -ite, hydrogen"),
-        say: tr("Ionen mit Sauerstoff enden auf **-at**. Hat ein Ion ein O-Atom weniger, endet es auf **-it**.",
-          "Ions with oxygen end in **-ate**. If an ion has one O atom fewer, it ends in **-ite**."),
+        say: tr("Mehratomige Ionen mit Sauerstoff enden meist auf **-at**. Hat ein Ion ein O-Atom weniger, endet es auf **-it**.",
+          "Polyatomic ions with oxygen mostly end in **-ate**. If an ion has one O atom fewer, it ends in **-ite**."),
         ask: tr("Wie heißt SO₃²⁻?", "What is SO₃²⁻ called?"),
         lines: [
           tr("SO₄²⁻ heißt **Sulfat**.", "SO₄²⁻ is called **sulfate**."),
@@ -149,7 +149,7 @@ export const kapitel4 = (): Kapitel => ({
           tr("Genauso: **Nitrat** NO₃⁻ und **Nitrit** NO₂⁻.", "Likewise: **nitrate** NO₃⁻ and **nitrite** NO₂⁻."),
         ],
         visual: c => <IonModel c={c} center="S" lig="O" init={{ n: 3, h: 0, q: 0 }} sol={{ n: 3, h: 0, q: 0 }} steps={["n"]} showName />,
-        ok: tr("-at = mit Sauerstoff, -it = ein O weniger: Sulfat SO₄²⁻, Sulfit SO₃²⁻.", "-ate = with oxygen, -ite = one O fewer: sulfate SO₄²⁻, sulfite SO₃²⁻."),
+        ok: tr("-at = mehr O, -it = ein O weniger: Sulfat SO₄²⁻, Sulfit SO₃²⁻.", "-ate = more O, -ite = one O fewer: sulfate SO₄²⁻, sulfite SO₃²⁻."),
       }),
       model({
         mode: "faded", show: SHOW(),
@@ -266,7 +266,7 @@ export const kapitel4 = (): Kapitel => ({
         lines: [
           tr("1 · (2+) = 2+ und 1 · (2−) = 2−.", "1 · (2+) = 2+ and 1 · (2−) = 2−."),
           tr("Ein Carbonat-Ion → keine Klammer: **CaCO₃**.", "One carbonate ion → no brackets: **CaCO₃**."),
-          tr("Genauso: NaHCO₃, KNO₃. Aber zwei Ammonium-Ionen: (NH₄)₂…", "Likewise: NaHCO₃, KNO₃. But two ammonium ions: (NH₄)₂…"),
+          tr("Genauso: NaHCO₃, KNO₃. Aber zwei Nitrat-Ionen: Mg(NO₃)₂.", "Likewise: NaHCO₃, KNO₃. But two nitrate ions: Mg(NO₃)₂."),
         ],
         visual: c => <WallModel c={c} cat="Ca2+" an="CO32-" init={[1, 1]} sol={[1, 1]} name />,
         ok: tr("Klammer nur, wenn ein mehratomiges Ion mehrmals vorkommt.", "Brackets only when a polyatomic ion appears more than once."),
@@ -400,7 +400,7 @@ export const kapitel4 = (): Kapitel => ({
       tr("Fast alle mehratomigen Ionen sind Anionen. Das Ammonium-Ion ist ein Kation.", "Almost all polyatomic ions are anions. The ammonium ion is a cation."),
     ],
     [
-      tr("Endung **-at**: Ion mit Sauerstoff, z. B. Sulfat SO₄²⁻, Carbonat CO₃²⁻.", "Ending **-ate**: ion with oxygen, e.g. sulfate SO₄²⁻, carbonate CO₃²⁻."),
+      tr("Endung **-at**: mehratomiges Ion mit Sauerstoff, z. B. Sulfat SO₄²⁻, Carbonat CO₃²⁻.", "Ending **-ate**: polyatomic ion with oxygen, e.g. sulfate SO₄²⁻, carbonate CO₃²⁻."),
       tr("Endung **-it**: ein O-Atom weniger als bei -at, gleiche Ladung.", "Ending **-ite**: one O atom fewer than -ate, same charge."),
       tr("Vorsilbe **Hydrogen-**: ein H⁺ mehr, die Ladung wird um 1 weniger negativ.", "Prefix **hydrogen**: one more H⁺, the charge becomes 1 less negative."),
       tr("Endung **-id**: meist ein einzelnes Atom, z. B. Chlorid Cl⁻ – mit einer mehratomigen Ausnahme.", "Ending **-ide**: usually a single atom, e.g. chloride Cl⁻ – with one polyatomic exception."),
