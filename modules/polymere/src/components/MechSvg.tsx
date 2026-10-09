@@ -4,7 +4,7 @@
 
 import type { ReactNode } from "react";
 import { CurlyArrow } from "@lern/chem-ui";
-import { anchorPt, dirOf, labelHalf, type Atom, type Box, type PBond, type Pose, type Pt } from "../chem/scene.ts";
+import { anchorPt, dirOf, labelHalf, noteBox, type Atom, type Box, type PBond, type Pose, type Pt } from "../chem/scene.ts";
 
 export const U = 50;
 
@@ -56,7 +56,8 @@ function BondLines({ b, at, rings, vis }: { b: PBond; at: Map<string, Atom>; rin
   if (!A0 || !B0) return null;
   const va = vis(A0), vb = vis(B0);
   // eine Seite außerhalb des Bilds: Wellenlinie statt abgeschnittener Atome
-  const cut = Math.abs(va - vb) * b.op * Math.min(A0.op ?? 1, B0.op ?? 1);
+  // Wellenlinie nur, wo ein Atom wirklich weggeschnitten ist (nicht bei einem am Rand nur leicht verblassten Atom)
+  const cut = Math.min(va, vb) < 0.35 ? Math.abs(va - vb) * b.op * Math.min(A0.op ?? 1, B0.op ?? 1) : 0;
   const cutEl = cut > 0.02 && b.k !== "coord" && b.k !== "ts" ? (va > vb ? <CutBond A={A0} B={B0} op={cut} /> : <CutBond A={B0} B={A0} op={cut} />) : null;
   const fade = Math.min(va, vb);
   if (fade < 0.02) return cutEl;
@@ -245,6 +246,8 @@ export function MechSvg({ pose, box, label, className, onPick, halos = true, lp 
           const h = n.bracket / 2, w = n.text === "[" ? 0.16 : -0.16;
           return <path key={n.id} className="mb-bracket" d={`M${(n.x + w) * U} ${(n.y - h) * U}H${n.x * U}V${(n.y + h) * U}H${(n.x + w) * U}`} opacity={n.op ?? 1} />;
         }
+        // längere Beschriftung, die nicht ganz ins Bild passt (z. B. „TiCl₃-Oberfläche“ beim engen Ausschnitt am Handy): weglassen statt abschneiden
+        if (n.text.length > 4) { const q = noteBox(n); if (q.x0 < box.x0 || q.x1 > box.x1 || q.y0 < box.y0 || q.y1 > box.y1) return null; }
         // mehrzeilig mit „\n“, als Block um n.y zentriert
         const lines = n.text.split("\n");
         return <text key={n.id} className={`mb-note tone-${n.tone ?? "plain"}`} x={n.x * U} y={n.y * U} dominantBaseline="central" textAnchor="middle" opacity={n.op ?? 1}>

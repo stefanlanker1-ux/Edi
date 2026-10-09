@@ -199,8 +199,8 @@ export class ZnMech implements Mech {
     // hindurchführt (nicht über ein H) und darüber Platz für den Pfeil bleibt
     sc.move(all, v.diene ? -0.6 : 0, v.diene ? -0.45 : 0.45);
     const c1 = this.first();
-    // Butadien: die H am ersten Ketten-C zeigen im Übergang nach unten (oben entsteht die neue Bindung); `layout` legt sie danach zurück
-    if (v.diene) {
+    // die H am ersten Ketten-C zeigen im Übergang nach unten (oben entsteht die neue Bindung); `layout` legt sie danach zurück
+    {
       const C = sc.at(c1), hs = sc.nb(c1).filter(i => sc.at(i).el === "H").sort((a, b) => sc.at(a).x - sc.at(b).x);
       hs.forEach((h, i) => { const a = ((hs.length === 1 ? 90 : i === 0 ? 120 : 60) * Math.PI) / 180, r = Math.hypot(sc.at(h).x - C.x, sc.at(h).y - C.y); sc.set(h, { x: C.x + r * Math.cos(a), y: C.y + r * Math.sin(a) }); });
     }
@@ -208,7 +208,7 @@ export class ZnMech implements Mech {
     sc.bond(v.diene ? ids.cb : ids.cb, c1, 1, "ts");
     this.key(900, 300, [
       { from: { b: [ids.ca, v.diene ? ids.mid![0] : ids.cb], off: 0.13 }, to: { b: ["tti", ids.ca], f: 0.55, off: -0.12 }, bend: -0.5 },
-      v.diene ? this.over("tti", c1, ids.cb) : { from: { b: ["tti", c1], off: -0.13 }, to: { b: [c1, ids.cb], f: 0.5, off: 0.12 }, bend: 0.5 },
+      this.over("tti", c1, ids.cb),
       // Butadien (Einbau 1,4): die zweite π-Bindung wandert in die Mitte (C2=C3) – sonst fehlte am C2 eine Bindung
       ...(v.diene ? [{ from: { b: [ids.mid![1], ids.cb], off: -0.13 }, to: { b: [ids.mid![0], ids.mid![1]], off: -0.14 }, bend: 0.6 } as Arrow] : []),
     ]);
@@ -243,7 +243,8 @@ export class ZnMech implements Mech {
     this.layout();
     sc.set("tvac", { op: 1 });
     this.phase = "wachsend";
-    this.note = undefined;
+    // Butadien: vereinfacht – in Wirklichkeit sitzt das Kettenende als π-Allyl-Gruppe (C1 bis C3) am Titan
+    this.note = v.diene ? tr("Vereinfacht: Gezeigt ist der Einbau in einem Schritt. In Wirklichkeit bindet das neue Kettenende über C1 bis C3 an das Titan (π-Allyl), bevor das nächste Butadien kommt.", "Simplified: the insertion is shown in one step. In reality the new chain end binds to the titanium through C1 to C3 (π-allyl) before the next butadiene comes.") : undefined;
     this.key(300, 0);
   }
 

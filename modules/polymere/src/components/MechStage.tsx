@@ -8,21 +8,37 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "@lern/ui";
-import { boxOf, clipBox, clipLength, fitBox, labelHalf, lerpBox, poseAt, snapBox, still, type Anchor, type Box, type Clip, type Snap } from "../chem/scene.ts";
+import { anchorPt, boxOf, clipBox, clipLength, fitBox, labelHalf, lerpBox, noteBox, poseAt, snapBox, still, type Anchor, type Box, type Clip, type Snap } from "../chem/scene.ts";
 import { MechSvg, U } from "./MechSvg.tsx";
 
 const ease = (t: number) => (t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2);
 const FALLBACK: Box = { x0: -3, y0: -2, x1: 3, y1: 2 };
 /** Bildpunkte je Bindungslänge, bei denen die Atomzeichen (22 Einheiten bei U je Bindung) 14 px groß sind */
-const MIN_SCALE = (14 / 22) * U;
+const MIN_SCALE = (14.2 / 22) * U;
 
 /** Reaktionsstelle: Atome an Pfeilen, geladene, hervorgehobene und freie Stellen, Atome mit Elektronen daneben */
 function coreOf(snaps: { snap: Snap; arrows?: { from: Anchor; to: Anchor }[] }[], mark?: string): Set<string> {
   const out = new Set<string>(mark ? [mark] : []);
-  const ids = (an: Anchor) => ("a" in an ? [an.a] : "b" in an ? an.b : []);
+  // Anker an einem Elektron bzw. freien Punkt: das nächste Atom zählt
+  const near = (k: { snap: Snap }, an: Anchor): string[] => {
+    const q = anchorPt(k.snap, an);
+    if (!q) return [];
+    let best: string | null = null, bd = 1.1;
+    for (const a of k.snap.atoms) { const d = Math.hypot(a.x - q.x, a.y - q.y); if ((a.op ?? 1) > 0.05 && (a.text ?? a.el) !== "" && d < bd) { bd = d; best = a.id; } }
+    return best ? [best] : [];
+  };
+  // mit Pfeilen: nur deren Atome (Ladungen weiter weg, z. B. das Gegenion, gehören nicht dazu)
+  const arrows = snaps.some(k => k.arrows?.length);
   for (const k of snaps) {
-    for (const ar of k.arrows ?? []) for (const i of [...ids(ar.from), ...ids(ar.to)]) out.add(i);
-    const vis = k.snap.atoms.filter(a => (a.op ?? 1) > 0.05);
+    const ids = (an: Anchor) => ("a" in an ? [an.a] : "b" in an ? an.b : near(k, an));
+    for (const ar of k.arrows ?? []) for (const i of [...ids(ar.from), ...ids(ar.to)]) {
+      out.add(i);
+      // Ring an einem Pfeil-Atom ganz (ein Ring am Rand würde sonst ganz ausgeblendet, der Pfeil zeigte ins Leere)
+      for (const ring of Object.values(k.snap.rings)) if (ring.includes(i)) ring.forEach(r => out.add(r));
+    }
+    if (arrows) continue;
+    const f = k.snap.focus ? new Set(k.snap.focus) : null;
+    const vis = k.snap.atoms.filter(a => (a.op ?? 1) > 0.05 && (!f || f.has(a.id)));
     for (const a of vis) if (a.q || a.hl || a.vac) out.add(a.id);
     for (const d of k.snap.dots) {
       let best: string | null = null, bd = 0.9;
@@ -100,21 +116,35 @@ export function MechStage({ snap, snapKey, clip, clipKey, onEnd, halos, lp, labe
   }, [clipKey]);
 
   // Ausschnitt: Inhalt b, Reaktionsstelle aus den Bildern ks; liegt ein Atom unter der Ecke oben rechts, Ausschnitt in der Fläche darunter
-  const fit = (b: Box | null, ks: { snap: Snap; arrows?: { from: Anchor; to: Anchor }[] }[]) => {
-    const core = coreOf(ks, mark);
+  // letzte Reaktionsstelle (Atome der Pfeile des letzten Ablaufs): das Ruhebild danach zeigt sie, wenn es selbst keine hat (nach Abbruch, Ast …)
+  const lastCore = useRef<Set<string>>(new Set());
+  const fit = (b: Box | null, ks: { snap: Snap; arrows?: { from: Anchor; to: Anchor }[] }[], fallback?: Set<string>) => {
+    let core = coreOf(ks, mark);
+    if (!core.size && fallback) core = new Set([...fallback].filter(id => ks.some(k => k.snap.atoms.some(a => a.id === id && (a.op ?? 1) > 0.05))));
     const cb = core.size ? ks.reduce<Box | null>((acc, k) => {
       const q = boxOf(k.snap.atoms, [...core]);
       return !q ? acc : !acc ? q : { x0: Math.min(acc.x0, q.x0), y0: Math.min(acc.y0, q.y0), x1: Math.max(acc.x1, q.x1), y1: Math.max(acc.y1, q.y1) };
     }, null) : null;
     const core2 = cb && { x0: cb.x0 - 0.5, x1: cb.x1 + 0.5, y0: cb.y0 - 0.45, y1: cb.y1 + 0.45 };
+    // die Reaktionsstelle gehört immer ins Bild, auch wenn der Fokus des Ablaufs sie nicht enthält
+    if (b && cb) b = { x0: Math.min(b.x0, cb.x0), y0: Math.min(b.y0, cb.y0), x1: Math.max(b.x1, cb.x1), y1: Math.max(b.y1, cb.y1) };
     const box = frameFor(b, size.w, size.h, core2);
     if (!corner) return box;
     const s = size.w / (box.x1 - box.x0), cx0 = box.x1 - corner.w / s, cy1 = box.y0 + corner.h / s;
     // wie weit ragen Atome unter die Ecke? Passt es, rückt der Inhalt einfach so weit nach unten (Rand unten reicht)
     let need = 0;
     for (const k of ks) for (const a of k.snap.atoms) {
-      if ((a.op ?? 1) <= 0.05 || (a.text ?? a.el) === "" || a.x + labelHalf(a) <= cx0 || a.x - labelHalf(a) >= box.x1 || a.y + 0.3 <= box.y0) continue;
-      need = Math.max(need, cy1 - (a.y - 0.3));
+      // mit Ladung bzw. freien Elektronenpaaren ragt ein Atom weiter hinaus (auch H zählt)
+      const ex = (a.lp?.length || a.q ? 0.45 : 0.05) + labelHalf(a), ey = a.lp?.length || a.q ? 0.55 : 0.3;
+      if ((a.op ?? 1) <= 0.05 || (a.text ?? a.el) === "" || a.x + ex <= cx0 || a.x - ex >= box.x1 || a.y + ey <= box.y0) continue;
+      need = Math.max(need, cy1 - (a.y - ey));
+    }
+    // Beschriftungen (z. B. „H₂O“, das aufsteigt) ebenso
+    for (const k of ks) for (const n of k.snap.notes) {
+      if ((n.op ?? 1) <= 0.05 || n.bracket) continue;
+      const q = noteBox(n);
+      if (q.x1 <= cx0 || q.x0 >= box.x1 || q.y1 <= box.y0) continue;
+      need = Math.max(need, cy1 - q.y0);
     }
     if (need <= 0) return box;
     const bottom = b ? b.y1 + 0.15 : box.y1;
@@ -126,10 +156,11 @@ export function MechStage({ snap, snapKey, clip, clipKey, onEnd, halos, lp, labe
   const cc = useMemo(() => {
     if (!clip) return null;
     const rest = clip.length > 1 ? clip.slice(1) : clip;
+    lastCore.current = coreOf(rest.filter(k => k.arrows?.length));
     return { b0: fit(snapBox(clip[0].snap) ?? clipBox(clip), [clip[0], ...rest.filter(k => k.arrows?.length).slice(0, 1)]), b1: fit(clipBox(rest), rest), t1: Math.max(1, clip[0].hold + clip[0].move) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clip, size.w, size.h]);
-  const stillBox = useMemo(() => fit(snapBox(snap), [{ snap }]), [snap, size.w, size.h]); // eslint-disable-line react-hooks/exhaustive-deps
+  const stillBox = useMemo(() => fit(snapBox(snap), [{ snap }], lastCore.current), [snap, size.w, size.h]); // eslint-disable-line react-hooks/exhaustive-deps
   const target = cc ? lerpBox(cc.b0, cc.b1, ease(Math.min(1, ms / cc.t1))) : stillBox;
 
   // weicher Übergang bei jedem Wechsel (neuer Ablauf, Ende, anderes Standbild)

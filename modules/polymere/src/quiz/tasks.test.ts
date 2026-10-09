@@ -426,3 +426,21 @@ test("Tipps nehmen die Antwort nicht vorweg (Wasser zählen, freie Stelle, Paar 
   assert.ok(!/Platz\?|noch Platz/.test((GENERATORS.freieStelle() as { tip?: string }).tip!));
   assert.ok(!/zweimal –COOH/.test((GENERATORS.paarWahl() as { tip?: string }).tip!));
 });
+
+test("Runde 3: Tipps ohne Lösung (hTap, radikalTap), Rückmeldung Katalysator fachlich richtig, englische Namen mitten im Satz klein", async () => {
+  const { setLang } = await import("@lern/i18n");
+  const tip = (id: string) => (GENERATORS[id]() as { tip?: string }).tip ?? "";
+  assert.ok(!/zur N=C=O-Gruppe zeigt/.test(tip("hTap")), tip("hTap"));
+  assert.ok(!/Das CH₂ bindet/.test(tip("radikalTap")), tip("radikalTap"));
+  const kat = GENERATORS.katalysator();
+  const why = JSON.stringify(kat);
+  assert.ok(!/Am Ende bleibt der Starter/.test(why));
+  assert.match(why, /Kettenanfang/);
+  setLang("en", false);
+  try {
+    for (let k = 0; k < 30; k++) for (const id of ["keinNebenprodukt", "artWahl"]) {
+      const p = GENERATORS[id]().prompt;
+      assert.ok(!/ \+ [A-Z][a-z]/.test(p.replace(/ \+ (HDI|MDI)/g, "")), p);
+    }
+  } finally { setLang("de", false); }
+});

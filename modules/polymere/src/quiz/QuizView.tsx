@@ -232,6 +232,30 @@ function OrderAnswer({ t, answered, submit, solved }: { t: OrderTask; answered: 
   );
 }
 
+/** Mindesthöhe der Aufgabenbilder (px): drückte ein Tipp bzw. der erste Schritt das Bild darunter, geht er ins Blatt (QuizScreen, `crowded`).
+ *  So hoch sind die Bilder ohne Tipp auch am niedrigen Handy (375 × 667) mindestens; ohne Atomzeichen (Kügelchen, Gefäße) reicht weniger */
+const PIC_MIN_H: Record<string, number> = { beads: 44, pot: 44, starters: 44 };
+
+/** Aufgabenbild mit Mindesthöhe – nur solange die Aufgabe offen ist (die Entscheidung Tipp im Bild oder im Blatt fällt vorher;
+ *  nach der Antwort braucht die Rückmeldung den Platz) */
+function PicBox({ k, children }: { k: string; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const min = PIC_MIN_H[k] ?? 64;
+  useEffect(() => {
+    const el = ref.current, card = el?.closest(".task-card");
+    if (!el || !card) return;
+    const upd = () => { if (card.classList.contains("answered")) el.removeAttribute("data-min-h"); else el.setAttribute("data-min-h", String(min)); };
+    upd();
+    const mo = new MutationObserver(upd);
+    mo.observe(card, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, [min]);
+  return <div ref={ref} className={`q-pm q-pm-${k}`} data-min-h={min}>{children}</div>;
+}
+
+/** Formel unter einem Antwortbild nicht umbrechen („CH₂=CH(C₆H₅)“ bleibt eine Zeile): Wortverbinder um –, = und ( */
+const nobr = (f?: string) => f?.replace(/([–=(])/g, "\u2060$1\u2060");
+
 export function QuizView() {
   return (
     <QuizScreen<Task>
@@ -246,10 +270,10 @@ export function QuizView() {
       lesson={l => ({ ...LESSONS[l], terms: lexicon() })}
       heroArt={<span className="hero-pm" aria-hidden="true"><BeadStrip beads={beadsOf(["styrol", "styrol", "styrol", "butadien", "butadien", "butadien"])} active={null} /></span>}
       renderVisual={t => (isBuild(t) ? (t.stage === "worked" ? <BuildAnswer t={t} answered={null} solved /> : null) : isOrder(t) ? (t.stage === "worked" ? <OrderAnswer t={t} answered={null} solved /> : null) : isTap(t) ? (t.stage === "worked" ? <div className="q-pm q-pm-tap"><TapPic t={t} sel={[]} solved /></div> : null)
-        : t.vis ? <div className={`q-pm q-pm-${t.vis.k}`}><VisView v={t.vis} /></div> : null)}
+        : t.vis ? <PicBox k={t.vis.k}><VisView v={t.vis} /></PicBox> : null)}
       renderOption={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? <span className={`pm-opt-pic${visFormula(t.pics[o]) ? " has-txt" : ""}`}><VisView v={t.pics[o]} opt />{visFormula(t.pics[o]) && <span className="pm-opt-txt" aria-hidden="true">{visFormula(t.pics[o])!.replace(/–(?=.)/g, "–\u200B")}</span>}</span> : o)}
       // Bild-Antworten: vorgelesen wird die Formel (so viel, wie das Bild zeigt) bzw. die Beschreibung des Gefäßes – nie der Antworttext („Monomer Propen“ wäre die Lösung)
-      optionLabel={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? visFormula(t.pics[o]) ?? (t.pics[o].k === "pot" ? o : "") : undefined)}
+      optionLabel={(t, o) => (!isTap(t) && !isOrder(t) && !isBuild(t) && t.pics?.[o] ? nobr(visFormula(t.pics[o])) ?? (t.pics[o].k === "pot" ? o : "") : undefined)}
       renderAnswer={(t, a, submit) => (isBuild(t) ? <BuildAnswer key={t.prompt + JSON.stringify(t.pool)} t={t} answered={a} submit={submit} /> : isOrder(t) ? <OrderAnswer key={JSON.stringify(t.cards)} t={t} answered={a} submit={submit} /> : isTap(t) ? <TapAnswer key={t.prompt + JSON.stringify(t.scene)} t={t} answered={a} submit={submit} /> : null)}
       // Ordnen: die richtigen Plätze stehen an den Bildern – keine eigene Lösungszeile
       solution={t => (isTap(t) || isBuild(t) ? t.sol : null)}

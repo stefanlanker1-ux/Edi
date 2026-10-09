@@ -825,7 +825,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Auch in den Lektionen sind Begriffe antippbar (`GuideDef.terms`, Antwortknöpfe ohne). Monomer-Bilder in Aufgaben tragen eine Zeile mit Name und Merkmal
   (`Vis.note`: „**Styrol** – die C=C trägt einen Benzolring“); ein Lektionsschritt, der nach Stoffen fragt, zeigt sie vorher mit Namen (`Row`).
 - **Experimentieren** (`views/ExperimentView.tsx`): am Anfang Auswahl **Polymerisation | Polykondensation | Polyaddition** (Zeile „Art der Reaktion wählen“, darunter
-  drei Karten mit Kügelchen-Bild, oben beginnend – keine Leerfläche darüber; Kennzeile „Nebenprodukt H₂O bzw. HCl“ ohne einzelnes Wort am Zeilenende), danach oben als Umschalter.
+  drei Karten mit Kügelchen-Bild (ganz im Bild, am schmalen Handy kleiner), oben beginnend – keine Leerfläche darüber; Kennzeile „Nebenprodukt H₂O bzw. HCl“ ohne einzelnes Wort am Zeilenende), danach oben als Umschalter.
   Kennzeichen (Produktkarte, Statuszeile) einheitlich mit großem Anfangsbuchstaben, auch auf Englisch. Gespeichert (`polymere-v1`): Art, Ansatz je Art, Ansicht, Schalter „Bausteine farbig“ und „Freie Elektronenpaare“ – der Ablauf selbst
   nicht (beim Öffnen beginnt der Ansatz von vorn). Ansatz:
   - Polymerisation: Monomer (`VINYLS` in `chem/data.ts`: Ethen, Propen, Styrol, Vinylchlorid, Methylmethacrylat, Acrylnitril, Tetrafluorethen, Isobuten,
@@ -850,13 +850,17 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   `mix`, Bild beider Wiederholeinheiten; Hinweis: übriges erstes Monomer bauen die neuen Ketten mit ein). **Ein Monomer bildet mit dem Verfahren keine Ketten**
   (`withFailing`): das andere ergibt sein Homopolymer (`unreacted`, z. B. Ethen + Isobuten mit Ziegler-Natta → PE-HD; nacheinander Ethen → Vinylchlorid: erst PE-HD,
   dann vergiftet); kein Polymer nur, wenn der Katalysator von Anfang an vergiftet ist (gleichzeitig bzw. das giftige zuerst) oder eine Nebenreaktion den Starter vorher
-  verbraucht hat; beide ungeeignet, eines mit kurzen Ketten → „Nur kurze Ketten“; ein Monomer mit kurzen Ketten (Allyl-H, H⁺-Abgabe) neben einem passenden: wird
-  wenig eingebaut, bremst – vor allem das Homopolymer des anderen. Vinylchlorid, Tetrafluorethen, Vinylacetat anionisch nur Nebenreaktion; kationisch nur mit Elektronen schiebenden Gruppen (Isobuten bei −100 °C,
+  verbraucht hat; beide ungeeignet, eines mit kurzen Ketten → „Nur kurze Ketten“; ein Monomer mit kurzen Ketten (Allyl-H, H⁺-Abgabe) neben einem passenden: gleichzeitig
+  wird es wenig eingebaut und bremst – vor allem das Homopolymer des anderen (Isobuten + wenig Butadien kationisch: vulkanisierbar wie Butylkautschuk, `rubber: "butyl"`);
+  nacheinander getrennt – erst das Homopolymer des passenden, daneben eigene kurze, ölige Ketten. **Radikalisch gleichzeitig** (`radicalFirst`): Monomere mit
+  konjugierter C=C (Styrol, Butadien, MMA, Acrylnitril) lagern sich viel schneller an als Vinylacetat, Vinylchlorid, Ethen (r₁ ≫ 1 ≫ r₂, z. B. Styrol/Vinylacetat
+  r ≈ 55 bzw. 0,01) – erst fast nur das Homopolymer des schnellen, das andere erst nach dessen Verbrauch (Styrol hemmt Vinylacetat sogar); Atom-Ansicht und Reaktor
+  ebenso. Ethen + Tetrafluorethen: nahezu alternierend (ETFE, `alt` in `COPOS`, `altPair`). Übrige Paare ohne Eintrag: „etwa gleich schnell … zufällige Reihenfolge“. Vinylchlorid, Tetrafluorethen, Vinylacetat anionisch nur Nebenreaktion; kationisch nur mit Elektronen schiebenden Gruppen (Isobuten bei −100 °C,
   Styrol); Ethen radikalisch nur unter Hochdruck und verzweigt (PE-LD, Code 4), mit Ziegler-Natta unverzweigt (PE-HD, Code 2); Propen und Styrol mit Ziegler-Natta
   isotaktisch, sonst ataktisch; Butadien mit TiCl₄/Al(C₂H₅)₃ überwiegend 1,4, aber nicht pauschal cis (fast nur cis-1,4 erst mit passendem Katalysator, z. B. Neodym).
   Produkte (`polymerise`) mit Name, Kurzzeichen, Klasse (Thermoplast, Elastomer, Duroplast), Aufbau, Verwendung, Recycling-Code;
   bekannte Copolymere SBR/SB, SAN, NBR, EPM, EVA, SMMA, PVC/VAc. **Kautschuk-Art** (`rubber`, Produktkarte: Kennzeichen und ein Satz): Dien-Kautschuk (BR, SBR,
-  NBR) wird durch Vulkanisieren zum Elastomer (Schwefel an C=C), EPM hat keine C=C (vernetzt mit Peroxiden), PIB ist nicht vernetzbar, SB-Blockcopolymer aus
+  NBR) wird durch Vulkanisieren zum Elastomer (Schwefel an C=C), EPM hat keine C=C (vernetzt mit Peroxiden), PIB ist nicht vernetzbar (mit wenig Dien: vulkanisierbar), SB-Blockcopolymer aus
   zwei Blöcken: Kennzeichen „Blockcopolymer (zwei Blöcke)“ – thermoplastisches Elastomer erst mit drei Blöcken (SBS: Styrol → Butadien → Styrol); Klasse eines unbekannten Copolymers nach `copoClass` (mit Dien bzw. Elastomer-Monomer: Kautschuk).
   Englische Namen mitten im Satz klein (`lc`, „the chain end made of styrene“). Stufenwachstum (`reactGroups`, `stepReact`): –COOH + –OH → Esterbindung + H₂O,
   –COOH + –NH₂ → Amidbindung + H₂O, –COCl + –OH/–NH₂ → … + HCl, –N=C=O + –OH → Urethangruppe, –N=C=O + –NH₂ → Harnstoffgruppe, Epoxid + –NH₂ → geöffneter
@@ -919,9 +923,16 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Kamera (`MechStage`): ein Ablauf beginnt im Ausschnitt seines ersten Bilds und fährt während des ersten Schritts zum ruhigen Ausschnitt des Rests; Ende,
   Zurück und andere Ansätze werden weich angefahren (550 ms), andere Bühnengröße ohne Fahrt. Stufenwachstum: Ausschnitt = Kettenende + Platz für das nächste
   Molekül (`span`, 7,8 Bindungslängen), am Anfang beide Ausgangsstoffe ganz. **Handy:** Atomzeichen mindestens 14 px – wäre der ganze Inhalt kleiner, zeigt
-  ein Fenster dieser Größe die Reaktionsstelle (Atome an Pfeilen, geladene, hervorgehobene, freie Stelle, Elektronen; `frameFor`), der Rest endet an Wellenlinien
-  (gemessen 360 × 740 und 375 × 667: 14–16 px; nur der Überblick der Ausgangsstoffe vor dem ersten Schritt ≈ 12 px). Kein fester Rand oben mehr: der Umschalter
-  Atome | Kügelchen liegt über der Bühne, `corner` hält seine Ecke nur frei, wenn dort ein Atom läge (erst den Inhalt nach unten rücken, sonst Fläche darunter).
+  ein Fenster dieser Größe die Reaktionsstelle (`frameFor`; Atome an Pfeilen samt ganzem Ring, Elektronen- und Punkt-Anker als nächstes Atom; ohne Pfeile geladene,
+  hervorgehobene Atome, freie Stelle, Elektronen im Fokus; das Ruhebild danach behält die letzte Reaktionsstelle, auch nach Abbruch oder Ast), der Rest endet an
+  Wellenlinien – die nur, wo ein Atom wirklich weggeschnitten ist; längere Beschriftungen („TiCl₃-Oberfläche“), die nicht ganz ins Bild passen, entfallen. H am Handy
+  so groß wie die übrigen Zeichen (22 statt 17 Einheiten). Gemessen nach jeder Aktion (Automatisch-Folge, 14 Ansätze, 360 × 740 und 375 × 667): 14,2–19 px mit H;
+  **Ausnahme:** der Überblick der Ausgangsstoffe vor dem ersten Schritt zeigt beide Moleküle ganz – 11–14 px (Bisphenol-A-diglycidylether bei 375 px ≈ 9 px).
+  Kein fester Rand oben mehr: der Umschalter Atome | Kügelchen liegt über der Bühne, `corner` hält seine Ecke nur frei, wenn dort ein Atom (samt freien Paaren und
+  Ladung) oder eine Beschriftung läge (erst den Inhalt nach unten rücken, sonst Fläche darunter).
+  Pfeilspitzen enden außen am Atom, nie auf dem Zeichen (π-Paar N=C → N bei Urethan/Harnstoff, O–H → O beim Methanol-Abbruch, Ti–C → neue Bindung bei Ziegler-Natta
+  oberhalb, die H des ersten Ketten-C zeigen im Übergang nach unten); AIBN: je C–N-Bindung ein Halbpfeil zum C, einer in die entstehende N≡N-Bindung; der erste Pfeil
+  Radikal/Anion → Monomer zielt auf die Mitte der jetzigen Lage (kein Stummel); Ziegler-Natta-Butadien: „vereinfacht“ hinter ⓘ (in Wirklichkeit π-Allyl).
 - **Kügelchen-Ansicht** (`chem/reactor.ts` rein rechnerisch, `components/Reactor.tsx` Canvas): Becherglas mit vielen Molekülen (Kügelchen 6–9 px, Anzahl nach
   Fläche), gedämpfte Zufallsbewegung, Federn zwischen gebundenen Kügelchen, leichte Streckung der Ketten, Abstoßung. Reaktionen bei Berührung mit Wahrscheinlichkeit:
   Kettenwachstum nur an aktiven Enden (gestrichelter Ring: Radikal rot, Anion blau, Kation dunkelrot) – wenige lange Ketten, freies Monomer bleibt bis zum Schluss;
@@ -959,7 +970,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   allgemeine Regel des Schritts (`GENERAL_RULE`), sonst die Erklärung der Variante; Antippen/Ordnen/Bauen eine kurze Zeile (`SHORT_RULE` → `rule`). Merksatz vor der Aufgabe
   und Tipp nennen den Blickpunkt, nie die Regel oder die Antwort (Tests: Schlüsselwörter je Typ im Merksatz, Wörter der Antwort im Tipp). Kapitelfolge: jede Fertigkeit
   höchstens 2×, Abstand ≥ 3; die Regelzeile einer Aufgabe enthält nicht die Antwort der nächsten (Tests). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
-  Kennbuchstabe klein in der Ecke. „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
+  Kennbuchstabe klein in der Ecke. Aufgabenbilder tragen, solange die Aufgabe offen ist, eine Mindesthöhe (`data-min-h` über `PicBox`: 64 px, Kügelchen-Bilder 44 px) –
+  drückte ein Tipp bzw. der erste Schritt das Bild darunter, steht er im Blatt. Nach der Antwort entfällt der Merksatz (Platz fürs Bild); Formeln unter Bild-Antworten
+  ohne Umbruch an –, = und ( (Wortverbinder). „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
   mit Trennlinie und Überschrift über jedem Bild; Pfeil nur bei vorher → nachher. Antippen in der Lektion mit unsichtbaren Trefferkreisen je Atom.
   **Antippen im Bild** (`kind: "tap"`, `quiz/tap.ts`, `TapAnswer` in `quiz/QuizView.tsx`): Szene = Standbild der Atom-Ansicht (Ansatz, Aktionen, Bild des Ablaufs,
   wahlweise ohne Pfeile) oder Kettenausschnitt; `parts` = antippbare Atome (stabile Kennungen), `answer` = richtige Atome, Fallen je falschem Teil
@@ -992,7 +1005,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   nie „abwechselnd“, Verknüpfen gelingt immer, wenn die Karte eine Kette meldet; Glycerin mit Disäure/Säurechlorid Netz, mit AB-Monomer Stern ohne Netz; Produktbild = eingebautes Monomer; anionische Reihenfolge in Regeln, Atom-Ansicht und Reaktor; nacheinander ohne lebende Ketten getrennte Ketten, im Reaktor neue Ketten aus dem zweiten Monomer; Kautschuk-Arten; Phenoplast-Brücken
   nur ortho/para; Ziegler-Natta-Butadien drei Pfeile, Elektronen paarweise; kationisch kein Allen; Ester/Amid drei Schritte mit Pfeilen, Ladung ausgeglichen),
   Karte ⇔ Atom-Ansicht ⇔ Reaktor bei einem Monomer ohne Ketten, Gradient Styrol + Butadien, zwei Nebenprodukte im Reaktor, Formalladung in allen Bildern,
-  Pfeil-Lage), `quiz/*.test.ts` (Gültigkeit, Katalog, einfache Sprache, Englisch; Tipp in allen Modi zugeschnitten und ohne Lösungswendungen, kein Ethylbenzol,
+  Pfeil-Lage; nacheinander mit kurzkettigem Monomer, radikalisch stark ungleich bzw. ETFE alternierend, Isobuten + wenig Dien), `quiz/*.test.ts` (Gültigkeit, Katalog, einfache Sprache, Englisch; Tipp in allen Modi zugeschnitten und ohne Lösungswendungen, kein Ethylbenzol,
   Rückmeldungen `wasserTap`/`freieStelleTap`, Nebenprodukt-Bild unbeschriftet, Tipps ohne vorweggenommene Antwort), `guide*.test.ts` (Lektionen auf Deutsch und
   Englisch, Platz der richtigen Auswahl).
 
@@ -1063,6 +1076,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Nachprüfung Runde 3** – „nacheinander“ mit kurzkettigem Monomer ergibt getrennte Ketten (Karte widersprach Atom-Ansicht und Reaktor). Radikalisch stark ungleich
+  schnelle Monomere (konjugierte C=C wie Styrol, Butadien, MMA, Acrylnitril gegen Vinylacetat, Vinylchlorid, Ethen) ergeben zuerst fast nur das Homopolymer des schnellen
+  (Styrol + Vinylacetat → PS, Vinylacetat erst nach Styrolverbrauch) statt „statistisch“; ETFE alternierend (Karte, Atom-Ansicht, Reaktor gleich). Isobuten mit wenig Butadien
+  vulkanisierbar wie Butylkautschuk. Atomzeichen und H am Handy ≥ 14 px auch im Ruhebild (nur die Übersicht vor dem ersten Schritt bleibt bei 11–14 px), Ring am Pfeil-Atom im Bild,
+  Beschriftungen und Wellenlinien nur, wo nötig. Pfeilspitzen außen am Atom (Urethan, Harnstoff, Methanol-Abbruch, Ziegler-Natta), AIBN in die entstehende N≡N-Bindung, erster
+  Pfeil zum Monomer kein Stummel. Tipps und Rückmeldungen fachlich und ohne Lösung (Starter-Rest am Kettenanfang); englische Namen klein; Startbilder ganz; Aufgabenbilder mit
+  Mindesthöhe (Tipp sonst ins Blatt); Reihenfolge-Aufgabe nach dem Prüfen groß genug.
 - **Pakete, Skripte: Nachprüfung Runde 3** – Tipp und erster Schritt stauchen auch selbst einpassende Bilder nicht mehr (Bildrahmen bleibt ≥ max(56 px, 60 % von vorher), sonst
   Blatt) – die vorige Doku-Aussage dazu stimmte für Polymere- und Gemische-Bilder nicht (Schrift bis 5 px); Fokus nach „Tipp“ auf dem Tipp bzw. im Blatt, danach zurück auf „Tipp“;
   ein ausgeblendetes Aufgabenbild kommt zurück, wenn wieder Platz ist; gelöste Beispiele auch bei kleinem Vorrat (gemeinsame Frist mit dem Rundenstart); keine Frage zweimal in einer

@@ -557,7 +557,11 @@ export class StepMech implements Mech {
       const h = nuc.leave[0];
       return [
         { from: { a: nuc.anchor, ang: s > 0 ? 200 : -20, r: 0.42 }, to: { a: nco.anchor, ang: s > 0 ? -20 : 200, r: 0.38 }, bend: 0.5 * s },
-        { from: { b: [nco.extra.n, nco.anchor], off: -0.13 }, to: { a: nco.extra.n, ang: -90, r: 0.45 }, bend: -0.5 * s },
+        // π-Paar N=C geht ans N: Spitze außen am N (schräg weg von der Bindung), nicht auf dem Zeichen
+        (() => {
+          const a0 = this.ang(nco.anchor, nco.extra.n), end = this.clearAng(nco.extra.n, [a0 - 60, a0 + 60, a0 - 90, a0 + 90], 0.5);
+          return this.bulge({ from: { b: [nco.extra.n, nco.anchor], f: 0.55, off: this.sideOff(nco.extra.n, nco.anchor, this.dirOf(end)) }, to: { a: nco.extra.n, ang: end, r: 0.5 } }, nco.extra.n, 0.6);
+        })(),
         // H-Wanderung: das Elektronenpaar am N holt das H, das O–H-Paar bleibt am O
         ...(h ? [
           { from: { a: nco.extra.n, ang: 90, r: 0.42 }, to: { a: h, ang: 180, r: 0.3 }, bend: 0.6 },

@@ -1,7 +1,7 @@
 // Mechanismus zum Ansatz wählen, Abläufe ohne Animation nachspielen (Zurück, Wiederherstellen) und „Automatisch“.
 
 import { method, stepMono, vinyl, type FG, type VinylId } from "../data.ts";
-import { anionFirst, compat, reactGroups, seqKind } from "../rules.ts";
+import { altPair, anionFirst, compat, radicalFirst, reactGroups, seqKind } from "../rules.ts";
 import { ChainMech } from "./chain.ts";
 import { StepMech } from "./step.ts";
 import { ZnMech } from "./zn.ts";
@@ -55,6 +55,12 @@ export function nextAuto(m: Mech, r: Recipe): string | null {
         // anionisch gleichzeitig: das schnellere Monomer zuerst (MMA vor Styrol; Butadien vor Styrol), das andere erst zum Schluss
         const f = anionFirst(r.a as VinylId, r.b as VinylId);
         pick = st.n < target - 2 ? f : f === r.a ? r.b : r.a;
+      }
+      if (!r.seq && r.b && r.b !== r.a && method(me).kind === "radikal" && !bad) {
+        // radikalisch: stark ungleich schnelle Monomere – das schnelle zuerst; ETFE abwechselnd
+        const f = radicalFirst(r.a as VinylId, r.b as VinylId);
+        if (f) pick = st.n < target - 2 ? f : f === r.a ? r.b : r.a;
+        else if (altPair(r.a as VinylId, r.b as VinylId)) pick = st.n % 2 ? r.b : r.a;
       }
       return pool.find(a => a.mono === pick)?.id ?? pool[0].id;
     }

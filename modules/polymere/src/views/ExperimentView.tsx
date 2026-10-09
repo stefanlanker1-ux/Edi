@@ -38,8 +38,8 @@ function ArtPic({ art }: { art: Art }) {
       {art !== "poly" && <>
         {b(10, 20, "red", 1)}{b(30, 20, "teal", 2)}
         <path className="pm-pic-arrow" d="M44 20h12M52 16l4 4-4 4" />
-        <path className="pm-pic-l" d="M68 20h48" />
-        {[0, 1, 2, 3].map(i => b(68 + i * 16, 20, i % 2 ? "teal" : "red", 10 + i))}
+        <path className="pm-pic-l" d="M68 20h42" />
+        {[0, 1, 2, 3].map(i => b(68 + i * 14, 20, i % 2 ? "teal" : "red", 10 + i))}
         {art === "kond" && <text className="pm-pic-t" x="118" y="44" textAnchor="end">+ H₂O</text>}
       </>}
     </svg>
@@ -102,11 +102,13 @@ const RUBBER = (): Record<Rubber, { tags: string[]; text: string }> => tr({
   dien: { tags: ["Kautschuk", "Elastomer nach dem Vulkanisieren"], text: "Kautschuk wird durch Vulkanisieren zum Elastomer: Schwefelbrücken verbinden die Ketten an ihren C=C." },
   peroxid: { tags: ["Kautschuk", "Elastomer nach dem Vernetzen"], text: "Ohne C=C in der Kette vernetzt Schwefel nicht. Peroxide verbinden die Ketten – so wird daraus ein Elastomer." },
   nein: { tags: ["Kautschuk", "nicht vernetzbar"], text: "Ohne C=C in der Kette vernetzen weder Schwefel noch Peroxide: Der Kautschuk bleibt weich und klebrig." },
+  butyl: { tags: ["Kautschuk", "Elastomer nach dem Vulkanisieren"], text: "Die wenigen Dien-Bausteine bringen C=C in die Kette – genug zum Vulkanisieren mit Schwefel. So funktioniert Butylkautschuk (Isobuten mit wenig Isopren)." },
   zweiblock: { tags: ["Blockcopolymer (zwei Blöcke)"], text: "Ein thermoplastisches Elastomer wird daraus erst mit drei Blöcken (SBS: Styrol → Butadien → Styrol): Die harten Styrol-Blöcke an beiden Enden halten die weichen Butadien-Blöcke zusammen – ohne Vulkanisieren. Mit zwei Blöcken fehlt dieser Halt." },
 }, {
   dien: { tags: ["rubber", "elastomer after vulcanisation"], text: "Raw rubber becomes an elastomer by vulcanisation: sulfur bridges link the chains at their C=C." },
   peroxid: { tags: ["rubber", "elastomer after cross-linking"], text: "Without C=C in the chain, sulfur does not cross-link. Peroxides link the chains – this makes an elastomer." },
   nein: { tags: ["rubber", "cannot be cross-linked"], text: "Without C=C in the chain, neither sulfur nor peroxides cross-link it: the rubber stays soft and sticky." },
+  butyl: { tags: ["rubber", "elastomer after vulcanisation"], text: "The few diene units bring C=C into the chain – enough for vulcanisation with sulfur. This is how butyl rubber works (isobutene with a little isoprene)." },
   zweiblock: { tags: ["block copolymer (two blocks)"], text: "It only becomes a thermoplastic elastomer with three blocks (SBS: styrene → butadiene → styrene): the hard styrene blocks at both ends hold the soft butadiene blocks together – without vulcanisation. With two blocks this hold is missing." },
 });
 

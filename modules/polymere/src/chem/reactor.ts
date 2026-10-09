@@ -14,7 +14,7 @@
 
 import { tr } from "@lern/i18n";
 import { method, monoName, stepMono, type FG, type MechKind, type StepId, type VinylId } from "./data.ts";
-import { anionFirst, anionStarts, compat, functionality, polymerise, reactGroups, seqKind, stepReact } from "./rules.ts";
+import { altPair, anionFirst, anionStarts, compat, functionality, polymerise, radicalFirst, reactGroups, seqKind, stepReact } from "./rules.ts";
 import { rng } from "./mech/chain.ts";
 import type { Action, Recipe } from "./mech/types.ts";
 
@@ -546,7 +546,7 @@ export class Reactor {
 
   private reactChain() {
     const rnd = this.rand;
-    if (this.kind === "anion" && this.monos.length > 1) {
+    if (this.monos.length > 1) {
       this.free.clear();
       for (const b of this.beads) if (b.kind === "mono" && !b.nb.length && !b.dead) this.free.set(b.m, (this.free.get(b.m) ?? 0) + 1);
     }
@@ -630,6 +630,13 @@ export class Reactor {
         const same = anionStarts(n.m as VinylId, other) && anionStarts(other, n.m as VinylId);
         if (!same || rnd() >= 0.015) return false;
       }
+    }
+    if (this.kind === "radikal" && !this.recipe.seq && this.monos.length > 1) {
+      const other = this.monos.find(x => x !== n.m) as VinylId, freeOther = (this.free.get(other) ?? 0) > 0;
+      // stark ungleich schnell (Styrol/Vinylacetat …): das langsame lagert sich kaum an, solange das schnelle frei ist
+      if (freeOther && radicalFirst(n.m as VinylId, other) === other && rnd() >= 0.002) return false;
+      // ETFE: ein Kettenende lagert fast nur das andere Monomer an
+      if (freeOther && altPair(n.m as VinylId, other) && e.kind === "mono" && e.m === n.m && rnd() >= 0.03) return false;
     }
     this.bond(e, n);
     n.act = e.act; e.act = undefined;

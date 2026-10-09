@@ -425,7 +425,7 @@ const methName = (id: MethodId) => tr(method(id).name, method(id).name);
 function katalysator(): Task {
   return task(T("Was unterscheidet den Ziegler-Natta-Katalysator vom Starter DBPO?", "What makes the Ziegler–Natta catalyst different from the initiator DBPO?"), T("Er wird nicht verbraucht", "It is not used up"), [
     d(T("Er zerfällt in Radikale", "It splits into radicals"), "starter-katalysator", T("Das macht der Starter DBPO. Der Katalysator bleibt erhalten.", "That is what the initiator DBPO does. The catalyst stays intact.")),
-    d(T("Er bildet das Kettenende", "It forms the chain end"), "starter-katalysator", T("Am Ende bleibt der Starter. Der Katalysator gibt die Kette ab und macht weiter.", "The initiator stays at the end. The catalyst releases the chain and carries on.")),
+    d(T("Er bildet das Kettenende", "It forms the chain end"), "starter-katalysator", T("Der Starter-Rest bleibt als Endgruppe am Kettenanfang. Das Titan sitzt nur beim Wachsen am Kettenende. Dann gibt es die Kette ab und macht weiter.", "The initiator fragment stays as the end group at the start of the chain. The titanium sits at the chain end only while it grows. Then it releases the chain and carries on.")),
     d(T("Er enthält C=C", "It contains C=C"), "starter-katalysator", T("C=C hat das Monomer. Der Katalysator ist eine Titanverbindung.", "The monomer has the C=C. The catalyst is a titanium compound.")),
   ], {
     hint: T("Denk daran, was nach der Reaktion vom Starter bzw. vom Titan noch übrig ist.", "Think about what is left of the initiator or the titanium after the reaction."),
@@ -709,7 +709,8 @@ function keinNebenprodukt(): Task {
   const r = pick<Recipe>([PUR, { art: "add", a: "mdi", b: "butandiol" }, { art: "add", a: "hdi", b: "hexandiamin" }]);
   const urea = r.b === "hexandiamin";
   // die Frage nennt das Paar: zwei Aufgaben einer Runde lesen sich nicht gleich
-  const pair = `${r.a === "hdi" ? "HDI" : r.a === "mdi" ? "MDI" : monoName(r.a)} + ${monoName(r.b!)}`;
+  // englisch: der zweite Name steht mitten im Satz (klein)
+  const pair = `${r.a === "hdi" ? "HDI" : r.a === "mdi" ? "MDI" : monoName(r.a)} + ${nm(r.b!)}`;
   return task(T(`${pair}: Was wird bei dieser Polyaddition abgespalten?`, `${pair}: what is split off in this polyaddition?`), T("Nichts", "Nothing"), [
     d("H₂O", "add-wasser", T("Bei der Polyaddition bleiben alle Atome im Polymer. Nur ein H‑Atom wandert.", "In polyaddition all atoms stay in the polymer. Only an H atom moves.")),
     d("CO₂", "add-wasser", T("CO₂ entsteht nur, wenn Isocyanat mit Wasser reagiert (Schaum).", "CO₂ only forms when isocyanate reacts with water (foam).")),
@@ -768,7 +769,7 @@ function artWahl(): Task {
   );
   const one = c.vis.k === "mono";
   // Namen in der Frage: mehrere Aufgaben dieser Art in einer Runde lesen sich verschieden
-  const short = (id: string) => (id === "badge" ? T("Diepoxid", "diepoxide") : id === "hdi" ? "HDI" : id === "mdi" ? "MDI" : monoName(id));
+  const short = (id: string) => (id === "badge" ? T("Diepoxid", "diepoxide") : id === "hdi" ? "HDI" : id === "mdi" ? "MDI" : nm(id));
   const names = c.vis.k === "mono" ? short(c.vis.id) : c.vis.k === "pair" ? `${short(c.vis.a)} + ${short(c.vis.b!)}` : "";
   return task(one ? T(`Welche Reaktionsart passt zu diesem Monomer (${names})?`, `Which type of reaction suits this monomer (${names})?`) : T(`Welche Reaktionsart passt zu ${names}?`, `Which type of reaction suits ${names}?`), A[c.art],
     (["poly", "kond", "add"] as const).filter(x => x !== c.art).map(x => d(A[x], x === "poly" ? "kond-doppelbindung" : "art-verwechselt", WHY[x])), {
@@ -1102,7 +1103,7 @@ function radikalTap(): Task {
     scene, parts, answer: ["u1cb"], sol: T("das C mit der Seitengruppe des neuen Monomers", "the C with the side group of the new monomer"),
     prompt: T(`Folge den Pfeilen. Tippe auf das C‑Atom, das danach das Radikal trägt.`, `Follow the arrows. Tap the C atom that carries the radical afterwards.`),
     hint: T("Folge jedem halben Pfeil: Welches Elektron landet in der neuen Bindung, welches nicht?", "Follow each half-headed arrow: which electron ends up in the new bond, which does not?"),
-    tip: T("Das CH₂ bindet an die Kette. Wo bleibt das zweite Elektron der C=C?", "The CH₂ bonds to the chain. Where does the second electron of the C=C stay?"),
+    tip: T("Folge den halben Pfeilen, die an der C=C beginnen: Wohin geht jedes der beiden Elektronen?", "Follow the half-headed arrows that start at the C=C: where does each of the two electrons go?"),
     explain: T(`Das Radikal bindet an das CH₂. Das ungepaarte Elektron sitzt danach am C mit der Seitengruppe von ${nm(m)}.`, `The radical binds to the CH₂. The unpaired electron then sits on the C with the side group of ${nm(m)}.`),
     why: id => id === "u1ca" ? ["radikal-bleibt", T("Das CH₂ bindet an die Kette. Das ungepaarte Elektron bleibt am anderen C der Zweifachbindung.", "The CH₂ bonds to the chain. The unpaired electron stays on the other C of the double bond.")]
       : id === "u0cb" ? ["radikal-bleibt", T("Das Elektron des alten Kettenendes steckt jetzt in der neuen Bindung.", "The electron of the old chain end is now in the new bond.")]
@@ -1177,7 +1178,7 @@ function hTap(): Task {
     scene, parts, answer: [ans], sol: T("das H der –OH-Gruppe, die zur N=C=O-Gruppe zeigt", "the H of the –OH group facing the N=C=O group"),
     prompt: T("Tippe auf das H‑Atom, das gleich zum N wandert.", "Tap the H atom that is about to move to the N."),
     hint: T("Welche Gruppe des Alkohols reagiert mit der N=C=O-Gruppe?", "Which group of the alcohol reacts with the N=C=O group?"),
-    tip: T("Suche die –OH-Gruppe, die zur N=C=O-Gruppe zeigt.", "Look for the –OH group facing the N=C=O group."),
+    tip: T("Welche Gruppe des Alkohols reagiert mit der N=C=O-Gruppe – und welches ihrer Atome kann wandern?", "Which group of the alcohol reacts with the N=C=O group – and which of its atoms can move?"),
     explain: T("Das H der –OH-Gruppe wandert zum N: –NH–⁠CO–⁠O–⁠, die **Urethangruppe**. Nichts wird abgespalten.", "The H of the –OH group moves to the N: –NH–⁠CO–⁠O–⁠, the **urethane group**. Nothing is split off."),
     why: id => el(id) === "O" ? ["h-wandert-falsch", T("Das O bleibt und bindet an das C. Gesucht ist das H daran.", "The O stays and binds to the C. The H on it is wanted.")]
       : nb(snap, id).some(x => el(x) === "O") ? ["h-wandert-falsch", T("Diese –OH sitzt am anderen Ende. Es reagiert die –OH, die zur N=C=O-Gruppe zeigt.", "This –OH is at the other end. The –OH facing the N=C=O group reacts.")]

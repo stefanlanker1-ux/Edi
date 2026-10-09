@@ -210,10 +210,11 @@ export class ChainMech implements Mech {
     } else {
       this.fx = -5;
       this.key(500, 300, [
-        { from: { b: ["ic1", "in1"], off: -0.12 }, to: { a: "ic1", ang: -60, r: 0.42 }, half: true, bend: 0.5 },
-        { from: { b: ["ic1", "in1"], off: -0.12 }, to: { a: "in1", ang: -130, r: 0.42 }, half: true, bend: -0.5 },
-        { from: { b: ["ic2", "in2"], off: 0.12 }, to: { a: "ic2", ang: 120, r: 0.42 }, half: true, bend: 0.5 },
-        { from: { b: ["ic2", "in2"], off: 0.12 }, to: { a: "in2", ang: 50, r: 0.42 }, half: true, bend: -0.5 },
+        // je C–N-Bindung: ein Elektron bleibt am C (Radikal), eines geht in die entstehende N≡N-Bindung (wie bei der CO₂-Abspaltung des DBPO)
+        { from: { b: ["ic1", "in1"], f: 0.7, off: -0.12 }, to: { a: "ic1", ang: -45, r: 0.46 }, half: true, bend: 0.6 },
+        { from: { b: ["ic1", "in1"], f: 0.4, off: 0.12 }, to: { b: ["in1", "in2"], off: 0.15 }, half: true, bend: 0.6 },
+        { from: { b: ["in2", "ic2"], f: 0.3, off: 0.12 }, to: { a: "ic2", ang: 135, r: 0.46 }, half: true, bend: -0.6 },
+        { from: { b: ["in2", "ic2"], off: -0.12 }, to: { b: ["in1", "in2"], off: -0.15 }, half: true, bend: 0.6 },
       ]);
       sc.unbond("ic1", "in1"); sc.unbond("ic2", "in2");
       sc.dot("e1", -1.18, 0); sc.dot("e2", -0.82, 0); sc.dot("e3", 0.82, 0); sc.dot("e4", 1.18, 0);
@@ -320,7 +321,8 @@ export class ChainMech implements Mech {
     if (fromTop) sc.move(all, 0, 1.15); else sc.move(all, -1.25, 0);
     // unsichtbar schon an den späteren Platz (neues Ende nach dem Anrücken um −0,75)
     if (kind === "anion" && !first && this.li) sc.set(this.li, { x: sc.at(ids.cb).x - 0.75 + 1.3, y: 1.0 * freeSide() });
-    const mid = { x: (sc.at(this.end).x + xa) / 2, y: 0 };
+    // Mitte zwischen Kettenende und Monomer in ihrer jetzigen Lage (nicht der späteren) – sonst wäre der erste Pfeil nur ein Stummel
+    const mid = { x: (sc.at(this.end).x + sc.at(ids.ca).x) / 2, y: 0 };
     const pi = (a: string, b: string): Arrow => ({ from: { b: [a, b], off: -0.13 }, to: { a: b, ang: 0, r: 0.42 }, half: kind === "radikal", bend: -0.5 });
     const arrows: Arrow[] = [];
     if (kind === "radikal") {
@@ -605,7 +607,8 @@ export class ChainMech implements Mech {
     sc.move([mo.me, mo.o, mo.h], -0.8, 0);
     this.key(900, 300, [
       { from: { d: this.edots[0] }, to: { a: mo.h, ang: 180, r: 0.25 }, bend: -0.6 },
-      { from: { b: [mo.o, mo.h], off: -0.12 }, to: { a: mo.o, ang: -120, r: 0.42 }, bend: 0.6 },
+      // O–H-Paar bleibt am O: Spitze oben rechts außen am O (nicht auf dem Zeichen)
+      { from: { b: [mo.o, mo.h], off: -0.12 }, to: { a: mo.o, ang: -55, r: 0.5 }, bend: -0.6 },
     ]);
     sc.unbond(mo.o, mo.h);
     const O = sc.at(mo.o);

@@ -663,3 +663,55 @@ test("Pfeile gut sichtbar: H⁺-Wanderung mit einem Bogen (nicht winzig), Abgang
   assert.ok(Math.hypot(g.mid.x - C.x, g.mid.y - C.y) > 0.4, "kationisch: Pfeil läuft durch das C");
 });
 
+test("Nacheinander mit kurzkettigem Monomer: Karte wie Atom-Ansicht – erst das passende Monomer als eigenes Polymer, das andere nur in kurzen eigenen Ketten", () => {
+  let n = 0;
+  for (const me of METHOD_IDS) for (const a of VINYLS.map(v => v.id)) for (const b of VINYLS.map(v => v.id)) {
+    if (a === b) continue;
+    const fits = [compat(a, me).fit, compat(b, me).fit];
+    if (!(fits.includes("short") && fits.includes("ok"))) continue;
+    const out = polymerise([a, b], me, true);
+    assert.ok(out.product && !out.product.copo, `${a}→${b}/${me}: Karte sagt Copolymer`);
+    assert.ok(!/nur wenig eingebaut/.test(out.why), `${a}→${b}/${me}: ${out.why}`);
+    assert.match(out.why, /Erst/);
+    // Atom-Ansicht: keine Kette aus beiden Monomeren
+    const r: Recipe = { art: "poly", a, b, seq: true, method: me };
+    const m = makeMech(r);
+    for (let id = nextAuto(m, r), k = 0; id && k < 30; id = nextAuto(m, r), k++) {
+      m.run(id);
+      assert.ok(new Set(m.status().beads.filter(x => x.kind === "unit").map(x => x.mono)).size <= 1, `${a}→${b}/${me}: Atom-Ansicht mischt`);
+    }
+    n++;
+  }
+  assert.ok(n >= 20, `${n} Ansätze`);
+});
+
+test("Radikalisch stark ungleich schnelle Monomere: fast nur das schnelle (Styrol + Vinylacetat → PS), ETFE alternierend – Karte, Atom-Ansicht und Reaktor", () => {
+  const sv = polymerise(["styrol", "vinylacetat"], "dbpo");
+  assert.strictEqual(sv.product?.abbr, "PS");
+  assert.match(sv.why, /viel schneller/);
+  assert.match(sv.why, /bremst die Polymerisation des Vinylacetats/);
+  for (const [x, y, f] of [["mma", "vinylacetat", "PMMA"], ["styrol", "vinylchlorid", "PS"], ["butadien", "vinylchlorid", "BR"], ["acrylnitril", "ethen", "PAN"]] as [VinylId, VinylId, string][])
+    assert.strictEqual(polymerise([x, y], "dbpo").product?.abbr, f, `${x}+${y}`);
+  // bekannte statistische Copolymere bleiben (SAN, SBR, EVA)
+  assert.strictEqual(polymerise(["styrol", "acrylnitril"], "dbpo").product?.copo, "stat");
+  assert.strictEqual(polymerise(["ethen", "vinylacetat"], "dbpo").product?.abbr, "EVA");
+  const etfe = polymerise(["ethen", "tfe"], "dbpo").product!;
+  assert.strictEqual(etfe.abbr, "ETFE"); assert.strictEqual(etfe.copo, "alt");
+  // Atom-Ansicht: erst nur Styrol; ETFE abwechselnd
+  const run = (r: Recipe) => { const m = makeMech(r); for (let id = nextAuto(m, r), k = 0; id && k < 20; id = nextAuto(m, r), k++) m.run(id); return m.status().beads.filter(b => b.kind === "unit").map(b => b.mono); };
+  const s1 = run({ art: "poly", a: "vinylacetat", b: "styrol", method: "dbpo" });
+  assert.deepEqual(s1.slice(0, 3), ["styrol", "styrol", "styrol"], s1.join(","));
+  // nur die erste Kette (nach dem Abbruch durch Rekombination hängt die zweite Kette dran)
+  const s2 = run({ art: "poly", a: "ethen", b: "tfe", method: "dbpo" }).slice(0, 6);
+  for (let i = 1; i < s2.length; i++) assert.notStrictEqual(s2[i], s2[i - 1], s2.join(","));
+  // Reaktor: am Anfang fast nur Styrol eingebaut
+  const R = new Reactor({ art: "poly", a: "styrol", b: "vinylacetat", method: "dbpo" }, 48, 52, 5); R.run("start"); R.advance(700);
+  const used = R.beads.filter(b => b.kind === "mono" && b.nb.length);
+  assert.ok(used.filter(b => b.m === "styrol").length > 5 * Math.max(1, used.filter(b => b.m === "vinylacetat").length), "Reaktor: Vinylacetat zu oft eingebaut");
+}, 60_000);
+
+test("Isobuten + Butadien kationisch: wenig Dien bringt C=C – vulkanisierbar wie Butylkautschuk (nicht „nicht vernetzbar“)", () => {
+  const p = polymerise(["isobuten", "butadien"], "bf3").product!;
+  assert.strictEqual(p.rubber, "butyl");
+  assert.strictEqual(polymerise(["isobuten"], "bf3").product!.rubber, "nein");
+});

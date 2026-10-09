@@ -149,8 +149,10 @@ const capFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** bekanntes Copolymer: Kurzzeichen, Name, Verwendung und Art des Kunststoffs */
 interface Copo { p: [string, string, string]; klasse: Klasse; rubber?: Rubber }
-/** bekannte Copolymere (Paare ungeordnet) */
-const COPOS: { a: VinylId; b: VinylId; stat?: Copo; block?: Copo }[] = [
+/** bekannte Copolymere (Paare ungeordnet); `alt`: gleichzeitig fast streng abwechselnd */
+const COPOS: { a: VinylId; b: VinylId; stat?: Copo; block?: Copo; alt?: Copo }[] = [
+  // ETFE: ein Ethen-Kettenende lagert fast nur Tetrafluorethen an und umgekehrt (r₁ · r₂ ≈ 0) – nahezu alternierend
+  { a: "ethen", b: "tfe", alt: { klasse: "thermo", p: tr(["ETFE", "Ethen-Tetrafluorethen-Copolymer", "Folien für Dächer (z. B. Stadiondächer), Kabelisolierung"], ["ETFE", "Ethene–tetrafluoroethene copolymer", "films for roofs (e.g. stadium roofs), cable insulation"]) } },
   { a: "styrol", b: "butadien", stat: { klasse: "elast", rubber: "dien", p: tr(["SBR", "Styrol-Butadien-Kautschuk", "Autoreifen"], ["SBR", "Styrene–butadiene rubber", "car tyres"]) },
     block: { klasse: "elast", rubber: "zweiblock", p: tr(["SB", "Styrol-Butadien-Blockcopolymer", "mit drei Blöcken (SBS): Schuhsohlen, Zusatz für Straßenasphalt"], ["SB", "Styrene–butadiene block copolymer", "with three blocks (SBS): shoe soles, additive for road asphalt"]) } },
   { a: "styrol", b: "acrylnitril", stat: { klasse: "thermo", p: tr(["SAN", "Styrol-Acrylnitril-Copolymer", "Gehäuse, Schüsseln für Küchengeräte"], ["SAN", "Styrene–acrylonitrile copolymer", "housings, bowls for kitchen appliances"]) } },
@@ -181,6 +183,18 @@ export function anionFirst(a: VinylId, b: VinylId): VinylId {
   if (la !== lb) return la < lb ? a : b;
   return b === "butadien" ? b : a;
 }
+
+/** radikalisch gleichzeitig: Monomere mit konjugierter C=C (Styrol, Butadien, MMA, Acrylnitril) lagern sich viel schneller an als solche ohne
+ *  (Vinylacetat, Vinylchlorid, Ethen) – r₁ ≫ 1 ≫ r₂, z. B. Styrol/Vinylacetat r ≈ 55 bzw. 0,01: erst fast nur das schnelle Monomer,
+ *  das andere erst, wenn es verbraucht ist (Styrol hemmt die Polymerisation von Vinylacetat sogar). null: etwa gleich schnell */
+const CONJ = new Set<VinylId>(["styrol", "butadien", "mma", "acrylnitril"]), SLOW = new Set<VinylId>(["vinylacetat", "vinylchlorid", "ethen"]);
+export function radicalFirst(a: VinylId, b: VinylId): VinylId | null {
+  if (CONJ.has(a) && SLOW.has(b)) return a;
+  if (CONJ.has(b) && SLOW.has(a)) return b;
+  return null;
+}
+/** gleichzeitig fast streng abwechselnd (ETFE) */
+export const altPair = (a: VinylId, b: VinylId) => COPOS.some(x => !!x.alt && ((x.a === a && x.b === b) || (x.a === b && x.b === a)));
 
 /** zwei Monomere nacheinander: block = Blöcke (anionisch, die Kette lebt und ihr Ende startet das zweite Monomer);
  *  first = das zweite Monomer reagiert nicht mehr (Kettenende zu schwach bzw. Ketten tot, Butyllithium verbraucht);
@@ -265,14 +279,27 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
   if (short.length === list.length) { const c0 = compat(short[0], me); return { fit: c0.fit, failing: short[0], compat: c0, why: c0.why }; }
   if (short.length) {
     // ein Monomer bildet nur kurze Ketten (Allyl-H, H⁺-Abgabe): wird wenig eingebaut und bremst – vor allem das Homopolymer des anderen
-    const sh = short[0], g = list.find(m => m !== sh)!, vs = vinyl(sh), product = homoProduct(g, me), P = product.abbr;
+    const sh = short[0], g = list.find(m => m !== sh)!, vs = vinyl(sh), vg = vinyl(g), product = homoProduct(g, me), P = product.abbr;
     const cs = compat(sh, me);
     const reason = cs.fail === "allyl"
       ? tr("Oft reißt das Radikal ein H‑Atom von seiner CH₃-Gruppe ab, und die Kette wächst kaum weiter.", "The radical often pulls an H atom off its CH₃ group, and the chain hardly grows on.")
       : vs.diene ? tr("Nebenreaktionen am Butadien verknüpfen und verkürzen die Ketten.", "Side reactions at the butadiene link and shorten the chains.")
         : tr(`An einem ${vs.name}-Ende geht schnell ein H⁺ ab – die Kette endet.`, `A ${lc(vs.name)} chain end quickly gives off an H⁺ – the chain stops.`);
+    if (seq) {
+      // nacheinander: getrennte Ketten – das passende Monomer bildet lange Ketten, das andere vorher bzw. danach nur kurze
+      const shortTxt = tr(`kurze Ketten aus ${vs.name}`, `short chains of ${lc(vs.name)}`);
+      return {
+        fit: "ok", compat: compat(g, me), product: { ...product, note: tr(`Daneben: ${shortTxt} (ölig, kein Kunststoff).`, `Alongside: ${shortTxt} (oily, not a plastic).`) },
+        why: sh === list[0]
+          ? tr(`Erst bildet ${vs.name} nur kurze Ketten: ${reason} Mit ${vg.name} wachsen danach lange Ketten – ${P}.`, `First ${lc(vs.name)} forms only short chains: ${reason} With ${lc(vg.name)} long chains grow afterwards – ${P}.`)
+          : tr(`Erst entsteht ${P}. ${vs.name} bildet danach eigene, nur kurze Ketten: ${reason}`, `First ${P} forms. Afterwards ${lc(vs.name)} forms its own, only short chains: ${reason}`),
+      };
+    }
+    // Isobuten mit wenig Dien: die wenigen Dien-Bausteine bringen C=C in die Kette – vulkanisierbar wie Butylkautschuk
+    const butyl = g === "isobuten" && vs.diene;
     return {
-      fit: "ok", compat: compat(g, me), product,
+      fit: "ok", compat: compat(g, me),
+      product: butyl ? { ...product, name: tr(`Polyisobuten mit wenig ${vs.name}`, `Polyisobutene with a little ${lc(vs.name)}`), abbr: "PIB", rubber: "butyl" } : product,
       why: tr(`${vs.name} wird nur wenig eingebaut und bremst: ${reason} Es entsteht vor allem ${P} mit kürzeren Ketten.`, `${vs.name} is incorporated only a little and slows things down: ${reason} Mostly ${P} with shorter chains forms.`),
     };
   }
@@ -324,6 +351,26 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
       product: { name: tr(`Gradienten-Copolymer aus ${vf.name} und ${vs.name}`, `Gradient copolymer of ${lc(vf.name)} and ${lc(vs.name)}`), abbr: `${vf.letter}/${vs.letter}`, ...copoClass(a, b), struktur: "linear", uses: "–", copo: "gradient" },
     };
   }
+  if (!seq && kind0 === "radikal" && known?.alt) {
+    const n = known.alt;
+    return {
+      fit: "ok", compat: c,
+      why: tr(`Ein Kettenende aus ${va.name} lagert fast nur ${vb.name} an und umgekehrt: Die Bausteine wechseln sich nahezu streng ab.`,
+        `A chain end made of ${lc(va.name)} adds almost only ${lc(vb.name)} and vice versa: the units alternate almost strictly.`),
+      product: { name: withAbbr(n.p[1], n.p[0]), abbr: n.p[0], klasse: n.klasse, struktur: "linear", uses: n.p[2], copo: "alt" },
+    };
+  }
+  const fast = !seq && kind0 === "radikal" ? radicalFirst(a, b) : null;
+  if (fast) {
+    const slow = fast === a ? b : a, vf = vinyl(fast), vs = vinyl(slow), product = homoProduct(fast, me);
+    return {
+      fit: "ok", compat: compat(fast, me),
+      product: { ...product, note: tr(`Erst wenn das ${vf.name} verbraucht ist, entstehen aus dem Rest Ketten mit viel ${vs.name}.`, `Only when the ${lc(vf.name)} is used up do chains with a lot of ${lc(vs.name)} form from the rest.`) },
+      why: tr(`${vf.name} lagert sich viel schneller an als ${vs.name} – auch an ein Kettenende aus ${vs.name}. Zuerst entsteht fast nur ${product.abbr}; ${vs.name} wird kaum eingebaut.`,
+        `${vf.name} adds much faster than ${lc(vs.name)} – even to a chain end made of ${lc(vs.name)}. At first almost only ${product.abbr} forms; ${lc(vs.name)} is hardly incorporated.`)
+        + (slow === "vinylacetat" ? tr(` ${vf.name} bremst die Polymerisation des Vinylacetats sogar stark.`, ` ${vf.name} even strongly slows down the polymerisation of vinyl acetate.`) : ""),
+    };
+  }
   const kind = seq ? "block" : "stat";
   const named = kind === "block" ? known?.block : known?.stat;
   const cls = named ? { klasse: named.klasse, ...(named.rubber ? { rubber: named.rubber } : {}) } : copoClass(a, b);
@@ -333,7 +380,7 @@ export function polymerise(ms: VinylId[], me: MethodId, seq = false): PolyOutcom
     why: kind === "block"
       ? tr("Die Ketten leben weiter: Erst wächst ein Block aus dem ersten Monomer, dann ein Block aus dem zweiten.", "The chains stay alive: first a block of the first monomer grows, then a block of the second.")
         + (compat(b, me).living ? "" : tr(` Die Ketten aus ${vb.name} enden danach durch Nebenreaktionen.`, ` The ${lc(vb.name)} chains then stop through side reactions.`))
-      : tr("Beide Monomere lagern sich an dasselbe Kettenende an – in zufälliger Reihenfolge.", "Both monomers add to the same chain end – in random order."),
+      : tr("Beide Monomere lagern sich etwa gleich schnell an dasselbe Kettenende an – in zufälliger Reihenfolge.", "Both monomers add to the same chain end about equally fast – in random order."),
     product: named
       ? { name: withAbbr(named.p[1], named.p[0]), abbr: named.p[0], ...cls, struktur: "linear", uses: named.p[2], copo: kind }
       : { name: tr(`${capFirst(KIND[kind])} aus ${va.name} und ${vb.name}`, `${capFirst(KIND[kind])} of ${lc(va.name)} and ${lc(vb.name)}`), abbr: `${va.letter}/${vb.letter}`, ...cls, struktur: "linear", uses: "–", copo: kind },

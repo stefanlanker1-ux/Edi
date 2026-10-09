@@ -25,7 +25,7 @@ export type VinylId = "ethen" | "propen" | "styrol" | "vinylchlorid" | "mma" | "
 export type Klasse = "thermo" | "elast" | "duro";
 /** Kautschuk (Klasse elast, noch unvernetzt): mit C=C in der Kette – mit Schwefel vulkanisierbar (dien); ohne C=C – nur mit Peroxid
  *  vernetzbar (peroxid) bzw. gar nicht (nein, Polyisobuten); Blockcopolymer aus zwei Blöcken (zweiblock: thermoplastisches Elastomer erst mit drei Blöcken, SBS) */
-export type Rubber = "dien" | "peroxid" | "nein" | "zweiblock";
+export type Rubber = "dien" | "peroxid" | "nein" | "zweiblock" | "butyl";
 
 export interface Vinyl {
   id: VinylId;
