@@ -9,7 +9,7 @@ export const modul: LernModule = {
   desc: "Ionenformeln mit Bausteinen aufstellen: Ladungen ausgleichen, vom Atom zum Ion, Namen von Salzen.",
   nameEn: "Ionic Bonds",
   descEn: "Write ionic formulas with building blocks: balance charges, from atom to ion, names of salts.",
-  storage: ["ionenbindung-v1", "ionenbindung-quiz"],
+  storage: ["ionenbindung-v1", "ionenbindung-quiz", "ionenbindung-lernen"],
   Card,
   load: () => import("./entry.tsx"),
 };

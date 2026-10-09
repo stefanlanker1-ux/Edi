@@ -1,12 +1,13 @@
-import { LernApp, type ShellTab, uebenTab } from "@lern/ui";
+import { LernApp, type ShellTab } from "@lern/ui";
 import { useApp, type Tab } from "./store.ts";
 import { BuildView } from "./views/BuildView.tsx";
-import { QuizView } from "./quiz/QuizView.tsx";
-import { guideFor } from "./guide.tsx";
+import { LernenView } from "./lernen/LernenView.tsx";
+import { LERNEN_KEY } from "./lernen/progress.ts";
 import { tr } from "@lern/i18n";
 
+// Lernen in Kapiteln (Erklärung und Aufgaben in einem) statt „Erklärung“ + „Üben“ – nur in diesem Modul (Tab-Kennung „quiz“ bleibt)
 const TABS: ShellTab<Tab>[] = [
-  uebenTab("quiz"),
+  { id: "quiz", label: tr("Lernen", "Learn"), icon: "book" },
   { id: "build", label: tr("Experimentieren", "Experiment"), icon: "beaker" },
 ];
 
@@ -24,9 +25,9 @@ const Logo = () => (
 export function App() {
   const { tab, setTab, stufe, setStufe } = useApp();
   return (
-    <LernApp name={tr("Ionenbindung", "Ionic Bonds")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["ionenbindung-v1", "ionenbindung-quiz"]} stufe={{ value: stufe, onChange: setStufe }} guide={guideFor(stufe)}>
+    <LernApp name={tr("Ionenbindung", "Ionic Bonds")} logo={<Logo />} tabs={TABS} tab={tab} onTab={setTab} storage={["ionenbindung-v1", "ionenbindung-quiz", LERNEN_KEY]} stufe={{ value: stufe, onChange: setStufe }}>
       {tab === "build" && <BuildView />}
-      {tab === "quiz" && <QuizView />}
+      {tab === "quiz" && <LernenView />}
     </LernApp>
   );
 }

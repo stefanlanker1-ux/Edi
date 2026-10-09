@@ -120,3 +120,34 @@ button.ion-tile:hover { transform: translateY(-2px); }
 .ib-lat-ion text { text-anchor: middle; font-family: var(--font); font-weight: 750; fill: var(--text); font-size: 19px; }
 .ib-lat-ion.cation text { font-size: 13.5px; }
 .ib-lat-ion.hot circle { stroke-width: 3.5; }
+
+/* ── Lernen: Kapitel ───────────────────────────────────────────────────── */
+.lk { display: grid; align-content: start; gap: 12px; padding: 16px; max-width: 760px; margin: 0 auto; width: 100%; overflow-y: auto; }
+.lk-title { margin: 0; font-size: 1.35rem; font-weight: 800; }
+.lk-title span { color: var(--muted); font-weight: 700; }
+.lk-note { margin: -6px 0 0; color: var(--muted); }
+.lk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.lk-card {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left;
+  border: 1.5px solid var(--rule); border-radius: var(--radius); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); cursor: pointer;
+}
+.lk-card:active { box-shadow: var(--key-edge-pressed); }
+.lk-nr { display: grid; place-items: center; width: 40px; height: 40px; border: 2px solid var(--signal); border-radius: 50%; color: var(--signal); font-weight: 800; font-size: 1.15rem; }
+.lk-card.done .lk-nr { border-color: var(--ok); color: var(--ok); }
+.lk-txt { display: grid; gap: 4px; min-width: 0; }
+.lk-name { font-weight: 800; font-size: 1.05rem; }
+.lk-desc { color: var(--muted); font-size: .92rem; line-height: 1.35; }
+.lk-prog { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.lk-prog i { display: block; height: 100%; background: var(--signal); }
+.lk-card.done .lk-prog i { background: var(--ok); }
+.lk-state { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--muted); font-size: .9rem; white-space: nowrap; }
+.lk-card.done .lk-state { color: var(--ok); }
+@media (max-width: 420px) { .lk-card { grid-template-columns: auto minmax(0, 1fr); } .lk-state { grid-column: 2; } }
+.lk-tip { margin: 0; line-height: 1.45; }
+.lk-rules { margin: 0; padding-left: 1.2em; display: grid; gap: 8px; line-height: 1.45; }
+
+/* Modell-Folien: Modell füllt den Platz, Bedienung und „Prüfen“ darunter */
+.lm { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 8px; width: 100%; height: 100%; min-height: 0; }
+.lm-stage { position: relative; min-height: 0; display: grid; place-items: center; container-type: size; }
+.lm-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.lm-check { min-height: 44px; }

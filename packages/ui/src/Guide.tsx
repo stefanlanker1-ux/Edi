@@ -13,6 +13,8 @@ import { Button, IconButton } from "./components.tsx";
 import { Icon } from "./icons.tsx";
 import { RichText } from "./RichText.tsx";
 import { NoTerms, TermScope, type TermDef } from "./Terms.tsx";
+import { Sheet } from "./Sheet.tsx";
+import type { IconName } from "./icons.tsx";
 import { ding } from "./feedback.ts";
 import { buzz, useBackClose } from "./hooks.ts";
 import { Callouts, type Callout } from "./Callouts.tsx";
@@ -68,6 +70,9 @@ export interface GuideDef {
   terms?: TermDef[];
 }
 
+/** Hilfsmittel unter dem Text (z. B. PSE, Tipp, Erklärung) – öffnet ein Blatt über der Erklärung */
+export interface GuideTool { id: string; label: string; icon: IconName; title?: ReactNode; content: ReactNode; wide?: boolean; disabled?: boolean }
+
 export const GUIDE_TRIES = 4;
 
 /** Zahl aus der Eingabe – Tausender- und Dezimaltrennzeichen wie in der Sprache („1.000“ bzw. „1,000“ = 1000), siehe `readNumber` */
@@ -100,10 +105,16 @@ function Line({ text, fill }: { text: string; fill?: string }) {
   return <><RichText text={a} /><span className={`ui-guide-gap${fill ? " filled" : ""}`}>{fill ?? "?"}</span><RichText text={b} /></>;
 }
 
-export function Guide({ def, open, onClose, onFinish, finishLabel }: {
+export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start = 0, onStep, tools }: {
   def: GuideDef; open: boolean; onClose: () => void;
   /** letzter Knopf: z. B. zum Quiz wechseln */
   onFinish: () => void; finishLabel?: string;
+  /** Kennzeichnung im Kopf (sonst „Erklärung“), z. B. „Kapitel 2“ */
+  badge?: string;
+  /** Schritt beim Öffnen (Fortsetzen); `onStep` meldet jeden neuen Schritt (n = fertig) */
+  start?: number; onStep?: (i: number) => void;
+  /** Hilfsmittel je Schritt – dann stehen sie mit „Weiter“ in einer Leiste unter dem Text */
+  tools?: (step: GuideStep, i: number) => GuideTool[];
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [i, setI] = useState(0);
@@ -127,8 +138,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   }, [open]);
   // ein Blatt über der Erklärung (Begriff) geht beim Schließen einen Schritt zurück – dann steht der Verlauf wieder auf der Erklärung, sie bleibt offen
   useBackClose(open, onClose, "uiGuide");
-  // jedes Öffnen beginnt vorn
-  useEffect(() => { if (open) { setI(0); reset(); } }, [open]);
+  // jedes Öffnen beginnt vorn (bzw. beim Schritt zum Fortsetzen)
+  useEffect(() => { if (open) { setI(start > 0 && start < def.steps.length ? start : 0); reset(); } }, [open]);
+  useEffect(() => { if (open) onStep?.(i); }, [i, open]);
+  const [tool, setTool] = useState<string | null>(null);
   // Tastatur und Vorlesen: nach jedem Schritt steht der Fokus am neuen Text
   const textRef = useRef<HTMLDivElement>(null);
   useEffect(() => { if (open && i > 0) textRef.current?.focus({ preventScroll: true }); }, [i, open]);
@@ -184,15 +197,15 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
   const solText = typeof step.answer === "number" ? num(step.answer) : step.answer;
 
   return (
-    <dialog ref={ref} className="ui-guide" onClose={e => { if (e.target === e.currentTarget) onClose(); /* nicht das Blatt eines Begriffs */ }} aria-label={`${tr("Erklärung", "Explanation")}: ${def.title}`}>
+    <dialog ref={ref} className="ui-guide" onClose={e => { if (e.target === e.currentTarget) onClose(); /* nicht das Blatt eines Begriffs */ }} aria-label={`${badge ?? tr("Erklärung", "Explanation")}: ${def.title}`}>
       {open && (
         <TermScope terms={def.terms ?? []}>
         <div className="ui-guide-in" ref={inRef}>
           <header className="ui-guide-head">
-            <span className="ui-guide-badge"><Icon name="play" size={16} /><span>{tr("Erklärung", "Explanation")}</span></span>
+            <span className="ui-guide-badge"><Icon name={badge ? "book" : "play"} size={16} /><span>{badge ?? tr("Erklärung", "Explanation")}</span></span>
             <h2 title={def.title}>{part?.name && !done ? <><span className="ui-guide-part">{tr(`Teil ${parts.indexOf(part) + 1}`, `Part ${parts.indexOf(part) + 1}`)}</span> {part.name}</> : def.title}</h2>
             <span className="ui-guide-count" aria-label={tr(`Schritt ${Math.min(i + 1, n)} von ${n}`, `Step ${Math.min(i + 1, n)} of ${n}`)}>{done ? tr("fertig", "done") : `${i + 1} / ${n}`}</span>
-            <IconButton icon="close" label={tr("Erklärung schließen", "Close explanation")} onClick={onClose} />
+            <IconButton icon="close" label={badge ? tr(`${badge} schließen`, `Close ${badge}`) : tr("Erklärung schließen", "Close explanation")} onClick={onClose} />
             {parts.length > 1
               ? <span className="ui-guide-bar parts" aria-hidden="true">{parts.map(p => (
                 <span key={p.from} style={{ flex: p.to - p.from }}><i style={{ width: `${(Math.max(0, Math.min(i, p.to) - p.from) / (p.to - p.from)) * 100}%` }} /></span>
@@ -227,7 +240,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                     {(worked ? lines.slice(0, seen) : lines).map((l, k) => <li key={`${i}-${k}`}><Line text={l} fill={solved || show ? solText : undefined} /></li>)}
                   </ol>
                 )}
-                {worked && !solved && (
+                {worked && !solved && !tools && (
                   <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>
                 )}
                 {step.options && (
@@ -256,10 +269,22 @@ export function Guide({ def, open, onClose, onFinish, finishLabel }: {
                   {solved ? <><Icon name={worked ? "arrow" : "check"} size={18} /><span><RichText text={step.ok} /></span></>
                     : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
                 </p>
-                {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
+                {solved && !tools && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
+                {tools && (
+                  <div className="ui-guide-foot">
+                    {tools(step, i).map(t => (
+                      <Button key={t.id} variant="quiet" icon={t.icon} className="ui-guide-tool" disabled={t.disabled} onClick={() => setTool(t.id)}>{t.label}</Button>
+                    ))}
+                    {worked && !solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>}
+                    {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
+                  </div>
+                )}
               </div>
             </div>
           )}
+          {tools && !done && tools(step, i).map(t => (
+            <Sheet key={t.id} open={tool === t.id} title={t.title ?? t.label} wide={t.wide} onClose={() => setTool(null)}>{t.content}</Sheet>
+          ))}
         </div>
         </TermScope>
       )}
