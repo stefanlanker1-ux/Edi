@@ -1,6 +1,6 @@
 // Kapitel 3, Teil 3–4: Temperatur-Schieber (Ionen schwingen stärker, ab der Schmelztemperatur verlassen sie ihre Plätze und bewegen sich
 // ungeordnet weiter), Leitfähigkeit (Becherglas mit Stromkreis und Lupe:
-// fest schwingen die Ionen nur, in Schmelze und Lösung wandern sie bei geschlossenem Schalter langsam zu ihrem Pol).
+// fest schwingen die Ionen nur, in Schmelze und Lösung wandern sie bei geschlossenem Schalter waagrecht zu ihrem Pol).
 // Bewegung: kleine Teilchensimulation (sim.ts) im Takt des Bildschirms. Reduzierte Bewegung: ruhige Endbilder
 // (fest: Gitter mit gestricheltem Schwingungsring; beweglich: ungeordnete Momentaufnahme).
 
@@ -9,7 +9,7 @@ import { Button, Segmented, Tag, useReducedMotion, type GuideCtx } from "@lern/u
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
 import { Arrow, CL, MG, NA, O, ionText, rad, type Ion } from "./draw.tsx";
-import { advance, bondAlpha, grid, makeWorld, warm, type Drive, type Site, type World } from "./sim.ts";
+import { advance, bondAlpha, grid, heatDrive, lensDrive, makeWorld, warm, type Drive, type Site, type World } from "./sim.ts";
 
 /** Ionen einer Simulation: Kugeln (Kation gold, Anion grün), im Gefäß dazu Linien zu nahen Gegen-Ionen (Anziehung, weich ein- und ausgeblendet).
  *  Bewegt wird ohne React-Neuzeichnen: jedes Bild schreibt nur die Lage der Kugeln und Linien. */
@@ -68,11 +68,9 @@ function SimIons({ w, drive, still, ion, bonds, sign }: {
   );
 }
 
-/** Kelvin-Verhältnis zur Schmelztemperatur (Wärmebewegung der Schmelze) */
-const heatOf = (t: number, tm: number) => (t + 273) / (tm + 273);
-
 /** Kristall im Tiegel bei der Temperatur t: fest schwingen die Ionen um ihre Plätze (Weite wächst mit t), ab der Schmelztemperatur verlassen sie
- *  die Plätze und bewegen sich ungeordnet weiter – dicht, Gegen-Ionen nah beieinander (Linie = Anziehung); darunter kehren sie ins Gitter zurück */
+ *  die Plätze und gleiten ständig aneinander vorbei – dicht, Gegen-Ionen nah beieinander (Linie = Anziehung); darunter kehren sie ins Gitter zurück.
+ *  Antrieb (Wärmebewegung, Tempo) in `heatDrive` (sim.ts) */
 function HeatSim({ cat, an, tm, t, cols, rows, seed }: { cat: Ion; an: Ion; tm: number; t: number; cols: number; rows: number; seed: number }) {
   const still = useReducedMotion();
   const u = 60;
@@ -82,11 +80,7 @@ function HeatSim({ cat, an, tm, t, cols, rows, seed }: { cat: Ion; an: Ion; tm: 
   // Innenraum des Tiegels: etwas breiter als der Kristall; oben eine unsichtbare Decke knapp über der Schmelze
   const x0 = 16, x1 = x0 + (cols + 0.6) * u, y1 = 16 + (rows + 0.65) * u, y0 = y1 - (rows + 0.45) * u;
   const sites = useMemo(() => grid(cols, rows, u, x0 + 0.8 * u, y1 - 0.55 * u - (rows - 1) * u), [cols, rows]);
-  const free = t >= tm;
-  const amp = 1 + 6 * Math.min(t, tm) / tm;
-  // Schmelze: je heißer, desto schneller – erst ab der Schmelztemperatur, je 200 °C darüber einmal so schnell (NaCl bei 1000 °C doppelt), höchstens 2,5-mal
-  const speed = free ? Math.min(2.5, 1 + (t - tm) / 200) : 1;
-  const drive: Drive = { free, heat: heatOf(t, tm), amp, gravity: true, speed };
+  const drive = heatDrive(t, tm), { free, amp } = drive;
   const make = () => makeWorld(sites, q => (q > 0 ? rC : rA), u, [x0, y0, x1, y1], false, seed);
   // beim Öffnen schon geschmolzen (gelöste Folie): gleich als Schmelze zeigen
   const [live] = useState(() => (free ? warm(make(), drive, 4) : make()));
@@ -209,8 +203,8 @@ const GRAINS = (() => {
   return out;
 })();
 
-/** Lupe: Ausschnitt aus der Mitte – Ionen schwingen (fest) oder bewegen sich ungeordnet (Schmelze, Lösung); mit Strom wandern sie zusätzlich langsam:
- *  Kationen zum Minuspol, Anionen zum Pluspol (Pole am Rand der Lupe angedeutet, Richtung in der Legende) */
+/** Lupe: Ausschnitt aus der Mitte – Ionen schwingen (fest) oder bewegen sich ungeordnet (Schmelze, Lösung); mit Strom wandern sie zusätzlich:
+ *  Kationen zum Minuspol, Anionen zum Pluspol, waagrecht aneinander vorbei (Pole am Rand der Lupe angedeutet, Richtung in der Legende) */
 function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusLeft: boolean; still: boolean }) {
   const clip = `k3l${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const rA = 17.5, rC = rad(NA, CL, rA);
@@ -229,14 +223,10 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
     const i = k % 4, j = Math.floor(k / 4);
     return { x: -LHALF + 30 + i * 60 + (j % 2) * 26, y: -LHALF + 40 + j * 80, q: (i + j) % 2 === 0 ? 1 : -1 };
   }), []);
-  // Strom: Kationen wandern zum Minuspol, Anionen zum Pluspol – deutlich sichtbar, aber gemischt und mit Wärmebewegung
-  // (Wanderung mit Spannung: Schmelze 1,19 · LU, Lösung 0,51 · LU je Sekunde – 70 % schneller als die erste Fassung)
-  const dir = minusLeft ? -1 : 1, FLOW = 1.7;
-  const solidDrive: Drive = { free: false, heat: 0.3, amp: 1.6 };
-  const meltDrive: Drive = { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, drift: flow ? dir * FLOW * 0.7 * LU : 0 };
-  const solDrive: Drive = { free: true, heat: 0.75, amp: 0, apart: true, drift: flow ? dir * FLOW * 0.3 * LU : 0 };
-  const loosen = (list: Site[], seed: number, d: Drive) => { const w = makeWorld(list, radius, LU, box, true, seed); w.m = 1; w.free = true; return warm(w, { ...d, drift: 0 }, 4); };
-  const make = (k: Zustand) => (k === "fest" ? makeWorld(sites, radius, LU, box, true, 11) : k === "schmelze" ? loosen(melted, 12, meltDrive) : loosen(loose, 13, solDrive));
+  // Strom: Kationen wandern zum Minuspol, Anionen zum Pluspol – deutlich sichtbar, gemischt, senkrecht ruhig (`lensDrive` in sim.ts)
+  const dir = flow ? (minusLeft ? -1 : 1) : 0;
+  const loosen = (list: Site[], seed: number, k: Zustand) => { const w = makeWorld(list, radius, LU, box, true, seed); w.m = 1; w.free = true; return warm(w, lensDrive(k, 0, LU), 4); };
+  const make = (k: Zustand) => (k === "fest" ? makeWorld(sites, radius, LU, box, true, 11) : loosen(k === "schmelze" ? melted : loose, k === "schmelze" ? 12 : 13, k));
   // jede Probe behält ihre Teilchen, solange die Folie offen ist (Wechsel = andere Probe, kurz eingeblendet)
   const worlds = useRef<Partial<Record<Zustand, World>>>({});
   const first = useRef(z); // beim Öffnen ohne Einblenden
@@ -244,7 +234,7 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
   const shot = useMemo(() => (still ? make(z) : null), [still, z]);
   const w = shot ?? live;
   const water = z === "loesung";
-  const drive = z === "fest" ? solidDrive : z === "schmelze" ? meltDrive : solDrive;
+  const drive = lensDrive(z, dir, LU);
   const ion = (q: number) => (q > 0 ? NA : CL);
   const rowY = [LR + 30, LR + 56];
   return (
