@@ -592,10 +592,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Vorwissen nur aus Gemische, Atombau und den früheren Kapiteln (Begriffe in `known`, neue fett mit Beispiel). Nichts aus späteren Modulen: wie die Atome in einem
   mehratomigen Ion zusammenhalten, wird ehrlich zur Elektronenpaarbindung vertagt; Lösen in Wasser nur als Modell.
 - Kapitel 1 **Vom Atom zum Ion** (Level I, `k1.tsx`, Modelle `k1/models.tsx`): **Außenelektronen und Edelgase** · **Metall-Atome werden Kationen** · **Nichtmetall-Atome werden
-  Anionen** · **Elektronenübergang**. Eigenes Bohrmodell der Unterstufe (Schalen 2·8·8 mit festen Radien und 8 Plätzen, freie Plätze gestrichelt; Elektronen antippen = abgeben
-  bzw. aufnehmen; Kation zeigt die leere Schale gepunktet und ist kleiner, Anion zeigt die Außenschale weiter außen und die des Atoms gestrichelt – als Modell gekennzeichnet;
-  aufgenommene Elektronen mit Ring). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel, Elektronenübergang mit einstellbarer Zahl der Atome und
-  immer sichtbarer Gesamtladung; Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
+  Anionen** · **Elektronenübergang**. Eigenes Bohrmodell der Unterstufe (Schalen 2·8·8 mit festen Radien und 8 Plätzen, freie Plätze gestrichelt; Elektronen abgeben
+  bzw. aufnehmen über die Knöpfe „e⁻ abgeben“/„e⁻ aufnehmen“ (≥ 44 px; die Elektronen im Bild sind nur beim Markieren der Außenelektronen eigene Tippziele);
+  Kation zeigt die leere Schale gepunktet und ist kleiner, Anion zeigt die Außenschale weiter außen und die des Atoms gestrichelt – Größen im Schalenmodell nur ungefähr,
+  so gekennzeichnet; aufgenommene Elektronen mit Ring). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel (Wasserstoff, Bor, IV. Hauptgruppe
+  und Edelgase bilden in diesem Modell keine einfachen Ionen), Elektronenübergang mit „e⁻ übertragen“, einstellbarer Zahl der Atome und immer sichtbarer Gesamtladung;
+  Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
 - Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionenwand mit Zählern) · **Die Formel** (Verhältnisformel, Index, kleinstes
   Verhältnis; Formel-Baukasten mit Index-Zählern, Reihenfolge-Tausch, Ionenwand darunter) · **Der Name** (Metall + Wortstamm + -id; Oxid, Sulfid, Nitrid; Namens-Baukasten aus
   Wortteilen mit -it und di/tri als Fallen) · **Formel und Name** (Ladung aus der Hauptgruppe einstellen, dann ausgleichen; beide Richtungen). Nur ionische Beispiele
@@ -608,13 +610,15 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Kugel; Anziehung als Linie (→ ←), Abstoßung rot gestrichelt (← →) – nicht nur über Farbe. Wasser nur als Stoff „Wasser H₂O“ (warum es Ionen löst: Elektronenpaarbindung).
   Reduzierte Bewegung: gleich das Endbild, Schwingweite als gestrichelter Ring.
 - Kapitel 4 **Ionen aus mehreren Atomen** (Level II, `k4.tsx`, `k4/Models.tsx`): **Atomgruppen mit Ladung** (mehratomiges Ion als Atomkugeln in eckigen Klammern mit der
-  Ladung oben rechts, Zähler für Atome und Ladung, Formel sofort; kein Gemisch einzelner Ionen – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
+  Ladung oben rechts – als Modell gekennzeichnet, das echte Ion ist räumlich; Zähler für Atome und Ladung, Formel sofort; nicht aus einzelnen Ionen
+  zusammengesetzt – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
   Name und Ladung sofort; H⁺ dazu → Hydrogen-, Ladung eins weniger negativ; Hydroxid, Ammonium) · **Formeln mit Klammern** („Formel schreiben“: Klammer an/aus und Index,
   Atome laut Formel und laut Ionenwand im Vergleich – CaOH₂ = 1 O, NH₄₂ = 42 H) · **Name ↔ Formel** (Ionenwahl, Namens-Baukasten). Nur beständige Verbindungen (Test `k4/k4.test.ts`).
 - Kapitel 5 **Nebengruppenmetalle** (Level II, `k5.tsx`, `k5/models.tsx`): **Mehrere mögliche Ladungen** (Kästchenschema: Antippen gibt ein Elektron aus 4s bzw. 3d ab,
   Symbol, Ladung und Kurzschreibweise sofort; Daten aus `configuration`; „3d zuerst abgegeben“ mit eigener Rückmeldung) · **Römische Zahl im Namen** (Ionenwand mit Ladungswahl,
   Formel, Name und Rechnung sofort) · **Ladung aus der Formel** (Anionen fest, Ladung des Metall-Ions wählen) · **Alles zusammen** (mit mehratomigen Ionen). Nur Ionen aus `ions.ts`
-  (Blei nur Pb²⁺), nur beständige Verbindungen; Fe³⁺ = [Ar] 3d⁵ beschreibend („halb besetzt, besonders beständig“). Test `k5/k5.test.ts`.
+  (Blei nur Pb²⁺), nur beständige Verbindungen; Fe³⁺ = [Ar] 3d⁵ nur beschreibend („halb besetzt“ – keine Regel „halb/voll besetzt = beständig“, sie stimmt nicht: Cu⁺ d¹⁰
+  ist in Wasser weniger beständig als Cu²⁺). Gedachte Ionen (Fe⁺, Cu³⁺ …) sind als „gibt es nicht“ gekennzeichnet; die Rechnung mit ✓ und der Name erscheinen erst nach dem Prüfen. Test `k5/k5.test.ts`.
 - **Experimentieren** (Werkbank, unverändert): Ionen-Bausteine Kationen gold, Anionen grün, Breite = Ladung; neutral, wenn beide Reihen gleich lang sind. Startet gelöst
   (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu 2·8·18·1 → Cu⁺ 2·8·18); Kennzeichen „n Außenelektronen“
   nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“.
