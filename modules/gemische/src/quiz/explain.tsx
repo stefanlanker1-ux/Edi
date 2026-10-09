@@ -36,7 +36,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Filtrieren: **Rückstand** bleibt im Filter, **Filtrat** läuft durch. Gelöstes geht durch das Filterpapier.",
   ] },
   k6: { ex: "", arr: [], sep: "destillieren", points: [
-    "Gelöstes trennt man über die **Siedetemperatur**: **Eindampfen** (das Salz bleibt) oder **Destillieren** (auch das Wasser wird aufgefangen).",
+    "Gelöstes geht durch das Filterpapier. Salz und Wasser trennt man über die **Siedetemperatur**: **Eindampfen** (das Salz bleibt) oder **Destillieren** (auch das Wasser wird aufgefangen).",
     "Destillieren: Dampf wird im **Kühler** flüssig und tropft als **Destillat** in die **Vorlage**. Alkohol (78 °C) verdampft leichter als Wasser (100 °C) – im Dampf ist mehr Alkohol.",
     "**Chromatografie** trennt Farbstoffe. Manche Gemische brauchen **mehrere Schritte**: lösen, filtrieren, eindampfen.",
   ] },
@@ -67,7 +67,7 @@ const TEXT: Record<string, { points: string[]; ex: string; arr: Arrange[]; sep?:
     "Filtration: the **residue** stays in the filter, the **filtrate** runs through. Dissolved things pass through the filter paper.",
   ] },
   k6: { ex: "", arr: [], sep: "destillieren", points: [
-    "Dissolved substances are separated by their **boiling point**: **evaporation** (the salt stays) or **distillation** (the water is collected too).",
+    "Dissolved substances pass through filter paper. Salt and water are separated by their **boiling point**: **evaporation** (the salt stays) or **distillation** (the water is collected too).",
     "Distillation: vapour turns liquid in the **condenser** and drips into the **receiver** as the **distillate**. Alcohol (78 °C) evaporates more easily than water (100 °C) – the vapour contains more alcohol.",
     "**Chromatography** separates dyes. Some mixtures need **several steps**: dissolve, filter, evaporate.",
   ] },

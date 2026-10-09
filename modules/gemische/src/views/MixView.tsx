@@ -162,7 +162,7 @@ const ARTEN: Partial<Record<`${Z}|${Z}`, [string, string, boolean][]>> = {
   "fest|flüssig": [["Suspension", tr("Sand in Wasser", "sand in water"), false], [tr("Lösung", "Solution"), tr("Zuckerwasser", "sugar water"), true]],
   "fest|Gas": [[tr("Rauch", "Smoke"), tr("Ruß in Luft", "soot in air"), false]],
   "flüssig|flüssig": [["Emulsion", tr("Milch", "milk"), false], [tr("Lösung", "Solution"), tr("Alkohol in Wasser", "alcohol in water"), true]],
-  "flüssig|Gas": [[tr("Nebel", "Fog"), tr("Dunst über dem Teich", "mist over a pond"), false]],
+  "flüssig|Gas": [[tr("Nebel", "Fog"), tr("Morgennebel über dem Teich", "morning fog over a pond"), false]],
   "Gas|flüssig": [[tr("Schaum", "Foam"), tr("Eischnee", "whisked egg white"), false], [tr("Lösung", "Solution"), tr("Sprudelwasser", "sparkling water"), true]],
   "Gas|Gas": [[tr("Gasgemisch", "Gas mixture"), tr("Luft", "air"), true]],
 };
@@ -194,12 +194,16 @@ function Arten({ ex }: { ex: Pick<Example, "id" | "type"> }) {
   );
 }
 
+/** lange Namen in den schmalen Knöpfen der Beispiele: Trennstelle anbieten (am Handy mit Lesbar-Schrift sonst zu breit) */
+const SOFT: Record<string, string> = { Modellgemisch: "Modell\u00adgemisch", Sprudelwasser: "Sprudel\u00adwasser", Zuckerwasser: "Zucker\u00adwasser" };
+const soft = (title: string) => title.split(" ").map(w => SOFT[w] ?? w).join(" ");
+
 function ExampleList({ current, onPick }: { current: number; onPick: (i: number) => void }) {
   return (
     <div className="gm-examples">
       {[...EXAMPLES, MUESLI].map((e, i) => (
         <button key={e.id} type="button" aria-pressed={i === current} className="gm-ex" onClick={() => { buzz(); onPick(i); }}>
-          <span className="gm-ex-n">{i + 1}</span><span>{e.title}</span>
+          <span className="gm-ex-n">{i + 1}</span><span className="gm-ex-t">{soft(e.title)}</span>
         </button>
       ))}
     </div>

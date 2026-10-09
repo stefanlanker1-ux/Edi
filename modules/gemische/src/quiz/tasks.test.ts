@@ -4,7 +4,7 @@ import { K5_METHODS, PART_NAME } from "./trennen.ts";
 import { METHODS, METHOD_NAME } from "../components/Separation.tsx";
 import { MISS } from "./misconceptions.ts";
 import { analyse, isElement, pictureKind, PICTURE_LABEL } from "../mixtures.ts";
-import { initial, seedOf } from "../mixing.ts";
+import { gridFor, initial, seedOf } from "../mixing.ts";
 import { LESSONS } from "../lessons.tsx";
 
 const all = (level: number | "mix", rounds: number) => Array.from({ length: rounds }, () => makeRound("us", level)).flat();
@@ -528,5 +528,118 @@ test("Bilder nach dem Mischen: jedes Bild mit Anordnung in Worten (sonst verriet
   for (let k = 0; k < 200; k++) {
     const t = GENS.nachher();
     if (t.kind === "mc") for (const o of t.options) assert.ok(/ – \S/.test(o), o);
+  }
+});
+
+// ── Runde 3: Tipps ohne Antwort, Beispiele ohne Antwort-Muster, Löslichkeit, Begriffe, Grammatik ──
+
+test("Stoffe im Alltag: derselbe Tipp für Element, Verbindung und Gemisch (nur „mit Formel“ oder „ohne“ unterscheidet sich)", () => {
+  const tips = new Map<string, Set<string>>(), kinds = new Map<string, Set<string>>();
+  for (let k = 0; k < 600; k++) {
+    const t = GENS.alltag() as Task & { tip?: string };
+    if (t.kind !== "mc") continue;
+    const key = /\(.*[A-Z].*\)/.test(t.prompt) ? "Formel" : "ohne";
+    if (!tips.has(key)) { tips.set(key, new Set()); kinds.set(key, new Set()); }
+    tips.get(key)!.add(t.tip!);
+    kinds.get(key)!.add(t.options[t.answer]);
+  }
+  for (const [k, v] of tips) assert.strictEqual(v.size, 1, `${k}: ${[...v].join(" | ")}`);
+  // ohne Formel kommen alle drei Antworten vor – der Tipp verrät also nichts
+  assert.strictEqual(kinds.get("ohne")!.size, 3);
+  // kein „reiner Alkohol“ als Reinstoff (handelsüblich etwa 96 %)
+  for (let k = 0; k < 300; k++) assert.ok(!/reiner Alkohol/.test(GENS.alltag().prompt));
+});
+
+test("Homogen oder heterogen: ein Tipp für alle Beispiele; „Klar heißt nicht rein“ und „Sieht einheitlich aus“ mit wechselnden Antworten", () => {
+  for (const id of ["homogenBild", "homogenKlar", "homogenSieht"]) {
+    const tips = new Set<string>(), answers = new Set<string>();
+    for (let k = 0; k < 400; k++) {
+      const t = GENS[id]() as Task & { tip?: string };
+      if (t.kind !== "mc") continue;
+      tips.add(t.tip!);
+      answers.add(t.options[t.answer]);
+    }
+    assert.strictEqual(tips.size, 1, `${id}: ${[...tips].join(" | ")}`);
+    assert.strictEqual(answers.size, 3, `${id}: nur ${[...answers]}`);
+  }
+});
+
+test("Masse beim Lösen: nie mehr Salz, als sich in dem Wasser löst (etwa 36 g in 100 g Wasser)", () => {
+  let salt = 0;
+  for (let k = 0; k < 600; k++) {
+    const t = GENS.masse();
+    if (!/Salz/.test(t.prompt)) continue;
+    salt++;
+    const [w, z] = [...t.prompt.matchAll(/\*\*(\d+) g\*\*/g)].map(m => Number(m[1]));
+    assert.ok(z <= .36 * w, t.prompt);
+  }
+  assert.ok(salt > 0);
+});
+
+test("Sterlingsilber: eigene Rückmeldung (Silber und Kupfer, frei wählbare Anteile) – kein „Rein heißt im Alltag“", () => {
+  let n = 0;
+  for (let k = 0; k < 600; k++) {
+    const t = GENS.reinAlltag();
+    if (t.kind !== "mc" || !/Sterling/.test(t.prompt)) continue;
+    n++;
+    assert.ok(/^Auf einem Ring steht/.test(t.prompt), t.prompt);
+    for (const w of Object.values(t.why ?? {})) assert.ok(!/„Rein“/.test(w), w);
+    assert.ok(Object.values(t.why ?? {}).some(w => /Kupfer/.test(w) && /Zahlenverhältnis/.test(w)), "Verbindung: Zahlenverhältnis fehlt");
+  }
+  assert.ok(n > 0);
+});
+
+test("Teilchen und Stoff in Kapitel 1: keine Metalle und keine Metallfarben; „Eigenschaften des Stoffs“ in Lektion 1 fett eingeführt", () => {
+  let n = 0;
+  for (const t of chapters(40)[0]) if (t.type === "farbe") { n++; for (const x of textsOf(t)) assert.ok(!/Kupfer|Messing|Zink|Orange|blaugrau/.test(x), x); }
+  assert.ok(n > 0);
+  const k1 = LESSONS[0].steps.flatMap(st => [st.say, ...(st.lines ?? [])]).join(" ");
+  assert.ok(/\*\*Eigenschaften des Stoffs\*\*/.test(k1), "Begriff fehlt in Lektion 1");
+});
+
+test("Nach dem Mischen, Messing: Lösungsweg „zufällig verteilt“ (nicht „gleichmäßig“), Rückmeldungen kurz", () => {
+  let n = 0;
+  for (let k = 0; k < 300; k++) {
+    const t = GENS.nachher();
+    if (!/Messing/.test(t.prompt)) continue;
+    n++;
+    assert.ok(/zufällig/.test(t.explain) && !/gleichmäßig/.test(t.explain), t.explain);
+    for (const w of t.kind === "mc" ? Object.values(t.why ?? {}) : []) assert.ok(w.length <= 90, w);
+  }
+  assert.ok(n > 0);
+});
+
+test("Atome im Teilchen: „hat ein Atom“ / „hat 4 Atome“, „aus einem Atom“ / „aus 4 Atomen“", () => {
+  for (let k = 0; k < 300; k++) {
+    const t = GENS.tippAtome();
+    assert.ok(/ hat \*\*(ein Atom|\d+ Atome)\*\*\./.test(t.explain), t.explain);
+    assert.ok(/aus \*\*(einem Atom|\d+ Atomen)\*\*/.test(t.prompt), t.prompt);
+  }
+});
+
+test("Lektion 1, Atomsorten zählen: jede falsche Antwort ist ein echter Zählfehler (Teilchen, Teilchensorten oder Atome)", () => {
+  const step = LESSONS[0].steps.find(st => st.mode === "faded" && /Atomsorten/.test(st.ask ?? "") && st.visual)!;
+  const el = step.visual!({ pick: () => {}, show: false, solved: false } as never) as { props: { p: Pic } };
+  const a = analyse(el.props.p.mix);
+  for (const o of step.options ?? []) if (o !== step.answer) assert.ok([a.teilchen, a.stoffe.length, a.atome].includes(Number(o)), `„${o}“ ist kein Zählfehler`);
+});
+
+test("Lektion 6: Alkohol und Wasser mit Heizhaube (Knopf „Heizen an“, Begriff eingeführt), kein Brenner", () => {
+  const steps = LESSONS[5].steps.filter(st => /Alkohol/.test(`${st.say ?? ""} ${st.ask ?? ""}`) && st.visual);
+  let device = 0;
+  for (const st of steps) {
+    const el = st.visual!({ pick: () => {}, show: false, solved: false } as never) as { props: { alk?: boolean; start?: string } };
+    if (el.props.alk && el.props.start) { device++; assert.strictEqual(el.props.start, "Heizen an"); }
+    assert.ok(!/Brenner/.test(`${st.say ?? ""} ${st.ask ?? ""} ${(st.lines ?? []).join(" ")}`), st.ask);
+  }
+  assert.strictEqual(device, 1);
+  assert.ok(steps.some(st => /\*\*Heizhaube\*\*/.test(st.say ?? "")));
+});
+
+test("Metallgitter ohne Lücke: Messing-Beispiel (18 Atome) und alle Gitter im Quiz füllen ihr Raster", () => {
+  for (const n of [6, 8, 12, 18, 180]) { const g = gridFor(n, "fest"); assert.strictEqual(g.cols * g.rows, n, `${n}: ${g.cols} × ${g.rows}`); }
+  for (const t of all("mix", 200)) for (const p of picsOf(t)) if (p.state === "fest") {
+    const g = gridFor(analyse(p.mix).teilchen, "fest");
+    assert.strictEqual(g.cols * g.rows, analyse(p.mix).teilchen, JSON.stringify(p.mix));
   }
 });

@@ -68,7 +68,11 @@ export function gridFor(n: number, state: State, before?: Before): Grid {
     return { cols, rows: Math.ceil(n / cols) + air, top: air };
   }
   if (state === "fest") {
-    const cols = Math.ceil(Math.sqrt(n * 1.25));
+    // Metallgitter ohne Lücke, wenn es geht (18 Atome: 6 × 3 statt 5 × 4 mit zwei leeren Plätzen): Teiler von n, breiter als hoch
+    // (höchstens 2,5-mal), möglichst nah an der üblichen Breite; sonst die übliche Breite
+    const want = Math.sqrt(n * 1.25);
+    const full = Array.from({ length: n }, (_, i) => i + 1).filter(c => n % c === 0 && c >= n / c && c <= 2.5 * (n / c) && n / c >= 2);
+    const cols = full.length ? full.reduce((a, b) => (Math.abs(b - want) < Math.abs(a - want) ? b : a)) : Math.ceil(want);
     return { cols, rows: Math.ceil(n / cols), top: 0 };
   }
   // Gas und Modell: fast doppelt so viele Zellen wie Teilchen, überall verteilt
@@ -116,6 +120,35 @@ function liquidSlots(n: number, g: Grid, r: () => number): number[] {
   const row = g.rows - 1 - full;
   out.push(...shuffle(Array.from({ length: g.cols }, (_, c) => row * g.cols + c), r).slice(0, last));
   return out;
+}
+
+/**
+ * Sieht die Verteilung im Gitter zufällig aus? Die seltenste Atomsorte bildet keine ganze Reihe oder Spalte, keinen einzigen
+ * zusammenhängenden Block, kein regelmäßiges Untergitter (jede 2. Spalte …) und ist nicht spiegelgleich – sonst sähe ein
+ * zufällig gemischtes Metall nach festem Muster (Verbindung) oder nach getrennten Stücken aus
+ */
+export function looksRandom(order: string[], where: number[], g: Grid): boolean {
+  const count = new Map<string, number>();
+  for (const f of order) count.set(f, (count.get(f) ?? 0) + 1);
+  const rare = [...count].sort((a, b) => a[1] - b[1])[0][0];
+  const at = order.map((f, i) => [f, where[i]] as const).filter(([f]) => f === rare).map(([, c]) => [c % g.cols, rowOf(g, c)] as [number, number]);
+  const key = (xs: [number, number][]) => xs.map(([c, r]) => `${c},${r}`).sort().join(" ");
+  const k = key(at);
+  for (let r = 0; r < g.rows; r++) if (at.filter(([, y]) => y === r).length === g.cols) return false;
+  for (let c = 0; c < g.cols; c++) if (at.filter(([x]) => x === c).length === g.rows) return false;
+  const flips: ((p: [number, number]) => [number, number])[] = [([c, r]) => [g.cols - 1 - c, r], ([c, r]) => [c, g.rows - 1 - r], ([c, r]) => [g.cols - 1 - c, g.rows - 1 - r]];
+  if (flips.some(f => key(at.map(f)) === k)) return false;
+  for (let sx = 1; sx <= 3; sx++) for (let sy = 1; sy <= 3; sy++) for (let ox = 0; ox < sx; ox++) for (let oy = 0; oy < sy; oy++) {
+    const want: [number, number][] = [];
+    for (let c = 0; c < g.cols; c++) for (let r = 0; r < g.rows; r++) if (c % sx === ox && r % sy === oy) want.push([c, r]);
+    if (key(want) === k) return false;
+  }
+  const seen = new Set([`${at[0][0]},${at[0][1]}`]), todo = [at[0]];
+  while (todo.length) {
+    const [c, r] = todo.pop()!;
+    for (const [x, y] of at) if (!seen.has(`${x},${y}`) && Math.abs(x - c) + Math.abs(y - r) === 1) { seen.add(`${x},${y}`); todo.push([x, y]); }
+  }
+  return seen.size < at.length;
 }
 
 /** Spaltenbereiche für getrennte Stoffe (je Stoff genug Zellen, sonst null) */
@@ -222,7 +255,9 @@ export function initial(spec: Spec, seed = 1, arrange: Arrange = "nachher"): Sim
   }
   // fest: Gitter von unten gefüllt; Gas und Modell: zufällig verteilt
   const where = state === "fest" ? cells(grid).slice(0, n) : shuffle(cells(grid), r).slice(0, n);
-  const order = shuffle(list, r);
+  let order = shuffle(list, r);
+  // Legierung: so oft neu mischen, bis es auch zufällig aussieht (kein Muster, keine ganze Reihe, kein Block)
+  for (let k = 0; state === "fest" && items.length > 1 && k < 60 && !looksRandom(order, where, grid); k++) order = shuffle(list, r);
   const ps = order.map((f, i) => mk(f, where[i], bond));
   return done(state === "fest" ? ps : spread(ps, grid));
 }

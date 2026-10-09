@@ -145,9 +145,12 @@ export const PART_NAME: Record<string, () => string> = {
   salz: () => tr("Salz", "salt"), schale: () => tr("Schale", "dish"), eisen: () => tr("Eisen", "iron"), schwefel: () => tr("Schwefel", "sulfur"),
   magnet: () => tr("Magnet", "magnet"), blau: () => tr("blauer Farbstoff", "blue dye"), rot: () => tr("roter Farbstoff", "red dye"), gelb: () => tr("gelber Farbstoff", "yellow dye"),
   sand: () => tr("Bodensatz (Sand)", "sediment (sand)"), wasser2: () => tr("abgegossenes Wasser", "poured-off water"),
+  kies: () => tr("Kies", "gravel"), feinsand: () => tr("Sand", "sand"), thermometer: () => tr("Thermometer", "thermometer"),
+  start: () => tr("Startlinie", "start line"), dampf: () => tr("Wasserdampf", "water vapour"), loesung: () => tr("Salzwasser", "salt water"),
 };
 
-interface TapCase { m: Method; ask: () => string; answer: string; parts: string[]; why: Record<string, () => string>; tip: () => string; explain: () => string }
+/** `t`: Zeitpunkt des Bilds (Standard 1 = getrennt) */
+interface TapCase { m: Method; ask: () => string; answer: string; parts: string[]; why: Record<string, () => string>; tip: () => string; explain: () => string; t?: number }
 const TAPS: TapCase[] = [
   { m: "filtrieren", answer: "rueckstand", parts: ["rueckstand", "filtrat", "filter"], ask: () => tr("Tippe auf den **Rückstand**.", "Tap the **residue**."),
     why: { filtrat: () => tr("Das Filtrat ist die Flüssigkeit, die durch den Filter läuft.", "The filtrate is the liquid that runs through the filter."), filter: () => tr("Das ist das Filterpapier. Gesucht ist, was darin hängen bleibt.", "That is the filter paper. Wanted: what gets stuck in it.") },
@@ -173,26 +176,66 @@ const TAPS: TapCase[] = [
   { m: "dekantieren", answer: "sand", parts: ["sand", "wasser2"], ask: () => tr("Tippe auf den **Bodensatz**.", "Tap the **sediment**."),
     why: { wasser2: () => tr("Das ist das abgegossene Wasser.", "That is the poured-off water.") },
     tip: () => tr("Was hat sich abgesetzt?", "What has settled?"), explain: () => tr("Der **Bodensatz** (Sand) bleibt im Glas, das Wasser wird abgegossen.", "The **sediment** (sand) stays in the glass, the water is poured off.") },
+  { m: "dekantieren", answer: "wasser2", parts: ["wasser2", "sand"], ask: () => tr("Tippe auf das Wasser, das **abgegossen** wurde.", "Tap the water that was **poured off**."),
+    why: { sand: () => tr("Das ist der Bodensatz. Er bleibt im ersten Glas.", "That is the sediment. It stays in the first glass.") },
+    tip: () => tr("Was floss beim Kippen über den Ausguss?", "What flowed over the spout when tilting?"), explain: () => tr("Das klare Wasser fließt ins **zweite Glas**, der Sand bleibt zurück.", "The clear water flows into the **second glass**, the sand stays behind.") },
+  { m: "filtrieren", answer: "filter", parts: ["filter", "rueckstand", "filtrat"], ask: () => tr("Tippe auf das **Filterpapier**.", "Tap the **filter paper**."),
+    why: { rueckstand: () => tr("Das ist der Rückstand: Er liegt im Filterpapier.", "That is the residue: it lies in the filter paper."), filtrat: () => tr("Das ist das Filtrat unter dem Trichter.", "That is the filtrate below the funnel.") },
+    tip: () => tr("Was liegt im Trichter und hält die Körner zurück?", "What lies in the funnel and holds back the grains?"), explain: () => tr("Das **Filterpapier** im Trichter hält den Sand zurück.", "The **filter paper** in the funnel holds back the sand.") },
+  { m: "magnet", answer: "schwefel", parts: ["schwefel", "eisen", "magnet"], ask: () => tr("Tippe auf den Stoff, der **liegen bleibt**.", "Tap the substance that **stays behind**."),
+    why: { eisen: () => tr("Eisen hängt am Magneten.", "Iron hangs on the magnet."), magnet: () => tr("Das ist der Magnet selbst.", "That is the magnet itself.") },
+    tip: () => tr("Welcher Stoff wird vom Magneten nicht angezogen?", "Which substance is not attracted by the magnet?"), explain: () => tr("**Schwefel** ist nicht magnetisch und bleibt liegen.", "**Sulfur** is not magnetic and stays behind.") },
+  { m: "sieben", answer: "kies", parts: ["kies", "feinsand"], ask: () => tr("Tippe auf das, was **im Sieb** liegen bleibt.", "Tap what stays **in the sieve**."),
+    why: { feinsand: () => tr("Der Sand ist durch die Maschen gefallen. Er liegt in der Schale.", "The sand fell through the mesh. It lies in the bowl.") },
+    tip: () => tr("Was war zu groß für die Lücken?", "What was too big for the gaps?"), explain: () => tr("Der **Kies** bleibt im Sieb, der feine Sand fällt durch.", "The **gravel** stays in the sieve, the fine sand falls through.") },
+  { m: "sieben", answer: "feinsand", parts: ["feinsand", "kies"], ask: () => tr("Tippe auf das, was **durch das Sieb** gefallen ist.", "Tap what fell **through the sieve**."),
+    why: { kies: () => tr("Der Kies war zu groß. Er bleibt im Sieb.", "The gravel was too big. It stays in the sieve.") },
+    tip: () => tr("Was passte durch die Lücken?", "What fitted through the gaps?"), explain: () => tr("Der feine **Sand** fällt durch die Maschen in die Schale.", "The fine **sand** falls through the mesh into the bowl.") },
+  { m: "destillieren", answer: "kolben", parts: ["kolben", "destillat", "kuehler"], ask: () => tr("Tippe auf das, was im Kolben **zurückbleibt**.", "Tap what **stays behind** in the flask."),
+    why: { destillat: () => tr("Das ist das Destillat. Es hat den Kolben als Dampf verlassen.", "That is the distillate. It left the flask as vapour."), kuehler: () => tr("Das ist der Kühler. Gesucht ist, was im Kolben bleibt.", "That is the condenser. Wanted: what stays in the flask.") },
+    tip: () => tr("Was verdampft beim Erhitzen nicht?", "What does not evaporate when heated?"), explain: () => tr("Im Kolben bleibt das Salzwasser zurück, immer salziger: der **Rückstand**.", "The salt water stays in the flask, saltier and saltier: the **residue**.") },
+  { m: "destillieren", answer: "thermometer", parts: ["thermometer", "kolben", "kuehler"], t: .6, ask: () => tr("Wo liest man die **Siedetemperatur** ab? Tippe darauf.", "Where do you read the **boiling point**? Tap it."),
+    why: { kolben: () => tr("Im Kolben siedet das Salzwasser. Die Temperatur zeigt ein anderes Gerät.", "The salt water boils in the flask. Another device shows the temperature."), kuehler: () => tr("Im Kühler wird der Dampf gekühlt.", "In the condenser the vapour is cooled.") },
+    tip: () => tr("Welches Gerät zeigt Grad Celsius an?", "Which device shows degrees Celsius?"), explain: () => tr("Das **Thermometer** oben am Kolben zeigt die Temperatur des Dampfs: 100 °C.", "The **thermometer** at the top of the flask shows the temperature of the vapour: 100 °C.") },
+  { m: "eindampfen", answer: "dampf", parts: ["dampf", "loesung", "schale"], t: .5, ask: () => tr("Tippe auf das, was beim Erhitzen die Schale **verlässt**.", "Tap what **leaves** the dish when heated."),
+    why: { loesung: () => tr("Das ist das Salzwasser. Es wird weniger, weil Wasser verdampft.", "That is the salt water. It gets less because water evaporates."), schale: () => tr("Das ist die Schale.", "That is the dish.") },
+    tip: () => tr("Was steigt beim Erhitzen nach oben?", "What rises when heated?"), explain: () => tr("Das Wasser verdampft und steigt als **Wasserdampf** auf, das Salz bleibt.", "The water evaporates and rises as **water vapour**, the salt stays.") },
+  { m: "chromatografie", answer: "gelb", parts: ["gelb", "rot", "blau"], ask: () => tr("Tippe auf den Farbstoff, der **am wenigsten weit** gewandert ist.", "Tap the dye that moved **the shortest distance**."),
+    why: { rot: () => tr("Rot ist weiter gewandert als Gelb.", "Red moved further than yellow."), blau: () => tr("Blau ist am weitesten gewandert.", "Blue moved the furthest.") },
+    tip: () => tr("Der Start ist die gestrichelte Linie unten.", "The start is the dashed line at the bottom."), explain: () => tr("**Gelb** wird am wenigsten weit mitgenommen: Es haftet stark am Papier oder löst sich schlecht.", "**Yellow** is carried the shortest distance: it sticks strongly to the paper or dissolves poorly.") },
+  { m: "chromatografie", answer: "start", parts: ["start", "gelb", "blau"], ask: () => tr("Tippe auf die **Startlinie**.", "Tap the **start line**."),
+    why: { gelb: () => tr("Das ist der gelbe Farbstoff. Er ist schon ein Stück gewandert.", "That is the yellow dye. It has already moved a little."), blau: () => tr("Das ist der blaue Farbstoff, ganz oben.", "That is the blue dye, right at the top.") },
+    tip: () => tr("Wo saß der schwarze Punkt am Anfang?", "Where was the black spot at the beginning?"), explain: () => tr("Auf der **Startlinie** saß am Anfang der schwarze Punkt.", "The black spot sat on the **start line** at the beginning.") },
 ];
 
 /** Teil im Bild antippen (nach dem Trennen) */
 export function trennTipp(methods: Method[] = K5_METHODS): Task {
   const c = pick(TAPS.filter(x => methods.includes(x.m)));
   return {
-    kind: "tap", answer: c.answer, parts: c.parts, sep: { m: c.m, t: 1 },
+    kind: "tap", answer: c.answer, parts: c.parts, sep: { m: c.m, t: c.t ?? 1 },
     traps: c.parts.map((p, i) => (p === c.answer ? null : { values: { pick: i }, miss: "teil-verwechselt", why: c.why[p]() })).filter(x => !!x) as Task["traps"],
     prompt: tr(`${METHOD_TEXT(c.m)}: ${c.ask()}`, `${METHOD_TEXT(c.m)}: ${c.ask()}`),
-    hint: tr("Verfolge im Bild, wohin jeder Stoff gegangen ist.", "Follow in the picture where each substance went."),
+    // gesucht sind Stoffe (Rückstand, Destillat …) und Geräteteile (Kühler, Thermometer, Startlinie …)
+    hint: tr("Verfolge im Bild, wohin jeder Stoff geht und wozu jedes Teil dient.", "Follow in the picture where each substance goes and what each part is for."),
     tip: c.tip(),
     explain: c.explain(),
   };
 }
 
+/**
+ * Namen der Trennschritte in einer Reihenfolge (Lektion 6 und Aufgabe „Reihenfolge“): deutsch die Verfahren, englisch kurze Verben
+ * (Magnet, Dissolve, Filter, Evaporate) – „Magnetic separation → Dissolving → Filtration → Evaporation“ wäre am Handy abgeschnitten
+ */
+export const STEP = {
+  magnet: () => tr("Magnettrennung", "Magnet"), loesen: () => tr("Lösen", "Dissolve"), filtrieren: () => tr("Filtrieren", "Filter"),
+  eindampfen: () => tr("Eindampfen", "Evaporate"), sieben: () => tr("Sieben", "Sieve"),
+};
+
 /** Salz und Sand (und Eisen) trennen: richtige Reihenfolge */
 export function trennReihe(): Task {
   const iron = Math.random() < .4;
   const S = (...m: string[]) => m.join(" → ");
-  const L = () => tr("Lösen", "Dissolving"), F = () => METHOD_TEXT("filtrieren"), E = () => METHOD_TEXT("eindampfen"), M = () => METHOD_TEXT("magnet").replace(/\u00ad/g, ""), Si = () => METHOD_TEXT("sieben");
+  const L = STEP.loesen, F = STEP.filtrieren, E = STEP.eindampfen, M = STEP.magnet, Si = STEP.sieben;
   const right = iron ? S(M(), L(), F(), E()) : S(L(), F(), E());
   return {
     ...mc(right, [

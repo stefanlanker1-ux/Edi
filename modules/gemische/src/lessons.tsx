@@ -12,6 +12,7 @@ import { nameOf } from "./mixtures.ts";
 import { tr } from "@lern/i18n";
 import { MixPic, SepAnim, SepDevice, SepScene, type Method } from "./components/Separation.tsx";
 import { MiniParticle } from "./views/MixView.tsx";
+import { STEP } from "./quiz/trennen.ts";
 
 /** Legende unter jedem Teilchenbild: welches Teilchen zu welchem Stoff gehört (Name und Formel) */
 function Key({ p }: { p: Pic }) {
@@ -144,10 +145,10 @@ const K1: GuideStep[] = [
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: Wie viele **Atomsorten**?", "Complete: how many **kinds of atoms**?"), answer: "3", options: ["2", "3", "9"],
+    ask: tr("Ergänze: Wie viele **Atomsorten**?", "Complete: how many **kinds of atoms**?"), answer: "3", options: ["2", "3", "5"],
     visual: () => <Picture p={{ mix: [["H2O", 3], ["NH3", 2]], state: "modell" }} />,
     lines: [tr("Weiß (H), rot (O), blau (N).", "White (H), red (O), blue (N)."), tr("Atomsorten: {?}", "Kinds of atoms: {?}")],
-    why: { "2": tr("2 sind die Teilchensorten (Wasser H₂O, Ammoniak NH₃). Zähle die Farben.", "2 is the number of kinds of particles (water H₂O, ammonia NH₃). Count the colours."), "9": tr("Gleiche Farben zählen nur einmal.", "Identical colours count only once.") },
+    why: { "2": tr("2 sind die Teilchensorten (Wasser H₂O, Ammoniak NH₃). Zähle die Farben.", "2 is the number of kinds of particles (water H₂O, ammonia NH₃). Count the colours."), "5": tr("5 sind die Teilchen. Gezählt werden die Farben.", "5 is the number of particles. Count the colours.") },
     ok: tr("Drei Farben → 3 Atomsorten.", "Three colours → 3 kinds of atoms."),
   },
   {
@@ -165,6 +166,18 @@ const K1: GuideStep[] = [
     lines: [tr("Sorten: Wasser H₂O, Kohlendioxid CO₂, Kohlenmonoxid CO, Methan CH₄.", "Kinds: water H₂O, carbon dioxide CO₂, carbon monoxide CO, methane CH₄."), tr("Anzahl der Stoffe: {?}", "Number of substances: {?}")],
     why: { "8": tr("8 sind die Teilchen. Gleiche Teilchen = ein Stoff.", "8 is the number of particles. Identical particles = one substance."), "3": tr("3 sind die Atomsorten. Gezählt werden Teilchensorten.", "3 is the number of kinds of atoms. Count kinds of particles.") },
     ok: tr("4 Teilchensorten = 4 Stoffe.", "4 kinds of particles = 4 substances."),
+  },
+  {
+    // Teilchen und Stoff (Aufgabe am Ende von Kapitel 1): halb vorgemacht – Begriff, Begründung, nur der letzte Schritt fehlt
+    mode: "faded",
+    say: tr("Farbe, fest, flüssig: Das sind **Eigenschaften des Stoffs** – sehr vieler Teilchen zusammen.", "Colour, solid, liquid: these are **properties of the substance** – of a huge number of particles together."),
+    ask: tr("Ergänze: Ist ein einzelnes Wasserteilchen flüssig?", "Complete: is a single water particle liquid?"), answer: tr("Nein", "No"), options: [tr("Ja", "Yes"), tr("Nein", "No")],
+    visual: () => <Picture p={MIX} />,
+    lines: [tr("Flüssig heißt: Sehr viele Teilchen gleiten aneinander vorbei.", "Liquid means: very many particles slide past each other."),
+      tr("Auch Farbe hat erst der Stoff – Rot und Weiß im Modell sind ausgedacht.", "Colour, too, belongs only to the substance – red and white in the model are made up."),
+      tr("Ein einzelnes Teilchen flüssig? {?}", "A single particle liquid? {?}")],
+    why: { [tr("Ja", "Yes")]: tr("Ein einzelnes Teilchen gleitet an nichts vorbei. Flüssig ist erst der Stoff.", "A single particle slides past nothing. Only the substance is liquid.") },
+    ok: tr("Eigenschaften wie flüssig oder Farbe hat der Stoff, nicht das einzelne Teilchen.", "Properties like liquid or colour belong to the substance, not to a single particle."),
   },
   {
     mode: "free",
@@ -332,7 +345,7 @@ const K4: GuideStep[] = [
     say: tr("Auch in einem Gas kann etwas verteilt sein.", "Something can also be spread out in a gas."),
     ask: tr("Was kann in Luft verteilt sein?", "What can be spread out in air?"),
     lines: [tr("Andere Gase → **Gasgemisch** (Luft: Stickstoff, Sauerstoff, Argon).", "Other gases → **gas mixture** (air: nitrogen, oxygen, argon)."),
-      tr("Flüssige Tröpfchen → **Nebel** (Dunst über dem Teich).", "Liquid droplets → **fog** (mist over a pond)."),
+      tr("Flüssige Tröpfchen → **Nebel** (Morgennebel über dem Teich).", "Liquid droplets → **fog** (morning fog over a pond)."),
       tr("Feste Teilchen → **Rauch** (Ruß in der Luft).", "Solid particles → **smoke** (soot in the air).")],
     ok: tr("Im Gas: Gasgemisch, Nebel oder Rauch – je nachdem, was verteilt ist.", "In a gas: gas mixture, fog or smoke – depending on what is spread out."),
   },
@@ -456,8 +469,8 @@ function Steps({ steps, gap, c, mix = "salzsand" }: { steps: string[]; gap?: num
   );
 }
 const BRENNER = () => tr("Brenner an", "Burner on");
-/** Schritt „Lösen“ (Wasser dazu) – derselbe Name wie in der Aufgabe zur Reihenfolge */
-const LOES = () => tr("Lösen", "Dissolving");
+/** Alkohol ist brennbar: Heizhaube statt Brenner */
+const HEIZEN = () => tr("Heizen an", "Heat on");
 const K6: GuideStep[] = [
   {
     mode: "worked",
@@ -503,9 +516,9 @@ const K6: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C.", "Alcohol boils at 78 °C, water at 100 °C."),
-    ask: tr("Alkohol und Wasser destillieren: Schalte den Brenner an.", "Distil alcohol and water: switch the burner on."),
-    visual: () => <Device m="destillieren" alk start={BRENNER()} />,
+    say: tr("Alkohol siedet bei 78 °C, Wasser bei 100 °C. Alkohol ist brennbar: Man heizt ohne Flamme, mit einer **Heizhaube**.", "Alcohol boils at 78 °C, water at 100 °C. Alcohol is flammable: you heat without a flame, using a **heating mantle**."),
+    ask: tr("Alkohol und Wasser destillieren: Schalte die Heizhaube an.", "Distil alcohol and water: switch the heating mantle on."),
+    visual: () => <Device m="destillieren" alk start={HEIZEN()} />,
     lines: [tr("Beim Erhitzen verdampft beides – Alkohol aber leichter: Im Dampf ist mehr Alkohol.", "When heated, both evaporate – but alcohol more easily: the vapour contains more alcohol."),
       tr("Das Gemisch siedet nicht bei einer festen Temperatur – sie steigt langsam von etwa 80 °C an.", "The mixture does not boil at one fixed temperature – it rises slowly from about 80 °C."),
       tr("Das Destillat enthält viel mehr Alkohol als vorher – rein ist es nicht.", "The distillate contains much more alcohol than before – it is not pure.")],
@@ -524,7 +537,7 @@ const K6: GuideStep[] = [
     say: tr("Schwarze Filzstift-Farbe ist ein Gemisch aus Farbstoffen.", "Black felt-tip ink is a mixture of dyes."),
     ask: tr("Starte die **Chromatografie**: Was passiert mit dem schwarzen Punkt?", "Start the **chromatography**: what happens to the black spot?"),
     visual: () => <Device m="chromatografie" start={tr("Start", "Start")} />,
-    lines: [tr("Das **Laufmittel** (Wasser) steigt im Papier hoch.", "The **solvent** (water) rises up the paper."), tr("Es nimmt die Farbstoffe verschieden weit mit.", "It carries the dyes along different distances."),
+    lines: [tr("Der schwarze Punkt sitzt auf der **Startlinie**. Das **Laufmittel** (Wasser) steigt im Papier hoch.", "The black spot sits on the **start line**. The **solvent** (water) rises up the paper."), tr("Es nimmt die Farbstoffe verschieden weit mit.", "It carries the dyes along different distances."),
       tr("Ein Farbstoff wandert weit, wenn er sich gut im Laufmittel löst und schwach am Papier haftet.", "A dye travels far if it dissolves well in the solvent and sticks only weakly to the paper.")],
     ok: tr("Aus einem schwarzen Fleck werden mehrere Farben.", "One black spot turns into several colours."),
   },
@@ -549,16 +562,16 @@ const K6: GuideStep[] = [
     mode: "worked",
     say: tr("Manche Gemische brauchen **mehrere Schritte** nacheinander.", "Some mixtures need **several steps** one after another."),
     ask: tr("Wie trennt man **Salz und Sand**?", "How do you separate **salt and sand**?"),
-    visual: () => <Steps steps={[LOES(), M.filtrieren(), M.eindampfen()]} />,
-    lines: [tr("① **Lösen**: Wasser dazu – Salz löst sich, Sand nicht.", "① **Dissolving**: add water – salt dissolves, sand does not."), tr("② **Filtrieren**: Sand bleibt im Filter.", "② **Filtration**: sand stays in the filter."), tr("③ **Eindampfen**: Salz bleibt in der Schale.", "③ **Evaporation**: salt stays in the dish.")],
+    visual: () => <Steps steps={[STEP.loesen(), STEP.filtrieren(), STEP.eindampfen()]} />,
+    lines: [tr("① **Lösen**: Wasser dazu – Salz löst sich, Sand nicht.", "① **Dissolve**: add water – salt dissolves, sand does not."), tr("② **Filtrieren**: Sand bleibt im Filter.", "② **Filter**: sand stays in the filter."), tr("③ **Eindampfen**: Salz bleibt in der Schale.", "③ **Evaporate**: salt stays in the dish.")],
     ok: tr("Erst lösen, dann filtrieren, dann eindampfen.", "First dissolve, then filter, then evaporate."),
   },
   {
     mode: "faded",
-    ask: tr("Ergänze: **Eisen, Sand und Salz** trennen.", "Complete: separate **iron, sand and salt**."), answer: M.magnet(), options: [M.sieben(), M.eindampfen(), M.magnet()],
-    visual: c => <Steps steps={[M.magnet(), LOES(), M.filtrieren(), M.eindampfen()]} gap={0} c={c} mix="eisensalzsand" />,
-    lines: [tr("① {?} ② Lösen ③ Filtrieren ④ Eindampfen", "① {?} ② Dissolving ③ Filtration ④ Evaporation")],
-    why: { [M.sieben()]: tr("Eisen und Sand sind gleich fein.", "Iron and sand are equally fine."), [M.eindampfen()]: tr("Dann wäre noch gar kein Wasser da.", "Then there would be no water yet.") },
+    ask: tr("Ergänze: **Eisen, Sand und Salz** trennen.", "Complete: separate **iron, sand and salt**."), answer: STEP.magnet(), options: [STEP.sieben(), STEP.eindampfen(), STEP.magnet()],
+    visual: c => <Steps steps={[STEP.magnet(), STEP.loesen(), STEP.filtrieren(), STEP.eindampfen()]} gap={0} c={c} mix="eisensalzsand" />,
+    lines: [`① {?} ② ${STEP.loesen()} ③ ${STEP.filtrieren()} ④ ${STEP.eindampfen()}`],
+    why: { [STEP.sieben()]: tr("Eisen und Sand sind gleich fein.", "Iron and sand are equally fine."), [STEP.eindampfen()]: tr("Dann wäre noch gar kein Wasser da.", "Then there would be no water yet.") },
     ok: tr("Zuerst holt der Magnet das Eisen heraus.", "First the magnet takes the iron out."),
   },
 ];

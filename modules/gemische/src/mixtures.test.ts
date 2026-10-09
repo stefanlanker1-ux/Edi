@@ -79,9 +79,10 @@ test("vorher: Zucker als Kristall am Boden, Alkohol als Schicht oben, CO₂ übe
     assert.ok(a.ps.filter(p => p.f === "C2H5OH").every(p => row(a, p) <= minWater), "Alkohol oben");
     const sp = initial(ex("sprudel"), seed, "vorher");
     assert.ok(sp.ps.filter(p => p.f === "CO2").every(p => p.gas && row(sp, p) < sp.grid.top), "CO₂ im Gasraum");
+    // Messing (12 Cu, 6 Zn) im Gitter 6 × 3 ohne Lücke: Kupfer in vier Spalten links, Zink in zwei rechts
     const m = initial(ex("messing"), seed, "vorher");
-    assert.deepEqual(m.walls, [3]);
-    assert.ok(m.ps.every(p => (p.f === "Cu") === (p.cell % m.grid.cols < 3)), "Kupfer links, Zink rechts");
+    assert.deepEqual([m.grid.cols, m.grid.rows, m.walls], [6, 3, [4]]);
+    assert.ok(m.ps.every(p => (p.f === "Cu") === (p.cell % m.grid.cols < 4)), "Kupfer links, Zink rechts");
     const g = initial(ex("schutzgas"), seed, "vorher");
     assert.strictEqual(g.walls.length, 1);
     assert.ok(g.ps.every(p => (p.f === "Ar") === (p.cell % g.grid.cols < g.walls[0])), "Argon und CO₂ getrennt");

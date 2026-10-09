@@ -34,6 +34,12 @@ test("Legierung nicht pauschal homogen; beim Destillieren von Alkohol und Wasser
   expect(bad.map(b => `${b.f}: ${b.s.slice(0, 90)}`)).toEqual([]);
 });
 
-test("Keine mehrdeutigen Beispiele im Modul (Schlagsahne enthält eine Emulsion, Wolken können Eis enthalten)", () => {
-  expect(FILES.filter(f => /Schlagsahne|whipped cream|\bWolke|\bclouds?\b/.test(code(f)))).toEqual([]);
+test("Keine mehrdeutigen Beispiele im Modul (Schlagsahne enthält eine Emulsion, Wolken können Eis enthalten, Dunst kann auch Staub sein)", () => {
+  expect(FILES.filter(f => /Schlagsahne|whipped cream|\bWolke|\bclouds?\b|\bDunst|\bmist\b/.test(code(f)))).toEqual([]);
+});
+
+test("Genau formuliert: Gelöstes nicht pauschal über die Siedetemperatur (Chromatografie), Messing ohne festes Zahlenverhältnis, kein „reiner Alkohol“", () => {
+  const bad = strings.filter(({ s }) => /Gelöstes trennt man über|Dissolved substances are separated by their boiling/i.test(s) || /reiner Alkohol|pure alcohol/i.test(s)
+    || (/(Kupfer und Zink|Copper and zinc)[^.]*(nicht zu einem neuen Stoff|not bonded into a new)/i.test(s)));
+  expect(bad.map(b => `${b.f}: ${b.s.slice(0, 90)}`)).toEqual([]);
 });
