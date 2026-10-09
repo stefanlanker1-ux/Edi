@@ -619,13 +619,17 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   quer oder hochkant je nach Bühne – Texte ohne Richtungswörter) · **Das Ionengitter** (Ionenverbindungen heißen auch **Salze**; Schicht füllen `LatticeFill`, Nachbarn antippen –
   4 in der Schicht, räumliches Gitter `Lattice3D` mit der Schicht in der Bildebene und je 1 Gegen-Ion davor und dahinter, Verhältnis aus dem MgO-Ausschnitt `FormulaModel`) ·
   **Hart und spröde** (Temperatur-Schieber `ThermoLattice`: Kristall im Tiegel, kleine Teilchensimulation `k3/sim.ts` – fest schwingen die Ionen um ihre Plätze, Ausschlag
-  wächst mit der Temperatur; ab der Schmelztemperatur (NaCl 801 °C) verlassen sie die Plätze und gleiten ständig ungeordnet aneinander vorbei – je heißer, desto schneller (erst ab der
+  wächst mit der Temperatur; ab der Schmelztemperatur (NaCl 801 °C) verlassen sie die Plätze und gleiten ständig ungeordnet aneinander vorbei – Platzwechsel gut sichtbar (`heatDrive`: in der Schmelze
+  stärkere, länger gerichtete Wärmebewegung `stir`/`glide` und stärkerer Zusammenhalt; NaCl 1000 °C ≈ 1,1 Platzwechsel je Ion und Sekunde) –, je heißer, desto schneller (erst ab der
   Schmelztemperatur, je 200 °C darüber einmal so schnell: NaCl bei 1000 °C doppelt, höchstens 2,5-mal; `speed` = Zeitraffer der Simulation) –, dicht, ohne Überlappung,
   Gegen-Ionen nah (Anziehungslinien je nach Abstand weich ein- und ausgeblendet); darunter gleitet jedes Ion auf einen freien Platz seiner Ladung zurück; `ThermoPair`: NaCl
-  und MgO (2852 °C) mit einem Schieber, je 4 × 3 Ionen – „NaCl flüssig, MgO fest“; Schichten verschieben `ShiftLayers`: nach einem ganzen Platz stehen gleiche Ladungen
-  gegenüber → Abstoßung, Riss) · **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: Becherglas mit Batterie, Schalter, Lampe – fest
+  und MgO (2852 °C) mit einem Schieber, je 4 × 3 Ionen – „NaCl flüssig, MgO fest“; Salzkristall zerbricht `Brittle` (`k3/brittle.tsx`): Makro → Lupe → Teilchen → Makro – durchscheinender
+  Kristall, Hammer schlägt seitlich (Scherkraft), Lupe auf der Spaltebene mit „Ausschnitt, vergrößert“: obere Schichten gleiten, bei ½ Platz schwächer gehalten, nach einem
+  ganzen Platz stehen gleiche Ladungen gegenüber → Abstoßung, die Schichten gehen auseinander; im Makrobild bricht der Kristall entlang der glatten Ebene, die oberen Stücke
+  fliegen im Bogen weg (würfelige Bruchstücke, keine Splitter); vorgemacht als Ablauf mit „Nochmal abspielen“, KBr frei mit 0 – ¼ – ½ – ¾ – 1 Platz; Hammer-Frage mit Kristallbild) · **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: Becherglas mit Batterie, Schalter, Lampe – fest
   Salzkörner, Schmelze 801 °C, Lösung „in Wasser H₂O“ – und eine Lupe „Ausschnitt“ aus der Mitte (neben oder unter dem Glas, Hinweislinien): fest schwingen die Ionen nur, in
-  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich deutlich sichtbar (Wanderung Schmelze 1,19 · LU/s, Lösung 0,51 · LU/s)
+  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich deutlich sichtbar waagrecht aneinander vorbei (`lensDrive`, FLOW 3,4: Ziel Schmelze 1,56 · LU/s, Lösung 1,02 · LU/s;
+  senkrechte Wärmebewegung gedämpft `calm` 0,3 bei Strom, 0,8 ohne; Lösung mit `mix`, damit keine Reihen gleicher Ladung entstehen)
   – Kationen zum Minuspol, Anionen zum Pluspol, gemischt; der
   Ausschnitt ist größer als die Lupe, was hinausgleitet, kommt außerhalb des Sichtbaren wieder herein; Pole am Lupenrand, Legende „Na⁺ ← zum Minuspol“; was an den Elektroden
   passiert, bleibt offen („lernst du später“) – nie getrennte Ladungsblöcke, nie Ein-/Ausblenden mitten im Bild; Test `k3/sim.test.ts`). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196,
@@ -1152,6 +1156,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung Kapitel 3: Hart und spröde, Schmelze, Strom** – Wunsch nach Ansicht am Handy: (1) Salzkristall zerbricht jetzt als Ablauf Makro → Lupe → Teilchen → Makro
+  (`k3/brittle.tsx` ersetzt `ShiftLayers`): Hammer, Lupe auf die Spaltebene, Schichten gleiten, gleiche Ladungen gegenüber stoßen sich ab, der Kristall bricht in glatte
+  Stücke, die auseinanderfliegen; Test. (2) In der Schmelze wechseln die Ionen etwa doppelt so oft die Plätze (stärkere, länger gerichtete Wärmebewegung statt mehr Zeitraffer,
+  der nur mehr Zittern brachte). (3) In der Lupe wandern die Ionen bei Strom doppelt so schnell und gehen nur noch halb so stark auf und ab. Tests `k3/sim.test.ts`.
 - **Ionenbindung Kapitel 5 „Nebengruppenmetalle“ neu ohne Elektronenkonfiguration** – Wunsch: Schüler sollen nicht auswendig lernen, welche Nebengruppenmetalle nur
   eine Ladung haben, und keine d-Elektronenkonfigurationen brauchen. Kästchenschema, 4s/3d, Silber und Zink entfallen. Neu: Einstieg über zwei Stoffe aus denselben
   Elementen (FeO/Fe₂O₃, Cu₂O/CuO als Stoffproben in echter Farbe) → die Ladung muss in den Namen; Brücke Gruppe 1–18 ↔ Hauptgruppen aus Kapitel 1; Regel: I.–III. Hauptgruppe
