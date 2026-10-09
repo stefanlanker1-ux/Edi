@@ -4,6 +4,7 @@
 import type { GuideCtx, GuideDef, GuideStep } from "@lern/ui";
 import { KNOWN_BY_ID, toMolecule, type Molecule } from "@lern/chem";
 import { LewisSvg } from "./components/LewisSvg.tsx";
+import { EnTable } from "./components/EnTable.tsx";
 import { tr } from "@lern/i18n";
 
 /** Rastermolekül aus Atomen [Element, x, y] und Bindungen [a, b, Ordnung] (Indizes ab 0) */
@@ -135,7 +136,7 @@ const US = (): GuideStep[] => [
   // ── Moleküle und Namen ──
   {
     mode: "worked", part: tr("Moleküle und Namen", "Molecules and names"),
-    say: tr("Wichtige Namen: **Wasser** H₂O, **Ammoniak** NH₃, **Methan** CH₄, **Chlorwasserstoff** HCl.", "Important names: **water** H₂O, **ammonia** NH₃, **methane** CH₄, **hydrogen chloride** HCl."),
+    say: tr("Wichtige Namen: **Wasser** H₂O, **Ammoniak** NH₃, **Methan** CH₄, **Chlorwasserstoff** HCl, **Fluorwasserstoff** HF, **Tetrachlormethan** CCl₄, **Kohlendioxid** CO₂.", "Important names: **water** H₂O, **ammonia** NH₃, **methane** CH₄, **hydrogen chloride** HCl, **hydrogen fluoride** HF, **tetrachloromethane** CCl₄, **carbon dioxide** CO₂."),
     ask: tr("Welche Formel hat die Verbindung aus C und H?", "What is the formula of the compound of C and H?"),
     visual: () => <Lewis m={known("CH4")} />,
     lines: [tr("C hat 4 einzelne Elektronen, H je 1.", "C has 4 single electrons, H 1 each."), tr("Also binden 4 H an ein C.", "So 4 H bond to one C."), tr("→ **CH₄**, Methan.", "→ **CH₄**, methane.")],
@@ -255,13 +256,14 @@ const OS: GuideStep[] = [
     mode: "worked", part: tr("Polarität", "Polarity"),
     say: tr("Die **Elektronegativität** (EN) gibt an, wie stark ein Atom das Bindungspaar anzieht.", "**Electronegativity** (EN) tells you how strongly an atom attracts the bonding pair."),
     ask: tr("Ist die Bindung in **H–Cl** polar?", "Is the bond in **H–Cl** polar?"),
-    visual: () => <Lewis m={known("HCl")} />,
-    lines: [tr("ΔEN = 3,16 − 2,20 ≈ 1,0.", "ΔEN = 3.16 − 2.20 ≈ 1.0."), tr("ΔEN ≥ 0,4 → **polar**: Cl zieht das Paar zu sich.", "ΔEN ≥ 0.4 → **polar**: Cl pulls the pair towards itself."), tr("Teilladungen: Cl **δ−**, H **δ+**. Unter 0,4: **unpolar**.", "Partial charges: Cl **δ−**, H **δ+**. Below 0.4: **non-polar**.")],
+    visual: () => <EnTable mark={["H", "Cl"]} />,
+    lines: [tr("EN-Tabelle: Nach rechts steigt die EN, nach unten sinkt sie. Fluor hat die größte.", "EN table: EN increases to the right and decreases downwards. Fluorine has the highest."), tr("H 2,20 und Cl 3,16: ΔEN = 3,16 − 2,20 ≈ 1,0.", "H 2.20 and Cl 3.16: ΔEN = 3.16 − 2.20 ≈ 1.0."), tr("ΔEN ≥ 0,4 → **polar**: Cl zieht das Paar zu sich.", "ΔEN ≥ 0.4 → **polar**: Cl pulls the pair towards itself."), tr("Teilladungen: Cl **δ−**, H **δ+**. Unter 0,4: **unpolar**.", "Partial charges: Cl **δ−**, H **δ+**. Below 0.4: **non-polar**.")],
     ok: tr("Größere EN → δ−.", "Higher EN → δ−."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Welche Bindung ist **am stärksten polar**?", "Complete: which bond is **the most polar**?"), answer: "H–F", options: ["C–H", "H–Cl", "H–F", "Cl–Cl"],
+    visual: () => <EnTable mark={["H", "C", "F", "Cl"]} />,
     lines: [tr("ΔEN: H–F 1,8 · H–Cl 1,0 · C–H 0,35 · Cl–Cl 0.", "ΔEN: H–F 1.8 · H–Cl 1.0 · C–H 0.35 · Cl–Cl 0."), tr("Größtes ΔEN: {?}", "Largest ΔEN: {?}")],
     why: { "H–Cl": tr("Polar, aber H–F hat das größere ΔEN.", "Polar, but H–F has the larger ΔEN."), "C–H": tr("ΔEN ≈ 0,35 – unter 0,4, also unpolar.", "ΔEN ≈ 0.35 – below 0.4, so non-polar."), "Cl–Cl": tr("Gleiche Atome: ΔEN = 0, unpolar.", "Identical atoms: ΔEN = 0, non-polar.") },
     ok: tr("H–F ist am stärksten polar.", "H–F is the most polar."),

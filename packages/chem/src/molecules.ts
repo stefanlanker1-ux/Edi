@@ -138,8 +138,9 @@ export function canonicalKey(m: Molecule): string {
  */
 export const REAL_ANGLES: Record<string, number> = {
   "O:H,H": 104.5, "S:H,H": 92.1, "Se:H,H": 90.6, "O:F,F": 103.1, "O:Cl,Cl": 110.9, "S:Cl,Cl": 102.7,
-  "O:C,H": 108.9, "O:H,O": 94.8,
+  "O:C,H": 108.9, "O:H,O": 94.8, "O:C,C": 111.7, "O:Cl,H": 102.5, "S:C,C": 98.9, "S:C,H": 96.5,
   "N:H,H,H": 107, "P:H,H,H": 93.5, "As:H,H,H": 92.1, "N:F,F,F": 102.2, "N:Cl,Cl,Cl": 107.1, "P:Cl,Cl,Cl": 100.3,
+  "N:C,C,C": 110.9, "N:C,C,H": 112.2, "N:C,H,H": 105.9,
   "C:C,H,H": 117.4, "C:H,H,O": 116.5,
 };
 /** Winkel mit Komma, z. B. „104,5°“; der Tetraederwinkel wird als 109,5° geschrieben */
@@ -165,7 +166,8 @@ export function shapeAt(m: Molecule, id: number): Shape | null {
   const real = REAL_ANGLES[`${a}:${nbEls.join(",")}`];
   let geometry: Geometry, angle: string;
   if (steric === 4) {
-    if (n === 4) { geometry = "tetraedrisch"; angle = num("109,5°"); }
+    // genau 109,5° nur bei vier gleichen Partnern (CH₄, CCl₄); sonst verschieden (CH₃Cl H–C–H 110,5°)
+    if (n === 4) { geometry = "tetraedrisch"; angle = new Set(nbEls).size === 1 ? num("109,5°") : tr("ca. 109,5°", "approx. 109.5°"); }
     else if (n === 3) { geometry = "trigonal-pyramidal"; angle = real ? formatAngle(real) : a === "N" ? tr("ca. 107°", "approx. 107°") : tr("kleiner als 109,5°", "less than 109.5°"); }
     else { geometry = "gewinkelt"; angle = real ? formatAngle(real) : a === "O" ? tr("ca. 104,5°", "approx. 104.5°") : tr("kleiner als 109,5°", "less than 109.5°"); }
   } else if (steric === 3) {

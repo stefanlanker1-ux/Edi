@@ -42,9 +42,10 @@ button.ion-tile:hover { transform: translateY(-2px); }
 .ion-wall.balanced .iw-formula { color: var(--text); }
 
 /* ── Baukasten ──────────────────────────────────────────────────────────── */
-.wall-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* Zähler nebeneinander, solange beide ganz passen (44-px-Knöpfe überdecken sich nie), sonst untereinander */
+.wall-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; }
 .wall-controls .ui-stepper.compact { grid-template-columns: minmax(0, 1fr); justify-items: center; }
-.wall-controls .ui-stepper-ctl { grid-template-columns: 44px minmax(36px, 56px) 44px; }
+.wall-controls .ui-stepper-ctl { grid-template-columns: 44px minmax(32px, 56px) 44px; gap: 4px; }
 .ib-wb .ui-wb-view { overflow: hidden; }
 .ip-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .ip-chip {
@@ -61,7 +62,7 @@ button.ion-tile:hover { transform: translateY(-2px); }
 .ia-box { margin: 0; display: grid; gap: 8px; justify-items: center; text-align: center; }
 .ia-box figcaption { font-weight: 700; }
 .ia-bohr { width: min(180px, 34vw); aspect-ratio: 1; }
-.ia-arrow { display: grid; justify-items: center; gap: 4px; color: var(--muted); font-size: .8rem; text-align: center; max-width: 80px; }
+.ia-arrow { display: grid; justify-items: center; gap: 4px; color: var(--muted); font-size: .875rem; text-align: center; max-width: 80px; }
 .ion-poly { display: grid; place-items: center; padding: 16px; }
 .ip-formula { font-size: 3rem; font-weight: 800; }
 
@@ -109,7 +110,7 @@ button.ion-tile:hover { transform: translateY(-2px); }
 /* Erklärung: Ausschnitt aus dem Ionengitter (NaCl) – Linien statt Flächen, Kation gelb, Anion grün wie die Bausteine */
 .ib-lat { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 100%; min-height: 0; }
 .ib-lat svg { width: 100%; max-width: 440px; height: auto; flex: 0 1 auto; min-height: 0; }
-.ib-lat figcaption { flex: none; font-size: .85rem; color: var(--muted); text-align: center; }
+.ib-lat figcaption { flex: none; font-size: .875rem; color: var(--muted); text-align: center; }
 .ib-lat-lines line { stroke: var(--faint); stroke-width: 1.5; }
 .ib-lat-lines line.more { stroke-dasharray: 3 4; }
 .ib-lat-lines line.hot { stroke: var(--signal); stroke-width: 3; }

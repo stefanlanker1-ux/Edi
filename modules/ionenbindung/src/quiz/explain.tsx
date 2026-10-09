@@ -30,7 +30,7 @@ const TEXT_DE: Record<string, Ex> = {
   "os-1": { c: "Fe3+", a: "O2-", points: [
     "Hauptgruppen-Ionen haben Edelgaskonfiguration: Na⁺ wie Ne, Cl⁻ wie Ar.",
     "**Übergangsmetalle** (Gruppe 3–12) und Blei bilden oft mehrere Ionen – die **römische Zahl** nennt die Ladung: Eisen(II) = Fe²⁺, Eisen(III) = Fe³⁺.",
-    "**Mehratomige Ionen** tragen die Ladung als Ganzes: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
+    "**Mehratomige Ionen** tragen die Ladung als Ganzes: NH₄⁺, OH⁻, NO₃⁻, NO₂⁻ (Nitrit), HCO₃⁻ (Hydrogencarbonat), SO₄²⁻, SO₃²⁻ (Sulfit), CO₃²⁻, PO₄³⁻.",
   ] },
   "os-2": { c: "Al3+", a: "SO42-", points: [
     "Wie in Level I: Ladungen ausgleichen, bis beide Reihen gleich lang sind (kleinstes gemeinsames Vielfaches).",
@@ -63,7 +63,7 @@ const TEXT_EN: Record<string, Ex> = {
   "os-1": { c: "Fe3+", a: "O2-", points: [
     "Main group ions have a noble gas configuration: Na⁺ like Ne, Cl⁻ like Ar.",
     "**Transition metals** (groups 3–12) and lead often form several ions – the **Roman numeral** gives the charge: iron(II) = Fe²⁺, iron(III) = Fe³⁺.",
-    "**Polyatomic ions** carry the charge as a whole: NH₄⁺, OH⁻, NO₃⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻.",
+    "**Polyatomic ions** carry the charge as a whole: NH₄⁺, OH⁻, NO₃⁻, NO₂⁻ (nitrite), HCO₃⁻ (hydrogen carbonate), SO₄²⁻, SO₃²⁻ (sulfite), CO₃²⁻, PO₄³⁻.",
   ] },
   "os-2": { c: "Al3+", a: "SO42-", points: [
     "As in Level I: balance charges until both rows are the same length (lowest common multiple).",

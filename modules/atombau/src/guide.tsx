@@ -45,7 +45,7 @@ const BohrOnly = ({ Z, N, E, shells }: { Z: number; N: number; E: number; shells
 /** Periodensystem: Element antippen (Ziel = Ordnungszahl als Text); `mark` hebt ein Element hervor */
 function Pse({ c, stufe, answer, mark, blocks }: { c: GuideCtx; stufe: "us" | "os"; answer?: number; mark?: number; blocks?: boolean }) {
   return (
-    <div className="pse-fit">
+    <div className="pse-fit pse-z">
       <PeriodicTable stufe={stufe} fit blocks={blocks} names={stufe === "us"}
         onPick={answer ? Z => c.pick(String(Z)) : undefined} disabled={!answer}
         cellState={Z => (c.solved && Z === answer ? "right" : c.show && Z === answer ? "hit" : Z === mark ? "sel" : undefined)} />
@@ -479,13 +479,13 @@ const OS: GuideStep[] = [
     ask: tr("Wie viele **d-Orbitale** gibt es in einer Schale?", "How many **d orbitals** are there in a shell?"), answer: 5, num: {},
     visual: () => <OrbView items={[orb(26, 3, 2, "dxy"), orb(26, 3, 2, "dz2")]} />,
     why: { "10": tr("10 Elektronen passen in die d-Unterschale – je 2 pro Orbital.", "10 electrons fit into the d subshell – 2 per orbital."), "3": tr("3 sind es bei p. Bei d sind es mehr.", "3 is for p. d has more.") },
-    tip: tr("l = 2 erlaubt m = −2, −1, 0, 1, 2.", "l = 2 allows m = −2, −1, 0, 1, 2."),
+    tip: tr("Zähle die erlaubten m-Werte: von −l bis +l, einschließlich 0.", "Count the allowed m values: from −l to +l, including 0."),
     ok: tr("5 d-Orbitale × 2 = 10 Elektronen.", "5 d orbitals × 2 = 10 electrons."),
     lines: [tr("l = 2 → m = −2, −1, 0, 1, 2 → 5 d-Orbitale.", "l = 2 → m = −2, −1, 0, 1, 2 → 5 d orbitals.")],
   },
   {
     mode: "free",
-    say: tr("Die **Spinquantenzahl s** = +½ oder −½ unterscheidet die zwei Elektronen in einem Orbital (↑ und ↓).", "The **spin quantum number s** = +½ or −½ tells apart the two electrons in an orbital (↑ and ↓)."),
+    say: tr("Die **Spinquantenzahl** mₛ = +½ oder −½ unterscheidet die zwei Elektronen in einem Orbital (↑ und ↓).", "The **spin quantum number** mₛ = +½ or −½ tells apart the two electrons in an orbital (↑ and ↓)."),
     ask: tr("Zwei Elektronen im **selben** Orbital haben …", "Two electrons in the **same** orbital have …"), answer: tr("entgegengesetzten Spin", "opposite spin"),
     options: [tr("gleichen Spin", "the same spin"), tr("verschiedene Hauptquantenzahlen", "different principal quantum numbers"), tr("entgegengesetzten Spin", "opposite spin")],
     why: { [tr("gleichen Spin", "the same spin")]: tr("Dann wären alle vier Quantenzahlen gleich – das verbietet Pauli.", "Then all four quantum numbers would be equal – Pauli forbids that."), [tr("verschiedene Hauptquantenzahlen", "different principal quantum numbers")]: tr("Im selben Orbital sind n, l und m gleich.", "In the same orbital n, l and m are equal.") },
@@ -687,7 +687,7 @@ export function guideFor(stufe: "us" | "os"): GuideDef {
     : { title: tr("Atombau", "Atomic Structure"), steps: OS, outro: [
       tr("Atomsymbol lesen: Massenzahl, Ordnungszahl, Ladung → p, n, e.", "Reading the nuclide symbol: mass number, atomic number, charge → p, n, e."),
       tr("Elektronen verhalten sich wie **Wellen**: kein Ort, keine Bahn – nur Aufenthaltswahrscheinlichkeit |ψ|². **Orbital** = Raum mit 90 % davon, höchstens 2 Elektronen (**Pauli**).", "Electrons behave like **waves**: no position, no path – only probability |ψ|². **Orbital** = region with 90 % of it, at most 2 electrons (**Pauli**)."),
-      tr("Quantenzahlen: **n** Größe/Schale, **l** Form (s Kugel, p Hantel, d Rosette), **m** Ausrichtung (1 s, 3 p, 5 d), **s** Spin ↑↓. Schale n fasst 2n² Elektronen.", "Quantum numbers: **n** size/shell, **l** shape (s sphere, p dumbbell, d cloverleaf), **m** orientation (1 s, 3 p, 5 d), **s** spin ↑↓. Shell n holds 2n² electrons."),
+      tr("Quantenzahlen: **n** Größe/Schale, **l** Form (s Kugel, p Hantel, d Rosette), **m** Ausrichtung (1 s, 3 p, 5 d), **mₛ** Spin ↑↓ (±½). Schale n fasst 2n² Elektronen.", "Quantum numbers: **n** size/shell, **l** shape (s sphere, p dumbbell, d cloverleaf), **m** orientation (1 s, 3 p, 5 d), **mₛ** spin ↑↓ (±½). Shell n holds 2n² electrons."),
       tr("Aufbauprinzip 1s 2s 2p 3s 3p **4s 3d** 4p … (wenige Ausnahmen wie Cr, Cu); **Hund'sche Regel**: gleichwertige Orbitale erst einzeln, dann gepaart.", "Aufbau principle 1s 2s 2p 3s 3p **4s 3d** 4p … (a few exceptions such as Cr, Cu); **Hund's rule**: equivalent orbitals singly first, then paired."),
       tr("Kurzschreibweise mit Edelgaskern; s-, p-, d-, f-Block; Periode und Gruppe aus der Konfiguration.", "Short notation with noble gas core; s, p, d, f block; period and group from the configuration."),
       tr("Ionen: Edelgaskonfiguration, Kationen geben 4s vor 3d ab, isoelektronische Teilchen.", "Ions: noble gas configuration, cations lose 4s before 3d, isoelectronic particles."),

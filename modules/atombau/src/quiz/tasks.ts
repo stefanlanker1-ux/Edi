@@ -5,10 +5,10 @@
 import {
   BY_Z, STABLE_N, standardNeutrons, configuration, configString, shortConfigString, shells,
   unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed, minus, groupLabel,
-  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, type Occupied,
+  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, aufbau, type Occupied,
 } from "@lern/chem";
 import { mc, d, dis, validTraps, type Trap } from "@lern/quiz";
-import { tr } from "@lern/i18n";
+import { article, tr } from "@lern/i18n";
 
 export type Stufe = "us" | "os";
 
@@ -85,10 +85,15 @@ const maxOf = (pool: number[]) => Math.max(...pool);
 export const NUCLIDE_MAX_Z = 20;
 const nuclidePool = (pool: number[]) => pool.filter(z => z <= NUCLIDE_MAX_Z);
 
+/** Ungebundene Kerne zerfallen sofort (He-5, Be-8 – kein Isotop zum Üben); nie weniger als 0 Neutronen (Wasserstoff-1 hat 0) */
+const UNBOUND = new Set(["2:3", "4:4"]);
+export const boundNuclide = (Z: number, N: number) => N >= 0 && !UNBOUND.has(`${Z}:${N}`);
+/** Neutronenzahl nahe am häufigsten Isotop (Abweichungen `steps`), nur gebundene Kerne */
+const nearN = (Z: number, steps: number[]) => pick(steps.map(d => standardNeutrons(Z) + d).filter(N => boundNuclide(Z, N)));
+
 function isotopeN(Z: number): number {
   if (STABLE_N[Z] && Math.random() < 0.7) return pick(STABLE_N[Z]);
-  // nie weniger als 0 Neutronen (Wasserstoff-1 hat 0)
-  return Math.max(0, standardNeutrons(Z) + (Math.random() < 0.6 ? 0 : pick([-1, 1, 2])));
+  return Math.random() < 0.6 ? standardNeutrons(Z) : nearN(Z, [-1, 1, 2]);
 }
 /** Eine Ladung, die es für dieses Element wirklich gibt (Na⁺, Fe³⁺ …), sonst 0 (neutrales Atom) */
 const realCharge = (Z: number) => { const c = commonCharges(Z); return c.length ? pick(c) : 0; };
@@ -211,8 +216,8 @@ export function buildAtom(pool: number[], ion = false): Task {
         { field: "E", value: Z + q, miss: "ladung-vorzeichen", why: tr(`${chargeLabel(q)} heißt ${q > 0 ? "Elektronen **fehlen**" : "Elektronen sind **zu viel**"}, denn Elektronen sind negativ.`, `${chargeLabel(q)} means electrons are ${q > 0 ? "**missing**" : "**extra**"}, because electrons are negative.`) },
       ] : []),
     ], { Z, N, E }),
-    hint: tr(`Protonen = ${Z}. Neutronen = Massenzahl − Protonen.${q ? " Die Ladung sagt, wie viele Elektronen fehlen (+) oder zu viel sind (−)." : ""}`,
-      `Protons = ${Z}. Neutrons = mass number − protons.${q ? " The charge tells you how many electrons are missing (+) or extra (−)." : ""}`),
+    hint: tr(`Protonen = Ordnungszahl (unten). Neutronen = Massenzahl − Protonen.${q ? " Die Ladung sagt, wie viele Elektronen fehlen (+) oder zu viel sind (−)." : ""}`,
+      `Protons = atomic number (bottom). Neutrons = mass number − protons.${q ? " The charge tells you how many electrons are missing (+) or extra (−)." : ""}`),
     explain: `${q ? `${ionName(Z, q)} ${el(Z).symbol}${chargeSup(q)}` : el(Z).name}: `
       + tr(`**${Z}** ${Z === 1 ? "Proton" : "Protonen"}, **${N}** ${N === 1 ? "Neutron" : "Neutronen"} (${Z + N} − ${Z}), **${E}** ${E === 1 ? "Elektron" : "Elektronen"}.`,
         `**${Z}** ${Z === 1 ? "proton" : "protons"}, **${N}** ${N === 1 ? "neutron" : "neutrons"} (${Z + N} − ${Z}), **${E}** ${E === 1 ? "electron" : "electrons"}.`),
@@ -270,7 +275,7 @@ export const outerElectrons: Gen = pool => {
       ...(Z === 2 ? [d("8", "helium-acht", tr("Helium steht zwar in der VIII. Hauptgruppe, hat aber nur **2** Elektronen. Beide sitzen auf der K-Schale, die damit voll ist.", "Helium is in main group VIII, but it only has **2** electrons. Both sit on the K shell, which is then full."))] : []),
       ...nums(nearNums(v, 1)),
     ]),
-    prompt: tr(`Wie viele **Außenelektronen** hat ein **${el(Z).name}**-Atom?`, `How many **outer electrons** does a **${el(Z).name}** atom have?`),
+    prompt: tr(`Wie viele **Außenelektronen** hat ein **${el(Z).name}**-Atom?`, `How many **outer electrons** does ${article(el(Z).name)} **${el(Z).name.toLowerCase()}** atom have?`),
     hint: Z === 2
       ? tr("Helium hat nur eine Schale. Wie viele Elektronen hat das ganze Atom?", "Helium has only one shell. How many electrons does the whole atom have?")
       : tr("Schau, in welcher Hauptgruppe das Element steht.", "Look at which main group the element is in."),
@@ -348,7 +353,10 @@ export const typicalIon: Gen = pool => {
       q > 0
         ? d(opt(-(8 - v)), "auffuellen-statt-abgeben", tr(`Metalle nehmen keine Elektronen auf. ${el(Z).name} gibt ${v === 1 ? "sein" : "seine"} ${Ae(v)} ab → ${opt(q)}.`, `Metals do not gain electrons. ${el(Z).name} loses its ${Ae(v)} → ${opt(q)}.`))
         : d(opt(v), "abgeben-statt-aufnehmen", tr(`Nichtmetalle geben ihre Außenelektronen nicht ab. ${el(Z).name} nimmt ${El(8 - v)} auf → ${opt(q)}.`, `Non-metals do not lose their outer electrons. ${el(Z).name} gains ${El(8 - v)} → ${opt(q)}.`)),
-      opt(q > 0 ? q + 1 : q - 1), opt(q > 0 ? (q === 1 ? 2 : q - 1) : (q === -1 ? -2 : q + 1)),
+      // falsche Anzahl: mit dem Abzählen der Außenelektronen begründen
+      ...[q > 0 ? q + 1 : q - 1, q > 0 ? (q === 1 ? 2 : q - 1) : (q === -1 ? -2 : q + 1)].map(c => dis(opt(c), q > 0
+        ? tr(`${el(Z).name} hat ${Ae(v)} – ${v === 1 ? "es gibt genau dieses" : `es gibt genau diese ${v}`} ab, nicht ${Math.abs(c)} → ${opt(q)}.`, `${el(Z).name} has ${Ae(v)} – it loses exactly ${v === 1 ? "this one" : `these ${v}`}, not ${Math.abs(c)} → ${opt(q)}.`)
+        : tr(`${el(Z).name} hat ${Ae(v)} – bis 8 ${8 - v === 1 ? "fehlt genau 1 Elektron" : `fehlen genau ${8 - v} Elektronen`}, nicht ${Math.abs(c)} → ${opt(q)}.`, `${el(Z).name} has ${Ae(v)} – exactly ${8 - v} ${8 - v === 1 ? "electron is" : "electrons are"} missing to 8, not ${Math.abs(c)} → ${opt(q)}.`))),
     ]),
     prompt: tr(`Welches Ion bildet **${el(Z).name}** meist?`, `Which ion does **${el(Z).name}** usually form?`),
     hint: tr("Metalle geben ihre Außenelektronen ab, Nichtmetalle nehmen bis 8 auf. Das Ion hat dann Edelgaskonfiguration.", "Metals lose their outer electrons, non-metals gain up to 8. The ion then has a noble gas configuration."),
@@ -384,7 +392,7 @@ export const isotopeCompare: Gen = pool => {
 // ── Oberstufe ────────────────────────────────────────────────────────────────
 
 export const nuclideInput: Gen = pool => {
-  const Z = pick(nuclidePool(pool)), N = Math.max(0, standardNeutrons(Z) + pick([0, 0, 1, 2, -1]));
+  const Z = pick(nuclidePool(pool)), N = nearN(Z, [0, 0, 1, 2, -1]);
   const q = Math.random() < 0.3 ? 0 : realCharge(Z);
   const E = Z - q;
   return {
@@ -493,7 +501,7 @@ export const unpairedMC: Gen = pool => {
         : tr(`Nach der Hund'schen Regel werden Kästchen gleicher Energie zuerst **einzeln** besetzt – in ${last.key}${sup(last.count)} bleiben Elektronen ungepaart.`, `By Hund's rule boxes of equal energy are filled **singly** first – in ${last.key}${sup(last.count)} electrons stay unpaired.`))] : []),
       ...nearNums(u, 0).map(n => dis(String(n), tr(`Kästchen zeichnen: ${last.key}${sup(last.count)} → ${u} ungepaart.`, `Draw the boxes: ${last.key}${sup(last.count)} → ${u} unpaired.`))),
     ]),
-    prompt: tr(`Wie viele **ungepaarte Elektronen** hat ein **${el(Z).name}**-Atom?`, `How many **unpaired electrons** does a **${el(Z).name}** atom have?`),
+    prompt: tr(`Wie viele **ungepaarte Elektronen** hat ein **${el(Z).name}**-Atom?`, `How many **unpaired electrons** does ${article(el(Z).name)} **${el(Z).name.toLowerCase()}** atom have?`),
     hint: tr("Zeichne die äußerste, nicht volle Unterschale als Kästchen und besetze nach der Hund'schen Regel.", "Draw the outermost subshell that is not full as boxes and fill by Hund's rule."),
     explain: tr(`${el(Z).name}: \`${shortConfigString(Z)}\`. In ${last.key}${sup(last.count)} ${u ? `${u === 1 ? "bleibt" : "bleiben"} **${u}** ${u === 1 ? "Elektron" : "Elektronen"} ungepaart (Hund'sche Regel).` : "sind alle Elektronen gepaart → **0**."}`,
       `${el(Z).name}: \`${shortConfigString(Z)}\`. In ${last.key}${sup(last.count)} ${u ? `**${u}** ${u === 1 ? "electron stays" : "electrons stay"} unpaired (Hund's rule).` : "all electrons are paired → **0**."}`),
@@ -501,12 +509,22 @@ export const unpairedMC: Gen = pool => {
 };
 
 const ION_SET: [number, number][] = [[26, 2], [26, 3], [29, 2], [30, 2], [25, 2], [27, 2], [28, 2], [24, 3], [11, 1], [12, 2], [13, 3], [8, -2], [17, -1], [16, -2], [7, -3], [20, 2], [35, -1]];
+/** Fehlvorstellung „3d zuerst abgeben“: q Elektronen aus der d-Unterschale statt aus 4s (Fe²⁺ → [Ar] 4s² 3d⁴, Cu²⁺ → [Ar] 4s¹ 3d⁸) */
+function dFirst(Z: number, q: number): string | null {
+  const cfg = configuration(Z).map(o => ({ ...o }));
+  const dd = [...cfg].reverse().find(o => o.l === 2);
+  if (!dd || dd.count < q) return null;
+  dd.count -= q;
+  const core = coreOf(Z), coreKeys = new Set(aufbau(core).map(o => o.key));
+  return `[${el(core).symbol}] ${configString(cfg.filter(o => o.count > 0 && !coreKeys.has(o.key)))}`;
+}
+
 export const ionConfigMC: Gen = () => {
   const [Z, q] = pick(ION_SET);
   const E = Z - q;
   const right = shortConfigString(Z, E);
   const tm = q > 0 && Z > 20;
-  const wrong1 = tm ? shortConfigString(E, E) : null;
+  const wrong1 = tm ? dFirst(Z, q) : null;
   return {
     ...mc(right, [
       ...(wrong1 && wrong1 !== right ? [d(wrong1, "ion-3d-zuerst", tr("Kationen der Übergangsmetalle geben zuerst die **4s**-Elektronen ab (äußerste Schale), nicht die 3d-Elektronen.", "Transition metal cations lose the **4s** electrons first (outer shell), not the 3d electrons."))] : []),

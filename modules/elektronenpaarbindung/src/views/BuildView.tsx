@@ -76,7 +76,8 @@ export function BuildView() {
     );
   // Polarität aus der räumlichen Lage (Vektorsumme der Bindungsdipole) – nur für fertige Moleküle
   const polar = useMemo(() => done && isPolar(mol), [done, mol]);
-  const polarity = useMemo(() => !done ? null : polar ? "polar" : isWeaklyPolar(mol) ? tr("schwach polar", "weakly polar") : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : tr("unpolar", "non-polar"), [done, polar, mol]);
+  const weak = useMemo(() => done && !polar && isWeaklyPolar(mol), [done, polar, mol]);
+  const polarity = useMemo(() => !done ? null : polar ? "polar" : weak ? tr("schwach polar", "weakly polar") : polarBonds(mol).length ? tr("unpolar (symmetrisch)", "non-polar (symmetrical)") : tr("unpolar", "non-polar"), [done, polar, weak, mol]);
   const tools: WorkbenchTool[] = [
     {
       id: "formel", label: tr("Formel", "Formula"), title: showWedge ? tr("Geometrische Strukturformel", "Wedge-dash formula") : tr("Strukturformel", "Structural formula"), icon: "bond", content: (
@@ -91,13 +92,15 @@ export function BuildView() {
               : <StructureSvg mol={mol} lonePairs={showLonePairs} deltas={os && done && showDeltas} />}</div>
             : <div className="struct-box empty" aria-hidden="true">–</div>}
           {showWedge && <WedgeLegend />}
-          <Switch checked={showLonePairs} onChange={setShowLonePairs}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>
-          {os && <Switch checked={showDeltas} onChange={setShowDeltas}>{dipoleArrow ? tr("Teilladungen und Dipol", "Partial charges and dipole") : tr("Teilladungen δ+ / δ−", "Partial charges δ+ / δ−")}</Switch>}
+          <div className="epb-switches">
+            <Switch checked={showLonePairs} onChange={setShowLonePairs}>{tr("Freie Elektronenpaare", "Lone pairs")}</Switch>
+            {os && <Switch checked={showDeltas} onChange={setShowDeltas}>{dipoleArrow ? tr("Teilladungen und Dipol", "Partial charges and dipole") : tr("Teilladungen δ+ / δ−", "Partial charges δ+ / δ−")}</Switch>}
+          </div>
         </>
       ),
     },
     {
-      id: "molekuel", label: tr("Molekül", "Molecule"), icon: "info", content: (
+      id: "molekuel", label: tr("Molekül", "Facts"), title: tr("Molekül", "Molecule"), icon: "info", content: (
         <>
           <dl className="facts">
             <div><dt>{tr("Bindende Paare", "Bonding pairs")}</dt><dd>{bondPairs}</dd></div>
@@ -117,7 +120,7 @@ export function BuildView() {
               const at = mol.atoms.find(x => x.id === sh!.center)!;
               return <li key={sh!.center}><b>{at.el}</b><span>{geometryName(sh!.geometry)}</span><span>{sh!.angle}</span></li>;
             })}
-            {!center.length && <li><b>–</b><span>linear</span><span>180°</span></li>}
+            {!center.length && <li><b>–</b><span>linear</span><span>{tr("kein Winkel (2 Atome)", "no angle (2 atoms)")}</span></li>}
           </ul>
           <div className="ui-tags">
             <Tag tone={polar ? "signal" : "plain"}>{polarity}</Tag>
@@ -126,6 +129,10 @@ export function BuildView() {
               return `${A.el}–${B.el} ΔEN ${p.delta.toLocaleString(tr("de-AT", "en-GB"))}`;
             }))].map(t => <Tag key={t}>{t}</Tag>)}
           </div>
+          {!polar && weak && (
+            <p className="small muted">{tr("Schwach polar: keine polare Bindung, die wirkt – aber freie Elektronenpaare oder Bindungen mit kleinem ΔEN ergeben einen kleinen Dipol (Modell).",
+              "Weakly polar: no polar bond that counts – but lone pairs or bonds with a small ΔEN give a small dipole (model).")}</p>
+          )}
         </>
       ),
     }] : []),

@@ -35,6 +35,9 @@ test("nicht beständige Verbindungen werden erkannt", () => {
   assert.strictEqual(isKnownCompound(I["Mg2+"], I["N3-"]), true);
   assert.strictEqual(isKnownCompound(I["Na+"], I["N3-"]), false);
   assert.strictEqual(isKnownCompound(I["K+"], I["N3-"]), false);
+  // Fe₂S₃ zerfällt über ca. 20 °C (FeS ist beständig)
+  assert.strictEqual(isKnownCompound(I["Fe3+"], I["S2-"]), false);
+  assert.strictEqual(isKnownCompound(I["Fe2+"], I["S2-"]), true);
 });
 
 test("ionText kann jede Ladung schreiben (Distraktoren wie Na⁷⁻)", () => {

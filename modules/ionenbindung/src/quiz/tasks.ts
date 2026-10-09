@@ -4,10 +4,10 @@ import {
   CATIONS, ANIONS, ION_BY_ID, ionsFor, ratio, formula, toSubscript, compoundName, ionText, chargeFull, isKnownCompound, BY_Z, type Ion, groupLabel,
   elementPronoun,
 } from "@lern/chem";
-import { buildRound, mc, d, pick, shuffle, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
+import { buildRound, mc, d, dis, pick, shuffle, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { weakTypes } from "@lern/quiz";
 import type { Stufe } from "../store.ts";
-import { tr } from "@lern/i18n";
+import { article, tr } from "@lern/i18n";
 
 export type Task = McTask | (BaseTask & { kind: "build"; cation: string; anion: string });
 
@@ -65,7 +65,7 @@ function electrons(): Task {
     : d(String(8 - n), "abgeben-statt-aufnehmen", tr(`${8 - n} ist die Zahl der Außenelektronen. ${el.name} gibt sie nicht ab, sondern nimmt ${n === 1 ? "1 Elektron" : `${n} Elektronen`} auf – dann sind es 8.`, `${8 - n} is the number of outer electrons. ${el.name} does not lose them but gains ${n === 1 ? "1 electron" : `${n} electrons`} – then there are 8.`));
   return {
     ...mc(String(n), [other, ...["1", "2", "3", "4", "5", "6", "7"].filter(x => x !== String(n) && x !== String(8 - n))]),
-    prompt: tr(`Ein **${el.name}**-Atom wird zum Ion. Wie viele Elektronen ${ion.charge > 0 ? "gibt es ab" : "nimmt es auf"}?`, `A **${el.name}** atom becomes an ion. How many electrons does it ${ion.charge > 0 ? "lose" : "gain"}?`),
+    prompt: tr(`Ein **${el.name}**-Atom wird zum Ion. Wie viele Elektronen ${ion.charge > 0 ? "gibt es ab" : "nimmt es auf"}?`, `${article(el.name) === "an" ? "An" : "A"} **${el.name.toLowerCase()}** atom becomes an ion. How many electrons does it ${ion.charge > 0 ? "lose" : "gain"}?`),
     hint: tr("Schau auf die Hauptgruppe: Sie sagt, wie viele Außenelektronen das Atom hat.", "Look at the main group: it tells you how many outer electrons the atom has."),
     explain: tr(`${el.name} hat ${ion.charge > 0 ? n : 8 - n} Außenelektron${(ion.charge > 0 ? n : 8 - n) === 1 ? "" : "en"}. ${elementPronoun(el.Z)} ${ion.charge > 0
       ? (n === 1 ? "gibt dieses **1** Elektron ab" : `gibt diese **${n}** ab`)
@@ -92,7 +92,12 @@ function count(os: boolean): Task {
     abs(target.charge) !== base ? d(other(abs(target.charge), target), "anzahl-eigene-ladung", tr(`Die Ladung des ${target.name}s (${chargeFull(target.charge)}) sagt nicht, wie viele man braucht. Entscheidend ist, wie viel Ladung vom ${partner.name} (${chargeFull(partner.charge)}) auszugleichen ist.`,
       `The charge of the ${nm(target)} (${chargeFull(target.charge)}) does not tell you how many you need. What matters is how much charge of the ${nm(partner)} (${chargeFull(partner.charge)}) has to be balanced.`)) : null,
     abs(partner.charge) !== base ? d(other(abs(partner.charge), target), "nicht-gekuerzt", tr(`${abs(partner.charge)} : ${abs(target.charge)} lässt sich kürzen: ${balance(c, a, r.nC, r.nA)}.`, `${abs(partner.charge)} : ${abs(target.charge)} can be simplified: ${balance(c, a, r.nC, r.nA)}.`)) : null,
-    ...[1, 2, 3, 4, 6].filter(n => n !== base).map(n => other(n, target)),
+    // übrige Anzahlen: mit Rechnung, warum die Ladungen dann nicht ausgeglichen sind
+    ...[1, 2, 3, 4, 6].filter(n => n !== base).map(n => {
+      const [nC, nA] = askAnion ? [r.nC, n] : [n, r.nA];
+      return dis(other(n, target), tr(`${balance(c, a, nC, nA)} – nicht gleich, die Verbindung wäre geladen. Richtig: ${balance(c, a, r.nC, r.nA)}.`,
+        `${balance(c, a, nC, nA)} – not equal, the compound would be charged. Correct: ${balance(c, a, r.nC, r.nA)}.`));
+    }),
   ];
   return {
     ...mc(right, wrongs),

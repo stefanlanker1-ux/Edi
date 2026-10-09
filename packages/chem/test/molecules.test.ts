@@ -186,3 +186,15 @@ test("Räumliche Lage: Glyoxal s-trans, Allen mit senkrechten Endgruppen, Hydraz
   assert.ok(storedMol3D(N2H4));
   assert.ok(Math.hypot(...dipoleVector(embed3D(N2H4), en)) > DIPOLE_MIN);
 });
+
+test("Bindungswinkel: gemessene Werte (Dimethylether, Trimethylamin), Tetraeder mit verschiedenen Partnern „ca. 109,5°“", () => {
+  const ether = grid([["C", 0, 1], ["O", 1, 1], ["C", 2, 1], ["H", 0, 0], ["H", 0, 2], ["H", -1, 1], ["H", 2, 0], ["H", 2, 2], ["H", 3, 1]], [[0, 1, 1], [1, 2, 1], [0, 3, 1], [0, 4, 1], [0, 5, 1], [2, 6, 1], [2, 7, 1], [2, 8, 1]]);
+  assert.strictEqual(shapeAt(ether, 2)!.angle, "111,7°");
+  const amine = grid([["N", 1, 1], ["C", 0, 1], ["C", 2, 1], ["C", 1, 2], ["H", -1, 1], ["H", 0, 0], ["H", 0, 2], ["H", 3, 1], ["H", 2, 0], ["H", 2, 2], ["H", 1, 3], ["H", 0, 3], ["H", 2, 3]],
+    [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1], [1, 6, 1], [2, 7, 1], [2, 8, 1], [2, 9, 1], [3, 10, 1], [3, 11, 1], [3, 12, 1]]);
+  assert.strictEqual(shapeAt(amine, 1)!.angle, "110,9°");
+  const ch3cl = toMolecule(K.CH3Cl), c = ch3cl.atoms.find(a => a.el === "C")!;
+  assert.strictEqual(shapeAt(ch3cl, c.id)!.angle, "ca. 109,5°");
+  const ch4 = toMolecule(K.CH4);
+  assert.strictEqual(shapeAt(ch4, ch4.atoms.find(a => a.el === "C")!.id)!.angle, "109,5°");
+});

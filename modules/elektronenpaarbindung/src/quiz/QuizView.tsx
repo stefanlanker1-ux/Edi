@@ -8,6 +8,7 @@ import { isComplete, identify, elementsIn, elementName, BY_SYMBOL, BY_Z, type Mo
 import { useApp } from "../store.ts";
 import { Builder, AtomChip } from "../components/Builder.tsx";
 import { LewisSvg } from "../components/LewisSvg.tsx";
+import { EnTable } from "../components/EnTable.tsx";
 import { empty, COLS, ROWS, loadKnown } from "../edit.ts";
 import { LEVELS, TYPE_NAMES, KNOWN_BY_ID, levelId, levelName, makeRound, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
@@ -15,6 +16,9 @@ import { MISS } from "./misconceptions.ts";
 import { tr } from "@lern/i18n";
 
 export const useQuiz = createQuizStore<Task>({ storageKey: "elektronenpaar-quiz", levelId, makeRound });
+
+/** Aufgaben, bei denen man Elektronegativitäten braucht: Hilfsmittel „EN-Tabelle“ */
+const EN_TYPES = ["polar", "strongest"];
 
 function BuildAnswer({ task, answered, submit }: { task: Extract<Task, { kind: "build" }>; answered: Answered | null; submit: Submit }) {
   const [mol, setMol] = useState<Molecule>(empty);
@@ -54,7 +58,7 @@ export function QuizView() {
       explain={(level, task) => explainFor(stufe, level, task)}
       tools={t => {
         const mark = atomsOf(t);
-        return [{ id: "atome", label: tr("Atome", "Atoms"), icon: "atom", wide: stufe === "os", content: (
+        const atoms = { id: "atome", label: tr("Atome", "Atoms"), icon: "atom" as const, wide: stufe === "os", content: (
           <div className="atoms-help">
             {mark.length > 0 && (
               <ul className="ah-list">
@@ -63,7 +67,11 @@ export function QuizView() {
             )}
             <PseHelp stufe={stufe} mark={mark} />
           </div>
-        ) }];
+        ) };
+        // Polarität: die EN-Werte stehen nicht im PSE – eigene Tabelle (in der Erklärung eingeführt)
+        if (!EN_TYPES.includes(t.type ?? "")) return [atoms];
+        const els = t.kind === "mc" && t.type === "strongest" ? t.options.flatMap(o => o.split("–")) : mark.map(Z => BY_Z[Z].symbol);
+        return [atoms, { id: "en", label: tr("EN-Tabelle", "EN table"), icon: "table" as const, content: <EnTable mark={els} /> }];
       }}
     />
   );

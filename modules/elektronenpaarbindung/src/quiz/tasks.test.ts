@@ -95,3 +95,11 @@ test("Polarität und Molekülform: passende Stolpersteine, Mehrzahl, ein Begriff
     }
   }
 });
+
+test("Unterstufe: jeder abgefragte Molekülname steht in der Erklärung (Level I)", async () => {
+  const { guideFor } = await import("../guide.tsx");
+  const text = JSON.stringify(guideFor("us"));
+  // Elemente (H₂, Cl₂ …) heißen wie das Element – die Regel steht in der Erklärung
+  const missing = KNOWN.filter(k => !k.os && new Set(k.atoms.map(a => a[0])).size > 1 && !text.includes(k.name)).map(k => k.name);
+  assert.deepEqual(missing, []);
+});

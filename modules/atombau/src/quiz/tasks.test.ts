@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { makeRound, weakTypes, outerElectrons, LEVELS, TYPES, type Stufe } from "./tasks.ts";
+import { makeRound, weakTypes, outerElectrons, ionConfigMC, boundNuclide, LEVELS, TYPES, type Stufe } from "./tasks.ts";
 import { commonCharges, AUFBAU_EXCEPTIONS, BY_Z } from "@lern/chem";
 import { MISS } from "./misconceptions.ts";
 
@@ -130,3 +130,28 @@ test("Aufgaben zum Aufbauprinzip fragen keine Ausnahmen ab; Ionen mit Edelgas-El
   }
   assert.ok(noble > 0, "keine Edelgas-Ionen geprüft");
 });
+
+test("Ionen der Übergangsmetalle: Ablenker „3d zuerst abgegeben“ ist genau diese Fehlvorstellung", () => {
+  const seen = new Map<string, string>();
+  for (let r = 0; r < 2000; r++) {
+    const t = ionConfigMC([]);
+    if (t.kind !== "mc") continue;
+    const i = Object.entries(t.miss ?? {}).find(([, k]) => k === "ion-3d-zuerst")?.[0];
+    if (i !== undefined) seen.set(t.prompt, t.options[Number(i)]);
+  }
+  const fe2 = [...seen].find(([p]) => p.includes("**Fe²⁺**"));
+  assert.strictEqual(fe2?.[1], "[Ar] 4s² 3d⁴");
+  const cu2 = [...seen].find(([p]) => p.includes("**Cu²⁺**"));
+  assert.strictEqual(cu2?.[1], "[Ar] 4s¹ 3d⁸");
+  for (const [p, o] of seen) assert.match(o, /4s/, p);
+});
+
+test("Nuklide in Aufgaben sind gebunden (kein He-5, kein Be-8)", () => {
+  assert.strictEqual(boundNuclide(2, 3), false);
+  assert.strictEqual(boundNuclide(4, 4), false);
+  for (const stufe of ["us", "os"] as Stufe[]) for (let r = 0; r < 300; r++) for (const t of makeRound(stufe, "mix")) {
+    const v = t.visual;
+    if (v && (v.kind === "nuclide" || v.kind === "bohr")) assert.ok(boundNuclide(v.Z, v.N), `${t.prompt}: Z ${v.Z}, N ${v.N}`);
+    if (t.kind === "build") assert.ok(boundNuclide(t.target.Z, t.target.N), t.prompt);
+  }
+}, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s

@@ -288,14 +288,17 @@ function strongest(): Task {
   const best = [...set].sort((p, q) => dEN(q) - dEN(p))[0];
   const lbl = (b: [string, string]) => `${b[0]}–${b[1]}`;
   const top = [...set].sort((p, q) => Math.max(en(q[0]), en(q[1])) - Math.max(en(p[0]), en(p[1])))[0];
+  // Rückmeldung „hat das elektronegativste Atom“ nur, wenn dieses Atom in keiner anderen Bindung der Auswahl vorkommt (sonst irreführend)
+  const topEl = [...top].sort((x, y) => en(y) - en(x))[0];
+  const unique = set.filter(b => b.includes(topEl)).length === 1;
   const wrongs = [
-    top !== best ? d(lbl(top), "en-statt-differenz", tr(`${lbl(top)} hat zwar das elektronegativste Atom, aber es kommt auf den **Unterschied** an: ΔEN ${dec(dEN(top).toFixed(2))} < ${dec(dEN(best).toFixed(2))} bei ${lbl(best)}.`, `${lbl(top)} does have the most electronegative atom, but the **difference** is what matters: ΔEN ${dec(dEN(top).toFixed(2))} < ${dec(dEN(best).toFixed(2))} for ${lbl(best)}.`)) : null,
+    top !== best && unique ? d(lbl(top), "en-statt-differenz", tr(`${lbl(top)} hat zwar das elektronegativste Atom, aber es kommt auf den **Unterschied** an: ΔEN ${dec(dEN(top).toFixed(2))} < ${dec(dEN(best).toFixed(2))} bei ${lbl(best)}.`, `${lbl(top)} does have the most electronegative atom, but the **difference** is what matters: ΔEN ${dec(dEN(top).toFixed(2))} < ${dec(dEN(best).toFixed(2))} for ${lbl(best)}.`)) : null,
     ...set.map(lbl),
   ];
   return {
     ...mc(lbl(best), wrongs),
     prompt: tr("Welche dieser Bindungen ist **am stärksten polar**?", "Which of these bonds is **the most polar**?"),
-    hint: tr("Vergleiche die Elektronegativitäts-Differenz ΔEN der beiden Atome.", "Compare the electronegativity difference ΔEN of the two atoms."),
+    hint: tr("Vergleiche die Elektronegativitäts-Differenz ΔEN der beiden Atome (Werte in der EN-Tabelle).", "Compare the electronegativity difference ΔEN of the two atoms (values in the EN table)."),
     explain: set.map(b => `${lbl(b)}: ΔEN ${dec(dEN(b).toFixed(2))}`).join(" · ") + ` → **${lbl(best)}**.`,
   };
 }

@@ -23,7 +23,7 @@ const TEXT_DE: Record<string, { points: string[]; mol: string }> = {
   "us-3": { mol: "NH3", points: [
     "Die **Summenformel** zählt die Atome: NH₃ = 1 N und 3 H.",
     "Die **Strukturformel** (Valenzstrichformel) zeigt jede Bindung als Strich und freie Paare als kurze Striche.",
-    "Wichtige Namen: H₂O Wasser, NH₃ Ammoniak, CH₄ Methan, HCl Chlorwasserstoff, CO₂ Kohlendioxid.",
+    "Wichtige Namen: H₂O Wasser, NH₃ Ammoniak, CH₄ Methan, HCl Chlorwasserstoff, HF Fluorwasserstoff, CO₂ Kohlendioxid, CCl₄ Tetrachlormethan.",
   ] },
   "os-1": { mol: "HCN", points: [
     "Kohlenstoff bildet immer **4 Bindungen**, Stickstoff 3, Sauerstoff 2, Wasserstoff und Halogene 1.",
@@ -37,6 +37,7 @@ const TEXT_DE: Record<string, { points: string[]; mol: string }> = {
   ] },
   "os-3": { mol: "H2O", points: [
     "Eine Bindung ist **polar**, wenn die Elektronegativitäten deutlich verschieden sind (ΔEN ≥ 0,4): Das stärker ziehende Atom wird δ−, das andere δ+.",
+    "**EN** (Pauling): H 2,20 · C 2,55 · N 3,04 · O 3,44 · F 3,98 · Cl 3,16 · Br 2,96 · I 2,66 – im PSE nach rechts steigend, nach unten sinkend (Hilfsmittel „EN-Tabelle“).",
     "Ein Molekül ist ein **Dipol**, wenn sich die Teilladungen nicht aufheben – z. B. H₂O (gewinkelt).",
     "Symmetrische Moleküle wie CO₂ (linear) oder CCl₄ (tetraedrisch) sind trotz polarer Bindungen **unpolar**. In CH₄ sind die C–H-Bindungen ohnehin kaum polar (ΔEN 0,35).",
   ] },
@@ -55,7 +56,7 @@ const TEXT_EN: typeof TEXT_DE = {
   "us-3": { mol: "NH3", points: [
     "The **molecular formula** counts the atoms: NH₃ = 1 N and 3 H.",
     "The **structural formula** shows each bond as a line and lone pairs as short lines.",
-    "Important names: H₂O water, NH₃ ammonia, CH₄ methane, HCl hydrogen chloride, CO₂ carbon dioxide.",
+    "Important names: H₂O water, NH₃ ammonia, CH₄ methane, HCl hydrogen chloride, HF hydrogen fluoride, CO₂ carbon dioxide, CCl₄ tetrachloromethane.",
   ] },
   "os-1": { mol: "HCN", points: [
     "Carbon always forms **4 bonds**, nitrogen 3, oxygen 2, hydrogen and halogens 1.",
@@ -69,6 +70,7 @@ const TEXT_EN: typeof TEXT_DE = {
   ] },
   "os-3": { mol: "H2O", points: [
     "A bond is **polar** if the electronegativities differ clearly (ΔEN ≥ 0.4): the more strongly attracting atom becomes δ−, the other δ+.",
+    "**EN** (Pauling): H 2.20 · C 2.55 · N 3.04 · O 3.44 · F 3.98 · Cl 3.16 · Br 2.96 · I 2.66 – increasing to the right in the periodic table, decreasing downwards (tool “EN table”).",
     "A molecule is a **dipole** if the partial charges do not cancel – e.g. H₂O (bent).",
     "Symmetrical molecules like CO₂ (linear) or CCl₄ (tetrahedral) are **non-polar** despite polar bonds. In CH₄ the C–H bonds are hardly polar anyway (ΔEN 0.35).",
   ] },

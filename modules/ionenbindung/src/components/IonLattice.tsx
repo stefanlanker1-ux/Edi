@@ -45,7 +45,7 @@ export function IonLattice({ cols = 4, rows = 3, focus = false }: { cols?: numbe
           );
         }))}
       </svg>
-      <figcaption>{tr("Natriumchlorid: Ausschnitt aus einer Schicht", "Sodium chloride: section of one layer")}</figcaption>
+      <figcaption>{tr("Natriumchlorid, eine Schicht – Linien: Anziehung der Nachbarn; Abstände im Modell vergrößert", "Sodium chloride, one layer – lines: attraction between neighbours; distances enlarged in the model")}</figcaption>
     </figure>
   );
 }

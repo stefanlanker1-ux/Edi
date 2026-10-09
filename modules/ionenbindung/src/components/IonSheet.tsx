@@ -2,7 +2,7 @@
 
 import { Chip, Icon, Sheet, Tag } from "@lern/ui";
 import { Bohr, Nuclide } from "@lern/chem-ui";
-import { BY_Z, shells, configuration, sup, SHELL_NAMES, standardNeutrons, composition, ionText, type Ion } from "@lern/chem";
+import { BY_Z, shells, configuration, sup, signed, SHELL_NAMES, standardNeutrons, composition, ionText, type Ion } from "@lern/chem";
 import { tr } from "@lern/i18n";
 
 const NOBLE = new Set([2, 10, 18, 36, 54, 86]);
@@ -67,7 +67,7 @@ function Poly({ ion }: { ion: Ion }) {
       <div className="ion-poly"><span className="ip-formula">{ionText(ion)}</span></div>
       <div className="ui-tags ion-tags">
         {parts.map(([sym, c]) => <Tag key={sym}>{c} × {sym}</Tag>)}
-        <Tag tone="signal">{tr("Ladung", "Charge")} {ion.charge > 0 ? "+" : "−"}{Math.abs(ion.charge)}</Tag>
+        <Tag tone="signal">{tr("Ladung", "Charge")} {signed(ion.charge)}</Tag>
         <Tag>{tr("mehrere → Klammer: Ca(OH)₂", "several → brackets: Ca(OH)₂")}</Tag>
       </div>
     </>

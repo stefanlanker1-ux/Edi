@@ -88,9 +88,9 @@ export function BuildView() {
             </div>
           )}
           <FitDown className="scroll-x" min={0.33}><EnergyDiagram cfg={configuration(Z, E)} color={orbitalColors} /></FitDown>
-          <Switch checked={orbitalColors} onChange={v => setOpt({ orbitalColors: v })}>
+          <div className="ab-switches"><Switch checked={orbitalColors} onChange={v => setOpt({ orbitalColors: v })}>
             {tr("Nach Orbital färben", "Colour by orbital")} (<b className="t-s">s</b> <b className="t-p">p</b> <b className="t-d">d</b> <b className="t-f">f</b>)
-          </Switch>
+          </Switch></div>
         </>
       ),
     }] : []),

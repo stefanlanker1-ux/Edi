@@ -76,6 +76,8 @@ const NOT_KNOWN = new Set([
   "Cu2+|N3-", "Fe2+|N3-", "Fe3+|N3-", "Pb2+|N3-",
   // Na₃N und K₃N zerfallen schon wenig über Raumtemperatur bzw. darunter (beständig: Li₃N, Mg₃N₂, Ca₃N₂)
   "Na+|N3-", "K+|N3-",
+  // Fe₂S₃ zerfällt schon über ca. 20 °C in FeS und Schwefel (beständig: FeS, FeS₂)
+  "Fe3+|S2-",
   // Cu⁺ ist in Wasser nicht beständig (Cu₂SO₄ zerfällt in Cu und CuSO₄)
   "Cu+|SO42-", "Cu+|SO32-", "Cu+|NO2-", "Cu+|HCO3-",
   // Nitrit, Sulfit, Hydrogencarbonat: nicht mit Al³⁺, Fe³⁺, Cu²⁺; Nitrit auch nicht mit Fe²⁺, Zn²⁺, Pb²⁺,

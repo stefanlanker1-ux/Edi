@@ -552,17 +552,19 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   in Steckbrief (Oberstufe, „Überblick“ und „Konfig.“) und Experimentieren („Steckbrief“, „Konfiguration“): beim Atom „Ausnahme: halb/voll besetzte d-Unterschale“ (Vergleich mit
   `ruleConfiguration`); bei Ionen eines Ausnahme-Atoms „Atom ist Ausnahme, Ion nach Regel“ (Cu⁺, Pd²⁺), bei gemessen abweichenden Ionen „Ausnahme: Ion gemessen anders besetzt“.
   Erklärung und Erklärkarte nennen Chrom und Kupfer als Ausnahmen (Cu⁺ = [Ar] 3d¹⁰ „aus Cu [Ar] 4s¹ 3d¹⁰“). Steckbrief Palladium: „Periode 5 (4 besetzte Schalen, 5s leer)“. Aufgaben, die das Aufbauprinzip üben (Konfiguration, Kurzschreibweise, Kästchen, Blöcke, ungepaarte Elektronen,
-  Periode/Gruppe), fragen die Ausnahmen nicht ab (`DEVIATING`, Test). Ionen mit der Elektronenzahl eines Edelgases stehen in der Kurzschreibweise als ganzer Kern:
+  Periode/Gruppe), fragen die Ausnahmen nicht ab (`DEVIATING`, Test). Ablenker „3d zuerst abgegeben“ bei Ionen: q Elektronen aus der d-Unterschale statt aus 4s
+  (`dFirst`: Fe²⁺ → [Ar] 4s² 3d⁴, Cu²⁺ → [Ar] 4s¹ 3d⁸; Test). Spinquantenzahl als mₛ = ±½. Steckbrief-Kopf: Ordnungszahl oben links über dem Symbol, „Bauen“ am schmalen Handy in eigener Zeile.
+  PSE-Ansicht: Ordnungszahlen (Unterstufe) und Symbole (schmales Oberstufen-PSE) mindestens 9 px. Ionen mit der Elektronenzahl eines Edelgases stehen in der Kurzschreibweise als ganzer Kern:
   Na⁺, O²⁻, Al³⁺ = [Ne], Cl⁻, Ca²⁺ = [Ar], Br⁻ = [Kr] (das Edelgas-Atom selbst mit dem vorigen Kern: Ne = [He] 2s² 2p⁶). Aufbau-Reihe `MADELUNG` bis 7p (Baukasten: Rn mit 3 Elektronen mehr).
 - Begriffe: „Edelgaskonfiguration“ (Unterstufe in der Erklärung fett eingeführt, nicht „Edelgaszustand“/„Edelgasregel“); „Übergangsmetalle“ (d-Block, Gruppe 3–12) im Block-Schritt
   der Erklärung fett eingeführt, f-Block = Lanthanoide; „d-Unterschale“. Orbitalnamen im Fließtext ohne Tiefstellung („je ein p-Orbital entlang x, y und z“) – `RichText` kennt keine
   Tiefstellung. Wasserstoff steht in Gruppe 1 ohne Gruppennamen (`groupName`: kein „Alkalimetalle“). Außenelektronen von H und He: eigene Rückmeldungen (K-Schale fasst 2;
   Helium in der VIII. Hauptgruppe hat trotzdem nur 2 – Stolperstein `helium-acht`). Periode/Gruppe aus der Konfiguration: Außenelektronen (s + p) → Gruppe, im p-Block + 10.
-- Häufigstes Isotop aus der Tabelle `COMMON_A` (`standardNeutrons`), nie gerundete Atommasse (Cu-63, nicht Cu-64). Ionen in Aufgaben nur mit Ladungen, die es gibt (`commonCharges`); Namen mit `ionName` (Chlorid-Ion, Eisen(III)-Ion).
+- Häufigstes Isotop aus der Tabelle `COMMON_A` (`standardNeutrons`), nie gerundete Atommasse (Cu-63, nicht Cu-64). Nur gebundene Kerne (kein He-5, kein Be-8: `boundNuclide`, Test). Ionen in Aufgaben nur mit Ladungen, die es gibt (`commonCharges`); Namen mit `ionName` (Chlorid-Ion, Eisen(III)-Ion).
 - Einzahl/Mehrzahl in generierten Texten beachten („1 Proton“, „1 Außenelektron“) – die Quiz-Tests prüfen das. Ladung 0 heißt „neutral“ (nicht „0+“).
   Im Quiz nicht „Grundzustand“ verwenden (nicht eingeführt).
-- Erklärung Level I (26 Schritte): **Kern und Hülle** · **Elektronen und Masse** · **Schalen** (K, L, M fett eingeführt) · **Ionen** (Kation/Anion fett) · **Isotope** · **Atomsymbol**.
-  Level II (38 Schritte, Orbitalmodell von Grund auf): **Grenzen des Schalenmodells** · **Elektronen als Welle** · **Quantenzahlen und Formen** · **Wie viele Elektronen?** ·
+- Erklärung Level I (26 Schritte): **Kern und Hülle** · **Elektronen und Masse** · **Schalen** (K, L, M fett eingeführt) · **Ionen** (Kation/Anion fett) · **Isotope**.
+  Level II (38 Schritte, Orbitalmodell von Grund auf): **Atomsymbol** · **Grenzen des Schalenmodells** · **Elektronen als Welle** · **Quantenzahlen und Formen** · **Wie viele Elektronen?** ·
   **Energie und Aufbau** · **Das Atom in 3D** · **Kurzschreibweise und PSE** · **Ionen** (isoelektronisch fett).
   3D-Orbitale (`@lern/chem-ui/orbitals3d`, `Orbital3D`, per `lazy()`): Grenzflächen der wasserstoffähnlichen Wellenfunktion ψ (`packages/chem/src/orbitals.ts`, Marching Cubes),
   Farbe nach Orbitaltyp wie im Kästchenschema, Vorzeichen von ψ als dunkle/helle Tönung, Ziehen dreht. Höhere Schalen liegen weiter außen (5s weiter außen als 4s) –
@@ -580,7 +582,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Ladungsrechnung immer mit Zahl schreiben: `2 · (1−) = 2−` (`chargeFull`).
 - Mehratomige Ionen (Oberstufe): NH₄⁺, OH⁻, NO₂⁻, NO₃⁻, HCO₃⁻, SO₃²⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻. Quiz Unterstufe Level 1 nur Ladungen und Elektronen (Verhältnis erst ab Level 2);
   Erklärkarte: im Salz keine Paare oder Moleküle, sondern ein Ionengitter.
-- Nicht beständige Verbindungen (FeI₃, CuI₂, Al₂(CO₃)₃, AgOH, Na₃N, K₃N, Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN`
+- Nicht beständige Verbindungen (FeI₃, CuI₂, Fe₂S₃, Al₂(CO₃)₃, AgOH, Na₃N, K₃N, Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN`
   (`isKnownCompound`): das Quiz fragt sie nicht ab, der Baukasten zeigt einen Hinweis.
 - Baukasten startet gelöst (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`) – zuerst ein fertiges Beispiel ansehen, dann selbst bauen.
 - Erklärung Level I (18 Schritte): **Vom Atom zum Ion** · **Nichtmetall-Ionen** · **Formeln** · **Namen** · **Ionengitter** (Bild `components/IonLattice.tsx`: Ausschnitt
@@ -601,7 +603,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Automatisch erzeugte Valenzstrichformel steht auf breiten Bildschirmen links neben dem Baufeld (`Workbench side="left"`), am Handy im Werkzeug „Formel“.
   Lage aus `src/strich.ts` (`strichLayout`): wie gebaut, gewinkelte Atome (H₂O, H₂S, O in CH₃OH, H₂O₂ als Zickzack) auf ≈ 105° bzw. 120° gebogen, auch wenn sie im Raster in einer Reihe liegen.
 - Freie Elektronenpaare symmetrisch zu den Bindungen (`loneLayout`, z. B. O in CO₂ schräg ± 45°).
-- Bindungswinkel: gemessene Werte in `REAL_ANGLES` (molecules.ts; H₂S 92,1°, PH₃ 93,5°), sonst EPA-Schätzung mit „ca.“ (trigonal-planar genau 120° nur bei drei gleichen Partnern, Methanal „ca. 120°“).
+- Bindungswinkel: gemessene Werte in `REAL_ANGLES` (molecules.ts; H₂S 92,1°, PH₃ 93,5°, Dimethylether 111,7°, Trimethylamin 110,9°, CH₃SH 96,5° …), sonst EPA-Schätzung mit „ca.“
+  (Tetraeder genau 109,5° und trigonal-planar genau 120° nur bei gleichen Partnern: CH₃Cl „ca. 109,5°“, Methanal „ca. 120°“). Zweiatomige Moleküle: kein Winkel.
   Summenformel unbekannter Kohlenstoffverbindungen nach Hill (CH₅N).
 - **Polarität** (`isPolar`): polare Bindungen (ΔEN ≥ 0,4), deren Bindungsdipole sich in der räumlichen Lage (`embed3D`) nicht aufheben – Vektorsumme > `DIPOLE_EPS` (0,01, nur
   Spielraum für Rundung: ClC≡N 0,61 − 0,49 = 0,12 und CBrCl₃ 0,20 sind polar; „unpolar (symmetrisch)“ nur bei Summe ≈ 0). `DIPOLE_MIN` (0,2) gilt nur für den Dipolpfeil.
@@ -612,7 +615,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   polar, trans unpolar. Kumulierte Zweifachbindungen (Allen): Endgruppen senkrecht zueinander (1,3-Dichlorallen polar). **Schwach polar** (`isWeaklyPolar`, `hasWeakDipole`): nicht polar,
   aber ein Dipol aus Bindungen mit 0 < ΔEN < 0,4 (ohne C–H – Kohlenwasserstoffe gelten wie in der Schule als unpolar) oder aus freien Elektronenpaaren an Zentralatomen,
   die sich nicht aufheben: H₂S 0,97 D, PH₃ 0,57 D, NCl₃, CH₃I 1,6 D, CH₂I₂, CHI₃, H₂C=S, CH₃SH, CH₃–S–CH₃. Anzeige im Werkzeug „Bau“: polar · schwach polar ·
-  unpolar (symmetrisch) · unpolar. Tests in `packages/chem/test/molecules.test.ts`.
+  unpolar (symmetrisch) · unpolar; bei „schwach polar“ ein Satz dazu (Modell: freie Paare oder kleine ΔEN). Tests in `packages/chem/test/molecules.test.ts`.
+- **Elektronegativität**: EN-Werte stehen nicht im PSE – eigene Tabelle `components/EnTable.tsx` (Ausschnitt wie im PSE, Trend „EN steigt →“, „EN sinkt ↓“),
+  in der Erklärung (Level II, Teil Polarität) eingeführt und im Quiz bei „Polarität“ und „am stärksten polar“ als Hilfsmittel „EN-Tabelle“; Werte auch auf der Erklärkarte os-3.
 - 3D-Ansicht für fertige, verbundene Moleküle: hinterlegte Struktur (`storedMol3D`), sonst Kraftfeld MMFF94 im Hintergrund (`computeMol3D`, cis/trans an Zweifachbindungen
   wie gebaut über `gridCisTrans`), kennt das Kraftfeld das Molekül nicht: EPA. Auf Klick: `@lern/chem-ui/3d` (three.js, per `lazy()` nachgeladen):
   Kugel-Stab (Stäbe zweifarbig je Atomfarbe) oder Kalotte (Van-der-Waals-Radien), Atomsymbol erst beim Antippen eines Atoms.
@@ -628,7 +633,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   **Moleküle und Namen**. Level II (15 Schritte): **Bindungen** · **Molekülform** (EPA) · **Polarität**.
 - Begriffe im EPA-Modell überall gleich: **Molekülform** (nicht „Molekülgeometrie“), **Bereich** = jede Bindung (auch eine Mehrfachbindung) und jedes freie Paar am Zentralatom
   (nicht „Partner“, „Richtung“ oder „Paar“ als Zähleinheit); Bindungspartner = Nachbaratome. Polarität im Quiz: Chlormethan mit eigenem Stolperstein „Verschiedene Bindungspartner
-  übersehen“ (`partner-ungleich`). Unterstufe: Namen-Aufgaben nur mit Molekülen der Unterstufe (auch als falsche Antworten).
+  übersehen“ (`partner-ungleich`). Unterstufe: Namen-Aufgaben nur mit Molekülen der Unterstufe (auch als falsche Antworten); jeder abgefragte Name steht in der
+  Erklärung Level I (Wasser, Ammoniak, Methan, Chlorwasserstoff, Fluorwasserstoff, Tetrachlormethan, Kohlendioxid; Test).
+- Handy mit niedriger Höhe (≤ 760 px): Atom-Leiste mit 44-px-Tasten ohne Namen, Formel im Kopf kleiner – das Baufeld bekommt mehr Platz.
 - 3D frei gebauter Moleküle: Kraftfeld MMFF94 (`packages/chem/src/mmff`, Einstieg `@lern/chem/mmff`, erst bei Bedarf geladen, rechnet im Hintergrund-Thread
   `packages/chem-ui/src/ff.worker.ts`); für bekannte Moleküle gemessene Strukturen (`mol3d.ts`). Prüfung gegen RDKit: `scripts/mmff-reference.py`, `packages/chem/test/mmff-reference.test.ts`.
   3D-Darstellung: gemeinsame Geometrien, Beschriftungen nur bei Bedarf, ohne Kantenglättung bei hoher Pixeldichte (flüssig auf Handys).
@@ -1076,6 +1083,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Atombau, Ionenbindung, Elektronenpaarbindung, `@lern/chem`: Nachprüfung Runde 3** – Elektronegativität eingeführt: EN-Tabelle (H, C, N, O, F, P, S, Cl, Br, I mit Trends) in der
+  Erklärung Level II und als Hilfsmittel im Quiz zur Polarität (vorher waren „Polare Bindungen“ ohne EN-Werte nicht lösbar). Level-I-Namen (HF, CCl₄, CO₂) in der Erklärung eingeführt
+  (Test). Gemessene Bindungswinkel ergänzt (Dimethylether 111,7°, Trimethylamin 110,9° …), Tetraeder mit verschiedenen Partnern „ca. 109,5°“. Ablenker „3d zuerst abgegeben“ als
+  echte Fehlvorstellung (Fe²⁺ → [Ar] 4s² 3d⁴ statt der Cr-Konfiguration); nur gebundene Nuklide (kein He-5, Be-8); Fe₂S₃ nicht beständig; „schwach polar“ erklärt. Baufeld am Handy
+  größer (kleine Atom-Tasten; Oberstufe bei 375×667 noch 32 px Zellen), Zähler ohne Überdeckung, Schalter ≥ 44 px; Steckbrief-Kopf (Ordnungszahl oben links) und Suchfeld bei 360 px;
+  Ordnungszahlen und Symbole im PSE ≥ 9 px, Lesetext ≥ 14 px; Ionengitter-Bild „Linien: Anziehung der Nachbarn; Abstände im Modell vergrößert“; mₛ = ±½, englische Artikel, Ladung
+  „2−“, Tipps als Denkschritt, Rückmeldungen für alle falschen Anzahlen.
 - **Polymere: Nachprüfung Runde 3** – „nacheinander“ mit kurzkettigem Monomer ergibt getrennte Ketten (Karte widersprach Atom-Ansicht und Reaktor). Radikalisch stark ungleich
   schnelle Monomere (konjugierte C=C wie Styrol, Butadien, MMA, Acrylnitril gegen Vinylacetat, Vinylchlorid, Ethen) ergeben zuerst fast nur das Homopolymer des schnellen
   (Styrol + Vinylacetat → PS, Vinylacetat erst nach Styrolverbrauch) statt „statistisch“; ETFE alternierend (Karte, Atom-Ansicht, Reaktor gleich). Isobuten mit wenig Butadien
