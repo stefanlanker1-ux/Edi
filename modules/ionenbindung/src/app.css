@@ -66,48 +66,11 @@ button.ion-tile:hover { transform: translateY(-2px); }
 .ion-poly { display: grid; place-items: center; padding: 16px; }
 .ip-formula { font-size: 3rem; font-weight: 800; }
 
-/* ── Quiz ───────────────────────────────────────────────────────────────── */
-.answer-ions { display: grid; gap: 16px; }
-.hero-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: 100%; }
-.hero-tiles .t { height: 26px; border-radius: var(--radius-sm); border: 1.5px solid; }
-.hero-tiles .c { grid-column: span 2; background: var(--cat-tile-a); border-color: var(--cat-tile-border); }
-.hero-tiles .a { background: var(--an-tile-a); border-color: var(--an-tile-border); }
-.ex-example .ion-wall { max-width: 420px; }
-.ion-tags { justify-content: center; }
-
-/* Ionentabelle (Quiz-Hilfsmittel) */
-.ion-table { display: grid; gap: 16px; }
-.it-group h3 { margin: 0 0 8px; font-size: .76rem; letter-spacing: .12em; text-transform: uppercase; color: var(--signal); }
-.it-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
-.it-item { display: flex; align-items: baseline; gap: 8px; padding: 6px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: .88rem; }
-.it-item b { min-width: 3.4em; }
-.it-item.cation b { color: var(--text); } .it-item span { color: var(--muted); }
-.it-item.hit { border: 2px solid var(--signal); }
-@media (max-height: 720px) { .q-body .iw-stack { --h: 28px; } .q-body .iw-formula { font-size: 1.4rem; } .q-body .ion-wall { gap: 4px; } .q-body .answer-ions { gap: 8px; } }
-
 /* Ionen-Auswahl: Knöpfe wie Tasten */
 .ip-chip { border-color: var(--rule); box-shadow: var(--key-edge); }
 .ip-chip:active { box-shadow: var(--key-edge-pressed); }
 
-/* Erklärung: Ionenwand mit Bausteinen zum Ergänzen */
-.ib-g { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 12px; width: 100%; height: 100%; min-height: 0; align-items: center; }
-.ib-g-wall { min-height: 0; display: grid; place-items: center; overflow: hidden; }
-.ib-g-wall .ion-wall { max-width: 100%; }
-.ib-g-add { display: flex; justify-content: center; gap: 12px; }
-.ib-g-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 18px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); font-weight: 750; font-size: 1.1rem; color: var(--text); box-shadow: var(--key-edge); }
-.ib-g-btn.cation { background: var(--cation-soft, var(--hue-yellow-soft)); }
-.ib-g-btn.anion { background: var(--anion-soft, var(--hue-green-soft)); }
-
-/* Erklärung: Elektronenübergang Na → Cl im Schalenmodell */
-.ib-g-tr { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; width: 100%; height: 100%; min-height: 0; }
-.ib-g-tr figure { margin: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto; height: 100%; min-height: 0; justify-items: center; }
-.ib-g-tr figcaption { font-weight: 800; font-size: 1.2rem; }
-.ib-g-e { font-weight: 800; color: var(--hue-blue-deep); opacity: 0; }
-.ib-g-e.go { animation: ib-g-e 1.6s ease-in-out .2s both; }
-@keyframes ib-g-e { 0% { opacity: 0; transform: translateX(-60%); } 30% { opacity: 1; } 100% { opacity: 1; transform: translateX(60%); } }
-@media (prefers-reduced-motion: reduce) { .ib-g-e.go { animation: none; opacity: 1; } }
-
-/* Erklärung: Ausschnitt aus dem Ionengitter (NaCl) – Linien statt Flächen, Kation gelb, Anion grün wie die Bausteine */
+/* Ausschnitt aus dem Ionengitter (NaCl, `IonLattice`) – Linien statt Flächen, Kation gelb, Anion grün wie die Bausteine */
 .ib-lat { margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 100%; min-height: 0; }
 .ib-lat svg { width: 100%; max-width: 440px; height: auto; flex: 0 1 auto; min-height: 0; }
 .ib-lat figcaption { flex: none; font-size: .875rem; color: var(--muted); text-align: center; }
