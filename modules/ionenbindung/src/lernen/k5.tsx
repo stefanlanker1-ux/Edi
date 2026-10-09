@@ -1,20 +1,20 @@
 // Kapitel 5: Nebengruppenmetalle (Level II) – ohne Elektronenkonfiguration und ohne Auswendiglernen:
 // gleiche Elemente, verschiedene Stoffe (FeO/Fe₂O₃, Cu₂O/CuO) → die Ladung des Metall-Ions muss in den Namen; im PSE liest man sie nur bei
-// Gruppe 1, 2 und 13 ab, bei allen anderen Metallen steht sie als römische Zahl im Namen. Dann Name → Formel, Formel → Name, mit mehratomigen Ionen.
-// Nur Eisen, Kupfer und Blei(II) aus `ions.ts`, nur beständige Stoffe.
+// den Metallen der I. bis III. Hauptgruppe (Gruppe 1, 2, 13) ab, bei allen anderen steht sie als römische Zahl im Namen. Dann Name → Formel,
+// Formel → Name, mit mehratomigen Ionen. Begründet wird nur über Ladungsbilanz und Namen (nie „gibt es nicht“). Nur Fe, Cu und Pb(II) aus `ions.ts`.
 
 import { tr } from "@lern/i18n";
 import type { GuideStep } from "@lern/ui";
 import type { Kapitel } from "./types.ts";
 import { model } from "./model.tsx";
-import { OxidePair, PseMetals, WallModel, pseWhy, wallWhy } from "./k5/models.tsx";
+import { GroupStrip, OxidePair, PseMetals, WallModel, pseWhy, wallWhy } from "./k5/models.tsx";
 import "./k5/k5.css";
 
 const NE = (de: string, en: string) => tr(de, en);
 
 // Metalle für das PSE (Ordnungszahlen)
 const LI = 3, MG = 12, AL = 13, K = 19, CA = 20, FE = 26, CU = 29, BA = 56, PB = 82;
-const PSE_SHOW = [11, MG, AL, FE, CU], PSE_A = [LI, AL, CA, FE, CU], PSE_B = [AL, K, FE, CU, BA, PB];
+const PSE_A = [LI, AL, CA, FE, CU], PSE_B = [AL, K, FE, CU, BA, PB];
 
 const steps = (): GuideStep[] => [
   // ── 1. Ein Metall – mehrere Ionen ──
@@ -40,7 +40,7 @@ const steps = (): GuideStep[] => [
     answer: "2+",
     why: {
       "1+": NE("1 · (1+) = 1+, aber 1 · (2−) = 2−. Die obere Reihe ist zu kurz.", "1 · (1+) = 1+, but 1 · (2−) = 2−. The top row is too short."),
-      "3+": NE("Cu³⁺ gibt es nicht. Und 3+ ist mehr als 2−.", "Cu³⁺ does not exist. And 3+ is more than 2−."),
+      "3+": NE("1 · (3+) = 3+ ist mehr als 2−. Die obere Reihe ist zu lang.", "1 · (3+) = 3+ is more than 2−. The top row is too long."),
     },
     tip: NE("Wie viel negative Ladung bringt das O²⁻?", "How much negative charge does the O²⁻ bring?"),
     ok: NE("CuO: Cu²⁺ und O²⁻ → Kupfer(II)-oxid.", "CuO: Cu²⁺ and O²⁻ → copper(II) oxide."),
@@ -48,48 +48,51 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
-    ask: NE("Jetzt du: Welche Ladung hat jedes Kupfer-Ion im roten Cu₂O?", "Your turn: what is the charge of each copper ion in red Cu₂O?"),
+    ask: NE("Jetzt du: Welche Ladung hat jedes Kupfer-Ion im roten Cu₂O? Stelle die Anzahlen wie in der Formel ein, wähle die Ladung und prüfe.",
+      "Your turn: what is the charge of each copper ion in red Cu₂O? Set the numbers as in the formula, choose the charge and check."),
     answer: "1+",
     why: {
+      "≠ Anzahl": NE("Cu₂O hat 2 Cu und 1 O. Stelle die Anzahlen wie in der Formel ein.", "Cu₂O has 2 Cu and 1 O. Set the numbers as in the formula."),
       "2+": NE("Die 2 in Cu₂ ist die Anzahl. 2 · (2+) = 4+, aber O²⁻ bringt nur 2−.", "The 2 in Cu₂ is the number. 2 · (2+) = 4+, but O²⁻ brings only 2−."),
-      "3+": NE("Cu³⁺ gibt es nicht. 2 · (3+) = 6+ ist viel mehr als 2−.", "Cu³⁺ does not exist. 2 · (3+) = 6+ is much more than 2−."),
+      "3+": NE("2 · (3+) = 6+ ist viel mehr als 2−.", "2 · (3+) = 6+ is much more than 2−."),
     },
-    tip: NE("Ein O²⁻ bringt 2−. Wie verteilt sich das auf die Kupfer-Ionen?", "One O²⁻ brings 2−. How is that shared among the copper ions?"),
-    lines: [NE("1 · (2−) = 2− auf 2 Cu → je 1+.", "1 · (2−) = 2− shared by 2 Cu → 1+ each.")],
+    tip: NE("Erst die Anzahlen der Formel. Dann: Ein O²⁻ bringt 2− – wie verteilt sich das?", "Numbers of the formula first. Then: one O²⁻ brings 2− – how is that shared?"),
+    lines: [NE("2 Cu und 1 O: 1 · (2−) = 2− auf 2 Cu → je 1+.", "2 Cu and 1 O: 1 · (2−) = 2− shared by 2 Cu → 1+ each.")],
     ok: NE("Cu₂O: 2− auf 2 Cu → je 1+ → Kupfer(I)-oxid.", "Cu₂O: 2− shared by 2 Cu → 1+ each → copper(I) oxide."),
-    visual: c => <WallModel c={c} Z={CU} anion="O2-" charges={[1, 2, 3]} report="charge" given="Cu2O" sample="Cu2O" sampleAlways init={{ q: 2, nC: 2, nA: 1 }} sol={{ q: 1, nC: 2, nA: 1 }} />,
+    visual: c => <WallModel c={c} Z={CU} anion="O2-" charges={[1, 2, 3]} stepC stepA report="charge" given="Cu2O" sample="Cu2O" sampleAlways init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 1, nC: 2, nA: 1 }} />,
   }),
   model({
     mode: "worked",
-    say: NE("Gruppe 1, 2, 13: Ladung aus der Gruppe (Na⁺, Mg²⁺, Al³⁺). Die Metalle der Gruppen 3–12 heißen **Nebengruppenmetalle** oder **Übergangsmetalle**.",
-      "Groups 1, 2, 13: charge from the group (Na⁺, Mg²⁺, Al³⁺). The metals in groups 3–12 are the **transition metals**."),
-    ask: NE("Woher kennst du die Ladung von Eisen?", "Where do you get the charge of iron from?"),
+    say: NE("Im großen PSE zählt man alle 18 Spalten: Gruppe 1, 2 = **I., II. Hauptgruppe**, Gruppe 13–18 = **III.–VIII. Hauptgruppe**. Dazwischen: die **Nebengruppen** (3–12) mit den **Nebengruppenmetallen**.",
+      "The large periodic table counts all 18 columns: groups 1, 2 = **main groups I, II**, groups 13–18 = **main groups III–VIII**. In between are groups 3–12 with the **transition metals**."),
+    ask: NE("Woher kennst du die Ladung eines Metall-Ions?", "Where do you get the charge of a metal ion from?"),
     lines: [
-      NE("Natrium, Gruppe 1 → Na⁺: Natriumchlorid, ohne Zahl.", "Sodium, group 1 → Na⁺: sodium chloride, no numeral."),
-      NE("Eisen, Gruppe 8: Die Gruppe verrät die Ladung nicht → Eisen(III)-chlorid.", "Iron, group 8: the group does not give the charge → iron(III) chloride."),
+      NE("Al: Gruppe 13 = III. Hauptgruppe → Al³⁺, Ladung aus der Hauptgruppe.", "Al: group 13 = main group III → Al³⁺, charge from the main group."),
+      NE("Fe: Gruppe 8 (Nebengruppe) – es gibt Eisen(II)-chlorid FeCl₂ und Eisen(III)-chlorid FeCl₃.", "Fe: group 8 (transition metal) – there is iron(II) chloride FeCl₂ and iron(III) chloride FeCl₃."),
     ],
-    ok: NE("Alle Metalle außer Gruppe 1, 2 und 13: Ladung als römische Zahl im Namen.", "All metals except groups 1, 2 and 13: charge as a Roman numeral in the name."),
-    visual: c => <PseMetals c={c} cands={PSE_SHOW} answer={[FE, CU]} />,
+    ok: NE("I. bis III. Hauptgruppe: Ladung aus der Hauptgruppe. Alle anderen Metalle: römische Zahl im Namen.", "Main groups I to III: charge from the main group. All other metals: Roman numeral in the name."),
+    visual: c => <GroupStrip c={c} metals={[11, MG, FE, CU, AL, PB]} />,
   }),
   model({
     mode: "faded",
-    ask: NE("Ergänze: Tippe die Metalle an, deren Ladung im Namen stehen muss. Dann prüfe.", "Complete: tap the metals whose charge must be in the name. Then check."),
-    lines: [NE("Gruppe 1, 2 und 13: Ladung aus der Gruppe.", "Groups 1, 2 and 13: charge from the group."), NE("Gruppen 3–12: Ladung im Namen.", "Groups 3–12: charge in the name."), NE("Antippen: {?}", "Tap: {?}")],
+    ask: NE("Ergänze: Wähle die Metalle, deren Ladung im Namen stehen muss. Dann prüfe.", "Complete: choose the metals whose charge must be in the name. Then check."),
+    lines: [NE("I. bis III. Hauptgruppe (Gruppe 1, 2, 13): Ladung aus der Hauptgruppe.", "Main groups I to III (groups 1, 2, 13): charge from the main group."), NE("Nebengruppen (Gruppen 3–12): Ladung im Namen.", "Groups 3–12 (transition metals): charge in the name."), NE("Wählen: {?}", "Choose: {?}")],
     answer: "Fe Cu",
     why: pseWhy(PSE_A, [FE, CU]),
-    tip: NE("Schau auf die Gruppennummer über der Spalte.", "Look at the group number above the column."),
-    ok: NE("Eisen (Gruppe 8) und Kupfer (Gruppe 11) stehen in der Mitte: Ladung im Namen.", "Iron (group 8) and copper (group 11) are in the middle: charge in the name."),
+    tip: NE("Schau auf die Gruppennummer über der Spalte: Hauptgruppe oder Nebengruppe?", "Look at the group number above the column: main group or transition metal?"),
+    ok: NE("Eisen Fe (Gruppe 8) und Kupfer Cu (Gruppe 11) sind Nebengruppenmetalle: Ladung im Namen.", "Iron Fe (group 8) and copper Cu (group 11) are transition metals: charge in the name."),
     visual: c => <PseMetals c={c} cands={PSE_A} answer={[FE, CU]} />,
   }),
   model({
     mode: "free",
-    say: NE("Auch **Blei** (Pb, Gruppe 14) gehört nicht zu Gruppe 1, 2 oder 13.", "**Lead** (Pb, group 14) is not in group 1, 2 or 13 either."),
-    ask: NE("Jetzt umgekehrt: Tippe die Metalle an, deren Ladung du aus der Gruppe ablesen kannst.", "Now the other way round: tap the metals whose charge you can read from the group."),
+    say: NE("Weiter unten ist auch die IV. Hauptgruppe metallisch: **Blei** (Pb). Blei bildet gelbes PbO mit Pb²⁺ und dunkelbraunes PbO₂ mit Pb⁴⁺ – darum eine römische Zahl.",
+      "Further down, main group IV is metallic too: **lead** (Pb). Lead forms yellow PbO with Pb²⁺ and dark brown PbO₂ with Pb⁴⁺ – so a Roman numeral."),
+    ask: NE("Jetzt umgekehrt: Wähle die Metalle, deren Ladung du aus der Hauptgruppe ablesen kannst.", "Now the other way round: choose the metals whose charge you can read from the main group."),
     answer: "Al K Ba",
     why: pseWhy(PSE_B, [AL, K, BA]),
-    tip: NE("Nur drei Gruppen verraten die Ladung. Welche sind es?", "Only three groups give the charge. Which are they?"),
-    lines: [NE("K (Gruppe 1) → K⁺, Ba (Gruppe 2) → Ba²⁺, Al (Gruppe 13) → Al³⁺.", "K (group 1) → K⁺, Ba (group 2) → Ba²⁺, Al (group 13) → Al³⁺.")],
-    ok: NE("K⁺, Ba²⁺, Al³⁺ aus der Gruppe. Fe, Cu und Pb: Ladung im Namen, z. B. Blei(II)-oxid.", "K⁺, Ba²⁺, Al³⁺ from the group. Fe, Cu and Pb: charge in the name, e.g. lead(II) oxide."),
+    tip: NE("Nur die I. bis III. Hauptgruppe verraten die Ladung. Welche Gruppennummern sind das?", "Only main groups I to III give the charge. Which group numbers are they?"),
+    lines: [NE("K: I. Hauptgruppe → K⁺, Ba: II. Hauptgruppe → Ba²⁺, Al: Gruppe 13 = III. Hauptgruppe → Al³⁺.", "K: main group I → K⁺, Ba: main group II → Ba²⁺, Al: group 13 = main group III → Al³⁺.")],
+    ok: NE("K⁺, Ba²⁺, Al³⁺ aus der Hauptgruppe. Fe, Cu und Pb (Gruppe 14 = IV. Hauptgruppe): Ladung im Namen.", "K⁺, Ba²⁺, Al³⁺ from the main group. Fe, Cu and Pb (group 14 = main group IV): charge in the name."),
     visual: c => <PseMetals c={c} cands={PSE_B} answer={[AL, K, BA]} />,
   }),
   {
@@ -107,7 +110,7 @@ const steps = (): GuideStep[] => [
       [NE("Eisen ist schwerer als Natrium.", "Iron is heavier than sodium.")]: NE("Die Masse spielt für den Namen keine Rolle. Es geht um die Ladung.", "Mass plays no part in the name. It is about the charge."),
       [NE("Eisen will 3 Elektronen abgeben.", "Iron wants to lose 3 electrons.")]: NE("Atome wollen nichts. Eisen bildet Fe²⁺ und Fe³⁺ – der Name sagt, welches.", "Atoms do not want anything. Iron forms Fe²⁺ and Fe³⁺ – the name says which."),
     },
-    ok: NE("Na⁺ folgt aus Gruppe 1. Eisen bildet Fe²⁺ und Fe³⁺ – die römische Zahl sagt, welches Ion.", "Na⁺ follows from group 1. Iron forms Fe²⁺ and Fe³⁺ – the Roman numeral says which ion."),
+    ok: NE("Na⁺ folgt aus der I. Hauptgruppe. Eisen bildet Fe²⁺ und Fe³⁺ – die römische Zahl sagt, welches Ion.", "Na⁺ follows from main group I. Iron forms Fe²⁺ and Fe³⁺ – the Roman numeral says which ion."),
   },
 
   // ── 2. Name → Formel ──
@@ -156,7 +159,7 @@ const steps = (): GuideStep[] => [
     lines: [NE("2 · (3+) = 6+ und 3 · (2−) = 6− → Fe₂O₃, rotbraun wie Rost.", "2 · (3+) = 6+ and 3 · (2−) = 6− → Fe₂O₃, red-brown like rust.")],
     ok: NE("Eisen(III)-oxid = Fe₂O₃: 2 · (3+) = 6+ und 3 · (2−) = 6−.", "Iron(III) oxide = Fe₂O₃: 2 · (3+) = 6+ and 3 · (2−) = 6−."),
     visual: c => <WallModel c={c} Z={FE} anion="O2-" charges={[2, 3]} numerals stepC stepA report="formula" given={NE("Eisen(III)-oxid", "Iron(III) oxide")} sample="Fe2O3"
-      init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 3, nC: 2, nA: 3 }} />,
+      init={{ q: 2, nC: 1, nA: 1 }} sol={{ q: 3, nC: 2, nA: 3 }} />,
   }),
   model({
     mode: "free",
@@ -168,7 +171,7 @@ const steps = (): GuideStep[] => [
     lines: [NE("1 · (2+) = 2+ und 2 · (1−) = 2− → PbCl₂.", "1 · (2+) = 2+ and 2 · (1−) = 2− → PbCl₂.")],
     ok: NE("Blei(II)-chlorid = PbCl₂: ein Pb²⁺, zwei Cl⁻.", "Lead(II) chloride = PbCl₂: one Pb²⁺, two Cl⁻."),
     visual: c => <WallModel c={c} Z={PB} anion="Cl-" stepC stepA report="formula" given={NE("Blei(II)-chlorid", "Lead(II) chloride")}
-      init={{ q: 2, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
+      init={{ q: 2, nC: 2, nA: 1 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
   }),
   {
     mode: "free",
@@ -202,7 +205,7 @@ const steps = (): GuideStep[] => [
     answer: "2+",
     why: {
       "1+": NE("1 · (1+) = 1+, aber 2 · (1−) = 2−. Die obere Reihe ist zu kurz.", "1 · (1+) = 1+, but 2 · (1−) = 2−. The top row is too short."),
-      "3+": NE("Cu³⁺ gibt es nicht. Und 3+ ist mehr als 2−.", "Cu³⁺ does not exist. And 3+ is more than 2−."),
+      "3+": NE("1 · (3+) = 3+ ist mehr als 2 · (1−) = 2−.", "1 · (3+) = 3+ is more than 2 · (1−) = 2−."),
     },
     tip: NE("Rechne zuerst die Ladung der beiden Br⁻ aus.", "First work out the charge of the two Br⁻."),
     ok: NE("CuBr₂: 2 · (1−) = 2− → Cu²⁺ → Kupfer(II)-bromid.", "CuBr₂: 2 · (1−) = 2− → Cu²⁺ → copper(II) bromide."),
@@ -210,42 +213,46 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
-    ask: NE("Jetzt du: Welche Ladung hat jedes Kupfer-Ion in Cu₂S?", "Your turn: what is the charge of each copper ion in Cu₂S?"),
+    ask: NE("Jetzt du: Welche Ladung hat jedes Kupfer-Ion in Cu₂S? Stelle die Anzahlen ein, wähle die Ladung und prüfe.",
+      "Your turn: what is the charge of each copper ion in Cu₂S? Set the numbers, choose the charge and check."),
     answer: "1+",
     why: {
+      "≠ Anzahl": NE("Cu₂S hat 2 Cu und 1 S. Stelle die Anzahlen wie in der Formel ein.", "Cu₂S has 2 Cu and 1 S. Set the numbers as in the formula."),
       "2+": NE("Die 2 in Cu₂ ist die Anzahl, nicht die Ladung. 2 · (2+) = 4+, aber S²⁻ bringt nur 2−.", "The 2 in Cu₂ is the number, not the charge. 2 · (2+) = 4+, but S²⁻ brings only 2−."),
-      "3+": NE("Cu³⁺ gibt es nicht. 2 · (3+) = 6+ ist viel mehr als 2−.", "Cu³⁺ does not exist. 2 · (3+) = 6+ is much more than 2−."),
+      "3+": NE("2 · (3+) = 6+ ist viel mehr als 2−.", "2 · (3+) = 6+ is much more than 2−."),
     },
-    tip: NE("Ein S²⁻ bringt 2−. Wie verteilt sich das auf die Kupfer-Ionen?", "One S²⁻ brings 2−. How is that shared among the copper ions?"),
+    tip: NE("Erst die Anzahlen der Formel. Dann: Ein S²⁻ bringt 2− – wie verteilt sich das?", "Numbers of the formula first. Then: one S²⁻ brings 2− – how is that shared?"),
     lines: [NE("1 · (2−) = 2− auf 2 Cu → je 1+ → Kupfer(I)-sulfid.", "1 · (2−) = 2− shared by 2 Cu → 1+ each → copper(I) sulfide.")],
     ok: NE("Cu₂S: 2− auf 2 Cu → je 1+ → Kupfer(I)-sulfid.", "Cu₂S: 2− shared by 2 Cu → 1+ each → copper(I) sulfide."),
-    visual: c => <WallModel c={c} Z={CU} anion="S2-" charges={[1, 2, 3]} report="charge" given="Cu2S" init={{ q: 2, nC: 2, nA: 1 }} sol={{ q: 1, nC: 2, nA: 1 }} />,
+    visual: c => <WallModel c={c} Z={CU} anion="S2-" charges={[1, 2, 3]} stepC stepA report="charge" given="Cu2S" init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 1, nC: 2, nA: 1 }} />,
   }),
   model({
     mode: "free",
-    ask: NE("Welche Ladung hat Eisen in FeS?", "What is the charge of iron in FeS?"),
+    ask: NE("Welche Ladung hat Eisen in FeBr₂? Stelle die Anzahlen ein, wähle die Ladung und prüfe.", "What is the charge of iron in FeBr₂? Set the numbers, choose the charge and check."),
     answer: "2+",
     why: {
-      "3+": NE("1 · (3+) = 3+, aber 1 · (2−) = 2−. Die obere Reihe ist zu lang.", "1 · (3+) = 3+, but 1 · (2−) = 2−. The top row is too long."),
-      "1+": NE("Fe⁺ gibt es nicht. Und 1+ gleicht die 2− von S²⁻ nicht aus.", "Fe⁺ does not exist. And 1+ does not balance the 2− of S²⁻."),
+      "≠ Anzahl": NE("FeBr₂ hat 1 Fe und 2 Br. Stelle die Anzahlen wie in der Formel ein.", "FeBr₂ has 1 Fe and 2 Br. Set the numbers as in the formula."),
+      "3+": NE("1 · (3+) = 3+, aber 2 · (1−) = 2−. Die obere Reihe ist zu lang.", "1 · (3+) = 3+, but 2 · (1−) = 2−. The top row is too long."),
+      "1+": NE("1 · (1+) = 1+, aber 2 · (1−) = 2−. Die obere Reihe ist zu kurz.", "1 · (1+) = 1+, but 2 · (1−) = 2−. The top row is too short."),
     },
-    tip: NE("Ein Fe, ein S²⁻: Welche Ladung gleicht 2− genau aus?", "One Fe, one S²⁻: which charge balances 2− exactly?"),
-    lines: [NE("1 · (2−) = 2− → Fe²⁺ → Eisen(II)-sulfid.", "1 · (2−) = 2− → Fe²⁺ → iron(II) sulfide.")],
-    ok: NE("FeS: Fe²⁺ und S²⁻ → Eisen(II)-sulfid.", "FeS: Fe²⁺ and S²⁻ → iron(II) sulfide."),
-    visual: c => <WallModel c={c} Z={FE} anion="S2-" charges={[1, 2, 3]} report="charge" given="FeS" init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 1 }} />,
+    tip: NE("Erst die Anzahlen der Formel. Wie viel negative Ladung bringen 2 Br⁻?", "Numbers of the formula first. How much negative charge do 2 Br⁻ bring?"),
+    lines: [NE("2 · (1−) = 2− → Fe²⁺ → Eisen(II)-bromid.", "2 · (1−) = 2− → Fe²⁺ → iron(II) bromide.")],
+    ok: NE("FeBr₂: Fe²⁺ und 2 Br⁻ → Eisen(II)-bromid.", "FeBr₂: Fe²⁺ and 2 Br⁻ → iron(II) bromide."),
+    visual: c => <WallModel c={c} Z={FE} anion="Br-" charges={[1, 2, 3]} stepC stepA report="charge" given="FeBr2" init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
   }),
   model({
     mode: "free",
-    ask: NE("Wie heißt CuCl₂? Wähle die römische Zahl und prüfe.", "What is CuCl₂ called? Choose the Roman numeral and check."),
+    ask: NE("Wie heißt CuCl₂? Stelle die Anzahlen ein, wähle die römische Zahl und prüfe.", "What is CuCl₂ called? Set the numbers, choose the Roman numeral and check."),
     answer: NE("Kupfer(II)-chlorid", "Copper(II) chloride"),
     why: {
+      "≠ Anzahl": NE("CuCl₂ hat 1 Cu und 2 Cl. Stelle die Anzahlen wie in der Formel ein.", "CuCl₂ has 1 Cu and 2 Cl. Set the numbers as in the formula."),
       [NE("Kupfer(I)-chlorid", "Copper(I) chloride")]: NE("Cu⁺ bringt 1+, aber 2 · (1−) = 2−. Die Wand ist nicht ausgeglichen.", "Cu⁺ brings 1+, but 2 · (1−) = 2−. The wall is not balanced."),
-      "Cu³⁺": NE("Cu³⁺ gibt es nicht. Und 3+ ist mehr als 2 · (1−) = 2−.", "Cu³⁺ does not exist. And 3+ is more than 2 · (1−) = 2−."),
+      [NE("Kupfer(III)-chlorid", "Copper(III) chloride")]: NE("3+ ist mehr als 2 · (1−) = 2−. Die Wand ist nicht ausgeglichen.", "3+ is more than 2 · (1−) = 2−. The wall is not balanced."),
     },
-    tip: NE("Zähle die Cl⁻ und rechne ihre Ladung aus.", "Count the Cl⁻ and work out their charge."),
+    tip: NE("Erst die Anzahlen der Formel. Dann die Ladung der Cl⁻ ausrechnen.", "Numbers of the formula first. Then work out the charge of the Cl⁻."),
     lines: [NE("2 · (1−) = 2− → Cu²⁺ → Kupfer(II)-chlorid.", "2 · (1−) = 2− → Cu²⁺ → copper(II) chloride.")],
     ok: NE("CuCl₂: 2 · (1−) = 2− → Cu²⁺ → Kupfer(II)-chlorid.", "CuCl₂: 2 · (1−) = 2− → Cu²⁺ → copper(II) chloride."),
-    visual: c => <WallModel c={c} Z={CU} anion="Cl-" charges={[1, 2, 3]} numerals report="name" given="CuCl2" init={{ q: 1, nC: 1, nA: 2 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
+    visual: c => <WallModel c={c} Z={CU} anion="Cl-" charges={[1, 2, 3]} numerals stepC stepA report="name" given="CuCl2" init={{ q: 3, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 2 }} />,
   }),
   {
     mode: "free",
@@ -279,10 +286,7 @@ const steps = (): GuideStep[] => [
     ask: NE("Ergänze: Baue Kupfer(II)-nitrat. Dann prüfe.", "Complete: build copper(II) nitrate. Then check."),
     lines: [NE("Kupfer(II) = Cu²⁺, Nitrat = NO₃⁻.", "Copper(II) = Cu²⁺, nitrate = NO₃⁻."), NE("1 · (2+) = 2+ und 2 · (1−) = 2−.", "1 · (2+) = 2+ and 2 · (1−) = 2−."), NE("Formel: {?}", "Formula: {?}")],
     answer: "Cu(NO₃)₂",
-    why: {
-      ...wallWhy(CU, "NO3-", { q: 2, nC: 1, nA: 2 }, [1, 2]),
-      "CuNO₃": NE("Das wäre Kupfer(I)-nitrat – diesen Stoff gibt es nicht. (II) heißt Cu²⁺.", "That would be copper(I) nitrate – this substance does not exist. (II) means Cu²⁺."),
-    },
+    why: wallWhy(CU, "NO3-", { q: 2, nC: 1, nA: 2 }, [1, 2]),
     tip: NE("(II) heißt 2+. Wie viele NO₃⁻ gleichen das aus?", "(II) means 2+. How many NO₃⁻ balance that?"),
     ok: NE("Cu(NO₃)₂: zwei Nitrat-Ionen, darum Klammern.", "Cu(NO₃)₂: two nitrate ions, so brackets."),
     visual: c => <WallModel c={c} Z={CU} anion="NO3-" charges={[1, 2]} numerals stepC stepA report="formula" given={NE("Kupfer(II)-nitrat", "Copper(II) nitrate")}
@@ -301,16 +305,17 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
-    ask: NE("Wie heißt FePO₄? Wähle die römische Zahl und prüfe.", "What is FePO₄ called? Choose the Roman numeral and check."),
-    answer: NE("Eisen(III)-phosphat", "Iron(III) phosphate"),
+    ask: NE("Wie heißt Fe(NO₃)₃? Stelle die Anzahlen ein, wähle die römische Zahl und prüfe.", "What is Fe(NO₃)₃ called? Set the numbers, choose the Roman numeral and check."),
+    answer: NE("Eisen(III)-nitrat", "Iron(III) nitrate"),
     why: {
-      [NE("Eisen(II)-phosphat", "Iron(II) phosphate")]: NE("Phosphat ist PO₄³⁻ und bringt 3−. Fe²⁺ gleicht das nicht aus.", "Phosphate is PO₄³⁻ and brings 3−. Fe²⁺ does not balance that."),
-      "Fe⁺": NE("Fe⁺ gibt es nicht. Und 1+ ist viel weniger als 3−.", "Fe⁺ does not exist. And 1+ is much less than 3−."),
+      "≠ Anzahl": NE("Fe(NO₃)₃ hat 1 Fe und 3 Nitrat-Ionen. Stelle die Anzahlen wie in der Formel ein.", "Fe(NO₃)₃ has 1 Fe and 3 nitrate ions. Set the numbers as in the formula."),
+      [NE("Eisen(II)-nitrat", "Iron(II) nitrate")]: NE("2+ gleicht 3 · (1−) = 3− nicht aus.", "2+ does not balance 3 · (1−) = 3−."),
+      [NE("Eisen(I)-nitrat", "Iron(I) nitrate")]: NE("1+ ist viel weniger als 3 · (1−) = 3−.", "1+ is much less than 3 · (1−) = 3−."),
     },
-    tip: NE("Welche Ladung hat das Phosphat-Ion?", "What is the charge of the phosphate ion?"),
-    lines: [NE("PO₄³⁻ bringt 3− → Fe³⁺ → Eisen(III)-phosphat.", "PO₄³⁻ brings 3− → Fe³⁺ → iron(III) phosphate.")],
-    ok: NE("FePO₄: 1 · (3−) = 3− → Fe³⁺ → Eisen(III)-phosphat.", "FePO₄: 1 · (3−) = 3− → Fe³⁺ → iron(III) phosphate."),
-    visual: c => <WallModel c={c} Z={FE} anion="PO43-" charges={[1, 2, 3]} numerals report="name" given="FePO4" init={{ q: 2, nC: 1, nA: 1 }} sol={{ q: 3, nC: 1, nA: 1 }} />,
+    tip: NE("Erst die Anzahlen der Formel. Wie viel negative Ladung bringen 3 NO₃⁻?", "Numbers of the formula first. How much negative charge do 3 NO₃⁻ bring?"),
+    lines: [NE("3 · (1−) = 3− → Fe³⁺ → Eisen(III)-nitrat.", "3 · (1−) = 3− → Fe³⁺ → iron(III) nitrate.")],
+    ok: NE("Fe(NO₃)₃: 3 · (1−) = 3− → Fe³⁺ → Eisen(III)-nitrat.", "Fe(NO₃)₃: 3 · (1−) = 3− → Fe³⁺ → iron(III) nitrate."),
+    visual: c => <WallModel c={c} Z={FE} anion="NO3-" charges={[1, 2, 3]} numerals stepC stepA report="name" given="Fe(NO3)3" init={{ q: 2, nC: 1, nA: 1 }} sol={{ q: 3, nC: 1, nA: 3 }} />,
   }),
   {
     mode: "free",
@@ -319,7 +324,7 @@ const steps = (): GuideStep[] => [
     why: {
       "Cu₂SO₄": NE("Die II ist die Ladung, keine Anzahl. Cu²⁺ und SO₄²⁻ gleichen sich 1 : 1 aus.", "The II is the charge, not a number. Cu²⁺ and SO₄²⁻ balance 1 : 1."),
       "Cu(SO₄)₂": NE("2 · (2−) = 4− ist zu viel für ein Cu²⁺.", "2 · (2−) = 4− is too much for one Cu²⁺."),
-      "CuS": NE("CuS ist Kupfer(II)-sulfid. Sulfat ist SO₄²⁻.", "CuS is copper(II) sulfide. Sulfate is SO₄²⁻."),
+      "CuS": NE("CuS wäre ein Sulfid (S²⁻). Sulfat ist SO₄²⁻.", "CuS would be a sulfide (S²⁻). Sulfate is SO₄²⁻."),
     },
     ok: NE("Kupfer(II)-sulfat = CuSO₄: 1 · (2+) = 2+ und 1 · (2−) = 2−.", "Copper(II) sulfate = CuSO₄: 1 · (2+) = 2+ and 1 · (2−) = 2−."),
   },
@@ -340,7 +345,7 @@ const steps = (): GuideStep[] => [
 const KNOWN_DE = ["Ion", "Kation", "Anion", "Ladung", "neutral", "Hauptgruppe", "Gruppe", "Periodensystem", "Ionenwand", "Formel", "Ionengitter", "mehratomige Ionen", "Klammern",
   "Chlorid", "Bromid", "Oxid", "Sulfid", "Hydroxid", "Nitrat", "Sulfat", "Phosphat", "Eisen", "Kupfer", "Blei", "Natrium", "Magnesium", "Aluminium", "Calcium", "Rost"];
 const KNOWN_EN = ["ion", "cation", "anion", "charge", "neutral", "main group", "group", "periodic table", "ion wall", "formula", "ionic lattice", "polyatomic ions", "brackets",
-  "chloride", "bromide", "oxide", "sulfide", "hydroxide", "nitrate", "sulfate", "phosphate", "Iron", "Copper", "Lead", "sodium", "magnesium", "aluminium", "calcium", "rust"];
+  "chloride", "bromide", "oxide", "sulfide", "hydroxide", "nitrate", "sulfate", "phosphate", "iron", "copper", "lead", "sodium", "magnesium", "aluminium", "calcium", "rust"];
 
 export const kapitel5 = (): Kapitel => ({
   id: "nebengruppen", nr: 5, stufe: "os",
@@ -352,7 +357,7 @@ export const kapitel5 = (): Kapitel => ({
     steps: steps(),
     outro: [
       tr("Gleiche Elemente, andere Ladung des Metall-Ions → anderer Stoff: schwarzes FeO, rotbraunes Fe₂O₃.", "Same elements, different charge of the metal ion → different substance: black FeO, red-brown Fe₂O₃."),
-      tr("Gruppe 1, 2, 13: Ladung aus der Gruppe. Alle anderen Metalle: **römische Zahl** im Namen.", "Groups 1, 2, 13: charge from the group. All other metals: **Roman numeral** in the name."),
+      tr("Metalle der I. bis III. Hauptgruppe (Gruppe 1, 2, 13): Ladung aus der Hauptgruppe. Alle anderen Metalle: **römische Zahl** im Namen.", "Metals of main groups I to III (groups 1, 2, 13): charge from the main group. All other metals: **Roman numeral** in the name."),
       tr("Vom Namen zur Formel: Eisen(III)-chlorid = FeCl₃.", "From name to formula: iron(III) chloride = FeCl₃."),
       tr("Von der Formel zum Namen: Fe₂O₃ → 6− auf 2 Fe → Eisen(III)-oxid.", "From formula to name: Fe₂O₃ → 6− shared by 2 Fe → iron(III) oxide."),
       tr("Mit mehratomigen Ionen und Klammern: Fe₂(SO₄)₃, Cu(NO₃)₂.", "With polyatomic ions and brackets: Fe₂(SO₄)₃, Cu(NO₃)₂."),
@@ -361,12 +366,13 @@ export const kapitel5 = (): Kapitel => ({
   explain: [
     [
       tr("Gleiche Elemente können verschiedene Stoffe bilden, wenn das Metall-Ion verschiedene Ladungen hat.", "The same elements can form different substances if the metal ion has different charges."),
-      tr("Bei Metallen der Gruppen 1, 2 und 13 liest du die Ladung aus der Gruppe ab: Na⁺, Mg²⁺, Al³⁺.", "For metals in groups 1, 2 and 13 you read the charge from the group: Na⁺, Mg²⁺, Al³⁺."),
+      tr("Im großen PSE: Gruppe 1, 2 = I., II. Hauptgruppe; Gruppe 13–18 = III.–VIII. Hauptgruppe; dazwischen die Nebengruppen.", "In the large periodic table: groups 1, 2 = main groups I, II; groups 13–18 = main groups III–VIII; in between the transition metals."),
+      tr("Metalle der I. bis III. Hauptgruppe: Ladung aus der Hauptgruppe, z. B. Mg²⁺.", "Metals of main groups I to III: charge from the main group, e.g. Mg²⁺."),
       tr("Bei allen anderen Metallen – **Nebengruppenmetalle** (Gruppen 3–12) und Blei – steht die Ladung als **römische Zahl** im Namen.", "For all other metals – **transition metals** (groups 3–12) and lead – the charge is a **Roman numeral** in the name."),
     ],
     [
       tr("Römische Zahl = Ladung des Metall-Ions: Kupfer(II) = Cu²⁺.", "Roman numeral = charge of the metal ion: copper(II) = Cu²⁺."),
-      tr("Dann gleichst du aus wie in der Ionenwand: Kupfer(II)-sulfid = CuS.", "Then you balance as in the ion wall: copper(II) sulfide = CuS."),
+      tr("Dann gleichst du aus wie in der Ionenwand: Kupfer(II)-fluorid = CuF₂.", "Then you balance as in the ion wall: copper(II) fluoride = CuF₂."),
       tr("Die Zahl ist eine **Ladung**, keine Anzahl.", "The numeral is a **charge**, not a number of particles."),
     ],
     [

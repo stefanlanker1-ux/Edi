@@ -48,7 +48,6 @@
 .k5-tile sup { font-size: 14px; margin-left: 1px; }
 .k5-tile.cat { background: var(--cat-tile-a); border-color: var(--cat-tile-border); color: var(--cat-tile-text); }
 .k5-tile.an { background: var(--an-tile-a); border-color: var(--an-tile-border); color: var(--an-tile-text); }
-.k5-tile.fake { background: transparent; color: var(--text); border: 2px dashed var(--cat-tile-b); }
 .k5-gap { height: var(--h); border: 2px dashed var(--faint); border-radius: var(--radius-sm); opacity: .7; }
 .k5-built { margin: 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 10px; }
 .k5-built-f { font-size: clamp(1.4rem, 8cqh, 2.1rem); font-weight: 800; line-height: 1.1; }
@@ -63,18 +62,53 @@
 .k5-an { white-space: nowrap; }
 .k5-steps .ui-stepper { min-width: 150px; }
 
-/* ── PSE: Metalle antippen ──────────────────────────────────────────────── */
+/* ── PSE: Metalle wählen ───────────────────────────────────────────────── */
 .k5-pse { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; width: 100%; height: 100%; min-height: 0; }
 .k5-pse-fit { min-height: 0; }
-.k5-pse-sel { margin: 0; text-align: center; font-size: 1rem; min-height: 2.8em; display: grid; align-content: start; gap: 2px; }
+.k5-pse-sel { margin: 0; text-align: center; font-size: 1rem; min-height: 1.5em; display: grid; align-content: start; gap: 2px; }
 .k5-pse-sel p { margin: 0; }
-.k5-dim { color: var(--muted); font-size: .875rem; }
-/* Symbole und Gruppennummern größer (am Handy sonst unter 9 px); die Ordnungszahl braucht es hier nicht */
+/* alle Zellen gleich gefärbt: die Farben der Elementgruppen verrieten die Einordnung (Übergangsmetalle blau); nicht angebotene blass,
+   auch der Platzhalter 57–71 (wirkt sonst antippbar) */
+.k5-pse-fit .pse-os .pse-cell { background: var(--surface); color: var(--text); border-color: var(--rule); }
+.k5-pse-fit .pse-os .pse-cell.dim, .k5-pse-fit .pse-os .pse-ph { background: var(--surface-2); opacity: .25; }
+/* Symbole und Gruppennummern größer; die Ordnungszahl braucht es hier nicht */
 .k5-pse-fit .pse-os.fit .pc-z { display: none; }
 .k5-pse-fit .pse-os.fit .pse-cell { padding: 0; }
-.k5-pse-fit .pse-os.fit .pc-sym { font-size: clamp(.7rem, 3.1cqw, 1.1rem); }
-.k5-pse-fit .pse-os.fit .pse-head { font-size: clamp(.6rem, 2.5cqw, .85rem); }
-/* sehr niedrige Bühne (viel Text): die Zusammenfassung unter dem PSE steht auch im Lösungsweg – das PSE bekommt den Platz */
-@container (max-height: 240px) { .k5-pse-sel { display: none; } }
-/* schmales PSE: das ✓-Zeichen der richtigen Zellen würde das Symbol verdecken – dort bleibt der grüne Rahmen, die Liste darunter nennt die Metalle */
+.k5-pse-fit .pse-os.fit .pse-cell:not(.pse-ph) .pc-sym { font-size: clamp(.7rem, 3.1cqw, 1.1rem); letter-spacing: -.02em; }
+.k5-pse-fit .pse-os.fit .pse-head { font-size: clamp(.7rem, 2.9cqw, .95rem); color: var(--muted); }
+/* schmales PSE: das ✓-Zeichen der richtigen Zellen würde das Symbol verdecken – dort bleibt der Rahmen, die Liste darunter nennt die Metalle */
 @container (max-width: 600px) { .k5-pse-fit .pse-cell.right::after { display: none; } }
+/* sehr niedrige Bühne (viel Text): die Zusammenfassung steht auch im Lösungsweg – das PSE bekommt den Platz */
+@container (max-height: 240px) { .k5-pse-sel { display: none; } }
+
+/* große Knöpfe für die angebotenen Metalle (die PSE-Zellen sind am Handy nur gut 15 px breit) */
+.k5-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; flex: 1 0 100%; }
+.k5-chip {
+  min-width: 48px; min-height: 44px; padding: 0 10px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface);
+  color: var(--text); font: 800 1.1rem/1 var(--font); box-shadow: var(--key-edge); cursor: pointer; touch-action: manipulation;
+}
+.k5-chip:active { box-shadow: var(--key-edge-pressed); }
+.k5-chip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: var(--key-edge-pressed); }
+
+/* ── Spalten des großen PSE: Gruppe 1–18, darunter Hauptgruppe I–VIII, dazwischen die Nebengruppen ── */
+.k5-strip {
+  display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 4px 1px; width: 100%; max-width: 760px; margin: 0 auto; align-items: center;
+  font-variant-numeric: tabular-nums; text-align: center;
+}
+.k5-strip-cap { font-size: .8rem; font-weight: 700; color: var(--muted); text-align: left; }
+.k5-strip-g { letter-spacing: -.04em; font-size: clamp(.7rem, 3cqw, 1rem); font-weight: 700; color: var(--muted); padding: 3px 0; border-bottom: 1.5px solid var(--border); }
+.k5-strip-g.main { color: var(--text); }
+.k5-strip-h { font-size: clamp(.7rem, 3cqw, 1rem); font-weight: 800; padding: 4px 0; white-space: nowrap; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); }
+.k5-strip-n { font-size: clamp(.75rem, 3.2cqw, 1rem); font-weight: 700; color: var(--muted); padding: 4px 0; border: 1.5px dashed var(--faint); border-radius: var(--radius-sm); }
+.k5-strip > * { min-width: 0; }
+.k5-strip-m { display: grid; gap: 1px; justify-items: center; padding: 3px 0; margin-top: 6px; border-radius: var(--radius-sm); }
+.k5-strip-m b { font-size: clamp(.7rem, 3.3cqw, 1.2rem); letter-spacing: -.04em; }
+.k5-strip-m small { font-size: clamp(.62rem, 2.6cqw, .85rem); font-weight: 700; }
+.k5-strip-m.grp { background: var(--hue-yellow-soft); border: 1.5px solid var(--hue-yellow-deep); }
+.k5-strip-m.name { background: var(--surface); border: 1.5px dashed var(--text); }
+.k5-strip-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin-top: 10px; font-size: .875rem; color: var(--muted); }
+.k5-strip-key i { display: inline-block; width: 14px; height: 14px; vertical-align: -2px; border-radius: 3px; }
+.k5-strip-key i.grp { background: var(--hue-yellow-soft); border: 1.5px solid var(--hue-yellow-deep); }
+.k5-strip-key i.name { border: 1.5px dashed var(--text); }
+/* niedrige Bühne: Überschriften und Legende der Spalten weglassen, die Spalten selbst bleiben groß */
+@container (max-height: 230px) { .k5-strip-cap, .k5-strip-key { display: none; } }

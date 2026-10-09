@@ -1,9 +1,9 @@
-// Kapitel 5: ohne Elektronenkonfiguration und ohne Auswendigwissen (kein Ag/Zn), Formeln/Namen/Ladungen aus `ions.ts`, nur beständige Stoffe,
-// Rückmeldungen zu jedem Zustand der Modelle, nie zur Lösung.
+// Kapitel 5: ohne Elektronenkonfiguration und ohne Auswendigwissen (kein Ag/Zn, keine Aussage „gibt es nicht“), Gruppe 13 nur mit Brücke zur
+// III. Hauptgruppe, Formeln/Namen/Ladungen aus `ions.ts`, nur beständige Stoffe, Rückmeldungen zu jedem Zustand der Modelle, nie zur Lösung.
 import { test, expect } from "vitest";
 import { ION_BY_ID, isKnownCompound } from "@lern/chem";
 import { kapitel5 } from "../k5.tsx";
-import { chargeFromGroup, isReal, metalIon, nameWith, pseResult, pseWhy, wallFormula, wallName, wallWhy } from "./models.tsx";
+import { chargeFromGroup, groupText, isReal, metalIon, nameWith, pseResult, pseWhy, wallFormula, wallWhy } from "./models.tsx";
 
 const texts = () => {
   const out: string[] = [];
@@ -22,11 +22,26 @@ test("keine Elektronenkonfiguration, kein Kästchenschema, kein Silber/Zink im K
   expect(bad).toEqual([]);
 });
 
+test("keine Existenzaussagen (Auswendigwissen) – begründet wird über Ladungsbilanz und Namen", () => {
+  expect(texts().filter(t => /gibt es nicht|does not exist|nicht beständig|not stable/i.test(t))).toEqual([]);
+  // auch in den erzeugten Rückmeldungen
+  const gen = [...Object.values(wallWhy(29, "Cl-", { q: 2, nC: 1, nA: 2 }, [1, 2, 3])), ...Object.values(pseWhy([13, 19, 26, 29, 56, 82], [13, 19, 56]))];
+  expect(gen.filter(t => /gibt es nicht|nicht beständig/.test(t))).toEqual([]);
+});
+
+test("Brücke zu Kapitel 1: Gruppe 13 nie ohne III. Hauptgruppe, Nebengruppen benannt", () => {
+  const all = [...texts(), ...Object.values(pseWhy([3, 13, 20, 26, 29], [26, 29])), ...Object.values(pseWhy([13, 19, 26, 29, 56, 82], [13, 19, 56]))];
+  expect(all.filter(t => /Gruppe(n)? [^.:]*\b13\b/.test(t) && !/III\. Hauptgruppe|III\.–VIII\. Hauptgruppe/.test(t))).toEqual([]);
+  expect(groupText(13)).toBe("Gruppe 13 = III. Hauptgruppe");
+  expect(groupText(82)).toBe("Gruppe 14 = IV. Hauptgruppe");
+  expect(groupText(26)).toBe("Gruppe 8 (Nebengruppe)");
+});
+
 test("Ionenwand: gebaute Formeln und Namen, nur Ionen aus ions.ts und beständige Stoffe", () => {
   const cases: [number, string, number, number, number, string][] = [
     [26, "Cl-", 2, 1, 2, "FeCl₂"], [26, "Cl-", 3, 1, 3, "FeCl₃"], [29, "O2-", 1, 2, 1, "Cu₂O"], [29, "O2-", 2, 1, 1, "CuO"], [26, "O2-", 3, 2, 3, "Fe₂O₃"],
-    [26, "O2-", 2, 1, 1, "FeO"], [82, "Cl-", 2, 1, 2, "PbCl₂"], [29, "Br-", 2, 1, 2, "CuBr₂"], [29, "S2-", 1, 2, 1, "Cu₂S"], [26, "S2-", 2, 1, 1, "FeS"],
-    [29, "Cl-", 2, 1, 2, "CuCl₂"], [26, "SO42-", 3, 2, 3, "Fe₂(SO₄)₃"], [29, "NO3-", 2, 1, 2, "Cu(NO₃)₂"], [26, "OH-", 2, 1, 2, "Fe(OH)₂"], [26, "PO43-", 3, 1, 1, "FePO₄"],
+    [26, "O2-", 2, 1, 1, "FeO"], [82, "Cl-", 2, 1, 2, "PbCl₂"], [29, "Br-", 2, 1, 2, "CuBr₂"], [29, "S2-", 1, 2, 1, "Cu₂S"], [26, "Br-", 2, 1, 2, "FeBr₂"],
+    [29, "Cl-", 2, 1, 2, "CuCl₂"], [26, "SO42-", 3, 2, 3, "Fe₂(SO₄)₃"], [29, "NO3-", 2, 1, 2, "Cu(NO₃)₂"], [26, "OH-", 2, 1, 2, "Fe(OH)₂"], [26, "NO3-", 3, 1, 3, "Fe(NO₃)₃"],
   ];
   for (const [Z, an, q, nC, nA, f] of cases) {
     expect(wallFormula(Z, an, { q, nC, nA })).toBe(f);
@@ -34,9 +49,8 @@ test("Ionenwand: gebaute Formeln und Namen, nur Ionen aus ions.ts und beständig
     expect(isKnownCompound(metalIon(Z, q), ION_BY_ID[an])).toBe(true);
   }
   // Stoffe aus Auswahl, Merksätzen und Zusammenfassung
-  for (const [c, a] of [["Fe3+", "OH-"], ["Cu2+", "SO42-"], ["Cu2+", "S2-"], ["Fe3+", "F-"], ["Cu2+", "OH-"], ["Fe2+", "SO42-"]]) expect(isKnownCompound(ION_BY_ID[c], ION_BY_ID[a])).toBe(true);
+  for (const [c, a] of [["Fe3+", "OH-"], ["Cu2+", "SO42-"], ["Cu2+", "F-"], ["Fe3+", "F-"], ["Cu2+", "OH-"], ["Fe2+", "SO42-"]]) expect(isKnownCompound(ION_BY_ID[c], ION_BY_ID[a])).toBe(true);
   expect(nameWith(29, 2, ION_BY_ID["Cl-"])).toBe("Kupfer(II)-chlorid");
-  expect(wallName(29, "Cl-", 3)).toBe("Cu³⁺"); // erfundenes Ion: kein Name
   expect(isReal(29, 3) || isReal(26, 1) || isReal(82, 4)).toBe(false);
 });
 
