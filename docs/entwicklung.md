@@ -705,7 +705,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Stoff-Info (gemeinsam: `@lern/chem-ui` `Substance.tsx`, hier `components/Substance.tsx`): Stoffnamen sind Knöpfe (Experimentieren und Üben: Wortgleichung unter dem Titel, `NameLine`). Blatt: Summenformel, Art (Molekül mit Atomzahlen, Ionenverbindung mit Ionen,
   Metall, Element), Strukturformel (`layout2D`: Ketten gerade, sonst ebene Zeichnung aus `MOL3D`; Käfige wie P₄O₁₀ nur 3D) und 3D-Modell
   (`Molecule3D` mit `data` aus `MOL3D`).
-  Fit-Text misst neu bei Größenänderung und nach dem Laden der Schrift; passt es bei 10 px noch nicht, wird die Zeile als Ganzes skaliert (nie abschneiden).
+  Fit-Text misst neu bei Größenänderung des Platzes und nach dem Laden der Schrift; passt es bei 10 px noch nicht, wird die Zeile als Ganzes skaliert (nie abschneiden).
+  Ohne Rückkopplung: der Rahmen `.eq-fit` hängt nie von der Gleichung ab (`contain: inline-size`, `.rg-controls` mit `minmax(0, 1fr)`), beobachtet wird nur seine Breite
+  (nicht die Zeile, deren Schrift gesetzt wird), höchstens 8 Anpassungen ohne 2 s Pause, 1 px Luft – in Safari (iPhone) sprang die Zeile sonst ständig zwischen zu groß und winzig.
   Die Gleichungszeile ragt in der Karte über den Innenabstand hinaus (`.rg-controls .eq-fit`).
   Kalottenmodell, **jedes Atom muss gut zu sehen sein (Vorrang vor echtem 3D)** (Geometrie `packages/chem/src/kalotte.ts`, Zeichnung `@lern/chem-ui` `Kalotte`, Test ≥ 65 % je Atom über `visibleShare`;
   Ausnahmen P₄-Tetraeder und P₄O₁₀-Käfig ≥ 55 % – dort verdeckt in jeder Ansicht ein Atom ein anderes zum Teil, gemessen 56 % bzw. 62 %): Moleküle aus `MOL3D` (MMFF94) in der Ansicht mit dem am wenigsten verdeckten Atom (`orient`, 160 Richtungen), Bindungen bis ×1,15 gestreckt, gebundene Kugeln überlappen; ist trotzdem ein Atom unter 70 % sichtbar, die ebene Zeichnung wie eine Strukturformel (`flatView` aus `flat` der Daten, RDKit 2D, auseinandergeschoben; Glucose, Ethanol, H₃PO₄, CH₄ …; P₄O₁₀ als feste Standard-Zeichnung `flatFixed`, P₄ bleibt Tetraeder). Ketten CₙH₂ₙ₊₂ immer gerade wie die Strukturformel (`chainView`, kein Zickzack). Salze/Säuren aus Bausteinen, Kugeln nach Tiefe sortiert und dezent schattiert
@@ -1126,6 +1128,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Reaktionsgleichungen: Gleichungszeile springt nicht mehr** – auf dem iPhone (Safari) wechselte die Gleichung im Experimentieren (z. B. „Methan verbrennt“) ständig zwischen
+  zu groß (rechts abgeschnitten) und winzig: die Breite des Rahmens hing von der Schriftgröße der Zeile ab, die Schriftanpassung beobachtete auch die Zeile selbst. Jetzt hängt der
+  Rahmen nie vom Inhalt ab (`contain: inline-size`, Raster `minmax(0, 1fr)`), angepasst wird nur bei echter Breitenänderung des Platzes, höchstens 8-mal ohne Pause, mit 1 px Luft.
 - **Ionenbindung: neue Ordnung „Lernen | Experimentieren“** – Erklärung und Quiz sind ersetzt durch den Bereich **Lernen** mit fünf Kapiteln zu je 25 Folien
   (Level I: Vom Atom zum Ion · Formel und Name · Ionengitter und Eigenschaften; Level II: Ionen aus mehreren Atomen · Nebengruppenmetalle). Erklärung und Aufgaben in einem
   Fluss (vorgemacht → halb gelöst → selbst, `checkGuide`), mindestens 13 Modell-Folien je Kapitel: Modell verändern, Änderung sofort sehen, „Prüfen“ meldet das Gebaute,

@@ -7,7 +7,8 @@
 :root[data-theme="dark"] { --ab-left: #f2f2f2; --ab-right: #111111; }
 
 /* ── Gleichung: immer eine Zeile, Schrift passt sich an (Fit-Text); Stoff antippen = Zahl wählen ───── */
-.eq-fit { width: 100%; min-width: 0; display: flex; justify-content: safe center; overflow: hidden; }
+/* contain: die Breite des Rahmens hängt nie von der Gleichung ab (sonst schaukeln sich Schriftgröße und Rahmen gegenseitig auf) */
+.eq-fit { width: 100%; min-width: 0; display: flex; justify-content: safe center; overflow: hidden; contain: inline-size; }
 /* in der Karte (Start) bis an den Kartenrand – nur dort, wo nichts darüber abschneidet */
 .rg-controls .eq-fit { width: calc(100% + 28px); margin-inline: -14px; }
 .eq-row { flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: .1em; white-space: nowrap; line-height: 1.1; }
@@ -50,7 +51,7 @@ button.eq-term:active { transform: scale(.96); }
 }
 .rg-steps button.on { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
 .rg-steps button.done:not(.on) { color: var(--ok); border-color: var(--ok); }
-.rg-controls { display: grid; gap: 12px; }
+.rg-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .rg-actions { display: flex; justify-content: center; gap: 8px; }
 .rg-actions .ui-btn-primary { min-width: 150px; }
 .rg-anim { padding: 6px 12px; }

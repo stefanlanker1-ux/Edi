@@ -13,37 +13,49 @@ export const maxCoef = (r: { niveau: number }) => (r.niveau >= 4 ? 40 : 12);
 const MIN = 10;
 
 /** Schriftgröße so wählen, dass die Zeile in den Platz passt (bei Größenänderung und neuem Inhalt neu gemessen).
- *  Die Größe wird direkt am Element gesetzt – so misst jeder Durchgang denselben Zustand, den man sieht. */
+ *  Die Größe wird direkt am Element gesetzt – so misst jeder Durchgang denselben Zustand, den man sieht.
+ *  Nie eine Rückkopplung: beobachtet wird nur die Breite des Platzes (nicht die Zeile selbst, deren Größe wir ja setzen), angepasst wird nur,
+ *  wenn sie sich wirklich geändert hat, und höchstens 8-mal ohne 2 s Pause. Der Platz hängt nicht vom Inhalt ab (`.eq-fit` mit `contain: inline-size`) –
+ *  in Safari wuchs der Rahmen sonst mit der großen Schrift, die Zeile wurde winzig, der Rahmen schrumpfte … (Gleichung sprang hin und her). */
 function useFitFont(deps: unknown[], BASE = 26) {
   const box = useRef<HTMLDivElement>(null), line = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const outer = box.current, inner = line.current;
     if (!outer || !inner) return;
+    let lastW = -1, runs = 0, last = 0;
     const fit = () => {
+      // Notbremse gegen Aufschaukeln: höchstens 8 Anpassungen ohne Pause; erst nach 2 s Ruhe wieder frei
+      const now = performance.now();
+      if (now - last > 2000) runs = 0;
+      last = now;
+      if (++runs > 8) return;
+      // 1 px Luft: Rundung der Textbreite (Safari misst in Bruchteilen) kippt die Zeile nicht über den Rand
+      const have = outer.clientWidth - 1;
+      lastW = outer.clientWidth;
       // bei voller Größe messen, dann in bis zu vier Schritten annähern (feste Mindestbreiten skalieren nicht linear)
       let s = BASE;
       inner.style.transform = "";
       inner.style.fontSize = `${s}px`;
       for (let i = 0; i < 4; i++) {
-        const need = inner.scrollWidth, have = outer.clientWidth;
+        const need = inner.scrollWidth;
         if (need <= have || s <= MIN) break;
         s = Math.max(MIN, Math.floor(s * have / need * 10) / 10);
         inner.style.fontSize = `${s}px`;
       }
       // Notbremse: passt es selbst mit der kleinsten Schrift nicht, als Ganzes verkleinern – nie abschneiden
-      const need = inner.scrollWidth, have = outer.clientWidth;
+      const need = inner.scrollWidth;
       if (have > 0 && need > have) { inner.style.transformOrigin = "left center"; inner.style.transform = `scale(${have / need})`; }
     };
     fit();
-    // neu messen, wenn sich der Platz oder der Inhalt ändert und wenn die Schrift (Inter) fertig geladen ist
-    const ro = new ResizeObserver(() => fit());
+    // neu messen, wenn sich die Breite des Platzes ändert und wenn die Schrift (Inter) fertig geladen ist
+    const ro = new ResizeObserver(() => { if (Math.abs(outer.clientWidth - lastW) >= 1) fit(); });
     ro.observe(outer);
-    ro.observe(inner);
     const fonts = document.fonts;
     let alive = true;
-    fonts?.ready.then(() => alive && fit());
-    fonts?.addEventListener?.("loadingdone", fit);
-    return () => { alive = false; ro.disconnect(); fonts?.removeEventListener?.("loadingdone", fit); };
+    const refit = () => { if (alive) { runs = 0; fit(); } };
+    fonts?.ready.then(refit);
+    fonts?.addEventListener?.("loadingdone", refit);
+    return () => { alive = false; ro.disconnect(); fonts?.removeEventListener?.("loadingdone", refit); };
   }, deps); // eslint-disable-line react-hooks/exhaustive-deps
   return { box, line };
 }
