@@ -1,7 +1,22 @@
 // Kapitel 1: Schalen, Edelgaskonfiguration, Ionen aus dem PSE und Ergebnis des Elektronenübergangs stimmen fachlich.
 import { test, expect } from "vitest";
 import { ANIONS, CATIONS, chargeSup } from "@lern/chem";
-import { ionOf, isNoble, shellsOf, sym, trResult } from "./models.tsx";
+import { calcWhy, ionOf, ionWhy, isNoble, markWhy, shellsOf, sym, trResult, trWhy } from "./models.tsx";
+
+test("Rückmeldungen aus dem Ergebnis: jeder erreichbare falsche Zustand hat eine, die Lösung keine", () => {
+  const ion = ionWhy(8);
+  expect(Object.keys(ion)).toEqual(expect.arrayContaining(["O", "O⁻", "O³⁻", "O⁺", "O²⁺"]));
+  expect(ion["O²⁻"]).toBeUndefined();
+  expect(ionWhy(7)["N⁴⁻"]).toMatch(/voll/);
+  expect(ionWhy(13)["Al²⁻"]).toBeDefined();
+  expect(markWhy(8)["5"]).toBeDefined();
+  expect(calcWhy(19, 18)["Na"]).toMatch(/Kalium/);
+  expect(calcWhy(19, 18)["K⁺"]).toBeUndefined();
+  const mgcl = trWhy(12, 17, [1, 1], [1, 2], "n");
+  expect(Object.keys(mgcl)).toEqual(expect.arrayContaining(["Mg + Cl", "Mg⁺ + Cl⁻", "Mg⁺ + Cl⁻ + 2 Cl", "Mg + 3 Cl", "Mg²⁺ + 2 Cl⁻ + Cl"]));
+  expect(mgcl["Mg²⁺ + 2 Cl⁻"]).toBeUndefined();
+  expect(trWhy(3, 8, [1, 1], [2, 1], "m")["2 Li⁺ + Li + O²⁻"]).toMatch(/weniger/);
+});
 
 test("Schalen der Unterstufe (2 · 8 · 8 · …) und Edelgaskonfiguration", () => {
   expect(shellsOf(2)).toEqual([2]);
