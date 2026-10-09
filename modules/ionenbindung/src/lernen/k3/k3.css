@@ -44,7 +44,7 @@
 .k3-bond.strong.att { stroke: var(--text); stroke-width: 3; }
 .k3-bond.strong.rep { stroke-width: 3; }
 .k3-arrow { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke: var(--text); }
-.k3-force.rep .k3-arrow { stroke: var(--bad); }
+.k3-force.rep .k3-arrow { stroke: var(--bad); stroke-width: 3; }
 .k3-force.rep > .k3-arrow, .k3-force.rep .k3-arrow { stroke-dasharray: none; }
 .k3-cap { text-anchor: middle; font-family: var(--font); font-weight: 700; font-size: 16px; fill: var(--text); }
 .k3-force.rep .k3-cap { fill: var(--bad); }

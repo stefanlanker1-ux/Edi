@@ -169,6 +169,11 @@ export function LatticeFill({ c, cat, an, cols, rows, open, caption }: { c: Guid
               </g>
             );
           }))}
+          {/* gleiche Ladungen nebeneinander: Abstoßung über den Kugeln (← →) */}
+          {bonds.filter(b => b.k === "rep").map((b, k) => {
+            const x = (b.x1 + b.x2) / 2, y = (b.y1 + b.y2) / 2;
+            return <g key={`f${k}`} className="k3-fade" transform={b.x1 === b.x2 ? `rotate(90 ${x} ${y})` : undefined}><ForceIcon x={x} y={y} att={false} /></g>;
+          })}
         </svg>
       }
       controls={open.length ? <Tag>{tr("Platz antippen: leer → ", "Tap a place: empty → ")}{ionText(cat)} → {ionText(an)}</Tag> : caption ? <Tag>{caption}</Tag> : undefined}
