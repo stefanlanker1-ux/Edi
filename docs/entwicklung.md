@@ -637,11 +637,14 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   zusammengesetzt – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
   Name und Ladung sofort; H⁺ dazu → Hydrogen-, Ladung eins weniger negativ; Hydroxid, Ammonium) · **Formeln mit Klammern** („Formel schreiben“: Klammer an/aus und Index,
   Atome laut Formel und laut Ionenwand im Vergleich – CaOH₂ = 1 O, NH₄₂ = 42 H) · **Name ↔ Formel** (Ionenwahl, Namens-Baukasten). Nur beständige Verbindungen (Test `k4/k4.test.ts`).
-- Kapitel 5 **Nebengruppenmetalle** (Level II, `k5.tsx`, `k5/models.tsx`): **Mehrere mögliche Ladungen** (Kästchenschema: Antippen gibt ein Elektron aus 4s bzw. 3d ab,
-  Symbol, Ladung und Kurzschreibweise sofort; Daten aus `configuration`; „3d zuerst abgegeben“ mit eigener Rückmeldung) · **Römische Zahl im Namen** (Ionenwand mit Ladungswahl,
-  Formel, Name und Rechnung sofort) · **Ladung aus der Formel** (Anionen fest, Ladung des Metall-Ions wählen) · **Alles zusammen** (mit mehratomigen Ionen). Nur Ionen aus `ions.ts`
-  (Blei nur Pb²⁺), nur beständige Verbindungen; Fe³⁺ = [Ar] 3d⁵ nur beschreibend („halb besetzt“ – keine Regel „halb/voll besetzt = beständig“, sie stimmt nicht: Cu⁺ d¹⁰
-  ist in Wasser weniger beständig als Cu²⁺). Gedachte Ionen (Fe⁺, Cu³⁺ …) sind als „gibt es nicht“ gekennzeichnet; die Rechnung mit ✓ und der Name erscheinen erst nach dem Prüfen. Test `k5/k5.test.ts`.
+- Kapitel 5 **Nebengruppenmetalle** (Level II, `k5.tsx`, `k5/models.tsx`) – **ohne Elektronenkonfiguration** (kein Kästchenschema, kein 4s/3d) und **ohne Auswendigwissen**
+  (kein Silber/Zink, keine Aussagen „dieses Ion gibt es nicht“): **Ein Metall – mehrere Ionen** (zwei Stoffe aus denselben Elementen als Stoffproben: FeO schwarz/Fe₂O₃
+  rotbraun, Cu₂O rot/CuO schwarz; Brücke zu Kapitel 1 mit Spaltenleiste `GroupStrip`: im großen PSE Gruppe 1, 2 = I., II. Hauptgruppe, Gruppe 13–18 = III.–VIII. Hauptgruppe,
+  dazwischen Gruppen 3–12 = Nebengruppen; Regel: Metalle der I. bis III. Hauptgruppe → Ladung aus der Hauptgruppe, alle anderen – Nebengruppenmetalle und Blei, IV. Hauptgruppe,
+  PbO gelb/PbO₂ dunkelbraun – römische Zahl im Namen; Metalle wählen mit großen Knöpfen unter dem neutral gefärbten PSE, `PseMetals`) · **Vom Namen zur Formel** ·
+  **Von der Formel zum Namen** · **Alles zusammen** (mehratomige Ionen). Ionenwand mit Ladungswahl (`WallModel`): vor dem Lösen nur „ausgeglichen“/„≠“ in neutraler Farbe,
+  ✓-Rechnung und Name erst danach; in freien Folien stellen die Schüler die Anzahlen laut Formel selbst ein (die 2 in Cu₂ ist die Anzahl); Rückmeldungen nur über
+  Ladungsbilanz und Namen (`wallWhy`, `pseWhy`). Nur Fe, Cu, Pb(II) aus `ions.ts`, nur beständige Stoffe; Gruppe 13 immer mit „= III. Hauptgruppe“ (Test `k5/k5.test.ts`).
 - **Experimentieren** (Werkbank, unverändert): Ionen-Bausteine Kationen gold, Anionen grün, Breite = Ladung; neutral, wenn beide Reihen gleich lang sind. Startet gelöst
   (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu 2·8·18·1 → Cu⁺ 2·8·18); Kennzeichen „n Außenelektronen“
   nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“;
@@ -1149,6 +1152,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung Kapitel 5 „Nebengruppenmetalle“ neu ohne Elektronenkonfiguration** – Wunsch: Schüler sollen nicht auswendig lernen, welche Nebengruppenmetalle nur
+  eine Ladung haben, und keine d-Elektronenkonfigurationen brauchen. Kästchenschema, 4s/3d, Silber und Zink entfallen. Neu: Einstieg über zwei Stoffe aus denselben
+  Elementen (FeO/Fe₂O₃, Cu₂O/CuO als Stoffproben in echter Farbe) → die Ladung muss in den Namen; Brücke Gruppe 1–18 ↔ Hauptgruppen aus Kapitel 1; Regel: I.–III. Hauptgruppe
+  Ladung aus der Hauptgruppe, alle anderen Metalle (auch Blei: PbO/PbO₂) römische Zahl; Ladung immer aus Namen oder Formel ableitbar. Nach unabhängiger Prüfung: keine
+  Existenzaussagen („Cu³⁺ gibt es nicht“ wäre Auswendigwissen und stimmt fachlich nicht), PSE neutral gefärbt mit großen Knöpfen, ✓ und Name erst nach dem Lösen, freie
+  Folien verlangen die Anzahlen der Formel; CuS nicht mehr als Beispiel (formal Cu⁺/S₂²⁻). Test.
 - **Kopfzeile: Home-Knopf, „Lesbar“ nicht am Handy** (`@lern/ui` `AppShell`, alle Module) – oben links steht in jedem Modul ein Home-Knopf (Haus, zur Übersicht) statt des
   Modul-Symbols, damit klar ist, wie man zurückkommt. Der Knopf „Lesbar“ ist am Handy (≤ 640 px) ausgeblendet (Wunsch, Platz); eingeschaltet bleibt er sichtbar, damit man ihn ausschalten kann.
 - **Ionenbindung Kapitel 3: Schmelze bewegt sich heißer schneller** – über der Schmelztemperatur läuft die Bewegung der Ionen mit der Temperatur schneller (je 200 °C
