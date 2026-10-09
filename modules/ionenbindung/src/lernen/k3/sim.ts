@@ -53,10 +53,20 @@ export interface Drive {
   apart?: boolean;
   /** schwache Schwerkraft im Gefäß (die Schmelze bleibt unten) */
   gravity?: boolean;
-  /** Stärke der Anziehung (1 = Gefäß mit Oberfläche; im Ausschnitt ohne Oberfläche schwächer, damit die Schmelze im Strom fließt) */
+  /** Stärke der Anziehung (Standard 1; im Tiegel stärker, damit die stark bewegte Schmelze zusammenbleibt; im Ausschnitt ohne Oberfläche schwächer, damit die Schmelze im Strom fließt) */
   cohesion?: number;
   /** Mindestabstand gleicher Ladungen in u (Standard 1,32 – im Gitter stehen sie √2 u auseinander); kleiner = flüssiger */
   like?: number;
+  /** Wärmebewegung verstärken: Faktor auf die Zufallskraft (Standard 1; die Schmelze im Tiegel nimmt mehr – die Ionen wechseln öfter die Plätze) */
+  stir?: number;
+  /** Zeitskala der Zufallskraft in s (Standard 0,45): länger = länger gleich gerichtet, die Ionen gleiten weiter aneinander vorbei, statt nur zu zittern */
+  glide?: number;
+  /** Ausschnitt: wer seitlich hinausgleitet, kommt in zufälliger freier Höhe wieder herein (außerhalb des Sichtbaren) – im Strom bilden sich keine
+   *  Reihen gleicher Ladung, die Ionen bleiben gemischt */
+  mix?: boolean;
+  /** senkrecht ruhiger: Zufallskraft in y mal `calm`, Reibung in y durch `calm` (Standard 1; die Lupe nimmt weniger – im Strom gleiten die Ionen
+   *  waagrecht aneinander vorbei, statt auf und ab zu hüpfen) */
+  calm?: number;
 }
 
 /** Zufallszahlen 0…1, fest je Startwert (gleiche Bilder bei jedem Öffnen) */
@@ -141,7 +151,8 @@ function substep(w: World, d: Drive, h: number) {
   w.m = d.free ? Math.min(1, w.m + h / 0.8) : Math.max(0, w.m - h / 1.6);
   const m = w.m, kh = K_HOME * (1 - m) ** 2, damp = 2 * Math.sqrt(K_HOME) * (1 - m) + GAMMA * m;
   const heat = Math.min(2, Math.max(0.2, d.heat));
-  const sigma = NOISE * u * Math.sqrt(heat);
+  const sigma = NOISE * u * Math.sqrt(heat) * (d.stir ?? 1), tau = d.glide ?? TAU;
+  const calm = d.calm ?? 1, sy = sigma * calm, dampY = GAMMA * m * (1 / calm - 1);
   const n = b.length;
   const ax = new Float64Array(n), ay = new Float64Array(n);
   const t = w.t;
@@ -153,12 +164,12 @@ function substep(w: World, d: Drive, h: number) {
       const ty = p.hy + d.amp * (0.62 * Math.sin(p.w[2] * t + p.p[2]) + 0.38 * Math.sin(p.w[3] * t + p.p[3]));
       ax[i] += kh * wrapD(w, tx - p.x, 0); ay[i] += kh * wrapD(w, ty - p.y, 1);
     }
-    ax[i] -= damp * p.vx; ay[i] -= damp * p.vy;
+    ax[i] -= damp * p.vx; ay[i] -= (damp + dampY) * p.vy;
     if (m > 0) {
       // Zufallskraft (weich veränderlich)
-      const f = Math.sqrt(2 * h / TAU);
-      p.nx += -p.nx * h / TAU + sigma * f * gauss(w.rnd);
-      p.ny += -p.ny * h / TAU + sigma * f * gauss(w.rnd);
+      const f = Math.sqrt(2 * h / tau);
+      p.nx += -p.nx * h / tau + sigma * f * gauss(w.rnd);
+      p.ny += -p.ny * h / tau + sy * f * gauss(w.rnd);
       ax[i] += m * p.nx; ay[i] += m * p.ny;
       if (d.drift) ax[i] += m * GAMMA * d.drift * p.q;
       if (d.gravity) ay[i] += m * GRAV * u;
@@ -202,12 +213,13 @@ function substep(w: World, d: Drive, h: number) {
     if (v > vmax) { p.vx *= vmax / v; p.vy *= vmax / v; }
     p.x += p.vx * h; p.y += p.vy * h; p.dx += p.vx * h; p.dy += p.vy * h;
   }
-  separate(w);
+  separate(w, d.mix);
   w.t += h;
 }
 
-/** Kugeln überlappen nie: zu nahe Paare auseinanderschieben, Annäherung bremsen; im Gefäß an den Wänden halten, im Ausschnitt umbrechen */
-function separate(w: World) {
+/** Kugeln überlappen nie: zu nahe Paare auseinanderschieben, Annäherung bremsen; im Gefäß an den Wänden halten, im Ausschnitt umbrechen
+ *  (mit `mix`: wer links bzw. rechts hinausgleitet, kommt in freier Höhe wieder herein) */
+function separate(w: World, mix?: boolean) {
   const { b } = w, n = b.length;
   const [x0, y0, x1, y1] = w.box;
   for (let it = 0; it < 3; it++) {
@@ -225,7 +237,7 @@ function separate(w: World) {
     for (const p of b) {
       if (w.periodic) {
         const L = x1 - x0, H = y1 - y0;
-        if (p.x < x0) p.x += L; else if (p.x >= x1) p.x -= L;
+        if (p.x < x0 || p.x >= x1) { p.x += p.x < x0 ? L : -L; if (mix) p.y = freeY(w, p); }
         if (p.y < y0) p.y += H; else if (p.y >= y1) p.y -= H;
       } else {
         if (p.x < x0 + p.r) { p.x = x0 + p.r; p.vx = Math.max(0, p.vx); }
@@ -235,6 +247,19 @@ function separate(w: World) {
       }
     }
   }
+}
+
+/** freie Höhe am Rand des Ausschnitts: von einigen zufälligen Höhen die mit dem meisten Platz zu den anderen Ionen */
+function freeY(w: World, p: Body) {
+  const [, y0, , y1] = w.box;
+  let best = p.y, room = -Infinity;
+  for (let k = 0; k < 8; k++) {
+    const y = y0 + (y1 - y0) * w.rnd();
+    let near = Infinity;
+    for (const o of w.b) if (o !== p) near = Math.min(near, Math.hypot(wrapD(w, o.x - p.x, 0), wrapD(w, o.y - y, 1)) - o.r);
+    if (near > room) { room = near; best = y; }
+  }
+  return best;
 }
 
 const H = 1 / 120;
@@ -249,6 +274,29 @@ export function advance(w: World, d: Drive, dt: number) {
 export function warm(w: World, d: Drive, seconds: number) {
   for (let s = 0; s < seconds; s += H) substep(w, d, H);
   return w;
+}
+
+/** Tiegel (HeatSim) bei t °C, Schmelztemperatur tm: fest schwingen die Ionen (Weite wächst mit t), ab tm verlassen sie die Plätze. Die Schmelze bewegt sich
+ *  mit verstärkter, länger gleich gerichteter Wärmebewegung (`stir`, `glide`: etwa doppelt so viele Platzwechsel wie mit der einfachen Zufallskraft), stärkere
+ *  Anziehung (`cohesion`) hält sie zusammen (kaum einzelne Ionen); sie wird mit der Temperatur schneller (Zeitraffer `speed`: je 200 °C über tm einmal so schnell,
+ *  höchstens 2,5-mal) */
+export function heatDrive(t: number, tm: number): Drive {
+  const free = t >= tm;
+  return {
+    free, heat: (t + 273) / (tm + 273), amp: 1 + (6 * Math.min(t, tm)) / tm, gravity: true,
+    speed: free ? Math.min(2.5, 1 + (t - tm) / 200) : 1, stir: 1.5, glide: 0.9, cohesion: 1.8,
+  };
+}
+
+/** Lupe (Ausschnitt NaCl, Gitterabstand u): Antrieb je Zustand. `dir` = Richtung der Kationen im Strom (+1 nach rechts, −1 nach links, 0 = Schalter offen).
+ *  Im Strom wandern die Ionen (Sollwert FLOW · Anteil · u je s) und sind senkrecht ruhig (`calm`), ohne Strom ungeordnet, senkrecht etwas ruhiger. */
+export const FLOW = 3.4;
+export function lensDrive(z: "fest" | "schmelze" | "loesung", dir: number, u: number): Drive {
+  if (z === "fest") return { free: false, heat: 0.3, amp: 1.6 };
+  const calm = dir ? 0.3 : 0.8;
+  return z === "schmelze"
+    ? { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, calm, drift: dir * FLOW * 0.46 * u }
+    : { free: true, heat: 0.75, amp: 0, apart: true, mix: true, calm, drift: dir * FLOW * 0.3 * u };
 }
 
 /** Deckkraft der Anziehungs-Linie zwischen zwei Gegen-Ionen im Abstand dist: voll bis 1,25 u, weich aus bis 1,6 u (nichts springt) */
