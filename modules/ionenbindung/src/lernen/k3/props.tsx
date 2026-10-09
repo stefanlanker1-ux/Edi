@@ -1,5 +1,5 @@
 // Kapitel 3, Teil 3–4: Temperatur-Schieber (Ionen schwingen stärker, ab der Schmelztemperatur verlassen sie ihre Plätze und bewegen sich
-// ungeordnet weiter), Schicht verschieben (gleiche Ladungen gegenüber → Abstoßung → Bruch), Leitfähigkeit (Becherglas mit Stromkreis und Lupe:
+// ungeordnet weiter), Leitfähigkeit (Becherglas mit Stromkreis und Lupe:
 // fest schwingen die Ionen nur, in Schmelze und Lösung wandern sie bei geschlossenem Schalter langsam zu ihrem Pol).
 // Bewegung: kleine Teilchensimulation (sim.ts) im Takt des Bildschirms. Reduzierte Bewegung: ruhige Endbilder
 // (fest: Gitter mit gestricheltem Schwingungsring; beweglich: ungeordnete Momentaufnahme).
@@ -8,10 +8,8 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type RefO
 import { Button, Segmented, Tag, useReducedMotion, type GuideCtx } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
-import { Arrow, Ball, CL, MG, NA, O, bondCls, ionText, rad, type Ion } from "./draw.tsx";
+import { Arrow, CL, MG, NA, O, ionText, rad, type Ion } from "./draw.tsx";
 import { advance, bondAlpha, grid, makeWorld, warm, type Drive, type Site, type World } from "./sim.ts";
-
-const isCat = (i: number, j: number) => (i + j) % 2 === 0;
 
 /** Ionen einer Simulation: Kugeln (Kation gold, Anion grün), im Gefäß dazu Linien zu nahen Gegen-Ionen (Anziehung, weich ein- und ausgeblendet).
  *  Bewegt wird ohne React-Neuzeichnen: jedes Bild schreibt nur die Lage der Kugeln und Linien. */
@@ -151,62 +149,6 @@ export function ThermoPair({ c, start, sol }: { c: GuideCtx; start: number; sol:
       onCheck={() => c.pick(t < 801 ? bothSolid() : t < 2852 ? naclOnly() : bothLiquid())} />
   );
 }
-
-export const holds = () => tr("Anziehung", "attraction");
-export const halfway = () => tr("halb verschoben", "half shifted");
-export const repels = () => tr("Abstoßung", "repulsion");
-
-/** Obere Schichten verschieben (in Viertel-Plätzen): gleiche Ladungen gegenüber → Abstoßung → der Kristall bricht */
-export function ShiftLayers({ c, cat, an, start, sol, demo }: { c: GuideCtx; cat: Ion; an: Ion; start: number; sol: number; demo?: boolean }) {
-  const [s, set] = useModel(c, start, sol);
-  const cols = 6, rows = 4, u = 62, pad = 34, W = cols * u + 2 * pad, H = (rows - 1) * u + 2 * pad + 14;
-  const f = s / 4, broken = s === 4;
-  const at = (i: number) => pad + i * u, yt = (j: number) => pad + 14 + j * u;
-  const R = (x: Ion) => rad(x, an, Math.max(24, (17 * an.pm) / cat.pm));
-  const ion = (i: number, j: number) => (isCat(i, j) ? cat : an);
-  const lift = broken ? -16 : 0;
-  // Kräfte über die Trennlinie: Zeile 1 (oben, verschoben) zu Zeile 2 (unten, fest)
-  const cross: { x1: number; x2: number; k: string }[] = [];
-  for (let i = 0; i < cols; i++) {
-    const xt = at(i) + f * u;
-    if (!broken) cross.push({ x1: xt, x2: at(i), k: "att" });
-    if (f >= 0.5 && i + 1 < cols) cross.push({ x1: xt, x2: at(i + 1), k: bondCls(ion(i, 1), ion(i + 1, 2)) });
-  }
-  const label = s === 0 ? tr("Gegen-Ionen gegenüber", "counter-ions opposite") : broken ? tr("gleiche Ladungen gegenüber", "like charges opposite") : tr("verschoben", "shifted");
-  return (
-    <ModelFrame c={c} className="k3-m"
-      stage={
-        <svg className="k3-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
-          {/* untere Schichten (fest) */}
-          <g>
-            {[2, 3].map(j => <line key={j} className="k3-bond att" x1={at(0) - 20} y1={yt(j)} x2={at(cols - 1) + 20} y2={yt(j)} />)}
-            {Array.from({ length: cols }, (_, i) => <line key={i} className="k3-bond att" x1={at(i)} y1={yt(2)} x2={at(i)} y2={yt(3)} />)}
-          </g>
-          <g key={s} className="k3-fade">
-            {cross.map((l, k) => <line key={k} className={`k3-bond ${l.k}`} x1={l.x1} y1={yt(1) + lift} x2={l.x2} y2={yt(2)} />)}
-            {broken && <path className="k3-crack" d={`M${at(0) - 24} ${(yt(1) + yt(2)) / 2 - 8} l18 -6 l16 8 l20 -8 l18 7 l22 -6 l18 6 l20 -7 l22 8 l18 -6 l20 6 l22 -7 l18 6 l20 -6 l16 6`} />}
-          </g>
-          {[2, 3].map(j => Array.from({ length: cols }, (_, i) => <Ball key={`${i}-${j}`} ion={ion(i, j)} x={at(i)} y={yt(j)} r={R(ion(i, j))} />))}
-          {/* obere Schichten (verschiebbar) */}
-          <g className="k3-slide" style={{ transform: `translate(${f * u}px, ${lift}px)` }}>
-            {[0, 1].map(j => <line key={j} className="k3-bond att" x1={at(0) - 20} y1={yt(j)} x2={at(cols - 1) + 20} y2={yt(j)} />)}
-            {Array.from({ length: cols }, (_, i) => <line key={i} className="k3-bond att" x1={at(i)} y1={yt(0)} x2={at(i)} y2={yt(1)} />)}
-            {[0, 1].map(j => Array.from({ length: cols }, (_, i) => <Ball key={`${i}-${j}`} ion={ion(i, j)} x={at(i)} y={yt(j)} r={R(ion(i, j))} />))}
-            <Arrow x1={at(cols - 1) - 50} y1={yt(0) - 30} x2={at(cols - 1) + 6} y2={yt(0) - 30} cls="push" />
-          </g>
-        </svg>
-      }
-      controls={demo ? <Tag>{tr(`um ${["0", "¼", "½", "¾", "1"][s]} Platz verschoben`, `shifted by ${["0", "¼", "½", "¾", "1"][s]} place`)}</Tag> :
-        <fieldset className="k3-fs" disabled={c.solved}>
-          <Segmented label={tr("Verschiebung der oberen Schichten in Plätzen", "Shift of the upper layers in places")} value={String(s)} onChange={v => set(Number(v))}
-            options={["0", "¼", "½", "¾", "1"].map((l, k) => ({ value: String(k), label: l }))} />
-          <Tag>{tr("Platz", "place")}</Tag>
-        </fieldset>
-      }
-      onCheck={() => c.pick(s === 0 ? holds() : broken ? repels() : halfway())} />
-  );
-}
-
 
 export type Zustand = "fest" | "schmelze" | "loesung";
 export const lampOn = () => tr("Lampe an", "lamp on");

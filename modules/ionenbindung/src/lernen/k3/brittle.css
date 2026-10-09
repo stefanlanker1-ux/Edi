@@ -1,0 +1,16 @@
+/* Kapitel 3, „Hart und spröde“: Salzkristall mit Hammer, Lupe auf der Spaltebene, Bruchstücke – Linien, flache Flächen, keine Verläufe/Schatten */
+
+/* Salzkristall: durchscheinend weiß – Flächen in Textfarbe mit wenig Deckkraft (hell und dunkel), verdeckte Kanten zart gestrichelt */
+.k3-xtal .front, .k3-xtal .top, .k3-xtal .side { fill: var(--text); stroke: var(--muted); stroke-width: 1.6; stroke-linejoin: round; }
+.k3-xtal .front { fill-opacity: .04; }
+.k3-xtal .top { fill-opacity: .1; }
+.k3-xtal .side { fill-opacity: .17; }
+.k3-xtal .hid { fill: none; stroke: var(--faint); stroke-width: 1; stroke-dasharray: 3 3; opacity: .75; }
+.k3-ground { stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+
+/* Hammer */
+.k3-hammer .handle { stroke: var(--hue-grey-deep); stroke-width: 6; stroke-linecap: round; }
+.k3-hammer .head { fill: var(--hue-grey); stroke: var(--text); stroke-width: 1.6; }
+
+/* Spaltebene am Rand der Lupe */
+.k3-plane { stroke: var(--muted); stroke-width: 2; stroke-dasharray: 5 3; }
