@@ -18,6 +18,14 @@ export type Task = (McTask & Extra) | (BaseTask & Extra & { kind: "num"; answer:
 
 const mol = (s: string) => layout(parseSmiles(s));
 const ok = (m: Mol, opt?: NameOptions): NameOk | undefined => { const r = name(m, opt); return r.ok ? r : undefined; };
+/** Zählrichtung nach einer Regel, die Erklärung und Karten nicht einführen (Alphabet bei sonst gleichen Nummern, „erster Unterschied“
+ *  bei nicht kleinerer Summe) – solche Moleküle fragt das Quiz nicht ab (etwa 1 % der Moleküle) */
+function rareRule(m: Mol): boolean {
+  const x = ok(m, { pick: "reverse" })?.reverse;
+  if (!x) return false;
+  const sum = (l: number[]) => l.reduce((a, b) => a + b, 0);
+  return x.rule === "alpha" || ((x.rule === "prefixes" || x.rule === "multiple") && x.right.length > 1 && sum(x.right) >= sum(x.wrong));
+}
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 /** Gruppen, deren C zur Kette gehört (Säure, Aldehyd …) */
 const C_GROUP: Kind[] = ["saeure", "ester", "amid", "nitril", "al"];
@@ -84,6 +92,14 @@ function reverseWhy(r: NameOk, x: NonNullable<NameOk["reverse"]>): string {
   if (x.rule === "z") return tr(`Bei Wahl bekommt Z die kleinere Nummer: ${R} statt ${W}.`, `If there is a choice, Z gets the lower number: ${R} instead of ${W}.`);
   // „count“ (meiste Vorsilben) kommt bei derselben Kette in Gegenrichtung nicht vor – allgemeine Regel als Rückfall
   return tr("Von der anderen Seite gezählt sind die Nummern nicht die kleinsten.", "Counted from the other end, the numbers are not the lowest.");
+}
+
+/** Erklärung aus dem Lösungsweg (letzte drei Schritte). Nennt eine Rückmeldung schon die Zählrichtung (Ablenker „nummer“),
+ *  fehlt die Zeile „Nummerieren“ – sonst stünde nach dieser Antwort derselbe Satz zweimal da */
+const NUMBERING = /^(Nummerieren|Numbering|Das Heteroatom|The heteroatom)/;
+function stepsExplain(r: NameOk, q: { miss?: Record<number, string> }): string {
+  const skip = Object.values(q.miss ?? {}).includes("nummer");
+  return r.steps.filter(x => !(skip && NUMBERING.test(x))).slice(-3).join(" ");
 }
 
 /** falsche Namen aus der Benennung selbst – je ein typischer Fehler */
@@ -189,20 +205,21 @@ function kette(): Task {
 /** Verzweigtes Alkan benennen */
 function alkan(): Task {
   let m: Mol, r: NameOk;
-  do { m = mol(branchedAlkane()); r = ok(m)!; } while (r.prefixes.length === 0);
+  do { m = mol(branchedAlkane()); r = ok(m)!; } while (r.prefixes.length === 0 || rareRule(m));
+  const q = mc(r.name, nameDistractors(m, r), 4, `${tr("Genau", "Exactly")}: ${r.name}.`);
   return {
-    ...mc(r.name, nameDistractors(m, r), 4, `${tr("Genau", "Exactly")}: ${r.name}.`),
+    ...q,
     mol: m,
     prompt: tr("Wie heißt dieses Alkan?", "What is the name of this alkane?"),
     hint: tr("Längste Kette suchen. Dann so nummerieren, dass die Äste kleine Nummern haben.", "Find the longest chain. Then number it so that the branches get low numbers."),
-    explain: r.steps.slice(-3).join(" "),
+    explain: stepsExplain(r, q),
   };
 }
 
 /** Alken oder Alkin benennen */
 function alken(): Task {
   let u: ReturnType<typeof unsaturated>, m: Mol, r: NameOk;
-  do { u = unsaturated(); m = maybeFlip(mol(u.s)); r = ok(m)!; } while (!r);
+  do { u = unsaturated(); m = maybeFlip(mol(u.s)); r = ok(m)!; } while (!r || rareRule(m));
   const extra: Distractor[] = [];
   // E/Z vertauscht (nur wenn die Doppelbindung E/Z hat)
   const st = r.stereo.find(x => x.desc);
@@ -214,12 +231,13 @@ function alken(): Task {
   if (swap !== base) extra.push(d(tr(cap(swap), swap), "en-in", u.triple ? tr("Dreifachbindung → **-in**. Doppelbindung wäre -en.", "Triple bond → **-yne**. A double bond would be -ene.") : tr("Doppelbindung → **-en**. Dreifachbindung wäre -in.", "Double bond → **-ene**. A triple bond would be -yne.")));
   const sat = ok(mol(u.s.replace(/[=#]/, "")));
   if (sat) extra.push(d(sat.name, "mehrfach-vergessen", tr(`${sat.name} hätte nur Einfachbindungen. Hier ist eine ${u.triple ? "Dreifach" : "Doppel"}bindung.`, `${capName(sat.name)} would have only single bonds. Here there is a ${u.triple ? "triple" : "double"} bond.`)));
+  const q = mc(r.name, nameDistractors(m, r, extra), 4, `${tr("Genau", "Exactly")}: ${r.name}.`);
   return {
-    ...mc(r.name, nameDistractors(m, r, extra), 4, `${tr("Genau", "Exactly")}: ${r.name}.`),
+    ...q,
     mol: m,
     prompt: tr(`Wie heißt dieses ${u.triple ? "Alkin" : "Alken"}?`, `What is the name of this ${u.triple ? "alkyne" : "alkene"}?`),
     hint: tr("Die Mehrfachbindung bekommt die kleinste Nummer. Die Zahl steht vor -en bzw. -in.", "The multiple bond gets the lowest number. The number stands before -ene or -yne."),
-    explain: r.steps.slice(-3).join(" "),
+    explain: stepsExplain(r, q),
   };
 }
 
@@ -243,12 +261,11 @@ function ez(): Task {
     const st = r?.stereo[0];
     if (!r || !st?.desc || r.stereo.length !== 1) continue;
     const other = st.desc === "E" ? "Z" : "E";
-    const sameH = st.qa === -1 && st.qb === -1;
     return {
       ...mc(st.desc, [d(other, "ez", st.desc === "Z"
         ? tr("Die vorrangigen Gruppen liegen auf **derselben** Seite der Doppelbindung → Z.", "The higher-priority groups are on the **same** side of the double bond → Z.")
         : tr("Die vorrangigen Gruppen liegen auf **verschiedenen** Seiten der Doppelbindung → E.", "The higher-priority groups are on **opposite** sides of the double bond → E."))], 2,
-        `${tr("Genau", "Exactly")}: ${r.name}${sameH ? ` (${st.desc === "Z" ? "cis" : "trans"})` : ""}.`),
+        `${tr("Genau", "Exactly")}: ${r.name}.`),
       mol: m,
       prompt: tr("Ist diese Doppelbindung **E** oder **Z**?", "Is this double bond **E** or **Z**?"),
       hint: tr("An jedem C der Doppelbindung: Gruppe mit größerer Ordnungszahl. Gleiche Seite = Z.", "On each C of the double bond: the group with the higher atomic number. Same side = Z."),
@@ -282,7 +299,7 @@ const CLASS_WHY: Record<string, string> = tr({
   on: "Keton: C=O in der Kette, zwischen zwei C.",
   saeure: "Carbonsäure: C=O und –OH am selben C, also –COOH.",
   amin: "Amin: –NH₂ am C.",
-  ester: "Ester: –COO– zwischen zwei Kohlenstoffteilen.",
+  ester: "Ester: –COO– verbindet Säureteil und Alkylteil.",
   ether: "Ether: ein O zwischen zwei C, ohne C=O.",
 }, {
   ol: "Alcohol: –OH on a C with only single bonds.",
@@ -290,7 +307,7 @@ const CLASS_WHY: Record<string, string> = tr({
   on: "Ketone: C=O within the chain, between two C.",
   saeure: "Carboxylic acid: C=O and –OH on the same C, i.e. –COOH.",
   amin: "Amine: –NH₂ on a C.",
-  ester: "Ester: –COO– between two carbon parts.",
+  ester: "Ester: –COO– links the acid part and the alkyl part.",
   ether: "Ether: an O between two C, without C=O.",
 });
 
@@ -351,7 +368,7 @@ function gruppen(): Task {
     const s = withGroup(n, g, pos, br);
     if (!s) continue;
     const m = mol(s), r = ok(m);
-    if (!r || r.principal !== G_KIND[g]) continue;
+    if (!r || r.principal !== G_KIND[g] || rareRule(m)) continue;
     // andere Gruppe an derselben Stelle → echte Namen anderer Stoffe (nur ein Unterschied: die Gruppe;
     // Aldehyd und Säure nur, wenn die Stelle ein Kettenende ist)
     const at = (g === "al" || g === "saeure") && pos !== 0 ? n - 1 : pos;
@@ -366,12 +383,13 @@ function gruppen(): Task {
       const short = restem(r.name, r.parent.size, -1);
       if (short) extra.unshift(d(short, "c-gruppe", tr(`Das C der ${KIND_INFO[G_KIND[g]].group}-Gruppe zählt mit. Die Kette hat ${r.parent.size} C.`, `The C of the ${KIND_INFO[G_KIND[g]].group} group counts too. The chain has ${r.parent.size} C.`)));
     }
+    const q = mc(r.name, nameDistractors(m, r, shuffle(extra).slice(0, 2)), 4, `${tr("Genau", "Exactly")}: ${r.name}.`);
     return {
-      ...mc(r.name, nameDistractors(m, r, shuffle(extra).slice(0, 2)), 4, `${tr("Genau", "Exactly")}: ${r.name}.`),
+      ...q,
       mol: m,
       prompt: tr("Wie heißt diese Verbindung?", "What is the name of this compound?"),
       hint: g === "al" || g === "saeure" ? tr("Das C der Gruppe gehört zur Kette und ist C1.", "The C of the group belongs to the chain and is C1.") : tr("Die Gruppe bekommt die kleinste Nummer.", "The group gets the lowest number."),
-      explain: r.steps.slice(-3).join(" "),
+      explain: stepsExplain(r, q),
     };
   }
 }
@@ -418,7 +436,7 @@ function multiMol(): { m: Mol; r: NameOk; g: G } {
     const s = withGroup(n, g, pos, br);
     if (!s) continue;
     const m = mol(s), r = ok(m);
-    if (r && r.principal === G_KIND[g] && r.prefixes.length >= 2) return { m, r, g };
+    if (r && r.principal === G_KIND[g] && r.prefixes.length >= 2 && !rareRule(m)) return { m, r, g };
   }
 }
 
@@ -430,9 +448,15 @@ function prio(): Task {
   const right = KIND_INFO[r.principal!];
   const wrong = kinds.filter(k => k !== r.principal).map(k => d(`${KIND_INFO[k].label} ${KIND_INFO[k].group}`, "prio",
     tr(`${right.label} steht in der Rangfolge vor ${KIND_INFO[k].label}. Die Gruppe ${KIND_INFO[k].group} wird Vorsilbe: ${KIND_INFO[k].prefix}`, `${right.label} ranks before ${KIND_INFO[k].label.toLowerCase()}. The ${KIND_INFO[k].group} group becomes a prefix: ${KIND_INFO[k].prefix}`)));
-  // Teile der Hauptgruppe sehen aus wie andere Gruppen: OH und C=O der COOH-Gruppe, C=O der CHO-Gruppe
-  const part = (k: Kind) => (r.principal === "saeure" && (k === "ol" || k === "on" || k === "al") ? tr(`Das ${k === "ol" ? "–OH" : "C=O"} gehört zur COOH-Gruppe. Zusammen ist das eine Carbonsäure.`, `The ${k === "ol" ? "–OH" : "C=O"} belongs to the COOH group. Together that is a carboxylic acid.`)
-    : r.principal === "al" && k === "on" ? tr("Das C=O am Kettenende ist eine Aldehydgruppe –CHO.", "The C=O at the end of the chain is an aldehyde group –CHO.") : tr(`Hier gibt es keine ${KIND_INFO[k].group}-Gruppe.`, `There is no ${KIND_INFO[k].group} group here.`));
+  // Teile der Hauptgruppe sehen aus wie andere Gruppen: OH und C=O der COOH-Gruppe, C=O der CHO-Gruppe (gibt es zusätzlich ein Keton, wird es genannt)
+  const keton = kinds.includes("on");
+  const part = (k: Kind): string => {
+    if (r.principal === "saeure" && k === "ol") return tr("Das –OH gehört zur COOH-Gruppe (am selben C wie C=O). Zusammen ist das eine Carbonsäure.", "The –OH belongs to the COOH group (on the same C as C=O). Together that is a carboxylic acid.");
+    if (r.principal === "saeure" && k === "al") return tr(`Am Kettenende sitzt die COOH-Gruppe, kein –CHO.${keton ? " Das C=O in der Kette ist ein Keton." : ""}`, `The end of the chain carries the COOH group, not –CHO.${keton ? " The C=O within the chain is a ketone." : ""}`);
+    if (r.principal === "saeure" && k === "on") return tr("Das einzige C=O gehört zur COOH-Gruppe. Zusammen ist das eine Carbonsäure.", "The only C=O belongs to the COOH group. Together that is a carboxylic acid.");
+    if (r.principal === "al" && k === "on") return tr("Das C=O am Kettenende ist eine Aldehydgruppe –CHO.", "The C=O at the end of the chain is an aldehyde group –CHO.");
+    return tr(`Hier gibt es keine ${KIND_INFO[k].group}-Gruppe.`, `There is no ${KIND_INFO[k].group} group here.`);
+  };
   const fill = (["saeure", "al", "on", "ol", "amin"] as Kind[]).filter(k => k !== r.principal && !kinds.includes(k))
     .map(k => d(`${KIND_INFO[k].label} ${KIND_INFO[k].group}`, "klasse", part(k)));
   return {
@@ -455,12 +479,13 @@ function mehrere(): Task {
     const w = ok(m, { principal: k });
     if (w && w.name !== r.name) extra.push(d(w.name, "prio", tr(`${KIND_INFO[r.principal!].label} geht vor ${KIND_INFO[k].label}. Diese Gruppe gibt die Endung ${KIND_INFO[r.principal!].suffix}.`, `${KIND_INFO[r.principal!].label} ranks before ${KIND_INFO[k].label.toLowerCase()}. This group gives the ending ${KIND_INFO[r.principal!].suffix}.`)));
   }
+  const q = mc(r.name, nameDistractors(m, r, extra.slice(0, 1)), 4, `${tr("Genau", "Exactly")}: ${r.name}.`);
   return {
-    ...mc(r.name, nameDistractors(m, r, extra.slice(0, 1)), 4, `${tr("Genau", "Exactly")}: ${r.name}.`),
+    ...q,
     mol: m,
     prompt: tr("Wie heißt diese Verbindung?", "What is the name of this compound?"),
     hint: tr("Ranghöchste Gruppe → Endung. Längste Kette mit ihr, kleinste Nummern, alphabetisch.", "Principal group → ending. Longest chain containing it, lowest numbers, alphabetical."),
-    explain: r.steps.slice(-3).join(" "),
+    explain: stepsExplain(r, q),
   };
 }
 
@@ -473,25 +498,51 @@ function struktur(): Task {
     // Fehlformeln: gleiche Bausteine, aber verschoben oder verzählt (echte andere Moleküle)
     const others: { m: Mol; miss: string; why: string }[] = [];
     const seen = new Set([r.name, ...r.alt]);
-    // Stolperstein nach dem Unterschied der Namen: nur Nummern anders → nummer, Kette ±1 C → zaehlen, andere Endung → endung, sonst formel-lesen
-    const parts = (x: NameOk) => x.prefixes.map(p => `${p.name}×${p.locs.length || 1}`).join();
-    const missOf = (rr: NameOk) => (rr.principal !== r.principal ? "endung" : parts(rr) !== parts(r) ? "formel-lesen"
-      : rr.parent.size === r.parent.size ? "nummer" : Math.abs(rr.parent.size - r.parent.size) === 1 ? "zaehlen" : "formel-lesen");
     for (let k = 0; k < 30 && others.length < 5; k++) {
       const mm = mutate(m), rr = mm && ok(mm);
-      if (mm && rr && !seen.has(rr.name)) { seen.add(rr.name); others.push({ m: mm, miss: missOf(rr), why: tr(`Diese Formel heißt ${rr.name}.`, `This formula is called ${rr.name}.`) }); }
+      if (mm && rr && !seen.has(rr.name)) { seen.add(rr.name); others.push({ m: mm, ...formulaMiss(r, rr) }); }
     }
     if (others.length < 3) continue;
     const opts = shuffle(others).slice(0, 3);
     const keys = [r.name, ...opts.map(o => ok(o.m)!.name)];
+    const q = mc(r.name, opts.map((o, i) => d(keys[i + 1], o.miss, o.why)), 4, tr(`Genau: das ist ${r.name}.`, `Exactly: that is ${r.name}.`));
     return {
-      ...mc(r.name, opts.map((o, i) => d(keys[i + 1], o.miss, o.why)), 4, tr(`Genau: das ist ${r.name}.`, `Exactly: that is ${r.name}.`)),
+      ...q,
       mols: Object.fromEntries(keys.map((k, i) => [k, i === 0 ? m : opts[i - 1].m])),
       prompt: tr(`Welche Formel zeigt **${r.name}**?`, `Which formula shows **${r.name}**?`),
       hint: tr("Stamm am Ende lesen, dann die Vorsilben mit ihren Nummern einzeichnen.", "Read the stem at the end, then draw in the prefixes with their numbers."),
-      explain: r.steps.slice(-3).join(" "),
+      explain: stepsExplain(r, q),
     };
   }
+}
+
+/** Name → Formel: Stolperstein und Rückmeldung nach dem Unterschied zwischen gesuchtem Namen `r` und der gewählten Formel `rr` –
+ *  andere ranghöchste Gruppe, andere Vorsilben, andere Kettenlänge, alle Nummern gespiegelt (vom falschen Ende gezählt) oder eine Gruppe an anderer Stelle */
+export function formulaMiss(r: NameOk, rr: NameOk): { miss: string; why: string } {
+  const N = r.parent.size, is = tr(` – diese Formel heißt ${rr.name}.`, ` – this formula is ${rr.name}.`);
+  const kind = (x: NameOk) => (x.principal ? `${KIND_INFO[x.principal].label} ${KIND_INFO[x.principal].group}` : tr("keine Gruppe mit Endung", "no group with an ending"));
+  const items = (x: NameOk) => x.prefixes.map(p => tr(capName(`${p.locs.length > 1 ? MULT[p.locs.length] : ""}${p.name}`), prefixEn(`${p.locs.length > 1 ? MULT[p.locs.length] : ""}${p.name}`)));
+  if (rr.principal !== r.principal) return { miss: "endung", why: tr(`Ranghöchste Gruppe hier: ${kind(rr)} statt ${kind(r)}`, `Principal group here: ${kind(rr)} instead of ${kind(r)}`) + is };
+  // Vorsilben anders: nur die abweichenden nennen (Dimethyl statt Methyl; fehlt Methyl; zusätzlich Chlor)
+  const lack = items(r).filter(x => !items(rr).includes(x)), more = items(rr).filter(x => !items(r).includes(x));
+  if (lack.length || more.length) return {
+    miss: "formel-lesen",
+    why: (lack.length && more.length ? tr(`Hier steht ${more.join(", ")} statt ${lack.join(", ")}`, `Here it is ${more.join(", ")} instead of ${lack.join(", ")}`)
+      : lack.length ? tr(`Hier fehlt ${lack.join(", ")}`, `${capName(lack.join(", "))} is missing here`) : tr(`Hier ist zusätzlich ${more.join(", ")}`, `There is an extra ${more.join(", ")} here`)) + is,
+  };
+  if (rr.parent.size !== N) return { miss: Math.abs(rr.parent.size - N) === 1 ? "zaehlen" : "formel-lesen", why: tr(`Die Hauptkette hat hier ${rr.parent.size} C statt ${N}`, `The main chain here has ${rr.parent.size} C instead of ${N}`) + is };
+  // gleiche Bausteine, andere Nummern
+  const pl = (x: NameOk) => (x.parts.find(p => p.key === "principal")?.text.match(/\d+(?:,\d+)*/)?.[0] ?? "").split(",").filter(Boolean);
+  const locsOf = (x: NameOk, n: string) => x.prefixes.find(p => p.name === n)?.locs ?? [];
+  const sorted = (ls: string[]) => [...ls].sort().join();
+  const mirrored = (a: string[], b: string[]) => sorted(a) === sorted(b.map(l => String(N + 1 - Number(l))));
+  if (mirrored(pl(rr), pl(r)) && r.prefixes.every(p => mirrored(locsOf(rr, p.name), p.locs)))
+    return { miss: "nummer", why: tr("Vom falschen Ende gezählt", "Counted from the wrong end") + is };
+  const at = (ls: string[]) => ls.map(l => (/^\d/.test(l) ? "C" + l : l)).join(", ");
+  const moved = r.prefixes.find(p => sorted(locsOf(rr, p.name)) !== sorted(p.locs));
+  if (moved) return { miss: "stelle", why: tr(`${capName(moved.name)} sitzt hier an ${at(locsOf(rr, moved.name))} statt an ${at(moved.locs)}`, `${capName(prefixEn(moved.name))} is at ${at(locsOf(rr, moved.name))} here instead of ${at(moved.locs)}`) + is };
+  if (sorted(pl(rr)) !== sorted(pl(r)) && r.principal) return { miss: "stelle", why: tr(`Die Gruppe ${KIND_INFO[r.principal].group} sitzt hier an ${at(pl(rr))} statt an ${at(pl(r))}`, `The ${KIND_INFO[r.principal].group} group is at ${at(pl(rr))} here instead of ${at(pl(r))}`) + is };
+  return { miss: "formel-lesen", why: tr(`Diese Formel heißt ${rr.name}.`, `This formula is ${rr.name}.`) };
 }
 
 /** kleines Abändern: Ast an ein anderes C, Kette um 1 C länger/kürzer, Gruppe tauschen (die O der COOH-Gruppe bleiben) */
@@ -509,7 +560,8 @@ function mutate(m: Mol): Mol | undefined {
     if (!leaves.length) return;
     const leaf = pick(leaves);
     const bond = bonds.find(b => b.a === leaf.id || b.b === leaf.id)!;
-    const targets = atoms.filter(a => a.el === "C" && a.id !== leaf.id && a.id !== bond.a && a.id !== bond.b);
+    // ein O, N oder Halogen nie an ein C, das schon ein Heteroatom trägt (sonst 1,1-Diol, Aminal … – so etwas ist nicht beständig)
+    const targets = atoms.filter(a => a.el === "C" && a.id !== leaf.id && a.id !== bond.a && a.id !== bond.b && (leaf.el === "C" || nbOf(a.id).every(x => el(x) === "C")));
     if (!targets.length) return;
     const t = pick(targets);
     const used = bonds.filter(b => b.a === t.id || b.b === t.id).reduce((s, b) => s + b.order, 0);

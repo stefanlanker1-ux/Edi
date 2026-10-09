@@ -4,6 +4,7 @@ import { name } from "./naming.ts";
 import { addRing, append, connect, cycleBond, replace, start } from "./edit.ts";
 import type { Mol } from "./mol.ts";
 import { smilesMol } from "./smiles.ts";
+import { orient } from "./layout.ts";
 
 const minDist = (m: Mol) => {
   let d = Infinity;
@@ -31,9 +32,22 @@ describe("Gedrängte Moleküle", () => {
   test.each([
     "ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)Cl", "ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)Cl", "ClC(Cl)(Cl)C(Cl)(Cl)C(Cl)(Cl)C",
     "FC(F)(F)C(F)(F)C(F)(F)C(F)(F)F", "BrC(Br)(Br)C(Br)(Br)Br", "CC(C)(C)C(C)(C)C(C)(C)C(C)(C)C", "OC(=O)C(C)(C)C(O)C(O)C(O)C",
+    // ganze Äste und Ringe als Ast werden gedreht (vorher 0,35 bzw. 0)
+    "CCC(CC)(CC)C(C)C(C)(C)CC", "C1CCCCC1C1(C2CCCCC2)CCCCCCC1",
   ])("%s: Atome mit Abstand", s => {
     expect(minDist(smilesMol(s))).toBeGreaterThan(0.7);
   });
+});
+
+test("orient: in 30°-Schritten gedreht, Bindungen gleich lang, passt besser in die Fläche", () => {
+  const m = smilesMol("CCCCCCC"), r = orient({ ...m, atoms: m.atoms.map(a => ({ ...a, x: -a.y, y: a.x })) }, 3);
+  const w = (x: Mol) => Math.max(...x.atoms.map(a => a.x)) - Math.min(...x.atoms.map(a => a.x));
+  const h = (x: Mol) => Math.max(...x.atoms.map(a => a.y)) - Math.min(...x.atoms.map(a => a.y));
+  expect(w(r)).toBeGreaterThan(h(r));
+  for (const b of r.bonds) {
+    const p = r.atoms.find(a => a.id === b.a)!, q = r.atoms.find(a => a.id === b.b)!;
+    expect(Math.hypot(p.x - q.x, p.y - q.y)).toBeCloseTo(1, 2);
+  }
 });
 
 describe("Zeichnen", () => {

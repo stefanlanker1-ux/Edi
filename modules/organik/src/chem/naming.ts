@@ -1126,6 +1126,14 @@ function classes(ctx: Ctx): string[] {
 const nums = (xs: number[]) => xs.join(", ");
 const PARENT_WORD = (o: Option) => (o.kind === "chain" ? tr("Hauptkette", "Main chain") : tr("Ring", "Ring"));
 
+/** Formel der ranghöchsten Gruppe im Lösungsweg: Amin/Amid nach den H am N (–NH₂, –NH–, –N<; –CONH₂, –CONH–, –CON<) */
+function groupText(ctx: Ctx, o: Option, K: Kind): string {
+  const n = o.counted.find(x => x.n !== undefined)?.n;
+  if ((K !== "amin" && K !== "amid") || n === undefined) return KIND_INFO[K].group;
+  const h = hCount(ctx.g, n), pre = K === "amid" ? "–CO" : "–";
+  return h >= 2 ? KIND_INFO[K].group : h === 1 ? `${pre}NH–` : `${pre}N<`;
+}
+
 /** Benzolring mit einer Gruppe: eingeführter Name statt des systematischen (Benzenol → Phenol) */
 const RETAINED_FROM: Partial<Record<Kind, [string, string, string]>> = {
   ol: ["Benzenol", "benzenol", "phenol"], amin: ["Benzenamin", "benzenamine", "aniline"], saeure: ["Benzencarbonsäure", "benzenecarboxylic acid", "benzoic acid"],
@@ -1135,6 +1143,12 @@ const RETAINED_FROM: Partial<Record<Kind, [string, string, string]>> = {
 function retained(o: Option, K: Kind | undefined): { sys: string; sysEn: string; en: string } | undefined {
   const r = K && o.kind === "ring" && o.ring!.kind === "benzen" && o.counted.length === 1 ? RETAINED_FROM[K] : undefined;
   return r && { sys: r[0], sysEn: r[1], en: r[2] };
+}
+
+/** Vorsilbe im Lösungsweg wie im Namen: zusammengesetzte in Klammern, mehrfach mit bis/tris (4-(1-Methylethyl), 2,3-Bis(2-methylpropyl)) */
+function prefixLabel(o: Option, p: { name: string; locs: string[] }): string {
+  const complex = o.prefixes.some(x => x.name === p.name && x.complex), n = p.locs.length;
+  return `${n ? p.locs.join(",") + "-" : ""}${n > 1 ? (complex ? MULT_X[n] : MULT[n]) : ""}${complex ? paren(p.name) : p.name}`;
 }
 
 /** nächstbeste Nummerierung desselben Stammsystems (anderer Schlüssel) – für die Begründung im Lösungsweg */
@@ -1149,8 +1163,12 @@ function numberingSteps(o: Option, rival: Option | undefined): string[] {
   // Regeln wie NUM_RULES: vorhanden = im Molekül gibt es etwas, das diese Regel nummeriert
   const present = [o.pLocs.length > 0, mult.length > 0, o.en.length > 0 && o.yn.length > 0, false, pre.length > 0, false, false];
   if (o.seq.length < 2 || !present.some(Boolean)) return [];
-  // ein Schritt: „Das Heteroatom im Ring hat immer die Nummer 1. Weiter so zählen, dass …“
-  const head = hetero ? tr("Das Heteroatom im Ring hat immer die Nummer 1. ", "The heteroatom in the ring always gets number 1. ") : "";
+  // ein Schritt: „Das Heteroatom im Ring hat immer die Nummer 1. Weiter so zählen, dass …“; ebenso Ring mit einer ranghöchsten Gruppe:
+  // ihr C ist C1 (4-Methylbenzoesäure, 1-Methylcyclohexan-1-ol – kein „1 statt 2“)
+  const c1 = ring && !hetero && o.pLocs.length === 1 && o.pLocs[0] === 1;
+  if (c1) present[0] = false;
+  const head = hetero ? tr("Das Heteroatom im Ring hat immer die Nummer 1. ", "The heteroatom in the ring always gets number 1. ")
+    : c1 ? tr("Das C mit der ranghöchsten Gruppe ist C1. ", "The C carrying the principal group is C1. ") : "";
   const bond = !o.yn.length ? tr("Doppelbindung", "double bond") : !o.en.length ? tr("Dreifachbindung", "triple bond") : tr("Mehrfachbindung", "multiple bond");
   const alkyl = o.prefixes.every(p => /yl$/.test(p.name));
   /** Bezeichnung je Regel: mit Artikel, ohne Artikel, Mehrzahl */
@@ -1169,17 +1187,17 @@ function numberingSteps(o: Option, rival: Option | undefined): string[] {
   };
   const cl = (xs: number[]) => { const c = xs.map(x => "C" + x); return c.length < 2 ? c.join("") : `${c.slice(0, -1).join(", ")} ${tr("und", "and")} ${c[c.length - 1]}`; };
   const lowest = (w: { the: string; pl: boolean }) => (w.pl ? tr(`${w.the} die kleinsten Nummern bekommen`, `${w.the} get the lowest numbers`) : tr(`${w.the} die kleinste Nummer bekommt`, `${w.the} gets the lowest number`));
-  const lead = hetero ? tr("Weiter so zählen, dass", "Then count so that") : tr("Nummerieren: so, dass", "Numbering: so that");
-  const generic = `${lead} ${lowest(word(NUM_RULES[present.findIndex(Boolean)]))}.`;
+  const lead = head ? tr("Weiter so zählen, dass", "Then count so that") : tr("Nummerieren: so, dass", "Numbering: so that");
+  const generic = present.some(Boolean) ? `${lead} ${lowest(word(NUM_RULES[present.findIndex(Boolean)]))}.` : "";
   // Name ohne Nummern (Ethanol, Propen, Phenol): kein „1 statt 2“, stattdessen der Grund; beim C1 einer Säure/eines Aldehyds folgt ein eigener Satz
   if (omitLocants(o)) {
     if (o.mode === "incl" && o.counted.some(x => C_TYPE.has(x.kind))) return [head + generic];
     const many = o.pLocs.length + mult.length + pre.length > 1;
-    return [`${head}${generic} ${many ? tr("Die Nummern stehen nicht im Namen: Er ist auch ohne eindeutig.", "The numbers are not written in the name: it is clear without them.")
+    return [`${head}${generic}${generic ? " " : ""}${many ? tr("Die Nummern stehen nicht im Namen: Er ist auch ohne eindeutig.", "The numbers are not written in the name: it is clear without them.")
       : tr("Die Nummer steht nicht im Namen: Er ist auch ohne eindeutig.", "The number is not written in the name: it is clear without it.")}`];
   }
   const rv = rival && reverseRule(o, rival);
-  if (!rv) return [head + generic];
+  if (!rv || (c1 && rv.rule === "principal")) return [(head + generic).trim()];
   const i = NUM_RULES.indexOf(rv.rule), R = rv.right.join(","), W = rv.wrong.join(",");
   const first = (rv.rule === "prefixes" || rv.rule === "multiple") && rv.right.length > 1 && rv.right.reduce((s, v) => s + v, 0) >= rv.wrong.reduce((s, v) => s + v, 0)
     ? tr(" Es zählt der erste Unterschied.", " The first difference counts.") : "";
@@ -1208,7 +1226,7 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk, rival?: Opti
   if (K === "ester") out.push(`Ranghöchste Gruppe: **Ester** ${info!.group}. Name = Säureteil + Alkylteil + **ester**.`);
   else if (site.lactone) out.push(`Ranghöchste Gruppe: C=O im Ring neben ${site.lactone.el} – ein **${site.lactone.cls}** (${LACTONE_OF[site.lactone.cls]}). Endung wie beim Keton: **-on**${mult}.`);
   else if (site.ol) out.push(`Ranghöchste Gruppe: **Hydroxygruppe** –OH ${site.ol === "aromat" ? "am aromatischen Ring" : "an einer C=C (Enol)"} → Endung **-ol**${mult}.`);
-  else if (info && n) out.push(`Ranghöchste Gruppe: **${info.label}** ${info.group} → Endung **${info.suffix}**${mult}.`);
+  else if (info && n) out.push(`Ranghöchste Gruppe: **${info.label}** ${groupText(ctx, o, K!)} → Endung **${info.suffix}**${mult}.`);
   else if (o.kind === "ring" && o.ring!.kind === "hetero") out.push("Keine Gruppe mit Endung: Der Ring mit Heteroatom hat einen eigenen Namen.");
   else out.push("Keine Gruppe mit Endung: Name endet auf **-an**, **-en** oder **-in**.");
   const others = RANK.filter(k => k !== K && ctx.groups.some(x => x.kind === k));
@@ -1229,7 +1247,7 @@ function steps(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk, rival?: Opti
   for (const st of r.stereo) out.push(ezStep(ctx, st));
   if (o.yn.length) out.push(`Dreifachbindung bei C${nums(o.yn)} → **-in**.`);
   if (r.prefixes.length) {
-    const list = r.prefixes.map(p => `**${cap(`${p.locs.length ? p.locs.join(",") + "-" : ""}${p.locs.length > 1 ? MULT[p.locs.length] : ""}${p.name}`)}**`);
+    const list = r.prefixes.map(p => `**${cap(prefixLabel(o, p))}**`);
     out.push(`Vorsilben: ${list.join(", ")}.`);
     if (r.prefixes.length > 1) out.push(`Alphabetisch ordnen (di, tri zählen nicht): ${r.prefixes.map(p => cap(p.name.replace(/[()]/g, ""))).join(" · ")}.`);
   }
@@ -1250,7 +1268,7 @@ function stepsEn(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk, rival?: Op
   if (K === "ester") out.push(`Principal group: **ester** ${info!.group}. Name = alkyl part + acid part ending in **-oate**.`);
   else if (site.lactone) out.push(`Principal group: C=O in the ring next to ${site.lactone.el} – ${/^[aeiou]/.test(LACTONE_OF[site.lactone.cls]) ? "an" : "a"} **${LACTONE_OF[site.lactone.cls]}**. Ending as for a ketone: **-one**${mult}.`);
   else if (site.ol) out.push(`Principal group: **hydroxy group** –OH ${site.ol === "aromat" ? "on the aromatic ring" : "on a C=C (enol)"} → ending **-ol**${mult}.`);
-  else if (info && n) out.push(`Principal group: **${info.label.toLowerCase()}** ${info.group} → ending **${info.suffix}**${mult}.`);
+  else if (info && n) out.push(`Principal group: **${info.label.toLowerCase()}** ${groupText(ctx, o, K!)} → ending **${info.suffix}**${mult}.`);
   else if (o.kind === "ring" && o.ring!.kind === "hetero") out.push("No group with an ending: the ring with a heteroatom has its own name.");
   else out.push("No group with an ending: the name ends in **-ane**, **-ene** or **-yne**.");
   const others = RANK.filter(k => k !== K && ctx.groups.some(x => x.kind === k));
@@ -1271,7 +1289,7 @@ function stepsEn(ctx: Ctx, o: Option, K: Kind | undefined, r: NameOk, rival?: Op
   for (const st of r.stereo) out.push(ezStep(ctx, st));
   if (o.yn.length) out.push(`Triple bond at C${nums(o.yn)} → **-yne**.`);
   if (r.prefixes.length) {
-    const list = r.prefixes.map(p => `**${prefixEn(`${p.locs.length ? p.locs.join(",") + "-" : ""}${p.locs.length > 1 ? MULT[p.locs.length] : ""}${p.name}`)}**`);
+    const list = r.prefixes.map(p => `**${prefixEn(prefixLabel(o, p))}**`);
     out.push(`Prefixes: ${list.join(", ")}.`);
     if (r.prefixes.length > 1) out.push(`Sort alphabetically (di, tri do not count): ${r.prefixes.map(p => prefixEn(p.name.replace(/[()]/g, ""))).join(" · ")}.`);
   }

@@ -701,12 +701,16 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   nach der die beste Nummerierung gegen die nächstbeste gewinnt (`reverseRule`), mit beiden Nummern; was von beiden Seiten gleich ist, steht davor („Die ranghöchste Gruppe
   hat von beiden Seiten C3. Dann entscheidet der Ast: 2 statt 4.“, Alphabet, Z); Heterocyclus: „Das Heteroatom im Ring hat immer die Nummer 1. Weiter so zählen, dass …“;
   Name ohne Nummern (Ethanol, Phenol): „Die Nummer steht nicht im Namen: Er ist auch ohne eindeutig.“ Benzolring mit einer Gruppe: „Statt Benzenol heißt es Phenol
-  (eingeführter Name).“ Ester: Säureteil, Alkylteil (ohne Bindestrich).
+  (eingeführter Name).“ Ring mit einer ranghöchsten Gruppe: „Das C mit der ranghöchsten Gruppe ist C1. Weiter so zählen, dass …“ (kein „1 statt 2“).
+  Vorsilben wie im Namen, zusammengesetzte in Klammern (4-(1-Methylethyl), 4,5-Bis(1-methylethyl)); Gruppe des Amins/Amids nach den H am N
+  (–NH₂, –NH–, –N<; –CONH₂, –CONH–, –CON<). Ester: Säureteil, Alkylteil (ohne Bindestrich).
   Zahlwörter für gleiche Teile bis 99 (`MULT`/`MULT_X` in `rings.ts`: … deca, undeca, dodeca, icosa, henicosa, docosa, triaconta …; Tetradecachlorhexan).
   Endungen in Sätzen (Lösungsweg, Quiz-Texte, Erklärung, Erklärkarten) mit geschütztem Bindestrich U+2011 (`keepEnding`), damit „-in“ nie am Zeilenende
   getrennt wird, und nach „–“ vor Formeln mit Wortverbinder U+2060 (–COO–, –OH); Namen und Antworten bleiben unverändert.
   `layout.ts` (Zickzack 120°, Ringe als Vielecke, Start am fernsten C; an C=C nie eine gerade Linie und nie beide Gruppen auf derselben Seite, sonst wäre E/Z nicht ablesbar;
-  Endatome an gedrängten Stellen – Halogene, Äste, =O – in die 15°-Richtung mit dem größten Abstand, `spreadLeaves`: Perchlorhexan ≥ 0,7 Bindungslängen),
+  gedrängte Äste – Endatome, Teilbäume und Ringe als Ast bis 8 Atome – starr um ihr Anknüpfungsatom in die freieste 15°-Richtung gedreht, am Ring nur nach außen,
+  nicht an C=C außerhalb kleiner Ringe, `spreadBranches`: Perchlorhexan ≥ 0,7 Bindungslängen, Prüfmoleküle ohne Abstand < 0,5;
+  `orient` dreht kleine Bilder in 30°-Schritten passend zur Fläche),
   `edit.ts` (Anhängen, Ziehen, Ring schließen, Bindung 1→2→3, Tauschen, Löschen), `smiles.ts` (Kurzschreibweise für Beispiele/Tests, E/Z mit / und \).
   Der Test prüft u. a. alle Beispiele, Namen unabhängig von der Atomreihenfolge (Zufallsmoleküle) und die Laufzeit.
 - E/Z (`stereo.ts`): Rangfolge der Gruppen an jedem C der Doppelbindung nach CIP (Ordnungszahl, Sphäre für Sphäre, Mehrfachbindungen und Ringschlüsse als Duplikate),
@@ -728,8 +732,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Name erst nach „Benennen“, danach live; Knopf „Farbe“ (gespeichert): jeder Teil des Namens hat eine Farbe – Stamm blau, ranghöchste Gruppe rot, jede Vorsilbe
   (Methyl, Ethyl, Hydroxy, Oxo …) und der Alkylteil des Esters eigene –, dieselbe Farbe im Namen und an den Atomen der Formel (`NamePart`/`groupsByKey` aus naming.ts, `components/colors.ts`); Hauptkette hinterlegt, Nummern rot, ranghöchste Gruppe markiert. Werkzeuge: Beispiele (nach Stoffklasse) | Schritte (Lösungsweg) | Gruppen (Rangfolge) | Ansicht | 3D | Zurück | Neu;
   lange Beschriftungen mit weichen Trennstellen U+00AD (Bei|spiele, Schrit|te, Grup|pen; Exam|ples, Skel|etal), bei 360 px zweizeilig statt abgeschnitten.
-  Läge ein Atom unter „Farbe“ oder „Ordnen“, bleibt oben ein Streifen frei (`covered`, `TOP` in `Editor.tsx`) – höchstens so hoch, dass Bindungen dadurch nicht
-  unter 45 px schrumpfen (Tippziel ≥ 44 px); sonst kein Streifen, damit nichts unnötig kleiner wird.
+  Läge ein Atom unter „Farbe“ oder „Ordnen“, bleibt oben ein Streifen frei (`covered`, `TOP` in `Editor.tsx`); sonst kein Streifen, damit nichts unnötig kleiner
+  wird. Tippziele bleiben ≥ 44 px, auch verkleinert: Atome mit festem Radius in px, Bindungen mit Strichbreite nach der schmalen Seite der Bindung.
+  Ziehen auf ein volles Atom: Meldung in der eingestellten Sprache, markiert wird das volle Atom (Start oder Ziel).
   Stifte auch bei 360 px Breite (mit „Lesbar“) mindestens 44 × 44 px in einer Reihe.
   Start: Gerüstformel, Farbe an, Beispiel 2-Methyl-3-oxohexansäure mit Name (`START` im Store; ältere Stände einmal umgestellt).
   Name in Farbe = farbige, kräftige Schrift (keine hinterlegte Fläche); Stamm blau, ranghöchste Gruppe rot, Vorsilben grün/violett/grünblau …
@@ -739,17 +744,25 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Nur chemisch mögliche Moleküle (kein Ast am C des Ketons; Test: Wertigkeit in allen Aufgaben aller Generatoren). Jede Rückmeldung passt zum Distraktor:
   andere Seite nennt die entscheidende Regel mit den Nummern („Das C der –CHO-Gruppe ist immer C1.“, „Dann entscheidet das Alphabet: Ethyl bekommt die 3.“,
   „2,5,5 statt 3,3,6. Der erste Unterschied entscheidet.“), ohne di/tri und nicht alphabetisch mit den Vorsilben der Aufgabe; andere Gruppe an derselben Stelle
-  ändert nur die Gruppe (Aldehyd/Säure nur am Kettenende); Name → Formel: COOH bleibt ganz, Stolperstein nach dem Unterschied der Namen (nummer, zaehlen, endung,
-  sonst formel-lesen). Level 4 mit Oxo-Vorsilben (=O neben Säure oder Aldehyd); falsche Rangfolge als Name nicht bei Säuren (sonst „1-Hydroxy-…-1-oxo…“).
+  ändert nur die Gruppe (Aldehyd/Säure nur am Kettenende); Name → Formel (`formulaMiss`): COOH bleibt ganz, kein zweites O/N am selben C, Rückmeldung nennt den
+  Unterschied – andere ranghöchste Gruppe (endung), abweichende Vorsilben (formel-lesen), Kette ±1 C (zaehlen), alle Nummern gespiegelt (nummer: vom falschen
+  Ende gezählt), sonst eine Gruppe an anderer Stelle (stelle: „Methyl sitzt hier an C3 statt an C2“). Antworten 2 × 2, die vier Formeln teilen sich die Höhe der Karte
+  (nie abgeschnitten), gedreht passend zur Zelle (`orient`); Atom-Beschriftung in Aufgabenbild und Antworten mindestens 13 px (`labelScale` aus dem gemessenen
+  Maßstab); wird ein Bild niedriger als `data-min-h`, stehen Tipp und erster Schritt im Blatt. Erklärung aus dem Lösungsweg ohne die Zeile „Nummerieren“, wenn eine
+  Rückmeldung schon die Zählrichtung nennt. Moleküle, deren Zählrichtung das Alphabet oder der erste Unterschied entscheidet (nicht eingeführt), fragt das Quiz
+  nicht ab (`rareRule`). Level 4 mit Oxo-Vorsilben (=O neben Säure oder Aldehyd); falsche Rangfolge als Name nicht bei Säuren (sonst „1-Hydroxy-…-1-oxo…“);
+  prio: OH/C=O der COOH-Gruppe genau benannt, ein zusätzliches Keton wird genannt. Kein „cis/trans“ (nirgends eingeführt).
   Tipps sind Denkschritte ohne Zuordnung und ohne Rangfolge (endung: „Bestimme zuerst die Gruppe …“, prio: „Benenne zuerst jede Gruppe … Plätze in der Rangfolge“,
   stamm: „Welcher Stamm gehört zu dieser Zahl?“; Test). klasse: Rückmeldung beschreibt die gewählte Klasse, die Erklärung die richtige (kein Satz doppelt).
   Level: 1 Alkane (Stämme bis Dec, längste Kette, Äste) · 2 Doppel- und Dreifachbindung (Alken/Alkin, Lage, E/Z) · 3 Funktionelle Gruppen (Stoffklassen, Endungen, Ester) ·
   4 Mehrere Gruppen (Rangfolge, Vorsilben, Name → Formel); feste Reihenfolge je Level. Erklärkarten (`quiz/explain.tsx`) führen ein, was die Erklärung nicht hat
   (Hept … Dec, Alken/Alkin, Stoffklasse, Ordnungszahl bei E/Z, Chlor-/Amino-Vorsilben; Level 3 alle Klassen fett mit Gruppe: Alkohol, Aldehyd, Keton, Carbonsäure, Amin,
-  Ester, Ether; Level 4 **ranghöchste Gruppe**). Begriff „Äste“ überall (Quiz, Lösungsweg `naming.ts`, Stolpersteine; englisch „branches“); „ranghöchste Gruppe“
+  Ester, Ether – Ester: „–COO– verbindet Säureteil und Alkylteil“; Level 1 di/tri und alphabetisch, di/tri zählen nicht; Level 2 bei gleichem Atom entscheiden die
+  **Nachbarn**; Level 4 **ranghöchste Gruppe**, Oxo- = C=O). Begriff „Äste“ überall (Quiz, Lösungsweg `naming.ts`, Stolpersteine; englisch „branches“); „ranghöchste Gruppe“
   (englisch „principal group“) statt „Hauptgruppe“, das im Atombau die Gruppe im PSE ist.
-- Erklärung (22 Schritte, keine Stufen): **Alkane** (Stamm, Methan … Hexan) · **Äste und Nummern** (Hauptkette, Ast, Methyl, Nummerierung vom nahen Ende) ·
-  **Mehrfachbindungen** (-en = Alken, -in = Alkin, Nummer, E/Z) · **Alkohole** (halb gelöst ohne Aldehyd/Keton, die erst später kommen) · **Säuren und Rangfolge**
+- Erklärung (24 Schritte, keine Stufen): **Alkane** (Stamm, Methan … Hexan) · **Äste und Nummern** (Hauptkette, Ast, Methyl, Nummerierung vom nahen Ende, di/tri,
+  **Ethyl**, alphabetisch, di/tri zählen nicht) · **Mehrfachbindungen** (-en = Alken, -in = Alkin, Nummer, E/Z, gleiches Atom: die **Nachbarn** entscheiden) ·
+  **Alkohole** (halb gelöst ohne Aldehyd/Keton, die erst später kommen; selbst: Beginn der Nummerierung bei Butan-2-ol) · **Säuren und Rangfolge**
   (Carbonsäure, Aldehyd, Keton, Amin, Vorsilbe fett eingeführt; erst **Rangfolge**, dann **ranghöchste Gruppe** = die Gruppe, die in der Rangfolge vorn steht).
   Richtige Antwort an wechselnden Plätzen (Test: höchstens 40 % an Platz 1).
 
@@ -1001,6 +1014,12 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Nomenklatur: Nachprüfung Runde 3** – „Name → Formel“ (Level 4) zeigt alle vier Antworten ganz (vorher war Antwort D auf allen Größen abgeschnitten oder unsichtbar): 2 × 2,
+  teilen sich die Höhe der Karte, je Zelle passend gedreht, Atomschrift ≥ 13 px auch im Aufgabenbild. Rückmeldungen nennen den Denkfehler (Gruppe an anderer Stelle, vom falschen
+  Ende gezählt, Vorsilbe fehlt, Kette ±1 C); Erklärung ohne doppelten Satz; keine Aufgaben mit nicht eingeführten Regeln (Alphabet/erster Unterschied beim Nummerieren); kein cis/trans.
+  Erklärung um Ethyl, alphabetische Ordnung (di/tri zählen nicht) und E/Z bei gleichem erstem Atom ergänzt (24 Schritte), Karten präzisiert (Oxo- = C=O). Lösungsweg mit Klammern bei
+  zusammengesetzten Vorsilben, Amin/Amid nach den H am N (–NH–, –N<, –CONH–), „Das C mit der ranghöchsten Gruppe ist C1“. Zeichenfläche: Meldungen übersetzt, Bindungen als
+  Tippziel ≥ 44 px, keine Atome unter den Knöpfen, gedrängte Äste und Ringe auseinandergedreht (Abstand < 0,5 Bindungslängen bei 52 786 Prüfmolekülen von 106 auf 0).
 - **Reaktionsgleichungen, Neutralisation, Einheiten: Nachprüfung Runde 3** – Reaktionsgleichungen: Teilchenbild nie zerdrückt (vorher bis 0 px auf kleinen Handys; zu wenig Platz →
   Knopf „Teilchenbild ansehen“ mit Blatt), „So geht's“ (ⓘ) als Blatt mit den Regeln (Zahl vervielfacht alle Atome des Stoffs, Formeln nie ändern, kürzen) und Mini-Beispiel, Tipp ein-
   und ausblendbar, HCl „Chlorwasserstoff“ (Salzsäure ist die Lösung), Üben ohne schon ausgeglichene oder stufenfremde Gleichung. Neutralisation: „bauen“ im Quiz mit eingepasster Wand

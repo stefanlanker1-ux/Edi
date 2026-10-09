@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { GENS, LEVELS, makeRound, nameDistractors, TYPE_NAMES, type Task } from "./tasks.ts";
+import { formulaMiss, GENS, LEVELS, makeRound, nameDistractors, TYPE_NAMES, type Task } from "./tasks.ts";
 import { MISS } from "./misconceptions.ts";
 import type { Diag } from "@lern/quiz";
 import { keepEnding, name, type NameOk } from "../chem/naming.ts";
@@ -114,6 +114,40 @@ describe("Aufgaben", () => {
   });
   test("Mehrere Gruppen: bei Säuren kein Name, der die COOH-Gruppe zerlegt (1-Hydroxy-…-1-oxo)", () => {
     for (const t of many("mehrere", 120) as (Task & { kind: "mc" })[]) for (const o of t.options) expect(o).not.toMatch(/1-Hydroxy.*1-oxo/i);
+  }, 60_000);
+  test("Name → Formel: Rückmeldung nennt den Denkfehler, „vom falschen Ende“ nur bei gespiegelten Nummern", () => {
+    const f = (target: string, chosen: string) => formulaMiss(name(smilesMol(target)) as NameOk, name(smilesMol(chosen)) as NameOk);
+    expect(f("CC(C)CCCC", "CCC(C)CCC")).toEqual({ miss: "stelle", why: "Methyl sitzt hier an C3 statt an C2 – diese Formel heißt 3-Methylhexan." });
+    expect(f("CC(C)CCCC", "CCCCCCC")).toEqual({ miss: "formel-lesen", why: "Hier fehlt Methyl – diese Formel heißt Heptan." });
+    expect(f("CC(C)CCCC", "CC(C)CCC")).toEqual({ miss: "zaehlen", why: "Die Hauptkette hat hier 5 C statt 6 – diese Formel heißt 2-Methylpentan." });
+    // 3-Methylbutansäure vom anderen Ende gezählt: Methyl an C2
+    expect(f("CC(C)CC(=O)O", "CCC(C)C(=O)O").miss).toBe("nummer");
+    expect(f("CC(O)CCC", "CCC(O)CC")).toEqual({ miss: "stelle", why: "Die Gruppe –OH sitzt hier an C3 statt an C2 – diese Formel heißt Pentan-3-ol." });
+    expect(f("CC(=O)CCC", "CC(O)CCC").miss).toBe("endung");
+    for (const t of many("struktur", 60) as (Task & { kind: "mc" })[]) t.options.forEach((o, i) => {
+      if (i === t.answer) return;
+      expect(t.why![i], o).toMatch(/heißt|Diese Formel/);
+      if (t.miss?.[i] !== "formel-lesen") expect(t.why![i], o).not.toMatch(/^Diese Formel heißt/);
+    });
+  }, 60_000);
+  test("Name → Formel: kein zweites O oder N am selben C (kein 1,1-Diol)", () => {
+    for (const t of many("struktur", 300) as (Task & { kind: "mc" })[]) for (const o of t.options) expect(o).not.toMatch(/(\d+),\1-di(ol|amin)/);
+  }, 120_000);
+  test("Erklärung wiederholt nicht die Rückmeldung zur Zählrichtung", () => {
+    for (const id of ["alkan", "alken", "gruppen", "mehrere"]) for (const t of many(id, 40) as (Task & { kind: "mc" })[]) {
+      if (Object.values(t.miss ?? {}).includes("nummer")) expect(t.explain, id).not.toMatch(/Nummerieren/);
+    }
+  }, 60_000);
+  test("keine Aufgaben, deren Zählrichtung das Alphabet oder der erste Unterschied entscheidet (nicht eingeführt)", () => {
+    for (const id of ["alkan", "alken", "gruppen", "mehrere"]) for (const t of many(id, 60)) {
+      const rv = (name(t.mol!, { pick: "reverse" }) as NameOk).reverse;
+      if (rv) expect(rv.rule, id).not.toBe("alpha");
+    }
+  }, 120_000);
+  test("Rangfolge: Rückmeldungen genau (Keton neben COOH), Ester ohne „zwei Kohlenstoffteile“", () => {
+    for (const t of many("prio", 80) as (Task & { kind: "mc" })[]) for (const w of Object.values(t.why ?? {})) expect(w).not.toMatch(/Das C=O gehört zur COOH-Gruppe/);
+    for (const t of many("klasse", 60)) expect([t.explain, ...Object.values(t.kind === "mc" ? t.why ?? {} : {})].join(" ")).not.toMatch(/zwei Kohlenstoffteil/);
+    expect(MISS.stelle).toBeTruthy();
   }, 60_000);
   test("Level: Typen bekannt, Runden mit 10 Aufgaben", () => {
     for (const l of LEVELS) for (const ty of l.types) expect(TYPE_NAMES[ty]).toBeTruthy();

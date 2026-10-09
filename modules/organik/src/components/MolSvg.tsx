@@ -74,6 +74,8 @@ export interface MolSvgProps {
   className?: string;
   /** Mindestgröße des Ausschnitts in Bindungslängen (kleine Moleküle nicht riesig) */
   minW?: number; minH?: number;
+  /** Beschriftung und Striche größer im Verhältnis zur Bindung (kleine Bilder im Quiz: Atome bleiben lesbar); 1 = normal */
+  labelScale?: number;
   /** fester Ausschnitt (Zeichenfläche: Maßstab bleibt beim Zeichnen gleich) */
   viewBox?: [number, number, number, number];
   /** interaktive Ebene (Treffer, Vorschau) – liegt über der Zeichnung */
@@ -96,14 +98,14 @@ export function viewBoxOf(mol: Mol, view: View, minW = 4, minH = 3): [number, nu
   return [x0 * U, y0 * U, (x1 - x0) * U, (y1 - y0) * U];
 }
 
-export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, ez, label, className, minW, minH, viewBox, children, svgRef, ...ptr }: MolSvgProps) {
+export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, ez, label, className, minW, minH, viewBox, labelScale = 1, children, svgRef, ...ptr }: MolSvgProps) {
   const g = graph(mol);
   const pos = new Map(mol.atoms.map(a => [a.id, { x: a.x * U, y: a.y * U }]));
   const lewis = view === "lewis";
   const decos = lewis ? decorations(mol) : [];
   // Gerüstformel: C ohne Beschriftung (außer allein stehend)
   const shown = (id: number) => lewis || g.el.get(id) !== "C" || g.nb.get(id)!.length === 0;
-  const R = 0.22 * U;
+  const R = 0.22 * U * labelScale;
   const vb = viewBox ?? viewBoxOf(mol, view, minW, minH);
   // Mittelpunkt des Rings je Ringbindung: Doppelbindung als zweiter Strich innen (wie üblich gezeichnet)
   const ringCenter = new Map<string, { x: number; y: number }>();
@@ -160,7 +162,8 @@ export function MolSvg({ mol, view, parent, parentRing, numbers, group, tint, ez
   });
 
   return (
-    <svg ref={svgRef} className={`mol-svg${className ? " " + className : ""}`} viewBox={vb.join(" ")} role="img" aria-label={label} {...ptr}>
+    <svg ref={svgRef} className={`mol-svg${className ? " " + className : ""}`} viewBox={vb.join(" ")} role="img" aria-label={label}
+      style={labelScale !== 1 ? ({ "--k": labelScale } as React.CSSProperties) : undefined} {...ptr}>
       {!tint && band}
       {tint && mol.bonds.filter(b => tint.get(b.a) && tint.get(b.a) === tint.get(b.b)).map((b, i) => {
         const p = pos.get(b.a)!, q = pos.get(b.b)!;

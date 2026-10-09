@@ -177,11 +177,15 @@ describe("Ergebnis", () => {
     expect(nm("CC(O)C").steps.join(" ")).not.toMatch(/Hauptgruppe/);
   });
   test("Lösungsweg „Nummerieren“: die Regel, die entscheidet, mit beiden Nummern", () => {
-    const line = (s: string) => nm(s).steps.find(x => /^Nummerieren|^Das Heteroatom/.test(x));
+    const line = (s: string) => nm(s).steps.find(x => /^Nummerieren|^Das Heteroatom|^Das C mit/.test(x));
     expect(line("CC(C)C(=O)CC")).toBe("Nummerieren: Die **ranghöchste Gruppe** hat von beiden Seiten C3. Dann entscheidet der **Ast**: 2 statt 4.");
     expect(line("CCC(CC)CC(C)CC")).toBe("Nummerieren: Die **Äste** haben von beiden Seiten C3 und C5. Dann entscheidet das Alphabet: **Ethyl** bekommt die 3.");
     expect(line("CC(C)CCC=O")).toBe("Nummerieren: so, dass die **ranghöchste Gruppe** die kleinste Nummer bekommt: 1 statt 5.");
-    expect(line("CC1=CC=CC(O)=C1")).toBe("Nummerieren: Die **ranghöchste Gruppe** hat in beiden Zählrichtungen C1. Dann entscheidet der **Ast**: 3 statt 5.");
+    // Ring mit einer ranghöchsten Gruppe: ihr C ist C1 (kein „1 statt 2“)
+    expect(line("CC1=CC=CC(O)=C1")).toBe("Das C mit der ranghöchsten Gruppe ist C1. Weiter so zählen, dass der **Ast** die kleinste Nummer bekommt: 3 statt 5.");
+    expect(line("CC1=CC=C(C(=O)O)C=C1")).toMatch(/^Das C mit der ranghöchsten Gruppe ist C1\./);
+    expect(line("CC1(O)CCCCC1")).toMatch(/^Das C mit der ranghöchsten Gruppe ist C1\./);
+    for (const s of ["CC1=CC=C(C(=O)O)C=C1", "CC1(O)CCCCC1", "OC1CCCCC1"]) expect(nm(s).steps.join(" ")).not.toMatch(/1 statt 2/);
     // Heterocyclus: das Heteroatom ist immer 1, erst dann die anderen Regeln
     expect(line("CC1=CN=CC=C1")).toBe("Das Heteroatom im Ring hat immer die Nummer 1. Weiter so zählen, dass der **Ast** die kleinste Nummer bekommt: 3 statt 5.");
     expect(line("O=C1CCCO1")).toMatch(/^Das Heteroatom im Ring hat immer die Nummer 1\. Weiter so zählen, dass die \*\*ranghöchste Gruppe\*\* .*: 2 statt 5\.$/);
@@ -193,6 +197,15 @@ describe("Ergebnis", () => {
       expect(line2("CC(C)C(=O)CC")).toBe("Numbering: The **principal group** is at C3 from both ends. Then the **branch** decides: 2 instead of 4.");
       expect(line2("CC1=CN=CC=C1")).toBe("The heteroatom in the ring always gets number 1. Then count so that the **branch** gets the lowest number: 3 instead of 5.");
     } finally { setLang("de", false); }
+  });
+  test("Lösungsweg: zusammengesetzte Vorsilben in Klammern wie im Namen, Gruppe des Amins/Amids nach den H am N", () => {
+    const pre = (s: string) => nm(s).steps.find(x => x.startsWith("Vorsilben"));
+    expect(pre("CCCC(C(C)C)CCC")).toBe("Vorsilben: **4-(1-Methylethyl)**.");
+    expect(pre("CCCC(C(C)C)C(C(C)C)CCC")).toBe("Vorsilben: **4,5-Bis(1-methylethyl)**.");
+    expect(nm("CCNC").steps[0]).toMatch(/\*\*Amin\*\* –\u2060?NH–/);
+    expect(nm("CN(C)CCC").steps[0]).toMatch(/\*\*Amin\*\* –\u2060?N</);
+    expect(nm("CC(=O)NC").steps[0]).toMatch(/\*\*Amid\*\* –\u2060?CONH–/);
+    expect(nm("CCN").steps[0]).toMatch(/\*\*Amin\*\* –\u2060?NH₂/);
   });
   test("Lösungsweg: eingeführter Name am Benzolring, Säureteil und Alkylteil", () => {
     expect(nm("OC1=CC=CC=C1").steps).toContain("Statt Benzenol heißt es **Phenol** (eingeführter Name).");

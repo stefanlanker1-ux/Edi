@@ -41,9 +41,8 @@ function extent(mol: Mol, pad: number): [number, number, number, number] {
   return [Math.min(...xs) - pad, Math.max(...xs) + pad, Math.min(...ys) - pad, Math.max(...ys) + pad];
 }
 
-/** Knöpfe oben auf der Zeichenfläche (px): „Farbe“ links bis LEFT, „Ordnen“ rechts ab Rand − RIGHT, beide bis TOP.
- *  S_TAP = kleinster Maßstab (px je Bindung), bei dem eine schräge Bindung noch ein Tippziel ≥ 44 px ist */
-const TOP = 54, LEFT = 136, RIGHT = 56, S_TAP = 45;
+/** Knöpfe oben auf der Zeichenfläche (px): „Farbe“ links bis LEFT, „Ordnen“ rechts ab Rand − RIGHT, beide bis TOP */
+const TOP = 54, LEFT = 136, RIGHT = 56;
 
 /** Liegt ein Atom (mit Beschriftung, Radius `r` in Bindungslängen) unter einem der Knöpfe oben? */
 function covered(c: Cam, mol: Mol, w: number, h: number, r: number, left: boolean, right: boolean): boolean {
@@ -82,10 +81,9 @@ export function Editor({ res }: { res: NameResult }) {
     const pad = view === "lewis" ? 1 : 0.7;
     const full = follow(cam.current, mol, size.w, size.h, pad, sMax);
     // läge ein Atom unter „Farbe“ oder „Ordnen“, bleibt oben ein Streifen frei (sonst nicht: kein unnötiges Verkleinern);
-    // höchstens so hoch, dass Bindungen dadurch nicht unter S_TAP schrumpfen (kleine Handys: lieber etwas Überlappung als zu kleine Tippziele)
-    let top = Math.min(TOP, size.h / 4);
-    if (full.s >= S_TAP) { const [, , y0, y1] = extent(mol, pad); top = Math.min(top, size.h - S_TAP * (y1 - y0)); }
-    if (top > 4 && covered(full, mol, size.w, size.h, view === "lewis" ? 0.9 : 0.4, shown && res.ok, mol.atoms.length >= 3)) {
+    // die Tippziele bleiben trotzdem ≥ 44 px (Atome mit festem Radius in px, Bindungen mit passender Strichbreite)
+    const top = Math.min(TOP, size.h / 4);
+    if (covered(full, mol, size.w, size.h, view === "lewis" ? 0.9 : 0.4, shown && res.ok, mol.atoms.length >= 3)) {
       // `cam` bezieht sich immer auf die ganze Fläche, der Streifen verschiebt die Mitte um top/2
       const shift = (k: Cam, d: number): Cam => ({ ...k, cy: k.cy + d / 2 / k.s });
       cam.current = shift(follow(cam.current && shift(cam.current, top), mol, size.w, size.h - top, pad, sMax), -top);
@@ -96,6 +94,8 @@ export function Editor({ res }: { res: NameResult }) {
     ? [(c.cx - size.w / 2 / c.s) * U, (c.cy - size.h / 2 / c.s) * U, (size.w / c.s) * U, (size.h / c.s) * U] : undefined;
   /** Trefferradius in Bindungslängen: mindestens 24 px, damit jedes Tippziel ≥ 48 px ist */
   const hitR = Math.max(0.42, c ? 24 / c.s : 0.42);
+  /** 44,5 px in Bindungslängen (Tippziel der Bindungen) */
+  const tap = c ? 44.5 / c.s : 0;
   // zuletzt angefügtes Atom kurz hervorheben (sichtbare Rückmeldung zum Tippen)
   const prevIds = useRef(new Set<number>());
   const fresh = mol.atoms.filter(a => prevIds.current.size && !prevIds.current.has(a.id)).map(a => a.id);
@@ -203,8 +203,12 @@ export function Editor({ res }: { res: NameResult }) {
       }
       if (!d.moved || mode !== "add" || !isEl(pen)) { tapAtom(d.from); return; }
       const t = target(d);
-      if (t.atom !== undefined) apply(connect(mol, d.from, t.atom), d.from,
-        freeValence(mol, d.from) < 1 ? undefined : `${elLabel(elOf(t.atom)!)} hat keine freie Bindung mehr`);
+      if (t.atom !== undefined) {
+        // geht die Bindung nicht, wird das volle Atom markiert und genannt: erst das Startatom, sonst das Ziel (Dreifachbindung: „Geht hier nicht“)
+        const m = connect(mol, d.from, t.atom);
+        if (m) apply(m);
+        else refuse(freeValence(mol, d.from) < 1 ? d.from : freeValence(mol, t.atom) < 1 ? t.atom : null);
+      }
       else if (atomAt(mol, t.x, t.y, 0.35) !== undefined) refuse(d.from, tr("Dort ist schon ein Atom", "There is already an atom there"));
       else apply(appendAt(mol, d.from, pen, t.x, t.y), d.from);
       return;
@@ -243,8 +247,10 @@ export function Editor({ res }: { res: NameResult }) {
           {mol.bonds.map(b => {
             const p = mol.atoms.find(a => a.id === b.a)!, q = mol.atoms.find(a => a.id === b.b)!;
             const order = tr(["Einfach", "Doppel", "Dreifach"], ["Single", "Double", "Triple"])[b.order - 1];
+            // Tippfläche in beiden Richtungen ≥ 44 px, auch bei kleinem Maßstab: schmale Seite der Bindung + Strichbreite
+            const w = Math.max(0.4, hitR * 0.9, tap - Math.min(Math.abs(p.x - q.x), Math.abs(p.y - q.y)));
             return (
-              <line key={`${b.a}-${b.b}`} data-bond={`${b.a}-${b.b}`} className="og-hit-bond" style={{ strokeWidth: Math.max(0.4, hitR * 0.9) * U }} x1={p.x * U} y1={p.y * U} x2={q.x * U} y2={q.y * U}
+              <line key={`${b.a}-${b.b}`} data-bond={`${b.a}-${b.b}`} className="og-hit-bond" style={{ strokeWidth: w * U }} x1={p.x * U} y1={p.y * U} x2={q.x * U} y2={q.y * U}
                 tabIndex={0} role="button" aria-label={tr(`${order}bindung ${p.el}–${q.el}`, `${order} bond ${p.el}–${q.el}`)} onKeyDown={key(() => tapBond(b.a, b.b))} />
             );
           })}

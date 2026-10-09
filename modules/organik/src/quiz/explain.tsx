@@ -13,12 +13,12 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
   "og-n1": { ex: "CCC(C)C(CC)CCC", points: [
     "**Stamm** nach der Zahl der C: Meth, Eth, Prop, But, Pent, Hex, Hept, Oct, Non, Dec + **-an**.",
     "**Längste Kette** suchen – sie muss nicht gerade gezeichnet sein.",
-    "So nummerieren, dass die **Äste kleine Nummern** haben. Äste alphabetisch, gleiche mit di, tri.",
+    "So nummerieren, dass die **Äste kleine Nummern** haben. Gleiche Äste mit **di, tri**, verschiedene **alphabetisch** (di, tri zählen nicht).",
   ] },
   "og-n2": { ex: "C/C=C\\CC", points: [
     "Doppelbindung → **-en** (**Alken**), Dreifachbindung → **-in** (**Alkin**).",
     "Die Mehrfachbindung bekommt die **kleinste Nummer**. Sie steht vor der Endung: But-2-en.",
-    "**E/Z:** An jedem C der Doppelbindung hat die Gruppe mit größerer Ordnungszahl Vorrang. Gleiche Seite = **Z**, verschiedene = **E**.",
+    "**E/Z:** An jedem C der Doppelbindung hat die Gruppe mit größerer Ordnungszahl Vorrang, bei gleichem Atom entscheiden die **Nachbarn** (–CH₂–CH₃ vor –CH₃). Gleiche Seite = **Z**, verschiedene = **E**.",
   ] },
   "og-n3": { ex: "CCC(C)=O", points: [
     "Die Gruppe bestimmt die **Stoffklasse**: **Alkohol** –OH (-ol), **Aldehyd** –CHO (-al), **Keton** C=O in der Kette (-on), **Carbonsäure** –COOH (-säure), **Amin** –NH₂ (-amin).",
@@ -27,19 +27,19 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
   ] },
   "og-n4": { ex: "OC(=O)C(C)C(=O)C(O)C(C)CC", points: [
     "Die Gruppen haben eine feste **Rangfolge**: Säure > Aldehyd > Keton > Alkohol > Amin. Von den Gruppen im Molekül ist die vorderste die **ranghöchste Gruppe**. Sie gibt die Endung.",
-    "Alle anderen werden **Vorsilben**: Oxo-, Hydroxy-, Amino-, Methyl-, Chlor-.",
+    "Alle anderen werden **Vorsilben**: Oxo- (C=O), Hydroxy- (–OH), Amino- (–NH₂), Methyl-, Chlor-.",
     "Die ranghöchste Gruppe bekommt die kleinste Nummer. Vorsilben **alphabetisch**.",
   ] },
 }, {
   "og-n1": { ex: "CCC(C)C(CC)CCC", points: [
     "**Stem** from the number of C: meth, eth, prop, but, pent, hex, hept, oct, non, dec + **-ane**.",
     "Find the **longest chain** – it does not have to be drawn straight.",
-    "Number so that the **branches get low numbers**. Branches alphabetically, identical ones with di, tri.",
+    "Number so that the **branches get low numbers**. Identical branches with **di, tri**, different ones **alphabetically** (di, tri do not count).",
   ] },
   "og-n2": { ex: "C/C=C\\CC", points: [
     "Double bond → **-ene** (**alkene**), triple bond → **-yne** (**alkyne**).",
     "The multiple bond gets the **lowest number**. It stands before the ending: but-2-ene.",
-    "**E/Z:** On each C of the double bond, the group with the higher atomic number has priority. Same side = **Z**, opposite = **E**.",
+    "**E/Z:** On each C of the double bond, the group with the higher atomic number has priority; for the same atom the **neighbours** decide (–CH₂–CH₃ before –CH₃). Same side = **Z**, opposite = **E**.",
   ] },
   "og-n3": { ex: "CCC(C)=O", points: [
     "The group decides the **compound class**: **alcohol** –OH (-ol), **aldehyde** –CHO (-al), **ketone** C=O in the chain (-one), **carboxylic acid** –COOH (-oic acid), **amine** –NH₂ (-amine).",
@@ -48,7 +48,7 @@ const TEXT: Record<string, { points: string[]; ex: string }> = tr({
   ] },
   "og-n4": { ex: "OC(=O)C(C)C(=O)C(O)C(C)CC", points: [
     "Groups follow a fixed **order of rank**: acid > aldehyde > ketone > alcohol > amine. Of the groups in the molecule, the one that comes first is the **principal group**. It gives the ending.",
-    "All others become **prefixes**: oxo-, hydroxy-, amino-, methyl-, chloro-.",
+    "All others become **prefixes**: oxo- (C=O), hydroxy- (–OH), amino- (–NH₂), methyl-, chloro-.",
     "The principal group gets the lowest number. Prefixes **alphabetical**.",
   ] },
 });

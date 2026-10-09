@@ -130,7 +130,7 @@ export function layout(mol: Mol): Mol {
   pos.set(start, { x: 0, y: 0 });
   if (ri.ringOf.has(start)) placeRing(start, null);
   else grow(start, -1, -30, -1);
-  spreadLeaves(g, ri, pos);
+  spreadBranches(g, ri, pos);
   // senkrecht ausrichten: nichts; Mittelpunkt auf 0
   const xs = [...pos.values()];
   const cx = (Math.min(...xs.map(p => p.x)) + Math.max(...xs.map(p => p.x))) / 2;
@@ -143,35 +143,77 @@ export function layout(mol: Mol): Mol {
 
 const round = (v: number) => Math.round(v * 1000) / 1000;
 
-/** Endatome (Cl, OH, =O, CH₃ …), die einem anderen Atom zu nahe kommen, um ihr Nachbaratom in die freieste Richtung drehen –
- *  bei vielen Substituenten an aufeinanderfolgenden C (Perchlorhexan) legt der Zickzack sonst Atome fast übereinander.
- *  Nicht an C=C/C=N und Dreifachbindungen (E/Z und gerade Linien bleiben wie gezeichnet) und nicht an Ringatomen. */
-function spreadLeaves(g: Graph, ri: ReturnType<typeof findRings>, pos: Map<number, { x: number; y: number }>) {
-  const nearest = (v: number, q: { x: number; y: number }) => {
+/** Äste – einzelne Endatome (Cl, OH, =O, CH₃), kleine Teilbäume und Ringe als Ast (bis 8 Atome) –, die anderen Atomen zu nahe kommen,
+ *  als Ganzes um ihr Anknüpfungsatom in die freieste Richtung drehen (15°-Schritte, größter kleinster Abstand). Bei vielen Ästen an
+ *  benachbarten C (Perchlorhexan, 3,3-Diethyl-4,5,5-trimethylheptan) oder zwei Ringen am selben C legt der Zickzack sonst Atome fast
+ *  übereinander. Gedreht wird starr (im Ast bleibt alles, wie es war) und immer die kleinere Seite; am Ring nur nach außen.
+ *  Nicht an Atomen mit Dreifachbindung oder einer C=C/C=N außerhalb kleiner Ringe (E/Z und gerade Linien bleiben; C=O darf sich drehen). */
+function spreadBranches(g: Graph, ri: ReturnType<typeof findRings>, pos: Map<number, { x: number; y: number }>) {
+  const n = g.ids.length;
+  const ringBond = (a: number, b: number) => ri.ringOf.has(a) && ri.ringOf.get(a) === ri.ringOf.get(b);
+  /** Atome hinter u (von v aus gesehen) – höchstens 8 und die kleinere Seite */
+  const side = (u: number, v: number): Set<number> | undefined => {
+    const seen = new Set([u]), stack = [u];
+    while (stack.length) {
+      const x = stack.pop()!;
+      for (const m of g.nb.get(x)!) if (m.to !== v && !seen.has(m.to)) { seen.add(m.to); stack.push(m.to); }
+      if (seen.size > 8) return;
+    }
+    return seen.size === 1 || seen.size * 2 < n ? seen : undefined;
+  };
+  /** kleinster Abstand zwischen den Atomen des Asts (Lage `at`) und allen übrigen */
+  const gap = (S: Set<number>, at: (id: number) => { x: number; y: number }) => {
     let d = Infinity;
-    for (const [id, p] of pos) if (id !== v) d = Math.min(d, Math.hypot(p.x - q.x, p.y - q.y));
+    for (const a of S) { const p = at(a); for (const [id, q] of pos) if (!S.has(id)) d = Math.min(d, Math.hypot(p.x - q.x, p.y - q.y)); }
     return d;
   };
   for (let pass = 0; pass < 6; pass++) {
     let moved = false;
     for (const v of g.ids) {
       const nb = g.nb.get(v)!;
-      if (nb.length !== 1 || nb[0].order === 3) continue;
-      const p = nb[0].to;
-      // C=C bzw. C=N am Nachbaratom: die Lage bestimmt E/Z – nicht verschieben; C=O darf sich drehen
-      if (ri.ringOf.has(p) || g.nb.get(p)!.some(n => n.order === 3 || (n.order === 2 && g.el.get(n.to) !== "O"))) continue;
-      const now = nearest(v, pos.get(v)!);
-      if (now >= 0.9) continue;
-      const c = pos.get(p)!;
-      let best = now, bq: { x: number; y: number } | undefined;
-      for (let a = 0; a < 360; a += 15) {
-        const q = { x: c.x + Math.cos(a * RAD), y: c.y + Math.sin(a * RAD) }, d = nearest(v, q);
-        if (d > best + 0.05) { best = d; bq = q; }
+      if (nb.some(m => m.order === 3 || (m.order === 2 && g.el.get(m.to) !== "O" && !(ringBond(v, m.to) && ri.ringOf.get(v)!.atoms.length < 8)))) continue;
+      const c = pos.get(v)!;
+      // am Ring: Richtung nach außen (weg von der Ringmitte)
+      const ring = ri.ringOf.get(v);
+      const out = ring && (() => { const m = ring.atoms.reduce((s, a) => ({ x: s.x + pos.get(a)!.x / ring.atoms.length, y: s.y + pos.get(a)!.y / ring.atoms.length }), { x: 0, y: 0 }); return { x: c.x - m.x, y: c.y - m.y }; })();
+      for (const { to: u, order } of nb) {
+        if (ringBond(u, v) || order === 3 || (order === 2 && g.nb.get(u)!.length > 1)) continue;
+        const S = side(u, v);
+        if (!S) continue;
+        const now = gap(S, a => pos.get(a)!);
+        if (now >= 0.9) continue;
+        const turned = (t: number) => (a: number) => {
+          const p = pos.get(a)!, cs = Math.cos(t * RAD), sn = Math.sin(t * RAD);
+          return { x: c.x + (p.x - c.x) * cs - (p.y - c.y) * sn, y: c.y + (p.x - c.x) * sn + (p.y - c.y) * cs };
+        };
+        const outward = (q: { x: number; y: number }) => !out || (q.x - c.x) * out.x + (q.y - c.y) * out.y > 0.3 * Math.hypot(out.x, out.y);
+        let best = now, bt = 0;
+        for (let t = 15; t < 360; t += 15) {
+          const at = turned(t);
+          if (!outward(at(u))) continue;
+          const d = gap(S, at);
+          if (d > best + 0.05) { best = d; bt = t; }
+        }
+        if (bt) { const at = turned(bt), next = [...S].map(a => [a, at(a)] as const); for (const [a, q] of next) pos.set(a, q); moved = true; }
       }
-      if (bq) { pos.set(v, bq); moved = true; }
     }
     if (!moved) break;
   }
+}
+
+/** Für kleine Bilder (Antwortformeln im Quiz): um ein Vielfaches von 30° drehen, sodass die Formel in eine Fläche mit dem
+ *  Seitenverhältnis `aspect` (Breite : Höhe) möglichst groß passt. Die Bindungen bleiben im 30°-Raster, E/Z bleibt (keine Spiegelung). */
+export function orient(mol: Mol, aspect: number, pad = 0.7): Mol {
+  let best = mol, bs = -1;
+  for (let k = 0; k < 12; k++) {
+    const c = Math.cos(k * 30 * RAD), s = Math.sin(k * 30 * RAD);
+    const atoms = mol.atoms.map(p => ({ ...p, x: round(p.x * c - p.y * s), y: round(p.x * s + p.y * c) }));
+    const xs = atoms.map(p => p.x), ys = atoms.map(p => p.y);
+    const w = Math.max(...xs) - Math.min(...xs) + 2 * pad, h = Math.max(...ys) - Math.min(...ys) + 2 * pad;
+    const sc = Math.min(aspect / w, 1 / h);
+    if (sc > bs + 1e-6) { bs = sc; best = { ...mol, atoms }; }
+  }
+  return best;
 }
 
 /** Richtung (Grad) für ein neues Atom an `id`: größte Lücke zwischen den Bindungen, Zickzack, gerade bei Dreifachbindung */
