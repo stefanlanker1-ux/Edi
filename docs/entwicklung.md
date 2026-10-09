@@ -600,8 +600,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
 - Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionenwand mit Zählern) · **Die Formel** (Verhältnisformel, Index, kleinstes
   Verhältnis; Formel-Baukasten mit Index-Zählern, Reihenfolge-Tausch, Ionenwand darunter) · **Der Name** (Metall + Wortstamm + -id; Oxid, Sulfid, Nitrid; Namens-Baukasten aus
-  Wortteilen mit -it und di/tri als Fallen) · **Formel und Name** (Ladung aus der Hauptgruppe einstellen, dann ausgleichen; beide Richtungen). Nur ionische Beispiele
-  (AlF₃ statt AlCl₃); die Ionenwahl zeigt eine Formel nur für Ionen, die es gibt. Test `k2/models.test.ts`.
+  Wortteilen in gemischter, nie lösungsgleicher Reihenfolge, alle gleich gefärbt; Fallen: Elementname statt Stamm, fehlende Endung, Zahlwort, Reihenfolge – kein „-it“, das
+  kommt erst mit den mehratomigen Ionen; bei Ionenverbindungen lässt man die Anzahl im Namen weg) · **Formel und Name** (Ionenwahl: anfangs keine Ladung gewählt, Ausgleich
+  und ✓ nur für Ionen, die es gibt; beide Richtungen). Nur ionische Beispiele (AlF₃ statt AlCl₃). Test `k2/models.test.ts`.
 - Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): **Anziehung und Abstoßung** (Ion wählen `ChargePair`, Ion in der Reihe verschieben `IonRow`,
   quer oder hochkant je nach Bühne) · **Das Ionengitter** (Schicht füllen `LatticeFill`, Nachbarn antippen – 4 in der Schicht, räumliches Gitter `Lattice3D` mit 6 Nachbarn,
   Formel aus dem MgO-Ausschnitt `FormulaModel`) · **Hart, spröde, hohe Schmelztemperatur** (Temperatur-Schieber `ThermoLattice`: NaCl 801 °C, MgO 2852 °C, Schmelze ungeordnet
