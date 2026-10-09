@@ -69,7 +69,9 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 ## Didaktik (verbindlich für alle Module)
 - **Bereich „Üben“** (statt „Lernen“ bzw. Erklärung und Quiz): Name, englischer Name („Practise“) und Zeichen kommen zentral aus `@lern/ui`
   (`uebenTab(id)`, `uebenLabel()`), nie im Modul selbst geschrieben. Alle Module haben diesen Bereich (bei den bisherigen Quiz-Modulen heißt nur der Bereich so, der Inhalt ist das bisherige Quiz). Was im Bereich geübt
-  wird, gestaltet jedes Modul selbst (Polymere und Gemische: Kapitel mit Lektion und Aufgaben; Reaktionsgleichungen: 3 × 10 Gleichungen je Stufe; übrige: Quiz-Runden). **Bausteine des Übens, die mehr als ein Modul nutzt, liegen zentral in `packages/`** (spätestens
+  wird, gestaltet jedes Modul selbst (Polymere und Gemische: Kapitel mit Lektion und Aufgaben; Reaktionsgleichungen: 3 × 10 Gleichungen je Stufe; übrige: Quiz-Runden).
+  **Ausnahme Ionenbindung** (erprobt die neue Ordnung, nur dieses Modul): Bereiche **Lernen | Experimentieren** – „Lernen“ ersetzt Erklärung und Üben durch Kapitel aus je 25 Folien
+  (Erklärung und Aufgaben in einem Fluss, mindestens die Hälfte Modell-Folien; siehe „Ionenbindung“). Alle anderen Module behalten Erklärung | Üben | Experimentieren. **Bausteine des Übens, die mehr als ein Modul nutzt, liegen zentral in `packages/`** (spätestens
   beim zweiten Modul dorthin verschieben, nicht im Modul kopieren); jede Änderung an einem solchen Baustein wird in allen Modulen geprüft, die ihn nutzen.
 - **Lernen an gelösten Beispielen, dann Hilfe ausblenden** – überall nach demselben Muster: zuerst ein **fertig gelöster Fall** (vorgemacht, Lösungsweg Schritt für Schritt),
   dann ein **halb gelöster** (eine Lücke zum Ergänzen), dann **selbst lösen** – und mit dem nächsten Gedanken wieder von vorn (vorgemacht → halb → frei → vorgemacht …).
@@ -166,6 +168,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Antwort unter den Auswahlen, Rückmeldung zu jeder falschen Auswahl, Tipp bei Zahl/Antippen (ohne die gesuchte Zahl), Sätze ≤ 22 Wörter,
   **Begriffe** (`unintroducedTerms`: ein abgefragtes Fachwort muss vorher fett stehen oder in `known`; falsche Auswahlen, die erst später eingeführt werden, dürfen nicht vorher vorkommen).
   Englische Fassung: `guide-english.test.ts` (alle Texte übersetzt, gleiche Struktur).
+- Optionale Zusätze von `Guide` (wirken nur, wo ein Modul sie übergibt; bisher nur Ionenbindung „Lernen“): `badge` (Kennzeichnung im Kopf statt „Erklärung“, Buch-Zeichen),
+  `start`/`onStep` (beim Öffnen an einer Folie fortsetzen, jede neue Folie melden), `tools` (Hilfsmittel je Schritt – stehen dann mit „Nächster Schritt“/„Weiter“ in einer Leiste
+  unter dem Text, `.ui-guide-foot`, jedes öffnet ein Blatt über der Erklärung; schmal steht „Weiter“ in voller Breite darunter).
 - Browser-Prüfung jeder geänderten Erklärung: alle Schritte durchspielen (auch Fehlversuche bis zur markierten Lösung), in jedem Schritt prüfen, dass nichts überläuft
   oder abgeschnitten ist, in 1240 × 860, 390 × 844 und 375 × 667.
 
@@ -207,7 +212,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   den Zustand der Werkbank, bewerten keine Antwort und vergeben keine Punkte), Begründungen auf Abruf (ⓘ). Fragen, Vorhersagen und Rückmeldung zu Antworten gehören
   ausschließlich in **Üben** (Lektion und Aufgaben bzw. Quiz-Runden).
 - **Bereichsleiste in allen Modulen gleich** (Handy unten, ab 900 px oben in der Kopfzeile): **Erklärung | Üben | Experimentieren** (Atombau zusätzlich „Periodensystem“/„PSE“
-  dahinter). Alle Einträge gleich gestaltet (Zeichen + Wort, aktiver Bereich mit rotem Strich); „Erklärung“ öffnet die Erklärung (kein eigener Bereich) und ist dort
+  dahinter; Ionenbindung: **Lernen | Experimentieren**, siehe dort). Alle Einträge gleich gestaltet (Zeichen + Wort, aktiver Bereich mit rotem Strich); „Erklärung“ öffnet die Erklärung (kein eigener Bereich) und ist dort
   in `AppShell` (`guide`) eingebaut. Der Werkbank-Bereich heißt immer „Experimentieren“ („Experiment“ auf Englisch) mit Zeichen Becherglas (`beaker`),
   egal ob gebaut, gezeichnet, umgerechnet oder ausgeglichen wird; Reihenfolge der Tabs in `App.tsx`: Üben (`quiz`, in Reaktionsgleichungen `ueben`), dann der Werkbank-Bereich (Kennung unverändert, z. B. `build`,
   `probieren`, `start` – Kennungen und Speicher-Schlüssel nie umbenennen). Der beim Öffnen gezeigte Bereich bleibt die Werkbank.
@@ -1070,7 +1075,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Prüfen vor dem Commit
 `npm run typecheck && npm test && npm run build`
 Oberfläche: `npm run site`, dann `node scripts/check-ui.mjs site` (Übersicht und alle Module; zusätzlich `VP="360x740,412x915,1024x768"`, `LESBAR=1` und `LOCALE=en-GB`).
-Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5,gm-k6"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Üben“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`;
+Ionenbindung zusätzlich mit `KAPITEL=1` (spielt in beiden Stufen jede Folie jedes Kapitels unter „Lernen“: vor und nach dem Lösen, Modell-Folien über „Prüfen“ bis zur
+markierten Lösung, einmal je Kapitel PSE, Tipp und Erklärung; meldet Folien ohne „Weiter“). Gemische zusätzlich mit `LEARN="gm-k1,gm-k2,gm-k3,gm-k4,gm-k5,gm-k6"`, Polymere mit `LEARN="pm-k1,…,pm-k6,us:pm-k1,…,us:pm-k6"` (spielt alle Kapitel unter „Üben“, prüft jede Aufgabe vor und nach der Antwort, `data-min-h`;
 tippt weitere Antworten bzw. Teile im Bild an, bis „Weiter“ erscheint, und meldet ein Kapitel mit weniger als zehn geprüften Aufgaben).
 check-ui meldet außerdem: sich überdeckende Tippziele, abgeschnittene oder herausragende Knopf-Beschriftungen (gewollte Auslassungspunkte ausgenommen), Wörter in
 Antwortknöpfen über zwei Zeilen (weicher Trennstrich und Nullbreite-Leerzeichen sind Trennstellen), abgeschnittene Aufgabenbilder; vor jeder Antwort drückt es „Tipp“ bzw.
