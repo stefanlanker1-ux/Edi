@@ -1083,6 +1083,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **PSE der Unterstufe: Ordnungszahlen überall ≥ 9 px** – die Schlussprüfung fand, dass die Aussage „Ordnungszahlen im PSE ≥ 9 px“ (Eintrag Runde 3) nur für die Atombau-Ansicht
+  galt; im PSE als Hilfsmittel (Atombau-Üben, Ionenbindung, Elektronenpaarbindung, Neutralisation) waren es 8 px. Jetzt zentral in `@lern/chem-ui` (`.pse-us .pc-z` mindestens 9 px).
 - **Letzte Feinarbeiten Runde 3** – Elektronenpaarbindung: jede falsche Molekülform mit eigener Rückmeldung (z. B. „trigonal-planar“ für H₂O: übersieht die zwei freien Paare);
   Ionenbindung: jede falsche Formel- und Namensoption mit eigener Rückmeldung (Ladungsrechnung, Name des Anions); englische Element- und Stoffnamen mitten im Satz klein (Test).
   Gemeinsam: gestapelte Zähler mit Zahlfeld ≥ 44 px (Atombau „Schalen füllen“ war auf 26 px gestaucht), Energieniveau-Beschriftung ≥ 14 px, Winkelbeschriftung im 3D-Modell weicht

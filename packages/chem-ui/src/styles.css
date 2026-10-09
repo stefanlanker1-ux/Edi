@@ -112,7 +112,7 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
 .pc-z { position: absolute; bottom: 2px; left: 4px; font-size: .6rem; line-height: 1; opacity: .75; font-variant-numeric: tabular-nums; font-weight: 600; letter-spacing: 0; }
 .pc-sym { font-weight: 750; font-size: 1.05rem; line-height: 1.1; }
 .pse-us .pc-sym { font-size: clamp(1rem, 4.4vw, 1.6rem); }
-.pse-us .pc-z { font-size: clamp(.5rem, 1.6vw, .65rem); }
+.pse-us .pc-z { font-size: clamp(.5625rem, 1.6vw, .65rem); } /* mindestens 9 px – Ordnungszahlen müssen lesbar bleiben (Erklärung, Hilfsmittel) */
 .pc-name { font-size: .5rem; opacity: .75; max-width: calc(100% - 2.6em); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pse-us .pc-name { font-size: clamp(.5rem, 1.6vw, .7rem); }
 .pse-ph .pc-sym { font-size: .62rem; font-weight: 600; }
