@@ -5,26 +5,24 @@ import { tr } from "@lern/i18n";
 import type { GuideStep } from "@lern/ui";
 import type { Kapitel } from "./types.ts";
 import { model } from "./model.tsx";
-import { ConfigModel, WallModel } from "./k5/models.tsx";
+import { ConfigModel, WallModel, wallWhy } from "./k5/models.tsx";
 import "./k5/k5.css";
 
 const NE = (de: string, en: string) => tr(de, en);
-const notNeutral = () => NE("Noch nicht neutral: Die goldene und die grüne Reihe sind verschieden lang.", "Not neutral yet: the gold and the green row have different lengths.");
-const notSmallest = () => NE("Neutral, aber nicht das kleinste Verhältnis – halbiere beide Anzahlen.", "Neutral, but not the smallest ratio – halve both numbers.");
 
 const steps = (): GuideStep[] => [
   // ── 1. Mehrere mögliche Ladungen ──
   model({
     mode: "worked", part: NE("Mehrere mögliche Ladungen", "Several possible charges"),
-    say: NE("Hauptgruppenmetalle wie Na, Mg und Al bilden nur ein Ion: Na⁺, Mg²⁺, Al³⁺. Viele **Übergangsmetalle** bilden mehrere Ionen, Eisen zum Beispiel **Fe²⁺** und **Fe³⁺**.",
-      "Main group metals such as Na, Mg and Al form only one ion: Na⁺, Mg²⁺, Al³⁺. Many **transition metals** form several ions, iron for example **Fe²⁺** and **Fe³⁺**."),
+    say: NE("Hauptgruppenmetalle bilden ein Ion, z. B. Na⁺. **Übergangsmetalle** – auch **Nebengruppenmetalle**: d-Block, Gruppen 3–12 – bilden oft mehrere: Eisen **Fe²⁺** und **Fe³⁺**.",
+      "Main group metals form one ion, e.g. Na⁺. **Transition metals** – d block, groups 3–12 – often form several: iron **Fe²⁺** and **Fe³⁺**."),
     ask: NE("Wie wird aus einem Eisen-Atom das Ion Fe²⁺?", "How does an iron atom become the ion Fe²⁺?"),
     lines: [
-      NE("Eisen: [Ar] 4s² 3d⁶ – im Kästchenschema 4s und 3d.", "Iron: [Ar] 4s² 3d⁶ – in the box diagram 4s and 3d."),
-      NE("Zuerst gehen die Elektronen der äußersten Schale (n = 4): beide 4s-Elektronen.", "First the electrons of the outermost shell (n = 4) go: both 4s electrons."),
-      NE("26 Protonen, 24 Elektronen → **Fe²⁺** = [Ar] 3d⁶.", "26 protons, 24 electrons → **Fe²⁺** = [Ar] 3d⁶."),
+      NE("Eisen: [Ar] 4s² 3d⁶.", "Iron: [Ar] 4s² 3d⁶."),
+      NE("Zuerst gehen beide 4s-Elektronen (äußerste Schale, n = 4).", "Both 4s electrons go first (outermost shell, n = 4)."),
+      NE("26 p⁺, 24 e⁻ → **Fe²⁺** = [Ar] 3d⁶.", "26 p⁺, 24 e⁻ → **Fe²⁺** = [Ar] 3d⁶."),
     ],
-    ok: NE("Gefüllt wird 4s vor 3d – abgegeben wird aber auch 4s zuerst.", "4s is filled before 3d – but 4s is also lost first."),
+    ok: NE("4s wird vor 3d gefüllt – und auch zuerst abgegeben.", "4s is filled before 3d – and also lost first."),
     visual: c => <ConfigModel c={c} Z={26} give={2} />,
   }),
   model({
@@ -42,7 +40,7 @@ const steps = (): GuideStep[] => [
       "[Ar] 3d⁵": NE("Das sind 3 Elektronen, also Fe³⁺. Für Fe²⁺ gibst du nur 2 ab.", "Those are 3 electrons, so Fe³⁺. For Fe²⁺ you remove only 2."),
     },
     tip: NE("Welche Unterschale gehört zur äußersten Schale mit n = 4?", "Which subshell belongs to the outermost shell with n = 4?"),
-    ok: NE("Fe²⁺ = [Ar] 3d⁶: Beide 4s-Elektronen sind weg, 3d⁶ bleibt wie im Atom.", "Fe²⁺ = [Ar] 3d⁶: both 4s electrons are gone, 3d⁶ stays as in the atom."),
+    ok: NE("Fe²⁺ = [Ar] 3d⁶: 4s ist leer, 3d⁶ bleibt wie im Atom.", "Fe²⁺ = [Ar] 3d⁶: 4s is empty, 3d⁶ stays as in the atom."),
     visual: c => <ConfigModel c={c} Z={26} give={2} />,
   }),
   model({
@@ -62,7 +60,7 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
-    say: NE("Kupfer ist eine Ausnahme: [Ar] 4s¹ 3d¹⁰. Kupfer bildet **Cu⁺** und **Cu²⁺**.", "Copper is an exception: [Ar] 4s¹ 3d¹⁰. Copper forms **Cu⁺** and **Cu²⁺**."),
+    say: NE("Kupfer ist eine Ausnahme: gemessen [Ar] 4s¹ 3d¹⁰ statt 4s² 3d⁹. Kupfer bildet **Cu⁺** und **Cu²⁺**.", "Copper is an exception: measured [Ar] 4s¹ 3d¹⁰ instead of 4s² 3d⁹. Copper forms **Cu⁺** and **Cu²⁺**."),
     ask: NE("Mache aus Kupfer das Ion Cu²⁺. Dann prüfe.", "Turn copper into the ion Cu²⁺. Then check."),
     answer: "[Ar] 3d⁹",
     why: {
@@ -73,7 +71,7 @@ const steps = (): GuideStep[] => [
     },
     tip: NE("Kupfer hat nur ein 4s-Elektron. Woher kommt das zweite?", "Copper has only one 4s electron. Where does the second come from?"),
     lines: [NE("Cu⁺ = [Ar] 3d¹⁰, Cu²⁺ = [Ar] 3d⁹.", "Cu⁺ = [Ar] 3d¹⁰, Cu²⁺ = [Ar] 3d⁹.")],
-    ok: NE("Cu²⁺ = [Ar] 3d⁹: erst das 4s-Elektron, dann eins aus 3d.", "Cu²⁺ = [Ar] 3d⁹: first the 4s electron, then one from 3d."),
+    ok: NE("Cu²⁺ = [Ar] 3d⁹: 4s ist leer, in 3d fehlt ein Elektron.", "Cu²⁺ = [Ar] 3d⁹: 4s is empty, one electron is missing in 3d."),
     visual: c => <ConfigModel c={c} Z={29} give={2} />,
   }),
   model({
@@ -104,24 +102,24 @@ const steps = (): GuideStep[] => [
     ask: NE("Was beschreibt Fe³⁺ = [Ar] 3d⁵ richtig?", "What describes Fe³⁺ = [Ar] 3d⁵ correctly?"),
     options: [
       NE("Eisen will 3 Elektronen abgeben.", "Iron wants to lose 3 electrons."),
-      NE("3d halb besetzt: besonders beständig.", "3d half-filled: especially stable."),
+      NE("Jedes 3d-Kästchen hat ein Elektron.", "Each 3d box holds one electron."),
       NE("Fe³⁺ hat Edelgaskonfiguration.", "Fe³⁺ has a noble gas configuration."),
       NE("Fe³⁺ hat 3 Elektronen mehr als Fe.", "Fe³⁺ has 3 electrons more than Fe."),
     ],
-    answer: NE("3d halb besetzt: besonders beständig.", "3d half-filled: especially stable."),
+    answer: NE("Jedes 3d-Kästchen hat ein Elektron.", "Each 3d box holds one electron."),
     why: {
-      [NE("Eisen will 3 Elektronen abgeben.", "Iron wants to lose 3 electrons.")]: NE("Atome wollen nichts. Beschreibe, was vorliegt: 3d⁵ ist halb besetzt.", "Atoms do not want anything. Describe what is there: 3d⁵ is half-filled."),
+      [NE("Eisen will 3 Elektronen abgeben.", "Iron wants to lose 3 electrons.")]: NE("Atome wollen nichts. Beschreibe, was vorliegt: Wie sind die 3d-Kästchen besetzt?", "Atoms do not want anything. Describe what is there: how are the 3d boxes filled?"),
       [NE("Fe³⁺ hat Edelgaskonfiguration.", "Fe³⁺ has a noble gas configuration.")]: NE("Argon ist nur [Ar]. Fe³⁺ hat noch 5 Elektronen in 3d.", "Argon is only [Ar]. Fe³⁺ still has 5 electrons in 3d."),
       [NE("Fe³⁺ hat 3 Elektronen mehr als Fe.", "Fe³⁺ has 3 electrons more than Fe.")]: NE("Kationen haben weniger Elektronen: 26 − 3 = 23.", "Cations have fewer electrons: 26 − 3 = 23."),
     },
-    ok: NE("Halb besetzt (d⁵) und voll besetzt (d¹⁰) sind besonders beständig.", "Half-filled (d⁵) and full (d¹⁰) are especially stable."),
+    ok: NE("Fe³⁺ = [Ar] 3d⁵: In jedem der fünf 3d-Kästchen steht ein Elektron – halb besetzt.", "Fe³⁺ = [Ar] 3d⁵: each of the five 3d boxes holds one electron – half-filled."),
   },
 
   // ── 2. Römische Zahl im Namen ──
   model({
     mode: "worked", part: NE("Römische Zahl im Namen", "Roman numeral in the name"),
     say: NE("Bildet ein Metall mehrere Ionen, steht seine Ladung als **römische Zahl** in Klammern im Namen. Eisen(II) = Fe²⁺, Eisen(III) = Fe³⁺.",
-      "If a metal forms several ions, its charge is a **Roman numeral** in the name. Iron(II) = Fe²⁺, iron(III) = Fe³⁺."),
+      "If a metal forms several ions, its charge is a **Roman numeral** in brackets in the name. Iron(II) = Fe²⁺, iron(III) = Fe³⁺."),
     ask: NE("Welche Formel hat Eisen(III)-chlorid?", "What is the formula of iron(III) chloride?"),
     lines: [
       NE("Eisen(III) = Fe³⁺, Chlorid = Cl⁻.", "Iron(III) = Fe³⁺, chloride = Cl⁻."),
@@ -134,11 +132,11 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "faded",
-    say: NE("Wähle die römische Zahl: Die Ladung im goldenen Baustein ändert sich sofort.", "Choose the Roman numeral: the charge in the gold block changes at once."),
+    say: NE("Wähle die römische Zahl: Die Ladung im oberen Baustein ändert sich sofort.", "Choose the Roman numeral: the charge in the top block changes at once."),
     ask: NE("Ergänze: Baue Eisen(II)-chlorid. Dann prüfe.", "Complete: build iron(II) chloride. Then check."),
     lines: [NE("Eisen(II) = Fe²⁺.", "Iron(II) = Fe²⁺."), NE("2 · (1−) = 2− gleicht 2+ aus.", "2 · (1−) = 2− balances 2+."), NE("Formel: {?}", "Formula: {?}")],
     answer: "FeCl₂",
-    why: { "FeCl₃": NE("Das ist Eisen(III)-chlorid. Eisen(II) heißt Fe²⁺.", "That is iron(III) chloride. Iron(II) means Fe²⁺."), "≠": notNeutral() },
+    why: wallWhy(26, "Cl-", { q: 2, nC: 1, nA: 2 }, [2, 3]),
     tip: NE("Welche Ladung steckt in (II)? Wie viele Cl⁻ gleichen sie aus?", "Which charge is in (II)? How many Cl⁻ balance it?"),
     ok: NE("Eisen(II)-chlorid = FeCl₂: ein Fe²⁺, zwei Cl⁻.", "Iron(II) chloride = FeCl₂: one Fe²⁺, two Cl⁻."),
     visual: c => <WallModel c={c} Z={26} anion="Cl-" charges={[2, 3]} numerals stepA report="formula" given={NE("Eisen(II)-chlorid", "Iron(II) chloride")}
@@ -148,11 +146,7 @@ const steps = (): GuideStep[] => [
     mode: "free",
     ask: NE("Jetzt du: Baue Kupfer(I)-oxid. Dann prüfe.", "Your turn: build copper(I) oxide. Then check."),
     answer: "Cu₂O",
-    why: {
-      "CuO": NE("Das ist Kupfer(II)-oxid mit Cu²⁺. (I) heißt Cu⁺.", "That is copper(II) oxide with Cu²⁺. (I) means Cu⁺."),
-      "Cu₂O₂": NE("Das ist Kupfer(II)-oxid, doppelt gezählt. (I) heißt Cu⁺.", "That is copper(II) oxide, counted twice. (I) means Cu⁺."),
-      "Cu₄O₂": notSmallest(), "≠": notNeutral(),
-    },
+    why: wallWhy(29, "O2-", { q: 1, nC: 2, nA: 1 }, [1, 2]),
     tip: NE("(I) heißt 1+. Wie viele Cu⁺ gleichen ein O²⁻ aus?", "(I) means 1+. How many Cu⁺ balance one O²⁻?"),
     lines: [NE("2 · (1+) = 2+ und 1 · (2−) = 2− → Cu₂O.", "2 · (1+) = 2+ and 1 · (2−) = 2− → Cu₂O.")],
     ok: NE("Kupfer(I)-oxid = Cu₂O: zwei Cu⁺ gleichen ein O²⁻ aus.", "Copper(I) oxide = Cu₂O: two Cu⁺ balance one O²⁻."),
@@ -163,7 +157,7 @@ const steps = (): GuideStep[] => [
     mode: "free",
     ask: NE("Baue Eisen(III)-oxid. Dann prüfe.", "Build iron(III) oxide. Then check."),
     answer: "Fe₂O₃",
-    why: { "FeO": NE("Das ist Eisen(II)-oxid mit Fe²⁺. (III) heißt Fe³⁺.", "That is iron(II) oxide with Fe²⁺. (III) means Fe³⁺."), "Fe₄O₆": notSmallest(), "≠": notNeutral() },
+    why: wallWhy(26, "O2-", { q: 3, nC: 2, nA: 3 }, [2, 3]),
     tip: NE("3+ und 2−: Bei welcher Anzahl sind beide Reihen gleich lang?", "3+ and 2−: at which numbers are both rows the same length?"),
     lines: [NE("2 · (3+) = 6+ und 3 · (2−) = 6− → Fe₂O₃.", "2 · (3+) = 6+ and 3 · (2−) = 6− → Fe₂O₃.")],
     ok: NE("Eisen(III)-oxid = Fe₂O₃: 2 · (3+) = 6+ und 3 · (2−) = 6−.", "Iron(III) oxide = Fe₂O₃: 2 · (3+) = 6+ and 3 · (2−) = 6−."),
@@ -185,7 +179,7 @@ const steps = (): GuideStep[] => [
   {
     mode: "faded",
     ask: NE("Ergänze: Wie heißt AgCl?", "Complete: what is AgCl called?"),
-    lines: [NE("Silber bildet nur Ag⁺ – keine römische Zahl.", "Silver forms only Ag⁺ – no Roman numeral."), NE("Name: {?}", "Name: {?}")],
+    lines: [NE("Silber bildet nur ein Ion: Ag⁺.", "Silver forms only one ion: Ag⁺."), NE("Name: {?}", "Name: {?}")],
     options: [NE("Silber(I)-chlorid", "Silver(I) chloride"), NE("Silber(II)-chlorid", "Silver(II) chloride"), NE("Silberchlorid", "Silver chloride")],
     answer: NE("Silberchlorid", "Silver chloride"),
     why: {
@@ -214,7 +208,7 @@ const steps = (): GuideStep[] => [
     lines: [NE("3 O²⁻: 3 · (2−) = 6−.", "3 O²⁻: 3 · (2−) = 6−."), NE("2 Fe-Ionen tragen zusammen 6+.", "2 Fe ions carry 6+ together."), NE("Jedes Fe-Ion: {?}", "Each Fe ion: {?}")],
     answer: "3+",
     why: {
-      "2+": NE("2 · (2+) = 4+, aber 3 · (2−) = 6−. Die goldene Reihe ist zu kurz.", "2 · (2+) = 4+, but 3 · (2−) = 6−. The gold row is too short."),
+      "2+": NE("2 · (2+) = 4+, aber 3 · (2−) = 6−. Die obere Reihe ist zu kurz.", "2 · (2+) = 4+, but 3 · (2−) = 6−. The top row is too short."),
       "1+": NE("2 · (1+) = 2+ – viel zu wenig für 6−.", "2 · (1+) = 2+ – far too little for 6−."),
     },
     tip: NE("Rechne die negative Ladung aus und verteile sie auf die Fe-Ionen.", "Work out the negative charge and share it among the Fe ions."),
@@ -236,18 +230,17 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
-    say: NE("Auch **Blei** (Pb, Gruppe 14) bildet mehr als ein Ion. Darum steht bei Blei eine römische Zahl.", "**Lead** (Pb, group 14) also forms more than one ion. So lead gets a Roman numeral."),
+    say: NE("Ausnahme bei den Hauptgruppen: **Blei** (Pb, Gruppe 14) bildet mehr als ein Ion. Darum steht bei Blei eine römische Zahl.", "An exception among the main groups: **lead** (Pb, group 14) forms more than one ion. So lead gets a Roman numeral."),
     ask: NE("Welche Ladung hat Blei in PbO?", "What is the charge of lead in PbO?"),
     answer: "2+",
     why: {
-      "4+": NE("1 · (4+) = 4+, aber 1 · (2−) = 2−.", "1 · (4+) = 4+, but 1 · (2−) = 2−."),
-      "3+": NE("3+ ist mehr als die 2− von O²⁻.", "3+ is more than the 2− of O²⁻."),
-      "1+": NE("1+ gleicht die 2− von O²⁻ nicht aus.", "1+ does not balance the 2− of O²⁻."),
+      "3+": NE("Pb³⁺ gibt es nicht, und 3+ ist mehr als die 2− von O²⁻.", "Pb³⁺ does not exist, and 3+ is more than the 2− of O²⁻."),
+      "1+": NE("Pb⁺ gibt es nicht, und 1+ gleicht die 2− von O²⁻ nicht aus.", "Pb⁺ does not exist, and 1+ does not balance the 2− of O²⁻."),
     },
     tip: NE("Ein Pb, ein O²⁻: Welche Ladung gleicht O²⁻ genau aus?", "One Pb, one O²⁻: which charge balances O²⁻ exactly?"),
     lines: [NE("1 · (2−) = 2− → Pb²⁺ → Blei(II)-oxid.", "1 · (2−) = 2− → Pb²⁺ → lead(II) oxide.")],
-    ok: NE("PbO: Pb²⁺ und O²⁻ → Blei(II)-oxid.", "PbO: Pb²⁺ and O²⁻ → lead(II) oxide."),
-    visual: c => <WallModel c={c} Z={82} anion="O2-" charges={[1, 2, 3, 4]} report="charge" given="PbO" init={{ q: 4, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 1 }} />,
+    ok: NE("PbO: Pb²⁺ und O²⁻ → Blei(II)-oxid. Pb⁴⁺ gibt es auch, hier verwenden wir nur Pb²⁺.", "PbO: Pb²⁺ and O²⁻ → lead(II) oxide. Pb⁴⁺ also exists, here we only use Pb²⁺."),
+    visual: c => <WallModel c={c} Z={82} anion="O2-" charges={[1, 2, 3]} report="charge" given="PbO" init={{ q: 1, nC: 1, nA: 1 }} sol={{ q: 2, nC: 1, nA: 1 }} />,
   }),
   model({
     mode: "free",
@@ -255,7 +248,7 @@ const steps = (): GuideStep[] => [
     answer: NE("Kupfer(II)-chlorid", "Copper(II) chloride"),
     why: {
       [NE("Kupfer(I)-chlorid", "Copper(I) chloride")]: NE("Cu⁺ bringt 1+, aber 2 · (1−) = 2−. Die Wand ist nicht ausgeglichen.", "Cu⁺ brings 1+, but 2 · (1−) = 2−. The wall is not balanced."),
-      [NE("Kupfer(III)-chlorid", "Copper(III) chloride")]: NE("3+ ist mehr als 2 · (1−) = 2−.", "3+ is more than 2 · (1−) = 2−."),
+      "Cu³⁺": NE("Cu³⁺ gibt es nicht. Und 3+ ist mehr als 2 · (1−) = 2−.", "Cu³⁺ does not exist. And 3+ is more than 2 · (1−) = 2−."),
     },
     tip: NE("Zähle die Cl⁻ und rechne ihre Ladung aus.", "Count the Cl⁻ and work out their charge."),
     lines: [NE("2 · (1−) = 2− → Cu²⁺ → Kupfer(II)-chlorid.", "2 · (1−) = 2− → Cu²⁺ → copper(II) chloride.")],
@@ -295,8 +288,8 @@ const steps = (): GuideStep[] => [
     lines: [NE("Kupfer(II) = Cu²⁺, Nitrat = NO₃⁻.", "Copper(II) = Cu²⁺, nitrate = NO₃⁻."), NE("1 · (2+) = 2+ und 2 · (1−) = 2−.", "1 · (2+) = 2+ and 2 · (1−) = 2−."), NE("Formel: {?}", "Formula: {?}")],
     answer: "Cu(NO₃)₂",
     why: {
-      "CuNO₃": NE("Das wäre Kupfer(I)-nitrat – das gibt es nicht beständig. (II) heißt Cu²⁺.", "That would be copper(I) nitrate – it is not stable. (II) means Cu²⁺."),
-      "Cu₂(NO₃)₄": notSmallest(), "≠": notNeutral(),
+      ...wallWhy(29, "NO3-", { q: 2, nC: 1, nA: 2 }, [1, 2]),
+      "CuNO₃": NE("Das wäre Kupfer(I)-nitrat – diesen Stoff gibt es nicht beständig. (II) heißt Cu²⁺.", "That would be copper(I) nitrate – this substance is not stable. (II) means Cu²⁺."),
     },
     tip: NE("(II) heißt 2+. Wie viele NO₃⁻ gleichen das aus?", "(II) means 2+. How many NO₃⁻ balance that?"),
     ok: NE("Cu(NO₃)₂: zwei Nitrat-Ionen, darum Klammern.", "Cu(NO₃)₂: two nitrate ions, so brackets."),
@@ -307,7 +300,7 @@ const steps = (): GuideStep[] => [
     mode: "free",
     ask: NE("Jetzt du: Baue Eisen(II)-hydroxid. Dann prüfe.", "Your turn: build iron(II) hydroxide. Then check."),
     answer: "Fe(OH)₂",
-    why: { "Fe(OH)₃": NE("Das ist Eisen(III)-hydroxid. (II) heißt Fe²⁺.", "That is iron(III) hydroxide. (II) means Fe²⁺."), "Fe₂(OH)₄": notSmallest(), "≠": notNeutral() },
+    why: wallWhy(26, "OH-", { q: 2, nC: 1, nA: 2 }, [2, 3]),
     tip: NE("Hydroxid ist OH⁻. Wie viele davon gleichen Fe²⁺ aus?", "Hydroxide is OH⁻. How many of them balance Fe²⁺?"),
     lines: [NE("1 · (2+) = 2+ und 2 · (1−) = 2− → Fe(OH)₂.", "1 · (2+) = 2+ and 2 · (1−) = 2− → Fe(OH)₂.")],
     ok: NE("Fe(OH)₂: Die Klammer zeigt zwei ganze OH⁻-Ionen.", "Fe(OH)₂: the brackets show two whole OH⁻ ions."),
@@ -320,7 +313,7 @@ const steps = (): GuideStep[] => [
     answer: NE("Eisen(III)-phosphat", "Iron(III) phosphate"),
     why: {
       [NE("Eisen(II)-phosphat", "Iron(II) phosphate")]: NE("Phosphat ist PO₄³⁻ und bringt 3−. Fe²⁺ gleicht das nicht aus.", "Phosphate is PO₄³⁻ and brings 3−. Fe²⁺ does not balance that."),
-      [NE("Eisen(I)-phosphat", "Iron(I) phosphate")]: NE("1+ ist viel weniger als 3−.", "1+ is much less than 3−."),
+      "Fe⁺": NE("Fe⁺ gibt es nicht. Und 1+ ist viel weniger als 3−.", "Fe⁺ does not exist. And 1+ is much less than 3−."),
     },
     tip: NE("Welche Ladung hat das Phosphat-Ion?", "What is the charge of the phosphate ion?"),
     lines: [NE("PO₄³⁻ bringt 3− → Fe³⁺ → Eisen(III)-phosphat.", "PO₄³⁻ brings 3− → Fe³⁺ → iron(III) phosphate.")],
@@ -381,7 +374,7 @@ export const kapitel5 = (): Kapitel => ({
   },
   explain: [
     [
-      tr("Hauptgruppenmetalle wie Na, Mg, Al bilden ein Ion – die Ladung folgt aus der Gruppe.", "Main group metals such as Na, Mg, Al form one ion – the charge follows from the group."),
+      tr("Hauptgruppenmetalle wie Na, Mg, Al bilden ein Ion – die Ladung folgt aus der Gruppe. Ausnahme: Blei (Pb).", "Main group metals such as Na, Mg, Al form one ion – the charge follows from the group. Exception: lead (Pb)."),
       tr("Viele **Übergangsmetalle** bilden mehrere Ionen, z. B. Eisen Fe²⁺ und Fe³⁺, Kupfer Cu⁺ und Cu²⁺.", "Many **transition metals** form several ions, e.g. iron Fe²⁺ and Fe³⁺, copper Cu⁺ and Cu²⁺."),
       tr("Kationen geben zuerst die Elektronen der **äußersten Schale** ab (4s), erst dann 3d-Elektronen.", "Cations first lose the electrons of the **outermost shell** (4s), only then 3d electrons."),
       tr("Ihre Ionen haben meist **keine** Edelgaskonfiguration: In der d-Unterschale bleiben Elektronen, z. B. Cu⁺ = [Ar] 3d¹⁰.", "Their ions usually have **no** noble gas configuration: electrons stay in the d subshell, e.g. Cu⁺ = [Ar] 3d¹⁰."),

@@ -1,7 +1,7 @@
 // Kapitel 5: Modell-Ergebnisse passen zu den Fachdaten (Konfiguration aus `configuration`, Formeln aus `formula`), nur beständige Stoffe.
 import { test, expect } from "vitest";
 import { ION_BY_ID, isKnownCompound, shortConfigString } from "@lern/chem";
-import { cfgAfter, cfgText, metalIon, nameWith, outerShells, wallFormula } from "./models.tsx";
+import { cfgAfter, cfgText, metalIon, nameWith, outerShells, wallFormula, wallName, wallWhy } from "./models.tsx";
 
 test("Kästchenschema: abgeben zuerst aus ns, dann (n−1)d – wie configuration()", () => {
   expect(outerShells(26)).toMatchObject({ s: 2, d: 6, core: "Ar" });
@@ -23,7 +23,14 @@ test("Ionenwand: gebaute Formeln und Namen, nur beständige Stoffe", () => {
     expect(isKnownCompound(metalIon(Z, q), ION_BY_ID[an])).toBe(true);
     expect(ION_BY_ID[metalIon(Z, q).id]).toBeDefined(); // Ion aus ions.ts
   }
-  expect(wallFormula(26, "Cl-", { q: 3, nC: 1, nA: 2 })).toBe("≠");
+  expect(wallFormula(26, "Cl-", { q: 3, nC: 1, nA: 2 })).toBe("≠ 3|1|2");
+  // Rückmeldung zu jedem anderen Zustand, mit den Zahlen der Aufgabe; nie zur Lösung
+  const why = wallWhy(26, "O2-", { q: 3, nC: 2, nA: 3 }, [2, 3]);
+  expect(why["Fe₂O₃"]).toBeUndefined();
+  expect(why["≠ 3|1|1"]).toContain("1 · (3+) = 3+");
+  expect(why["Fe₂O₂"]).toContain("(II)"); // ausgeglichen, aber falsche römische Zahl (nicht gekürzt)
+  expect(why["Fe₄O₆"]).toContain("4 : 6");
+  expect(wallName(29, "Cl-", 3)).toBe("Cu³⁺"); // erfundenes Ion: kein Name
   expect(nameWith(29, 2, ION_BY_ID["Cl-"])).toBe("Kupfer(II)-chlorid");
   expect(nameWith(26, 3, ION_BY_ID["PO43-"])).toBe("Eisen(III)-phosphat");
   // weitere Stoffe aus Folien und Merksätzen
