@@ -37,7 +37,7 @@ function steps(): GuideStep[] {
       visual: c => <WallModel c={c} cat="Na+" an="Cl-" start={[1, 1]} sol={[1, 1]} />,
       labels: tileLabels(),
       lines: [
-        tr("In der **Ionenwand** ist jeder Baustein so breit wie seine Ladung.", "In the **ion wall** each tile is as wide as its charge."),
+        tr("Im Modell **Ionenwand** ist jeder Baustein so breit wie seine Ladung.", "In the **ion wall** model each tile is as wide as its charge."),
         tr("Na⁺ ist 1 breit (1+), Cl⁻ ist 1 breit (1−).", "Na⁺ is 1 wide (1+), Cl⁻ is 1 wide (1−)."),
         tr("1 · (1+) = 1+ und 1 · (1−) = 1−: Beide Reihen sind gleich lang.", "1 · (1+) = 1+ and 1 · (1−) = 1−: both rows are the same length."),
       ],
