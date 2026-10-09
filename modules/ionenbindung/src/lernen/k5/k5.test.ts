@@ -1,39 +1,61 @@
-// Kapitel 5: Modell-Ergebnisse passen zu den Fachdaten (Konfiguration aus `configuration`, Formeln aus `formula`), nur beständige Stoffe.
+// Kapitel 5: ohne Elektronenkonfiguration und ohne Auswendigwissen (kein Ag/Zn), Formeln/Namen/Ladungen aus `ions.ts`, nur beständige Stoffe,
+// Rückmeldungen zu jedem Zustand der Modelle, nie zur Lösung.
 import { test, expect } from "vitest";
-import { ION_BY_ID, isKnownCompound, shortConfigString } from "@lern/chem";
-import { cfgAfter, cfgText, metalIon, nameWith, outerShells, wallFormula, wallName, wallWhy } from "./models.tsx";
+import { ION_BY_ID, isKnownCompound } from "@lern/chem";
+import { kapitel5 } from "../k5.tsx";
+import { chargeFromGroup, isReal, metalIon, nameWith, pseResult, pseWhy, wallFormula, wallName, wallWhy } from "./models.tsx";
 
-test("Kästchenschema: abgeben zuerst aus ns, dann (n−1)d – wie configuration()", () => {
-  expect(outerShells(26)).toMatchObject({ s: 2, d: 6, core: "Ar" });
-  expect(outerShells(29)).toMatchObject({ s: 1, d: 10, core: "Ar" }); // Ausnahme Cu [Ar] 4s¹ 3d¹⁰
-  for (const [Z, q] of [[26, 2], [26, 3], [29, 1], [29, 2], [30, 2], [47, 1]]) expect(cfgText(Z, cfgAfter(Z, q))).toBe(shortConfigString(Z, Z - q));
-  expect(cfgText(26, cfgAfter(26, 3))).toBe("[Ar] 3d⁵");
-  expect(cfgText(26, { s: 2, d: 4 })).toBe("[Ar] 4s² 3d⁴"); // „3d zuerst abgegeben“
-  expect(cfgText(29, cfgAfter(29, 2))).toBe("[Ar] 3d⁹");
-  expect(cfgText(30, cfgAfter(30, 2))).toBe("[Ar] 3d¹⁰");
+const texts = () => {
+  const out: string[] = [];
+  const walk = (x: unknown): void => {
+    if (typeof x === "string") out.push(x);
+    else if (Array.isArray(x)) x.forEach(walk);
+    else if (x && typeof x === "object") Object.values(x).forEach(walk);
+  };
+  const k = kapitel5();
+  walk([k.title, k.desc, k.explain, k.def]);
+  return out;
+};
+
+test("keine Elektronenkonfiguration, kein Kästchenschema, kein Silber/Zink im Kapitel", () => {
+  const bad = texts().filter(t => /3d|4s|\[Ar\]|\[Kr\]|Kästchen|Unterschale|besetzt|\bAg\b|\bZn\b|Ag⁺|Zn²⁺|Silber|Zink|silver|zinc/i.test(t));
+  expect(bad).toEqual([]);
 });
 
-test("Ionenwand: gebaute Formeln und Namen, nur beständige Stoffe", () => {
+test("Ionenwand: gebaute Formeln und Namen, nur Ionen aus ions.ts und beständige Stoffe", () => {
   const cases: [number, string, number, number, number, string][] = [
-    [26, "Cl-", 2, 1, 2, "FeCl₂"], [26, "Cl-", 3, 1, 3, "FeCl₃"], [29, "O2-", 1, 2, 1, "Cu₂O"], [26, "O2-", 3, 2, 3, "Fe₂O₃"], [30, "Cl-", 2, 1, 2, "ZnCl₂"],
-    [26, "SO42-", 3, 2, 3, "Fe₂(SO₄)₃"], [29, "NO3-", 2, 1, 2, "Cu(NO₃)₂"], [26, "OH-", 2, 1, 2, "Fe(OH)₂"], [82, "O2-", 2, 1, 1, "PbO"], [29, "Cl-", 2, 1, 2, "CuCl₂"], [26, "PO43-", 3, 1, 1, "FePO₄"],
+    [26, "Cl-", 2, 1, 2, "FeCl₂"], [26, "Cl-", 3, 1, 3, "FeCl₃"], [29, "O2-", 1, 2, 1, "Cu₂O"], [29, "O2-", 2, 1, 1, "CuO"], [26, "O2-", 3, 2, 3, "Fe₂O₃"],
+    [26, "O2-", 2, 1, 1, "FeO"], [82, "Cl-", 2, 1, 2, "PbCl₂"], [29, "Br-", 2, 1, 2, "CuBr₂"], [29, "S2-", 1, 2, 1, "Cu₂S"], [26, "S2-", 2, 1, 1, "FeS"],
+    [29, "Cl-", 2, 1, 2, "CuCl₂"], [26, "SO42-", 3, 2, 3, "Fe₂(SO₄)₃"], [29, "NO3-", 2, 1, 2, "Cu(NO₃)₂"], [26, "OH-", 2, 1, 2, "Fe(OH)₂"], [26, "PO43-", 3, 1, 1, "FePO₄"],
   ];
   for (const [Z, an, q, nC, nA, f] of cases) {
     expect(wallFormula(Z, an, { q, nC, nA })).toBe(f);
+    expect(isReal(Z, q)).toBe(true);
     expect(isKnownCompound(metalIon(Z, q), ION_BY_ID[an])).toBe(true);
-    expect(ION_BY_ID[metalIon(Z, q).id]).toBeDefined(); // Ion aus ions.ts
   }
-  expect(wallFormula(26, "Cl-", { q: 3, nC: 1, nA: 2 })).toBe("≠ 3|1|2");
-  // Rückmeldung zu jedem anderen Zustand, mit den Zahlen der Aufgabe; nie zur Lösung
+  // Stoffe aus Auswahl, Merksätzen und Zusammenfassung
+  for (const [c, a] of [["Fe3+", "OH-"], ["Cu2+", "SO42-"], ["Cu2+", "S2-"], ["Fe3+", "F-"], ["Cu2+", "OH-"], ["Fe2+", "SO42-"]]) expect(isKnownCompound(ION_BY_ID[c], ION_BY_ID[a])).toBe(true);
+  expect(nameWith(29, 2, ION_BY_ID["Cl-"])).toBe("Kupfer(II)-chlorid");
+  expect(wallName(29, "Cl-", 3)).toBe("Cu³⁺"); // erfundenes Ion: kein Name
+  expect(isReal(29, 3) || isReal(26, 1) || isReal(82, 4)).toBe(false);
+});
+
+test("Rückmeldungen der Wand: jeder andere Zustand mit Zahlen, nie die Lösung", () => {
   const why = wallWhy(26, "O2-", { q: 3, nC: 2, nA: 3 }, [2, 3]);
   expect(why["Fe₂O₃"]).toBeUndefined();
   expect(why["≠ 3|1|1"]).toContain("1 · (3+) = 3+");
-  expect(why["Fe₂O₂"]).toContain("(II)"); // ausgeglichen, aber falsche römische Zahl (nicht gekürzt)
+  expect(why["FeO"]).toContain("(II)");
+  expect(why["Fe₂O₂"]).toContain("(II)"); // ausgeglichen, nicht gekürzt, falsche römische Zahl
   expect(why["Fe₄O₆"]).toContain("4 : 6");
-  expect(wallName(29, "Cl-", 3)).toBe("Cu³⁺"); // erfundenes Ion: kein Name
-  expect(nameWith(29, 2, ION_BY_ID["Cl-"])).toBe("Kupfer(II)-chlorid");
-  expect(nameWith(26, 3, ION_BY_ID["PO43-"])).toBe("Eisen(III)-phosphat");
-  // weitere Stoffe aus Folien und Merksätzen
-  for (const [c, a] of [["Ag+", "Cl-"], ["Ag+", "NO3-"], ["Cu+", "S2-"], ["Fe3+", "OH-"], ["Cu2+", "SO42-"], ["Zn2+", "O2-"], ["Fe2+", "S2-"], ["Cu2+", "OH-"], ["Fe2+", "SO42-"]])
-    expect(isKnownCompound(ION_BY_ID[c], ION_BY_ID[a])).toBe(true);
+});
+
+test("PSE: Ladung aus der Gruppe nur bei Gruppe 1, 2, 13 – Rückmeldung zu jeder Auswahl", () => {
+  expect([3, 11, 12, 13, 19, 20, 56].every(chargeFromGroup)).toBe(true);
+  expect([26, 29, 82].some(chargeFromGroup)).toBe(false);
+  expect(pseResult([29, 26])).toBe("Fe Cu");
+  const cands = [3, 13, 20, 26, 29], why = pseWhy(cands, [26, 29]);
+  expect(why["Fe Cu"]).toBeUndefined();
+  expect(Object.keys(why).length).toBe(2 ** cands.length - 1);
+  expect(why["Al Fe Cu"]).toContain("13");
+  expect(why["Fe"]).toContain("fehlt");
 });

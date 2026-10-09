@@ -1,105 +1,47 @@
-// Kapitel 5 (Nebengruppenmetalle): Modell-Bausteine.
-// ConfigModel – Kästchenschema der äußeren Unterschalen (ns, (n−1)d) eines Übergangsmetalls; Antippen gibt ein Elektron dieser Unterschale ab,
-//   Symbol, Ladung, Elektronenzahl und Kurzschreibweise ändern sich sofort. Fachdaten aus `configuration` (gemessener Grundzustand, Cu [Ar] 4s¹ 3d¹⁰).
-// WallModel – Ionenwand mit wählbarer Ladung des Metall-Ions (römische Zahl bzw. Ladung) und Zählern: Wand, Formel, Name und Rechnung sofort.
+// Kapitel 5 (Nebengruppenmetalle): Modell-Bausteine – ohne Elektronenkonfiguration, alles über Stoffe, PSE und Ionenwand.
+// Sample   – Stoffprobe auf dem Uhrglas in der echten Farbe (FeO schwarz, Fe₂O₃ rotbraun, Cu₂O rot, CuO schwarz).
+// OxidePair – zwei Stoffe aus denselben Elementen nebeneinander (Probe, Formel, Ionenwand, Name).
+// PseMetals – Metalle im PSE antippen: Ladung aus der Gruppe (Gruppe 1, 2, 13) oder Ladung im Namen (alle anderen).
+// WallModel – Ionenwand mit wählbarer Ladung des Metall-Ions (römische Zahl bzw. Ladung) und Zählern: Wand sofort,
+//   ✓-Rechnung und Name erst, wenn sie nichts verraten (Formel bauen: ausgeglichen und gekürzt; Ladung/Name suchen: nach dem Lösen).
 
-import { CATIONS, ION_BY_ID, ROMAN, BY_Z, chargeFull, chargeSup, chargeText, compoundName, configuration, formula, hundBoxes, ionChargeText, isKnownCompound, ratio, sup, toSubscript, type Ion } from "@lern/chem";
-import { Formula } from "@lern/chem-ui";
+import { CATIONS, ION_BY_ID, ROMAN, BY_Z, chargeFull, chargeSup, compoundName, formula, ionChargeText, isKnownCompound, ratio, toSubscript, typicalIonCharge, type Ion } from "@lern/chem";
+import { Formula, PeriodicTable } from "@lern/chem-ui";
 import { Button, Fit, Icon, Segmented, Stepper, Tag, type GuideCtx } from "@lern/ui";
 import { getLang, tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
 
-// ── Kästchenschema ─────────────────────────────────────────────────────────
+// ── Stoffproben ────────────────────────────────────────────────────────────
 
-/** äußere s- und d-Unterschale des neutralen Atoms (Fe: 4s², 3d⁶; Ag: 5s¹, 4d¹⁰) und der Edelgaskern davor */
-export function outerShells(Z: number) {
-  const cfg = configuration(Z);
-  const n = Math.max(...cfg.map(o => o.n));
-  const s = cfg.find(o => o.key === `${n}s`)?.count ?? 0, d = cfg.find(o => o.key === `${n - 1}d`)?.count ?? 0;
-  const core = n === 4 ? "Ar" : n === 5 ? "Kr" : "Xe";
-  return { n, s, d, core, sKey: `${n}s`, dKey: `${n - 1}d` };
-}
+/** Farben der Stoffe (Pulver): FeO schwarz, Fe₂O₃ rotbraun (Rost), Cu₂O rot, CuO schwarz */
+export type SampleKey = "FeO" | "Fe2O3" | "Cu2O" | "CuO";
+export const SAMPLE_COLOR: Record<SampleKey, () => string> = {
+  FeO: () => tr("schwarz", "black"), Fe2O3: () => tr("rotbraun", "red-brown"), Cu2O: () => tr("rot", "red"), CuO: () => tr("schwarz", "black"),
+};
 
-export interface Cfg { s: number; d: number }
-
-/** Kurzschreibweise aus den Elektronen in ns und (n−1)d, z. B. „[Ar] 4s² 3d⁴“ (s vor d wie in der Kurzschreibweise des Atoms) */
-export function cfgText(Z: number, c: Cfg) {
-  const o = outerShells(Z);
-  return `[${o.core}]` + (c.s ? ` ${o.sKey}${sup(c.s)}` : "") + (c.d ? ` ${o.dKey}${sup(c.d)}` : "");
-}
-
-/** Elektronen ab: `give` = Anzahl, vorgemacht bzw. Lösung = zuerst ns, dann (n−1)d */
-export function cfgAfter(Z: number, give: number): Cfg {
-  const o = outerShells(Z);
-  const fromS = Math.min(o.s, give);
-  return { s: o.s - fromS, d: o.d - (give - fromS) };
-}
-
-function Boxes({ l, count, label, onTap, off }: { l: number; count: number; label: string; onTap: () => void; off: boolean }) {
-  const boxes = hundBoxes(l, count);
+/** Probe auf dem Uhrglas: Pulverhaufen in der Farbe des Stoffs */
+export function Sample({ k }: { k: SampleKey }) {
   return (
-    <div className="k5-sub">
-      <span className="k5-sub-key">{label}</span>
-      <div className="k5-boxes">
-        {boxes.map((v, i) => {
-          const arrows = <>{v > 0 && <span className="k5-up">↑</span>}{v > 1 && <span className="k5-dn">↓</span>}</>;
-          // vorgemacht bzw. gelöst: nur Anzeige, keine Knöpfe
-          return off ? <span key={i} className="k5-box">{arrows}</span> : (
-            <button key={i} type="button" className="k5-box" disabled={count === 0} onClick={onTap}
-              aria-label={tr(`${label}: ${count} Elektronen – ein Elektron abgeben`, `${label}: ${count} electron${count === 1 ? "" : "s"} – remove one electron`)}>{arrows}</button>
-          );
-        })}
-      </div>
-    </div>
+    <svg className={`k5-sample s-${k}`} viewBox="0 0 84 46" role="img" aria-label={tr(`Probe, ${SAMPLE_COLOR[k]()}`, `sample, ${SAMPLE_COLOR[k]()}`)}>
+      <path className="k5-heap" d="M15 33 C20 20 30 12 42 11 C54 12 64 20 69 33 Z" />
+      <circle className="k5-grain" cx="13" cy="33.5" r="1.4" /><circle className="k5-grain" cx="71" cy="33.2" r="1.2" /><circle className="k5-grain" cx="75" cy="34" r=".9" />
+      <path className="k5-glass" d="M3 31 Q42 48 81 31" />
+    </svg>
   );
 }
 
-export function ConfigModel({ c, Z, give }: { c: GuideCtx; Z: number; give: number }) {
-  const o = outerShells(Z);
-  const [st, set] = useModel<Cfg>(c, { s: o.s, d: o.d }, cfgAfter(Z, give));
-  const q = o.s + o.d - st.s - st.d;
-  const sym = BY_Z[Z].symbol;
-  const off = c.solved;
-  const half = st.s === 0 && st.d === 5, full = st.s === 0 && st.d === 10;
-  const stage = (
-    <Fit className="k5-fit" min={0.3}><div className="k5-cfg">
-      <div className="k5-ion" aria-live="polite">
-        <span className="k5-ion-sym">{sym}{q > 0 && <sup>{chargeText(q)}</sup>}</span>
-        <span className="k5-ion-n">{Z} p⁺ · {Z - q} e⁻</span>
-      </div>
-      <div className="k5-scheme">
-        <div className="k5-core" aria-label={tr(`Edelgaskern ${o.core}`, `noble gas core ${o.core}`)}>[{o.core}]</div>
-        <div className="k5-subs">
-          <Boxes l={0} count={st.s} label={o.sKey} off={off} onTap={() => set({ ...st, s: st.s - 1 })} />
-          <Boxes l={2} count={st.d} label={o.dKey} off={off} onTap={() => set({ ...st, d: st.d - 1 })} />
-        </div>
-      </div>
-      <p className="k5-cfgtext"><span>{cfgText(Z, st)}</span></p>
-      <div className="k5-tags">
-        <Tag>{q ? tr(`${q} e⁻ abgegeben`, `${q} e⁻ removed`) : tr("Atom, neutral", "atom, neutral")}</Tag>
-        {c.solved && half && <Tag tone="ok">{tr("✓ 3d halb besetzt", "✓ 3d half-filled")}</Tag>}
-        {c.solved && full && <Tag tone="ok">{tr(`✓ ${o.dKey} voll besetzt`, `✓ ${o.dKey} full`)}</Tag>}
-      </div>
-    </div></Fit>
-  );
-  return (
-    <ModelFrame c={c} className="k5-lm" stage={stage}
-      controls={!c.solved && <Button icon="reset" onClick={() => set({ s: o.s, d: o.d })} disabled={q === 0}>{tr("Neu", "Reset")}</Button>}
-      onCheck={() => c.pick(cfgText(Z, st))} />
-  );
-}
-
-// ── Ionenwand mit Ladungswahl ──────────────────────────────────────────────
+// ── Ionenwand ──────────────────────────────────────────────────────────────
 
 export interface Wall { q: number; nC: number; nA: number }
 
-/** Metall-Ion mit Ladung q: das echte Ion aus `ions.ts`, sonst ein gedachtes (nur als Versuch in der Wand, nie als Lösung) */
+/** Metall-Ion mit Ladung q: das echte Ion aus `ions.ts`, sonst ein erfundenes (nur als Versuch in der Wand, gestrichelt, nie als Lösung) */
 export function metalIon(Z: number, q: number): Ion {
   const real = CATIONS.find(x => x.Z === Z && x.charge === q);
   if (real) return real;
   const sym = BY_Z[Z].symbol;
   return { id: `${sym}${q}+`, formula: sym, charge: q, Z, name: sym, part: sym, os: true };
 }
+export const isReal = (Z: number, q: number) => CATIONS.some(x => x.Z === Z && x.charge === q);
 /** Metallname ohne Zahl: „Eisen“, „Kupfer“ */
 const metalBase = (Z: number) => (CATIONS.find(x => x.Z === Z)?.part ?? BY_Z[Z].symbol).replace(/\(.*\)$/, "");
 /** Name mit gewählter römischer Zahl: „Kupfer(II)-chlorid“ / „Copper(II) chloride“ */
@@ -107,7 +49,6 @@ export function nameWith(Z: number, q: number, anion: Ion) {
   const part = `${metalBase(Z)}(${ROMAN[q]})`;
   return getLang() === "en" ? `${part} ${anion.part}` : `${part}-${anion.part}`;
 }
-const isReal = (Z: number, q: number) => CATIONS.some(x => x.Z === Z && x.charge === q);
 /** gekürzte, ausgeglichene Wand? */
 const simplest = (Z: number, an: Ion, w: Wall) => { const r = ratio(metalIon(Z, w.q), an); return w.nC === r.nC && w.nA === r.nA; };
 
@@ -152,10 +93,10 @@ function Tile({ ion, fake }: { ion: Ion; fake?: boolean }) {
   );
 }
 
-function Wall2({ cat, an, nC, nA, fake }: { cat: Ion; an: Ion; nC: number; nA: number; fake: boolean }) {
+export function IonWall5({ cat, an, nC, nA, fake = false, small = false }: { cat: Ion; an: Ion; nC: number; nA: number; fake?: boolean; small?: boolean }) {
   const pos = nC * cat.charge, neg = nA * -an.charge;
   return (
-    <div className="k5-iw" style={{ "--cols": Math.max(pos, neg) } as React.CSSProperties}>
+    <div className={`k5-iw${small ? " small" : ""}`} style={{ "--cols": Math.max(pos, neg) } as React.CSSProperties}>
       <div className="k5-row" aria-label={`${nC} × ${cat.formula}${chargeSup(cat.charge)}`}>
         {Array.from({ length: nC }, (_, i) => <Tile key={i} ion={cat} fake={fake} />)}
         {neg > pos && <span className="k5-gap" style={{ gridColumn: `span ${neg - pos}` }} role="img" aria-label={tr(`es fehlen ${neg - pos} positive Ladungen`, `${neg - pos} positive charges missing`)} />}
@@ -168,7 +109,33 @@ function Wall2({ cat, an, nC, nA, fake }: { cat: Ion; an: Ion; nC: number; nA: n
   );
 }
 
-export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, stepC = false, stepA = false, report, given }: {
+/** Zwei Stoffe aus denselben Elementen (vorgemacht): Probe, Formel, Ionenwand, Name */
+export function OxidePair({ c, items }: { c: GuideCtx; items: { Z: number; q: number; nC: number; nA: number; sample: SampleKey }[] }) {
+  const an = ION_BY_ID["O2-"];
+  const stage = (
+    <Fit className="k5-fit" min={0.3}>
+      <div className="k5-pair">
+        {items.map(it => {
+          const cat = metalIon(it.Z, it.q);
+          return (
+            <figure key={it.sample} className="k5-pair-item">
+              <Sample k={it.sample} />
+              <figcaption>
+                <span className="k5-pair-f"><Formula f={formula(cat, an, it.nC, it.nA)} /></span>
+                <span className="k5-pair-c">{SAMPLE_COLOR[it.sample]()}</span>
+              </figcaption>
+              <IonWall5 cat={cat} an={an} nC={it.nC} nA={it.nA} small />
+              <p className="k5-pair-n">{compoundName(cat, an)}</p>
+            </figure>
+          );
+        })}
+      </div>
+    </Fit>
+  );
+  return <ModelFrame c={c} className="k5-lm" stage={stage} />;
+}
+
+export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, stepC = false, stepA = false, report, given, sample, sampleAlways = false }: {
   c: GuideCtx; Z: number; anion: string; init: Wall; sol: Wall;
   /** wählbare Ladungen des Metall-Ions (sonst fest) */
   charges?: number[];
@@ -179,6 +146,8 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   report: "formula" | "charge" | "name";
   /** vorgegebener Name bzw. vorgegebene Formel über der Wand */
   given?: string;
+  /** Probe des Stoffs: bei vorgegebener Formel von Anfang an (`sampleAlways`), beim Formel-Bauen erst nach dem Lösen */
+  sample?: SampleKey; sampleAlways?: boolean;
 }) {
   const [w, set] = useModel<Wall>(c, init, sol);
   const an = ION_BY_ID[anion], cat = metalIon(Z, w.q);
@@ -190,13 +159,20 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   const sym = BY_Z[Z].symbol;
   const result = report === "formula" ? wallFormula(Z, anion, w) : report === "charge" ? `${w.q}+` : wallName(Z, anion, w.q);
   const calc = `${w.nC} · (${chargeFull(w.q)}) = ${w.nC * w.q}+ ${balanced ? tr("und", "and") : tr("aber", "but")} ${w.nA} · (${chargeFull(an.charge)}) = ${w.nA * -an.charge}−`;
-  // Formel bauen: Rechnung immer (sie ist das Modell), ✓ nur ausgeglichen, gekürzt und beständig. Ladung bzw. Name suchen: ✓ und Name erst nach dem Lösen
+  // Formel bauen: Rechnung immer (sie ist das Modell), ✓ nur ausgeglichen, gekürzt und als Stoff bekannt. Ladung bzw. Name suchen: ✓ und Name erst nach dem Lösen
   const showCalc = report === "formula" || c.solved;
   const ok = balanced && small && known;
+  const showSample = sample && (sampleAlways || c.solved);
   const stage = (
     <Fit className="k5-fit" min={0.3}><div className="k5-wall">
-      {given && <p className={`k5-given${report === "formula" ? " name" : ""}`}>{report === "formula" ? given : <Formula f={given} />}</p>}
-      <Wall2 cat={cat} an={an} nC={w.nC} nA={w.nA} fake={!real} />
+      {(given || showSample) && (
+        <div className="k5-head">
+          {showSample && <Sample k={sample!} />}
+          {given && <p className={`k5-given${report === "formula" ? " name" : ""}`}>{report === "formula" ? given : <Formula f={given} />}
+            {showSample && <span className="k5-given-c">{SAMPLE_COLOR[sample!]()}</span>}</p>}
+        </div>
+      )}
+      <IonWall5 cat={cat} an={an} nC={w.nC} nA={w.nA} fake={!real} />
       {report === "formula" && (
         <p className="k5-built"><Icon name="arrow" size={26} /> <span className="k5-built-f">{balanced ? <Formula f={formula(cat, an, w.nC, w.nA)} /> : "?"}</span>
           {ok && <span className="k5-built-n">{compoundName(cat, an)}</span>}</p>
@@ -214,7 +190,7 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   );
   // gelöst bzw. vorgemacht: nur das Modell (Zahl und Anzahlen stehen in Wand und Name), mehr Platz für das Bild
   const controls = !c.solved && (seg || stepC || stepA) && (
-    <fieldset className="k5-ctl" disabled={c.solved}>
+    <fieldset className="k5-ctl">
       {seg}
       {(stepC || stepA) && (
         <div className="k5-steps">
@@ -227,3 +203,75 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   return <ModelFrame c={c} className="k5-lm" stage={stage} controls={controls || undefined} onCheck={() => c.pick(result)} />;
 }
 
+// ── PSE: Ladung aus der Gruppe oder im Namen ───────────────────────────────
+
+/** Ladung aus der Gruppe ablesbar: Metalle der Gruppen 1, 2 und 13 (Na⁺, Mg²⁺, Al³⁺); alle anderen Metalle tragen sie als römische Zahl im Namen */
+export const chargeFromGroup = (Z: number) => { const g = BY_Z[Z].group; return g === 1 || g === 2 || g === 13; };
+/** Ergebnis: angetippte Symbole nach Ordnungszahl, z. B. "Fe Cu" */
+export const pseResult = (picked: number[]) => [...picked].sort((a, b) => a - b).map(Z => BY_Z[Z].symbol).join(" ") || "–";
+const groupOf = (Z: number) => BY_Z[Z].group ?? 0;
+
+/**
+ * Rückmeldung zu jeder Auswahl unter den angebotenen Metallen: zuerst ein Metall zu viel (mit Gruppe und Grund), sonst eines, das fehlt.
+ */
+export function pseWhy(cands: number[], answer: number[]): Record<string, string> {
+  const out: Record<string, string> = {}, right = pseResult(answer);
+  const wanted = (Z: number) => answer.includes(Z);
+  for (let m = 0; m < 1 << cands.length; m++) {
+    const pick = cands.filter((_, i) => m & (1 << i)), id = pseResult(pick);
+    if (id === right) continue;
+    const extra = pick.find(Z => !wanted(Z)), miss = cands.find(Z => wanted(Z) && !pick.includes(Z));
+    if (!pick.length) { out[id] = tr("Noch nichts angetippt. Tippe Metalle im PSE an.", "Nothing tapped yet. Tap metals in the periodic table."); continue; }
+    if (extra) {
+      const e = BY_Z[extra], g = groupOf(extra);
+      out[id] = chargeFromGroup(extra)
+        ? tr(`${e.name} steht in Gruppe ${g}: Die Ladung liest du aus der Gruppe ab.`, `${e.name} is in group ${g}: you read the charge from the group.`)
+        : tr(`${e.name} steht in Gruppe ${g}: Nur Gruppe 1, 2 und 13 verraten die Ladung.`, `${e.name} is in group ${g}: only groups 1, 2 and 13 give the charge.`);
+    } else if (miss) {
+      out[id] = tr(`${BY_Z[miss].name} (Gruppe ${groupOf(miss)}) fehlt noch.`, `${BY_Z[miss].name} (group ${groupOf(miss)}) is still missing.`);
+    }
+  }
+  return out;
+}
+
+/** was beim Antippen erscheint: Name, Symbol, Gruppe (die Einordnung selbst erst nach dem Lösen) */
+const pseInfo = (Z: number) => tr(`${BY_Z[Z].name} ${BY_Z[Z].symbol}: Gruppe ${groupOf(Z)}`, `${BY_Z[Z].name} ${BY_Z[Z].symbol}: group ${groupOf(Z)}`);
+
+/** Metalle im PSE antippen (an/aus, nur die angebotenen); „Prüfen“ meldet die Symbole, z. B. "Fe Cu" */
+export function PseMetals({ c, cands, answer }: { c: GuideCtx; cands: number[]; answer: number[] }) {
+  const [picked, set] = useModel<number[]>(c, [], answer);
+  const has = (Z: number) => picked.includes(Z);
+  const toggle = (Z: number) => { if (c.solved || !cands.includes(Z)) return; set(has(Z) ? picked.filter(x => x !== Z) : [...picked, Z]); };
+  const last = picked[picked.length - 1];
+  const byZ = [...cands].sort((a, b) => a - b);
+  const sym = (Z: number) => BY_Z[Z].symbol;
+  return (
+    <ModelFrame c={c} className="k5-lm"
+      stage={
+        <div className="k5-pse">
+          {/* PSE füllt den Platz (Container-Einheiten); bleibt es zu hoch (viel Text darunter), verkleinert Fit es, statt den Text zu überdecken */}
+          <div className="pse-fit k5-pse-fit">
+            <Fit className="k5-fit" min={0.3}>
+              <PeriodicTable stufe="os" fit names={false} onPick={toggle} disabled={c.solved}
+                cellState={Z => (!cands.includes(Z) ? "dim" : has(Z) ? (c.solved ? "right" : "sel") : c.show && answer.includes(Z) ? "hit" : undefined)} />
+            </Fit>
+          </div>
+          <div className="k5-pse-sel" aria-live="polite">
+            {c.solved ? (
+              <>
+                <p><b>{tr("Ladung aus der Gruppe", "Charge from the group")}:</b> {byZ.filter(chargeFromGroup).map(Z => sym(Z) + chargeSup(typicalIonCharge(Z) ?? 0)).join(", ")}</p>
+                <p><b>{tr("Ladung im Namen", "Charge in the name")}:</b> {byZ.filter(Z => !chargeFromGroup(Z)).map(sym).join(", ")}</p>
+              </>
+            ) : (
+              <>
+                <p>{last ? pseInfo(last) : tr(`Angeboten: ${byZ.map(sym).join(", ")}`, `On offer: ${byZ.map(sym).join(", ")}`)}</p>
+                <p className="k5-dim">{picked.length ? `${tr("angetippt", "tapped")}: ${pseResult(picked).split(" ").join(", ")}` : tr("Tippe Metalle an.", "Tap metals.")}</p>
+              </>
+            )}
+          </div>
+        </div>
+      }
+      controls={c.solved ? undefined : <Button icon="reset" onClick={() => set([])} disabled={!picked.length}>{tr("Löschen", "Clear")}</Button>}
+      onCheck={() => c.pick(pseResult(picked))} />
+  );
+}

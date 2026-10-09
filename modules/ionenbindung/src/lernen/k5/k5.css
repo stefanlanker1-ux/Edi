@@ -1,54 +1,45 @@
-/* Kapitel 5 – Nebengruppenmetalle: Kästchenschema zum Abgeben, Ionenwand mit Ladungswahl */
+/* Kapitel 5 – Nebengruppenmetalle: Stoffproben, PSE (Ladung aus der Gruppe oder im Namen), Ionenwand mit Ladungswahl */
+
+/* Farben der Stoffe (Pulver, wie im Labor): FeO und CuO schwarz, Fe₂O₃ rotbraun (Rost), Cu₂O rot – in beiden Farbschemata gleich */
+:root {
+  --k5-s-feo: #2a2a2a; --k5-s-fe2o3: #8c3b1f; --k5-s-cu2o: #c23a22; --k5-s-cuo: #1f1f1f;
+}
 
 .k5-lm .lm-controls { gap: 10px; }
-
-/* ── Kästchenschema ─────────────────────────────────────────────────────── */
-.k5-cfg {
-  --bx: clamp(44px, min(13cqw, 15cqh), 72px);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(6px, 2.4cqh, 16px);
-  width: 100%;
-}
 .k5-fit { width: 100%; height: 100%; }
-.k5-ion { display: flex; align-items: baseline; gap: 12px; }
-.k5-ion-sym { font-size: clamp(1.9rem, 9cqh, 2.8rem); font-weight: 800; line-height: 1; letter-spacing: -.01em; }
-.k5-ion-sym sup { font-size: .55em; margin-left: .04em; color: var(--cat-tile-b, var(--hue-yellow-deep)); }
-.k5-ion-n { color: var(--muted); font-weight: 650; font-variant-numeric: tabular-nums; }
-.k5-scheme { display: flex; align-items: stretch; gap: 10px; }
-.k5-core {
-  display: grid; place-items: center; padding: 0 10px; min-width: 52px; border: 1.5px dashed var(--faint); border-radius: var(--radius-sm);
-  font-weight: 750; color: var(--muted); font-size: 1rem;
-}
-.k5-subs { display: grid; gap: 8px; }
-.k5-sub { display: grid; grid-template-columns: 2.4em auto; align-items: center; gap: 8px; }
-.k5-sub-key { font-weight: 750; font-size: 1rem; text-align: right; }
-.k5-boxes { display: flex; }
-.k5-box {
-  display: grid; grid-auto-flow: column; place-content: center; gap: 2px; width: max(46px, var(--bx)); height: max(46px, var(--bx)); padding: 0; margin-left: -1.5px;
-  border: 1.5px solid var(--rule); background: var(--surface); color: var(--hue-blue-deep); font: 800 calc(var(--bx) * .46) / 1 var(--font);
-  box-shadow: var(--key-edge); cursor: pointer; touch-action: manipulation;
-}
-.k5-box:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
-.k5-box:disabled, span.k5-box { box-shadow: none; }
-span.k5-box { cursor: default; }
-.k5-box:first-child { margin-left: 0; border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
-.k5-box:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
-.k5-box:only-child { border-radius: var(--radius-sm); }
-.k5-box:hover:not(:disabled) { background: var(--surface-2); }
-.k5-box:disabled { cursor: default; color: var(--hue-blue-deep); }
-.k5-box:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; position: relative; z-index: 1; }
-.k5-dn { transform: translateY(1px); }
-.k5-cfgtext { margin: 0; font-size: clamp(1.15rem, 5.5cqh, 1.5rem); font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.k5-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+
+/* ── Stoffprobe auf dem Uhrglas ─────────────────────────────────────────── */
+.k5-sample { width: clamp(72px, 18cqw, 120px); height: auto; flex: none; overflow: visible; }
+.k5-glass { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; }
+.k5-heap { stroke: color-mix(in srgb, var(--text) 35%, transparent); stroke-width: .8; }
+.k5-grain { stroke: none; }
+.s-FeO .k5-heap, .s-FeO .k5-grain { fill: var(--k5-s-feo); }
+.s-Fe2O3 .k5-heap, .s-Fe2O3 .k5-grain { fill: var(--k5-s-fe2o3); }
+.s-Cu2O .k5-heap, .s-Cu2O .k5-grain { fill: var(--k5-s-cu2o); }
+.s-CuO .k5-heap, .s-CuO .k5-grain { fill: var(--k5-s-cuo); }
+
+/* zwei Stoffe nebeneinander */
+.k5-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; align-items: start; }
+.k5-pair-item { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.k5-pair-item .k5-sample { width: clamp(80px, 20cqw, 150px); }
+.k5-pair-item figcaption { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.k5-pair-f { font-size: clamp(1.4rem, 5cqw, 2.1rem); font-weight: 800; line-height: 1.1; }
+.k5-pair-c { color: var(--muted); font-size: .9rem; font-weight: 600; }
+.k5-pair-n { margin: 0; font-weight: 750; font-size: 1rem; text-align: center; }
 
 /* ── Ionenwand mit Ladungswahl (eigene Bausteine: Ladung gut lesbar, erfundene Ionen gestrichelt) ── */
 .k5-wall { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 1.6cqh, 10px); width: 100%; }
-.k5-given { margin: 0; font-size: clamp(1.4rem, 8cqh, 2.1rem); font-weight: 800; line-height: 1.1; text-align: center; }
+.k5-head { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.k5-given { margin: 0; display: flex; flex-direction: column; align-items: center; font-size: clamp(1.4rem, 8cqh, 2.1rem); font-weight: 800; line-height: 1.1; text-align: center; }
 .k5-given.name { font-size: clamp(1.15rem, 6.5cqh, 1.6rem); }
+.k5-given-c { font-size: .9rem; font-weight: 600; color: var(--muted); }
 .k5-iw {
   --u: min(72px, calc((min(100cqw, 520px) - 8px - (var(--cols) - 1) * 5px) / var(--cols)));
   --h: clamp(44px, 9cqh, 54px);
   display: grid; gap: 5px; justify-content: center;
 }
+.k5-iw.small { --u: min(60px, calc((50cqw - 20px - (var(--cols) - 1) * 4px) / var(--cols))); --h: clamp(40px, 8cqh, 52px); gap: 4px; }
+.k5-iw.small .k5-row { gap: 4px; }
 .k5-row { display: grid; grid-template-columns: repeat(var(--cols), var(--u)); gap: 5px; }
 .k5-tile {
   display: grid; place-items: center; height: var(--h); min-width: 0; padding: 0 2px; border-radius: var(--radius-sm); border: 1.5px solid;
@@ -65,11 +56,25 @@ span.k5-box { cursor: default; }
 .k5-calc { margin: 0; color: var(--muted); font-size: .92rem; text-align: center; font-variant-numeric: tabular-nums; }
 .k5-calc.ok { color: var(--ok); font-weight: 650; }
 .k5-name { margin: 0; font-size: clamp(1.05rem, 5.5cqh, 1.35rem); font-weight: 750; text-align: center; }
+
 /* Bedienung fließt in die Leiste des Modells: Zähler oben, darunter römische Zahl bzw. Ladung neben „Prüfen“ */
 .k5-ctl { display: contents; }
-.k5-ctl:disabled > * { opacity: .55; }
 .k5-steps { order: -1; flex: 1 0 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; }
 .k5-an { white-space: nowrap; }
 .k5-steps .ui-stepper { min-width: 150px; }
-/* niedrige Bühne: Kennzeichen unter dem Kästchenschema weglassen, damit das Schema ohne Verkleinern passt */
-@container (max-height: 250px) { .k5-tags, .k5-ion-n { display: none; } }
+
+/* ── PSE: Metalle antippen ──────────────────────────────────────────────── */
+.k5-pse { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 6px; width: 100%; height: 100%; min-height: 0; }
+.k5-pse-fit { min-height: 0; }
+.k5-pse-sel { margin: 0; text-align: center; font-size: 1rem; min-height: 2.8em; display: grid; align-content: start; gap: 2px; }
+.k5-pse-sel p { margin: 0; }
+.k5-dim { color: var(--muted); font-size: .875rem; }
+/* Symbole und Gruppennummern größer (am Handy sonst unter 9 px); die Ordnungszahl braucht es hier nicht */
+.k5-pse-fit .pse-os.fit .pc-z { display: none; }
+.k5-pse-fit .pse-os.fit .pse-cell { padding: 0; }
+.k5-pse-fit .pse-os.fit .pc-sym { font-size: clamp(.7rem, 3.1cqw, 1.1rem); }
+.k5-pse-fit .pse-os.fit .pse-head { font-size: clamp(.6rem, 2.5cqw, .85rem); }
+/* sehr niedrige Bühne (viel Text): die Zusammenfassung unter dem PSE steht auch im Lösungsweg – das PSE bekommt den Platz */
+@container (max-height: 240px) { .k5-pse-sel { display: none; } }
+/* schmales PSE: das ✓-Zeichen der richtigen Zellen würde das Symbol verdecken – dort bleibt der grüne Rahmen, die Liste darunter nennt die Metalle */
+@container (max-width: 600px) { .k5-pse-fit .pse-cell.right::after { display: none; } }
