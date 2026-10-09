@@ -11,7 +11,8 @@ import {
   ChargePair, FormulaModel, IonRow, Lattice3D, LatticeFill, NeighborTap, PairStatic,
   allCounter, both, diag, far, gapRes, likeNb, notNeutral, onlyAtt, onlyRep, unreduced,
 } from "./k3/forces.tsx";
-import { Conduct, ShiftLayers, ThermoLattice, ThermoPair, bothLiquid, bothSolid, naclOnly, circuitOpen, halfway, holds, lampOff, lampOn, leftMinus, leftPlus, molten, repels, solid, type Leit } from "./k3/props.tsx";
+import { Conduct, ThermoLattice, ThermoPair, bothLiquid, bothSolid, naclOnly, circuitOpen, lampOff, lampOn, leftMinus, leftPlus, molten, solid, type Leit } from "./k3/props.tsx";
+import { Brittle, CrystalHammer, halfway, holds, repels } from "./k3/brittle.tsx";
 import "./k3/k3.css";
 
 const att = () => tr("Anziehung", "attraction");
@@ -237,14 +238,14 @@ function steps(): GuideStep[] {
       mode: "worked",
       say: tr("Salzkristalle sind **hart**: Die Anziehung hält die Schichten fest. Sie sind aber auch **spröde**: Bei einem Schlag zerspringen sie.",
         "Salt crystals are **hard**: the attraction holds the layers firmly. But they are also **brittle**: a blow shatters them."),
-      ask: tr("Sieh dir an, was beim Verschieben der oberen Schichten passiert.", "See what happens when the upper layers are shifted."),
+      ask: tr("Sieh dir an, was ein Hammerschlag im Kristall bewirkt.", "See what a hammer blow does inside the crystal."),
       lines: [
-        tr("Ein wenig verschoben: Die Gegen-Ionen ziehen die Schichten zurück.", "Shifted a little: the counter-ions pull the layers back."),
-        tr("Um einen ganzen Platz verschoben: Gleiche Ladungen stehen sich gegenüber.", "Shifted by a whole place: like charges face each other."),
-        tr("Sie stoßen sich ab – der Kristall bricht.", "They repel each other – the crystal breaks."),
+        tr("Halb verschoben: Die Gegen-Ionen halten die Schichten schwächer.", "Shifted halfway: the counter-ions hold the layers more weakly."),
+        tr("Um einen Platz verschoben: Gleiche Ladungen stehen gegenüber und stoßen sich ab.", "Shifted by one place: like charges face each other and repel."),
+        tr("Der Kristall bricht in glatte Stücke.", "The crystal breaks into smooth-faced pieces."),
       ],
       ok: tr("Hart wegen der starken Anziehung, spröde wegen der Abstoßung nach dem Verschieben.", "Hard because of the strong attraction, brittle because of the repulsion after shifting."),
-      visual: c => <ShiftLayers c={c} cat={NA} an={CL} start={4} sol={4} demo />,
+      visual: c => <Brittle c={c} cat={NA} an={CL} start={4} sol={4} demo />,
     }),
     model({
       mode: "faded",
@@ -252,12 +253,13 @@ function steps(): GuideStep[] {
       lines: [tr("K⁺ über K⁺ und Br⁻ über Br⁻ → {?} → der Kristall bricht.", "K⁺ above K⁺ and Br⁻ above Br⁻ → {?} → the crystal breaks.")],
       answer: repels(),
       why: {
-        [holds()]: tr("Noch stehen Gegen-Ionen gegenüber und ziehen sich an. Verschiebe die Schichten.", "Counter-ions still face each other and attract. Shift the layers."),
-        [halfway()]: tr("Erst teilweise verschoben. Schiebe weiter, bis gleiche Ladungen genau übereinander stehen.", "Only partly shifted. Keep going until like charges stand exactly above each other."),
+        [holds()]: tr("Noch stehen Gegen-Ionen gegenüber und ziehen sich an. Verschiebe die oberen Schichten.", "Counter-ions still face each other and attract. Shift the upper layers."),
+        [halfway()]: tr("Erst teilweise verschoben: Die Gegen-Ionen halten die Schichten noch. Schiebe weiter, bis gleiche Ladungen genau übereinander stehen.",
+          "Only partly shifted: the counter-ions still hold the layers. Keep going until like charges stand exactly above each other."),
       },
-      tip: tr("Beobachte die Ionen an der Trennlinie: Wann steht gleiche Ladung über gleicher Ladung?", "Watch the ions at the boundary: when is like charge above like charge?"),
-      ok: tr("Um einen Platz verschoben: K⁺ über K⁺, Br⁻ über Br⁻ → Abstoßung, der Kristall bricht.", "Shifted by one place: K⁺ above K⁺, Br⁻ above Br⁻ → repulsion, the crystal breaks."),
-      visual: c => <ShiftLayers c={c} cat={K} an={BR} start={0} sol={4} />,
+      tip: tr("Beobachte in der Lupe die Ionen an der Trennlinie: Wann steht gleiche Ladung über gleicher Ladung?", "In the magnifier, watch the ions at the boundary: when is like charge above like charge?"),
+      ok: tr("Um einen Platz verschoben: K⁺ über K⁺, Br⁻ über Br⁻ → Abstoßung, der Kristall bricht in Stücke.", "Shifted by one place: K⁺ above K⁺, Br⁻ above Br⁻ → repulsion, the crystal breaks into pieces."),
+      visual: c => <Brittle c={c} cat={K} an={BR} start={0} sol={4} />,
     }),
     {
       mode: "free",
@@ -273,6 +275,7 @@ function steps(): GuideStep[] {
         [tr("Er verbiegt sich, ohne zu brechen.", "It bends without breaking.")]: tr("Verbiegen verschiebt Schichten. Dann stehen gleiche Ladungen gegenüber und stoßen sich ab – das Salz bricht.", "Bending shifts layers. Then like charges face each other and repel – the salt breaks."),
       },
       ok: tr("Salz ist spröde: Der Schlag verschiebt Schichten, gleiche Ladungen stoßen sich ab, der Kristall zerspringt.", "Salt is brittle: the blow shifts layers, like charges repel, the crystal shatters."),
+      visual: () => <CrystalHammer />,
     },
 
     // ── Teil 4: Wann leiten Salze Strom? ────────────────────────────────────
