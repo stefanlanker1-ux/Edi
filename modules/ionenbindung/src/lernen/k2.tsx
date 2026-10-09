@@ -149,7 +149,7 @@ function steps(): GuideStep[] {
     // ── 2 Die Formel ──
     model({
       mode: "worked", part: tr("Die Formel", "The formula"),
-      say: tr("Die **Verhältnisformel** sagt kurz, welche Ionen in welchem Anzahlverhältnis vorkommen.", "The **formula** of an ionic compound gives the ions in their simplest number ratio."),
+      say: tr("Die **Verhältnisformel** sagt kurz, welche Ionen in welchem Anzahlverhältnis vorkommen.", "The **empirical formula** gives the ions of an ionic compound in their simplest number ratio."),
       ask: tr("Wie schreibt man die Formel für 1 Ca²⁺ und 2 Cl⁻?", "How do you write the formula for 1 Ca²⁺ and 2 Cl⁻?"),
       visual: c => <FormulaModel c={c} cat="Ca2+" an="Cl-" start={[1, 2]} sol={[1, 2]} />,
       labels: [{ at: ".k2-idx", text: tr("Index", "Subscript"), side: "right", point: "right" }],
@@ -202,7 +202,7 @@ function steps(): GuideStep[] {
       why: {
         "Mg₂Cl": tr("Die 2 gehört zum Cl: Es sind 2 Cl⁻, aber nur 1 Mg²⁺.", "The 2 belongs to Cl: there are 2 Cl⁻ but only 1 Mg²⁺."),
         "MgCl²": tr("Hochgestellt steht die Ladung. Die Anzahl steht tief: als Index.", "A raised number is a charge. The number of ions is written low: as a subscript."),
-        "Mg²⁺Cl₂⁻": tr("In der Verhältnisformel stehen keine Ladungen. Sie gleichen sich ja aus.", "There are no charges in the formula. They balance each other anyway."),
+        "Mg²⁺Cl₂⁻": tr("In der Verhältnisformel stehen keine Ladungen. Sie gleichen sich ja aus.", "There are no charges in the empirical formula. They balance each other anyway."),
       },
       ok: tr("1 Mg²⁺ und 2 Cl⁻ → MgCl₂: Index 2 tief beim Cl, die 1 fällt weg.", "1 Mg²⁺ and 2 Cl⁻ → MgCl₂: subscript 2 low on Cl, the 1 is left out."),
     },
@@ -454,7 +454,7 @@ export const kapitel2 = (): Kapitel => ({
     steps: steps(),
     outro: [
       tr("Ladungen in der Ionenwand ausgleichen, bis die Ionenverbindung neutral ist.", "Balance charges in the ion wall until the ionic compound is neutral."),
-      tr("Die Verhältnisformel aufstellen: Kation zuerst, Anzahl als Index, kleinstes Verhältnis.", "Write the formula (simplest ratio): cation first, number as subscript."),
+      tr("Die Verhältnisformel aufstellen: Kation zuerst, Anzahl als Index, kleinstes Verhältnis.", "Write the empirical formula: cation first, number as subscript, smallest ratio."),
       tr("Ionenverbindungen benennen: Metall + Wortstamm + -id, ohne Anzahl.", "Name ionic compounds: metal + word stem + -ide, without numbers."),
       tr("Vom Namen zur Formel und von der Formel zum Namen.", "Go from name to formula and from formula to name."),
     ],
@@ -466,7 +466,7 @@ export const kapitel2 = (): Kapitel => ({
       tr("Beispiel: 1 Ba²⁺ und 2 F⁻: 1 · (2+) = 2+ und 2 · (1−) = 2−.", "Example: 1 Ba²⁺ and 2 F⁻: 1 · (2+) = 2+ and 2 · (1−) = 2−."),
     ],
     [
-      tr("**Verhältnisformel**: erst das Kation, dann das Anion, ohne Ladungen.", "**Formula** (simplest ratio): first the cation, then the anion, without charges."),
+      tr("**Verhältnisformel**: erst das Kation, dann das Anion, ohne Ladungen.", "**Empirical formula**: first the cation, then the anion, without charges."),
       tr("Die Anzahl steht als **Index** tief hinter dem Symbol, eine 1 schreibt man nicht: 1 Ba²⁺ und 2 F⁻ → BaF₂.", "The number is a **subscript** after the symbol, a 1 is not written: 1 Ba²⁺ and 2 F⁻ → BaF₂."),
       tr("Die Formel nennt das kleinste Verhältnis (BaO, nicht Ba₂O₂). Sie beschreibt kein Molekül.", "The formula gives the smallest ratio (BaO, not Ba₂O₂). It does not describe a molecule."),
     ],

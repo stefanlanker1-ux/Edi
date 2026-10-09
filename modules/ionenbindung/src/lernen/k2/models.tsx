@@ -106,12 +106,15 @@ export function FormulaModel({ c, cat, an, start, sol, max = 4 }: { c: GuideCtx;
   return (
     <ModelFrame c={c} className="k2-m"
       stage={
-        <div className="k2-fm">
-          <div className="k2-fm-f" aria-label={tr(`Formel ${formulaKey(cat, an, s.i[0], s.i[1], s.swap)}`, `Formula ${formulaKey(cat, an, s.i[0], s.i[1], s.swap)}`)}>
-            {s.swap ? parts.reverse() : parts}
+        // Formel und Wand als ein Bild: gemeinsam eingepasst und mittig
+        <Fit className="k2-fit" min={0.3}>
+          <div className="k2-fm">
+            <div className="k2-fm-f" aria-label={tr(`Formel ${formulaKey(cat, an, s.i[0], s.i[1], s.swap)}`, `Formula ${formulaKey(cat, an, s.i[0], s.i[1], s.swap)}`)}>
+              {s.swap ? parts.reverse() : parts}
+            </div>
+            <IonWall cation={ci} anion={ai} nC={s.i[0]} nA={s.i[1]} showFormula={false} showName={false} />
           </div>
-          <Wall cat={ci} an={ai} nC={s.i[0]} nA={s.i[1]} />
-        </div>
+        </Fit>
       }
       controls={
         <fieldset className="k2-ctl k2-fm-ctl" disabled={c.solved}>
