@@ -3,12 +3,11 @@
 //   Symbol, Ladung, Elektronenzahl und Kurzschreibweise ändern sich sofort. Fachdaten aus `configuration` (gemessener Grundzustand, Cu [Ar] 4s¹ 3d¹⁰).
 // WallModel – Ionenwand mit wählbarer Ladung des Metall-Ions (römische Zahl bzw. Ladung) und Zählern: Wand, Formel, Name und Rechnung sofort.
 
-import { CATIONS, ION_BY_ID, ROMAN, BY_Z, chargeSup, chargeText, compoundName, configuration, formula, hundBoxes, isKnownCompound, sup, toSubscript, type Ion } from "@lern/chem";
+import { CATIONS, ION_BY_ID, ROMAN, BY_Z, chargeFull, chargeSup, chargeText, compoundName, configuration, formula, hundBoxes, ionChargeText, isKnownCompound, ratio, sup, toSubscript, type Ion } from "@lern/chem";
 import { Formula } from "@lern/chem-ui";
-import { Button, Fit, Segmented, Stepper, Tag, type GuideCtx } from "@lern/ui";
+import { Button, Fit, Icon, Segmented, Stepper, Tag, type GuideCtx } from "@lern/ui";
 import { getLang, tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
-import { IonWall } from "../../components/IonWall.tsx";
 
 // ── Kästchenschema ─────────────────────────────────────────────────────────
 
@@ -42,12 +41,14 @@ function Boxes({ l, count, label, onTap, off }: { l: number; count: number; labe
     <div className="k5-sub">
       <span className="k5-sub-key">{label}</span>
       <div className="k5-boxes">
-        {boxes.map((v, i) => (
-          <button key={i} type="button" className="k5-box" disabled={off || count === 0} onClick={onTap}
-            aria-label={tr(`${label}: ${count} Elektronen – ein Elektron abgeben`, `${label}: ${count} electrons – remove one electron`)}>
-            {v > 0 && <span className="k5-up">↑</span>}{v > 1 && <span className="k5-dn">↓</span>}
-          </button>
-        ))}
+        {boxes.map((v, i) => {
+          const arrows = <>{v > 0 && <span className="k5-up">↑</span>}{v > 1 && <span className="k5-dn">↓</span>}</>;
+          // vorgemacht bzw. gelöst: nur Anzeige, keine Knöpfe
+          return off ? <span key={i} className="k5-box">{arrows}</span> : (
+            <button key={i} type="button" className="k5-box" disabled={count === 0} onClick={onTap}
+              aria-label={tr(`${label}: ${count} Elektronen – ein Elektron abgeben`, `${label}: ${count} electrons – remove one electron`)}>{arrows}</button>
+          );
+        })}
       </div>
     </div>
   );
@@ -106,11 +107,65 @@ export function nameWith(Z: number, q: number, anion: Ion) {
   const part = `${metalBase(Z)}(${ROMAN[q]})`;
   return getLang() === "en" ? `${part} ${anion.part}` : `${part}-${anion.part}`;
 }
-/** gebaute Formel (Text mit Tiefstellung) oder „≠“, solange die Wand nicht ausgeglichen ist */
+const isReal = (Z: number, q: number) => CATIONS.some(x => x.Z === Z && x.charge === q);
+/** gekürzte, ausgeglichene Wand? */
+const simplest = (Z: number, an: Ion, w: Wall) => { const r = ratio(metalIon(Z, w.q), an); return w.nC === r.nC && w.nA === r.nA; };
+
+/** Ergebnis der Formel-Wand: gebaute Formel (Text mit Tiefstellung), sonst „≠ q|nC|nA“ (nicht ausgeglichen, je Zustand eigene Rückmeldung) */
 export function wallFormula(Z: number, anionId: string, w: Wall) {
   const cat = metalIon(Z, w.q), an = ION_BY_ID[anionId];
-  if (w.nC * w.q !== w.nA * -an.charge) return "≠";
+  if (w.nC * w.q !== w.nA * -an.charge) return `≠ ${w.q}|${w.nC}|${w.nA}`;
   return toSubscript(formula(cat, an, w.nC, w.nA));
+}
+/** Ergebnis der Namens-Wand: gebauter Name, bei einem erfundenen Ion dessen Zeichen („Cu³⁺“) */
+export const wallName = (Z: number, anionId: string, q: number) => (isReal(Z, q) ? nameWith(Z, q, ION_BY_ID[anionId]) : `${BY_Z[Z].symbol}${chargeSup(q)}`);
+
+/**
+ * Rückmeldungen zu jedem möglichen Zustand der Formel-Wand (Name → Formel), mit den Zahlen der Aufgabe:
+ * nicht ausgeglichen (obere/untere Reihe), falsche römische Zahl, nicht gekürzt.
+ */
+export function wallWhy(Z: number, anionId: string, sol: Wall, charges: number[]): Record<string, string> {
+  const an = ION_BY_ID[anionId], a = -an.charge, sym = BY_Z[Z].symbol, out: Record<string, string> = {};
+  const right = wallFormula(Z, anionId, sol);
+  for (const q of charges) for (let nC = 1; nC <= 4; nC++) for (let nA = 1; nA <= 6; nA++) {
+    const w = { q, nC, nA }, id = wallFormula(Z, anionId, w);
+    if (id === right || out[id]) continue;
+    if (nC * q !== nA * a) {
+      out[id] = tr(`Noch nicht neutral: obere Reihe ${nC} · (${chargeFull(q)}) = ${nC * q}+, untere Reihe ${nA} · (${chargeFull(-a)}) = ${nA * a}−.`,
+        `Not neutral yet: top row ${nC} · (${chargeFull(q)}) = ${nC * q}+, bottom row ${nA} · (${chargeFull(-a)}) = ${nA * a}−.`);
+    } else if (q !== sol.q) {
+      out[id] = tr(`Neutral, aber mit (${ROMAN[q]}) baust du ${sym}${chargeSup(q)}. Gesucht ist (${ROMAN[sol.q]}) = ${sym}${chargeSup(sol.q)}.`,
+        `Neutral, but with (${ROMAN[q]}) you build ${sym}${chargeSup(q)}. You need (${ROMAN[sol.q]}) = ${sym}${chargeSup(sol.q)}.`);
+    } else if (!simplest(Z, an, w)) {
+      out[id] = tr(`Neutral, aber nicht das kleinste Verhältnis: ${nC} : ${nA} lässt sich kürzen.`, `Neutral, but not the smallest ratio: ${nC} : ${nA} can be reduced.`);
+    }
+  }
+  return out;
+}
+
+/** Baustein der Ionenwand (Breite = Ladung); erfundene Ionen gestrichelt */
+function Tile({ ion, fake }: { ion: Ion; fake?: boolean }) {
+  return (
+    <span className={`k5-tile ${ion.charge > 0 ? "cat" : "an"}${fake ? " fake" : ""}`} style={{ gridColumn: `span ${Math.abs(ion.charge)}` }}>
+      <span className="k5-tl"><Formula f={ion.formula} /><sup>{ionChargeText(ion.charge)}</sup></span>
+    </span>
+  );
+}
+
+function Wall2({ cat, an, nC, nA, fake }: { cat: Ion; an: Ion; nC: number; nA: number; fake: boolean }) {
+  const pos = nC * cat.charge, neg = nA * -an.charge;
+  return (
+    <div className="k5-iw" style={{ "--cols": Math.max(pos, neg) } as React.CSSProperties}>
+      <div className="k5-row" aria-label={`${nC} × ${cat.formula}${chargeSup(cat.charge)}`}>
+        {Array.from({ length: nC }, (_, i) => <Tile key={i} ion={cat} fake={fake} />)}
+        {neg > pos && <span className="k5-gap" style={{ gridColumn: `span ${neg - pos}` }} role="img" aria-label={tr(`es fehlen ${neg - pos} positive Ladungen`, `${neg - pos} positive charges missing`)} />}
+      </div>
+      <div className="k5-row" aria-label={`${nA} × ${an.formula}${chargeSup(an.charge)}`}>
+        {Array.from({ length: nA }, (_, i) => <Tile key={i} ion={an} />)}
+        {pos > neg && <span className="k5-gap" style={{ gridColumn: `span ${pos - neg}` }} role="img" aria-label={tr(`es fehlen ${pos - neg} negative Ladungen`, `${pos - neg} negative charges missing`)} />}
+      </div>
+    </div>
+  );
 }
 
 export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, stepC = false, stepA = false, report, given }: {
@@ -128,20 +183,29 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   const [w, set] = useModel<Wall>(c, init, sol);
   const an = ION_BY_ID[anion], cat = metalIon(Z, w.q);
   const balanced = w.nC * w.q === w.nA * -an.charge;
-  const real = CATIONS.some(x => x.Z === Z && x.charge === w.q);
-  // gedachte Ionen (Fe⁴⁺) und nicht beständige Stoffe (CuNO₃) bekommen keinen Namen, sondern einen Hinweis
+  const real = isReal(Z, w.q);
+  // erfundene Ionen (Fe⁺, Cu³⁺) und nicht beständige Stoffe (CuNO₃) bekommen keinen Namen, sondern einen Hinweis
   const known = real && isKnownCompound(cat, an);
+  const small = balanced && simplest(Z, an, w);
   const sym = BY_Z[Z].symbol;
-  const result = report === "formula" ? wallFormula(Z, anion, w) : report === "charge" ? `${w.q}+` : nameWith(Z, w.q, an);
+  const result = report === "formula" ? wallFormula(Z, anion, w) : report === "charge" ? `${w.q}+` : wallName(Z, anion, w.q);
+  const calc = `${w.nC} · (${chargeFull(w.q)}) = ${w.nC * w.q}+ ${balanced ? tr("und", "and") : tr("aber", "but")} ${w.nA} · (${chargeFull(an.charge)}) = ${w.nA * -an.charge}−`;
+  // Formel bauen: Rechnung immer (sie ist das Modell), ✓ nur ausgeglichen, gekürzt und beständig. Ladung bzw. Name suchen: ✓ und Name erst nach dem Lösen
+  const showCalc = report === "formula" || c.solved;
+  const ok = balanced && small && known;
   const stage = (
     <Fit className="k5-fit" min={0.3}><div className="k5-wall">
       {given && <p className={`k5-given${report === "formula" ? " name" : ""}`}>{report === "formula" ? given : <Formula f={given} />}</p>}
-      <div className="k5-wall-fit">
-        <IonWall cation={cat} anion={an} nC={w.nC} nA={w.nA} showFormula={report === "formula"} showName={known} />
-      </div>
-      {balanced && real && !known && <Tag tone="bad">✗ {tr("gibt es nicht (nicht beständig)", "does not exist (not stable)")}</Tag>}
-      {report === "name" && <p className="k5-name" aria-live="polite">{nameWith(Z, w.q, an)}</p>}
-      {report === "charge" && <p className={`k5-name${balanced ? " ok" : ""}`} aria-live="polite">{balanced && known ? compoundName(cat, an) : `${sym}${chargeSup(w.q)}`}</p>}
+      <Wall2 cat={cat} an={an} nC={w.nC} nA={w.nA} fake={!real} />
+      {report === "formula" && (
+        <p className="k5-built"><Icon name="arrow" size={26} /> <span className="k5-built-f">{balanced ? <Formula f={formula(cat, an, w.nC, w.nA)} /> : "?"}</span>
+          {ok && <span className="k5-built-n">{compoundName(cat, an)}</span>}</p>
+      )}
+      {showCalc && <p className={`k5-calc${ok ? " ok" : ""}`}>{ok ? "✓ " : balanced ? "" : "≠ "}{calc}{balanced && !small ? tr(" · nicht gekürzt", " · not reduced") : ""}</p>}
+      {!real && <Tag tone="bad">✗ {tr(`Ion ${sym}${chargeSup(w.q)} gibt es nicht`, `ion ${sym}${chargeSup(w.q)} does not exist`)}</Tag>}
+      {real && balanced && !known && <Tag tone="bad">✗ {tr("Stoff gibt es nicht (nicht beständig)", "substance does not exist (not stable)")}</Tag>}
+      {report === "name" && real && <p className="k5-name" aria-live="polite">{nameWith(Z, w.q, an)}</p>}
+      {report === "charge" && c.solved && <p className="k5-name ok">{compoundName(cat, an)}</p>}
     </div></Fit>
   );
   const seg = charges && (

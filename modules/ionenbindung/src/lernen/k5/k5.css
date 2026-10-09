@@ -28,7 +28,8 @@
   box-shadow: var(--key-edge); cursor: pointer; touch-action: manipulation;
 }
 .k5-box:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
-.k5-box:disabled { box-shadow: none; }
+.k5-box:disabled, span.k5-box { box-shadow: none; }
+span.k5-box { cursor: default; }
 .k5-box:first-child { margin-left: 0; border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
 .k5-box:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .k5-box:only-child { border-radius: var(--radius-sm); }
@@ -39,21 +40,36 @@
 .k5-cfgtext { margin: 0; font-size: clamp(1.15rem, 5.5cqh, 1.5rem); font-weight: 750; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .k5-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 
-/* ── Ionenwand mit Ladungswahl ──────────────────────────────────────────── */
-.k5-wall { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 2cqh, 12px); width: 100%; }
+/* ── Ionenwand mit Ladungswahl (eigene Bausteine: Ladung gut lesbar, erfundene Ionen gestrichelt) ── */
+.k5-wall { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 1.6cqh, 10px); width: 100%; }
 .k5-given { margin: 0; font-size: clamp(1.4rem, 8cqh, 2.1rem); font-weight: 800; line-height: 1.1; text-align: center; }
 .k5-given.name { font-size: clamp(1.15rem, 6.5cqh, 1.6rem); }
-.k5-wall-fit { width: 100%; max-width: 520px; min-height: 0; }
-.k5-wall-fit .ion-wall { gap: clamp(4px, 2cqh, 12px); }
-.k5-wall-fit .iw-formula { font-size: clamp(1.4rem, 8cqh, 2.2rem); }
+.k5-iw {
+  --u: min(72px, calc((min(100cqw, 520px) - 8px - (var(--cols) - 1) * 5px) / var(--cols)));
+  --h: clamp(44px, 9cqh, 54px);
+  display: grid; gap: 5px; justify-content: center;
+}
+.k5-row { display: grid; grid-template-columns: repeat(var(--cols), var(--u)); gap: 5px; }
+.k5-tile {
+  display: grid; place-items: center; height: var(--h); min-width: 0; padding: 0 2px; border-radius: var(--radius-sm); border: 1.5px solid;
+  font-weight: 800; font-size: 18px; line-height: 1; white-space: nowrap;
+}
+.k5-tile sup { font-size: 14px; margin-left: 1px; }
+.k5-tile.cat { background: var(--cat-tile-a); border-color: var(--cat-tile-border); color: var(--cat-tile-text); }
+.k5-tile.an { background: var(--an-tile-a); border-color: var(--an-tile-border); color: var(--an-tile-text); }
+.k5-tile.fake { background: transparent; color: var(--text); border: 2px dashed var(--cat-tile-b); }
+.k5-gap { height: var(--h); border: 2px dashed var(--faint); border-radius: var(--radius-sm); opacity: .7; }
+.k5-built { margin: 0; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 4px 10px; }
+.k5-built-f { font-size: clamp(1.4rem, 8cqh, 2.1rem); font-weight: 800; line-height: 1.1; }
+.k5-built-n { flex-basis: 100%; text-align: center; color: var(--muted); font-weight: 650; }
+.k5-calc { margin: 0; color: var(--muted); font-size: .92rem; text-align: center; font-variant-numeric: tabular-nums; }
+.k5-calc.ok { color: var(--ok); font-weight: 650; }
 .k5-name { margin: 0; font-size: clamp(1.05rem, 5.5cqh, 1.35rem); font-weight: 750; text-align: center; }
-.k5-name.ok { color: var(--text); }
 /* Bedienung fließt in die Leiste des Modells: Zähler oben, darunter römische Zahl bzw. Ladung neben „Prüfen“ */
 .k5-ctl { display: contents; }
 .k5-ctl:disabled > * { opacity: .55; }
 .k5-steps { order: -1; flex: 1 0 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; }
 .k5-an { white-space: nowrap; }
 .k5-steps .ui-stepper { min-width: 150px; }
-@media (max-height: 700px) {
-  .k5-wall-fit .iw-stack { --h: 40px; }
-}
+/* niedrige Bühne: Kennzeichen unter dem Kästchenschema weglassen, damit das Schema ohne Verkleinern passt */
+@container (max-height: 250px) { .k5-tags, .k5-ion-n { display: none; } }
