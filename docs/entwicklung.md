@@ -639,7 +639,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Atome laut Formel und laut Ionenwand im Vergleich – CaOH₂ = 1 O, NH₄₂ = 42 H) · **Name ↔ Formel** (Ionenwahl, Namens-Baukasten). Nur beständige Verbindungen (Test `k4/k4.test.ts`).
 - Kapitel 5 **Nebengruppenmetalle** (Level II, `k5.tsx`, `k5/models.tsx`) – **ohne Elektronenkonfiguration** (kein Kästchenschema, kein 4s/3d) und **ohne Auswendigwissen**
   (kein Silber/Zink, keine Aussagen „dieses Ion gibt es nicht“): **Ein Metall – mehrere Ionen** (zwei Stoffe aus denselben Elementen als Stoffproben: FeO schwarz/Fe₂O₃
-  rotbraun, Cu₂O rot/CuO schwarz; Brücke zu Kapitel 1 mit Spaltenleiste `GroupStrip`: im großen PSE Gruppe 1, 2 = I., II. Hauptgruppe, Gruppe 13–18 = III.–VIII. Hauptgruppe,
+  rotbraun, Cu₂O rot/CuO schwarz; Brücke zu Kapitel 1 mit Spaltenleiste `GroupStrip` (Blöcke 1 | 2 | 3–12 | 13 | 14 | 15–18 über I | II | Nebengruppen | III | IV | V–VIII, Schrift ≥ 14 px): im großen PSE Gruppe 1, 2 = I., II. Hauptgruppe, Gruppe 13–18 = III.–VIII. Hauptgruppe,
   dazwischen Gruppen 3–12 = Nebengruppen; Regel: Metalle der I. bis III. Hauptgruppe → Ladung aus der Hauptgruppe, alle anderen – Nebengruppenmetalle und Blei, IV. Hauptgruppe,
   PbO gelb/PbO₂ dunkelbraun – römische Zahl im Namen; Metalle wählen mit großen Knöpfen unter dem neutral gefärbten PSE, `PseMetals`) · **Vom Namen zur Formel** ·
   **Von der Formel zum Namen** · **Alles zusammen** (mehratomige Ionen). Ionenwand mit Ladungswahl (`WallModel`): vor dem Lösen nur „ausgeglichen“/„≠“ in neutraler Farbe,
