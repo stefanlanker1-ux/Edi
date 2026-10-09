@@ -30,7 +30,7 @@ const valence = (Z: number) => outerOf(Z);
 const R = [22, 38, 54, 70];
 const ER = 5.2;
 /** Trefferfläche eines Elektrons beim Markieren (Einheiten der Zeichnung) */
-const HIT = 12;
+const HIT = 13;
 // Reihenfolge der Plätze auf einer Schale mit 8 Plätzen (oben, unten, rechts, links, dann die Diagonalen) bzw. K (links, rechts)
 const ORDER8 = [0, 4, 2, 6, 1, 5, 3, 7];
 const pos = (shell: number, k: number, r: number): [number, number] => {
@@ -161,7 +161,7 @@ export function MarkOuter({ c, Z }: { c: GuideCtx; Z: number }) {
     <ModelFrame c={c} className="k1-m"
       stage={
         <div className="k1-one">
-          <div className="k1-one-svg"><Atom Z={Z} E={Z} marked={marked} onMark={c.solved ? undefined : toggle} /></div>
+          <div className="k1-one-svg"><Atom Z={Z} E={Z} ext={R[last] + ER + 4} marked={marked} onMark={c.solved ? undefined : toggle} /></div>
           <div className="k1-cap big">
             <span className="k1-sym">{BY_Z[Z].symbol}</span>
             <span className="k1-pe">{BY_Z[Z].name}</span>
