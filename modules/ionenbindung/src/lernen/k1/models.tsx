@@ -1,7 +1,7 @@
 // Modelle für Kapitel 1 „Vom Atom zum Ion“: Bohrmodell (Unterstufe, Schalen K·L·M·N mit 2·8·8·…) mit antippbaren Elektronen,
 // Ion bauen (abgeben/aufnehmen), Ladungsrechner (Protonen/Elektronen), PSE mit Ionen, Elektronenübergang zwischen Atomen.
-// Schalenradien sind fest: ein Kation mit einer Schale weniger ist sichtbar kleiner; ein Anion zeigt die Außenschale etwas
-// weiter außen (Modell: mehr Elektronen stoßen sich ab) – der gestrichelte Kreis zeigt die Größe des Atoms zum Vergleich.
+// Jede Schale hat immer denselben Radius (R), egal wie viele Protonen und Elektronen: Das Teilchen wird nur kleiner, wenn eine Schale
+// wegfällt (Kation), und nur größer, wenn eine neue dazukommt. Ein Anion ist im Modell so groß wie sein Atom.
 
 import { Fragment, useState, type ReactNode } from "react";
 import { Button, Icon, Stepper, buzz, type GuideCtx } from "@lern/ui";
@@ -27,7 +27,8 @@ export const shellText = (E: number) => shellsOf(E).join(" · ");
 export const chargeWord = (q: number) => (q === 0 ? tr("neutral", "neutral") : `${Math.abs(q)}${q > 0 ? "+" : "−"}`);
 const valence = (Z: number) => outerOf(Z);
 
-const R = [22, 38, 54, 70];
+/** feste Schalenradien K, L, M, N (Einheiten der Zeichnung) */
+export const R = [22, 38, 54, 70];
 const ER = 5.2;
 /** Trefferfläche eines Elektrons beim Markieren (Einheiten der Zeichnung) */
 const HIT = 13;
@@ -37,11 +38,8 @@ const pos = (shell: number, k: number, r: number): [number, number] => {
   const a = shell === 0 ? (k === 0 ? Math.PI : 0) : -Math.PI / 2 + (ORDER8[k] * Math.PI) / 4;
   return [r * Math.cos(a), r * Math.sin(a)];
 };
-/** Radius der Außenschale: Anion etwas weiter außen (Modell: Elektronen stoßen sich ab) */
-const ringR = (Z: number, E: number, shell: number, last: boolean) =>
-  R[shell] * (last && E > Z && shellsOf(E).length === shellsOf(Z).length ? 1 + 0.16 * Math.min(E - Z, 3) : 1);
-/** halbe Breite des Bildes für ein Atom/Ion (gemeinsamer Maßstab mehrerer Atome: größter Wert) */
-export const extentOf = (Z: number, E = Z) => { const n = shellsOf(Math.max(Z, E)).length; return ringR(Z, Math.max(Z, E), n - 1, true) + 14; };
+/** halbe Breite des Bildes für ein Atom/Ion: Platz für seine Schalen und die des Atoms (gemeinsamer Maßstab mehrerer Atome: größter Wert) */
+export const extentOf = (Z: number, E = Z) => R[shellsOf(Math.max(Z, E)).length - 1] + 14;
 
 export interface AtomProps {
   Z: number; E: number;
@@ -61,11 +59,11 @@ export interface AtomProps {
   ghost?: boolean;
 }
 
-/** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien, Hülle als Fläche (Größe des Teilchens) */
+/** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien (R), Hülle als Fläche (Größe des Teilchens = äußerste besetzte Schale) */
 export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, ghost = true }: AtomProps) {
   const sh = shellsOf(E), neutral = shellsOf(Z);
   const last = sh.length - 1;
-  const rOut = ringR(Z, E, last, true);
+  const rOut = R[last];
   const X = ext ?? extentOf(Z, E);
   const outerFree = slots && last > 0 ? 8 - sh[last] : 0;
   // aufgenommene Elektronen: die letzten in der Füllreihenfolge
@@ -76,9 +74,7 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
       aria-label={label ?? tr(`${BY_Z[Z].name}: ${Z} Protonen, ${E} Elektronen, Schalen ${shellText(E)}`, `${BY_Z[Z].name}: ${Z} protons, ${E} electrons, shells ${shellText(E)}`)}>
       <circle r={rOut + 8} className={`k1-halo${E > Z ? " an" : E < Z ? " cat" : ""}`} />
       {ghost && neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className="k1-ring ghost" />)}
-      {sh.map((_, i) => <circle key={`r${i}`} r={ringR(Z, E, i, i === last)} className={`k1-ring${i === last ? " outer" : ""}`} />)}
-      {/* Anion: Außenschale des Atoms gestrichelt zum Vergleich */}
-      {E > Z && sh.length === neutral.length && <circle r={R[neutral.length - 1]} className="k1-outline" />}
+      {sh.map((_, i) => <circle key={`r${i}`} r={R[i]} className={`k1-ring${i === last ? " outer" : ""}`} />)}
       <circle r={13} className="k1-nuc" />
       <text className="k1-nuc-t" y={0.5}>{Z}+</text>
       {outerFree > 0 && Array.from({ length: outerFree }, (_, j) => {
@@ -89,7 +85,7 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
       })}
       {sh.map((n, s) => Array.from({ length: n }, (_, k) => {
         const i = idx++;
-        const [x, y] = pos(s, k, ringR(Z, E, s, s === last));
+        const [x, y] = pos(s, k, R[s]);
         const key = `${s}-${k}`;
         // nur beim Markieren ist jedes Elektron ein Tippziel; sonst bedient man das Modell mit den Knöpfen darunter
         const tap = onMark ? () => onMark(key) : undefined;
@@ -389,7 +385,7 @@ export function trWhy(M: number, N: number, start: [number, number], solution: [
 
 /** Metall-Atome links, Nichtmetall-Atome rechts; „e⁻ übertragen“ gibt ein Außenelektron eines Metall-Atoms an das Nichtmetall-Atom
  *  mit den meisten freien Plätzen. `adjust` = Zahl der Metall- ("m") oder Nichtmetall-Atome ("n") einstellbar (1–3).
- *  Leere Schalen der Kationen sind nicht gezeichnet: Die Größen im Schalenmodell sind nur ungefähr. */
+ *  Leere Schalen der Kationen sind nicht gezeichnet; jede Schale behält ihren Radius. */
 export function Transfer({ c, M, N, start, solution, adjust }: {
   c: GuideCtx; M: number; N: number; start: [number, number]; solution: [number, number]; adjust?: "m" | "n";
 }) {

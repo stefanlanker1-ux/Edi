@@ -35,6 +35,8 @@
 .bohr .nuc-txt { font-size: 8px; font-weight: 800; text-anchor: middle; fill: #fff; font-family: var(--font); }
 .bohr .nuc-empty { fill: none; stroke: var(--ring); stroke-dasharray: 2 2; }
 .bohr .el { filter: drop-shadow(0 .6px .8px rgba(0, 0, 0, .18)); }
+/* antippbare bzw. ziehbare Elektronen: unsichtbarer Rand vergrößert die Trefferfläche (der Maßstab ist fest, kleine Rahmen machen Elektronen klein) */
+.bohr .el.hit { stroke: transparent; stroke-width: 7; }
 .bohr .el.orb-s { fill: var(--o-s); } .bohr .el.orb-p { fill: var(--o-p); } .bohr .el.orb-d { fill: var(--o-d); } .bohr .el.orb-f { fill: var(--o-f); }
 .bohr .grab { cursor: grab; }
 .bohr .shell-rot { transform-box: view-box; transform-origin: 0 0; }

@@ -7,13 +7,14 @@ import { tr } from "@lern/i18n";
 
 const NOBLE = new Set([2, 10, 18, 36, 54, 86]);
 
-function AtomBox({ Z, E, title }: { Z: number; E: number; title: string }) {
+/** `slots`: gleicher Rahmen für Atom und Ion – jede Schale gleich groß, das Kation verliert sichtbar eine Schale */
+function AtomBox({ Z, E, title, slots }: { Z: number; E: number; title: string; slots: number }) {
   const N = standardNeutrons(Z);
   const sh = shells(Z, E);
   return (
     <figure className="ia-box">
       <figcaption>{title}</figcaption>
-      <div className="ia-bohr"><Bohr Z={Z} N={N} E={E} labels={false} /></div>
+      <div className="ia-bohr"><Bohr Z={Z} N={N} E={E} slots={slots} labels={false} /></div>
       <Nuclide Z={Z} N={N} E={E} size="md" />
       <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
     </figure>
@@ -38,16 +39,17 @@ function Mono({ ion, Z, os }: { ion: Ion; Z: number; os: boolean }) {
   // Oberstufe: aus welchen Unterschalen die Elektronen kommen (Fe³⁺: 4s², 3d¹), Unterstufe: kein Außenelektronen-Kennzeichen
   const noble = NOBLE.has(E);
   const ionCfg = configuration(Z, E);
+  const slots = Math.max(shells(Z).length, shells(Z, E).length);
   const lost = configuration(Z).map(o => ({ key: o.key, n: o.count - (ionCfg.find(c => c.key === o.key)?.count ?? 0) })).filter(x => x.n > 0);
   return (
     <>
       <div className="ion-atom">
-        <AtomBox Z={Z} E={Z} title={tr(`${el.name}-Atom`, `${el.name} atom`)} />
+        <AtomBox Z={Z} E={Z} slots={slots} title={tr(`${el.name}-Atom`, `${el.name} atom`)} />
         <div className="ia-arrow">
           <Icon name="arrow" size={28} />
           <span>{give ? tr(`gibt ${n} e⁻ ab`, `loses ${n} e⁻`) : tr(`nimmt ${n} e⁻ auf`, `gains ${n} e⁻`)}</span>
         </div>
-        <AtomBox Z={Z} E={E} title={ion.name} />
+        <AtomBox Z={Z} E={E} slots={slots} title={ion.name} />
       </div>
       <div className="ui-tags ion-tags">
         {noble && <Tag>{outer} {tr(`Außenelektron${outer === 1 ? "" : "en"}`, `outer electron${outer === 1 ? "" : "s"}`)}</Tag>}

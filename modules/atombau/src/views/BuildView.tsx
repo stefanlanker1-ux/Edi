@@ -118,7 +118,7 @@ export function BuildView() {
         </>}
         stage={
           <div ref={drag.stageRef} className={`stage${drag.over ? ` ${drag.over}` : ""}`}>
-            <Bohr Z={Z} N={N} E={E} ghost colorByOrbital={os && orbitalColors} animate={animate && !reduced} onParticleDown={drag.fromAtom} />
+            <Bohr Z={Z} N={N} E={E} ghost slots={os ? 7 : 4} colorByOrbital={os && orbitalColors} animate={animate && !reduced} onParticleDown={drag.fromAtom} />
           </div>
         }
         status={tags.length > 0 ? tags : undefined}

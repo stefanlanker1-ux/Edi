@@ -87,7 +87,8 @@ function ShellsAnswer({ task, answered, submit }: P<"shells">) {
   });
   return (
     <div className="answer-build">
-      <div className="ab-atom-box"><div className="ab-atom"><Bohr Z={Z} N={standardNeutrons(Z)} E={0} shellCounts={shown} labels /></div></div>
+      {/* Rahmen für alle Schalen der Aufgabe (alle Ringe stehen von Anfang an da): der Maßstab bleibt beim Füllen gleich */}
+      <div className="ab-atom-box"><div className="ab-atom"><Bohr Z={Z} N={standardNeutrons(Z)} E={0} shellCounts={shown} slots={task.shellCount} labels /></div></div>
       <div className="ab-controls">
         {shown.map((c, i) => (
           <Stepper key={i} stack label={tr(`${SHELL_NAMES[i]}-Schale`, `${SHELL_NAMES[i]} shell`)} value={c} min={0} max={32}
@@ -107,14 +108,15 @@ function BuildAnswer({ task, answered, submit }: P<"build">) {
   return (
     <div className="answer-build">
       <div className="ab-atom-box"><div className="ab-atom">
-        <Bohr Z={shown.Z} N={shown.N} E={shown.E} labels={false} />
+        <Bohr Z={shown.Z} N={shown.N} E={shown.E} slots={4} labels={false} />
         {/* erst nach dem Prüfen zeigen, was gebaut wurde – vorher verriete die Anzeige die Lösung */}
         {answered && BY_Z[shown.Z] && <div className="ab-nuc"><Nuclide Z={shown.Z} N={shown.N} E={shown.E} size="sm" /></div>}
       </div></div>
       <div className="ab-controls">
         <Stepper stack tone="proton" label={tr("Protonen", "Protons")} value={shown.Z} max={30} onChange={v => set("Z", v)} />
         <Stepper stack tone="neutron" label={tr("Neutronen", "Neutrons")} value={shown.N} max={40} onChange={v => set("N", v)} />
-        <Stepper stack tone="electron" label={tr("Elektronen", "Electrons")} value={shown.E} max={40} onChange={v => set("E", v)} />
+        {/* höchstens 36 Elektronen (bis 4p): nie mehr als 4 Schalen – der Rahmen mit 4 Schalenplätzen behält seinen Maßstab */}
+        <Stepper stack tone="electron" label={tr("Elektronen", "Electrons")} value={shown.E} max={36} onChange={v => set("E", v)} />
         {!answered && <Button variant="primary" icon="check" onClick={check} className="check-btn">{tr("Prüfen", "Check")}</Button>}
       </div>
     </div>

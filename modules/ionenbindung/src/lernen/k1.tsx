@@ -95,7 +95,7 @@ const steps = (): GuideStep[] => [
     visual: () => <Row items={[{ Z: 11, E: 11, title: tr("Atom", "Atom") }, { Z: 11, E: 10, title: tr("Ion", "Ion"), ghost: false }]} arrows={["−1 e⁻ →"]} />,
     lines: [
       tr("1 Elektron weg: 11 p⁺ · 10 e⁻ → Ladung 1+, das Ion **Na⁺**.", "1 electron gone: 11 p⁺ · 10 e⁻ → charge 1+, the ion **Na⁺**."),
-      tr("Na⁺ hat 2 · 8 wie Neon. Die M-Schale ist leer – Na⁺ ist kleiner als das Atom.", "Na⁺ has 2 · 8 like neon. The M shell is empty – Na⁺ is smaller than the atom."),
+      tr("Na⁺ hat 2 · 8 wie Neon. Die M-Schale ist leer und fällt weg – Na⁺ ist kleiner als das Atom.", "Na⁺ has 2 · 8 like neon. The M shell is empty and drops away – Na⁺ is smaller than the atom."),
     ],
     ok: tr("**Ladung = Protonen − Elektronen** = 11 − 10 = 1+. Positive Ionen heißen **Kationen**.", "**Charge = protons − electrons** = 11 − 10 = 1+. Positive ions are called **cations**."),
   }),
@@ -138,9 +138,9 @@ const steps = (): GuideStep[] => [
     options: ["Na", tr("beide gleich", "both the same"), "Na⁺"],
     why: {
       Na: tr("Das Atom hat 3 Schalen. Na⁺ hat nur noch 2 – die M-Schale ist leer.", "The atom has 3 shells. Na⁺ has only 2 left – the M shell is empty."),
-      [tr("beide gleich", "both the same")]: tr("Beim Abgeben wird die äußerste Schale leer. Vergleiche die Ringe.", "When losing, the outermost shell becomes empty. Compare the rings."),
+      [tr("beide gleich", "both the same")]: tr("Jede Schale ist gleich groß geblieben. Aber Na⁺ hat einen Ring weniger: Die M-Schale ist leer.", "Each shell has kept its size. But Na⁺ has one ring fewer: the M shell is empty."),
     },
-    ok: tr("Ein Kation ist kleiner als sein Atom: Na⁺ hat eine Schale weniger.", "A cation is smaller than its atom: Na⁺ has one shell fewer."),
+    ok: tr("Ein Kation ist kleiner als sein Atom: Na⁺ hat eine Schale weniger. Die übrigen Schalen bleiben gleich groß.", "A cation is smaller than its atom: Na⁺ has one shell fewer. The other shells keep their size."),
   },
   model({
     mode: "free",
@@ -162,7 +162,7 @@ const steps = (): GuideStep[] => [
     lines: [
       tr("1 Elektron dazu: 17 p⁺ · 18 e⁻ → 17 − 18 = 1−.", "1 electron added: 17 p⁺ · 18 e⁻ → 17 − 18 = 1−."),
       tr("**Cl⁻** hat 2 · 8 · 8 wie Argon.", "**Cl⁻** has 2 · 8 · 8 like argon."),
-      tr("Modell: Mehr Elektronen stoßen sich ab. Die Außenschale von Cl⁻ liegt weiter außen als beim Atom (gestrichelt).", "Model: more electrons repel each other. The outer shell of Cl⁻ lies further out than in the atom (dashed)."),
+      tr("Das Elektron besetzt den freien Platz auf der M-Schale. Die Schale bleibt gleich groß.", "The electron takes the empty place on the M shell. The shell keeps its size."),
     ],
     ok: tr("Negative Ionen heißen **Anionen**. Das aufgenommene Elektron hat im Bild einen Ring.", "Negative ions are called **anions**. The gained electron has a ring in the picture."),
   }),
@@ -285,7 +285,7 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "free",
-    say: tr("Im Schalenmodell sind die Größen nur ungefähr: In Wirklichkeit ist Ca²⁺ kleiner als F⁻.", "In the shell model the sizes are only approximate: in reality Ca²⁺ is smaller than F⁻."),
+    say: tr("Im Schalenmodell hat jede Schale eine feste Größe. Die echte Größe der Ionen zeigt es nicht: Ca²⁺ ist kleiner als F⁻.", "In the shell model every shell has a fixed size. It does not show the real size of the ions: Ca²⁺ is smaller than F⁻."),
     ask: tr("Jetzt du: Calcium und Fluor. Stelle die Zahl der Fluor-Atome ein und übertrage. Dann prüfe.", "Your turn: calcium and fluorine. Set the number of fluorine atoms and transfer. Then check."),
     answer: "Ca²⁺ + 2 F⁻",
     why: trWhy(20, 9, [1, 1], [1, 2], "n"),
@@ -341,18 +341,18 @@ export const kapitel1 = (): Kapitel => ({
     [
       tr("**Metall**-Atome (I. bis III. Hauptgruppe, außer Wasserstoff und Bor) geben ihre Außenelektronen ab und werden **Kationen**.", "**Metal** atoms (main groups I to III, except hydrogen and boron) lose their outer electrons and become **cations**."),
       tr("**Ladung = Protonen − Elektronen**, z. B. Lithium: 3 p⁺ · 2 e⁻ → 1+, also Li⁺.", "**Charge = protons − electrons**, e.g. lithium: 3 p⁺ · 2 e⁻ → 1+, so Li⁺."),
-      tr("Ladung des Kations = Nummer der Hauptgruppe. Das Kation hat eine Schale weniger und ist kleiner als sein Atom (im Schalenmodell nur ungefähr).", "Charge of the cation = number of the main group. The cation has one shell fewer and is smaller than its atom (only approximate in the shell model)."),
+      tr("Ladung des Kations = Nummer der Hauptgruppe. Die äußerste Schale ist leer und fällt weg – das Kation ist kleiner als sein Atom.", "Charge of the cation = number of the main group. The outermost shell is empty and drops away – the cation is smaller than its atom."),
     ],
     [
       tr("**Nichtmetall**-Atome (V. bis VII. Hauptgruppe) nehmen Elektronen auf, bis außen 8 sind, und werden **Anionen**.", "**Non-metal** atoms (main groups V to VII) gain electrons until there are 8 on the outside and become **anions**."),
       tr("Ladung des Anions = 8 − Hauptgruppe, negativ, z. B. Fluor F (VII.) → F⁻.", "Charge of the anion = 8 − main group, negative, e.g. fluorine F (VII) → F⁻."),
-      tr("Modell: Mehr Elektronen stoßen sich ab – das Anion ist größer als sein Atom.", "Model: more electrons repel each other – the anion is larger than its atom."),
+      tr("Die aufgenommenen Elektronen füllen die Außenschale. Das Anion hat so viele Schalen wie sein Atom.", "The gained electrons fill the outer shell. The anion has as many shells as its atom."),
       tr("Edelgase, Wasserstoff, Bor und die IV. Hauptgruppe bilden in diesem Modell keine einfachen Ionen.", "Noble gases, hydrogen, boron and main group IV form no simple ions in this model."),
     ],
     [
       tr("**Modell der Ionenbildung**: Bei der Reaktion gehen Elektronen vom Metall-Atom zum Nichtmetall-Atom über (**Elektronenübergang**).", "**Model of ion formation**: in the reaction electrons pass from the metal atom to the non-metal atom (**electron transfer**)."),
       tr("Kein Elektron geht verloren: Die **Gesamtladung** bleibt 0, z. B. Na⁺ + Cl⁻: (1+) + (1−) = 0.", "No electron is lost: the **total charge** stays 0, e.g. Na⁺ + Cl⁻: (1+) + (1−) = 0."),
-      tr("Im Schalenmodell sind die Größen der Teilchen nur ungefähr.", "In the shell model the sizes of the particles are only approximate."),
+      tr("Im Schalenmodell hat jede Schale eine feste Größe. Die echte Größe der Ionen zeigt es nicht, z. B. ist Ca²⁺ kleiner als F⁻.", "In the shell model every shell has a fixed size. It does not show the real size of the ions, e.g. Ca²⁺ is smaller than F⁻."),
       tr("Gibt das Metall-Atom mehr Elektronen ab, als ein Nichtmetall-Atom aufnimmt, braucht man mehrere, z. B. Ca²⁺ + 2 Cl⁻.", "If the metal atom loses more electrons than one non-metal atom gains, you need several, e.g. Ca²⁺ + 2 Cl⁻."),
     ],
   ],

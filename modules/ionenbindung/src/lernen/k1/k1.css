@@ -5,7 +5,6 @@
 .k1-ring { fill: none; stroke: var(--ring, var(--rule)); stroke-width: 1.1; transition: r .35s ease; }
 .k1-ring.outer { stroke: var(--muted); stroke-width: 1.3; }
 .k1-ring.ghost { stroke: var(--faint); stroke-dasharray: 2 3; }
-.k1-outline { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
 .k1-nuc { fill: var(--proton); }
 .k1-nuc-t { fill: #fff; font: 800 9.5px var(--font); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .k1-e-c { fill: var(--electron); stroke: rgba(0, 0, 0, .15); stroke-width: .5; }

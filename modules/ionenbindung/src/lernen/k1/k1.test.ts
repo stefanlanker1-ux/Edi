@@ -1,7 +1,7 @@
 // Kapitel 1: Schalen, Edelgaskonfiguration, Ionen aus dem PSE und Ergebnis des Elektronenübergangs stimmen fachlich.
 import { test, expect } from "vitest";
 import { ANIONS, CATIONS, chargeSup } from "@lern/chem";
-import { calcWhy, ionOf, ionWhy, isNoble, markWhy, shellsOf, sym, trResult, trWhy } from "./models.tsx";
+import { R, calcWhy, extentOf, ionOf, ionWhy, isNoble, markWhy, shellsOf, sym, trResult, trWhy } from "./models.tsx";
 
 test("Rückmeldungen aus dem Ergebnis: jeder erreichbare falsche Zustand hat eine, die Lösung keine", () => {
   const ion = ionWhy(8);
@@ -42,4 +42,15 @@ test("Elektronenübergang: Ergebnis gruppiert, Ladungen richtig", () => {
   expect(trResult(12, 17, { nm: 1, nn: 2, gave: [1], got: [1, 0] })).toBe("Mg⁺ + Cl⁻ + Cl");
   expect(trResult(3, 8, { nm: 2, nn: 1, gave: [1, 1], got: [2] })).toBe("2 Li⁺ + O²⁻");
   expect(trResult(20, 9, { nm: 1, nn: 2, gave: [2], got: [1, 1] })).toBe("Ca²⁺ + 2 F⁻");
+});
+
+test("Feste Schalenradien: Anion so groß wie sein Atom, Kation eine Schale kleiner, Protonen ändern keine Schale", () => {
+  expect(R).toEqual([22, 38, 54, 70]);
+  // Größe hängt nur an der Zahl der Schalen: O, O²⁻, F⁻, Ne gleich; Cl und Cl⁻ gleich
+  expect(new Set([[8, 8], [8, 10], [9, 10], [10, 10], [7, 10]].map(([Z, E]) => extentOf(Z, E))).size).toBe(1);
+  expect(extentOf(17, 18)).toBe(extentOf(17, 17));
+  // Kation: äußerste Schale fällt weg (eigene Schalen 2 · 8 statt 2 · 8 · 1)
+  expect(shellsOf(10).length).toBe(shellsOf(11).length - 1);
+  // neue Schale erst nach einer vollen: Cl mit 19 Elektronen hat 4 Schalen
+  expect(extentOf(17, 19)).toBe(R[3] + 14);
 });

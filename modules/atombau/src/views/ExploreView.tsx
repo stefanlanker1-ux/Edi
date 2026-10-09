@@ -105,7 +105,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   const overview = (
     <FitDown min={0.5}>
       <div className="d-visual">
-        <div className="d-bohr"><Bohr Z={Z} N={N} E={Z} colorByOrbital={os && orbitalColors} animate={animate && !reduced} /></div>
+        <div className="d-bohr"><Bohr Z={Z} N={N} E={Z} slots={os ? 6 : 4} colorByOrbital={os && orbitalColors} animate={animate && !reduced} /></div>
         <div className="d-nuc">
           <Nuclide Z={Z} N={N} E={Z} size="lg" />
           <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>

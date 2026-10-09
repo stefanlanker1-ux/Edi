@@ -156,7 +156,7 @@ export function ExplainCard({ id }: { id: string }) {
         <figure className="ex-example">
           <div className="ex-visual">
             {ex.kind === "nuclide" && <Nuclide Z={ex.Z} N={ex.N} E={ex.E} size="lg" />}
-            {ex.kind === "bohr" && <div className="ex-bohr"><Bohr Z={ex.Z} N={ex.N} E={ex.E} /></div>}
+            {ex.kind === "bohr" && <div className="ex-bohr"><Bohr Z={ex.Z} N={ex.N} E={ex.E} slots={3} /></div>}
             {ex.kind === "energy" && <div className="scroll-x"><EnergyDiagram cfg={configuration(ex.Z)} /></div>}
           </div>
           {e.caption && <figcaption>{e.caption}</figcaption>}

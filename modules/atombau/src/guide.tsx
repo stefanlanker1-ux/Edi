@@ -13,7 +13,7 @@ function BohrPick({ c, Z, N, E, counts = false, target }: { c: GuideCtx; Z: numb
   const legend: [Particle, string][] = [["proton", "Proton"], ["neutron", "Neutron"], ["electron", tr("Elektron", "Electron")]];
   return (
     <div className="ab-g">
-      <div className="ab-g-bohr"><Bohr Z={Z} N={N} E={E} counts={counts} labels={false} onParticleDown={target ? t => c.pick(t) : undefined} /></div>
+      <div className="ab-g-bohr"><Bohr Z={Z} N={N} E={E} counts={counts} labels={false} slots={3} onParticleDown={target ? t => c.pick(t) : undefined} /></div>
       <div className="ab-g-legend">
         {legend.map(([t, label]) => (
           <button key={t} type="button" className={`ab-g-chip${c.show && t === target ? " g-sol" : ""}`} disabled={!target} onClick={() => c.pick(t)}>
@@ -39,7 +39,7 @@ function Nucleus({ p, n }: { p: number; n: number }) {
 }
 
 const BohrOnly = ({ Z, N, E, shells }: { Z: number; N: number; E: number; shells?: number[] }) => (
-  <div className="ab-g-bohr"><Bohr Z={Z} N={N} E={E} counts={false} labels={false} shellCounts={shells} /></div>
+  <div className="ab-g-bohr"><Bohr Z={Z} N={N} E={E} counts={false} labels={false} slots={3} shellCounts={shells} /></div>
 );
 
 /** Periodensystem: Element antippen (Ziel = Ordnungszahl als Text); `mark` hebt ein Element hervor */

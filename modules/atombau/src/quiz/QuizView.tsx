@@ -39,11 +39,11 @@ export function QuizView() {
       levelId={l => levelId(stufe, l)}
       typeName={id => TYPES[stufe][id]?.name}
       missName={id => MISS[id]}
-      heroArt={<Bohr Z={stufe === "us" ? 8 : 26} N={stufe === "us" ? 8 : 30} E={stufe === "us" ? 8 : 26} labels={false} />}
+      heroArt={<Bohr Z={stufe === "us" ? 8 : 26} N={stufe === "us" ? 8 : 30} E={stufe === "us" ? 8 : 26} slots={stufe === "us" ? 2 : 4} labels={false} />}
       renderVisual={t => !t.visual ? null
         : t.visual.kind === "nuclide" ? <Nuclide Z={t.visual.Z} N={t.visual.N} E={t.visual.E} size="xl" blank={t.visual.blank} />
         : t.visual.kind === "fill" ? <div className="q-fill"><FillScheme key={t.prompt} Z={t.visual.Z} electrons={t.visual.E} /></div>
-        : <div className="q-bohr"><Bohr Z={t.visual.Z} N={t.visual.N} E={t.visual.E} labels={t.visual.labels} counts={false} /></div>}
+        : <div className="q-bohr"><Bohr Z={t.visual.Z} N={t.visual.N} E={t.visual.E} labels={t.visual.labels} counts={false} slots={4} /></div>}
       renderAnswer={(t, a, submit) => <AnswerArea key={t.prompt} task={t} answered={a} onAnswer={submit} />}
       // Kurzschreibweisen nie mitten durch umbrechen („[Ar] 4s² / 3d⁷“) – passt eine nicht in ihre Spalte, wird die Auswahl einspaltig
       renderOption={(t, o) => <span className={NOWRAP_TYPES.includes(t.type ?? "") ? "cfg-opt" : t.kind === "mc" && t.options.some(x => x.length > 22) ? "mono" : undefined}>{o}</span>}
