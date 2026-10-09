@@ -2,8 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, typ
 
 // ── Zurück schließt Blätter ────────────────────────────────────────────────────
 // Jedes offene Blatt bzw. die Erklärung hat einen eigenen Verlaufseintrag `{ [kind]: Kennung, overlay: true }`. Im Browser (auch am Handy
-// und mit der Zurück-Geste) geht „Zurück“ dorthin zurück und schließt so das Blatt. In der Android-App erreicht die Zurück-Taste den Verlauf
-// erst, wenn sie an die WebView weitergeleitet wird (siehe docs/entwicklung.md, „Android-Zurück-Taste“).
+// und mit der Zurück-Geste) geht „Zurück“ dorthin zurück und schließt so das Blatt; in der Android-App leitet `apps/edi/src/native.ts` die
+// Zurück-Taste in denselben Verlauf (siehe docs/entwicklung.md, „Android-Zurück-Taste“).
 
 /** Kennung des Eintrags, dessen Blatt gerade geschlossen wurde und dessen `history.back()` noch aussteht */
 let closing: string | null = null;

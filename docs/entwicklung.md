@@ -134,7 +134,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Richtig lösen im Browser**: jede Aufgabenart jedes Levels (beide Stufen) im Browser richtig beantworten – muss ✓ geben (fängt Fehler zwischen Daten und Antwortform).
 - **Falsch lösen**: jede falsche Auswahl liefert eine Rückmeldung, nach den Fehlversuchen erscheint die Lösung, nichts läuft über.
 - **Lernende über mehrere Tage** (simulierte Uhr): Fehler am nächsten Morgen fällig, dann nach 3 und 7 Tagen; Wochenziel zählt; Neuladen mitten in der Runde setzt
-  bei derselben Aufgabe fort; Stufenwechsel verliert nichts; „Zurück“ schließt jedes Blatt (im Browser; Android-App siehe „Android-Zurück-Taste“).
+  bei derselben Aufgabe fort; Stufenwechsel verliert nichts; „Zurück“ schließt jedes Blatt (im Browser und mit der Zurück-Taste der Android-App).
 - **Erklärungen durchspielen** (alle Schritte, alle Größen), **Animationen** bis zum Ende laufen lassen und Zwischenbilder ansehen (Sprünge, Zittern, Überlappungen).
 - **Texte durchsehen**: alle erzeugten Texte einer Runde ausgeben und lesen (Grammatik, Einzahl/Mehrzahl, Artikel, nicht eingeführte Begriffe, englische Fassung).
 - Neue Prüfungen, die einen echten Fehler gefunden haben, als Test ins Repository übernehmen.
@@ -288,9 +288,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   am Handy öffnet jedes Werkzeug ein Blatt („Zurück“ im Browser schließt es: `useBackClose`, eigener Verlaufseintrag mit neuer Kennung je Öffnen; ein Blatt über einem
   Blatt bzw. über der Erklärung schließt nur sich; Schließen und Öffnen im selben Durchlauf übernimmt den Eintrag statt ihn zurückzunehmen; ein Eintrag, der vom
   Neuladen stehen blieb, wird beim Start einmal zurückgenommen – Tests `back.test.ts`), breit (≥ 900 px) stehen die Werkzeuge als Register daneben. Nie mehrere Bereiche gleichzeitig offen.
-  **Android-Zurück-Taste**: Capacitor leitet sie ohne `@capacitor/app` nicht an die WebView weiter – in der Android-App schließt sie deshalb die App, auch bei offenem Blatt.
-  Abhilfe (noch nicht umgesetzt, braucht eine Entscheidung bzw. einen Android-Build zum Prüfen): entweder `@capacitor/app` mit `App.addListener("backButton", e => e.canGoBack ? history.back() : App.exitApp())`
-  oder ohne neue Abhängigkeit in `MainActivity` ein `OnBackPressedCallback`, der `getBridge().getWebView().goBack()` aufruft, solange `canGoBack()` gilt.
+  **Android-Zurück-Taste** (`apps/edi/src/native.ts`, `@capacitor/app`): geht im Verlauf der WebView zurück wie „Zurück“ im Browser – schließt also ein offenes Blatt
+  bzw. die Erklärung und führt vom Modul zur Übersicht; erst ohne Verlauf (Startseite) beendet sie die App (`App.exitApp()`). Der Listener ist nötig: ohne ihn ginge
+  `@capacitor/app` zwar zurück, bliebe am Anfang aber wirkungslos stehen. Der Code wird nur in der Android-App nachgeladen (im Web nie, die Einzeldatei enthält ihn nicht). Test `apps/edi/test/native.test.ts`.
   Beschriftungen der Werkzeugleiste nie abgeschnitten: passt eine nicht in ihre Spalte (schmales Handy, Englisch, „Lesbar“), stehen die Werkzeuge in zwei Reihen (`Workbench` misst, `data-wrap`).
   Übungen/Quiz: Aufgabe = ein Bildschirm (Frage, Bild passt sich per `Fit` an, Antwort, kurze Rückmeldung, „Weiter“ immer sichtbar); Lösungsweg und Hilfsmittel als Blatt.
   Leiste unter der Aufgabe: jedes Hilfsmittel mit ganzer Beschriftung, nichts überdeckt sich – passt sie nicht neben „Weiter“ (viele Hilfsmittel, Englisch, „Lesbar“),
@@ -330,7 +330,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Kopfzeile (`LernApp`): Logo (→ Übersicht), Bereichsleiste (ab 900 px), Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
   nicht gespeichert), Farbschema hell/dunkel (Start hell, nicht gespeichert), DE/EN, „Lesbar“, Klang. Am Handy (≤ 374 px) engere Abstände, damit nichts übersteht.
 - Offline-fähig: Web-Build mit Service Worker, zusätzlich Einzeldatei mit allen Modulen (`vite build --mode single` → `edi-offline.html`).
-- Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`.
+- Android/iOS über Capacitor (`apps/edi/android`, `apps/edi/ios`); `webDir` = `dist`. Einziges Plugin: `@capacitor/app` (Zurück-Taste); nach Änderung der Plugins
+  `npm run build` und `npx cap sync` (im Ordner `apps/edi`), die erzeugten `capacitor.settings.gradle`, `app/capacitor.build.gradle` und `CapApp-SPM/Package.swift` mit committen.
 
 ## Gemische (`modules/gemische`)
 - Keine Stufen. Zehn fertige Beispiele (`EXAMPLES` in `src/mixtures.ts`), **kein Baukasten**, 110–240 Teilchen je Beispiel (alle verschieden):
@@ -1083,6 +1084,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Android-App: Zurück-Taste schließt Blätter** – bisher beendete die Hardware-Zurück-Taste die App sofort, auch bei offenem Blatt oder im Modul. Jetzt `@capacitor/app`
+  (8.1.2, MIT) mit Listener in `apps/edi/src/native.ts`: Zurück im Verlauf der WebView wie im Browser (schließt Blatt/Erklärung über `useBackClose`, führt zur Übersicht),
+  erst auf der Startseite beendet sie die App. Nur in der Android-App nachgeladen; Lizenzliste des Web-Builds um `@capacitor/app` und `@capacitor/core` ergänzt;
+  `cap sync` trägt das Plugin in Android (Gradle) und iOS (Package.swift) ein. Test (`apps/edi/test/native.test.ts`, erste Tests der App-Hülle).
 - **check-ui: Subpixel-Toleranz bei `data-min-h`** – die allgemeine Mindesthöhen-Prüfung meldete „56 < 56“ (Elementhöhe 55,x px); jetzt dieselbe Toleranz von 0,5 px wie bei der
   Prüfung mit Tipp/erstem Schritt.
 - **Nomenklatur: Aufgabenbild im Üben (Level 4) nie unten abgeschnitten** – die Schlussprüfung fand bei 375×667 und 360×640 halb abgeschnittene Beschriftungen der gefragten

@@ -12,6 +12,8 @@ interface Pkg { name: string; version: string; license: string; text: string }
 
 /** Laufzeit-Code des Service Workers (von vite-plugin-pwa eingebaut) */
 const WORKBOX = ["workbox-window", "workbox-core", "workbox-precaching", "workbox-routing", "workbox-strategies"];
+/** Capacitor-Code im Web-Build: Zurück-Taste der Android-App (apps/edi/src/native.ts; @capacitor/core ist dort nur Peer-Abhängigkeit) */
+const CAPACITOR_WEB = ["@capacitor/app", "@capacitor/core"];
 
 function pkgDir(name: string, from: string): string | null {
   try {
@@ -31,7 +33,7 @@ function licenseText(dir: string): string {
   return f ? readFileSync(join(dir, f), "utf8").trim() : "";
 }
 
-export function collectLicenses(appDir: string, withWorkbox: boolean): Pkg[] {
+export function collectLicenses(appDir: string, web: boolean): Pkg[] {
   const seen = new Map<string, Pkg>();
   const visit = (name: string, from: string) => {
     // reine Typ-Pakete landen nicht im Build
@@ -46,9 +48,9 @@ export function collectLicenses(appDir: string, withWorkbox: boolean): Pkg[] {
     for (const dep of Object.keys(pj.dependencies ?? {})) visit(dep, dir);
   };
   const app = JSON.parse(readFileSync(join(appDir, "package.json"), "utf8"));
-  // Capacitor steckt nur in den Android/iOS-Projekten, nicht im Web-Build
+  // Capacitor steckt sonst nur in den Android/iOS-Projekten, die Einzeldatei enthält keinen Capacitor-Code
   for (const dep of Object.keys(app.dependencies ?? {})) if (!dep.startsWith("@capacitor/")) visit(dep, appDir);
-  if (withWorkbox) for (const w of WORKBOX) visit(w, appDir);
+  if (web) for (const w of [...WORKBOX, ...CAPACITOR_WEB]) visit(w, appDir);
   return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
