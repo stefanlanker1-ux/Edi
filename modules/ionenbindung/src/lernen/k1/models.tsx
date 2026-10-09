@@ -184,7 +184,8 @@ export function MarkOuter({ c, Z }: { c: GuideCtx; Z: number }) {
 export function IonBuilder({ c, Z, solution }: { c: GuideCtx; Z: number; solution: number }) {
   const [E, set] = useModel<number>(c, Z, solution);
   const v = valence(Z);
-  const lo = Math.max(1, Z - v - 1), hi = Z + (8 - v);
+  // Metall-Atome: höchstens 2 aufnehmen (falscher Weg sichtbar), Nichtmetall-Atome: bis die Außenschale voll ist; abgeben bis 1 über die Außenelektronen hinaus
+  const lo = Math.max(1, Z - v - 1), hi = Z + (v <= 3 ? 2 : 8 - v);
   const lose = () => { if (c.solved) return; if (E > lo) set(E - 1); else buzz(); };
   const gain = () => { if (c.solved) return; if (E < hi) set(E + 1); else buzz(); };
   return (
@@ -241,7 +242,7 @@ export function ionOf(Z: number): string {
   return BY_Z[Z].symbol + chargeSup(g <= 3 ? g : g - 8);
 }
 
-/** Elemente antippen (an/aus) – unter jedem angetippten steht sein Ion; „Prüfen“ meldet die Symbole, z. B. "O S" */
+/** Elemente antippen (an/aus) – unter dem PSE erscheint das Ion jedes angetippten Elements; „Prüfen“ meldet die Symbole, z. B. "O S" */
 export function PseIons({ c, answer }: { c: GuideCtx; answer: number[] }) {
   const [picked, set] = useModel<number[]>(c, [], answer);
   const has = (Z: number) => picked.includes(Z);
@@ -253,10 +254,11 @@ export function PseIons({ c, answer }: { c: GuideCtx; answer: number[] }) {
         <div className="k1-pse">
           <div className="pse-fit pse-z k1-pse-fit">
             <PeriodicTable stufe="us" fit names={false} onPick={toggle} disabled={c.solved}
-              sub={Z => (has(Z) ? <b className="k1-pse-ion">{ionOf(Z)}</b> : "")}
               cellState={Z => (has(Z) ? (c.solved ? "right" : "sel") : c.show && answer.includes(Z) ? "hit" : undefined)} />
           </div>
-          <p className="k1-pse-sel" aria-live="polite">{picked.length ? picked.map(Z => `${BY_Z[Z].symbol} → ${ionOf(Z)}`).join(" · ") : tr("Tippe Elemente an.", "Tap elements.")}</p>
+          <p className="k1-pse-sel" aria-live="polite">{picked.length
+            ? picked.map((Z, k) => <span key={Z}>{k > 0 && " · "}{BY_Z[Z].symbol} → <b>{ionOf(Z)}</b></span>)
+            : tr("Tippe Elemente an.", "Tap elements.")}</p>
         </div>
       }
       controls={c.solved ? undefined : <Button icon="reset" onClick={() => set([])} disabled={!picked.length}>{tr("Löschen", "Clear")}</Button>}

@@ -81,5 +81,5 @@
 /* PSE mit Ionen */
 .k1-pse { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 4px; width: 100%; height: 100%; min-height: 0; }
 .k1-pse-fit { min-height: 0; }
-.k1-pse-ion { font-weight: 800; color: var(--text); font-size: 1.05em; }
-.k1-pse-sel { margin: 0; text-align: center; font-size: .9rem; min-height: 1.3em; }
+.k1-pse-sel { margin: 0; text-align: center; font-size: 1.05rem; min-height: 1.4em; }
+.k1-pse-sel b { font-weight: 800; }
