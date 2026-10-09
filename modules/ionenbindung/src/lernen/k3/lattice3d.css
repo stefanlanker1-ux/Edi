@@ -1,0 +1,59 @@
+/* Kapitel 3 – räumliches Gitter (Lattice3D): Bühne zum Drehen (nur hier touch-action: none), Kugeln mit Licht und Schatten,
+   Tiefe durch Größe, Reihenfolge und leichten Dunst hinten; Beschriftung immer aufrecht */
+
+:root, :root[data-theme="light"] {
+  --l3-edge: #111111;          /* Umriss der Kugeln */
+  --l3-fog: .5;                /* Dunst ganz hinten (Anteil Hintergrund über der Kugel) */
+  --l3-fog-line: .55;
+  --l3-sheet: .055;            /* Deckkraft der Schicht-Fläche (Farbe = Text) */
+}
+:root[data-theme="dark"] {
+  --l3-edge: #0d0d0d;          /* dunkler Rand trennt Kugeln gleicher Farbe */
+  --l3-fog: .3;
+  --l3-fog-line: .5;
+  --l3-sheet: .08;
+}
+
+.l3 {
+  margin: 0; display: grid; grid-template-areas: "stage" "ctl" "cap"; grid-template-rows: minmax(0, 1fr) auto auto; grid-template-columns: minmax(0, 1fr);
+  gap: 6px 8px; width: 100cqw; height: 100cqh; min-height: 0;
+}
+.l3-stage {
+  grid-area: stage; position: relative; min-height: 0; touch-action: none; cursor: grab; border-radius: var(--radius); outline: none;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+}
+.l3-stage.drag { cursor: grabbing; }
+.l3-stage:focus-visible { outline: 2.5px solid var(--signal); outline-offset: -2px; }
+.l3-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; overflow: visible; }
+.l3-ctl { grid-area: ctl; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
+.l3 figcaption { grid-area: cap; font-size: .875rem; line-height: 1.3; color: var(--muted); text-align: center; }
+
+/* Platz eher breit als hoch (z. B. Handy, wenn der Text der Folie ganz da ist): Bedienung schmal rechts neben dem Modell, untereinander
+   („Gitter-ausschnitt“ trennt am weichen Trennstrich) – das Modell wird so größer; sehr niedrig: Bildunterschrift weg, noch niedriger auch
+   „Startansicht“ (Pos1 geht weiter) */
+@container (aspect-ratio > 1.05) {
+  .l3 { grid-template-areas: "stage ctl" "cap cap"; grid-template-rows: minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr) auto; }
+  .l3-ctl { flex-direction: column; flex-wrap: nowrap; max-width: 132px; }
+  .l3-ctl .ui-seg { flex-direction: column; width: 100%; }
+  .l3-ctl .ui-seg button { padding-inline: 10px; line-height: 1.2; }
+  .l3-ctl .ui-seg button + button { border-left: 0; border-top: 1.5px solid var(--rule); }
+}
+@container (max-height: 200px) { .l3 figcaption { display: none; } }
+@container (max-height: 150px) { .l3-ctl .ui-icon-btn { display: none; } }
+
+/* Kugeln: Grundfarbe, Licht/Schatten (Verlauf aus lattice3d.tsx), Dunst nach hinten, Symbol */
+.l3-ball { stroke: var(--l3-edge); stroke-width: 1.5; }
+.l3-ion.cat .l3-ball { fill: var(--cat-tile-a); }
+.l3-ion.an .l3-ball { fill: var(--an-tile-a); }
+.l3-ion.hot .l3-ball { stroke: var(--text); stroke-width: 3; }
+.l3-lit { pointer-events: none; }
+.l3-fog { fill: var(--bg); opacity: calc(var(--l3-fog) * var(--f, 0)); pointer-events: none; }
+.l3-lbl { text-anchor: middle; font-family: var(--font); font-weight: 750; font-feature-settings: "cv05", "cv08"; fill: #111111; pointer-events: none; }
+
+/* Linien: Anziehung zum mittleren Na⁺ kräftig, übrige Gitterlinien zart, gedachter Würfel ganz zart */
+.l3-line { stroke-linecap: round; opacity: calc(1 - var(--l3-fog-line) * var(--f, 0)); }
+.l3-line.strong { stroke: var(--text); }
+.l3-line.lat { stroke: var(--faint); }
+.l3-line.edge { stroke: var(--faint); stroke-opacity: .6; }
+/* Schicht des mittleren Na⁺: zarte Fläche */
+.l3-sheet { fill: var(--text); fill-opacity: var(--l3-sheet); stroke: var(--faint); stroke-width: 1; stroke-dasharray: 6 4; stroke-opacity: .6; }

@@ -1,10 +1,10 @@
 // Kapitel 3, Teil 1–2: Anziehung und Abstoßung zweier Ionen, ein Ion in einer Reihe verschieben, Gitter-Schicht füllen,
-// Nachbarn antippen, räumliches Gitter (6 Nachbarn), Formel aus dem Gitterausschnitt. Jede Eingabe ändert das Bild sofort.
+// Nachbarn antippen, Formel aus dem Gitterausschnitt (räumliches Gitter: lattice3d.tsx). Jede Eingabe ändert das Bild sofort.
 
 import { Button, Segmented, Tag, type GuideCtx } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
-import { Arrow, Ball, CL, ForceIcon, MG, NA, O, bondCls, ionText, rad, useTall, type Ion } from "./draw.tsx";
+import { Arrow, Ball, ForceIcon, MG, O, bondCls, ionText, rad, useTall, type Ion } from "./draw.tsx";
 
 const att = () => tr("Anziehung", "attraction");
 const rep = () => tr("Abstoßung", "repulsion");
@@ -227,46 +227,6 @@ export function NeighborTap({ c, cat, an }: { c: GuideCtx; cat: Ion; an: Ion }) 
       }
       controls={<Tag>{tr(`markiert: ${sel.length}`, `marked: ${sel.length}`)}</Tag>}
       onCheck={() => c.pick(result())} />
-  );
-}
-
-/** Räumliches Natriumchlorid-Gitter (schräg von vorn): ein Na⁺ in der Mitte und seine 6 Cl⁻-Nachbarn; Linien = Anziehung,
- *  gestrichelt: das Gitter geht in alle Richtungen weiter */
-export function Lattice3D() {
-  const u = 92, dx = 0.5 * u, dy = 0.36 * u, ox = 170, oy = 158, R = 27;
-  const P = (x: number, y: number, z: number) => [ox + x * u + z * dx, oy - y * u - z * dy] as const;
-  const nbs = [[0, 0, 1], [0, 1, 0], [-1, 0, 0], [0, 0, 0], [1, 0, 0], [0, -1, 0], [0, 0, -1]] as const;   // von hinten nach vorn
-  const [cx, cy] = P(0, 0, 0);
-  return (
-    <figure className="k3-fig">
-      <svg className="k3-svg" viewBox="0 0 340 316" role="img"
-        aria-label={tr("Natriumchlorid-Gitter im Raum: ein Natrium-Ion ist von 6 Chlorid-Ionen umgeben – links, rechts, oben, unten, vorn, hinten.", "Sodium chloride lattice in space: a sodium ion is surrounded by 6 chloride ions – left, right, above, below, front, back.")}>
-        {/* Würfel der 8 Ecken (gedachte Hilfslinien) */}
-        <g className="k3-grid faint">
-          {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([a, b], k) => {
-            const e = [[P(-1, a, b), P(1, a, b)], [P(a, -1, b), P(a, 1, b)], [P(a, b, -1), P(a, b, 1)]];
-            return <g key={k}>{e.map(([p, q], j) => <line key={j} x1={p[0]} y1={p[1]} x2={q[0]} y2={q[1]} />)}</g>;
-          })}
-        </g>
-        {/* die Schicht des Na⁺ (in der Bildebene) */}
-        {(() => { const c4 = [P(-1.4, -1.4, 0), P(1.4, -1.4, 0), P(1.4, 1.4, 0), P(-1.4, 1.4, 0)]; return <path className="k3-layer" d={`M${c4.map(q => q.join(" ")).join(" L")} Z`} />; })()}
-        {nbs.map(([x, y, z], k) => {
-          if (!x && !y && !z) return <g key={k}><Ball ion={NA} x={cx} y={cy} r={rad(NA, CL, R)} cls="k3-hot" /></g>;
-          const [px, py] = P(x, y, z), [mx, my] = P(1.45 * x, 1.45 * y, 1.45 * z);
-          // Tiefe: vorn größer, hinten kleiner und blasser
-          const depth = z > 0 ? " k3-back" : z < 0 ? " k3-front" : "";
-          return (
-            <g key={k}>
-              <line className="k3-more-l" x1={px} y1={py} x2={mx} y2={my} />
-              <line className={`k3-bond att strong${depth}`} x1={cx} y1={cy} x2={px} y2={py} />
-              <Ball ion={CL} x={px} y={py} r={R * (1 - 0.12 * z)} cls={depth.trim() || undefined} />
-            </g>
-          );
-        })}
-        <Ball ion={NA} x={cx} y={cy} r={rad(NA, CL, R)} cls="k3-hot" />
-      </svg>
-      <figcaption>{tr("Natriumchlorid NaCl: Na⁺ in der Mitte, 4 Cl⁻ in der Schicht, 1 davor, 1 dahinter", "Sodium chloride NaCl: Na⁺ in the middle, 4 Cl⁻ in the layer, 1 in front, 1 behind")}</figcaption>
-    </figure>
   );
 }
 
