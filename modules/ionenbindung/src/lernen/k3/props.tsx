@@ -2,21 +2,21 @@
 // Schicht verschieben (gleiche Ladungen gegenüber → Abstoßung → Bruch), Leitfähigkeit (fest / Schmelze / Lösung, Schalter, Pole).
 // Reduzierte Bewegung: kein Schwingen und kein Wandern, gleich das Endbild (Schwingungsbereich als gestrichelter Ring).
 
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import { Button, Segmented, Tag, useReducedMotion, type GuideCtx } from "@lern/ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
-import { Arrow, Ball, CL, NA, bondCls, rad, type Ion } from "./draw.tsx";
+import { Arrow, Ball, CL, MG, NA, O, bondCls, rad, type Ion } from "./draw.tsx";
 
 const isCat = (i: number, j: number) => (i + j) % 2 === 0;
 /** feste Pseudo-Zufallszahl 0…1 je Index */
 const rnd = (k: number) => { const x = Math.sin(k * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 
 /** Überlappungen auseinanderschieben (fest, ohne Zufall je Aufruf), innerhalb des Rahmens [x0, x1] × [y0, y1] */
-function relax(pts: { x: number; y: number }[], r: (p: number) => number, x0: number, y0: number, x1: number, y1: number, gap = 3) {
+function relax(pts: { x: number; y: number }[], r: (p: number) => number, x0: number, y0: number, x1: number, y1: number, gap: (a: number, b: number) => number = () => 3) {
   for (let it = 0; it < 80; it++) {
     for (let a = 0; a < pts.length; a++) for (let b = a + 1; b < pts.length; b++) {
-      const dx = pts[b].x - pts[a].x, dy = pts[b].y - pts[a].y, d = Math.hypot(dx, dy) || 1, min = r(a) + r(b) + gap;
+      const dx = pts[b].x - pts[a].x, dy = pts[b].y - pts[a].y, d = Math.hypot(dx, dy) || 1, min = r(a) + r(b) + gap(a, b);
       if (d >= min) continue;
       const k = (min - d) / 2 / d;
       pts[a].x -= dx * k; pts[a].y -= dy * k; pts[b].x += dx * k; pts[b].y += dy * k;
@@ -28,57 +28,94 @@ function relax(pts: { x: number; y: number }[], r: (p: number) => number, x0: nu
 
 /** ungeordnete Plätze der Schmelze: Gitterplätze zufällig verschoben, dann auseinandergeschoben */
 function meltSpots(cols: number, rows: number, at: (i: number) => number, r: (p: number) => number, W: number, H: number, u: number) {
-  const pts = Array.from({ length: cols * rows }, (_, p) => ({ x: at(p % cols) + (rnd(p) - 0.5) * u * 0.8, y: at(Math.floor(p / cols)) + (rnd(p + 50) - 0.5) * u * 0.8 }));
-  return relax(pts, r, 2, 2, W - 2, H - 2);
+  const pts = Array.from({ length: cols * rows }, (_, p) => ({ x: at(p % cols) + (rnd(p) - 0.5) * u * 0.7, y: at(Math.floor(p / cols)) + (rnd(p + 50) - 0.5) * u * 0.7 }));
+  const cat = (p: number) => isCat(p % cols, Math.floor(p / cols));
+  return relax(pts, r, 2, 2, W - 2, H - 2, (a, b) => (cat(a) === cat(b) ? 12 : 3));
 }
 
 export const molten = () => tr("geschmolzen", "molten");
 export const solid = () => tr("fest", "solid");
 
 /** Gitter-Schicht mit Temperatur-Schieber: Schwingen wächst mit der Temperatur, ab der Schmelztemperatur ungeordnet und beweglich */
+/** Gitter-Schicht bei der Temperatur t: Schwingen wächst mit t, ab der Schmelztemperatur ungeordnet, aber weiter zusammen (Linie zum nächsten Gegen-Ion) */
+function HeatSvg({ cat, an, tm, t, cols, rows }: { cat: Ion; an: Ion; tm: number; t: number; cols: number; rows: number }) {
+  const still = useReducedMotion();
+  const u = 60, pad = 40, W = (cols - 1) * u + 2 * pad, H = (rows - 1) * u + 2 * pad;
+  const at = (i: number) => pad + i * u;
+  const melt = t >= tm;
+  const a = melt ? 5 : 1 + 6 * Math.max(0, t) / tm;
+  // kleine Kationen (Mg²⁺) nicht unleserlich: das Kation hat mindestens r = 17
+  const R = (x: Ion) => rad(x, an, Math.max(26, (17 * an.pm) / cat.pm));
+  const ionOf = (p: number) => (isCat(p % cols, Math.floor(p / cols)) ? cat : an);
+  const spots = useMemo(() => meltSpots(cols, rows, at, p => R(ionOf(p)), W, H, u), [cat, an, cols, rows]);
+  return (
+    <svg className="k3-svg" viewBox={`0 0 ${W} ${H}`} role="img"
+      aria-label={melt ? tr("Die Ionen haben keine festen Plätze mehr, ziehen sich aber weiter an.", "The ions no longer have fixed places but still attract each other.") : tr("Die Ionen schwingen um ihre Plätze im Gitter.", "The ions vibrate around their places in the lattice.")}>
+      {melt && <g key="m" className="k3-fade">{spots.map((q, p) => {
+        const mine = isCat(p % cols, Math.floor(p / cols));
+        let best = -1, bd = Infinity;
+        spots.forEach((o, k) => { if (isCat(k % cols, Math.floor(k / cols)) === mine) return; const d = Math.hypot(o.x - q.x, o.y - q.y); if (d < bd) { bd = d; best = k; } });
+        return best >= 0 ? <line key={p} className="k3-bond att" x1={q.x} y1={q.y} x2={spots[best].x} y2={spots[best].y} /> : null;
+      })}</g>}
+      <g className={`k3-latlines${melt ? " gone" : ""}`}>
+        {Array.from({ length: rows }, (_, j) => <line key={`r${j}`} className="k3-bond att" x1={at(0) - 26} y1={at(j)} x2={at(cols - 1) + 26} y2={at(j)} />)}
+        {Array.from({ length: cols }, (_, i) => <line key={`c${i}`} className="k3-bond att" x1={at(i)} y1={at(0) - 26} x2={at(i)} y2={at(rows - 1) + 26} />)}
+      </g>
+      {Array.from({ length: rows * cols }, (_, p) => {
+        const i = p % cols, j = Math.floor(p / cols), ion = isCat(i, j) ? cat : an;
+        const x = melt ? spots[p].x : at(i), y = melt ? spots[p].y : at(j);
+        return (
+          <g key={p}>
+            {still && !melt && <circle className="k3-range-ring" cx={x} cy={y} r={R(ion) + a} />}
+            <Ball ion={ion} x={x} y={y} r={R(ion)} cls="k3-melt"
+              jit={still ? undefined : { a, d: melt ? 0.9 + 0.6 * rnd(p + 9) : 0.42 + 0.2 * rnd(p + 7), delay: -rnd(p + 3) }} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function TempControl({ c, t, set, max, step }: { c: GuideCtx; t: number; set: (t: number) => void; max: number; step: number }) {
+  return (
+    <label className="k3-temp">
+      <span>{tr("Temperatur", "Temperature")}</span>
+      <input type="range" min={0} max={max} step={step} value={t} disabled={c.solved} onChange={e => set(Number(e.target.value))} />
+      <output>{t} °C</output>
+    </label>
+  );
+}
+
+/** Gitter-Schicht mit Temperatur-Schieber */
 export function ThermoLattice({ c, cat, an, tm, max, step, start, sol, demo }: {
   c: GuideCtx; cat: Ion; an: Ion; tm: number; max: number; step: number; start: number; sol: number; demo?: boolean;
 }) {
   const [t, set] = useModel(c, start, sol);
-  const still = useReducedMotion();
-  const cols = 5, rows = 4, u = 60, pad = 40, W = (cols - 1) * u + 2 * pad, H = (rows - 1) * u + 2 * pad;
-  const at = (i: number) => pad + i * u;
-  const melt = t >= tm;
-  const a = melt ? 5 : 1 + 6 * Math.max(0, t) / tm;
-  // kleine Kationen (Mg²⁺) nicht unleserlich: das Kation hat mindestens r = 16
-  const R = (x: Ion) => rad(x, an, Math.max(26, (16 * an.pm) / cat.pm));
-  const ionOf = (p: number) => (isCat(p % cols, Math.floor(p / cols)) ? cat : an);
-  const spots = useMemo(() => meltSpots(cols, rows, at, p => R(ionOf(p)), W, H, u), [cat, an]);
+  return (
+    <ModelFrame c={c} className="k3-m"
+      stage={<HeatSvg cat={cat} an={an} tm={tm} t={t} cols={5} rows={4} />}
+      controls={demo ? <Tag>{tr("Temperatur", "Temperature")} {t} °C</Tag> : <TempControl c={c} t={t} set={set} max={max} step={step} />}
+      onCheck={() => c.pick(t >= tm ? molten() : solid())} />
+  );
+}
+
+export const naclOnly = () => tr("NaCl flüssig, MgO fest", "NaCl liquid, MgO solid");
+export const bothSolid = () => tr("beide fest", "both solid");
+export const bothLiquid = () => tr("beide flüssig", "both liquid");
+
+/** Natriumchlorid und Magnesiumoxid nebeneinander, eine Temperatur für beide */
+export function ThermoPair({ c, start, sol }: { c: GuideCtx; start: number; sol: number }) {
+  const [t, set] = useModel(c, start, sol);
   return (
     <ModelFrame c={c} className="k3-m"
       stage={
-        <svg className="k3-svg" viewBox={`0 0 ${W} ${H}`} role="img"
-          aria-label={melt ? tr("Die Ionen haben ihre Plätze verlassen und bewegen sich durcheinander.", "The ions have left their places and move about.") : tr("Die Ionen schwingen um ihre Plätze im Gitter.", "The ions vibrate around their places in the lattice.")}>
-          <g className={`k3-latlines${melt ? " gone" : ""}`}>
-            {Array.from({ length: rows }, (_, j) => <line key={`r${j}`} className="k3-bond att" x1={at(0) - 26} y1={at(j)} x2={at(cols - 1) + 26} y2={at(j)} />)}
-            {Array.from({ length: cols }, (_, i) => <line key={`c${i}`} className="k3-bond att" x1={at(i)} y1={at(0) - 26} x2={at(i)} y2={at(rows - 1) + 26} />)}
-          </g>
-          {Array.from({ length: rows * cols }, (_, p) => {
-            const i = p % cols, j = Math.floor(p / cols), ion = isCat(i, j) ? cat : an;
-            const x = melt ? spots[p].x : at(i), y = melt ? spots[p].y : at(j);
-            return (
-              <g key={p}>
-                {still && !melt && <circle className="k3-range-ring" cx={x} cy={y} r={R(ion) + a} />}
-                <Ball ion={ion} x={x} y={y} r={R(ion)} cls="k3-melt"
-                  jit={still ? undefined : { a, d: melt ? 0.9 + 0.6 * rnd(p + 9) : 0.42 + 0.2 * rnd(p + 7), delay: -rnd(p + 3) }} />
-              </g>
-            );
-          })}
-        </svg>
+        <div className="k3-pair">
+          <figure><HeatSvg cat={NA} an={CL} tm={801} t={t} cols={3} rows={3} /><figcaption>{tr("Natriumchlorid NaCl", "sodium chloride NaCl")}</figcaption></figure>
+          <figure><HeatSvg cat={MG} an={O} tm={2852} t={t} cols={3} rows={3} /><figcaption>{tr("Magnesiumoxid MgO", "magnesium oxide MgO")}</figcaption></figure>
+        </div>
       }
-      controls={demo ? <Tag>{tr("Temperatur", "Temperature")} {t} °C</Tag> :
-        <label className="k3-temp">
-          <span>{tr("Temperatur", "Temperature")}</span>
-          <input type="range" min={0} max={max} step={step} value={t} disabled={c.solved} onChange={e => set(Number(e.target.value))} />
-          <output>{t} °C</output>
-        </label>
-      }
-      onCheck={() => c.pick(melt ? molten() : solid())} />
+      controls={<TempControl c={c} t={t} set={set} max={3000} step={10} />}
+      onCheck={() => c.pick(t < 801 ? bothSolid() : t < 2852 ? naclOnly() : bothLiquid())} />
   );
 }
 
@@ -89,10 +126,10 @@ export const repels = () => tr("Abstoßung", "repulsion");
 /** Obere Schichten verschieben (in Viertel-Plätzen): gleiche Ladungen gegenüber → Abstoßung → der Kristall bricht */
 export function ShiftLayers({ c, cat, an, start, sol, demo }: { c: GuideCtx; cat: Ion; an: Ion; start: number; sol: number; demo?: boolean }) {
   const [s, set] = useModel(c, start, sol);
-  const cols = 6, rows = 4, u = 56, pad = 34, W = cols * u + 2 * pad, H = (rows - 1) * u + 2 * pad + 14;
+  const cols = 6, rows = 4, u = 62, pad = 34, W = cols * u + 2 * pad, H = (rows - 1) * u + 2 * pad + 14;
   const f = s / 4, broken = s === 4;
   const at = (i: number) => pad + i * u, yt = (j: number) => pad + 14 + j * u;
-  const R = (x: Ion) => rad(x, an, 24);
+  const R = (x: Ion) => rad(x, an, Math.max(24, (17 * an.pm) / cat.pm));
   const ion = (i: number, j: number) => (isCat(i, j) ? cat : an);
   const lift = broken ? -16 : 0;
   // Kräfte über die Trennlinie: Zeile 1 (oben, verschoben) zu Zeile 2 (unten, fest)
@@ -160,19 +197,18 @@ export function Conduct({ c, start, sol, states = ["fest", "schmelze", "loesung"
   const rA = 15, rC = rad(NA, CL, rA);
   const catOf = (k: number) => ((k % 6) + Math.floor(k / 6)) % 2 === 0;
   // verteilt in der Flüssigkeit, ohne Überlappung
-  const spread = useMemo(() => relax(Array.from({ length: 18 }, (_, k) => ({ x: 118 + rnd(k + 20) * 124, y: top + 32 + rnd(k + 40) * (bottom - top - 50) })),
-    k => (catOf(k) ? rC : rA), xL + 8, top + 22, xR - 8, bottom - 4), []);
+  const spread = useMemo(() => relax(Array.from({ length: 18 }, (_, k) => ({ x: 130 + rnd(k + 20) * 100, y: top + 32 + rnd(k + 40) * (bottom - top - 50) })),
+    k => (catOf(k) ? rC : rA), xL + 30, top + 22, xR - 30, bottom - 4, (a, b) => (catOf(a) === catOf(b) ? 8 : 3)), []);
   // 18 Ionen: fest = Gitterblock zwischen den Elektroden (6 × 3), beweglich = verteilt; Strom → Kationen zum Minuspol, Anionen zum Pluspol
   const ions = Array.from({ length: 18 }, (_, k) => {
     const i = k % 6, j = Math.floor(k / 6);
     const cat = (i + j) % 2 === 0;
     if (!mobile) return { cat, x: xL + 20 + i * 27, y: bottom - 20 - (2 - j) * 27 };
     const { x: x0, y: y0 } = spread[k];
+    // Strom: die Ionen bleiben gemischt und wandern nur (Kationen zum Minuspol, Anionen zum Pluspol) – Endlosschleife, ruhig: kleiner Versatz
     if (!flow) return { cat, x: x0, y: y0 };
-    // Rang unter den gleich geladenen Ionen → Platz am Pol (3 Spalten)
-    const n = Array.from({ length: k }, (_, m) => ((m % 6) + Math.floor(m / 6)) % 2 === 0).filter(c => c === cat).length;
-    const pole = cat ? minusX : plusX, side = pole === xL ? 1 : -1, step = cat ? 21 : 31;
-    return { cat, x: pole + side * (cat ? 17 : 22) + side * (n % 3) * step, y: top + 40 + Math.floor(n / 3) * (cat ? 34 : 34) + (n % 3) * 6 };
+    const dir = (cat ? minusX : plusX) === xL ? -1 : 1;
+    return { cat, x: x0 + (still ? dir * 8 : 0), y: y0, dir };
   });
   const liquid = mobile;
   const zName = (z: Zustand) => (z === "fest" ? tr("fest", "solid") : z === "schmelze" ? tr("Schmelze", "melt") : tr("Lösung", "solution"));
@@ -204,9 +240,12 @@ export function Conduct({ c, start, sol, states = ["fest", "schmelze", "loesung"
           <text className="k3-pole" x={plusX + (plusX === xL ? -22 : 22)} y={top + 14}>+</text>
           <text className="k3-note" x={180} y={top - 4}>{s.z === "schmelze" ? "801 °C" : s.z === "loesung" ? tr("in Wasser H₂O", "in water H₂O") : ""}</text>
           {ions.map((p, k) => (
-            <g key={k}>
+            <g key={k} className={"dir" in p && !still ? "k3-flow" : undefined}
+              style={"dir" in p ? ({ "--dx": `${(p.dir ?? 0) * 26}px`, animationDelay: `${-rnd(k + 70) * 2.4}s` } as CSSProperties) : undefined}>
               <Ball ion={p.cat ? NA : CL} x={p.x} y={p.y} r={p.cat ? rC : rA} sign cls={`k3-drift${still ? " still" : ""}`}
-                jit={still ? undefined : { a: mobile ? 2.5 : 1, d: 0.5 + 0.3 * rnd(k), delay: -rnd(k + 5) }} />
+                jit={still ? undefined : { a: mobile ? 2.5 : 1, d: 0.5 + 0.3 * rnd(k), delay: -rnd(k + 5) }}>
+                {"dir" in p && <Arrow x1={(p.dir ?? 0) * ((p.cat ? rC : rA) + 2)} y1={0} x2={(p.dir ?? 0) * ((p.cat ? rC : rA) + 11)} y2={0} cls={`tiny ${p.cat ? "cat" : "an"}`} />}
+              </Ball>
             </g>
           ))}
           {flow && (

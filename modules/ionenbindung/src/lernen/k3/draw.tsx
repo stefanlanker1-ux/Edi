@@ -43,7 +43,7 @@ export function Ball({ ion, x, y, r, cls, sign, jit, children }: {
   children?: ReactNode;
 }) {
   const t = sign ? (ion.q > 0 ? "+" : "−") : ionText(ion);
-  const fs = sign ? r * 1.3 : Math.min(17, r * (t.length > 3 ? 0.7 : 0.84));
+  const fs = sign ? r * 1.3 : Math.min(18, r * (t.length > 3 ? 0.78 : 0.95));
   const js = jit ? ({ "--a": `${jit.a}px`, animationDuration: `${jit.d}s`, animationDelay: `${jit.delay}s` } as CSSProperties) : undefined;
   return (
     <g className={`k3-ion ${ion.q > 0 ? "cat" : "an"}${cls ? ` ${cls}` : ""}`} style={{ transform: `translate(${x}px, ${y}px)` }}>
