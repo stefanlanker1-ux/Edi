@@ -65,7 +65,7 @@ const steps = (): GuideStep[] => [
       tr("7 Elektronen aufnehmen → 2 · 8 · 8 wie Argon.", "Gain 7 electrons → 2 · 8 · 8 like argon."),
       tr("Im Modell gilt der kürzere Weg: Natrium gibt 1 Elektron ab.", "In the model the shorter way applies: sodium loses 1 electron."),
     ],
-    ok: tr("Mit 1 bis 3 Außenelektronen werden sie abgegeben. Mit 5 bis 7 werden Elektronen aufgenommen, bis außen 8 sind.", "With 1 to 3 outer electrons they are lost. With 5 to 7, electrons are gained until there are 8 on the outside."),
+    ok: tr("Atome mit 1 bis 3 Außenelektronen geben sie ab. Atome mit 5 bis 7 nehmen Elektronen auf, bis außen 8 sind.", "Atoms with 1 to 3 outer electrons lose them. Atoms with 5 to 7 gain electrons until there are 8 on the outside."),
   }),
   {
     mode: "faded",
@@ -194,7 +194,7 @@ const steps = (): GuideStep[] => [
       tr("Chlor-Atom: 2 · 8 · 7 – ein Platz außen ist frei.", "Chlorine atom: 2 · 8 · 7 – one place on the outside is free."),
       tr("1 Elektron dazu: 17 p⁺ · 18 e⁻ → 17 − 18 = 1−.", "1 electron added: 17 p⁺ · 18 e⁻ → 17 − 18 = 1−."),
       tr("**Cl⁻** hat 2 · 8 · 8 wie Argon.", "**Cl⁻** has 2 · 8 · 8 like argon."),
-      tr("Modell: Mehr Elektronen stoßen sich ab. Cl⁻ ist größer als das Atom (gestrichelt).", "Model: more electrons repel each other. Cl⁻ is larger than the atom (dashed)."),
+      tr("Modell: Mehr Elektronen stoßen sich ab. Die Außenschale von Cl⁻ liegt weiter außen als beim Atom (gestrichelt).", "Model: more electrons repel each other. The outer shell of Cl⁻ lies further out than in the atom (dashed)."),
     ],
     ok: tr("Negative Ionen heißen **Anionen**. Das aufgenommene Elektron hat im Bild einen Ring.", "Negative ions are called **anions**. The gained electron has a ring in the picture."),
   }),

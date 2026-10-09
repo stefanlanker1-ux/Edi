@@ -5,7 +5,7 @@
 
 import { Fragment, useState, type ReactNode } from "react";
 import { Button, Icon, Stepper, buzz, type GuideCtx } from "@lern/ui";
-import { ANIONS, BY_Z, CATIONS, chargeSup, signed } from "@lern/chem";
+import { BY_Z, chargeSup, mainGroupNumber, signed } from "@lern/chem";
 import { PeriodicTable } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
@@ -73,10 +73,11 @@ export function Atom({ Z, E, ext, got = 0, slots, onOuter, onSlot, marked, onMar
   return (
     <svg className="k1-atom" viewBox={`${-X} ${-X} ${2 * X} ${2 * X}`} role="img"
       aria-label={label ?? tr(`${BY_Z[Z].name}: ${Z} Protonen, ${E} Elektronen, Schalen ${shellText(E)}`, `${BY_Z[Z].name}: ${Z} protons, ${E} electrons, shells ${shellText(E)}`)}>
-      {E > Z && <circle r={R[neutral.length - 1] + 8} className="k1-outline" />}
       <circle r={rOut + 8} className={`k1-halo${E > Z ? " an" : E < Z ? " cat" : ""}`} />
       {neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className="k1-ring ghost" />)}
       {sh.map((_, i) => <circle key={`r${i}`} r={ringR(Z, E, i, i === last)} className={`k1-ring${i === last ? " outer" : ""}`} />)}
+      {/* Anion: Außenschale des Atoms gestrichelt zum Vergleich */}
+      {E > Z && <circle r={R[neutral.length - 1]} className="k1-outline" />}
       <circle r={13} className="k1-nuc" />
       <text className="k1-nuc-t" y={0.5}>{Z}+</text>
       {outerFree > 0 && Array.from({ length: outerFree }, (_, j) => {
@@ -232,8 +233,13 @@ export function ChargeCalc({ c, start, solution }: { c: GuideCtx; start: [number
 
 // ── PSE: Element antippen → Ion erscheint ───────────────────────────────────────────────────
 
-const ION_OF: Record<number, string> = Object.fromEntries([...CATIONS, ...ANIONS].filter(i => i.Z && i.Z <= 20 && !i.os).map(i => [i.Z!, `${i.formula}${chargeSup(i.charge)}`]));
-export const ionOf = (Z: number) => ION_OF[Z] ?? "–";
+/** Ion nach der Regel der Unterstufe: I.–III. Hauptgruppe → Ladung = Hauptgruppe, V.–VII. → 8 − Hauptgruppe (negativ);
+ *  IV., VIII., Wasserstoff und Bor bilden hier keine Ionen („–“) */
+export function ionOf(Z: number): string {
+  const g = mainGroupNumber(Z);
+  if (!g || Z === 1 || Z === 5 || g === 4 || g === 8) return "–";
+  return BY_Z[Z].symbol + chargeSup(g <= 3 ? g : g - 8);
+}
 
 /** Elemente antippen (an/aus) – unter jedem angetippten steht sein Ion; „Prüfen“ meldet die Symbole, z. B. "O S" */
 export function PseIons({ c, answer }: { c: GuideCtx; answer: number[] }) {
