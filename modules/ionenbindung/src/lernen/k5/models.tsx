@@ -5,7 +5,7 @@
 
 import { CATIONS, ION_BY_ID, ROMAN, BY_Z, chargeSup, chargeText, compoundName, configuration, formula, hundBoxes, isKnownCompound, sup, toSubscript, type Ion } from "@lern/chem";
 import { Formula } from "@lern/chem-ui";
-import { Button, Segmented, Stepper, Tag, type GuideCtx } from "@lern/ui";
+import { Button, Fit, Segmented, Stepper, Tag, type GuideCtx } from "@lern/ui";
 import { getLang, tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
 import { IonWall } from "../../components/IonWall.tsx";
@@ -61,7 +61,7 @@ export function ConfigModel({ c, Z, give }: { c: GuideCtx; Z: number; give: numb
   const off = c.solved;
   const half = st.s === 0 && st.d === 5, full = st.s === 0 && st.d === 10;
   const stage = (
-    <div className="k5-cfg">
+    <Fit className="k5-fit" min={0.3}><div className="k5-cfg">
       <div className="k5-ion" aria-live="polite">
         <span className="k5-ion-sym">{sym}{q > 0 && <sup>{chargeText(q)}</sup>}</span>
         <span className="k5-ion-n">{Z} p⁺ · {Z - q} e⁻</span>
@@ -79,7 +79,7 @@ export function ConfigModel({ c, Z, give }: { c: GuideCtx; Z: number; give: numb
         {c.solved && half && <Tag tone="ok">{tr("✓ 3d halb besetzt", "✓ 3d half-filled")}</Tag>}
         {c.solved && full && <Tag tone="ok">{tr(`✓ ${o.dKey} voll besetzt`, `✓ ${o.dKey} full`)}</Tag>}
       </div>
-    </div>
+    </div></Fit>
   );
   return (
     <ModelFrame c={c} className="k5-lm" stage={stage}
@@ -134,7 +134,7 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   const sym = BY_Z[Z].symbol;
   const result = report === "formula" ? wallFormula(Z, anion, w) : report === "charge" ? `${w.q}+` : nameWith(Z, w.q, an);
   const stage = (
-    <div className="k5-wall">
+    <Fit className="k5-fit" min={0.3}><div className="k5-wall">
       {given && <p className={`k5-given${report === "formula" ? " name" : ""}`}>{report === "formula" ? given : <Formula f={given} />}</p>}
       <div className="k5-wall-fit">
         <IonWall cation={cat} anion={an} nC={w.nC} nA={w.nA} showFormula={report === "formula"} showName={known} />
@@ -142,19 +142,20 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
       {balanced && real && !known && <Tag tone="bad">✗ {tr("gibt es nicht (nicht beständig)", "does not exist (not stable)")}</Tag>}
       {report === "name" && <p className="k5-name" aria-live="polite">{nameWith(Z, w.q, an)}</p>}
       {report === "charge" && <p className={`k5-name${balanced ? " ok" : ""}`} aria-live="polite">{balanced && known ? compoundName(cat, an) : `${sym}${chargeSup(w.q)}`}</p>}
-    </div>
+    </div></Fit>
   );
   const seg = charges && (
     <Segmented<string> label={numerals ? tr("Römische Zahl", "Roman numeral") : tr(`Ladung von ${sym}`, `Charge of ${sym}`)} value={String(w.q)}
       options={charges.map(q => ({ value: String(q), label: numerals ? `(${ROMAN[q]})` : `${q}+` }))} onChange={v => set({ ...w, q: Number(v) })} />
   );
-  const controls = (seg || stepC || stepA) && (
+  // gelöst bzw. vorgemacht: nur das Modell (Zahl und Anzahlen stehen in Wand und Name), mehr Platz für das Bild
+  const controls = !c.solved && (seg || stepC || stepA) && (
     <fieldset className="k5-ctl" disabled={c.solved}>
       {seg}
       {(stepC || stepA) && (
         <div className="k5-steps">
           {stepC && <Stepper compact tone="cation" label={tr(`${sym}-Ionen`, `${sym} ions`)} value={w.nC} min={1} max={4} editable={false} onChange={v => set({ ...w, nC: v })} />}
-          {stepA && <Stepper compact tone="anion" label={<>{toSubscript(an.formula)}<sup>{an.charge === -1 ? "−" : `${-an.charge}−`}</sup></>} value={w.nA} min={1} max={6} editable={false} onChange={v => set({ ...w, nA: v })} />}
+          {stepA && <Stepper compact tone="anion" label={<span className="k5-an">{toSubscript(an.formula)}<sup>{an.charge === -1 ? "−" : `${-an.charge}−`}</sup></span>} value={w.nA} min={1} max={6} editable={false} onChange={v => set({ ...w, nA: v })} />}
         </div>
       )}
     </fieldset>

@@ -104,15 +104,15 @@ const steps = (): GuideStep[] => [
     ask: NE("Was beschreibt Fe³⁺ = [Ar] 3d⁵ richtig?", "What describes Fe³⁺ = [Ar] 3d⁵ correctly?"),
     options: [
       NE("Eisen will 3 Elektronen abgeben.", "Iron wants to lose 3 electrons."),
-      NE("Fe³⁺ hat eine halb besetzte d-Unterschale – das ist besonders beständig.", "Fe³⁺ has a half-filled d subshell – this is especially stable."),
+      NE("3d halb besetzt: besonders beständig.", "3d half-filled: especially stable."),
       NE("Fe³⁺ hat Edelgaskonfiguration.", "Fe³⁺ has a noble gas configuration."),
-      NE("Fe³⁺ hat 3 Elektronen mehr als das Atom.", "Fe³⁺ has 3 electrons more than the atom."),
+      NE("Fe³⁺ hat 3 Elektronen mehr als Fe.", "Fe³⁺ has 3 electrons more than Fe."),
     ],
-    answer: NE("Fe³⁺ hat eine halb besetzte d-Unterschale – das ist besonders beständig.", "Fe³⁺ has a half-filled d subshell – this is especially stable."),
+    answer: NE("3d halb besetzt: besonders beständig.", "3d half-filled: especially stable."),
     why: {
       [NE("Eisen will 3 Elektronen abgeben.", "Iron wants to lose 3 electrons.")]: NE("Atome wollen nichts. Beschreibe, was vorliegt: 3d⁵ ist halb besetzt.", "Atoms do not want anything. Describe what is there: 3d⁵ is half-filled."),
       [NE("Fe³⁺ hat Edelgaskonfiguration.", "Fe³⁺ has a noble gas configuration.")]: NE("Argon ist nur [Ar]. Fe³⁺ hat noch 5 Elektronen in 3d.", "Argon is only [Ar]. Fe³⁺ still has 5 electrons in 3d."),
-      [NE("Fe³⁺ hat 3 Elektronen mehr als das Atom.", "Fe³⁺ has 3 electrons more than the atom.")]: NE("Kationen haben weniger Elektronen: 26 − 3 = 23.", "Cations have fewer electrons: 26 − 3 = 23."),
+      [NE("Fe³⁺ hat 3 Elektronen mehr als Fe.", "Fe³⁺ has 3 electrons more than Fe.")]: NE("Kationen haben weniger Elektronen: 26 − 3 = 23.", "Cations have fewer electrons: 26 − 3 = 23."),
     },
     ok: NE("Halb besetzt (d⁵) und voll besetzt (d¹⁰) sind besonders beständig.", "Half-filled (d⁵) and full (d¹⁰) are especially stable."),
   },
@@ -203,7 +203,7 @@ const steps = (): GuideStep[] => [
     lines: [
       NE("3 Cl⁻: 3 · (1−) = 3−.", "3 Cl⁻: 3 · (1−) = 3−."),
       NE("Ein Fe gleicht 3− aus → Fe³⁺.", "One Fe balances 3− → Fe³⁺."),
-      NE("→ Name: **Eisen(III)-chlorid**.", "→ Name: **iron(III) chloride**."),
+      NE("→ Name: Eisen(III)-chlorid.", "→ Name: iron(III) chloride."),
     ],
     ok: NE("Erst die Anionen-Ladung ausrechnen, dann auf die Metall-Ionen verteilen.", "First work out the anion charge, then share it among the metal ions."),
     visual: c => <WallModel c={c} Z={26} anion="Cl-" charges={[1, 2, 3]} report="charge" given="FeCl3" init={{ q: 3, nC: 1, nA: 3 }} sol={{ q: 3, nC: 1, nA: 3 }} />,

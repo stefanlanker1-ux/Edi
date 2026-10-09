@@ -4,10 +4,11 @@
 
 /* ── Kästchenschema ─────────────────────────────────────────────────────── */
 .k5-cfg {
-  --bx: clamp(44px, min(13cqw, 15cqh), 64px);
+  --bx: clamp(44px, min(13cqw, 15cqh), 72px);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(6px, 2.4cqh, 16px);
-  width: 100%; height: 100%; min-height: 0;
+  width: 100%;
 }
+.k5-fit { width: 100%; height: 100%; }
 .k5-ion { display: flex; align-items: baseline; gap: 12px; }
 .k5-ion-sym { font-size: clamp(1.9rem, 9cqh, 2.8rem); font-weight: 800; line-height: 1; letter-spacing: -.01em; }
 .k5-ion-sym sup { font-size: .55em; margin-left: .04em; color: var(--cat-tile-b, var(--hue-yellow-deep)); }
@@ -24,8 +25,10 @@
 .k5-box {
   display: grid; grid-auto-flow: column; place-content: center; gap: 2px; width: var(--bx); height: var(--bx); padding: 0; margin-left: -1.5px;
   border: 1.5px solid var(--rule); background: var(--surface); color: var(--hue-blue-deep); font: 800 calc(var(--bx) * .46) / 1 var(--font);
-  cursor: pointer; touch-action: manipulation;
+  box-shadow: var(--key-edge); cursor: pointer; touch-action: manipulation;
 }
+.k5-box:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
+.k5-box:disabled { box-shadow: none; }
 .k5-box:first-child { margin-left: 0; border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
 .k5-box:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .k5-box:only-child { border-radius: var(--radius-sm); }
@@ -37,17 +40,19 @@
 .k5-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
 
 /* ── Ionenwand mit Ladungswahl ──────────────────────────────────────────── */
-.k5-wall { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 2cqh, 12px); width: 100%; height: 100%; min-height: 0; }
+.k5-wall { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 2cqh, 12px); width: 100%; }
 .k5-given { margin: 0; font-size: clamp(1.4rem, 8cqh, 2.1rem); font-weight: 800; line-height: 1.1; text-align: center; }
 .k5-given.name { font-size: clamp(1.15rem, 6.5cqh, 1.6rem); }
-.k5-wall-fit { width: 100%; max-width: 460px; min-height: 0; }
+.k5-wall-fit { width: 100%; max-width: 520px; min-height: 0; }
 .k5-wall-fit .ion-wall { gap: clamp(4px, 2cqh, 12px); }
 .k5-wall-fit .iw-formula { font-size: clamp(1.4rem, 8cqh, 2.2rem); }
 .k5-name { margin: 0; font-size: clamp(1.05rem, 5.5cqh, 1.35rem); font-weight: 750; text-align: center; }
 .k5-name.ok { color: var(--text); }
-.k5-ctl { display: flex; flex-wrap: wrap; align-items: end; justify-content: center; gap: 8px 14px; margin: 0; padding: 0; border: 0; min-width: 0; }
-.k5-ctl:disabled { opacity: .55; }
-.k5-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; }
+/* Bedienung fließt in die Leiste des Modells: Zähler oben, darunter römische Zahl bzw. Ladung neben „Prüfen“ */
+.k5-ctl { display: contents; }
+.k5-ctl:disabled > * { opacity: .55; }
+.k5-steps { order: -1; flex: 1 0 100%; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 14px; }
+.k5-an { white-space: nowrap; }
 .k5-steps .ui-stepper { min-width: 150px; }
 @media (max-height: 700px) {
   .k5-wall-fit .iw-stack { --h: 40px; }
