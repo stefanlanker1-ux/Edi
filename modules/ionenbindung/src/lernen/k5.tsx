@@ -219,7 +219,7 @@ const steps = (): GuideStep[] => [
     },
     tip: NE("Rechne die negative Ladung aus und verteile sie auf die Fe-Ionen.", "Work out the negative charge and share it among the Fe ions."),
     ok: NE("Fe₂O₃: 6− auf 2 Fe → je 3+ → Eisen(III)-oxid.", "Fe₂O₃: 6− shared by 2 Fe → 3+ each → iron(III) oxide."),
-    visual: c => <WallModel c={c} Z={26} anion="O2-" charges={[1, 2, 3]} report="charge" given="Fe2O3" init={{ q: 1, nC: 2, nA: 3 }} sol={{ q: 3, nC: 2, nA: 3 }} />,
+    visual: c => <WallModel c={c} Z={26} anion="O2-" charges={[1, 2, 3]} report="charge" given="Fe2O3" init={{ q: 2, nC: 2, nA: 3 }} sol={{ q: 3, nC: 2, nA: 3 }} />,
   }),
   model({
     mode: "free",
@@ -384,7 +384,7 @@ export const kapitel5 = (): Kapitel => ({
       tr("Hauptgruppenmetalle wie Na, Mg, Al bilden ein Ion – die Ladung folgt aus der Gruppe.", "Main group metals such as Na, Mg, Al form one ion – the charge follows from the group."),
       tr("Viele **Übergangsmetalle** bilden mehrere Ionen, z. B. Eisen Fe²⁺ und Fe³⁺, Kupfer Cu⁺ und Cu²⁺.", "Many **transition metals** form several ions, e.g. iron Fe²⁺ and Fe³⁺, copper Cu⁺ and Cu²⁺."),
       tr("Kationen geben zuerst die Elektronen der **äußersten Schale** ab (4s), erst dann 3d-Elektronen.", "Cations first lose the electrons of the **outermost shell** (4s), only then 3d electrons."),
-      tr("**Halb besetzte** (d⁵) und **voll besetzte** (d¹⁰) d-Unterschalen sind besonders beständig.", "**Half-filled** (d⁵) and **full** (d¹⁰) d subshells are especially stable."),
+      tr("Ihre Ionen haben meist **keine** Edelgaskonfiguration: In der d-Unterschale bleiben Elektronen, z. B. Cu⁺ = [Ar] 3d¹⁰.", "Their ions usually have **no** noble gas configuration: electrons stay in the d subshell, e.g. Cu⁺ = [Ar] 3d¹⁰."),
     ],
     [
       tr("Die **römische Zahl** in Klammern nennt die Ladung des Metall-Ions: Kupfer(II)-sulfat = CuSO₄ mit Cu²⁺.", "The **Roman numeral** in brackets gives the charge of the metal ion: copper(II) sulfate = CuSO₄ with Cu²⁺."),
