@@ -603,13 +603,15 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Wortteilen in gemischter, nie lösungsgleicher Reihenfolge, alle gleich gefärbt; Fallen: Elementname statt Stamm, fehlende Endung, Zahlwort, Reihenfolge – kein „-it“, das
   kommt erst mit den mehratomigen Ionen; bei Ionenverbindungen lässt man die Anzahl im Namen weg) · **Formel und Name** (Ionenwahl: anfangs keine Ladung gewählt, Ausgleich
   und ✓ nur für Ionen, die es gibt; beide Richtungen). Nur ionische Beispiele (AlF₃ statt AlCl₃). Test `k2/models.test.ts`.
-- Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): **Anziehung und Abstoßung** (Ion wählen `ChargePair`, Ion in der Reihe verschieben `IonRow`,
-  quer oder hochkant je nach Bühne) · **Das Ionengitter** (Schicht füllen `LatticeFill`, Nachbarn antippen – 4 in der Schicht, räumliches Gitter `Lattice3D` mit 6 Nachbarn,
-  Formel aus dem MgO-Ausschnitt `FormulaModel`) · **Hart, spröde, hohe Schmelztemperatur** (Temperatur-Schieber `ThermoLattice`: NaCl 801 °C, MgO 2852 °C, Schmelze ungeordnet
-  ohne Überlappung; Schichten verschieben `ShiftLayers`: gleiche Ladungen gegenüber → Abstoßung, Riss) · **Wann leiten Salze Strom?** (`Conduct`: fest / Schmelze / Lösung,
-  Schalter, Pole tauschen; Kationen wandern zum Minuspol). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196, Mg²⁺ 72, O²⁻ 140 pm), Ladung in der
-  Kugel; Anziehung als Linie (→ ←), Abstoßung rot gestrichelt (← →) – nicht nur über Farbe. Wasser nur als Stoff „Wasser H₂O“ (warum es Ionen löst: Elektronenpaarbindung).
-  Reduzierte Bewegung: gleich das Endbild, Schwingweite als gestrichelter Ring.
+- Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): **Anziehen, abstoßen** (Ion wählen `ChargePair`, Ion in der Reihe verschieben `IonRow`,
+  quer oder hochkant je nach Bühne – Texte ohne Richtungswörter) · **Das Ionengitter** (Ionenverbindungen heißen auch **Salze**; Schicht füllen `LatticeFill`, Nachbarn antippen –
+  4 in der Schicht, räumliches Gitter `Lattice3D` mit der Schicht in der Bildebene und je 1 Gegen-Ion davor und dahinter, Verhältnis aus dem MgO-Ausschnitt `FormulaModel`) ·
+  **Hart und spröde** (Temperatur-Schieber `ThermoLattice`: NaCl 801 °C, Schmelze ungeordnet, aber weiter mit Anziehung zum nächsten Gegen-Ion; `ThermoPair`: NaCl und MgO
+  (2852 °C) mit einem Schieber – „NaCl flüssig, MgO fest“; Schichten verschieben `ShiftLayers`: nach einem ganzen Platz stehen gleiche Ladungen gegenüber → Abstoßung, Riss) ·
+  **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: fest / Schmelze / Lösung, Schalter, Pole tauschen; die Ionen bleiben gemischt und
+  driften sichtbar zu ihrem Pol – Kationen zum Minuspol –, nie getrennte Ladungsblöcke). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196,
+  Mg²⁺ 72, O²⁻ 140 pm), Ladung in der Kugel; Anziehung als Linie (→ ←), Abstoßung rot gestrichelt (← →) – nicht nur über Farbe. Wasser nur als Stoff „Wasser H₂O“; Lösen knüpft
+  an Gemische an („Wasserteilchen lagern sich an und lösen die Ionen heraus“), das Warum kommt bei der Elektronenpaarbindung. Reduzierte Bewegung: gleich das Endbild.
 - Kapitel 4 **Ionen aus mehreren Atomen** (Level II, `k4.tsx`, `k4/Models.tsx`): **Atomgruppen mit Ladung** (mehratomiges Ion als Atomkugeln in eckigen Klammern mit der
   Ladung oben rechts – als Modell gekennzeichnet, das echte Ion ist räumlich; Zähler für Atome und Ladung, Formel sofort; nicht aus einzelnen Ionen
   zusammengesetzt – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
@@ -1124,6 +1126,13 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung: neue Ordnung „Lernen | Experimentieren“** – Erklärung und Quiz sind ersetzt durch den Bereich **Lernen** mit fünf Kapiteln zu je 25 Folien
+  (Level I: Vom Atom zum Ion · Formel und Name · Ionengitter und Eigenschaften; Level II: Ionen aus mehreren Atomen · Nebengruppenmetalle). Erklärung und Aufgaben in einem
+  Fluss (vorgemacht → halb gelöst → selbst, `checkGuide`), mindestens 13 Modell-Folien je Kapitel: Modell verändern, Änderung sofort sehen, „Prüfen“ meldet das Gebaute,
+  Rückmeldung je typischem Fehler, nach vier Fehlversuchen die Lösung im Modell. Hilfsmittel jeder Folie: PSE, Tipp, Erklärung (Merksätze des Abschnitts). Fortschritt je Kapitel
+  (`ionenbindung-lernen`), Fortsetzen an der letzten Folie. Vorwissen nur aus Gemische, Atombau und früheren Kapiteln. Jedes Kapitel unabhängig fachlich, didaktisch und gestalterisch
+  geprüft, Befunde behoben. `Guide` (`@lern/ui`) mit optionalen Zusätzen `badge`, `start`/`onStep`, `tools` – ohne Wirkung auf die anderen Module; check-ui spielt mit
+  `KAPITEL=1` jede Folie. Bisherige Erklärung, Quiz und Ionentabelle der Ionenbindung entfernt; die übrigen Module bleiben bei Erklärung | Üben | Experimentieren.
 - **Lizenzhinweise: Kraftfeld MMFF94 auch im Web** – `packages/chem/NOTICE.txt` (erscheint unter „Lizenzen“) nannte das Kraftfeld noch „nur in der Android/iOS-App aktiv“;
   es berechnet die 3D-Ansicht aber auch im Web und in der Offline-Datei (im Browser geprüft: Propan-1-ol, Methylbenzen, je etwa 0,9 s im Hintergrund-Thread).
   Hinweis berichtigt, ebenso veraltete Kommentare „3D (nur App)“ in Nomenklatur und Elektronenpaarbindung; Doku nennt Herkunft und Lizenz (Merck-Parameter, RDKit BSD-3).
