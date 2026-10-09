@@ -1,7 +1,7 @@
 // Kapitel 3 – Zeichenbausteine: Ionen als Kugeln (Größen im Verhältnis der Ionenradien, Ladung in der Kugel), Kation gold, Anion grün;
 // Anziehung = durchgezogene Linie, Abstoßung = rot gestrichelte Linie (nie nur über Farbe: Strich und Pfeilrichtung unterscheiden sich).
 
-import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 
 /** Bühne hochkant? (Höhe > Breite) – für Zeichnungen, die quer oder hochkant stehen können */
 export function useTall(): [RefObject<HTMLDivElement | null>, boolean] {
@@ -34,23 +34,18 @@ export const ionText = (i: Ion) => i.s + SUP[String(i.q)];
 /** Radius im Bild: das größte Ion der Zeichnung (`ref`) hat `R` */
 export const rad = (i: Ion, ref: Ion, R: number) => (R * i.pm) / ref.pm;
 
-export function Ball({ ion, x, y, r, cls, sign, jit, children }: {
+export function Ball({ ion, x, y, r, cls, sign, children }: {
   ion: Ion; x: number; y: number; r: number; cls?: string;
   /** nur das Ladungszeichen (+ / −) statt des Symbols – für kleine Kugeln */
   sign?: boolean;
-  /** Schwingen um den Platz: Weite (px), Dauer (s), Verzögerung (s) */
-  jit?: { a: number; d: number; delay: number };
   children?: ReactNode;
 }) {
   const t = sign ? (ion.q > 0 ? "+" : "−") : ionText(ion);
   const fs = sign ? r * 1.3 : Math.min(18, r * (t.length > 3 ? 0.78 : 0.95));
-  const js = jit ? ({ "--a": `${jit.a}px`, animationDuration: `${jit.d}s`, animationDelay: `${jit.delay}s` } as CSSProperties) : undefined;
   return (
     <g className={`k3-ion ${ion.q > 0 ? "cat" : "an"}${cls ? ` ${cls}` : ""}`} style={{ transform: `translate(${x}px, ${y}px)` }}>
-      <g className={jit ? "k3-jit" : undefined} style={js}>
-        <circle r={r} />
-        <text dy={sign ? ".34em" : ".36em"} style={{ fontSize: fs }}>{t}</text>
-      </g>
+      <circle r={r} />
+      <text dy={sign ? ".34em" : ".36em"} style={{ fontSize: fs }}>{t}</text>
       {children}
     </g>
   );

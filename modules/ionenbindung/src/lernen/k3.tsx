@@ -216,7 +216,8 @@ function steps(): GuideStep[] {
       answer: molten(),
       why: { [solid()]: tr("Noch fest: Die Ionen schwingen nur um ihre Plätze. Schiebe die Temperatur höher.", "Still solid: the ions only vibrate around their places. Push the temperature higher.") },
       tip: tr("Was passiert mit den Ionen bei der Schmelztemperatur?", "What happens to the ions at the melting point?"),
-      ok: tr("Ab 801 °C ist Natriumchlorid geschmolzen: Die Ionen ziehen sich weiter an, haben aber keine festen Plätze mehr.", "From 801 °C, sodium chloride is molten: the ions still attract each other but no longer have fixed places."),
+      ok: tr("Ab 801 °C ist Natriumchlorid geschmolzen: Die Ionen verlassen ihre Plätze und gleiten ständig aneinander vorbei. Sie ziehen sich aber weiter an.",
+        "From 801 °C, sodium chloride is molten: the ions leave their places and keep sliding past each other. But they still attract each other."),
       visual: c => <ThermoLattice c={c} cat={NA} an={CL} tm={801} max={1000} step={1} start={20} sol={850} />,
     }),
     model({
@@ -282,8 +283,8 @@ function steps(): GuideStep[] {
       ask: tr("Sieh dir festes Natriumchlorid NaCl zwischen zwei Metallstäben an.", "Look at solid sodium chloride NaCl between two metal rods."),
       lines: [
         tr("Die Metallstäbe heißen **Elektroden**: einer ist der **Minuspol** (−), einer der **Pluspol** (+).", "The metal rods are called **electrodes**: one is the **negative pole** (−), one the **positive pole** (+)."),
-        tr("Fest: Die Ionen sitzen im Gitter fest und können nicht wandern.", "Solid: the ions sit firmly in the lattice and cannot move along."),
-        tr("Kein Strom → die Lampe bleibt aus.", "No current → the lamp stays off."),
+        tr("Die Lupe zeigt einen vergrößerten Ausschnitt: Die Ionen schwingen nur um ihre Plätze im Gitter.", "The magnifier shows an enlarged close-up: the ions only vibrate around their places in the lattice."),
+        tr("Sie können nicht wandern: kein Strom, die Lampe bleibt aus.", "They cannot move along: no current, the lamp stays off."),
       ],
       ok: tr("Festes Salz leitet nicht: Die Ionen sind geladen, aber nicht beweglich.", "Solid salt does not conduct: the ions are charged but cannot move about."),
       visual: c => <Conduct c={c} start={L("fest")} sol={L("fest")} result={lamp} demo />,
@@ -294,13 +295,15 @@ function steps(): GuideStep[] {
         "On melting, the ions leave the lattice. On dissolving in water H₂O, water particles attach and pull the ions out – why, you will learn with covalent bonds."),
       ask: tr("Stelle einen Zustand ein, in dem die Lampe leuchtet. Dann prüfe.", "Set a state in which the lamp lights up. Then check."),
       lines: [
-        tr("Ionen beweglich: Kationen wandern zum Minuspol, Anionen zum Pluspol.", "Ions mobile: cations move to the negative pole, anions to the positive pole."),
-        tr("Geladene Teilchen bewegen sich → {?}", "Charged particles move → {?}"),
+        tr("Ionen beweglich: Sie bewegen sich ungeordnet und wandern dabei langsam – Kationen zum Minuspol, Anionen zum Pluspol.",
+          "Ions mobile: they move about randomly and slowly drift along – cations to the negative pole, anions to the positive pole."),
+        tr("Geladene Teilchen wandern in eine Richtung → {?}", "Charged particles move in one direction → {?}"),
       ],
       answer: lampOn(),
       why: { [lampOff()]: tr("Im festen Salz sitzen die Ionen fest – sie können nicht wandern. Kein Strom.", "In the solid salt the ions are fixed – they cannot move along. No current.") },
       tip: tr("Strom braucht geladene Teilchen, die sich bewegen können.", "A current needs charged particles that can move."),
-      ok: tr("Schmelze oder Lösung: Na⁺ wandert zum Minuspol, Cl⁻ zum Pluspol – Strom fließt, die Lampe leuchtet.", "Melt or solution: Na⁺ moves to the negative pole, Cl⁻ to the positive pole – current flows, the lamp lights up."),
+      ok: tr("Schmelze oder Lösung: Na⁺ wandert zum Minuspol, Cl⁻ zum Pluspol – Strom fließt, die Lampe leuchtet. Was an den Elektroden passiert, lernst du später.",
+        "Melt or solution: Na⁺ moves to the negative pole, Cl⁻ to the positive pole – current flows, the lamp lights up. What happens at the electrodes, you will learn later."),
       visual: c => <Conduct c={c} start={L("fest")} sol={L("schmelze")} result={lamp} />,
     }),
     model({
@@ -397,12 +400,14 @@ export const kapitel3 = (): Kapitel => ({
     [
       tr("Die Ionen schwingen um ihre Plätze – je heißer, desto stärker.", "The ions vibrate around their places – the hotter, the more strongly."),
       tr("Bei der **Schmelztemperatur** verlassen sie ihre Plätze: Kaliumbromid schmilzt bei 734 °C, Eis bei 0 °C.", "At the **melting point** they leave their places: potassium bromide melts at 734 °C, ice at 0 °C."),
+      tr("In der **Schmelze** gleiten die Ionen ständig aneinander vorbei und ziehen sich weiter an. Kühlt sie ab, ordnen sie sich wieder zum Gitter.",
+        "In the **melt** the ions keep sliding past each other and still attract each other. When it cools, they arrange themselves into a lattice again."),
       tr("**Hart**: Die starke Anziehung hält die Schichten fest. **Spröde**: Verschobene Schichten stoßen sich ab, der Kristall bricht.", "**Hard**: the strong attraction holds the layers firmly. **Brittle**: shifted layers repel each other, the crystal breaks."),
     ],
     [
-      tr("**Elektrischer Strom**: Bewegung geladener Teilchen.", "**Electric current**: movement of charged particles."),
+      tr("**Elektrischer Strom**: gerichtete Bewegung geladener Teilchen.", "**Electric current**: directed movement of charged particles."),
       tr("Fest sitzen die Ionen fest: kein Strom. Als **Schmelze** oder Lösung sind sie beweglich: Strom fließt.", "In a solid the ions are fixed: no current. In a **melt** or solution they can move: current flows."),
-      tr("Kationen wandern zum **Minuspol**, Anionen zum **Pluspol**.", "Cations move to the **negative pole**, anions to the **positive pole**."),
+      tr("Kationen wandern langsam zum **Minuspol**, Anionen zum **Pluspol** – die Ionen bleiben dabei gemischt.", "Cations slowly move to the **negative pole**, anions to the **positive pole** – the ions stay mixed."),
     ],
   ],
 });

@@ -19,23 +19,11 @@
 .k3-ion.an text { fill: var(--an-tile-text); }
 .k3-ion.mover circle, .k3-ion.k3-hot circle { stroke-width: 3.5; }
 .k3-slide { transition: transform .45s cubic-bezier(.3, .7, .3, 1); }
-.k3-melt { transition: transform 1.1s ease-in-out; }
-.k3-drift { transition: transform 2.6s cubic-bezier(.45, .05, .4, 1); }
-.k3-drift.still, .k3-svg.still .k3-drift { transition: none; }
-.k3-ghost { fill: none; stroke-width: 1.5; stroke-dasharray: 3 3; }
-.k3-ghost.cat { stroke: var(--hue-yellow-deep); }
-.k3-ghost.an { stroke: var(--hue-green-deep); }
-
-/* Schwingen um den Platz (Weite --a) */
-.k3-jit { animation: k3-jit .5s ease-in-out infinite alternate; }
-@keyframes k3-jit {
-  0% { transform: translate(calc(var(--a) * -1), calc(var(--a) * .4)); }
-  33% { transform: translate(calc(var(--a) * .7), calc(var(--a) * -.8)); }
-  66% { transform: translate(calc(var(--a) * -.3), calc(var(--a) * .9)); }
-  100% { transform: translate(var(--a), calc(var(--a) * -.3)); }
-}
-@media (prefers-reduced-motion: reduce) { .k3-jit { animation: none; } .k3-slide, .k3-melt, .k3-drift { transition: none; } .k3-fade, .k3-pop { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .k3-slide { transition: none; } .k3-fade, .k3-pop { animation: none; } }
+/* reduzierte Bewegung: Schwingungsbereich um den Platz */
 .k3-range-ring { fill: none; stroke: var(--faint); stroke-width: 1.2; stroke-dasharray: 2 3; }
+/* Tiegel (Gefäßwand) */
+.k3-vessel { fill: none; stroke: var(--muted); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Anziehung (Linie) und Abstoßung (rot gestrichelt) */
 .k3-bond { stroke-width: 2; stroke-linecap: round; }
@@ -66,8 +54,6 @@
 .k3-mark.mid { stroke: var(--signal); stroke-width: 3; }
 .k3-crack { fill: none; stroke: var(--bad); stroke-width: 2.5; stroke-linejoin: round; }
 .k3-arrow.push { stroke: var(--muted); }
-.k3-latlines line { transition: opacity .8s; }
-.k3-latlines.gone line { opacity: 0; }
 
 .k3-fade { animation: k3-fade .35s ease-out; }
 @keyframes k3-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -105,29 +91,33 @@
 .k3-beaker { fill: none; stroke: var(--text); stroke-width: 2.5; stroke-linejoin: round; }
 .k3-liquid { fill: none; stroke: var(--faint); stroke-width: 2; }
 .k3-liquid.water { stroke: var(--hue-blue); }
-.k3-electrode { fill: none; stroke: var(--text); stroke-width: 2; }
+.k3-electrode { fill: var(--surface, var(--bg)); stroke: var(--text); stroke-width: 2; }
 .k3-pole { text-anchor: middle; font-family: var(--font); font-weight: 800; font-size: 28px; fill: var(--text); }
-.k3-note { text-anchor: middle; font-family: var(--font); font-weight: 650; font-size: 13px; fill: var(--muted); }
-.k3-dir .k3-arrow { stroke-width: 2; stroke-dasharray: 5 4; }
-/* Wandern im Strom: jedes Ion gleitet ein Stück zu seinem Pol, blendet aus und beginnt neu (gemischt bleiben) */
-.k3-flow { animation: k3-flow 2.4s linear infinite; }
-@keyframes k3-flow {
-  0% { transform: translateX(calc(var(--dx) * -0.5)); opacity: 0; }
-  15% { opacity: 1; } 85% { opacity: 1; }
-  100% { transform: translateX(calc(var(--dx) * 0.5)); opacity: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .k3-flow { animation: none; } }
-.k3-arrow.tiny { stroke-width: 2; }
+.k3-note { text-anchor: middle; font-family: var(--font); font-weight: 650; font-size: 14px; fill: var(--muted); }
+/* festes Salz: Körner im Glas */
+.k3-grains rect { fill: var(--surface, var(--bg)); stroke: var(--muted); stroke-width: 1.5; stroke-linejoin: round; }
+/* Lupe: Ausschnitt aus der Mitte, Hinweislinien zur Markierung im Glas */
+.k3-spot { fill: none; stroke: var(--text); stroke-width: 1.5; }
+.k3-callout { stroke: var(--muted); stroke-width: 1.2; }
+.k3-lens { fill: none; stroke: var(--text); stroke-width: 3; }
+.k3-lens-bg { fill: var(--surface, var(--bg)); stroke: none; }
+.k3-halo { paint-order: stroke; stroke: var(--surface, var(--bg)); stroke-width: 5px; stroke-linejoin: round; }
+.k3-lens-bg.water { fill: var(--hue-blue-soft); }
+.k3-lpole { text-anchor: middle; font-family: var(--font); font-weight: 800; font-size: 22px; fill: var(--text); }
+.k3-ltext { font-family: var(--font); font-weight: 650; font-size: 14px; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
+.k3-legend .k3-ion circle { stroke-width: 1.5; }
+.k3-arrow.tiny { stroke-width: 2.2; }
 .k3-arrow.tiny.cat { stroke: var(--hue-yellow-deep); }
 .k3-arrow.tiny.an { stroke: var(--hue-green-deep); }
-.k3-dir .k3-arrow.cat { stroke: var(--hue-yellow-deep); }
-.k3-dir .k3-arrow.an { stroke: var(--hue-green-deep); }
 
 /* Bild zu einer Frage (ohne Modell) */
 .k3-static { width: 100%; height: 100%; max-height: 180px; }
 .k3-ftext { text-anchor: middle; font-family: var(--font); font-weight: 750; font-size: 30px; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
 .k3-qtext { text-anchor: middle; font-family: var(--font); font-size: 15px; fill: var(--muted); }
 .k3-pair { display: flex; gap: 10px; width: 100cqw; height: 100cqh; }
-.k3-pair figure { flex: 1 1 0; min-width: 0; margin: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.k3-pair .k3-svg { flex: 1 1 0; min-height: 0; width: 100%; }
+.k3-pair figure { flex: 1 1 0; min-width: 0; min-height: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+/* Zeichnung so hoch wie ihr Seitenverhältnis (Beschriftung direkt darunter), höchstens so hoch wie der Platz */
+.k3-pair .k3-svg { flex: 0 1 auto; min-height: 0; width: 100%; height: auto; }
+/* eher hohe Bühne: die beiden Tiegel untereinander (dann größer als nebeneinander) */
+@container (aspect-ratio < 1.1) { .k3-pair { flex-direction: column; gap: 6px; } }
 .k3-pair figcaption { flex: none; font-size: .875rem; font-weight: 650; text-align: center; }
