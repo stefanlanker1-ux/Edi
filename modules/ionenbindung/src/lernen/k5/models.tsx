@@ -209,9 +209,9 @@ export const chargeFromGroup = (Z: number) => { const g = BY_Z[Z].group; return 
 export const pseResult = (picked: number[]) => [...picked].sort((a, b) => a - b).map(Z => BY_Z[Z].symbol).join(" ") || "–";
 const groupOf = (Z: number) => BY_Z[Z].group ?? 0;
 /** Gruppe mit Brücke zu den Hauptgruppen aus Kapitel 1: „Gruppe 13 = III. Hauptgruppe“, „Gruppe 8 (Nebengruppe)“ */
-export function groupText(Z: number) {
+export function groupText(Z: number, comma = false) {
   const g = groupOf(Z);
-  if (g >= 3 && g <= 12) return tr(`Gruppe ${g} (Nebengruppe)`, `group ${g} (transition metal)`);
+  if (g >= 3 && g <= 12) return comma ? tr(`Gruppe ${g}, Nebengruppe`, `group ${g}, transition metal`) : tr(`Gruppe ${g} (Nebengruppe)`, `group ${g} (transition metal)`);
   const h = g <= 2 ? g : g - 10;
   return tr(`Gruppe ${g} = ${ROMAN[h]}. Hauptgruppe`, `group ${g} = main group ${ROMAN[h]}`);
 }
@@ -231,7 +231,7 @@ export function pseWhy(cands: number[], answer: number[]): Record<string, string
         ? tr(`${elText(extra)}: ${groupText(extra)} – die Ladung liest du aus der Hauptgruppe ab.`, `${elText(extra)}: ${groupText(extra)} – you read the charge from the main group.`)
         : tr(`${elText(extra)}: ${groupText(extra)} – nur die I. bis III. Hauptgruppe verraten die Ladung.`, `${elText(extra)}: ${groupText(extra)} – only main groups I to III give the charge.`);
     } else if (miss) {
-      out[id] = tr(`${elText(miss)} (${groupText(miss)}) fehlt noch.`, `${elText(miss)} (${groupText(miss)}) is still missing.`);
+      out[id] = tr(`${elText(miss)} fehlt noch – ${groupText(miss, true)}.`, `${elText(miss)} is still missing – ${groupText(miss, true)}.`);
     }
   }
   return out;
@@ -239,7 +239,9 @@ export function pseWhy(cands: number[], answer: number[]): Record<string, string
 
 /** Metalle wählen: große Knöpfe unter dem PSE (an/aus) oder im PSE antippen; „Prüfen“ meldet die Symbole, z. B. "Fe Cu".
  *  Alle angebotenen Zellen gleich gefärbt (die PSE-Farben verrieten die Einordnung), die Einordnung erst nach dem Lösen. */
-export function PseMetals({ c, cands, answer }: { c: GuideCtx; cands: number[]; answer: number[] }) {
+export function PseMetals({ c, cands, answer, bare = false }: { c: GuideCtx; cands: number[]; answer: number[];
+  /** Infozeile nur mit der Gruppennummer (die Zuordnung zur Hauptgruppe ist dann die Aufgabe) */
+  bare?: boolean }) {
   const [picked, set] = useModel<number[]>(c, [], answer);
   const [info, setInfo] = useState<string>("");
   const has = (Z: number) => picked.includes(Z);
@@ -248,7 +250,7 @@ export function PseMetals({ c, cands, answer }: { c: GuideCtx; cands: number[]; 
   const toggle = (Z: number) => {
     if (c.solved) return;
     if (!cands.includes(Z)) { setInfo(tr(`${sym(Z)} ist hier nicht dabei.`, `${sym(Z)} is not on offer here.`)); return; }
-    setInfo(`${elText(Z)}: ${groupText(Z)}`);
+    setInfo(bare ? tr(`${elText(Z)}: Gruppe ${groupOf(Z)}`, `${elText(Z)}: group ${groupOf(Z)}`) : `${elText(Z)}: ${groupText(Z)}`);
     set(has(Z) ? picked.filter(x => x !== Z) : [...picked, Z]);
   };
   const chips = (
@@ -286,35 +288,39 @@ export function PseMetals({ c, cands, answer }: { c: GuideCtx; cands: number[]; 
 
 // ── Spalten des großen PSE und Hauptgruppen (Brücke zu Kapitel 1) ──────────
 
-/** Die 18 Gruppen des großen PSE mit den Hauptgruppen I–VIII darunter und den Nebengruppen dazwischen; Beispiel-Metalle in ihrer Spalte.
- *  Vorgemacht: zeigt, wie Gruppe 13 zur III. Hauptgruppe wird und wo Eisen und Kupfer stehen. */
+/** Spalten des großen PSE als sechs Blöcke: Gruppe 1 | 2 | 3–12 | 13 | 14 | 15–18, darunter die Hauptgruppe (I, II, Nebengruppen, III, IV, V–VIII)
+ *  und Beispiel-Metalle in ihrem Block. Die Nebengruppen sind ein Block – so bleiben die Hauptgruppen-Spalten am Handy breit genug (Schrift ≥ 14 px). */
 export function GroupStrip({ c, metals }: { c: GuideCtx; metals: number[] }) {
-  const main = (g: number) => (g <= 2 ? g : g >= 13 ? g - 10 : 0);
-  const col = (g: number, row: number) => ({ gridColumn: `${g} / span 1`, gridRow: row });
+  const blocks: { g: string; h: string; test: (g: number) => boolean; wide?: boolean; main: boolean }[] = [
+    { g: "1", h: "I", test: g => g === 1, main: true },
+    { g: "2", h: "II", test: g => g === 2, main: true },
+    { g: "3–12", h: tr("Nebengruppen", "transition metals"), test: g => g >= 3 && g <= 12, wide: true, main: false },
+    { g: "13", h: "III", test: g => g === 13, main: true },
+    { g: "14", h: "IV", test: g => g === 14, main: true },
+    { g: "15–18", h: "V–VIII", test: g => g >= 15, main: true },
+  ];
   const stage = (
     <Fit className="k5-fit" min={0.3}>
-      <div className="k5-strip" role="img" aria-label={tr("Gruppen 1 bis 18 des PSE: Gruppe 1, 2 und 13 bis 18 sind die I. bis VIII. Hauptgruppe, Gruppen 3 bis 12 die Nebengruppen.",
-        "Groups 1 to 18 of the periodic table: groups 1, 2 and 13 to 18 are main groups I to VIII, groups 3 to 12 the transition metals.")}>
+      <div className="k5-strip" role="img" aria-label={tr("Gruppen des großen PSE: Gruppe 1, 2 und 13 bis 18 sind die I. bis VIII. Hauptgruppe, Gruppen 3 bis 12 die Nebengruppen.",
+        "Groups of the large periodic table: groups 1, 2 and 13 to 18 are main groups I to VIII, groups 3 to 12 the transition metals.")}>
         <span className="k5-strip-cap" style={{ gridColumn: "1 / -1", gridRow: 1 }}>{tr("Gruppe im großen PSE", "Group in the large periodic table")}</span>
-        {Array.from({ length: 18 }, (_, i) => <span key={`g${i}`} className={`k5-strip-g${main(i + 1) ? " main" : ""}`} style={col(i + 1, 2)}>{i + 1}</span>)}
-        {/* I–IV einzeln (dort stehen die Metalle), V–VIII zusammen – „VIII“ passt am Handy nicht in eine Spalte */}
-        {[1, 2, 13, 14].map(g => <span key={`h${g}`} className="k5-strip-h" style={col(g, 4)}>{ROMAN[main(g)]}</span>)}
-        <span className="k5-strip-h" style={{ gridColumn: "15 / span 4", gridRow: 4 }}>V–VIII</span>
-        <span className="k5-strip-n" style={{ gridColumn: "3 / span 10", gridRow: 4 }}>{tr("Nebengruppen", "transition metals")}</span>
+        {blocks.map((b, i) => <span key={`g${i}`} className={`k5-strip-g${b.main ? " main" : ""}`} style={{ gridColumn: i + 1, gridRow: 2 }}>{b.g}</span>)}
         <span className="k5-strip-cap" style={{ gridColumn: "1 / -1", gridRow: 3 }}>{tr("Hauptgruppe (Kapitel 1)", "Main group (chapter 1)")}</span>
-        {metals.map(Z => {
-          const g = BY_Z[Z].group ?? 0;
-          return (
-            <span key={Z} className={`k5-strip-m${chargeFromGroup(Z) ? " grp" : " name"}`} style={col(g, 5)}>
-              <b>{BY_Z[Z].symbol}</b>
-              <small>{chargeFromGroup(Z) ? chargeFull(typicalIonCharge(Z) ?? 0) : "?"}</small>
-            </span>
-          );
-        })}
+        {blocks.map((b, i) => <span key={`h${i}`} className={b.main ? "k5-strip-h" : "k5-strip-n"} style={{ gridColumn: i + 1, gridRow: 4 }}>{b.h}</span>)}
+        {blocks.map((b, i) => (
+          <span key={`m${i}`} className="k5-strip-ms" style={{ gridColumn: i + 1, gridRow: 5 }}>
+            {metals.filter(Z => b.test(BY_Z[Z].group ?? 0)).map(Z => (
+              <span key={Z} className={`k5-strip-m${chargeFromGroup(Z) ? " grp" : " name"}`}>
+                <b>{BY_Z[Z].symbol}</b>
+                <small>{chargeFromGroup(Z) ? chargeFull(typicalIonCharge(Z) ?? 0) : "?"}</small>
+              </span>
+            ))}
+          </span>
+        ))}
       </div>
       <div className="k5-strip-key">
-        <span><i className="grp" /> {tr("Ladung aus der Hauptgruppe", "charge from the main group")}</span>
-        <span><i className="name" /> {tr("? = Ladung im Namen", "? = charge in the name")}</span>
+        <span><i className="grp" /> {tr("aus der Hauptgruppe", "from the main group")}</span>
+        <span><i className="name" /> {tr("? = im Namen", "? = in the name")}</span>
       </div>
     </Fit>
   );
