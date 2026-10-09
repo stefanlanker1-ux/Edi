@@ -179,7 +179,7 @@ export function Conduct({ c, start, sol, states = ["fest", "schmelze", "loesung"
   return (
     <ModelFrame c={c} className="k3-m"
       stage={
-        <svg className={`k3-svg k3-cond${still ? " still" : ""}`} viewBox="0 0 360 318" role="img"
+        <svg className={`k3-svg k3-cond${still ? " still" : ""}`} viewBox="30 10 300 296" role="img"
           aria-label={tr(`Natriumchlorid ${zName(s.z)}, Schalter ${s.on ? "zu" : "offen"}, Lampe ${flow ? "an" : "aus"}`, `Sodium chloride ${zName(s.z)}, switch ${s.on ? "closed" : "open"}, lamp ${flow ? "on" : "off"}`)}>
           {/* Stromkreis: Elektroden → Drähte → Batterie (links oben) und Lampe (rechts oben) */}
           <path className="k3-wire" d={`M${xL} ${top - 6} V40 H130 M150 40 H${s.on ? 196 : 190} M216 40 H${xR} V${top - 6}`} />
