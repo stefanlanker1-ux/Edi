@@ -8,10 +8,13 @@ import { tr } from "@lern/i18n";
 
 const MODELS = new WeakSet<GuideStep>();
 
-/** Schritt als Modell-Folie kennzeichnen (Test: mindestens die Hälfte jedes Kapitels) */
+/** Schritt als Modell-Folie kennzeichnen (Test: mindestens die Hälfte jedes Kapitels); nach vier Fehlversuchen steht die Lösung im Modell –
+ *  der Hinweis dazu (statt „tippe auf das Markierte“), falls die Folie keinen eigenen hat */
 export function model(step: GuideStep): GuideStep {
-  MODELS.add(step);
-  return step;
+  const s = step.mode === "worked" || step.show ? step
+    : { ...step, show: tr("So geht's: Die Lösung steht jetzt im Modell. Sieh sie dir an und drücke **Prüfen**.", "Here's how: the solution is now in the model. Look at it and press **Check**.") };
+  MODELS.add(s);
+  return s;
 }
 export const isModel = (s: GuideStep) => MODELS.has(s);
 
