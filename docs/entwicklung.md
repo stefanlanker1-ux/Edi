@@ -1083,6 +1083,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **check-ui: Subpixel-Toleranz bei `data-min-h`** – die allgemeine Mindesthöhen-Prüfung meldete „56 < 56“ (Elementhöhe 55,x px); jetzt dieselbe Toleranz von 0,5 px wie bei der
+  Prüfung mit Tipp/erstem Schritt.
 - **Nomenklatur: Aufgabenbild im Üben (Level 4) nie unten abgeschnitten** – die Schlussprüfung fand bei 375×667 und 360×640 halb abgeschnittene Beschriftungen der gefragten
   Gruppe (NH₂, OH, Cl, =O). Jetzt passt sich die Formel der Bildfläche an, und der Rand der viewBox umfasst jede Atombeschriftung, auch vergrößert (`viewBoxOf`, Test).
 - **Polymere: kein unlesbarer Bildrest nach der Antwort** – ein Aufgabenbild mit Atomzeichen, das nach der Antwort unter 110 px schrumpfen würde (Atomschrift unter etwa 10 px,

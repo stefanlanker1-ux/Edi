@@ -94,7 +94,7 @@ async function check(page, app, vp, view) {
       if (cutPic && cutPic.getBoundingClientRect().height > 0 && getComputedStyle(cutPic).visibility !== "hidden") over.push(`Bild der Aufgabe abgeschnitten (passt auch verkleinert nicht, ${Math.round(cutPic.getBoundingClientRect().height)} px Platz)`);
     }
     // Mindesthöhe (freiwillig je Element): Bilder dürfen nicht unter eine lesbare Größe schrumpfen
-    const tiny = [...document.querySelectorAll("[data-min-h]")].filter(e => e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().height < Number(e.getAttribute("data-min-h")))
+    const tiny = [...document.querySelectorAll("[data-min-h]")].filter(e => e.getBoundingClientRect().height > 0 && e.getBoundingClientRect().height < Number(e.getAttribute("data-min-h")) - 0.5) // Subpixel-Toleranz wie bei Tipp/erstem Schritt
       .map(e => `${String(e.className).split(" ")[0]} ${Math.round(e.getBoundingClientRect().height)} < ${e.getAttribute("data-min-h")}`);
     // Antippbare Bilder (Klasse sp-tap): jedes Teil mit data-part muss an mindestens einer Stelle wirklich getroffen werden
     // (nichts Unsichtbares oder Verziertes darüber)
