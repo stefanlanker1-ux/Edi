@@ -205,7 +205,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 
 ## Regeln
 - Jedes Modul hat nur zwei Arten von Ansichten: **Experimentieren** (Werkbank: selbst bauen, zeichnen, vorgegebene Beispiele lösen) und **Quiz**, dazu die **Erklärung**
-  als Vollbild. Keine eigenen Übungsseiten.
+  als Vollbild. Keine eigenen Übungsseiten. Ionenbindung: **Lernen** (Kapitel aus Folien im Vollbild der Erklärung) statt Quiz und Erklärung.
 - **Arbeitsteilung der Agenten**: siehe `docs/agenten.md` (Rollen, Prüfkette Fach – Gestaltung – Realität, Sofort-Warnung).
 - **Experimentieren stellt nie Fragen** – keine Vorhersage-, Auswahl- oder Richtig/falsch-Fragen, kein ✓/✗ zu einer Antwort, keine Punkte. Experimentieren ist freies
   Ausprobieren: Aktion wählen → ansehen; Zustand nur als kurze Kennzeichen (z. B. „✓ neutral“, „✓ ausgeglichen“ nach „Prüfen“ in Reaktionsgleichungen – sie beschreiben
@@ -578,24 +578,46 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Erklärungen aller drei Module (Atombau, Ionenbindung, Elektronenpaarbindung): die richtige Auswahl steht an wechselnden Plätzen (höchstens 40 % an Platz 1, Test in `guide.test.ts`).
 
 ## Ionenbindung (`modules/ionenbindung`)
-- Ionen-Bausteine: Kationen gold, Anionen grün, Breite = Ladung. Neutral, wenn beide Reihen gleich lang sind.
-- Ionen, Formeln (`formula`, `ratio`) und Namen (`compoundName`) in `packages/chem/src/ions.ts`. Unterstufe nur Hauptgruppen-Ionen, Oberstufe zusätzlich Übergangsmetalle und Blei (römische Zahlen) und mehratomige Ionen.
-- Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu 2·8·18·1 → Cu⁺ 2·8·18). Kennzeichen „n Außenelektronen“ nur bei Ionen mit Edelgaskonfiguration;
-  sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“. Erklärung: Elektronenübergang als **Modell der Ionenbildung** („Modell: Bei der Reaktion
-  geht ein Elektron … über“), die **Ionenbindung** ist die Anziehung der entgegengesetzt geladenen Ionen im **Ionengitter** (Erklärung und Erklärkarte). Beschreibend formuliert
-  (nie „Atome möchten 8 außen“, nie „Ca²⁺ braucht …“, sondern „gleicht aus“ bzw. „man braucht“). Endung **-id**: meist einatomig (Ausnahme Hydroxid OH⁻).
-- Ionentabelle (Hilfsmittel Oberstufe) nicht bei Aufgaben, deren Lösung eine Ionenladung aus der Tabelle ist (`NO_ION_TABLE`: „Welches Ion bildet …?“, „Welche Ladung hat das Sulfat-Ion?“; Test).
-- Ladungsrechnung immer mit Zahl schreiben: `2 · (1−) = 2−` (`chargeFull`).
-- Mehratomige Ionen (Oberstufe): NH₄⁺, OH⁻, NO₂⁻, NO₃⁻, HCO₃⁻, SO₃²⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻. Quiz Unterstufe Level 1 nur Ladungen und Elektronen (Verhältnis erst ab Level 2);
-  Erklärkarte: im Salz keine Paare oder Moleküle, sondern ein Ionengitter.
-- Nicht beständige Verbindungen (FeI₃, CuI₂, Fe₂S₃, Al₂(CO₃)₃, AgOH, Na₃N, K₃N, Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN`
-  (`isKnownCompound`): das Quiz fragt sie nicht ab, der Baukasten zeigt einen Hinweis.
-- Baukasten startet gelöst (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`) – zuerst ein fertiges Beispiel ansehen, dann selbst bauen.
-- Erklärung Level I (18 Schritte): **Vom Atom zum Ion** · **Nichtmetall-Ionen** · **Formeln** · **Namen** · **Ionengitter** (Bild `components/IonLattice.tsx`: Ausschnitt
-  aus einer Schicht des NaCl-Gitters, Na⁺ und Cl⁻ im Wechsel, Größen im Verhältnis der Ionenradien, Linien zu den Nachbarn = Anziehung, gestrichelt am Rand; Formel = Verhältnis
-  an NaCl, Al₂O₃ mit der Ionenwand; „Was hält die Ionen zusammen?“ mit hervorgehobenem Ion und den Fehlvorstellungen „wandernde Elektronen“ und „geteilte Elektronen“ –
-  „Elektronenpaar“ ist hier noch nicht eingeführt). Level II (13 Schritte): **Ionen** (mehratomige Ionen,
-  Hydrogencarbonat eingeführt) · **Klammern** · **Übergangsmetalle und Namen**. Quiz-Tipps ohne „kgV“ (nicht eingeführt): „Füge Bausteine hinzu, bis die goldene und die grüne Reihe gleich lang sind – mit möglichst wenigen Bausteinen.“
+- **Bereiche: Lernen | Experimentieren** (erprobt die neue Ordnung, nur dieses Modul; kein Eintrag „Erklärung“, kein Quiz). Tab-Kennungen unverändert (`quiz` = Lernen, `build`).
+- **Lernen** (`src/lernen/`): Kapitel je Stufe als Karten (`LernenView.tsx`: Nummer, Titel, ein Satz, Fortschrittsbalken, „Folie n“ bzw. „✓ fertig“). Level I = Kapitel 1–3,
+  Level II = Kapitel 4–5 („baut auf Kapitel 1–3 auf“). Ein Kapitel = **25 Folien** in 4 Abschnitten (`part`, je höchstens 8) als `GuideDef`, gezeigt mit `Guide`
+  (Vollbild, Kennzeichen „Kapitel n“, öffnet an der zuletzt gezeigten Folie, am Ende „Kapitel n+1“). Erklärung und Aufgaben in einem Fluss: jeder Abschnitt
+  vorgemacht → halb gelöst → selbst (alle Regeln der Erklärung, `checkGuide`).
+  Hilfsmittel jeder Folie (Leiste mit „Weiter“): **PSE** (Elemente der Folie markiert), **Tipp** (`tip` der Folie, kostet nichts, verrät nie die Lösung),
+  **Erklärung** (Merksätze des Abschnitts, `explain` am Kapitel). Fortschritt in localStorage `ionenbindung-lernen` (`progress.ts`: Folie, weiteste Folie, fertig; `progressKey`).
+- **Modell-Folien** (`model.tsx`, mindestens 13 von 25, Test `kapitel.test.ts`): Schüler verändern das Modell (Bohrmodell, Ionenwand, Formel- und Namens-Baukasten, Gitter,
+  Kästchenschema …), die Änderung ist **sofort** zu sehen; „Prüfen“ meldet das gebaute Ergebnis als Text (`c.pick`), die Folie vergleicht mit `answer` und gibt zu typischen
+  Fehl-Ergebnissen eine eigene Rückmeldung (`why`). Nach vier Fehlversuchen steht die Lösung im Modell (`useModel`, Hinweis „Die Lösung steht jetzt im Modell …“), der Schüler
+  prüft selbst; gelöste und vorgemachte Modelle sind gesperrt. `ModelFrame` = Modell, Bedienung, „Prüfen“.
+- Vorwissen nur aus Gemische, Atombau und den früheren Kapiteln (Begriffe in `known`, neue fett mit Beispiel). Nichts aus späteren Modulen: wie die Atome in einem
+  mehratomigen Ion zusammenhalten, wird ehrlich zur Elektronenpaarbindung vertagt; Lösen in Wasser nur als Modell.
+- Kapitel 1 **Vom Atom zum Ion** (Level I, `k1.tsx`, Modelle `k1/models.tsx`): **Außenelektronen und Edelgase** · **Metall-Atome werden Kationen** · **Nichtmetall-Atome werden
+  Anionen** · **Elektronenübergang**. Eigenes Bohrmodell der Unterstufe (Schalen 2·8·8 mit festen Radien und 8 Plätzen, freie Plätze gestrichelt; Elektronen antippen = abgeben
+  bzw. aufnehmen; Kation zeigt die leere Schale gepunktet und ist kleiner, Anion zeigt die Außenschale weiter außen und die des Atoms gestrichelt – als Modell gekennzeichnet;
+  aufgenommene Elektronen mit Ring). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel, Elektronenübergang mit einstellbarer Zahl der Atome und
+  immer sichtbarer Gesamtladung; Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
+- Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionenwand mit Zählern) · **Die Formel** (Verhältnisformel, Index, kleinstes
+  Verhältnis; Formel-Baukasten mit Index-Zählern, Reihenfolge-Tausch, Ionenwand darunter) · **Der Name** (Metall + Wortstamm + -id; Oxid, Sulfid, Nitrid; Namens-Baukasten aus
+  Wortteilen mit -it und di/tri als Fallen) · **Formel und Name** (Ladung aus der Hauptgruppe einstellen, dann ausgleichen; beide Richtungen). Nur ionische Beispiele
+  (AlF₃ statt AlCl₃); die Ionenwahl zeigt eine Formel nur für Ionen, die es gibt. Test `k2/models.test.ts`.
+- Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): K3_PLATZHALTER
+- Kapitel 4 **Ionen aus mehreren Atomen** (Level II, `k4.tsx`, `k4/Models.tsx`): **Atomgruppen mit Ladung** (mehratomiges Ion als Atomkugeln in eckigen Klammern mit der
+  Ladung oben rechts, Zähler für Atome und Ladung, Formel sofort; kein Gemisch einzelner Ionen – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
+  Name und Ladung sofort; H⁺ dazu → Hydrogen-, Ladung eins weniger negativ; Hydroxid, Ammonium) · **Formeln mit Klammern** („Formel schreiben“: Klammer an/aus und Index,
+  Atome laut Formel und laut Ionenwand im Vergleich – CaOH₂ = 1 O, NH₄₂ = 42 H) · **Name ↔ Formel** (Ionenwahl, Namens-Baukasten). Nur beständige Verbindungen (Test `k4/k4.test.ts`).
+- Kapitel 5 **Nebengruppenmetalle** (Level II, `k5.tsx`, `k5/models.tsx`): **Mehrere mögliche Ladungen** (Kästchenschema: Antippen gibt ein Elektron aus 4s bzw. 3d ab,
+  Symbol, Ladung und Kurzschreibweise sofort; Daten aus `configuration`; „3d zuerst abgegeben“ mit eigener Rückmeldung) · **Römische Zahl im Namen** (Ionenwand mit Ladungswahl,
+  Formel, Name und Rechnung sofort) · **Ladung aus der Formel** (Anionen fest, Ladung des Metall-Ions wählen) · **Alles zusammen** (mit mehratomigen Ionen). Nur Ionen aus `ions.ts`
+  (Blei nur Pb²⁺), nur beständige Verbindungen; Fe³⁺ = [Ar] 3d⁵ beschreibend („halb besetzt, besonders beständig“). Test `k5/k5.test.ts`.
+- **Experimentieren** (Werkbank, unverändert): Ionen-Bausteine Kationen gold, Anionen grün, Breite = Ladung; neutral, wenn beide Reihen gleich lang sind. Startet gelöst
+  (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu 2·8·18·1 → Cu⁺ 2·8·18); Kennzeichen „n Außenelektronen“
+  nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“.
+- Ionen, Formeln (`formula`, `ratio`) und Namen (`compoundName`) in `packages/chem/src/ions.ts`. Unterstufe nur Hauptgruppen-Ionen, Oberstufe zusätzlich Übergangsmetalle und Blei
+  (römische Zahlen) und mehratomige Ionen (NH₄⁺, OH⁻, NO₂⁻, NO₃⁻, HCO₃⁻, SO₃²⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻). Nicht beständige Verbindungen (FeI₃, CuI₂, Fe₂S₃, Al₂(CO₃)₃, AgOH, Na₃N, K₃N,
+  Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN` (`isKnownCompound`): Kapitel fragen sie nicht ab, der Baukasten zeigt einen Hinweis.
+- Fachsprache: Elektronenübergang als **Modell der Ionenbildung**, die **Ionenbindung** ist die Anziehung der entgegengesetzt geladenen Ionen im **Ionengitter**; beschreibend
+  (nie „Atome möchten 8 außen“, nie „Ca²⁺ braucht …“, sondern „gleicht aus“ bzw. „man braucht“). Endung **-id**: meist einatomig (Ausnahme Hydroxid OH⁻). Ladungsrechnung immer
+  mit Zahl: `2 · (1−) = 2−` (`chargeFull`). Ohne „kgV“ (nicht eingeführt).
 
 ## Elektronenpaarbindung (`modules/elektronenpaarbindung`)
 - Baufeld 6 × 5: Atome ziehen oder antippen und Felder antippen (Auswahl bleibt aktiv bis „Fertig“). Aus dem Feld ziehen = entfernen.
