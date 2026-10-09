@@ -322,7 +322,7 @@ async function kapitelCheck(page, app, vp) {
     const store = await page.locator(".lk-list").getAttribute("data-store").catch(() => null);
     const ids = await page.locator(".lk-card").evaluateAll(es => es.map(e => e.getAttribute("data-kapitel")));
     for (const id of ids) {
-      let k = 0, tools = false;
+      let k = 0, tools = false, total = 0;
       for (let guard = 0; guard < 40; guard++) {
         // Kapitel bei Folie k öffnen
         if (!(await page.locator("dialog.ui-guide[open]").count())) {
@@ -336,6 +336,7 @@ async function kapitelCheck(page, app, vp) {
         }
         const count = (await page.locator("dialog.ui-guide[open] .ui-guide-count").textContent().catch(() => "")) ?? "";
         if (!/\d+ \/ \d+/.test(count)) break; // fertig
+        total = Number(count.split("/")[1]);
         await check(page, app, vp, `kapitel ${id} ${count.trim()}`);
         // Hilfsmittel einmal je Kapitel (an der ersten Folie mit Tipp)
         if (!tools && await page.locator("dialog.ui-guide[open] .ui-guide-tool:not(:disabled)").count() === 3) {
@@ -355,6 +356,8 @@ async function kapitelCheck(page, app, vp) {
         await page.waitForTimeout(120);
       }
       await check(page, app, vp, `kapitel ${id} Ende`);
+      if (!total || k < total) note(app, vp, `kapitel ${id}`, `nur ${k} von ${total || "?"} Folien geprüft`);
+      console.error(`${app} ${vp} Level ${stufe}: Kapitel ${id} – ${k} Folien`);
       await closeDialogs(page);
     }
   }
