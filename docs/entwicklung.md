@@ -978,7 +978,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   und Tipp nennen den Blickpunkt, nie die Regel oder die Antwort (Tests: Schlüsselwörter je Typ im Merksatz, Wörter der Antwort im Tipp). Kapitelfolge: jede Fertigkeit
   höchstens 2×, Abstand ≥ 3; die Regelzeile einer Aufgabe enthält nicht die Antwort der nächsten (Tests). Bild-Antworten: Strukturformeln im eigenen Seitenverhältnis,
   Kennbuchstabe klein in der Ecke. Aufgabenbilder tragen, solange die Aufgabe offen ist, eine Mindesthöhe (`data-min-h` über `PicBox`: 64 px, Kügelchen-Bilder 44 px) –
-  drückte ein Tipp bzw. der erste Schritt das Bild darunter, steht er im Blatt. Nach der Antwort entfällt der Merksatz (Platz fürs Bild); Formeln unter Bild-Antworten
+  drückte ein Tipp bzw. der erste Schritt das Bild darunter, steht er im Blatt. Nach der Antwort entfällt der Merksatz (Platz fürs Bild), und ein Bild mit Atomzeichen, das niedriger als 110 px würde (Schrift unter etwa 10 px), entfällt ganz – nie ein unlesbarer Rest; Formeln unter Bild-Antworten
   ohne Umbruch an –, = und ( (Wortverbinder). „Mehr Starter“ zeigt zwei Gefäße vorher (wenig/viel Starter). Lektionen: Vergleichsbilder (`Two vs`) ohne Pfeil,
   mit Trennlinie und Überschrift über jedem Bild; Pfeil nur bei vorher → nachher. Antippen in der Lektion mit unsichtbaren Trefferkreisen je Atom.
   **Antippen im Bild** (`kind: "tap"`, `quiz/tap.ts`, `TapAnswer` in `quiz/QuizView.tsx`): Szene = Standbild der Atom-Ansicht (Ansatz, Aktionen, Bild des Ablaufs,
@@ -1083,6 +1083,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: kein unlesbarer Bildrest nach der Antwort** – ein Aufgabenbild mit Atomzeichen, das nach der Antwort unter 110 px schrumpfen würde (Atomschrift unter etwa 10 px,
+  z. B. „Welches Polymer entsteht aus diesem Monomer?“ bei 375×667: 5,7 px), entfällt ganz; Bilder ohne Atomzeichen bleiben bis 40 px.
 - **PSE der Unterstufe: Ordnungszahlen überall ≥ 9 px** – die Schlussprüfung fand, dass die Aussage „Ordnungszahlen im PSE ≥ 9 px“ (Eintrag Runde 3) nur für die Atombau-Ansicht
   galt; im PSE als Hilfsmittel (Atombau-Üben, Ionenbindung, Elektronenpaarbindung, Neutralisation) waren es 8 px. Jetzt zentral in `@lern/chem-ui` (`.pse-us .pc-z` mindestens 9 px).
 - **Letzte Feinarbeiten Runde 3** – Elektronenpaarbindung: jede falsche Molekülform mit eigener Rückmeldung (z. B. „trigonal-planar“ für H₂O: übersieht die zwei freien Paare);

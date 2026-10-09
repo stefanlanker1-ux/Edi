@@ -189,6 +189,8 @@
 .q-pm > * { width: 100%; height: 100%; min-height: 0; }
 /* bleibt nach der Antwort am niedrigen Handy kaum Platz (unter 40 px), entfällt das Bild ganz statt als unkenntlicher Streifen */
 @container (max-height: 40px) { .q-pm { display: none; } }
+/* nach der Antwort: wird ein Bild mit Atomzeichen so niedrig, dass die Schrift unter etwa 10 px fiele (unter 110 px), entfällt es ganz – nie ein unlesbarer Rest */
+@container (max-height: 110px) { .task-card.answered:not(.worked) .q-pm:not(.q-pm-beads):not(.q-pm-pot):not(.q-pm-starters) { display: none; } }
 .pm-vis-svg { display: block; width: 100%; height: 100%; }
 .pm-vis-pair { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
 .pm-vis-pair .mb-svg { width: 100%; height: 100%; }
