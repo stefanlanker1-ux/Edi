@@ -617,7 +617,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   und ✓ nur für Ionen, die es gibt; beide Richtungen). Nur ionische Beispiele (AlF₃ statt AlCl₃). Test `k2/models.test.ts`.
 - Kapitel 3 **Ionengitter und Eigenschaften** (Level I, `k3.tsx`, `k3/`): **Anziehen, abstoßen** (Ion wählen `ChargePair`, Ion in der Reihe verschieben `IonRow`,
   quer oder hochkant je nach Bühne – Texte ohne Richtungswörter) · **Das Ionengitter** (Ionenverbindungen heißen auch **Salze**; Schicht füllen `LatticeFill`, Nachbarn antippen –
-  4 in der Schicht, räumliches Gitter `Lattice3D` mit der Schicht in der Bildebene und je 1 Gegen-Ion davor und dahinter, Verhältnis aus dem MgO-Ausschnitt `FormulaModel`) ·
+  4 in der Schicht, räumliches Gitter `Lattice3D` (`k3/lattice3d.tsx`: eigene 3D-Projektion in SVG mit Perspektive,
+  Kugeln mit Licht/Schatten wie Bohr/Kalotte, hinten leicht im Dunst, von hinten nach vorn gezeichnet, die Schicht des Na⁺ als zarte Fläche; drehbar durch Ziehen mit Schwung,
+  Pfeiltasten, Pos1 und „Startansicht“, eine langsame Startumdrehung – nicht bei reduzierter Bewegung, rAF nur während der Drehung; Ansichten „Nachbarn“ – Na⁺ mit 6 Cl⁻ – und
+  „Gitterausschnitt“ – 3 × 3 × 3 im Wechsel, als Modell mit kleineren Kugeln gekennzeichnet; Beschriftung immer aufrecht; Test `k3/lattice3d.test.ts`), Verhältnis aus dem MgO-Ausschnitt `FormulaModel`) ·
   **Hart und spröde** (Temperatur-Schieber `ThermoLattice`: Kristall im Tiegel, kleine Teilchensimulation `k3/sim.ts` – fest schwingen die Ionen um ihre Plätze, Ausschlag
   wächst mit der Temperatur; ab der Schmelztemperatur (NaCl 801 °C) verlassen sie die Plätze und gleiten ständig ungeordnet aneinander vorbei – Platzwechsel gut sichtbar (`heatDrive`: in der Schmelze
   stärkere, länger gerichtete Wärmebewegung `stir`/`glide` und stärkerer Zusammenhalt; NaCl 1000 °C ≈ 1,1 Platzwechsel je Ion und Sekunde) –, je heißer, desto schneller (erst ab der
@@ -1156,6 +1159,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung Kapitel 3: NaCl-Gitter in 3D** (`k3/lattice3d.tsx`) – die schräge Zeichnung wirkte flach (Cl⁻ davor/dahinter verwirrend). Jetzt echte Perspektive mit
+  schattierten Kugeln und richtiger Tiefenordnung, mit dem Finger drehbar, Umschalter „Nachbarn“ (Na⁺ mit 6 Cl⁻) / „Gitterausschnitt“ (27 Ionen); Test.
 - **Ionenbindung Kapitel 3: Hart und spröde, Schmelze, Strom** – Wunsch nach Ansicht am Handy: (1) Salzkristall zerbricht jetzt als Ablauf Makro → Lupe → Teilchen → Makro
   (`k3/brittle.tsx` ersetzt `ShiftLayers`): Hammer, Lupe auf die Spaltebene, Schichten gleiten, gleiche Ladungen gegenüber stoßen sich ab, der Kristall bricht in glatte
   Stücke, die auseinanderfliegen; Test. (2) In der Schmelze wechseln die Ionen etwa doppelt so oft die Plätze (stärkere, länger gerichtete Wärmebewegung statt mehr Zeitraffer,
