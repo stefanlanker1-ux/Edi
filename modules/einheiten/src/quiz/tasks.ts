@@ -8,7 +8,7 @@
 // Unterstufe ohne seltene Vorsilben (µ, n, M, G …) und ohne zusammengesetzte Größen.
 
 import { solve, parseQ, parseAnswer, fmt, isTerminating, eq, mul, div, q, pow10, toNumber, unitSi, unitName, QUANTITIES, type Q, type Solution } from "@lern/units";
-import { buildRound, dis, mc, pick, rnd, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type TypeStats } from "@lern/quiz";
+import { buildRound, dis, mc, pick, rnd, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import { tr, num } from "@lern/i18n";
 
 export interface Conv { value: string; from: string; to: string }
@@ -83,6 +83,36 @@ export function approxText(v: Q, k: number): string {
   return k ? `${int}${sep}${digits.length <= 4 ? digits : digits.replace(/(\d{3})(?=\d)/g, "$1\u202f")}` : int;
 }
 
+/**
+ * Typische Fehler bei Eingabe-Aufgaben als Fallen (gezielte Rückmeldung und Stolperstein): Gegenrichtung (geteilt statt mal),
+ * Komma eine Stelle zu weit (Faktor 10 zu viel oder zu wenig), bei Fläche/Volumen mit der Längen-Umrechnungszahl gerechnet.
+ * Nur exakte Aufgaben (gerundete vergleichen mit Toleranz); nie gleich der Lösung.
+ */
+function inputTraps(s: Solution, from: string, to: string): Trap[] {
+  const F = s.rel.F, res = s.result;
+  if (eq(F, q(1))) return [];
+  const rel = `1 ${from} = ${qText(F)} ${to}`;
+  const list: [Q, string, string][] = [];
+  const p = /²$/.test(from) && /²$/.test(to) ? 2 : /³$/.test(from) || /³$/.test(to) ? 3 : 0;
+  if (p && s.shift !== null && s.shift % p === 0) {
+    list.push([mul(s.value, pow10(s.shift / p)), "laengenfaktor", tr(
+      `So rechnet man bei Längen. ${p === 2 ? "Fläche: jeder Schritt · 10 · 10 = · 100" : "Volumen: jeder Schritt · 10 · 10 · 10 = · 1000"} – ${rel}.`,
+      `That is how lengths work. ${p === 2 ? "Area: each step · 10 · 10 = · 100" : "Volume: each step · 10 · 10 · 10 = · 1000"} – ${rel}.`)]);
+  }
+  list.push([div(s.value, F), "gegenrichtung", tr(`Gegenrichtung: ${rel} – die Zahl wird ${s.bigger ? "größer, also mal" : "kleiner, also geteilt"}.`,
+    `Wrong direction: ${rel} – the number gets ${s.bigger ? "bigger, so multiply" : "smaller, so divide"}.`)]);
+  list.push([mul(res, q(10)), "komma-verschoben", tr(`Zehnmal zu groß – das Komma steht eine Stelle zu weit rechts. ${rel}.`, `Ten times too big – the decimal point is one place too far right. ${rel}.`)]);
+  list.push([div(res, q(10)), "komma-verschoben", tr(`Zehnmal zu klein – das Komma steht eine Stelle zu weit links. ${rel}.`, `Ten times too small – the decimal point is one place too far left. ${rel}.`)]);
+  const seen: Q[] = [res], out: Trap[] = [];
+  for (const [v, miss, why] of list) {
+    if (seen.some(x => eq(x, v))) continue;
+    seen.push(v);
+    const values = storedValue(v);
+    if (values.n !== undefined) out.push({ values, miss, why });
+  }
+  return out;
+}
+
 function makeInput(value: string, from: string, to: string, s: Solution, round?: number, table?: string[]): Task {
   if (round !== undefined && tidy(s.result, round)) round = undefined; // exaktes Ergebnis: nicht runden
   const res = round !== undefined ? approxText(s.result, round) : T(s.result);
@@ -92,7 +122,7 @@ function makeInput(value: string, from: string, to: string, s: Solution, round?:
   const comp = compoundUnit(from) || compoundUnit(to);
   const same = eq(s.rel.F, q(1));
   return {
-    kind: "input", value, from, to, ...(round !== undefined ? { round } : {}), ...(table ? { table } : {}),
+    kind: "input", value, from, to, ...(round !== undefined ? { round } : { traps: inputTraps(s, from, to) }), ...(table ? { table } : {}),
     prompt: tr(`Rechne um: **${value} ${from}** = ? **${to}**${round !== undefined ? ` (auf ${round} Dezimalstellen runden)` : ""}`,
       `Convert: **${value} ${from}** = ? **${to}**${round !== undefined ? ` (round to ${round} decimal places)` : ""}`),
     hint: comp
@@ -140,16 +170,16 @@ function factorTask(units: string[], steps = 3, dim?: 2 | 3): Task {
   // Weg auf der Pfeilkette über die Nachbareinheiten: 1 kg = 100 dag = 1000 g
   const path = units.slice(units.indexOf(a), units.indexOf(b) + 1);
   const chain = `1 ${a} = ${path.slice(1).map(u => `${T(div(unitSi(a), unitSi(u)))} ${u}`).join(" = ")}`;
-  const each = dim === 2 ? tr("jede Stufe · 10 · 10 = · 100", "each step · 10 · 10 = · 100") : tr("jede Stufe · 10 · 10 · 10 = · 1000", "each step · 10 · 10 · 10 = · 1000");
+  const each = dim === 2 ? tr("jeder Schritt · 10 · 10 = · 100", "each step · 10 · 10 = · 100") : tr("jeder Schritt · 10 · 10 · 10 = · 1000", "each step · 10 · 10 · 10 = · 1000");
   const wrong = [
     dis(T(pow10(-k)), tr(`Das ist die Gegenrichtung: 1 ${b} = ${T(pow10(-k))} ${a}. Von der großen zur kleinen Einheit wird die Zahl größer.`,
       `That is the other direction: 1 ${b} = ${T(pow10(-k))} ${a}. From the large to the small unit the number gets bigger.`)),
-    ...(dim ? [dis(T(pow10(k / dim)), tr(`So viel wäre es bei Längen. ${dim === 2 ? "Fläche = Länge · Länge" : "Volumen = Länge · Länge · Länge"}: jede Stufe ${dim === 2 ? "zweimal" : "dreimal"} · 10.`,
+    ...(dim ? [dis(T(pow10(k / dim)), tr(`So viel wäre es bei Längen. ${dim === 2 ? "Fläche = Länge · Länge" : "Volumen = Länge · Länge · Länge"}: jeder Schritt ${dim === 2 ? "zweimal" : "dreimal"} · 10.`,
       `That would be right for lengths. ${dim === 2 ? "Area = length · length" : "Volume = length · length · length"}: each step · 10 ${dim === 2 ? "twice" : "three times"}.`))] : []),
-    ...(dim === 3 ? [dis(T(pow10((k * 2) / 3)), tr("So viel wäre es bei Flächen (· 10 · 10). Volumen: jede Stufe dreimal · 10.", "That would be right for areas (· 10 · 10). Volume: each step · 10 three times."))] : []),
+    ...(dim === 3 ? [dis(T(pow10((k * 2) / 3)), tr("So viel wäre es bei Flächen (· 10 · 10). Volumen: jeder Schritt dreimal · 10.", "That would be right for areas (· 10 · 10). Volume: each step · 10 three times."))] : []),
     ...(dim
-      ? [dis(T(pow10(k + dim)), tr(`Eine Stufe zu viel: ${chain}.`, `One step too many: ${chain}.`)),
-        ...(k - dim > 0 ? [dis(T(pow10(k - dim)), tr(`Eine Stufe zu wenig: ${chain}.`, `One step too few: ${chain}.`))] : [])]
+      ? [dis(T(pow10(k + dim)), tr(`Ein Schritt zu viel: ${chain}.`, `One step too many: ${chain}.`)),
+        ...(k - dim > 0 ? [dis(T(pow10(k - dim)), tr(`Ein Schritt zu wenig: ${chain}.`, `One step too few: ${chain}.`))] : [])]
       : [dis(T(pow10(k + 1)), tr(`Eine Null zu viel. Auf der Pfeilkette: ${chain}.`, `One zero too many. On the arrow chain: ${chain}.`)),
         ...(k > 1 ? [dis(T(pow10(k - 1)), tr(`Eine Null zu wenig. Auf der Pfeilkette: ${chain}.`, `One zero too few. On the arrow chain: ${chain}.`))] : [])]),
   ];
@@ -157,11 +187,11 @@ function factorTask(units: string[], steps = 3, dim?: 2 | 3): Task {
     ...mc(T(F), wrong),
     conv: { value: "1", from: a, to: b },
     prompt: tr(`Setze die **Umrechnungszahl** ein: 1 ${a} = ? ${b}`, `Fill in the **conversion factor**: 1 ${a} = ? ${b}`),
-    hint: dim === 2 ? tr("Flächen: jede Stufe · 10 · 10 = · 100.", "Areas: each step · 10 · 10 = · 100.") : dim === 3 ? tr("Volumen: jede Stufe · 10 · 10 · 10 = · 1000.", "Volumes: each step · 10 · 10 · 10 = · 1000.") : tr("Geh auf der Pfeilkette Stufe für Stufe und nimm die Zahlen der Stufen mal.", "Go along the arrow chain step by step and multiply the numbers of the steps."),
+    hint: dim === 2 ? tr("Flächen: jeder Schritt · 10 · 10 = · 100.", "Areas: each step · 10 · 10 = · 100.") : dim === 3 ? tr("Volumen: jeder Schritt · 10 · 10 · 10 = · 1000.", "Volumes: each step · 10 · 10 · 10 = · 1000.") : tr("Geh auf der Pfeilkette Schritt für Schritt und nimm die Zahlen der Schritte mal.", "Go along the arrow chain step by step and multiply the numbers of the steps."),
     // Kette über die Nachbareinheiten (bei nur einer Stufe der Schritt selbst) – nie nur das Ergebnis wiederholt
     explain: dim
       ? `${each[0].toUpperCase() + each.slice(1)}: ${path.length > 2 ? `${chain} → ` : ""}**1 ${a} = ${T(F)} ${b}**.`
-      : `${path.length > 2 ? `${chain} → ` : `${a} → ${b} ${tr("ist eine Stufe", "is one step")} → `}**1 ${a} = ${T(F)} ${b}**.`,
+      : `${path.length > 2 ? `${chain} → ` : `${a} → ${b} ${tr("ist ein Schritt", "is one step")} → `}**1 ${a} = ${T(F)} ${b}**.`,
   };
 }
 
@@ -190,7 +220,7 @@ function ruleTask(units: string[]): Task {
     ]),
     conv: { value, from: a, to: b },
     prompt: tr(`Du rechnest **${value} ${a}** in **${b}** um. Wie rechnest du?`, `You convert **${value} ${a}** to **${b}**. What do you do?`),
-    hint: tr("Große → kleine Einheit: mal. Kleine → große Einheit: geteilt. Geh die Pfeilkette Stufe für Stufe.", "Large → small unit: multiply. Small → large unit: divide. Go along the arrow chain step by step."),
+    hint: tr("Große → kleine Einheit: mal. Kleine → große Einheit: geteilt. Geh die Pfeilkette Schritt für Schritt.", "Large → small unit: multiply. Small → large unit: divide. Go along the arrow chain step by step."),
     explain: `1 ${s.bigger ? a : b} = ${T(k)} ${s.bigger ? b : a} → ${tr("von", "from")} ${a} ${tr("nach", "to")} ${b} **${right}**.`,
   };
 }
@@ -408,7 +438,7 @@ function factorComp(): Task {
     ["l/min", "l/h", "60", [dis("1/60", tr("Gegenrichtung: 1 l/h = 1/60 l/min.", "Other direction: 1 l/h = 1/60 l/min.")), dis("3600", tr("1 h = 60 min (nicht Sekunden).", "1 h = 60 min (not seconds).")),
       dis("100", tr("Zeit rechnet nicht in Zehnern: 1 h = 60 min.", "Time does not work in tens: 1 h = 60 min."))]],
     ["m³/h", "l/h", "1000", [dis("100", tr("1 m³ = 1000 dm³ = 1000 l.", "1 m³ = 1000 dm³ = 1000 l.")), dis(num("0,001"), tr("Gegenrichtung: 1 l = 0,001 m³.", "Other direction: 1 l = 0.001 m³.")),
-      dis("10", tr("Volumen: jede Stufe · 10 · 10 · 10. 1 m³ = 1000 dm³ = 1000 l.", "Volume: each step · 10 · 10 · 10. 1 m³ = 1000 dm³ = 1000 l."))]],
+      dis("10", tr("Volumen: jeder Schritt · 10 · 10 · 10. 1 m³ = 1000 dm³ = 1000 l.", "Volume: each step · 10 · 10 · 10. 1 m³ = 1000 dm³ = 1000 l."))]],
   ] as [string, string, string, ReturnType<typeof dis>[]][]);
   return {
     ...mc(right, wrongs),

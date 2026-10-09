@@ -37,6 +37,11 @@ const MISS_DE: Record<string, string> = {
   "koeff-1zu1": "Immer 1 Lauge + 1 Säure",
   "koeff-vertauscht": "Koeffizienten von Lauge und Säure vertauscht",
   "nicht-gekuerzt": "Verhältnis nicht gekürzt",
+  "ladung-verzaehlt": "Ladung des Säurerests verzählt",
+  "h-verzaehlt": "Zahl der abgebbaren H⁺ verzählt",
+  "wasser-verzaehlt": "Zahl der H₂O verzählt",
+  "koeff-verzaehlt": "Koeffizient verzählt (OH⁻ und H⁺ nicht gleich viele)",
+  "anderer-rest": "Säurerest einer anderen Säure",
 };
 const MISS_EN: Record<string, string> = {
   "index-als-ladung": "Subscript read as charge (H₂⁺ instead of 2 H⁺)",
@@ -73,5 +78,10 @@ const MISS_EN: Record<string, string> = {
   "koeff-1zu1": "Always 1 alkali + 1 acid",
   "koeff-vertauscht": "Coefficients of alkali and acid swapped",
   "nicht-gekuerzt": "Ratio not simplified",
+  "ladung-verzaehlt": "Charge of the acid anion miscounted",
+  "h-verzaehlt": "Number of H⁺ given off miscounted",
+  "wasser-verzaehlt": "Number of H₂O miscounted",
+  "koeff-verzaehlt": "Coefficient miscounted (OH⁻ and H⁺ not equal)",
+  "anderer-rest": "Acid anion of a different acid",
 };
 export const MISS = tr(MISS_DE, MISS_EN);

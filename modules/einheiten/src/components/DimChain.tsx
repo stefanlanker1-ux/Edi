@@ -52,7 +52,7 @@ export function DimChain({ from, to }: { from: string; to: string }) {
   return (
     <figure className="viz ac dc" ref={box}>
       <svg viewBox={`0 0 ${W * n} ${H}`} width={W * n} height={H} role="img"
-        aria-label={tr(`${p === 2 ? "Flächen" : "Volumen"}: jede Stufe ${down ? "mal" : "geteilt durch"} ${parts}`, `${p === 2 ? "Area" : "Volume"}: each step ${down ? "times" : "divided by"} ${parts}`)}>
+        aria-label={tr(`${p === 2 ? "Flächen" : "Volumen"}: jeder Schritt ${down ? "mal" : "geteilt durch"} ${parts}`, `${p === 2 ? "Area" : "Volume"}: each step ${down ? "times" : "divided by"} ${parts}`)}>
         {lcols.map((u, i) => (
           <g key={`l${i}`} className={`dc-len${i >= lo && i <= hi ? " path" : ""}`}>
             <text x={x(i)} y={yL} dy=".35em">{u}</text>
@@ -85,7 +85,7 @@ export function DimChain({ from, to }: { from: string; to: string }) {
           );
         })}
       </svg>
-      <figcaption>{p === 2 ? tr("Fläche = Länge · Länge: jede Stufe zweimal · 10", "Area = length · length: each step · 10 twice") : tr("Volumen = Länge · Länge · Länge: jede Stufe dreimal · 10", "Volume = length · length · length: each step · 10 three times")}</figcaption>
+      <figcaption>{p === 2 ? tr("Fläche = Länge · Länge: jeder Schritt zweimal · 10", "Area = length · length: each step · 10 twice") : tr("Volumen = Länge · Länge · Länge: jeder Schritt dreimal · 10", "Volume = length · length · length: each step · 10 three times")}</figcaption>
     </figure>
   );
 }

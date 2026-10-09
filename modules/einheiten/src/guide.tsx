@@ -10,13 +10,13 @@ import { PowerScale } from "./components/PowerScale.tsx";
 import { DimChain } from "./components/DimChain.tsx";
 import { AreaGrid, Clock, Cube } from "./components/Visuals.tsx";
 import { tableFor } from "./quiz/tasks.ts";
-import { tr } from "@lern/i18n";
+import { tr, num } from "@lern/i18n";
 
 const Box = ({ children }: { children: ReactNode }) => <div className="eh-g">{children}</div>;
 /** Pfeilkette nur mit den Schritten (ohne Ergebniszeile) – die Rechnung macht der Schüler */
 const Chain = ({ from, to }: { from: string; to: string }) => <Box><ArrowChain from={from} to={to} value={null} showValues={false} caption={false} /></Box>;
 const Table = ({ from, to, v }: { from: string; to: string; v: string }) =>
-  <Box><PlaceValueTable value={parseQ(v)!} from={from} to={to} units={tableFor(from, to)!} showResult={false} label={`${v} ${from} → ${to}`} /></Box>;
+  <Box><PlaceValueTable value={parseQ(v)!} from={from} to={to} units={tableFor(from, to)!} showResult={false} label={`${num(v)} ${from} → ${to}`} /></Box>;
 const Scale = ({ from, to, v }: { from: string; to: string; v?: string }) => <Box><PowerScale from={from} to={to} value={v ? parseQ(v) : null} showResult={false} showFactor={false} /></Box>;
 
 const US: GuideStep[] = [
@@ -41,12 +41,13 @@ const US: GuideStep[] = [
   {
     mode: "free",
     say: tr("In der **Stellenwerttafel** steht die Einerziffer in der Spalte der Einheit. Umrechnen heißt: das Komma in die neue Spalte setzen.", "In the **place value chart** the ones digit sits in the column of the unit. Converting means moving the decimal point to the new column."),
-    ask: tr("7,5 cm = ? mm", "7.5 cm = ? mm"), answer: 75, num: { unit: "mm" },
-    visual: () => <Table from="cm" to="mm" v="7.5" />,
-    why: { "750": tr("Nur ein Schritt (· 10): 7,5 · 10.", "Only one step (· 10): 7.5 · 10."), "0.75": tr("mm ist kleiner – die Zahl wird größer.", "mm is smaller – the number gets bigger.") },
-    tip: tr("cm → mm ist ein Schritt: Komma eine Stelle nach rechts.", "cm → mm is one step: decimal point one place to the right."),
-    ok: tr("Ein Schritt nach rechts: Komma eine Stelle weiter – 7,5 cm = 75 mm.", "One step to the right: decimal point one place on – 7.5 cm = 75 mm."),
-    lines: [tr("7,5 · 10 = 75 mm – in der Tafel rückt die Zahl eine Spalte weiter.", "7.5 · 10 = 75 mm – in the chart the number moves one column on.")],
+    // ein anderer Fall als im Schritt davor (dort 7,5 cm → mm)
+    ask: tr("4,2 dm = ? cm", "4.2 dm = ? cm"), answer: 42, num: { unit: "cm" },
+    visual: () => <Table from="dm" to="cm" v="4.2" />,
+    why: { "420": tr("Nur ein Schritt (· 10): 4,2 · 10.", "Only one step (· 10): 4.2 · 10."), "0.42": tr("cm ist kleiner – die Zahl wird größer.", "cm is smaller – the number gets bigger.") },
+    tip: tr("dm → cm ist ein Schritt: Komma eine Stelle nach rechts.", "dm → cm is one step: decimal point one place to the right."),
+    ok: tr("Ein Schritt nach rechts: Komma eine Stelle weiter – 4,2 dm = 42 cm.", "One step to the right: decimal point one place on – 4.2 dm = 42 cm."),
+    lines: [tr("4,2 · 10 = 42 cm – in der Tafel rückt die Zahl eine Spalte weiter.", "4.2 · 10 = 42 cm – in the chart the number moves one column on.")],
   },
   {
     mode: "worked",
@@ -286,11 +287,12 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    say: tr("Druck: 1 bar = 100 000 Pa = 100 000 N/m² = **10 N/cm²**.", "Pressure: 1 bar = 100 000 Pa = 100 000 N/m² = **10 N/cm²**."),
+    // der Satz nennt nur die Definitionen – die Umrechnungszahl (1 bar = 10 N/cm²) ist die Aufgabe
+    say: tr("Druck: 1 bar = 100 000 Pa, 1 Pa = 1 N/m², 1 m² = 10 000 cm².", "Pressure: 1 bar = 100 000 Pa, 1 Pa = 1 N/m², 1 m² = 10 000 cm²."),
     ask: tr("2,5 bar = ? N/cm²", "2.5 bar = ? N/cm²"), answer: 25, num: { unit: "N/cm²" },
-    why: { "250000": tr("In N/m² wären es 250 000. 1 m² = 10 000 cm².", "In N/m² it would be 250 000. 1 m² = 10 000 cm²."), "2.5": tr("1 bar = 10 N/cm²: 2,5 · 10.", "1 bar = 10 N/cm²: 2.5 · 10.") },
-    tip: tr("1 bar = 10 N/cm². Mit dem Wert malnehmen.", "1 bar = 10 N/cm². Multiply by the value."),
-    ok: tr("2,5 · 10 = 25 N/cm².", "2.5 · 10 = 25 N/cm²."),
+    why: { "250000": tr("In N/m² wären es 250 000. 1 m² = 10 000 cm².", "In N/m² it would be 250 000. 1 m² = 10 000 cm²."), "2.5": tr("1 bar ist mehr als 1 N/cm²: 100 000 N/m² : 10 000 = 10 N/cm².", "1 bar is more than 1 N/cm²: 100 000 N/m² ÷ 10 000 = 10 N/cm².") },
+    tip: tr("1 bar = 100 000 N/m². Auf 1 cm² kommt der 10 000. Teil.", "1 bar = 100 000 N/m². 1 cm² gets one 10 000th of that."),
+    ok: tr("1 bar = 100 000 N/m² : 10 000 = 10 N/cm², also 2,5 · 10 = 25 N/cm².", "1 bar = 100 000 N/m² ÷ 10 000 = 10 N/cm², so 2.5 · 10 = 25 N/cm²."),
   },
 ];
 

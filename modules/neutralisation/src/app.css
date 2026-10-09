@@ -18,7 +18,7 @@
   display: grid; place-items: center; height: var(--h, 46px); min-width: 0; padding: 0 2px; overflow: hidden; white-space: nowrap;
   border-radius: var(--radius-sm); border: 1.5px solid; font-weight: 800; line-height: 1;
   /* Schrift: höchstens 38 % der Höhe, sonst so klein, dass die Beschriftung in die Breite passt */
-  font-size: min(calc(var(--h, 46px) * .38), calc((var(--w) * var(--u, 56px) + (var(--w) - 1) * var(--g, 5px)) / var(--len) * 1.5));
+  font-size: min(calc(var(--h, 46px) * .38), calc((var(--w) * var(--u, 56px) + (var(--w) - 1) * var(--g, 5px)) / var(--len) * 1.65));
 }
 .nt-cat { background: var(--cat-tile-a); border-color: var(--cat-tile-border); color: var(--cat-tile-text); }
 .nt-an { background: var(--an-tile-a); border-color: var(--an-tile-border); color: var(--an-tile-text); }
@@ -27,14 +27,14 @@
 .nt-h { border-style: dashed; }
 .nt-water { border-width: 3px; border-style: double; }
 .ion-label { white-space: nowrap; }
-.ion-label sup { font-size: .62em; margin-left: .05em; }
+.ion-label sup { font-size: .7em; margin-left: .05em; }
 
 /* ── Neutralisationswand ────────────────────────────────────────────────── */
 .nw { display: grid; gap: 10px; justify-items: center; container-type: inline-size; width: 100%; }
 .nw-grid {
   --g: 5px;
   --u: min(72px, calc((100cqw - 10px - (var(--cols) - 1) * var(--g)) / var(--cols)));
-  --h: clamp(30px, calc(var(--u) * .78), 50px);
+  --h: clamp(37px, calc(var(--u) * .85), 50px); /* ≥ 37 px: Beschriftung ≥ 14 px (38 % der Höhe) */
   display: grid; grid-template-columns: repeat(var(--cols), var(--u)); grid-template-rows: auto auto 14px auto auto;
   column-gap: var(--g); row-gap: 4px; justify-content: center; padding: 3px;
 }
@@ -65,7 +65,8 @@ button.nw-unit:hover { transform: translateY(-2px); }
 .nw-wb .ui-wb-view { overflow: hidden; }
 .nw-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: end; }
 .nw-controls .ui-stepper.compact { grid-template-columns: minmax(0, 1fr); justify-items: center; }
-.nw-controls .ui-stepper-ctl { grid-template-columns: 44px minmax(32px, 52px) 44px; }
+/* zwei Zähler nebeneinander: Tippziele 44 px, die Zahl dazwischen darf schmal werden – nie überdecken sich „mehr“ und „weniger“ */
+.nw-controls .ui-stepper.compact .ui-stepper-ctl { grid-template-columns: 44px minmax(24px, 1fr) 44px; gap: 2px; width: 100%; max-width: 160px; }
 .nw-go {
   display: grid; justify-items: center; align-content: center; gap: 2px; min-width: 64px; min-height: 58px; padding: 6px 8px;
   border-radius: var(--radius-md); border: 1.5px solid var(--accent); background: var(--accent); color: var(--on-accent); font-weight: 750; font-size: .875rem;
@@ -102,7 +103,7 @@ button.nw-unit:hover { transform: translateY(-2px); }
 .at-acid b { min-width: 3.6em; }
 button.at-acid, button.at-rest { cursor: pointer; }
 .at-acid b { font-size: 1.02rem; font-weight: 800; }
-.at-acid span { font-size: .78rem; color: var(--muted); font-weight: 600; }
+.at-acid span { font-size: .78rem; color: var(--muted); font-weight: 600; min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
 .at-row.on .at-acid { border-color: var(--accent); }
 /* Säurereste als kleine Kärtchen (Formel über Name), mehrere nebeneinander, wenn Platz ist */
 .at-rests { display: flex; flex-wrap: wrap; align-content: center; gap: 2px 4px; }
@@ -125,14 +126,21 @@ button.at-rest { min-height: 44px; }
 .us-tags { justify-content: center; }
 
 /* ── Quiz ───────────────────────────────────────────────────────────────── */
-.answer-nw { display: grid; gap: 12px; }
+/* Bauen: die Wand nimmt den freien Platz (FitOr – lesbar verkleinert oder nur die Bilanz), Zähler und „Prüfen“ stehen immer ganz darunter */
+.q-body > .answer-nw { flex: 1 1 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.answer-nw > * { flex: none; }
+.answer-nw > .answer-nw-wall { flex: 1 1 0; min-height: 0; }
+.fit-or { position: relative; min-height: 0; min-width: 0; overflow: hidden; }
+.fit-or-inner { width: 100%; transform-origin: 50% 0; }
+.fit-or.small > .fit-or-inner { visibility: hidden; }
+.fit-or-fallback { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.fit-or-fallback > .fit-or { width: 100%; height: 100%; }
+/* kompakte Wand: nur OH⁻- und H⁺-Reihe (die Reihen, die gleich lang sein müssen) */
+.nw.compact .nt-cat, .nw.compact .nt-an { display: none; }
+.nw.compact .nw-grid { row-gap: 0; grid-template-rows: auto 0 12px auto 0; }
 /* im Quiz steht die Gleichung in der Rückmeldung – unter der Wand nur die Bilanz OH⁻ / H⁺ */
 .answer-nw .nw-eq, .answer-nw .nw-name { display: none; }
-/* nach der Antwort hat die Rückmeldung Vorrang: Wand flacher, Verbindungsreihe schmal */
 .task-card.answered .answer-nw { gap: 4px; }
-.task-card.answered .answer-nw .nw-grid { --h: clamp(22px, calc(var(--u) * .5), 30px); row-gap: 2px; grid-template-rows: auto auto 6px auto auto; }
-.task-card.answered .answer-nw .nw-balance { font-size: .875rem; }
-@media (max-height: 720px) { .task-card.answered .answer-nw .nw-grid { display: none; } }
 .hero-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; width: 100%; }
 .hero-tiles i { height: 18px; border-radius: var(--radius-sm); border: 1.5px solid; }
 .hero-tiles .c { grid-column: span 2; background: var(--cat-tile-a); border-color: var(--cat-tile-border); }
@@ -141,7 +149,6 @@ button.at-rest { min-height: 44px; }
 .ex-example .nw { max-width: 440px; }
 .q-eq { font-size: clamp(1.1rem, 5.5cqw, 1.8rem); font-weight: 800; text-align: center; container-type: inline-size; width: 100%; }
 @media (max-height: 720px) {
-  .q-body .nw-grid { --h: clamp(24px, calc(var(--u) * .6), 34px); row-gap: 3px; grid-template-rows: auto auto 8px auto auto; }
   .q-body .nw { gap: 4px; }
   .q-body .nw-eq { font-size: 1rem; }
   .q-body .answer-nw { gap: 8px; }

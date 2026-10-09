@@ -2,6 +2,8 @@ import { test, assert } from "vitest";
 import { setLang } from "@lern/i18n";
 import { fmt, parseQ, eq, mul, div, toNumber, pow10, q } from "@lern/units";
 import { makeRound, LEVELS, TYPE_NAMES, solutionOf, checkInput, readInput, storedText, storedValue, approxText, type Task } from "./tasks.ts";
+import { diagnose } from "@lern/quiz";
+import { MISS } from "./misconceptions.ts";
 import { rare } from "../help.ts";
 import { dimOf } from "../components/DimChain.tsx";
 import { numText, shownExact } from "../format.tsx";
@@ -195,7 +197,7 @@ test("Umrechnungszahl: Rückmeldungen stimmen für ungleich große Stufen (kg �
     t.options.forEach((o, i) => {
       const why = t.why?.[i] ?? "";
       if (i === t.answer) return;
-      if (t.type === "z_factor") assert.ok(!/Stufe zu/.test(why), `${t.prompt} ${o}: ${why}`);
+      if (t.type === "z_factor") assert.ok(!/(Stufe|Schritt) zu/.test(why), `${t.prompt} ${o}: ${why}`);
       if (/zu viel/.test(why)) assert.ok(eq(parseQ(o)!, mul(right, q(dim))), `${t.prompt} ${o}: ${why}`);
       if (/zu wenig/.test(why)) assert.ok(eq(parseQ(o)!, div(right, q(dim))), `${t.prompt} ${o}: ${why}`);
     });
@@ -208,7 +210,7 @@ test("Umrechnungszahl: Rückmeldungen stimmen für ungleich große Stufen (kg �
   for (const t of many(20)) if (t.kind === "mc" && t.type === "k_rule")
     for (const w of Object.values(t.why ?? {})) assert.ok(!/zähle die Stufen/i.test(w), w);
   const hl = makeRoundOf("z_factor").find(t => t.kind === "mc" && /1 hl = \? l/.test(t.prompt));
-  if (hl && hl.kind === "mc") assert.ok(!hl.options.some((o, i) => o === "10" && /Stufe/.test(hl.why?.[i] ?? "")), hl.options.join());
+  if (hl && hl.kind === "mc") assert.ok(!hl.options.some((o, i) => o === "10" && /Stufe|Schritt zu/.test(hl.why?.[i] ?? "")), hl.options.join());
 }, 30_000); // viele Aufgaben – unter Last länger als die üblichen 5 s
 test("Jede falsche Antwort hat eine Rückmeldung (alle Typen, beide Stufen)", () => {
   let n = 0;
@@ -244,4 +246,41 @@ test("Pfeile: Liter und Milliliter auf der Hohlmaß-Kette, Volumen nur mit einem
   assert.strictEqual(dimOf("l", "cm³"), 3);
   assert.strictEqual(dimOf("m³", "dm³"), 3);
   assert.strictEqual(dimOf("m²", "cm²"), 2);
+});
+
+test("Eingabe-Aufgaben erkennen typische Fehler (Gegenrichtung, Faktor 10, Längenfaktor bei Fläche/Volumen) – nie die Lösung", () => {
+  const seen = new Set<string>();
+  for (const t of many(20)) {
+    if (t.kind !== "input") continue;
+    const s = solutionOf(t);
+    const right = storedValue(s.result);
+    for (const tr of t.traps ?? []) {
+      assert.ok(MISS[tr.miss], tr.miss);
+      assert.ok(tr.values && (tr.values.n !== right.n || tr.values.d !== right.d), `Falle = Lösung: ${t.prompt}`);
+      seen.add(tr.miss);
+    }
+    if (t.round !== undefined || eq(s.rel.F, q(1))) continue;
+    // Gegenrichtung (geteilt statt mal bzw. umgekehrt) wird erkannt, die richtige Antwort nie
+    const back = diagnose(t, { ok: false, values: storedValue(div(s.value, s.rel.F)) });
+    assert.ok(back?.miss === "gegenrichtung" || back?.miss === "laengenfaktor" || back?.miss === "komma-verschoben", `${t.prompt}: ${JSON.stringify(back)}`);
+    assert.strictEqual(diagnose(t, { ok: false, values: right }), null, t.prompt);
+  }
+  assert.deepEqual([...seen].sort(), ["gegenrichtung", "komma-verschoben", "laengenfaktor"]);
+  // Fläche: mit der Längen-Umrechnungszahl gerechnet (3 m² → 30 statt 300 dm²)
+  let area = 0;
+  for (const t of many(20)) {
+    if (t.kind !== "input" || t.round !== undefined || !/²/.test(t.from) || !/²/.test(t.to)) continue;
+    const s = solutionOf(t);
+    if (s.shift === null || s.shift % 2) continue;
+    area++;
+    assert.strictEqual(diagnose(t, { ok: false, values: storedValue(mul(s.value, pow10(s.shift / 2))) })?.miss, "laengenfaktor", t.prompt);
+  }
+  assert.ok(area > 20, `nur ${area}`);
+}, 30_000);
+
+test("Einheiten-Texte sagen „Schritt“ (wie die Erklärung), nie „Stufe“", () => {
+  for (const t of many(10)) {
+    const texts = [t.prompt, t.hint, t.explain, ...(t.kind === "mc" ? [...t.options, ...Object.values(t.why ?? {})] : (t.traps ?? []).map(x => x.why))];
+    for (const x of texts) assert.ok(!/\bStufe/.test(x), x);
+  }
 });

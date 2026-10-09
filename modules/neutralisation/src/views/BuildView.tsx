@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Fit, FitDown, Icon, Stepper, Tag, Workbench, buzz } from "@lern/ui";
 import { Formula, pseTool } from "@lern/chem-ui";
-import { HYDROXIDE_BY_ID, PROTIC_BY_ID, formulaElements, neutralCounts, neutralEquation, isKnownSalt } from "@lern/chem";
+import { HYDROXIDE_BY_ID, PROTIC_BY_ID, formulaElements, neutralCounts, neutralEquation, saltProblem } from "@lern/chem";
 import { useApp } from "../store.ts";
 import { NeutralWall } from "../components/NeutralWall.tsx";
 import { AcidTable, BasePicker, UnitSheet } from "../components/Pickers.tsx";
@@ -22,6 +22,7 @@ export function BuildView() {
   const { oh, h, balanced } = neutralCounts(base, step, nB, nA);
   const n = neutralEquation(base, acid, step);
   const simplest = balanced && nB === n.nBase && nA === n.nAcid;
+  const problem = saltProblem(base, n.rest);
   const set = (p: { nB?: number; nA?: number }) => { buzz(); setReact(false); setCounts(p); };
   const pick = (p: { base?: string; acid?: string; step?: number }) => { setReact(false); choose(p); setTool(null); };
 
@@ -34,7 +35,7 @@ export function BuildView() {
           {balanced && !simplest && <Tag tone="signal">{tr("kürzen auf", "simplify to")} {n.nBase} : {n.nAcid}</Tag>}
           {simplest && <Tag tone="ok">✓ neutral</Tag>}
           {balanced && step < acid.protons && <Tag>{tr(`noch ${acid.protons - step} H im Säurerest`, `${acid.protons - step} H left in the acid anion`)}</Tag>}
-          {balanced && !isKnownSalt(base, n.rest) && <Tag tone="bad">✗ {tr("Salz zersetzt sich in Wasser", "salt decomposes in water")}</Tag>}
+          {balanced && problem && <Tag tone="bad">✗ {tr("Salz", "Salt")}: {problem}</Tag>}
         </>}
         controls={
           <div className="nw-controls">

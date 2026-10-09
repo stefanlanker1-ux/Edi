@@ -17,8 +17,13 @@ describe("Übungen", () => {
     // auch als Gleichung verschieden (nicht dieselbe Reaktion unter zwei Kennungen)
     expect(new Set(all.map(id => { const r = REACTION_BY_ID[id]; return `${r.left.join("+")}→${r.right.join("+")}`; })).size).toBe(60);
   });
-  it("keine Gleichung aus dem Experimentieren", () => {
-    for (const s of ["us", "os"] as const) for (const id of STARTS[s]) expect(LVLS.flatMap(l => EXERCISES[s][l])).not.toContain(id);
+  it("keine Gleichung aus dem Experimentieren – auch nicht aus der anderen Stufe", () => {
+    const starts = [...STARTS.us, ...STARTS.os].map(id => REACTION_BY_ID[id]);
+    const key = (r: { left: string[]; right: string[] }) => `${r.left.join("+")}→${r.right.join("+")}`;
+    for (const id of all) expect(starts.map(key), id).not.toContain(key(REACTION_BY_ID[id]));
+  });
+  it("keine Gleichung ist schon ausgeglichen (mindestens eine Zahl ≠ 1 – sonst ✓ ohne Handlung)", () => {
+    for (const id of all) expect(REACTION_BY_ID[id].coeffs.some(c => c > 1), id).toBe(true);
   });
   it("jede Gleichung existiert, besteht nur aus Molekülen und ist eindeutig ausgleichbar", () => {
     for (const id of all) {

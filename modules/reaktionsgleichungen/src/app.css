@@ -59,6 +59,7 @@ button.eq-term:active { transform: scale(.96); }
 /* ── Üben: Schwierigkeit, Aufgabe ‹ n / 10 ›, Fortschritt, Tipp ─────────────── */
 .rg-ueben-head { display: grid; gap: 6px; justify-items: stretch; }
 .rg-ueben-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; }
+.rg-seg-row { display: flex; align-items: center; gap: 8px; }
 .rg-nav { display: flex; align-items: center; gap: 2px; }
 .rg-nav-btn {
   width: 44px; height: 44px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text);
@@ -84,6 +85,14 @@ button.eq-term:active { transform: scale(.96); }
 .ms-wrap { width: 100%; height: 100%; min-height: 0; min-width: 0; overflow: hidden; display: flex; flex-direction: column; }
 .ms { display: block; width: 100%; flex: 1 1 0; min-height: 0; }
 /* Modell-Hinweis (C, S als einzelnes Atom): klein unter dem Bild */
+.ms-off { justify-content: center; align-items: center; }
+.ms-open { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-weight: 700; font-size: .95rem; }
+.ms-off-note { margin: 0; font-size: .875rem; color: var(--muted); text-align: center; }
+/* „So geht's“ (ⓘ): Hilfe auf Abruf */
+.rg-howto { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; padding: 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+.rg-howto-body { display: grid; gap: 10px; line-height: 1.5; }
+.rg-howto-body ul, .rg-howto-body ol { margin: 0; padding-left: 22px; display: grid; gap: 8px; }
+.rg-howto-body h3 { margin: 6px 0 0; font-size: 1rem; }
 .ms-note { flex: none; margin: 4px 0 0; font-size: .875rem; line-height: 1.2; color: var(--muted); text-align: center; }
 .ms-box { fill: var(--surface); stroke: var(--text); stroke-width: .08; }
 .ms-box.ok { stroke: var(--ok); stroke-width: .16; }
@@ -96,6 +105,7 @@ button.eq-term:active { transform: scale(.96); }
 /* ── Stoff-Info: Namen als Knöpfe (Start: Wortgleichung unter dem Titel), Blatt mit Formel, Strukturformel, 3D ── */
 .rg-names { order: 3; flex-basis: 100%; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; font-size: .92rem; }
 .rg-names .rg-plus, .rg-names .rg-arrow { color: var(--muted); font-weight: 700; padding: 0 2px; }
+.rg-name-item { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
 .sub-name { min-height: 44px; padding: 0 10px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface);
   font-weight: 700; display: inline-flex; align-items: center; gap: 6px; line-height: 1.15; }
 .sub-name::after { content: "i"; display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor;

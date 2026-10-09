@@ -67,6 +67,20 @@ test("diagnostische Distraktoren: Schlüssel im Katalog, Rückmeldung zu jedem S
   assert.ok(withDiag / total > 0.85, `zu wenige Aufgaben mit Diagnose: ${withDiag}/${total}`);
 });
 
+test("jede falsche Antwort hat eine eigene Rückmeldung und einen Stolperstein (alle Typen, beide Level)", () => {
+  let n = 0;
+  for (const stufe of ["us", "os"] as const) for (let r = 0; r < 80; r++) for (const t of [0, 1, 2].flatMap(l => makeRound(stufe, l))) {
+    if (t.kind !== "mc") continue;
+    t.options.forEach((o, i) => {
+      if (i === t.answer) return;
+      n++;
+      assert.ok((t.why?.[i] ?? "").length > 10, `${stufe} ${t.type}: ${t.prompt} → ${o} ohne Rückmeldung`);
+      assert.ok(MISS[t.miss?.[i] ?? ""], `${stufe} ${t.type}: ${o} ohne Stolperstein`);
+    });
+  }
+  assert.ok(n > 3000, `nur ${n}`);
+}, 30_000);
+
 /** alle Texte einer Aufgabe, die Schüler sehen: Frage, Tipp, Erklärung, Antworten, Rückmeldungen */
 const allTexts = (t: Task) => [t.prompt, t.hint, t.explain, ...(t.kind === "mc" ? [...t.options, ...Object.values(t.why ?? {})] : (t.traps ?? []).map(x => x.why))];
 const roundsOf = (stufe: "us" | "os", n: number) => Array.from({ length: n }, () => [0, 1, 2].flatMap(l => makeRound(stufe, l))).flat();

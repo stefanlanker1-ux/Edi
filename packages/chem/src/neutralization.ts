@@ -60,7 +60,8 @@ export const PROTIC_ACIDS: ProticAcid[] = [
   { id: "hno3", name: tr("Salpetersäure", "Nitric acid"), formula: "HNO3", protons: 1, rests: [rest("NO3", -1, "nitrat", "Nitrat-Ion", "nitrate")] },
   { id: "ch3cooh", name: tr("Essigsäure", "Acetic acid"), formula: "CH3COOH", protons: 1, rests: [ACETATE] },
   // zweiprotonige Säuren
-  { id: "h2s", name: tr("Schwefelwasserstoff", "Hydrogen sulfide"), formula: "H2S", protons: 2,
+  // englisch nicht „hydrogen sulfide“ – so heißt dort auch das Ion HS⁻ (Säurename und Säurerest-Name wären gleich)
+  { id: "h2s", name: tr("Schwefelwasserstoff", "Hydrosulfuric acid"), alt: tr("Hydrogensulfid", "Hydrogen sulfide (gas)"), formula: "H2S", protons: 2,
     rests: [rest("HS", -1, "hydrogensulfid", "Hydrogensulfid-Ion", "hydrogen sulfide"), rest("S", -2, "sulfid", "Sulfid-Ion", "sulfide")] },
   { id: "h2so3", name: tr("Schweflige Säure", "Sulfurous acid"), formula: "H2SO3", protons: 2,
     rests: [rest("HSO3", -1, "hydrogensulfit", "Hydrogensulfit-Ion", "hydrogen sulfite"), rest("SO3", -2, "sulfit", "Sulfit-Ion", "sulfite")] },
@@ -97,12 +98,22 @@ export const restOf = (a: ProticAcid, step = a.protons): Ion => a.rests[Math.min
 export const proticWord = (n: number) => tr(["einprotonig", "zweiprotonig", "dreiprotonig"], ["monoprotic", "diprotic", "triprotic"])[n - 1];
 
 /**
- * Salze, die es in Wasser nicht gibt (sie zersetzen sich / reagieren mit Wasser): Aluminium mit den Säureresten schwacher Säuren
- * (Sulfid, Carbonat, Sulfit und ihre Hydrogen-Formen), Magnesiumsulfid (MgS + 2 H₂O → Mg(OH)₂ + H₂S).
- * Die App zeigt einen Hinweis, das Quiz fragt sie nicht ab.
+ * Salze, die als Produkt einer Neutralisation in Wasser nicht entstehen – mit Grund (die App zeigt ihn, das Quiz fragt sie nicht ab):
+ * - Aluminium mit den Säureresten schwacher Säuren (Sulfid, Carbonat, Sulfit und ihre Hydrogen-Formen) zersetzt sich.
+ * - Sulfide der Erdalkalimetalle reagieren mit Wasser (MgS + 2 H₂O → Mg(OH)₂ + H₂S; CaS, BaS → Hydrogensulfid + Hydroxid):
+ *   aus Ca(OH)₂ bzw. Ba(OH)₂ und H₂S entsteht in Wasser Ca(HS)₂ bzw. Ba(HS)₂, nicht CaS/BaS.
+ * - Hydrogensulfat mit Ba²⁺ oder Ca²⁺: HSO₄⁻ gibt in Wasser leicht sein H⁺ ab, BaSO₄ (unlöslich) bzw. CaSO₄ (schwer löslich) fällt aus.
  */
-const NOT_IN_WATER = new Set(["Al3+|S2-", "Al3+|HS-", "Al3+|CO32-", "Al3+|HCO3-", "Al3+|SO32-", "Al3+|HSO3-", "Mg2+|S2-"]);
-export const isKnownSalt = (b: Hydroxide, r: Ion) => !NOT_IN_WATER.has(`${b.cation.id}|${r.id}`);
+const DECOMPOSES = tr("zersetzt sich in Wasser", "decomposes in water");
+const NOT_IN_WATER: Record<string, string> = {
+  "Al3+|S2-": DECOMPOSES, "Al3+|HS-": DECOMPOSES, "Al3+|CO32-": DECOMPOSES, "Al3+|HCO3-": DECOMPOSES, "Al3+|SO32-": DECOMPOSES, "Al3+|HSO3-": DECOMPOSES,
+  "Mg2+|S2-": DECOMPOSES,
+  "Ca2+|S2-": tr("reagiert mit Wasser zu Ca(HS)₂", "reacts with water to Ca(HS)₂"), "Ba2+|S2-": tr("reagiert mit Wasser zu Ba(HS)₂", "reacts with water to Ba(HS)₂"),
+  "Ba2+|HSO4-": tr("in Wasser fällt BaSO₄ aus", "BaSO₄ precipitates in water"), "Ca2+|HSO4-": tr("in Wasser fällt CaSO₄ aus", "CaSO₄ precipitates in water"),
+};
+/** Warum es das Salz aus diesem Hydroxid und Säurerest in Wasser nicht gibt – null, wenn es entsteht */
+export const saltProblem = (b: Hydroxide, r: Ion): string | null => NOT_IN_WATER[`${b.cation.id}|${r.id}`] ?? null;
+export const isKnownSalt = (b: Hydroxide, r: Ion) => saltProblem(b, r) === null;
 
 export interface NeutralEq {
   base: Hydroxide; acid: ProticAcid;

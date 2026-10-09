@@ -22,12 +22,12 @@ const TEXT_DE: Record<string, { points: string[]; ex: [string, string, string] }
   ] },
   n3: { ex: ["2,5", "m²", "cm²"], points: [
     "Fläche = Länge · Länge: 1 m² = 10 dm · 10 dm = **100 dm²**",
-    "Jede Stufe **· 10 · 10 = · 100** – Komma **zwei** Stellen",
+    "Jeder Schritt **· 10 · 10 = · 100** – Komma **zwei** Stellen",
     "1 a = 10 m · 10 m = 100 m² · 1 ha = 100 m · 100 m = 10 000 m²",
   ] },
   n4: { ex: ["3", "dm³", "cm³"], points: [
     "Volumen = Länge · Länge · Länge: 1 dm³ = 10 cm · 10 cm · 10 cm = **1000 cm³**",
-    "Jede Stufe **· 10 · 10 · 10 = · 1000** – Komma **drei** Stellen",
+    "Jeder Schritt **· 10 · 10 · 10 = · 1000** – Komma **drei** Stellen",
     "1 l = 1 dm³ · 1 ml = 1 cm³",
   ] },
   t5: { ex: ["1,5", "h", "min"], points: [

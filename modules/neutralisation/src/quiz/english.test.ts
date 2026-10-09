@@ -8,7 +8,7 @@ test("Quiz auf Englisch ohne deutsche Reste", async () => {
   setLang("en", false);
   const tasks = await import("./tasks.ts");
   const miss = await import("./misconceptions.ts").catch(() => ({}));
-  const texts = new Set<string>(), long = new Set<string>(), low = new Set<string>(), caps = new Set<string>(), leak = new Set<string>();
+  const texts = new Set<string>(), long = new Set<string>(), low = new Set<string>(), caps = new Set<string>(), leak = new Set<string>(), nowhy = new Set<string>();
   // Sätze beginnen groß („Nitrite would be NO₂⁻.“), Namen mitten im Satz klein („is called chloride“, „(potassium phosphate)“),
   // der Tipp nennt kein Wort der richtigen Antwort
   const lowStart = (t: { prompt: string; hint: string; explain: string; why?: Record<number, string>; options?: string[]; answer?: number }) => {
@@ -19,6 +19,8 @@ test("Quiz auf Englisch ohne deutsche Reste", async () => {
     }
     if (t.options && t.answer !== undefined)
       for (const w of t.options[t.answer].match(/\p{L}{4,}/gu) ?? []) if (t.hint.toLowerCase().includes(w.toLowerCase())) leak.add(`${w} | ${t.hint}`);
+    // jede falsche Antwort mit Rückmeldung; Säurename (Falle) nie gleich einem Säurerest-Namen
+    if (t.options && t.answer !== undefined) t.options.forEach((o, i) => { if (i !== t.answer && !t.why?.[i]) nowhy.add(`${o} | ${t.prompt}`); });
   };
   const walk = (x: unknown): void => {
     if (typeof x === "string") texts.add(x);
@@ -42,4 +44,5 @@ test("Quiz auf Englisch ohne deutsche Reste", async () => {
   expect([...low]).toEqual([]);
   expect([...caps]).toEqual([]);
   expect([...leak]).toEqual([]);
+  expect([...nowhy]).toEqual([]);
 }, 120_000);

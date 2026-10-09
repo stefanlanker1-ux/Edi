@@ -249,16 +249,23 @@
 .ps-col.base { background: var(--surface-2); }
 .ps-col.from { background: var(--ps-from); box-shadow: inset 0 -4px 0 var(--pv-from); }
 .ps-col.to { background: var(--ps-to); box-shadow: inset 0 -4px 0 var(--pv-to); }
-.ps-name { font-size: .72rem; font-weight: 700; color: var(--muted); }
-.ps-pow { font-size: .95rem; font-weight: 800; white-space: nowrap; }
-.ps-pow sup { font-size: .68em; }
-.ps-sym { font-size: .9rem; font-weight: 800; color: var(--accent); }
+.ps-name { font-size: .875rem; font-weight: 700; color: var(--muted); }
+.ps-pow { font-size: 1rem; font-weight: 800; white-space: nowrap; }
+.ps-pow sup { font-size: .7em; }
+.ps-sym { font-size: 1rem; font-weight: 800; color: var(--accent); white-space: nowrap; }
 .ps-sym.rare { color: var(--faint); font-weight: 600; }
-.ps-grid.tight .ps-pow { font-size: min(.78rem, calc(100cqw / (var(--plen, 2) * 1.08))); letter-spacing: -.02em; }
-.ps-grid.tight .ps-col { container-type: inline-size; }
-/* Einheit passt immer in ihre Spalte (daWh, Mm³ …): Schrift nach Spaltenbreite und Zeichenzahl */
-.ps-grid.tight .ps-sym { font-size: min(.74rem, calc(100cqw / (var(--len, 3) * .72))); white-space: nowrap; }
-:root[data-lesbar] .ps-grid { letter-spacing: 0; word-spacing: 0; } /* kompakte Skala wie Überschriften: ohne Zusatzabstand, sonst überlappen die Einheiten */
+:root[data-lesbar] .ps-grid, :root[data-lesbar] .ps-vgrid { letter-spacing: 0; word-spacing: 0; } /* kompakte Skala wie Überschriften: ohne Zusatzabstand, sonst überlappen die Einheiten */
+/* senkrechte Skala (schmal): oben Giga, unten Nano, Bogen rechts daneben */
+.ps-v { display: grid; grid-template-columns: minmax(0, 1fr) 84px; align-items: start; }
+.ps-vgrid { display: grid; border: 1.5px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--surface); }
+.ps-row { display: grid; grid-template-columns: 3.6em 3.2em minmax(0, 1fr); align-items: center; gap: 6px; padding: 0 10px; border-top: 1px solid var(--border); font-variant-numeric: tabular-nums; min-width: 0; }
+.ps-row:first-child { border-top: none; }
+.ps-row.base { background: var(--surface-2); }
+.ps-row.from { background: var(--ps-from); box-shadow: inset 4px 0 0 var(--pv-from); }
+.ps-row.to { background: var(--ps-to); box-shadow: inset 4px 0 0 var(--pv-to); }
+.ps-row .ps-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ps-varc { display: block; overflow: visible; margin-top: 1.5px; }
+.ps-vlab { font-size: 15px; font-weight: 800; fill: var(--arrow); font-family: var(--font); }
 .viz .ps-arc { display: block; overflow: visible; width: 100%; max-width: none; height: auto; }
 .ps-path { fill: none; stroke: var(--arrow); stroke-width: 2.8; stroke-dasharray: 1; animation: draw .5s ease-out both; }
 .ps-head { fill: var(--arrow); }
@@ -286,12 +293,16 @@
 .dc-tie { stroke: var(--border); stroke-width: 1.2; stroke-dasharray: 2 3; }
 .dc .dc-parts { font-size: 14px; font-weight: 700; text-anchor: middle; fill: var(--arrow); }
 
-/* Quiz: Bild der Aufgabe (von → in, mit Namen) */
-.tb { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 8px 4px; }
+/* Quiz: Bild der Aufgabe (von → in, mit Namen) – passt in jede Breite: Zahl und Einheit dürfen umbrechen, Namen trennen (nie abgeschnitten,
+   nie kleiner als 14 px); ist das Bild sehr niedrig, entfallen die Namen */
+.q-visual:has(.tb) { container-type: size; }
+.tb { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; padding: 8px 4px; width: 100%; }
+.tb:has(.tb-glyph) { grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr); }
 .tb-glyph { width: 40px; height: 40px; flex: none; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linejoin: round; }
-.tb-u { display: grid; justify-items: center; gap: 2px; text-align: center; }
-.tb-u b { font-size: clamp(1.9rem, 9cqw, 2.6rem); font-weight: 800; white-space: nowrap; }
-.tb-u span { font-size: .875rem; color: var(--muted); max-width: 11em; }
+.tb-u { display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 0; }
+.tb-u b { font-size: clamp(1.4rem, 7.5cqw, 2.6rem); font-weight: 800; line-height: 1.15; overflow-wrap: break-word; }
+.tb-u span { font-size: .875rem; color: var(--muted); max-width: 100%; overflow-wrap: break-word; hyphens: auto; }
+@container (max-height: 110px) { .tb-u span { display: none; } }
 .tb-arrow { font-size: 1.6rem; color: var(--faint); }
 /* nach dem Antworten braucht die Rückmeldung den Platz */
 .task-card.answered .q-visual:has(.tb) { display: none; }

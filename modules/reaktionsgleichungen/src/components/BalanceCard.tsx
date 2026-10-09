@@ -60,7 +60,8 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
             {shown && ok && onNext
               ? <Button variant="primary" iconRight="arrow" onClick={() => { buzz(); onNext(); }}>{nextLabel}</Button>
               : <Button variant="primary" icon="check" onClick={check} disabled={shown}>{tr("Prüfen", "Check")}</Button>}
-            {hint && !(shown && ok) && <Button icon="bulb" aria-pressed={hintOn} onClick={() => { buzz(); setHintOn(true); }} disabled={hintOn}>{tr("Tipp", "Hint")}</Button>}
+            {/* Tipp ein- und wieder ausblenden: am kleinen Handy braucht das Teilchenbild den Platz */}
+            {hint && !(shown && ok) && <Button icon="bulb" aria-pressed={hintOn} onClick={() => { buzz(); setHintOn(!hintOn); }}>{hintOn ? tr("Tipp aus", "Hide hint") : tr("Tipp", "Hint")}</Button>}
             {onSolution && !ok && tries >= 2 && <Button onClick={() => { buzz(); onSolution(); }}>{tr("Lösung", "Solution")}</Button>}
           </div>
         </div>

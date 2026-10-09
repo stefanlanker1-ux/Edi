@@ -1,6 +1,6 @@
 import { test, assert } from "vitest";
 import {
-  PROTIC_ACIDS, HYDROXIDES, neutralEquation, restOf, isKnownSalt, protolysis, hydroxideDissociation, neutralWords,
+  PROTIC_ACIDS, HYDROXIDES, neutralEquation, restOf, isKnownSalt, saltProblem, protolysis, hydroxideDissociation, neutralWords,
 } from "../src/neutralization.ts";
 import { parseFormula, balance, isBalanced } from "../src/reactions.ts";
 
@@ -57,4 +57,14 @@ test("Beispiele wie im Heft", () => {
   assert.strictEqual(hydroxideDissociation(B("baoh2")), "Ba(OH)₂ → Ba²⁺ + 2 OH⁻");
   assert.ok(!isKnownSalt(B("aloh3"), restOf(A("h2co3"))));
   assert.ok(isKnownSalt(B("aloh3"), restOf(A("h3po4"))));
+});
+
+const B = (id: string) => HYDROXIDES.find(b => b.id === id)!, A = (id: string) => PROTIC_ACIDS.find(a => a.id === id)!;
+test("Salze, die in Wasser nicht entstehen: Ba(HSO₄)₂/Ca(HSO₄)₂ (Sulfat fällt aus), CaS/BaS/MgS (reagieren mit Wasser)", () => {
+  for (const [b, a, k] of [["baoh2", "h2so4", 1], ["caoh2", "h2so4", 1], ["caoh2", "h2s", 2], ["baoh2", "h2s", 2], ["mgoh2", "h2s", 2]] as const)
+    assert.ok(!isKnownSalt(B(b), restOf(A(a), k)), `${b} + ${a} (${k})`);
+  assert.ok(saltProblem(B("baoh2"), restOf(A("h2so4"), 1))!.includes("BaSO₄"));
+  // die Hydrogensulfide entstehen (Ca(OH)₂ + 2 H₂S → Ca(HS)₂ + 2 H₂O), Natriumsulfid und Bariumsulfat auch
+  for (const [b, a, k] of [["caoh2", "h2s", 1], ["baoh2", "h2s", 1], ["naoh", "h2s", 2], ["baoh2", "h2so4", 2], ["naoh", "h2so4", 1]] as const)
+    assert.ok(isKnownSalt(B(b), restOf(A(a), k)), `${b} + ${a} (${k})`);
 });

@@ -9,6 +9,7 @@ import { fmt, parseQ, solve, chainFor, unitName } from "@lern/units";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, solutionOf, checkInput, readInput, storedText, storedValue, approxText, tableFor, type Task } from "./tasks.ts";
 import { useApp } from "../store.ts";
 import { explainFor } from "./explain.tsx";
+import { MISS } from "./misconceptions.ts";
 import { ChalkBoard } from "../components/ChalkBoard.tsx";
 import { PlaceValueTable } from "../components/PlaceValueTable.tsx";
 import { LiveHelp } from "../components/LiveHelp.tsx";
@@ -84,7 +85,7 @@ function toolsFor(t: Task, os: boolean): QuizTool[] {
   if (!c || c.from === c.to) return [];
   const out: QuizTool[] = [];
   // Oberstufe mit Vorsilben: nur die Skala mit Zehnerpotenzen (keine Pfeile, keine Stellenwerttafel)
-  if (scaleMode(os, c.from, c.to)) return [{ id: "scale", label: tr("Skala", "Scale"), icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} /> }];
+  if (scaleMode(os, c.from, c.to)) return [{ id: "scale", label: tr("Skala", "Scale"), icon: "layers", wide: true, content: <PowerScale from={c.from} to={c.to} showFactor={false} showResult={false} full /> }];
   if (dimOf(c.from, c.to)) out.push({ id: "arrows", label: tr("Pfeile", "Arrows"), icon: "ruler", wide: true, content: <DimChain from={c.from} to={c.to} /> });
   else if (chainFor(c.from, c.to)) out.push({ id: "arrows", label: tr("Pfeile", "Arrows"), icon: "ruler", wide: true, content: <ArrowChain from={c.from} to={c.to} showValues={false} caption={false} /> });
   const table = t.kind === "input" ? tableFor(c.from, c.to) : undefined;
@@ -104,6 +105,7 @@ export function QuizView() {
       levelName={l => levelName(stufe, l)}
       levelId={l => levelId(stufe, l)}
       typeName={id => TYPE_NAMES[id]}
+      missName={id => MISS[id]}
       heroArt={<span className="hero-ruler" aria-hidden="true">{Array.from({ length: 11 }, (_, i) => <i key={i} className={i % 5 === 0 ? "l" : ""} />)}</span>}
       renderVisual={t => (t.kind === "input" ? <TaskBanner from={t.from} to={t.to} value={t.value} /> : null)}
       renderAnswer={(t, a, submit) => (t.kind === "input" ? <InputAnswer key={t.prompt} task={t} answered={a} submit={submit} /> : null)}

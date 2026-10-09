@@ -133,7 +133,7 @@ const SPECIES_DE: Record<string, string> = {
   Mg: "Magnesium", MgO: "Magnesiumoxid", Fe: "Eisen", Fe2O3: "Eisen(III)-oxid", FeS: "Eisensulfid", S: "Schwefel",
   Na: "Natrium", NaCl: "Natriumchlorid", C: "Kohlenstoff", CO2: "Kohlendioxid", H2CO3: "Kohlensäure", CO: "Kohlenmonoxid", CH4: "Methan",
   NH3: "Ammoniak", Al: "Aluminium", Al2O3: "Aluminiumoxid", AlCl3: "Aluminiumchlorid", Cu: "Kupfer", CuO: "Kupferoxid",
-  CaCO3: "Calciumcarbonat (Kalk)", CaO: "Calciumoxid", Zn: "Zink", HCl: "Chlorwasserstoff (Salzsäure)", ZnCl2: "Zinkchlorid",
+  CaCO3: "Calciumcarbonat (Kalk)", CaO: "Calciumoxid", Zn: "Zink", HCl: "Chlorwasserstoff", ZnCl2: "Zinkchlorid",
   MgCl2: "Magnesiumchlorid", K: "Kalium", KOH: "Kaliumhydroxid", NaOH: "Natriumhydroxid", SO2: "Schwefeldioxid",
   H2S: "Schwefelwasserstoff", C3H8: "Propan", C2H6: "Ethan", HgO: "Quecksilberoxid", Hg: "Quecksilber", P: "Phosphor",
   P2O5: "Phosphorpentoxid", Ca: "Calcium", "Ca(OH)2": "Calciumhydroxid", Ag2O: "Silberoxid", Ag: "Silber", Li: "Lithium",
@@ -166,7 +166,7 @@ const SPECIES_EN: Record<string, string> = {
   Mg: "Magnesium", MgO: "Magnesium oxide", Fe: "Iron", Fe2O3: "Iron(III) oxide", FeS: "Iron sulfide", S: "Sulfur",
   Na: "Sodium", NaCl: "Sodium chloride", C: "Carbon", CO2: "Carbon dioxide", H2CO3: "Carbonic acid", CO: "Carbon monoxide", CH4: "Methane",
   NH3: "Ammonia", Al: "Aluminium", Al2O3: "Aluminium oxide", AlCl3: "Aluminium chloride", Cu: "Copper", CuO: "Copper oxide",
-  CaCO3: "Calcium carbonate (limestone)", CaO: "Calcium oxide", Zn: "Zinc", HCl: "Hydrogen chloride (hydrochloric acid)", ZnCl2: "Zinc chloride",
+  CaCO3: "Calcium carbonate (limestone)", CaO: "Calcium oxide", Zn: "Zinc", HCl: "Hydrogen chloride", ZnCl2: "Zinc chloride",
   MgCl2: "Magnesium chloride", K: "Potassium", KOH: "Potassium hydroxide", NaOH: "Sodium hydroxide", SO2: "Sulfur dioxide",
   H2S: "Hydrogen sulfide", C3H8: "Propane", C2H6: "Ethane", HgO: "Mercury oxide", Hg: "Mercury", P: "Phosphorus",
   P2O5: "Phosphorus pentoxide", Ca: "Calcium", "Ca(OH)2": "Calcium hydroxide", Ag2O: "Silver oxide", Ag: "Silver", Li: "Lithium",
@@ -249,7 +249,7 @@ const TITLE_EN: Record<string, string> = {
   harnstoff: "Urea is broken down", "essig-o2": "Acetic acid burns", "ameisen-o2": "Formic acid burns", "zucker-gaerung": "Sugar ferments",
   aceton: "Acetone burns", ethanal: "Ethanol turns into ethanal", benzol: "Benzene burns", dodecan: "Diesel burns (dodecane)",
   "zucker-o2": "Sugar burns", "nh3-no2": "Ammonia to nitrogen dioxide", glycin: "Glycine burns", hcn: "Hydrogen cyanide burns",
-  "harnstoff-o2": "Urea burns", "ph3-o2": "Phosphine burns", "ph3-zerfall": "Phosphine decomposes", claus: "Claus process", "h2s-cl2": "Hydrogen sulfide in chlorine water",
+  "n2h4-o2": "Hydrazine burns (rocket fuel)", "methan-co": "Methane burns in little air", "harnstoff-o2": "Urea burns", "ph3-o2": "Phosphine burns", "ph3-zerfall": "Phosphine decomposes", claus: "Claus process", "h2s-cl2": "Hydrogen sulfide in chlorine water",
 };
 
 const R = (stufe: "us" | "os", niveau: Niveau) => (id: string, title: string, kind: ReactionKind, left: string[], right: string[]): Reaction => {
@@ -365,6 +365,7 @@ export const REACTIONS: Reaction[] = [
   U1("boudouard", "Kohlendioxid und glühende Kohle", "synthese", ["CO2", "C"], ["CO"]),
   U1("n2h4-zerfall", "Hydrazin zerfällt", "analyse", ["N2H4"], ["N2", "H2"]),
   U1("methanol-syn", "Methanol-Synthese", "synthese", ["CO", "H2"], ["CH3OH"]),
+  U1("n2h4-o2", "Hydrazin verbrennt (Raketentreibstoff)", "umsetzung", ["N2H4", "O2"], ["N2", "H2O"]),
   U2("co-o2", "Kohlenmonoxid verbrennt", "synthese", ["CO", "O2"], ["CO2"]),
   U2("ozon", "Ozon zerfällt", "analyse", ["O3"], ["O2"]),
   U2("no-h2", "Stickstoffmonoxid und Wasserstoff", "umsetzung", ["NO", "H2"], ["N2", "H2O"]),
@@ -373,6 +374,7 @@ export const REACTIONS: Reaction[] = [
   U2("co-syn", "Kohle verbrennt mit wenig Luft", "synthese", ["C", "O2"], ["CO"]),
   U2("cs2-o2", "Schwefelkohlenstoff verbrennt", "umsetzung", ["CS2", "O2"], ["CO2", "SO2"]),
   U3("ethen", "Ethen verbrennt", "umsetzung", ["C2H4", "O2"], ["CO2", "H2O"]),
+  U4("methan-co", "Methan verbrennt mit wenig Luft", "umsetzung", ["CH4", "O2"], ["CO", "H2O"]),
   O1("ch2cl2", "Dichlormethan entsteht", "umsetzung", ["CH4", "Cl2"], ["CH2Cl2", "HCl"]),
   O1("chcl3", "Chloroform entsteht", "umsetzung", ["CH4", "Cl2"], ["CHCl3", "HCl"]),
   O1("ccl4-ch4", "Tetrachlormethan aus Methan", "umsetzung", ["CH4", "Cl2"], ["CCl4", "HCl"]),

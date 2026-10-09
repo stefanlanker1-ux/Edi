@@ -4,8 +4,9 @@
 import { Sheet, Tag } from "@lern/ui";
 import { Formula } from "@lern/chem-ui";
 import {
-  PROTIC_ACIDS, hydroxidesFor, hydroxideDissociation, protolysis, proticWord, restName, parseFormula, type Hydroxide, type ProticAcid,
+  hydroxidesFor, hydroxideDissociation, protolysis, proticWord, restName, parseFormula, type Hydroxide, type ProticAcid,
 } from "@lern/chem";
+import { acidsFor } from "../store.ts";
 import { IonLabel, catTile, hTile, ohTile, restTile } from "./NeutralWall.tsx";
 import { tr } from "@lern/i18n";
 
@@ -21,7 +22,8 @@ export function BasePicker({ value, os, onPick }: { value: string; os: boolean; 
   );
 }
 
-const GROUPS: [number, string][] = [[1, tr("Einprotonig", "Monoprotic")], [2, tr("Zweiprotonig", "Diprotic")], [3, tr("Dreiprotonig", "Triprotic")]];
+/** Gruppen der Säuretabelle: Level II mit „einprotonig …“, Level I (Begriff noch nicht eingeführt) nach der Zahl der abgegebenen H⁺ */
+const groups = (os: boolean): [number, string][] => [1, 2, 3].map(p => [p, os ? proticWord(p).replace(/^./, c => c.toUpperCase()) : `${p}\u00a0H⁺`]);
 
 /**
  * Säuretabelle. Mit `onPick` ist jede Zeile wählbar (Säure), in der Oberstufe zusätzlich jeder Säurerest
@@ -32,14 +34,15 @@ export function AcidTable({ os, acid, step, onPick, mark = [] }: {
 }) {
   return (
     <div className="acid-table">
-      {GROUPS.map(([p, title]) => (
+      {groups(os).map(([p, title]) => (
         <section key={p} className="at-group">
           <h3>{title}</h3>
           <ul>
-            {PROTIC_ACIDS.filter(a => a.protons === p).map(a => {
+            {acidsFor(os).filter(a => a.protons === p).map(a => {
               const on = a.id === acid, hit = mark.includes(a.id);
               const rests = a.rests.map((r, i) => ({ r, k: i + 1 })).filter(x => os || x.k === a.protons);
-              const acidCell = <><b><Formula f={a.formula} /></b><span title={a.alt}>{a.name}</span></>;
+              // lange Namen (Schwefelwasserstoff) trennen statt aus der Zelle zu ragen
+              const acidCell = <><b><Formula f={a.formula} /></b><span title={a.alt}>{a.name.replace(/(\p{L}{4})(wasserstoff|säure)$/u, "$1\u00ad$2")}</span></>;
               return (
                 <li key={a.id} className={`at-row${on ? " on" : ""}${hit ? " hit" : ""}`}>
                   {onPick
@@ -101,7 +104,7 @@ export function UnitSheet({ which, base, acid, step, os, onClose }: {
             ))}
           </ul>
           <div className="ui-tags us-tags">
-            <Tag tone="signal">{proticWord(acid.protons)}</Tag>
+            {os && <Tag tone="signal">{proticWord(acid.protons)}</Tag>}
             <Tag>{tr(`${acid.protons} H⁺ abgebbar`, `${acid.protons} H⁺ can be given off`)}{hAtoms > acid.protons && tr(` (von ${hAtoms} H)`, ` (of ${hAtoms} H)`)}</Tag>
             <Tag>{tr("Säurerest", "Acid anion")}: {restName(acid.rests[acid.protons - 1])}</Tag>
           </div>

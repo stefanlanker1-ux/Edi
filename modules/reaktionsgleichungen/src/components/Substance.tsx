@@ -1,6 +1,6 @@
 // Stoffnamen als Knöpfe zur Stoff-Info (@lern/chem-ui): Wortgleichung im Start, Liste im Quiz-Hilfsmittel „Stoffe“.
 
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { Button, buzz } from "@lern/ui";
 import { speciesName, toSubscript, type Equation } from "@lern/chem";
 import { SubstanceDetail, SubstanceSheet } from "@lern/chem-ui";
@@ -9,15 +9,16 @@ import { tr } from "@lern/i18n";
 /** Wortgleichung, jeder Stoffname ist ein Knopf zur Stoff-Info */
 export function NameLine({ eq, className = "rg-names" }: { eq: Equation; className?: string }) {
   const [open, setOpen] = useState<string | null>(null);
-  const side = (fs: string[]) => fs.map((f, i) => (
-    <Fragment key={f + i}>
-      {i > 0 && <span className="rg-plus" aria-hidden="true">+</span>}
-      <button type="button" className="sub-name" onClick={() => { buzz(); setOpen(f); }} aria-label={`${speciesName(f)} – Info`}>{speciesName(f)}</button>
-    </Fragment>
-  ));
+  // „+“ und „→“ hängen am Stoff davor – beim Umbrechen steht nie ein Pfeil allein in einer Zeile
+  const items = [...eq.left.map((f, i) => ({ f, op: i < eq.left.length - 1 ? "+" : "→" })), ...eq.right.map((f, i) => ({ f, op: i < eq.right.length - 1 ? "+" : "" }))];
   return (
     <>
-      <p className={className}>{side(eq.left)}<span className="rg-arrow" aria-hidden="true">→</span>{side(eq.right)}</p>
+      <p className={className}>{items.map(({ f, op }, i) => (
+        <span key={f + i} className="rg-name-item">
+          <button type="button" className="sub-name" onClick={() => { buzz(); setOpen(f); }} aria-label={`${speciesName(f)} – Info`}>{speciesName(f)}</button>
+          {op && <span className={op === "→" ? "rg-arrow" : "rg-plus"} aria-hidden="true">{op}</span>}
+        </span>
+      ))}</p>
       <SubstanceSheet f={open} onClose={() => setOpen(null)} />
     </>
   );

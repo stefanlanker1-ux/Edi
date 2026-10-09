@@ -9,6 +9,7 @@ import { tr } from "@lern/i18n";
 import { useApp, useUeben, coeffsOf } from "../store.ts";
 import { BalanceCard } from "../components/BalanceCard.tsx";
 import { NameLine } from "../components/Substance.tsx";
+import { HowTo } from "../components/HowTo.tsx";
 import { EXERCISES, HINTS, LVLS, LVL_NAMES, type Lvl } from "./exercises.ts";
 
 export function UebenView() {
@@ -34,8 +35,12 @@ export function UebenView() {
       head={
         <div className="rg-head rg-ueben-head">
           <div className="rg-ueben-bar">
-            <Segmented<Lvl> label={tr("Schwierigkeit", "Difficulty")} value={lvl} onChange={l => { buzz(); u.setLvl(stufe, l); }}
-              options={LVLS.map(l => ({ value: l, label: LVL_NAMES[l] }))} />
+            {/* „So geht's“ neben der Schwierigkeit: dort ist auch am schmalen Handy Platz (keine eigene Zeile) */}
+            <div className="rg-seg-row">
+              <Segmented<Lvl> label={tr("Schwierigkeit", "Difficulty")} value={lvl} onChange={l => { buzz(); u.setLvl(stufe, l); }}
+                options={LVLS.map(l => ({ value: l, label: LVL_NAMES[l] }))} />
+              <HowTo />
+            </div>
             <div className="rg-nav">
               <button type="button" className="rg-nav-btn" onClick={() => go(i - 1)} disabled={i === 0} aria-label={tr("Vorige Aufgabe", "Previous exercise")}>‹</button>
               <span className="rg-nav-n" aria-label={`${tr("Aufgabe", "Exercise")} ${i + 1} / ${ids.length}, ${doneN} ${tr("gelöst", "solved")}`}>{i + 1} / {ids.length}</span>

@@ -4,6 +4,7 @@ import { REACTION_BY_ID } from "@lern/chem";
 import { useApp, STARTS } from "../store.ts";
 import { BalanceCard } from "../components/BalanceCard.tsx";
 import { NameLine } from "../components/Substance.tsx";
+import { HowTo } from "../components/HowTo.tsx";
 import { tr } from "@lern/i18n";
 
 export function StartView() {
@@ -25,6 +26,7 @@ export function StartView() {
                 {done[i] ? "✓" : i + 1}
               </button>
             ))}
+            <HowTo />
           </div>
         </div>
       } />

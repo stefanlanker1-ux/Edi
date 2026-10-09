@@ -13,9 +13,9 @@ export const LVL_NAMES: Record<Lvl, string> = tr(
 
 export const EXERCISES: Record<Stufe, Record<Lvl, string[]>> = {
   us: {
-    einfach: ["hf", "hbr", "hi", "ch4-syn", "co2", "no-syn", "cs2", "boudouard", "n2h4-zerfall", "methanol-syn"],
+    einfach: ["hf", "hbr", "hi", "ch4-syn", "n2h4-o2", "no-syn", "cs2", "boudouard", "n2h4-zerfall", "methanol-syn"],
     mittel: ["co-o2", "ozon", "no-h2", "wasser", "h2o2", "nh3-zerfall", "pcl3", "co-syn", "cs2-o2", "p4o10"],
-    schwer: ["ethen", "ethanol", "pentan", "zellatmung", "h2s", "methanol", "ethan", "ethin", "nh3-o2", "butan"],
+    schwer: ["ethen", "methan-co", "pentan", "zellatmung", "h2s", "methanol", "ethan", "ethin", "nh3-o2", "butan"],
   },
   os: {
     einfach: ["kontakt", "no2", "ch2cl2", "chcl3", "ccl4-ch4", "ethin-h2", "essigsaeure", "hi-zerfall", "h2s-s", "formaldehyd"],
@@ -26,7 +26,7 @@ export const EXERCISES: Record<Stufe, Record<Lvl, string[]>> = {
 
 export const HINTS_DE: Record<string, string> = {
   // Level I · einfach
-  co2: "Zähle C und O auf beiden Seiten. Ändere eine Zahl nur, wenn links und rechts verschieden viele Atome stehen.",
+  "n2h4-o2": "Vergleiche die H-Atome: N₂H₄ links, H₂O rechts. Prüfe danach N und O.",
   hf: "Vergleiche die F-Atome: F₂ links, HF rechts. Prüfe danach H.",
   hbr: "Vergleiche die Br-Atome: Br₂ links, HBr rechts. Prüfe danach H.",
   hi: "Vergleiche die I-Atome: I₂ links, HI rechts. Prüfe danach H.",
@@ -49,7 +49,7 @@ export const HINTS_DE: Record<string, string> = {
   p4o10: "Beginne mit P: Vergleiche P₄ und P₄O₁₀. Gleiche danach O mit O₂ aus.",
   // Level I · schwer
   ethen: "C₂H₄: zuerst C, dann H. O₂ kommt zuletzt – zähle dafür alle O-Atome rechts.",
-  ethanol: "Zuerst C, dann H, O₂ zuletzt. C₂H₅OH bringt selbst O mit – zähle es links mit.",
+  "methan-co": "Zuerst C, dann H, O₂ zuletzt. Eine halbe Zahl heißt: alles verdoppeln.",
   pentan: "C₅H₁₂: zuerst C, dann H. O₂ kommt zuletzt – zähle dafür alle O-Atome rechts.",
   zellatmung: "Beginne mit C: Zähle die C-Atome im Traubenzucker. Zähle beim O auch die O-Atome im Zucker mit.",
   h2s: "S geht ins SO₂, H ins H₂O. Bräuchtest du ein halbes O₂, verdopple alle Zahlen.",
@@ -57,7 +57,7 @@ export const HINTS_DE: Record<string, string> = {
   ethan: "C₂H₆: zuerst C, dann H, O₂ zuletzt. Bräuchtest du ein halbes O₂, verdopple alle Zahlen.",
   ethin: "Zuerst C, dann H, O₂ zuletzt. Eine halbe Zahl heißt: alles verdoppeln.",
   "nh3-o2": "N geht ins N₂, H ins H₂O. N₂ braucht eine gerade Zahl N-Atome.",
-  butan: "Gleiche zuerst C und H aus. Ist die O-Zahl rechts ungerade, verdopple C₄H₁₀.",
+  butan: "Gleiche zuerst C und H aus. Ist die O-Zahl rechts ungerade, verdopple alle Zahlen.",
   // Level II · einfach
   kontakt: "Beginne mit S: Vergleiche SO₂ und SO₃. Gleiche danach O mit O₂ aus.",
   no2: "Beginne mit N: Vergleiche NO und NO₂. Gleiche danach O mit O₂ aus.",
@@ -94,7 +94,7 @@ export const HINTS_DE: Record<string, string> = {
 };
 
 export const HINTS_EN: Record<string, string> = {
-  co2: "Count C and O on both sides. Only change a number if the two sides have different numbers of atoms.",
+  "n2h4-o2": "Compare the H atoms: N₂H₄ on the left, H₂O on the right. Then check N and O.",
   hf: "Compare the F atoms: F₂ on the left, HF on the right. Then check H.",
   hbr: "Compare the Br atoms: Br₂ on the left, HBr on the right. Then check H.",
   hi: "Compare the I atoms: I₂ on the left, HI on the right. Then check H.",
@@ -115,7 +115,7 @@ export const HINTS_EN: Record<string, string> = {
   "cs2-o2": "Share out C and S first: S only appears in SO₂ on the right. O₂ comes last.",
   p4o10: "Start with P: compare P₄ and P₄O₁₀. Then balance O with O₂.",
   ethen: "C₂H₄: C first, then H. O₂ comes last – count all O atoms on the right for it.",
-  ethanol: "C first, then H, O₂ last. C₂H₅OH brings O of its own – count it on the left.",
+  "methan-co": "C first, then H, O₂ last. A half number means: double everything.",
   pentan: "C₅H₁₂: C first, then H. O₂ comes last – count all O atoms on the right for it.",
   zellatmung: "Start with C: count the C atoms in the glucose. When counting O, include the O atoms in the sugar.",
   h2s: "S goes into SO₂, H into H₂O. If you would need half an O₂, double all numbers.",
@@ -123,7 +123,7 @@ export const HINTS_EN: Record<string, string> = {
   ethan: "C₂H₆: C first, then H, O₂ last. If you would need half an O₂, double all numbers.",
   ethin: "C first, then H, O₂ last. A half number means: double everything.",
   "nh3-o2": "N goes into N₂, H into H₂O. N₂ needs an even number of N atoms.",
-  butan: "Balance C and H first. If the O count on the right is odd, double C₄H₁₀.",
+  butan: "Balance C and H first. If the O count on the right is odd, double all numbers.",
   kontakt: "Start with S: compare SO₂ and SO₃. Then balance O with O₂.",
   no2: "Start with N: compare NO and NO₂. Then balance O with O₂.",
   ch2cl2: "Compare the H atoms in CH₄ and in CH₂Cl₂. Where do the other H go? Balance Cl with Cl₂ last.",

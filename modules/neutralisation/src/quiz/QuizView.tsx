@@ -6,7 +6,7 @@ import { Formula, pseTool } from "@lern/chem-ui";
 import { createQuizStore, QuizScreen, type Answered, type Submit } from "@lern/quiz";
 import { PROTIC_ACIDS, formulaElements, neutralEquation } from "@lern/chem";
 import { useApp } from "../store.ts";
-import { NeutralWall } from "../components/NeutralWall.tsx";
+import { FitOr, NeutralWall, WallResult } from "../components/NeutralWall.tsx";
 import { AcidTable } from "../components/Pickers.tsx";
 import { LEVELS, TYPE_NAMES, levelId, levelName, makeRound, unitsOf, type Task } from "./tasks.ts";
 import { explainFor } from "./explain.tsx";
@@ -20,9 +20,17 @@ function BuildAnswer({ task, answered, submit }: { task: Extract<Task, { kind: "
   const [c, setC] = useState({ nB: 1, nA: 1 });
   const shown = answered?.values ? { nB: answered.values.nB, nA: answered.values.nA } : c;
   const n = neutralEquation(base, acid, task.step);
+  const balance = <WallResult base={base} acid={acid} step={task.step} nB={shown.nB} nA={shown.nA} />;
+  // Wand füllt den freien Platz (lesbar verkleinert); reicht er nicht, nur die OH⁻- und H⁺-Reihe, sonst nur die Bilanz – Zähler und „Prüfen“ immer ganz
   return (
     <div className="answer-nw">
-      <NeutralWall base={base} acid={acid} step={task.step} nB={shown.nB} nA={shown.nA} showResult={!!answered} />
+      <FitOr className="answer-nw-wall" fallback={
+        <FitOr className="answer-nw-wall" fallback={balance}>
+          <NeutralWall base={base} acid={acid} step={task.step} nB={shown.nB} nA={shown.nA} showResult={false} compact />
+        </FitOr>}>
+        <NeutralWall base={base} acid={acid} step={task.step} nB={shown.nB} nA={shown.nA} showResult={false} />
+      </FitOr>
+      {answered && balance}
       {!answered && (
         <div className="nw-controls">
           <Stepper compact tone="base" label={<Formula f={base.formula} />} value={c.nB} min={1} max={6} onChange={v => setC({ ...c, nB: v })} />

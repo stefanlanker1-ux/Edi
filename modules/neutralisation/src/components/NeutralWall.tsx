@@ -6,7 +6,7 @@
 //   Reihe 4  Säurereste (grün)                 PO₄³⁻ PO₄³⁻
 // Neutral, wenn die OH⁻- und die H⁺-Reihe gleich lang sind. „Reaktion“ zeigt die Produkte: Salz (Reihe 1 + 4) und Wasser.
 
-import type { CSSProperties, ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Formula } from "@lern/chem-ui";
 import { ionChargeText, neutralCounts, neutralEquation, equationText, restOf, type Hydroxide, type Ion, type ProticAcid } from "@lern/chem";
 import { tr } from "@lern/i18n";
@@ -47,8 +47,10 @@ function Unit({ w, col, row, top, bottom, label, onClick }: {
   return <button type="button" className="nw-unit" style={style} aria-label={tr(`${label} – Zerfall in Ionen anzeigen`, `${label} – show dissociation into ions`)} onClick={onClick}>{inner}</button>;
 }
 
-export function NeutralWall({ base, acid, step, nB, nA, products = false, showResult = true, onUnit }: {
+export function NeutralWall({ base, acid, step, nB, nA, products = false, showResult = true, onUnit, compact = false }: {
   base: Hydroxide; acid: ProticAcid; step: number; nB: number; nA: number;
+  /** nur die OH⁻- und die H⁺-Reihe (wenig Platz, z. B. Quiz am kleinen Handy mit „Erster Schritt“) */
+  compact?: boolean;
   /** Produkte zeigen (nur wenn neutral) */
   products?: boolean;
   showResult?: boolean;
@@ -64,7 +66,7 @@ export function NeutralWall({ base, acid, step, nB, nA, products = false, showRe
   const grid = { "--cols": cols } as CSSProperties;
 
   return (
-    <div className={`nw${balanced ? " balanced" : ""}${showProducts ? " products" : ""}`}>
+    <div className={`nw${balanced ? " balanced" : ""}${showProducts ? " products" : ""}${compact && !showProducts ? " compact" : ""}`}>
       {showProducts ? (
         <div className="nw-grid" style={grid} key="p">
           {/* Salz: Kationen und Säurereste bleiben als Ionen zusammen */}
@@ -90,7 +92,18 @@ export function NeutralWall({ base, acid, step, nB, nA, products = false, showRe
           {oh > h && <span className="nw-gap" style={{ gridColumn: `${h + 1} / span ${oh - h}`, gridRow: 4 }} role="img" aria-label={tr(`es fehlen ${oh - h} H⁺`, `${oh - h} H⁺ missing`)} />}
         </div>
       )}
-      {showResult && (
+      {showResult && <WallResult base={base} acid={acid} step={step} nB={nB} nA={nA} />}
+    </div>
+  );
+}
+
+/** Gleichung, Bilanz OH⁻/H⁺ und Name unter der Wand (im Quiz nach der Antwort nur die Bilanz) */
+export function WallResult({ base, acid, step, nB, nA }: { base: Hydroxide; acid: ProticAcid; step: number; nB: number; nA: number }) {
+  const q = base.cation.charge, k = step;
+  const { oh, h, balanced } = neutralCounts(base, k, nB, nA);
+  const n = neutralEquation(base, acid, k);
+  const salts = balanced ? nB / n.nBase : 0;
+  return (
         <div className="nw-result">
           <p className="nw-eq">
             {balanced
@@ -98,11 +111,38 @@ export function NeutralWall({ base, acid, step, nB, nA, products = false, showRe
               : <><EqLine text={equationText({ left: n.eq.left, right: [] }, [nB, nA]).replace(/ →\s*$/, "")} /><span>{" → "}</span><span>?</span></>}
           </p>
           <p className={`nw-balance${balanced ? " ok" : ""}`}>
-            {balanced ? `✓ ${oh} OH⁻ + ${h} H⁺ → ${oh} H₂O` : `≠ ${nB} · ${q} OH⁻ = ${oh} OH⁻  ${tr("aber", "but")}  ${nA} · ${k} H⁺ = ${h} H⁺`}
+            {balanced ? `✓ ${oh} OH⁻ + ${h} H⁺ → ${oh} H₂O` : `≠\u00a0${nB}\u00a0·\u00a0${q}\u00a0OH⁻\u00a0=\u00a0${oh}\u00a0OH⁻  ${tr("aber", "but")}  ${nA}\u00a0·\u00a0${k}\u00a0H⁺\u00a0=\u00a0${h}\u00a0H⁺`}
           </p>
           {balanced && <p className="nw-name">{n.saltName} + {tr("Wasser", "water")}</p>}
         </div>
-      )}
+  );
+}
+
+/**
+ * Passt den Inhalt in den Platz ein (verkleinert ihn), aber nur so weit, dass die Schrift lesbar bleibt (Faktor ≥ `min`).
+ * Reicht der Platz dafür nicht, steht statt des Bildes `fallback` (z. B. nur die Bilanz als Text) – nie zerdrückt oder abgeschnitten.
+ */
+export function FitOr({ children, fallback, min = 0.8, className }: { children: ReactNode; fallback?: ReactNode; min?: number; className?: string }) {
+  const outer = useRef<HTMLDivElement>(null), inner = useRef<HTMLDivElement>(null);
+  const [k, setK] = useState(1);
+  useLayoutEffect(() => {
+    const o = outer.current, i = inner.current;
+    if (!o || !i) return;
+    const update = () => {
+      const s = Math.min(1, o.clientWidth / Math.max(1, i.scrollWidth), o.clientHeight / Math.max(1, i.scrollHeight));
+      setK(Number.isFinite(s) && s > 0 ? s : 1);
+    };
+    update();
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(update);
+    ro.observe(o); ro.observe(i);
+    return () => ro.disconnect();
+  }, []);
+  const ok = k >= min;
+  return (
+    <div ref={outer} className={`fit-or${ok ? "" : " small"}${className ? " " + className : ""}`}>
+      <div ref={inner} className="fit-or-inner" aria-hidden={ok ? undefined : true} style={k < 1 ? { transform: `scale(${k})` } : undefined}>{children}</div>
+      {!ok && fallback && <div className="fit-or-fallback">{fallback}</div>}
     </div>
   );
 }

@@ -6,6 +6,7 @@
 import { useId, useLayoutEffect, useRef, useState } from "react";
 import { isMolecular, type Equation } from "@lern/chem";
 import { Kalotte, KalotteShades, kalotteBox, kalotteElements } from "@lern/chem-ui";
+import { Icon, Sheet, buzz } from "@lern/ui";
 import { tr } from "@lern/i18n";
 
 /** Teilchenbild nur, wenn alle Stoffe der Gleichung Moleküle sind */
@@ -17,6 +18,8 @@ const NOBLE = new Set(["He", "Ne", "Ar", "Kr", "Xe", "Rn"]);
 export const singleAtoms = (eq: Equation) => [...new Set([...eq.left, ...eq.right].filter(f => /^[A-Z][a-z]?$/.test(f) && !NOBLE.has(f)))];
 
 const PAD = .8, GAP = .45;
+/** kleinste Darstellung: 10 px je Einheit (H-Atom ≥ 12 px) und Bildhöhe ≥ 56 px – sonst wird das Bild ausgeblendet statt zerdrückt */
+const MIN_SCALE = 10, MIN_H = 56;
 
 /**
  * Beide Kästen mit Pfeil. Jeder Stoff steht als Stapel, bei vielen Molekülen in mehreren Spalten.
@@ -36,6 +39,7 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
   // Hoch- oder Querformat: je nachdem, was im verfügbaren Platz größer wird (Handy hochkant → Kästen übereinander)
   const wrap = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<[number, number] | null>(null);
+  const [big, setBig] = useState(false);
   useLayoutEffect(() => {
     const el = wrap.current;
     if (!el) return;
@@ -74,6 +78,23 @@ export function MoleculeScene({ eq, coeffs, rows = 2, state }: {
     ? `M${W + .5} ${H / 2 - .35}h${AR - 1.9}v-.55l1.1 .9-1.1 .9v-.55h-${AR - 1.9}z`
     : `M${W / 2 - .35} ${H + .5}v${AR - 1.9}h-.55l.9 1.1 .9-1.1h-.55v-${AR - 1.9}z`;
   const single = singleAtoms(eq), list = single.join(tr(" und ", " and "));
+  // Platz für das Bild (ohne den Modell-Hinweis darunter, am schmalen Handy zweizeilig)
+  const noteH = single.length ? (size && size[0] < 330 ? 44 : 24) : 0;
+  const avail = size ? [size[0], size[1] - noteH] : null;
+  const sc = avail ? (across ? Math.min(avail[0] / (2 * W + AR), avail[1] / H) : Math.min(avail[0] / W, avail[1] / (2 * H + AR))) : Infinity;
+  if (avail && (sc < MIN_SCALE || avail[1] < MIN_H)) {
+    return (
+      <div className="ms-wrap ms-off" ref={wrap}>
+        {/* zu wenig Platz: das Bild groß im Blatt statt zerdrückt in der Karte */}
+        {size![1] >= 44
+          ? <button type="button" className="ms-open" onClick={() => { buzz(); setBig(true); }}><Icon name="molecule" size={18} /> {tr("Teilchenbild ansehen", "Show particle picture")}</button>
+          : size![1] >= 24 && <p className="ms-off-note">{tr("Teilchenbild: zu wenig Platz", "Particle picture: not enough room")}</p>}
+        <Sheet open={big} title={tr("Teilchenbild", "Particle picture")} onClose={() => setBig(false)}>
+          <div className="rg-anim-box"><MoleculeScene eq={eq} coeffs={coeffs} rows={rows} state={state} /></div>
+        </Sheet>
+      </div>
+    );
+  }
   return (
     <div className="ms-wrap" ref={wrap}>
       <svg className="ms" viewBox={across ? `0 0 ${2 * W + AR} ${H}` : `0 0 ${W} ${2 * H + AR}`} role="img" preserveAspectRatio="xMidYMid meet"
