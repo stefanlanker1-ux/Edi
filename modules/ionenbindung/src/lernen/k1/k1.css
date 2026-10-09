@@ -1,0 +1,85 @@
+/* Kapitel 1 „Vom Atom zum Ion“: Bohrmodell der Unterstufe, Ion bauen, Ladungsrechner, PSE mit Ionen, Elektronenübergang */
+
+.k1-atom { width: 100%; height: 100%; display: block; overflow: visible; }
+.k1-halo { fill: var(--hue-blue-soft); opacity: .55; transition: r .35s ease; }
+.k1-ring { fill: none; stroke: var(--ring, var(--rule)); stroke-width: 1.1; transition: r .35s ease; }
+.k1-ring.outer { stroke: var(--muted); stroke-width: 1.3; }
+.k1-ring.ghost { stroke: var(--faint); stroke-dasharray: 2 3; }
+.k1-outline { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.k1-nuc { fill: var(--proton); }
+.k1-nuc-t { fill: #fff; font: 800 9.5px var(--font); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.k1-e-c { fill: var(--electron); stroke: rgba(0, 0, 0, .15); stroke-width: .5; }
+.k1-e.got .k1-e-c { stroke: var(--text); stroke-width: 1.4; }
+.k1-e-dot { fill: var(--surface, #fff); pointer-events: none; }
+.k1-e-ring { fill: none; stroke: var(--text); stroke-width: 1.6; }
+.k1-e.hint .k1-e-ring { stroke: var(--ok); stroke-dasharray: 2 1.5; }
+.k1-e.mark .k1-e-c { fill: var(--hue-yellow); stroke: var(--text); stroke-width: 1; }
+.k1-hit { fill: transparent; }
+.k1-e.tap, .k1-slot.tap { cursor: pointer; }
+.k1-e.tap:focus-visible .k1-e-c { stroke: var(--text); stroke-width: 2; }
+.k1-e.got .k1-e-c, .k1-e.got .k1-e-dot { animation: k1-pop .45s ease both; }
+.k1-slot-c { fill: none; stroke: var(--electron); stroke-width: 1.1; stroke-dasharray: 2 1.4; }
+.k1-slot.tap:hover .k1-slot-c { opacity: 1; stroke-width: 1.3; }
+@keyframes k1-pop { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .k1-e.got .k1-e-c, .k1-e.got .k1-e-dot, .k1-halo, .k1-ring { animation: none; transition: none; } }
+
+/* Beschriftung: Symbol mit Ladung, p⁺ · e⁻ → Ladung, Schalen */
+.k1-cap { display: grid; justify-items: center; gap: 0; line-height: 1.25; text-align: center; }
+.k1-sym { font-weight: 800; font-size: 1.15rem; font-feature-settings: "cv05", "cv08"; }
+.k1-cap.big .k1-sym { font-size: 1.9rem; line-height: 1.1; }
+.k1-pe { font-size: .85rem; color: var(--text); white-space: nowrap; }
+.k1-cap.big .k1-pe { font-size: .95rem; }
+.k1-p { color: var(--hue-red-deep); font-weight: 750; }
+.k1-el { color: var(--hue-blue-deep); font-weight: 750; }
+.k1-sh { font-size: .82rem; color: var(--muted); display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.k1-sh .ui-icon, .k1-sh svg { color: var(--ok); }
+.k1-count { font-size: .95rem; margin-top: 2px; }
+.k1-title { display: block; font-size: .8rem; color: var(--muted); }
+
+/* ein Teilchen: Bild füllt den Platz, Beschriftung darunter (breit: daneben) */
+.k1-one { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
+.k1-one-svg { flex: 0 1 auto; min-height: 0; min-width: 0; width: 100%; aspect-ratio: 1; }
+@container (min-aspect-ratio: 3 / 2) {
+  .k1-one { flex-direction: row; gap: 16px; }
+  .k1-one-svg { flex: 1 1 0; width: auto; height: 100%; aspect-ratio: auto; }
+  .k1-one .k1-cap { flex: none; padding-right: 8px; }
+}
+
+/* mehrere Teilchen in einer Reihe (gleicher Maßstab) */
+.k1-row { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; height: 100%; min-height: 0; }
+.k1-fig { margin: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 0; min-height: 0; }
+.k1-row > .k1-fig { flex: 1 1 0; height: 100%; }
+.k1-fig-svg { flex: 0 1 auto; min-height: 0; min-width: 0; width: 100%; aspect-ratio: 1; }
+.k1-fig figcaption { flex: none; display: grid; justify-items: center; }
+@container (max-aspect-ratio: 1 / 1) {
+  .k1-row.n4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+  .k1-row.n4 > .k1-fig { height: 100%; }
+}
+.k1-arrow { flex: none; font-weight: 750; font-size: .85rem; color: var(--hue-blue-deep); text-align: center; white-space: nowrap; }
+
+/* Elektronenübergang: Metall-Atome links, Nichtmetall-Atome rechts */
+.k1-tr { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 2px 4px; width: 100%; height: 100%; min-height: 0; }
+.k1-tr-col { display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+/* gleicher Maßstab in beiden Spalten: jedes Teilchen bekommt den Anteil der längeren Spalte */
+.k1-tr-col .k1-fig { min-height: 0; flex: 0 0 auto; height: calc(100% / var(--rows, 1)); }
+.k1-tr-col .k1-cap .k1-sym { font-size: 1.05rem; }
+.k1-tr-col .k1-pe { font-size: .78rem; }
+.k1-tr-col .k1-sh { font-size: .75rem; }
+.k1-tr-mid { display: grid; place-items: center; align-content: center; gap: 2px; min-width: 22px; color: var(--hue-blue-deep); font-weight: 800; }
+.k1-tr-e { opacity: 0; font-size: .9rem; }
+.k1-tr-e.go { animation: k1-fly .6s ease-out both; }
+.k1-tr-arrow { font-size: 1.3rem; }
+@keyframes k1-fly { 0% { opacity: 0; transform: translateX(-24px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateX(24px); } }
+@media (prefers-reduced-motion: reduce) { .k1-tr-e.go { animation: none; } }
+.k1-tr-sum { grid-column: 1 / -1; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 14px; font-size: .82rem; color: var(--muted); }
+.k1-dim { color: var(--faint); }
+
+/* Bedienung */
+.k1-m .lm-controls .ui-btn { padding-inline: 12px; }
+.k1-steppers { display: flex; gap: 10px; justify-content: center; }
+
+/* PSE mit Ionen */
+.k1-pse { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 4px; width: 100%; height: 100%; min-height: 0; }
+.k1-pse-fit { min-height: 0; }
+.k1-pse-sel { margin: 0; text-align: center; font-size: 1.05rem; min-height: 1.4em; }
+.k1-pse-sel b { font-weight: 800; }
