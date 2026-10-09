@@ -24,7 +24,7 @@ function steps(): GuideStep[] {
   const pNaCl = [M("Natrium", "Sodium"), S("Chlor", "Chlor"), ID(), IT(), N("di")];
   const pMgO = [M("Magnesium", "Magnesium"), S("Sauerstoff", "Oxygen"), S("Ox", "Ox"), ID(), N("di")];
   const pK2S = [S("Schwefel", "Sulfur"), M("Kalium", "Potassium"), S("Sulf", "Sulf"), ID(), IT(), N("di")];
-  const pAlCl3 = [M("Aluminium", "Aluminium"), S("Chlor", "Chlor"), ID(), IT(), N("tri")];
+  const pCaF2 = [M("Calcium", "Calcium"), S("Fluor", "Fluor"), ID(), IT(), N("di")];
   const pAl2S3 = [S("Schwefel", "Sulfur"), M("Aluminium", "Aluminium"), S("Sulf", "Sulf"), ID(), N("di"), N("tri")];
   const pMg3N2 = [M("Magnesium", "Magnesium"), S("Stickstoff", "Nitrogen"), S("Nitr", "Nitr"), ID(), IT(), N("tri")];
 
@@ -88,13 +88,13 @@ function steps(): GuideStep[] {
     }),
     model({
       mode: "free",
-      ask: tr("Baue eine neutrale Wand aus Al³⁺ und Cl⁻ – mit möglichst wenigen Bausteinen.", "Build a neutral wall of Al³⁺ and Cl⁻ – with as few tiles as possible."),
-      visual: c => <WallModel c={c} cat="Al3+" an="Cl-" start={[1, 1]} sol={[1, 3]} />,
-      answer: wallKey("Al3+", "Cl-", 1, 3),
+      ask: tr("Baue eine neutrale Wand aus Al³⁺ und F⁻ – mit möglichst wenigen Bausteinen.", "Build a neutral wall of Al³⁺ and F⁻ – with as few tiles as possible."),
+      visual: c => <WallModel c={c} cat="Al3+" an="F-" start={[1, 1]} sol={[1, 3]} />,
+      answer: wallKey("Al3+", "F-", 1, 3),
       why: {
-        [wallKey("Al3+", "Cl-", 1, 1)]: tr("1 · (3+) = 3+, aber 1 · (1−) = 1−. Unten fehlen noch Bausteine.", "1 · (3+) = 3+, but 1 · (1−) = 1−. Tiles are still missing below."),
-        [wallKey("Al3+", "Cl-", 1, 2)]: tr("2 · (1−) = 2− ist weniger als 3+. Unten fehlt noch ein Baustein.", "2 · (1−) = 2− is less than 3+. One tile is still missing below."),
-        [wallKey("Al3+", "Cl-", 1, 4)]: tr("4 · (1−) = 4− ist mehr als 3+.", "4 · (1−) = 4− is more than 3+."),
+        [wallKey("Al3+", "F-", 1, 1)]: tr("1 · (3+) = 3+, aber 1 · (1−) = 1−. Unten fehlen noch Bausteine.", "1 · (3+) = 3+, but 1 · (1−) = 1−. Tiles are still missing below."),
+        [wallKey("Al3+", "F-", 1, 2)]: tr("2 · (1−) = 2− ist weniger als 3+. Unten fehlt noch ein Baustein.", "2 · (1−) = 2− is less than 3+. One tile is still missing below."),
+        [wallKey("Al3+", "F-", 1, 4)]: tr("4 · (1−) = 4− ist mehr als 3+.", "4 · (1−) = 4− is more than 3+."),
       },
       tip: tr("Wie breit ist ein Al³⁺? So lang muss die untere Reihe werden.", "How wide is one Al³⁺? The bottom row must become that long."),
       ok: tr("1 · (3+) = 3+ und 3 · (1−) = 3−: neutral.", "1 · (3+) = 3+ and 3 · (1−) = 3−: neutral."),
@@ -168,17 +168,17 @@ function steps(): GuideStep[] {
     model({
       mode: "free",
       say: tr("Jetzt baust du die Formel selbst: Stelle die Indizes ein.", "Now you build the formula yourself: set the subscripts."),
-      ask: tr("Baue die Formel der Verbindung aus Al³⁺ und Cl⁻. Die Wand darunter zeigt, was deine Formel bedeutet.", "Build the formula of the compound of Al³⁺ and Cl⁻. The wall below shows what your formula means."),
-      visual: c => <FormulaModel c={c} cat="Al3+" an="Cl-" start={[1, 1]} sol={[1, 3]} />,
-      answer: formulaKey("Al3+", "Cl-", 1, 3),
+      ask: tr("Baue die Formel der Verbindung aus Al³⁺ und F⁻. Die Wand darunter zeigt, was deine Formel bedeutet.", "Build the formula of the compound of Al³⁺ and F⁻. The wall below shows what your formula means."),
+      visual: c => <FormulaModel c={c} cat="Al3+" an="F-" start={[1, 1]} sol={[1, 3]} />,
+      answer: formulaKey("Al3+", "F-", 1, 3),
       why: {
-        [formulaKey("Al3+", "Cl-", 1, 1)]: tr("AlCl bedeutet 1 Al³⁺ und 1 Cl⁻: 3+, aber nur 1−.", "AlCl means 1 Al³⁺ and 1 Cl⁻: 3+, but only 1−."),
-        [formulaKey("Al3+", "Cl-", 1, 2)]: tr("2 · (1−) = 2− reicht nicht für 3+.", "2 · (1−) = 2− is not enough for 3+."),
-        [formulaKey("Al3+", "Cl-", 3, 1)]: tr("Die 3 steht beim falschen Symbol: 3 · (3+) = 9+, aber 1 · (1−) = 1−.", "The 3 is on the wrong symbol: 3 · (3+) = 9+, but 1 · (1−) = 1−."),
-        [formulaKey("Al3+", "Cl-", 1, 3, true)]: tr("Die Anzahl stimmt, aber das Kation steht zuerst: erst Al, dann Cl.", "The numbers are right, but the cation comes first: Al, then Cl."),
+        [formulaKey("Al3+", "F-", 1, 1)]: tr("AlF bedeutet 1 Al³⁺ und 1 F⁻: 3+, aber nur 1−.", "AlF means 1 Al³⁺ and 1 F⁻: 3+, but only 1−."),
+        [formulaKey("Al3+", "F-", 1, 2)]: tr("2 · (1−) = 2− reicht nicht für 3+.", "2 · (1−) = 2− is not enough for 3+."),
+        [formulaKey("Al3+", "F-", 3, 1)]: tr("Die 3 steht beim falschen Symbol: 3 · (3+) = 9+, aber 1 · (1−) = 1−.", "The 3 is on the wrong symbol: 3 · (3+) = 9+, but 1 · (1−) = 1−."),
+        [formulaKey("Al3+", "F-", 1, 3, true)]: tr("Die Anzahl stimmt, aber das Kation steht zuerst: erst Al, dann F.", "The numbers are right, but the cation comes first: Al, then F."),
       },
       tip: tr("Der Index sagt, wie viele Ionen man braucht. Schau, ob die Wand gleich lange Reihen hat.", "The subscript says how many ions you need. Check whether the wall has rows of equal length."),
-      ok: tr("1 · (3+) = 3+ und 3 · (1−) = 3− → AlCl₃: Index 3 beim Cl.", "1 · (3+) = 3+ and 3 · (1−) = 3− → AlCl₃: subscript 3 on Cl."),
+      ok: tr("1 · (3+) = 3+ und 3 · (1−) = 3− → AlF₃: Index 3 beim F.", "1 · (3+) = 3+ and 3 · (1−) = 3− → AlF₃: subscript 3 on F."),
     }),
     {
       mode: "free",
@@ -272,17 +272,17 @@ function steps(): GuideStep[] {
     }),
     model({
       mode: "free",
-      ask: tr("Jetzt du: Setze den Namen von AlCl₃ zusammen.", "Your turn: put together the name of AlCl₃."),
-      visual: c => <NameModel c={c} f="AlCl3" pieces={pAlCl3} sol={[0, 1, 2]} />,
-      answer: nameOf(pAlCl3, [0, 1, 2]),
+      ask: tr("Jetzt du: Setze den Namen von CaF₂ zusammen.", "Your turn: put together the name of CaF₂."),
+      visual: c => <NameModel c={c} f="CaF2" pieces={pCaF2} sol={[0, 1, 2]} />,
+      answer: nameOf(pCaF2, [0, 1, 2]),
       why: {
-        [nameOf(pAlCl3, [0, 4, 1, 2])]: tr("Im Namen steht keine Anzahl – die 3 steht nur in der Formel.", "The name has no numbers – the 3 is only in the formula."),
-        [nameOf(pAlCl3, [0, 1])]: tr("Es fehlt die Endung -id.", "The ending -ide is missing."),
-        [nameOf(pAlCl3, [0, 1, 3])]: tr("Die Endung -it ist hier falsch. Ein Nichtmetall-Ion aus einem Atom endet auf -id.", "The ending -ite is wrong here. A non-metal ion made of one atom ends in -ide."),
-        [nameOf(pAlCl3, [1, 0, 2])]: tr("Das Metall steht zuerst: erst Aluminium, dann Chlorid.", "The metal comes first: aluminium, then chloride."),
+        [nameOf(pCaF2, [0, 4, 1, 2])]: tr("Im Namen steht keine Anzahl – die 2 steht nur in der Formel.", "The name has no numbers – the 2 is only in the formula."),
+        [nameOf(pCaF2, [0, 1])]: tr("Es fehlt die Endung -id.", "The ending -ide is missing."),
+        [nameOf(pCaF2, [0, 1, 3])]: tr("Die Endung -it ist hier falsch. Ein Nichtmetall-Ion aus einem Atom endet auf -id.", "The ending -ite is wrong here. A non-metal ion made of one atom ends in -ide."),
+        [nameOf(pCaF2, [1, 0, 2])]: tr("Das Metall steht zuerst: erst Calcium, dann Fluorid.", "The metal comes first: calcium, then fluoride."),
       },
       tip: tr("Welches Element ist das Metall? Mit ihm beginnt der Name.", "Which element is the metal? The name starts with it."),
-      ok: tr("AlCl₃ heißt Aluminiumchlorid – ohne „tri“.", "AlCl₃ is called aluminium chloride – without “tri”."),
+      ok: tr("CaF₂ heißt Calciumfluorid – ohne „di“.", "CaF₂ is called calcium fluoride – without “di”."),
     }),
     {
       mode: "free",
@@ -448,9 +448,9 @@ export const kapitel2 = (): Kapitel => ({
       tr("Die Formel nennt das kleinste Verhältnis (BaO, nicht Ba₂O₂). Sie beschreibt kein Molekül.", "The formula gives the smallest ratio (BaO, not Ba₂O₂). It does not describe a molecule."),
     ],
     [
-      tr("Name: erst das Metall, dann der Wortstamm des Nichtmetalls mit **-id**: BaF₂ heißt Bariumfluorid.", "Name: first the metal, then the word stem of the non-metal with **-ide**: BaF₂ is barium fluoride."),
+      tr("Name: erst das Metall, dann der Wortstamm des Nichtmetalls mit **-id**: KI heißt Kaliumiodid.", "Name: first the metal, then the word stem of the non-metal with **-ide**: KI is potassium iodide."),
       tr("Besondere Wortstämme: Sauerstoff → Oxid, Schwefel → Sulfid, Stickstoff → Nitrid.", "Special word stems: oxygen → oxide, sulfur → sulfide, nitrogen → nitride."),
-      tr("Im Namen steht keine Anzahl: Bariumfluorid, nicht Bariumdifluorid.", "The name has no numbers: barium fluoride, not barium difluoride."),
+      tr("Im Namen steht keine Anzahl: BaI₂ heißt Bariumiodid, nicht Bariumdiiodid.", "The name has no numbers: BaI₂ is barium iodide, not barium diiodide."),
     ],
     [
       tr("Name → Formel: Ionen mit dem PSE bestimmen (Hauptgruppe → Ladung), ausgleichen, Formel schreiben.", "Name → formula: find the ions with the periodic table (main group → charge), balance, write the formula."),
