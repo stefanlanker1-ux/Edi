@@ -108,7 +108,7 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "faded",
-    ask: tr("Tippe Außenelektronen von Magnesium an, bis es Edelgaskonfiguration hat. Dann prüfe.", "Tap outer electrons of magnesium until it has a noble gas configuration. Then check."),
+    ask: tr("Gib mit „e⁻ abgeben“ Außenelektronen von Magnesium ab, bis es Edelgaskonfiguration hat. Dann prüfe.", "Use “lose e⁻” to remove outer electrons of magnesium until it has a noble gas configuration. Then check."),
     answer: "Mg²⁺",
     lines: [tr("Magnesium: 2 · 8 · 2, II. Hauptgruppe.", "Magnesium: 2 · 8 · 2, main group II."), tr("12 p⁺ · 10 e⁻ → {?}", "12 p⁺ · 10 e⁻ → {?}")],
     why: {
@@ -200,7 +200,7 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "faded",
-    ask: tr("Tippe freie Plätze von Sauerstoff an, bis außen 8 sind. Dann prüfe.", "Tap free places of oxygen until there are 8 on the outside. Then check."),
+    ask: tr("Nimm mit „e⁻ aufnehmen“ Elektronen auf, bis Sauerstoff außen 8 hat. Dann prüfe.", "Use “gain e⁻” until oxygen has 8 on the outside. Then check."),
     answer: "O²⁻",
     lines: [tr("Sauerstoff: 2 · 6, VI. Hauptgruppe.", "Oxygen: 2 · 6, main group VI."), tr("8 p⁺ · 10 e⁻ → {?}", "8 p⁺ · 10 e⁻ → {?}")],
     why: {
@@ -291,7 +291,7 @@ const steps = (): GuideStep[] => [
   }),
   model({
     mode: "faded",
-    ask: tr("Tippe Außenelektronen von Magnesium an: Sie gehen zum Sauerstoff-Atom über. Dann prüfe.", "Tap outer electrons of magnesium: they pass to the oxygen atom. Then check."),
+    ask: tr("Übertrage mit „e⁻ übertragen“ Elektronen vom Magnesium- zum Sauerstoff-Atom. Dann prüfe.", "Use “transfer e⁻” to move electrons from the magnesium atom to the oxygen atom. Then check."),
     answer: "Mg²⁺ + O²⁻",
     lines: [tr("Mg hat 2 Außenelektronen, O hat 6.", "Mg has 2 outer electrons, O has 6."), tr("Nach dem Übergang: {?}", "After the transfer: {?}")],
     why: {
@@ -365,18 +365,18 @@ const steps = (): GuideStep[] => [
   {
     mode: "free",
     ask: tr("Welcher Satz passt zum Modell der Ionenbildung?", "Which sentence fits the model of ion formation?"),
-    visual: () => <Row items={[{ Z: 12, E: 10, title: "Mg²⁺" }, { Z: 8, E: 10, got: 2, title: "O²⁻" }]} arrows={["2 e⁻ →"]} />,
-    answer: tr("Kationen und Anionen entstehen gemeinsam.", "Cations and anions form together."),
+    visual: () => <Row items={[{ Z: 12, E: 10, title: tr("Magnesium-Ion", "Magnesium ion") }, { Z: 8, E: 10, got: 2, title: tr("Oxid-Ion", "Oxide ion") }]} arrows={["2 e⁻ →"]} />,
+    answer: tr("Mg²⁺ und O²⁻ entstehen zugleich.", "Mg²⁺ and O²⁻ form together."),
     options: [
-      tr("Ein Kation entsteht allein, seine Elektronen verschwinden.", "A cation forms on its own, its electrons disappear."),
-      tr("Kationen und Anionen entstehen gemeinsam.", "Cations and anions form together."),
-      tr("Das Metall-Atom nimmt Elektronen auf.", "The metal atom gains electrons."),
+      tr("Mg²⁺ entsteht allein.", "Mg²⁺ forms on its own."),
+      tr("Mg²⁺ und O²⁻ entstehen zugleich.", "Mg²⁺ and O²⁻ form together."),
+      tr("Das Mg-Atom nimmt e⁻ auf.", "The Mg atom gains e⁻."),
     ],
     why: {
-      [tr("Ein Kation entsteht allein, seine Elektronen verschwinden.", "A cation forms on its own, its electrons disappear.")]: tr("Elektronen verschwinden nicht: Das Nichtmetall-Atom nimmt sie auf und wird zum Anion.", "Electrons do not disappear: the non-metal atom gains them and becomes an anion."),
-      [tr("Das Metall-Atom nimmt Elektronen auf.", "The metal atom gains electrons.")]: tr("Umgekehrt: Das Metall-Atom gibt Elektronen ab und wird positiv.", "The other way round: the metal atom loses electrons and becomes positive."),
+      [tr("Mg²⁺ entsteht allein.", "Mg²⁺ forms on its own.")]: tr("Die 2 Elektronen verschwinden nicht: Das O-Atom nimmt sie auf und wird zum Anion O²⁻.", "The 2 electrons do not disappear: the O atom gains them and becomes the anion O²⁻."),
+      [tr("Das Mg-Atom nimmt e⁻ auf.", "The Mg atom gains e⁻.")]: tr("Umgekehrt: Das Mg-Atom gibt 2 Elektronen ab und wird positiv.", "The other way round: the Mg atom loses 2 electrons and becomes positive."),
     },
-    ok: tr("Was das Metall-Atom abgibt, nimmt das Nichtmetall-Atom auf. Die Gesamtladung bleibt 0.", "What the metal atom loses, the non-metal atom gains. The total charge stays 0."),
+    ok: tr("Was das Metall-Atom abgibt, nimmt das Nichtmetall-Atom auf. Kation und Anion entstehen zugleich, die Gesamtladung bleibt 0.", "What the metal atom loses, the non-metal atom gains. Cation and anion form together, the total charge stays 0."),
   },
 ];
 

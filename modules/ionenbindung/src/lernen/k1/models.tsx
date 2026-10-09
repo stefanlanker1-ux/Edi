@@ -29,6 +29,8 @@ const valence = (Z: number) => outerOf(Z);
 
 const R = [22, 38, 54, 70];
 const ER = 5.2;
+/** Trefferfläche eines Elektrons beim Markieren (Einheiten der Zeichnung) */
+const HIT = 12;
 // Reihenfolge der Plätze auf einer Schale mit 8 Plätzen (oben, unten, rechts, links, dann die Diagonalen) bzw. K (links, rechts)
 const ORDER8 = [0, 4, 2, 6, 1, 5, 3, 7];
 const pos = (shell: number, k: number, r: number): [number, number] => {
@@ -48,10 +50,6 @@ export interface AtomProps {
   got?: number;
   /** freie Plätze der Außenschale gestrichelt zeigen */
   slots?: boolean;
-  /** Außenelektron antippen (Index in der Füllreihenfolge der äußersten Schale) */
-  onOuter?: () => void;
-  /** freien Platz antippen */
-  onSlot?: () => void;
   /** Markieren: Schlüssel "Schale-Platz" */
   marked?: Set<string>;
   onMark?: (key: string) => void;
@@ -63,7 +61,7 @@ export interface AtomProps {
 }
 
 /** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien, Hülle als Fläche (Größe des Teilchens) */
-export function Atom({ Z, E, ext, got = 0, slots, onOuter, onSlot, marked, onMark, hint, label, ghost = true }: AtomProps) {
+export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, ghost = true }: AtomProps) {
   const sh = shellsOf(E), neutral = shellsOf(Z);
   const last = sh.length - 1;
   const rOut = ringR(Z, E, last, true);
@@ -85,29 +83,25 @@ export function Atom({ Z, E, ext, got = 0, slots, onOuter, onSlot, marked, onMar
       {outerFree > 0 && Array.from({ length: outerFree }, (_, j) => {
         const [x, y] = pos(last, sh[last] + j, rOut);
         return (
-          <g key={`s${j}`} className={`k1-slot${onSlot ? " tap" : ""}`} onClick={onSlot} role={onSlot ? "button" : undefined}
-            aria-label={onSlot ? tr("freier Platz: Elektron aufnehmen", "free place: gain an electron") : undefined}>
-            <circle cx={x} cy={y} r={ER} className="k1-slot-c" />
-            {onSlot && <circle cx={x} cy={y} r={11} className="k1-hit" />}
-          </g>
+          <circle key={`s${j}`} cx={x} cy={y} r={ER} className="k1-slot-c" />
         );
       })}
       {sh.map((n, s) => Array.from({ length: n }, (_, k) => {
         const i = idx++;
         const [x, y] = pos(s, k, ringR(Z, E, s, s === last));
         const key = `${s}-${k}`;
-        const outer = s === last;
-        const tap = onMark ? () => onMark(key) : outer && onOuter ? onOuter : undefined;
+        // nur beim Markieren ist jedes Elektron ein Tippziel; sonst bedient man das Modell mit den Knöpfen darunter
+        const tap = onMark ? () => onMark(key) : undefined;
         const m = marked?.has(key), h = hint?.has(key);
         return (
           <g key={key} data-s={s} className={`k1-e${i >= gotFrom ? " got" : ""}${m ? " mark" : ""}${h ? " hint" : ""}${tap ? " tap" : ""}`} onClick={tap}
             role={tap ? "button" : undefined} tabIndex={tap ? 0 : undefined} aria-pressed={onMark ? !!m : undefined}
-            aria-label={tap ? (onMark ? tr(`Elektron auf Schale ${s + 1}`, `Electron in shell ${s + 1}`) : tr("Außenelektron abgeben", "Lose outer electron")) : undefined}
+            aria-label={tap ? tr(`Elektron auf Schale ${s + 1}`, `Electron in shell ${s + 1}`) : undefined}
             onKeyDown={tap ? e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tap(); } } : undefined}>
             {(m || h) && <circle cx={x} cy={y} r={ER + 3.2} className="k1-e-ring" />}
             <circle cx={x} cy={y} r={ER} className="k1-e-c" />
             {i >= gotFrom && <circle cx={x} cy={y} r={ER * 0.42} className="k1-e-dot" />}
-            {tap && <circle cx={x} cy={y} r={11} className="k1-hit" />}
+            {tap && <circle cx={x} cy={y} r={HIT} className="k1-hit" />}
           </g>
         );
       }))}
@@ -194,8 +188,7 @@ export function IonBuilder({ c, Z, solution }: { c: GuideCtx; Z: number; solutio
     <ModelFrame c={c} className="k1-m"
       stage={
         <div className="k1-one">
-          <div className="k1-one-svg"><Atom Z={Z} E={E} ext={extentOf(Z, hi)} got={Math.max(0, E - Z)} slots={!c.solved}
-            onOuter={c.solved ? undefined : lose} onSlot={c.solved ? undefined : gain} /></div>
+          <div className="k1-one-svg"><Atom Z={Z} E={E} ext={extentOf(Z, hi)} got={Math.max(0, E - Z)} slots={!c.solved} /></div>
           <Caption Z={Z} E={E} big noble={c.solved} />
         </div>
       }
@@ -307,6 +300,9 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
     set({ ...s, gave: s.gave.map((g, k) => (k === i ? g + 1 : g)), got: s.got.map((g, k) => (k === j ? g + 1 : g)) });
     setFly(f => f + 1);
   };
+  /** ein Elektron übertragen: vom ersten Metall-Atom, das noch Außenelektronen hat */
+  const transfer = () => { const i = s.gave.findIndex(g => g < vm); if (i < 0) buzz(); else give(i); };
+  const canGive = s.gave.some(g => g < vm) && s.got.some(g => vn + g < 8);
   const count = (n: number) => { if (lock) return; set(adjust === "m" ? fresh(n, s.nn) : fresh(s.nm, n)); };
   const ext = Math.max(extentOf(M), extentOf(N, N + (8 - vn)));
   const total = s.gave.reduce((a, b) => a + b, 0);
@@ -318,7 +314,7 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
           <div className="k1-tr-col">
             {s.gave.map((g, i) => (
               <figure key={`m${i}`} className="k1-fig">
-                <div className="k1-fig-svg"><Atom Z={M} E={M - g} ext={ext} onOuter={lock || g >= vm ? undefined : () => give(i)} /></div>
+                <div className="k1-fig-svg"><Atom Z={M} E={M - g} ext={ext} /></div>
                 <figcaption><Caption Z={M} E={M - g} noble={c.solved} /></figcaption>
               </figure>
             ))}
@@ -341,10 +337,12 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
           </p>
         </div>
       }
-      controls={c.solved ? undefined : adjust ? (
-        <Stepper stack={false} compact label={adjust === "m" ? tr(`${BY_Z[M].name}-Atome`, `${BY_Z[M].name} atoms`) : tr(`${BY_Z[N].name}-Atome`, `${BY_Z[N].name} atoms`)}
-          value={adjust === "m" ? s.nm : s.nn} min={lock ? (adjust === "m" ? s.nm : s.nn) : 1} max={lock ? (adjust === "m" ? s.nm : s.nn) : 3} editable={false} onChange={count} />
-      ) : <Button icon="reset" onClick={() => set(fresh(s.nm, s.nn))} disabled={lock || !total}>{tr("Zurück", "Undo")}</Button>}
+      controls={c.solved ? undefined : <>
+        {adjust && <Stepper stack={false} compact label={adjust === "m" ? tr(`${BY_Z[M].name}-Atome`, `${BY_Z[M].name} atoms`) : tr(`${BY_Z[N].name}-Atome`, `${BY_Z[N].name} atoms`)}
+          value={adjust === "m" ? s.nm : s.nn} min={1} max={3} editable={false} onChange={count} />}
+        <Button icon="arrow" onClick={transfer} disabled={!canGive}>{tr("e⁻ übertragen", "transfer e⁻")}</Button>
+        <Button icon="reset" onClick={() => set(fresh(s.nm, s.nn))} disabled={!total} aria-label={tr("Zurück zu den Atomen", "Back to the atoms")} />
+      </>}
       onCheck={() => c.pick(trResult(M, N, s))} />
   );
 }
