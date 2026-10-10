@@ -242,6 +242,7 @@ a.ui-brand { color: inherit; text-decoration: none; }
 .ui-wb-tools.many .ui-wb-tool > span {
   white-space: normal; text-align: center; line-height: 1.15; hyphens: manual;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  min-height: 2.3em; /* immer Platz für zwei Zeilen: bricht eine Beschriftung beim Wechsel (Ca²⁺ ↔ Li⁺) anders um, springt die Bühne nicht */
 }
 .ui-wb-tools.many .ui-wb-tool > span * { white-space: nowrap; } /* Formeln/Ionen (Ca²⁺) nie auseinanderreißen */
 .ui-wb-tool:hover:not(:disabled) { background: var(--surface-2); }

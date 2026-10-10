@@ -112,8 +112,9 @@ export function BuildView() {
         </>
       ),
     },
-    ...(os && done ? [{
-      id: "bau", label: tr("Bau", "Shape"), icon: "molecule" as const, content: (
+    // Level II: „Bau“ steht immer in der Leiste (ohne fertiges Molekül deaktiviert) – fiele es weg, bräche die Leiste anders um und die Bühne spränge
+    ...(os ? [{
+      id: "bau", label: tr("Bau", "Shape"), icon: "molecule" as const, disabled: !done, content: !done ? <p className="muted">–</p> : (
         <>
           <ul className="geo-list">
             {center.map(sh => {
