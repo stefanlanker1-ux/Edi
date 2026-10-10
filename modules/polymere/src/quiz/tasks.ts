@@ -1335,7 +1335,7 @@ const K2: Step[] = tr([
 const K3: Step[] = tr([
   ["katalysator", "Starter und Katalysator setzen beide eine Polymerisation in Gang – worin unterscheiden sie sich?", "Ein **Katalysator** wird nicht verbraucht. Am Titan wachsen nacheinander viele Ketten."],
   ["freieStelleTap", "Das Titan hält die Kette – wo hat das nächste Monomer Platz?", "Am Titan gibt es eine **freie Stelle**. Dort lagert sich das Monomer an."],
-  ["zieglerGift", "Das Titan verträgt nicht jedes Monomer – sieh dir die Atome genau an.", "Polare Monomere binden mit O, N, Cl oder F an das Titan: Der Katalysator ist **vergiftet**."],
+  ["zieglerGift", "Das Titan verträgt nicht jedes Monomer – sieh dir die Atome genau an.", "Monomere mit O, N, Cl oder F binden mit einem freien Elektronenpaar an das Titan: Der Katalysator ist **vergiftet**."],
   ["taktisch", "Schau, auf welcher Seite der Kette die Seitengruppen sitzen.", "**Isotaktisch**: alle Seitengruppen auf einer Seite. **Ataktisch**: zufällig."],
   ["taktischVerfahren", "Drei Verfahren, drei Arten von Ketten – welches passt hier?", "Am Titan wird jedes Monomer gleich herum eingebaut – die Kette wird geordnet."],
   ["hdpe", "Polyethen kommt aus zwei Verfahren – mit ganz verschiedenen Ketten.", "Ziegler-Natta: **unverzweigtes** PE-HD. Radikalisch unter hohem Druck: **verzweigtes** PE-LD."],
@@ -1346,7 +1346,7 @@ const K3: Step[] = tr([
 ], [
   ["katalysator", "Initiator and catalyst both get a polymerisation going – how do they differ?", "A **catalyst** is not used up. Many chains grow one after another at the titanium."],
   ["freieStelleTap", "The titanium holds the chain – where is there room for the next monomer?", "The titanium has a **vacant site**. The monomer attaches there."],
-  ["zieglerGift", "The titanium does not tolerate every monomer – look closely at the atoms.", "Polar monomers bind to the titanium with O, N, Cl or F: the catalyst is **poisoned**."],
+  ["zieglerGift", "The titanium does not tolerate every monomer – look closely at the atoms.", "Monomers with O, N, Cl or F bind to the titanium with a lone pair: the catalyst is **poisoned**."],
   ["taktisch", "Look at which side of the chain the side groups sit on.", "**Isotactic**: all side groups on one side. **Atactic**: random."],
   ["taktischVerfahren", "Three methods, three kinds of chain – which fits here?", "At the titanium each monomer is inserted the same way round – the chain becomes ordered."],
   ["hdpe", "Polyethene comes from two methods – with very different chains.", "Ziegler–Natta: **unbranched** PE-HD. Radical at high pressure: **branched** PE-LD."],

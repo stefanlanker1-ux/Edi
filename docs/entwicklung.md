@@ -1189,6 +1189,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Polymere: Ziegler-Natta ohne „polare Monomere“** – nach der Umstellung auf Allred-Rochow ist C–Cl (ΔEN 0,33) nicht polar, Vinylchlorid wäre nach der Regel nur schwach
+  polar. Die Vergiftung des Katalysators wird deshalb überall über die Ursache begründet: „Monomere mit O, N, Cl oder F binden mit einem freien Elektronenpaar an das Titan“
+  (Lektion, Merkkarte, Stolpersteine DE/EN).
 - **Elektronegativität nach Allred-Rochow, polar ab ΔEN 0,5** (`@lern/chem`, Elektronenpaarbindung, Atombau) – Wunsch der Lehrkraft (Schulbuch). Alle Werte, Tabellen,
   Trends und Rechnungen nach Allred-Rochow statt Pauling. Folgen: C–Cl, C–Br und N=O gelten als nicht polar (CH₃Cl, CH₂Cl₂, CHCl₃ schwach polar), Teilladungen bei P–H, C–I,
   C–S umgekehrt, HI unpolar. Quiz Polarität ohne Chlormethan (gemessen deutlich polar – wäre irreführend), dafür Methanal und Blausäure; Erklärung mit CF₄ statt CCl₄.

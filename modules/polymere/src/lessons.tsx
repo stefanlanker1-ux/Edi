@@ -336,7 +336,7 @@ const K3: GuideStep[] = [
   },
   {
     mode: "worked",
-    say: T("Polare Monomere **vergiften** den Katalysator.", "Polar monomers **poison** the catalyst."),
+    say: T("Monomere mit O, N, Cl oder F (freie Elektronenpaare) **vergiften** den Katalysator.", "Monomers with O, N, Cl or F (lone pairs) **poison** the catalyst."),
     ask: T("Was passiert mit **Methylmethacrylat** (MMA)?", "What happens with **methyl methacrylate** (MMA)?"),
     visual: () => <MechPlay r={ZN_MMA} acts={["act", "add:mma"]} />,
     lines: [
