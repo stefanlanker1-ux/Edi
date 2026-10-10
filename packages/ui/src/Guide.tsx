@@ -196,6 +196,72 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
   const part = parts.filter(p => p.from <= Math.min(i, n - 1)).pop();
   const solText = typeof step.answer === "number" ? num(step.answer) : step.answer;
 
+  // Text des Schritts in einem Zustand (`live` = der echte, bedienbar). Darunter liegen unsichtbar die größten Zustände desselben Schritts
+  // (gelöst mit ganzem Lösungsweg, längste Rückmeldung, markierte Lösung): der Text nimmt von Anfang an so viel Platz ein, wie er im Schritt je braucht –
+  // erscheint eine Zeile, eine Rückmeldung oder „Weiter“, springt das Bild darüber nicht (es rückt und schrumpft nicht).
+  type TextState = { solved: boolean; show: boolean; msg: string | null; seen: number };
+  const textOf = ({ solved, show, msg, seen }: TextState, live: boolean) => (
+    <>
+      {step.mode && <span className={`ui-guide-mode m-${step.mode}`}>{MODE_NAME[step.mode]()}</span>}
+      {/* nach dem Lösen ist der Einleitungssatz gelesen – sein Platz gehört dem Lösungsweg */}
+      {step.say && !(solved && !worked && lines.length > 0) && <p className="ui-guide-say"><RichText text={step.say} /></p>}
+      <p className="ui-guide-ask"><RichText text={step.ask} /></p>
+      {lines.length > 0 && (step.mode !== "free" || solved) && (
+        <ol className={`ui-guide-lines${step.mode === "free" ? " after" : ""}`}>
+          {(worked ? lines.slice(0, seen) : lines).map((l, k) => <li key={`${i}-${k}`}><Line text={l} fill={solved || show ? solText : undefined} /></li>)}
+        </ol>
+      )}
+      {worked && !solved && !tools && (
+        <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? reveal : undefined}>{tr("Nächster Schritt", "Next step")}</Button>
+      )}
+      {step.options && (
+        <NoTerms>
+        <div className={`ui-guide-opts${step.options.some(o => o.length > 16) ? " long" : step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
+          {step.options.map(o => {
+            const right = solved && o === step.answer, mark = show && o === step.answer;
+            return (
+              <button key={o} type="button" className={`ui-guide-opt${right ? " right" : ""}${mark ? " sol" : ""}`} onClick={live ? () => answer(o) : undefined}>
+                {right && <Icon name="check" size={18} />}<RichText text={o} />
+              </button>
+            );
+          })}
+        </div>
+        </NoTerms>
+      )}
+      {step.num && (
+        <form className="ui-guide-num" key={`n${i}`} onSubmit={e => { e.preventDefault(); if (live && val.trim()) answer(val); }}>
+          <input inputMode="decimal" autoComplete="off" aria-label={tr("Zahl", "Number")} value={live ? val : ""} readOnly={!live} placeholder={show ? solText : "?"}
+            className={show ? "sol" : solved ? "right" : undefined} onChange={e => setVal(e.target.value)} />
+          {step.num.unit && <span className="ui-guide-unit">{step.num.unit}</span>}
+          <Button variant="primary" icon="check" type="submit" disabled={!live || !val.trim() || solved}>{tr("Prüfen", "Check")}</Button>
+        </form>
+      )}
+      <p className={`ui-guide-msg${solved ? " right" : show ? " sol" : msg ? " wrong" : ""}`} aria-live="polite">
+        {solved ? <><Icon name={worked ? "arrow" : "check"} size={18} /><span><RichText text={step.ok} /></span></>
+          : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
+      </p>
+      {solved && !tools && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? next : undefined}>{tr("Weiter", "Next")}</Button>}
+      {tools && (
+        <div className="ui-guide-foot">
+          {tools(step, i).map(t => (
+            <Button key={t.id} variant="quiet" icon={t.icon} className="ui-guide-tool" disabled={t.disabled} onClick={live ? () => setTool(t.id) : undefined}>{t.label}</Button>
+          ))}
+          {worked && !solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? reveal : undefined}>{tr("Nächster Schritt", "Next step")}</Button>}
+          {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? next : undefined}>{tr("Weiter", "Next")}</Button>}
+        </div>
+      )}
+    </>
+  );
+  const longest = (xs: string[]) => [...new Set(xs)].sort((a, b) => b.length - a.length).slice(0, 2);
+  const ghosts: TextState[] = done ? [] : worked
+    ? [{ solved: true, show: false, msg: null, seen: lines.length }]
+    : [
+        { solved: true, show: false, msg: null, seen: lines.length },
+        ...longest([...Object.values(step.why ?? {}), undefined].flatMap(w => [1, GUIDE_TRIES - 1].map(t => feedback(step, w, t))))
+          .map(m => ({ solved: false, show: false, msg: m, seen: 1 })),
+        { solved: false, show: true, msg: step.show ?? tr("So geht's: tippe auf das Markierte.", "Here's how: tap the marked answer."), seen: 1 },
+      ];
+
   return (
     <dialog ref={ref} className="ui-guide" onClose={e => { if (e.target === e.currentTarget) onClose(); /* nicht das Blatt eines Begriffs */ }} aria-label={`${badge ?? tr("Erklärung", "Explanation")}: ${def.title}`}>
       {open && (
@@ -231,54 +297,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
                 </div>
               )}
               <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
-                {step.mode && <span className={`ui-guide-mode m-${step.mode}`}>{MODE_NAME[step.mode]()}</span>}
-                {/* nach dem Lösen ist der Einleitungssatz gelesen – sein Platz gehört dem Lösungsweg */}
-                {step.say && !(solved && !worked && lines.length > 0) && <p className="ui-guide-say"><RichText text={step.say} /></p>}
-                <p className="ui-guide-ask"><RichText text={step.ask} /></p>
-                {lines.length > 0 && (step.mode !== "free" || solved) && (
-                  <ol className={`ui-guide-lines${step.mode === "free" ? " after" : ""}`}>
-                    {(worked ? lines.slice(0, seen) : lines).map((l, k) => <li key={`${i}-${k}`}><Line text={l} fill={solved || show ? solText : undefined} /></li>)}
-                  </ol>
-                )}
-                {worked && !solved && !tools && (
-                  <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>
-                )}
-                {step.options && (
-                  <NoTerms>
-                  <div className={`ui-guide-opts${step.options.some(o => o.length > 16) ? " long" : step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
-                    {step.options.map(o => {
-                      const right = solved && o === step.answer, mark = show && o === step.answer;
-                      return (
-                        <button key={o} type="button" className={`ui-guide-opt${right ? " right" : ""}${mark ? " sol" : ""}`} onClick={() => answer(o)}>
-                          {right && <Icon name="check" size={18} />}<RichText text={o} />
-                        </button>
-                      );
-                    })}
-                  </div>
-                  </NoTerms>
-                )}
-                {step.num && (
-                  <form className="ui-guide-num" key={`n${i}`} onSubmit={e => { e.preventDefault(); if (val.trim()) answer(val); }}>
-                    <input inputMode="decimal" autoComplete="off" aria-label={tr("Zahl", "Number")} value={val} placeholder={show ? solText : "?"}
-                      className={show ? "sol" : solved ? "right" : undefined} onChange={e => setVal(e.target.value)} />
-                    {step.num.unit && <span className="ui-guide-unit">{step.num.unit}</span>}
-                    <Button variant="primary" icon="check" type="submit" disabled={!val.trim() || solved}>{tr("Prüfen", "Check")}</Button>
-                  </form>
-                )}
-                <p className={`ui-guide-msg${solved ? " right" : show ? " sol" : msg ? " wrong" : ""}`} aria-live="polite">
-                  {solved ? <><Icon name={worked ? "arrow" : "check"} size={18} /><span><RichText text={step.ok} /></span></>
-                    : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
-                </p>
-                {solved && !tools && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
-                {tools && (
-                  <div className="ui-guide-foot">
-                    {tools(step, i).map(t => (
-                      <Button key={t.id} variant="quiet" icon={t.icon} className="ui-guide-tool" disabled={t.disabled} onClick={() => setTool(t.id)}>{t.label}</Button>
-                    ))}
-                    {worked && !solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>}
-                    {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
-                  </div>
-                )}
+                <div className="ui-guide-now">{textOf({ solved, show, msg, seen }, true)}</div>
+                {ghosts.map((g, k) => <div key={k} className="ui-guide-ghost" aria-hidden="true" inert>{textOf(g, false)}</div>)}
               </div>
             </div>
           )}
