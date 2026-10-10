@@ -507,8 +507,6 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const [sheet, setSheet] = useState<"hint" | "first" | null>(null);
   const hintInline = game.hintUsed && !faded && !a && !aside.hint;
   const firstInline = faded && !a && !aside.first;
-  // nach der Antwort bleibt der erste Schritt stehen (und der Merksatz weg): verschwände er, rückte das Bild darunter nach oben
-  const firstShown = faded && !aside.first;
   // eben „Tipp“ gedrückt: passt er nicht, geht sein Blatt gleich auf (nach dem Neuladen nicht – dann erst auf „Tipp“)
   const tookHint = useRef(false);
   const hintRef = useRef<HTMLDivElement>(null);
@@ -535,11 +533,11 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const termSlot = termTool(p, terms).length || a ? termTool(p, terms) : termTool(p, p.terms?.(t, true) ?? []).map(x => ({ ...x, off: true }));
   return (
     <TermScope terms={terms}>
-    <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}${faded ? " faded" : ""}`}>
+    <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}${faded && !a ? " faded" : ""}`}>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt" ref={promptRef} tabIndex={-1}><RichText text={t.prompt} /></p>
       {/* neue Fertigkeit, zweite Begegnung: erster Schritt steht unter der Frage (verdeckt keine Antwortfläche) */}
-      {firstShown && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
+      {firstInline && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
       <div className="q-body" ref={bodyRef}>
         {/* nach der Antwort darf das Bild kleiner werden; wäre es dann noch abgeschnitten oder winzig, fällt es weg (styles.css) */}
         {visual && <div className="q-visual"><Fit min={a ? 0.25 : undefined} minHeight={a ? MIN_PIC : undefined}>{visual}</Fit></div>}

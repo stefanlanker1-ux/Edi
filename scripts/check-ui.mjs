@@ -90,7 +90,9 @@ function wanderInit([SEL, FRAME]) {
   // Zusammenhang: neue Folie bzw. neue Aufgabe = gewollter Wechsel
   const ctx = e => {
     const g = e.closest("dialog.ui-guide"); if (g) return "g" + (g.querySelector(".ui-guide-count")?.textContent ?? "") + (g.querySelector(".ui-guide-part, .ui-guide-head h2")?.textContent ?? "");
-    const t = e.closest(".task-card"); if (t) return "t" + (t.querySelector(".q-prompt")?.textContent ?? "") + (t.classList.contains("worked") ? "w" : "");
+    // im Aufgabenteil zusätzlich: erster Schritt bzw. Merksatz da? (nach der Antwort weichen sie der Rückmeldung – Regel „Nach der Antwort …“)
+    const t = e.closest(".task-card"); if (t) return "t" + (t.querySelector(".q-prompt")?.textContent ?? "") + (t.classList.contains("worked") ? "w" : "")
+      + (e.closest(".q-body") ? `f${!!t.querySelector(".q-first")}l${!!t.querySelector(".q-lead") && getComputedStyle(t.querySelector(".q-lead")).display !== "none"}` : "");
     // Werkbank: neue Ansicht (anderes Beispiel, andere Aufgabe, andere Art) – Wert von `data-screen`
     const w = e.closest(".ui-wb"); if (w) return "w" + [...w.querySelectorAll("[data-screen]")].map(x => x.getAttribute("data-screen")).join("|");
     return "";
