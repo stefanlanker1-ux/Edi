@@ -568,6 +568,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Level I 4, Level II 7 (gestrichelte nächste Schale nur, wenn sie hineinpasst); Steckbrief 4/6; Quiz-Bild und „Atom bauen“ 4 (Elektronen höchstens 36, also höchstens 4 Schalen);
   „Schalen füllen“ = Schalenzahl der Aufgabe; Erklärung und Erklärkarte 3; Kachel 2; Quiz-Startbild 2/4. Ziehbare und antippbare Elektronen haben einen unsichtbaren Rand
   als größere Trefferfläche.
+- **Großes PSE mit 7. Periode, Lanthanoiden und Actinoiden** nur im Atombau, Level II, Tab „Periodensystem“ (`PeriodicTable period7`, Lage in `pseLayout.ts`; Standard aus –
+  alle anderen PSE unverändert): Elementdaten bis Oganesson (Z = 118; Namen IUPAC/Duden, Standardatommassen CIAAW, sonst Massenzahl wie im gedruckten PSE in eckigen Klammern;
+  EN nur aus Messdaten Ra–Pu, Radien bis Cm nach Cordero 2008, IE bis Lr nach NIST). Zeilen „Lanthanoide“ (La–Lu) und „Actinoide“ (Ac–Lr), Platzhalter 57–71 und 89–103
+  in Gruppe 3; Kategorien „Actinoide“ und „Eigenschaften unbekannt“ (ab Mt, gestrichelt). Steckbrief für Z > 86 nur gesicherte Daten, keine Konfiguration/Schalen/Bohr/Bauen
+  (`CONFIG_MAX_Z = 86`); Baukasten, Quiz und Suche außerhalb des PSE bleiben bei 1–86. Trend ohne Messwert: gestrichelt mit „–“, Legende „keine Daten“.
 - PSE nach Blöcken färben (`PeriodicTable blocks`, `BlockLegend`, Farben `--b-s|p|d|f` passend zu den Orbitalfarben `--o-*`): im Periodensystem der Oberstufe unter „Farben → Blöcke“,
   im Quiz als Hilfsmittel bei Aufgaben zur Elektronenkonfiguration (`BLOCK_TYPES` in `QuizView.tsx`), nicht bei „Blöcke im PSE“ (wäre die Lösung).
 - Chemie: Elemente Z = 1–86. Konfiguration überall = **gemessener Grundzustand** (`configuration`/`groundState` in `packages/chem/src/config.ts`): Aufbauprinzip,
@@ -1168,6 +1173,9 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Atombau: Lanthanoide und Actinoide im großen PSE** (`@lern/chem`, `@lern/chem-ui`, Atombau) – Wunsch der Lehrkraft. Elementdaten bis Oganesson, das große PSE (Level II,
+  Tab „Periodensystem“) zeigt die 7. Periode und die Zeilen Lanthanoide/Actinoide, am Desktop und am Handy. Kleines PSE, PSE-Hilfe und Ionenbindung bleiben unverändert.
+  Für Z > 86 nur gesicherte Daten (keine Konfiguration); Trend ohne Messwert jetzt als „keine Daten“ statt in der Farbe des kleinsten Werts (auch He, Ne, Ar bei EN). Tests.
 - **Sprachknopf EN vor DE; Regel „Nichts wandert“** (`@lern/ui` `LangButton`, alle Module und Übersicht) – der Sprachknopf zeigt „EN DE“ (international), die Sprache kommt
   beim ersten Start weiter automatisch aus der Gerätesprache. Neue Gestaltungsregel: Bilder, Modelle und Karten bleiben beim Bedienen an ihrem Platz (Wunsch der Lehrkraft).
 - **Ionenbindung Kapitel 3: NaCl-Gitter in 3D** (`k3/lattice3d.tsx`) – die schräge Zeichnung wirkte flach (Cl⁻ davor/dahinter verwirrend). Jetzt echte Perspektive mit
