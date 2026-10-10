@@ -111,7 +111,8 @@ export function BuildView() {
             <Nuclide Z={Z} N={N} E={E} size="lg" />
             <div className="stage-names">
               <h2>{el ? (q ? ionName(Z, q) : el.name) : tr("Noch kein Element", "No element yet")}</h2>
-              {el && <span className={`ui-badge cat-${el.category}`}>{CATEGORIES[el.category].label}</span>}
+              {/* ohne Element unsichtbar an seinem Platz: der Kopf bleibt gleich hoch, die Bühne springt nicht */}
+              {el ? <span className={`ui-badge cat-${el.category}`}>{CATEGORIES[el.category].label}</span> : <span className="ui-badge" aria-hidden="true" style={{ visibility: "hidden" }}>–</span>}
             </div>
           </div>
           <IconButton icon="play" className={animate ? "pressed" : ""} aria-pressed={animate} label={tr("Elektronen kreisen lassen", "Let electrons orbit")} onClick={() => setOpt({ animate: !animate })} />
@@ -121,7 +122,7 @@ export function BuildView() {
             <Bohr Z={Z} N={N} E={E} ghost slots={os ? 7 : 4} colorByOrbital={os && orbitalColors} animate={animate && !reduced} onParticleDown={drag.fromAtom} />
           </div>
         }
-        status={tags.length > 0 ? tags : undefined}
+        status={tags} statusReserve={statusReserve(limits.Z[1])}
         controls={
           <div className="pools" aria-label={tr("Teilchen-Vorrat: antippen oder ins Atom ziehen", "Particle supply: tap or drag into the atom")}>
             {PARTS.map(p => (
@@ -154,6 +155,12 @@ function statusTags(Z: number, N: number, E: number) {
   if (stable === true) out.push(<Tag key="s" tone="ok">✓ {tr("Kern stabil", "Stable nucleus")}</Tag>);
   else if (stable === false || el.radioactive) out.push(<Tag key="s" tone="bad">✗ {tr("radioaktiv", "radioactive")}</Tag>);
   return out;
+}
+
+/** Platz für die längsten Statusmarken (die Bühne springt nicht, wenn aus „✓ neutral“ ein Kation wird) */
+function statusReserve(maxZ: number) {
+  const q = <Tag>{tr("Kation", "Cation")} Og{chargeSup(maxZ)}</Tag>, n = <Tag tone="ok">✓ {tr("Edelgaskonfiguration", "Noble gas configuration")}</Tag>;
+  return [<>{q}{n}<Tag tone="ok">✓ {tr("Kern stabil", "Stable nucleus")}</Tag></>, <>{q}{n}<Tag tone="bad">✗ {tr("radioaktiv", "radioactive")}</Tag></>];
 }
 
 // ── Ziehen mit Pointer Events (Maus, Finger, Stift) ─────────────────────────
