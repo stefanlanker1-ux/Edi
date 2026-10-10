@@ -21,8 +21,9 @@
 // Befund „Wanderung“ (mit Modul, Größe, Ansicht, Element, Verschiebung):
 //  - ein Container rückt um mehr als 2 px, ohne selbst die Größe zu ändern (z. B. Atom rückt, weil die Beschriftung daneben breiter wird) – gemeldet wird nur der
 //    äußerste wandernde Container, nicht jedes Kind mit;
-//  - in Werkbank und innerhalb einer Folie zusätzlich: Bühne, Bildbereich, Steuerleiste oder Bild der Erklärung ändern die Größe („springt“; nach einer Antwort im
-//    Quiz darf das Aufgabenbild dagegen kleiner werden, siehe `Fit`).
+//  - in Werkbank und innerhalb einer Folie zusätzlich: Bühne, Bildbereich, Steuerleiste oder Bild der Erklärung ändern die Größe („springt“). Nach „Tipp“ bzw.
+//    einer Antwort im Quiz darf das Aufgabenbild dagegen kleiner werden (Regel „Nach der Antwort darf das Bild kleiner werden“) – was im kleiner gewordenen
+//    Rahmen neu ausgerichtet wird, zählt dann nicht (`Fit` behält die Lage ohnehin, solange das Bild passt); Knöpfe der Leiste dürfen trotzdem nicht rücken.
 // Keine Wanderung: neue Folie (Zähler der Erklärung ändert sich), neue Aufgabe (Fragetext ändert sich), ein Container, der neu erscheint, verschwindet, ausgetauscht
 // wird oder ein neues `viewBox` hat (neuer Inhalt), alles in einem eben geöffneten Blatt, laufende CSS-Animationen (Lage, Größe) am Container oder darüber.
 // Gewollte Bewegung freistellen: `data-anim` oder `data-moves` am Container oder einem Vorfahren (z. B. Teilchen, die zur Animation gehören) – sparsam einsetzen.
@@ -123,9 +124,13 @@ function wanderInit([SEL, FRAME]) {
     diff(opt) {
       const anim = animated(), out = [];
       const fresh = e => { const d = e.closest("dialog[open]"); return d && !dialogs.has(d); };
+      // Rahmen, die hier kleiner werden dürfen (Aufgabenbild nach Tipp bzw. Antwort): ihr Inhalt darf darin neu ausgerichtet werden
+      const sized = new Set();
+      if (opt.frames) for (const [e, o] of before) { const b = box(e); if (o.b && b && e.matches(opt.frames) && (Math.abs(b.w - o.b.w) > 2 || Math.abs(b.h - o.b.h) > 2)) sized.add(e); }
+      const inSized = e => { for (let a = e.parentElement; a; a = a.parentElement) if (sized.has(a)) return true; return false; };
       for (const [e, o] of before) {
         const b = box(e);
-        if (!o.b || !b || free(e) || fresh(e) || ctx(e) !== o.c || e.getAttribute("viewBox") !== o.vb || inAnim(e, anim)) continue;
+        if (!o.b || !b || free(e) || fresh(e) || ctx(e) !== o.c || e.getAttribute("viewBox") !== o.vb || inAnim(e, anim) || inSized(e)) continue;
         const dx = b.x - o.b.x, dy = b.y - o.b.y, dw = b.w - o.b.w, dh = b.h - o.b.h;
         const sameSize = Math.abs(dw) <= 2 && Math.abs(dh) <= 2;
         if (sameSize && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) out.push({ e, dx, dy, msg: `${name(e)} rückt um ${Math.round(dx)}/${Math.round(dy)} px (x/y)` });
@@ -139,7 +144,7 @@ function wanderInit([SEL, FRAME]) {
         const e = src.node;
         if (!e || e.nodeType !== 1 || seen.has(e) || !before.has(e)) continue;
         const o = before.get(e), b = box(e);
-        if (!o.b || !b || free(e) || fresh(e) || ctx(e) !== o.c || inAnim(e, anim)) continue;
+        if (!o.b || !b || free(e) || fresh(e) || ctx(e) !== o.c || inAnim(e, anim) || inSized(e)) continue;
         const p = src.previousRect, c = src.currentRect;
         if (Math.abs(p.width - c.width) > 2 || Math.abs(p.height - c.height) > 2 || (Math.abs(p.x - c.x) <= 2 && Math.abs(p.y - c.y) <= 2)) continue;
         if (Math.abs(b.x - o.b.x) > 2 || Math.abs(b.y - o.b.y) > 2) continue; // schon oben erfasst bzw. Größe geändert
@@ -157,7 +162,7 @@ async function wander(page, app, vp, view, fn, opt = {}) {
   await page.evaluate(() => window.__ediWander?.snap()).catch(() => {});
   const r = await fn();
   await page.waitForTimeout(opt.wait ?? 400);
-  const res = await page.evaluate(o => window.__ediWander?.diff(o) ?? [], { resize: !!opt.resize }).catch(() => []);
+  const res = await page.evaluate(o => window.__ediWander?.diff(o) ?? [], { resize: !!opt.resize, frames: opt.frames }).catch(() => []);
   for (const m of res) note(app, vp, view, `Wanderung${opt.what ? ` (${opt.what})` : ""}: ${m}`);
   return r;
 }
@@ -344,7 +349,7 @@ async function hintCheck(page, app, vp, view) {
   if (!(await page.locator(".task-card .q-first").count()) && !(await tip.count())) return;
   // Höhe des Bildrahmens vor „Tipp“ – danach darf er nicht unter max(56 px, 60 %) schrumpfen (auch Bilder, die sich selbst einpassen)
   const visBefore = await page.evaluate(() => document.querySelector(".task-card:not(.answered) .q-body > .q-visual")?.getBoundingClientRect().height ?? 0);
-  if (await tip.count()) await wander(page, app, vp, view, () => tip.click({ timeout: 800 }).catch(() => {}), { what: "Tipp", wait: 250 });
+  if (await tip.count()) await wander(page, app, vp, view, () => tip.click({ timeout: 800 }).catch(() => {}), { what: "Tipp", wait: 250, frames: ".q-visual" });
   const r = await page.evaluate(([MIN, visBefore]) => {
     const out = [];
     const card = document.querySelector(".task-card:not(.answered)");
@@ -682,7 +687,7 @@ for (const app of APPS) {
           const intro = page.locator(".intro-card .ui-btn-primary, .task-card.worked .q-next");
           if (await intro.count()) { await intro.first().click({ timeout: 800 }).catch(() => {}); continue; }
           await hintCheck(page, app, vp, `quiz-aufgabe ${k + 1}`);
-          await wander(page, app, vp, `quiz-aufgabe ${k + 1}`, () => answer(page), { what: "Antwort" });
+          await wander(page, app, vp, `quiz-aufgabe ${k + 1}`, () => answer(page), { what: "Antwort", frames: ".q-visual" });
           await check(page, app, vp, `quiz-rückmeldung ${k + 1}`);
           const weiter = page.locator(".q-next").first();
           if (await weiter.count() && await weiter.isVisible()) { try { await weiter.click({ timeout: 800 }); } catch { break; } } else break;
@@ -720,7 +725,7 @@ for (const app of APPS) {
           }
           await check(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
           await hintCheck(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
-          const ok = await wander(page, app, vp, `lernen ${lv + 1}/${k + 1}`, () => answer(page), { what: "Antwort" });
+          const ok = await wander(page, app, vp, `lernen ${lv + 1}/${k + 1}`, () => answer(page), { what: "Antwort", frames: ".q-visual" });
           await check(page, app, vp, `lernen ${lv + 1}/${k + 1} Antwort`);
           if (!ok) { note(app, vp, `lernen ${lv + 1}/${k + 1}`, "Aufgabe ließ sich nicht beantworten (kein „Weiter“)"); break; }
           asked++;
