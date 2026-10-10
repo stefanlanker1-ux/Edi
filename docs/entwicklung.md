@@ -2,7 +2,7 @@
 
 Die allgemeinen Regeln der App: wie gearbeitet wird, welche didaktischen, gestalterischen und technischen Regeln für alle Module gelten.
 Die Kurzfassung mit dem Wichtigsten steht in `CLAUDE.md` im Hauptordner (lädt in Claude Code automatisch). Stand und Entscheidungen der einzelnen Module stehen
-beim Modul in `modules/<id>/CLAUDE.md` (siehe „Module“ am Ende). Der frühere Änderungsverlauf liegt als Archiv in `docs/verlauf.md` (keine Pflichtlektüre).
+beim Modul in `modules/<id>/CLAUDE.md` (siehe „Module“ am Ende). Der frühere Änderungsverlauf liegt als Archiv in `docs/verlauf.md` (keine Pflichtlektüre). Offene Verbesserungen: `docs/offen.md`.
 
 **Lesen:** nicht alles auf einmal, sondern die Abschnitte, die die Aufgabe berührt – Texte, Aufgaben, Rückmeldungen: „Didaktik“; Erklärung oder Lektion: „Erklärung“;
 Oberfläche, Bilder, Quiz-Technik: „Regeln“; neue Pakete oder Module: „Architektur“; vor dem Commit: „Prüfen vor dem Commit“.
@@ -48,7 +48,8 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
   - **Selbst prüfen, bevor etwas gezeigt wird**: jede Zeichnung zu mehreren Zeitpunkten rendern (z. B. t = 0 / 0,15 / 0,35 / 0,6 / 1) und die Screenshots
     kritisch ansehen: Würde eine Lehrkraft das Gerät sofort erkennen? Sieht ein Schüler, was passiert? Wirkt es hochwertig? Wenn nicht: nachbessern, bevor veröffentlicht wird.
   - Stil bleibt der der App (Linien statt Flächen, Farben nur aus der Palette), aber „schlicht“ heißt nie „lieblos“.
-- **Vor jedem Commit** (Pflicht): `npm run typecheck && npm test && npm run build`. Bei Änderungen an der Oberfläche zusätzlich `npm run site` und Browser-Prüfung
+- **Vor jedem Commit** (Pflicht): `npm run typecheck` und die Tests der berührten Workspaces (`npm test -w @edi/<id>`, bei `packages/*` alle Module, die den Baustein nutzen);
+  **vor dem Veröffentlichen auf `main`** die volle Runde `npm run typecheck && npm test && npm run build`. Bei Änderungen an der Oberfläche zusätzlich `npm run site` und Browser-Prüfung
   (siehe „Prüfen vor dem Commit“) – in allen betroffenen Ansichten, Werkzeugen, Blättern, Erklärungen und Quizaufgaben, in den Größen 390 × 844, 375 × 667, 360 × 740 und Desktop.
   Screenshots ansehen, nicht nur Zahlen messen (leere Bilder, abgeschnittene Formeln, zu kleine Zeichnungen fallen nur so auf).
 - **Dokumentation gehört zur Änderung**: Regel bzw. `modules/<id>/CLAUDE.md` aktualisieren (siehe oben) – ein Commit ohne Doku-Anpassung ist nur bei
@@ -215,7 +216,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 ## Grundsätze für Beiträge
 - **Anonym**: keine personenbezogenen Daten im Repository (Namen, E-Mail-Adressen, Schulen, Orte, eigene Web-Adressen, Konten) – weder in Dateien, Kommentaren,
   Commit-Nachrichten, Testdaten, Bildern noch in Metadaten. Keine Hinweise darauf, wer etwas wünscht, plant oder entscheidet („Vorgabe …“, „Wunsch …“).
-- Keine Planungs-, Strategie-, Geschäfts- oder Protokolldateien, keine Zeitpläne; das Repository enthält Quellcode, Tests und technische Dokumentation (dieses Dokument
+- Keine Planungs-, Strategie-, Geschäfts- oder Protokolldateien, keine Zeitpläne (einzige Ausnahme: `docs/offen.md`, eine rein technische Liste offener Verbesserungen ohne Termine und Namen); das Repository enthält Quellcode, Tests und technische Dokumentation (dieses Dokument
   beschreibt nur, wie die App ist und sein soll).
 - Commit-Nachrichten und Pull-Request-Texte rein technisch (was geändert wurde), ohne Zusatzzeilen zu Mitwirkenden oder Werkzeugen.
 - Kommentare begründen fachlich oder technisch („übliche Schreibweise“), nie mit Vorlagen oder Quellen Dritter.

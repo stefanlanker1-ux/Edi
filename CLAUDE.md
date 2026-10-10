@@ -11,10 +11,14 @@ Diese Datei ist die Kurzfassung. Bei Widerspruch gilt `docs/entwicklung.md`.
   neues Paket oder Modul → „Architektur“; vor dem Commit → „Prüfen vor dem Commit“.
 - `modules/<id>/CLAUDE.md`: Stand, Aufbau und fachliche Entscheidungen eines Moduls. Lädt automatisch, sobald im Modulordner gearbeitet wird.
   Wer an `packages/*` arbeitet, liest die `CLAUDE.md` der Module, die den geänderten Baustein nutzen.
+- `docs/offen.md`: offene Verbesserungen, wichtigste zuerst.
 - `docs/agenten.md`: Rollen und Ablauf, wenn mehrere Agenten zusammenarbeiten.
 - `docs/verlauf.md`: früherer Änderungsverlauf, nur Archiv – nicht lesen, außer die Aufgabe fragt nach der Geschichte. Sonst `git log`.
 
 ## Arbeitsweise
+- **Zu Beginn jeder Sitzung** in ein, zwei Sätzen an die obersten offenen Punkte aus `docs/offen.md` erinnern – vor allem an solche,
+  die zur Aufgabe passen. Erledigte Punkte im selben Commit aus `docs/offen.md` streichen.
+- **Abnahmekriterium**: Hat ein größerer Auftrag kein „fertig, wenn …“, zu Beginn eines vorschlagen und danach arbeiten. Ist es erreicht, aufhören.
 - Gespräch auf **Deutsch**, kurz und konkret. Bei längeren Arbeiten zwischendurch in ein, zwei Sätzen sagen, woran gerade gearbeitet wird.
 - Nur am erteilten Auftrag arbeiten. Keine selbstständigen Folgeaufträge, Routinen oder Weckrufe.
 - Rückfragen nur, wenn eine Entscheidung wirklich offen ist; sonst die naheliegende Lösung umsetzen und im Bericht nennen.
@@ -87,7 +91,8 @@ Diese Fehler kosten den Fortschritt der Lernenden oder die App im Store und lass
 - Keine Zusatzzeilen (keine Mitwirkenden-, Sitzungs- oder Werkzeughinweise), keine Namen.
 
 ## Vor jedem Commit
-1. `npm run typecheck && npm test && npm run build` – alles grün.
+1. Zwischenstände auf `entwicklung`: `npm run typecheck` und die Tests der berührten Workspaces (`npm test -w @edi/<id>`; bei `packages/*` alle Module,
+   die den Baustein nutzen). **Vor dem Veröffentlichen auf `main`**: `npm run typecheck && npm test && npm run build` – alles grün.
 2. Bei Änderungen an der Oberfläche: `npm run site`, `node scripts/check-ui.mjs site` und gezielt im Browser prüfen, was geändert wurde
    (Aufgabe richtig **und** falsch lösen, Blätter öffnen, Animationen bis zum Ende, Screenshots ansehen). Einzelheiten: „Prüfen vor dem Commit“.
 3. Regel bzw. Modul-`CLAUDE.md` angepasst, Commit-Nachricht mit Begründung.

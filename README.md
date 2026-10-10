@@ -44,6 +44,7 @@ scripts/    – Build-Konfiguration, Stil-Geltungsbereich der Module, Architektu
 CLAUDE.md – Kurzfassung für Claude Code (lädt automatisch): Befehle, Zweige, wichtigste Regeln
 docs/entwicklung.md – Regeln und Konventionen für die Weiterentwicklung (alle Module)
 modules/<id>/CLAUDE.md – Stand und Entscheidungen je Modul
+docs/offen.md – offene Verbesserungen, wichtigste zuerst
 docs/verlauf.md – früherer Änderungsverlauf (Archiv)
 ```
 
