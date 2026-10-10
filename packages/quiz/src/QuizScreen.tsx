@@ -69,7 +69,9 @@ const lessonsDone = (): Record<string, boolean> => {
 const markLesson = (id: string) => { try { localStorage.setItem(LESSON_KEY, JSON.stringify({ ...lessonsDone(), [id]: true })); } catch { /* egal */ } };
 
 /** Hilfsmittel während einer Aufgabe: Inhalt passt sich der Aufgabe an */
-export interface QuizTool { id: string; label: string; icon: IconName; content: ReactNode; wide?: boolean }
+export interface QuizTool { id: string; label: string; icon: IconName; content: ReactNode; wide?: boolean;
+  /** unsichtbarer Platzhalter: der Knopf erscheint erst später (z. B. „Lösung“ nach der Antwort) – sein Platz ist schon frei, nichts rückt */
+  off?: boolean }
 
 /** Knöpfe für Tipp, Hilfsmittel und Erklärung – gemeinsam für alle Quiz-Oberflächen */
 /** Aufgabentext zum Vorlesen aufbereiten: Formatierung weg, Formeln lesbar (H₂O → H 2 O, → „reagiert zu“) */
@@ -171,11 +173,17 @@ export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, hintAgai
     <>
       <span className="q-help">
         {read && canSpeak && <Button variant="quiet" icon="sound" aria-label={tr("Aufgabe vorlesen", "Read task aloud")} onClick={() => speak(read)}>{tr("Vorlesen", "Read aloud")}</Button>}
-        {hint && !answered && <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={hintUsed && !hintAgain ? undefined : onHint} aria-disabled={hintUsed && !hintAgain ? true : undefined}
-          aria-label={hintCue ? tr("Tipp zu dieser Aufgabe", "Tip for this task") : undefined}>{tr("Tipp", "Tip")}</Button>}
-        {firstStep && !answered && <Button variant="quiet" icon="bulb" className="q-hint-cue" onClick={firstStep}
-          aria-label={tr("Erster Schritt", "First step")}>{tr("Schritt 1", "Step 1")}</Button>}
-        {tools.map(t => <Button key={t.id} variant="quiet" icon={t.icon} onClick={() => setOpen(t.id)}>{t.label}</Button>)}
+        {/* nach der Antwort bleiben „Tipp“ und „Schritt 1“ unsichtbar an ihrem Platz – die Knöpfe daneben rücken nicht */}
+        {hint && (answered
+          ? <Button variant="quiet" icon="bulb" className="q-off" aria-hidden="true" tabIndex={-1}>{tr("Tipp", "Tip")}</Button>
+          : <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={hintUsed && !hintAgain ? undefined : onHint} aria-disabled={hintUsed && !hintAgain ? true : undefined}
+              aria-label={hintCue ? tr("Tipp zu dieser Aufgabe", "Tip for this task") : undefined}>{tr("Tipp", "Tip")}</Button>)}
+        {firstStep && (answered
+          ? <Button variant="quiet" icon="bulb" className="q-off" aria-hidden="true" tabIndex={-1}>{tr("Schritt 1", "Step 1")}</Button>
+          : <Button variant="quiet" icon="bulb" className="q-hint-cue" onClick={firstStep} aria-label={tr("Erster Schritt", "First step")}>{tr("Schritt 1", "Step 1")}</Button>)}
+        {tools.map(t => t.off
+          ? <Button key={t.id} variant="quiet" icon={t.icon} className="q-off" aria-hidden="true" tabIndex={-1}>{t.label}</Button>
+          : <Button key={t.id} variant="quiet" icon={t.icon} onClick={() => setOpen(t.id)}>{t.label}</Button>)}
         {explain && <Button variant="quiet" icon="book" onClick={() => setOpen("explain")}>{tr("Erklärung", "Explanation")}</Button>}
       </span>
       <Sheet open={!!tool} wide={tool?.wide} title={tool?.label ?? ""} onClose={() => setOpen(null)}>{tool?.content}</Sheet>
@@ -543,11 +551,14 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
         )}
       </div>
       <div className="q-actions" ref={nextRef}>
-        <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termTool(p, terms), ...(extra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra }] : [])]}
+        <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termTool(p, terms), ...(p.feedbackExtra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra, off: !extra }] : [])]}
           hint={!faded} hintCue={t.hintCue} onHint={() => { if (game.hintUsed) setSheet("hint"); else { tookHint.current = true; takeHint(p.stufe); } }} hintUsed={game.hintUsed} hintAgain={aside.hint}
           firstStep={faded && aside.first ? () => setSheet("first") : undefined} answered={!!a} explain={p.explain?.(game.level, t)}
           read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => spokenOption(o, i, p.optionLabel?.(t, o))) : [])].filter(Boolean).join(". ")} />
-        {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
+        {/* „Weiter“ hat seinen Platz schon vor der Antwort (unsichtbar): erscheint er, rückt in der Leiste nichts */}
+        {a
+          ? <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>
+          : <Button variant="primary" size="lg" iconRight="arrow" className="q-next-ph" aria-hidden="true" tabIndex={-1}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
       </div>
       <Sheet open={!a && (sheet === "hint" ? aside.hint : sheet === "first" && aside.first)} title={sheet === "first" ? tr("Erster Schritt", "First step") : tr("Tipp", "Tip")}
         onClose={() => setSheet(null)}>
