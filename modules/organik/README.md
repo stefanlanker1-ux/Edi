@@ -17,5 +17,5 @@ npm run dev            # http://localhost:5173/#/organik
 
 ## Prüfen der Benennung
 ```bash
-python3 scripts/organik-oracle.py      # im Hauptordner: rund 17 500 Moleküle gegen OPSIN und RDKit (siehe docs/entwicklung.md)
+python3 scripts/organik-oracle.py      # im Hauptordner: rund 17 500 Moleküle gegen OPSIN und RDKit (siehe CLAUDE.md in diesem Ordner)
 ```

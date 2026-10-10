@@ -1,5 +1,5 @@
 // Schnelle Tests der Prüfwerkzeuge (laufen immer): Generator, englische Namen, Molfile, Trivialnamen.
-// Die eigentliche Prüfung gegen OPSIN und RDKit: python3 scripts/organik-oracle.py (siehe docs/entwicklung.md).
+// Die eigentliche Prüfung gegen OPSIN und RDKit: python3 scripts/organik-oracle.py (siehe modules/organik/CLAUDE.md).
 
 import { describe, expect, test } from "vitest";
 import { name, nameEnOrder, TRIVIAL, type NameOk } from "../naming.ts";

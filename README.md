@@ -41,7 +41,10 @@ modules/
 apps/
   edi/      – App-Hülle: Übersicht, Adressen #/<id>, Laden bei Bedarf, Service Worker, Capacitor
 scripts/    – Build-Konfiguration, Stil-Geltungsbereich der Module, Architektur-Prüfung, Lizenzhinweise, Website, Browser-Prüfung
-docs/entwicklung.md – Regeln und Konventionen für die Weiterentwicklung
+CLAUDE.md – Kurzfassung für Claude Code (lädt automatisch): Befehle, Zweige, wichtigste Regeln
+docs/entwicklung.md – Regeln und Konventionen für die Weiterentwicklung (alle Module)
+modules/<id>/CLAUDE.md – Stand und Entscheidungen je Modul
+docs/verlauf.md – früherer Änderungsverlauf (Archiv)
 ```
 
 Technik: **React 19 + TypeScript + Vite**, zustand, `vite-plugin-pwa`, Vitest; Capacitor für Android/iOS.

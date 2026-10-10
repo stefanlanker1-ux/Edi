@@ -10,7 +10,7 @@ Routinen, Weckrufe oder Folgeaufträge; nach Abschluss des Auftrags hören alle 
 | Rolle | Aufgabe | Liefert |
 |---|---|---|
 | **Master** | Koordiniert, verteilt Aufträge, prüft jeden Commit (Typecheck, Tests, Build, check-ui, bei `packages/*` alle Module), veröffentlicht nur Grünes, gibt Warnungen sofort weiter | Freigabe/Ablehnung, Stand |
-| **Programmierer** | Setzt Aufträge um, committet lokal, schreibt Tests, aktualisiert `entwicklung.md` im selben Commit | Commits mit Vorher/Nachher-Bildern |
+| **Programmierer** | Setzt Aufträge um, committet lokal, schreibt Tests, aktualisiert im selben Commit die betroffene Regel (`docs/entwicklung.md`) bzw. `modules/<id>/CLAUDE.md`, Begründung in der Commit-Nachricht | Commits mit Vorher/Nachher-Bildern |
 | **Didaktiker** | Priorisiert Aufträge (D-Nummern), formuliert Tipps, Rückmeldungen, Lektionen; nimmt Umgesetztes im Browser ab | Auftragsliste, Abnahmen |
 | **Hilfswissenschaftler** | Recherchiert Didaktik und Belege, liefert Texte und Begriffslisten zu | Rechercheberichte mit Quellen |
 | **Schüler** | Spielt mit leerem Speicher nur mit Lektionswissen (Vorwissen nur aus anderen Modulen), stellt alle Fragen, misst „lösbar / geraten / ohne Nachdenken“ | Runden-Berichte mit Screenshots |
@@ -31,6 +31,6 @@ Routinen, Weckrufe oder Folgeaufträge; nach Abschluss des Auftrags hören alle 
 - Der Master gibt die Warnung **unverändert und sofort** im Gespräch weiter, stoppt die betroffene Arbeit und veröffentlicht nichts, was darauf beruht.
 
 ## Feste Regeln
-- Experimentieren stellt nie Fragen (siehe `entwicklung.md`, Regeln); Fragen nur in Lernen/Quiz.
+- Experimentieren stellt nie Fragen (siehe `docs/entwicklung.md`, Regeln); Fragen nur in Lernen/Quiz.
 - Änderungen an `packages/*` nur neutral oder per Schalter (opt-in) für das betroffene Modul; Prüfung über alle Module.
 - Nichts Vertrauliches oder Persönliches in Dateien, Commits oder Berichten.
