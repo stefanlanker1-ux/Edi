@@ -341,7 +341,7 @@ export function ExperimentView() {
   const busy = !!clip;
 
   const head = (
-    <div className="pm-head">
+    <div className="pm-head" data-screen={art ? `${art}-${view}` : "wahl"}>
       <Segmented label={tr("Art der Reaktion", "Type of reaction")} value={art ?? ("none" as Art)} onChange={v => { buzz(); setArt(v); setTool(null); }}
         options={ARTS.map(a => ({ value: a, label: ART_SHORT[a] }))} />
     </div>
@@ -539,7 +539,7 @@ export function ExperimentView() {
 
   return (
     <>
-      <Workbench className="pm-wb" active={tool} onActive={setTool} head={head} stage={stage}
+      <Workbench className="pm-wb" active={tool} onActive={setTool} head={head} stage={stage} wrapTools={low}
         status={tags.length ? <div className="pm-status">{tags}</div> : undefined}
         controls={<div className="pm-controls">{recipeRow}{actRow}{rRow}</div>}
         tools={tools} />
