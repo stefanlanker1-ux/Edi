@@ -2,12 +2,13 @@
 
 Edi ist eine Lern-App für Chemie und Einheiten (Sekundarstufe; Unterstufe = „Level I“, Oberstufe = „Level II“) auf Handy, Tablet, Schul-PC und Beamer.
 Eine App (`apps/edi`) mit Modulen (`modules/*`) auf gemeinsamen Paketen (`packages/*`), React 19 + TypeScript (strict) + Vite, zustand, npm-Workspaces.
+**Maßstab** für Sprache, Didaktik, Interaktivität, Oberfläche und Code ist das Modul **Ionenbindung** (`modules/ionenbindung/CLAUDE.md`).
 Diese Datei ist die Kurzfassung. Bei Widerspruch gilt `docs/entwicklung.md`.
 
 ## Wo was steht
 - `CLAUDE.md` (diese Datei): Arbeitsweise, Befehle, Zweige, die Regeln, die nie verletzt werden dürfen.
 - `docs/entwicklung.md`: alle allgemeinen Regeln. **Nicht ganz lesen**, sondern die Abschnitte, die die Aufgabe berührt:
-  Texte, Aufgaben, Rückmeldungen → „Didaktik“; Erklärung oder Lektion → „Erklärung“; Oberfläche, Bilder, Quiz-Technik → „Regeln“;
+  Texte, Aufgaben, Rückmeldungen → „Didaktik“; Kapitel und Folien → „Lernen“; Oberfläche und Bilder → „Regeln“;
   neues Paket oder Modul → „Architektur“; vor dem Commit → „Prüfen vor dem Commit“.
 - `modules/<id>/CLAUDE.md`: Stand, Aufbau und fachliche Entscheidungen eines Moduls. Lädt automatisch, sobald im Modulordner gearbeitet wird.
   Wer an `packages/*` arbeitet, liest die `CLAUDE.md` der Module, die den geänderten Baustein nutzen.
@@ -61,20 +62,23 @@ Diese Fehler kosten den Fortschritt der Lernenden oder die App im Store und lass
 - Was mehr als ein Modul braucht, gehört nach `packages/` (spätestens beim zweiten Modul, nie kopieren).
 - Änderungen an `packages/*` nur neutral oder per Schalter (opt-in) für das betroffene Modul, und dann in **allen** Modulen prüfen, die den Baustein nutzen.
 
-## Die wichtigsten Regeln für Inhalte (Details: entwicklung.md „Didaktik“)
+## Die wichtigsten Regeln für Inhalte (Details: entwicklung.md „Didaktik“ und „Lernen“)
+- **Lernen | Experimentieren**: Lernen = Kapitel aus 25 Folien, Erklärung und Aufgaben in einem Fluss, mindestens die Hälfte Modell-Folien
+  (Modell verändern, sofort sehen, „Prüfen“). Kein Quiz, keine eigene Erklärung.
 - **Gelöste Beispiele, dann Hilfe ausblenden**: vorgemacht → halb gelöst → selbst. Nie mit freiem Entdecken beginnen.
-- **Begriffe fett einführen, bevor sie gebraucht werden** (in Erklärung, Erklärkarte oder früherem Modul). `checkGuide` prüft Erklärungen; Quiz-Texte selbst durchsehen.
+- **Begriffe fett einführen, bevor sie gebraucht werden** (in einer früheren Folie, einem früheren Kapitel oder Modul). `checkGuide` prüft die Folien; Merksätze selbst durchsehen.
 - **Natürliche Sprache**: ganze Sätze wie eine gute Lehrkraft, Du-Form, höchstens 22 Wörter je Satz. Keine Stichwortketten mit Doppelpunkt und Pfeil,
   keine Klammer-Rechnungen mit Ladungen im Fließtext, keine schiefen Gleichnisse. Muster: Ionenbindung „Lernen“.
 - **Rückmeldung**: „Noch nicht“ statt „falsch“; erst der Denkfehler mit den Zahlen der Aufgabe, dann der richtige Weg. Jede falsche Antwort steht für eine Fehlvorstellung.
-- **Experimentieren stellt nie Fragen** und vergibt keine Punkte; Fragen und Rückmeldungen nur in Üben bzw. Lernen.
+- **Experimentieren stellt nie Fragen** und vergibt keine Punkte; Fragen und Rückmeldungen nur in Lernen.
 - **Fachlich richtig geht vor einfach**. Vereinfachungen im Modell benennen, nie Falsches zeigen. Stoffe immer mit Name und Formel.
 - **Zwei Sprachen**: jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten; Fachnamen englisch nach IUPAC.
 
 ## Die wichtigsten Regeln für die Oberfläche (Details: entwicklung.md „Regeln“)
 - **Nie scrollen**: jede Ansicht füllt genau den Bildschirm. **Nichts wandert**: Bilder und Leisten bleiben beim Bedienen an ihrem Platz.
 - Tippziele ≥ 44 px, Lesetext ≥ 14 px, richtig/falsch nie nur über Farbe, Tastatur bedienbar.
-- Swiss Style: Farben nur über Design-Tokens (`packages/ui/src/styles/tokens.css`), ein Rot nur als Auszeichnung, keine Verläufe und Schatten.
+- Swiss Style: Farben nur über Design-Tokens (`packages/ui/src/styles/tokens.css`), ein Rot nur als Auszeichnung, keine Verläufe und Schatten
+  (nur Kugeln räumlicher Modelle haben Licht und Schatten).
 - **Grafiken von Anfang an sorgfältig**: fachlich richtig wie im Labor, flüssig, zu mehreren Zeitpunkten rendern und die Screenshots selbst ansehen, bevor etwas gezeigt wird.
 - Prüfgrößen: 390 × 844, 375 × 667, 360 × 740 und Desktop.
 
