@@ -1,7 +1,16 @@
 // Elektronenkonfiguration, Schalen, Ionen und Schreibweisen – reine Funktionen ohne UI.
 
 import { getLang, tr } from "@lern/i18n";
-import { BY_Z, BY_SYMBOL, ELEMENTS } from "./elements.ts";
+import { BY_Z, BY_SYMBOL, ELEMENTS, fSeriesName } from "./elements.ts";
+
+/**
+ * Elektronenkonfigurationen, Schalen und Bohrmodelle zeigt die App nur bis Radon (Z = 86).
+ * Grund: In der 7. Periode weichen die gemessenen Grundzustände oft vom Aufbauprinzip ab (Ac, Th, Pa, U, Np, Cm mit 6d-Elektronen
+ * statt nur 5f; Th [Rn] 6d² 7s², Lr [Rn] 5f¹⁴ 7s² 7p¹), ab Rutherfordium sind sie nur berechnet. Die Tabelle der Ausnahmen (`GROUND_STATE`)
+ * reicht deshalb bis Z = 86; für Z > 86 lieferten die Funktionen hier nur das Aufbauprinzip – die Ansichten (Steckbrief im Atombau)
+ * bieten dort keine Konfiguration, keine Schalen und kein Bohrmodell an, statt eine erfundene oder ungesicherte Besetzung zu zeigen.
+ */
+export const CONFIG_MAX_Z = 86;
 
 export const L_NAMES = ["s", "p", "d", "f"] as const;
 export type LName = (typeof L_NAMES)[number];
@@ -267,7 +276,7 @@ export const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII"];
  */
 export function groupLabel(Z: number, os: boolean): string {
   const g = BY_Z[Z]?.group, mg = mainGroupNumber(Z);
-  if (g == null) return tr("Lanthanoide", "Lanthanoids");
+  if (g == null) return fSeriesName(Z) ?? "";
   if (getLang() === "en") return !os && mg ? `Main group ${ROMAN[mg]}` : `Group ${g}`;
   return !os && mg ? `${ROMAN[mg]}. Hauptgruppe` : `Gruppe ${g}`;
 }
