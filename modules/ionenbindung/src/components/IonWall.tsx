@@ -36,7 +36,8 @@ export function IonWall({ cation, anion, nC, nA, onTile, showFormula = true, sho
           <Icon name="arrow" size={34} className="iw-arrow" />
           <div>
             <div className="iw-formula">{balanced ? <Formula f={simplest ? formula(cation, anion) : formula(cation, anion, nC, nA)} /> : "?"}</div>
-            {showName && balanced && <div className="iw-name">{compoundName(cation, anion)}</div>}
+            {/* Name: Zeile immer da (vor dem Ausgleich bzw. solange er gesucht ist leer) – die Wand rückt nicht, wenn er erscheint */}
+            <div className="iw-name" aria-hidden={!(showName && balanced) || undefined}>{showName && balanced ? compoundName(cation, anion) : "\u00a0"}</div>
           </div>
         </div>
       )}

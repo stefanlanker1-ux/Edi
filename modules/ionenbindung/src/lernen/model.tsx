@@ -2,7 +2,7 @@
 // was gebaut wurde (`c.pick(ergebnis)`), die Erklärung vergleicht mit `answer` und gibt zu bekannten Fehlern die Rückmeldung aus `why`.
 // Nach vier Fehlversuchen steht die Lösung im Modell (gestrichelt markiertes „Prüfen“) – selbst prüfen; gelöst bleibt das Modell stehen.
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Button, type GuideCtx, type GuideStep } from "@lern/ui";
 import { tr } from "@lern/i18n";
 
@@ -25,21 +25,27 @@ export function useModel<S>(c: GuideCtx, init: S, solution: S): [S, (s: S) => vo
   return [s, set];
 }
 
-/** Rahmen einer Modell-Folie: Modell (füllt den Platz), Bedienung darunter, „Prüfen“ */
+/** Rahmen einer Modell-Folie: Modell (füllt den Platz), Bedienung darunter, „Prüfen“.
+ *  Nach dem Lösen verschwinden Bedienung und „Prüfen“ – ihre Zeile bleibt aber gleich hoch (leer), damit das Modell nicht größer wird oder wandert. */
 export function ModelFrame({ c, stage, controls, onCheck, className }: {
   c: GuideCtx; stage: ReactNode; controls?: ReactNode; onCheck?: () => void; className?: string;
 }) {
+  // nur Folien, die ungelöst begonnen haben, halten den Platz frei (vorgemacht: nie eine Bedienung)
+  const [live] = useState(!c.solved);
+  const row = useRef<HTMLDivElement>(null), h = useRef(0);
+  const open = (controls || onCheck) && !c.solved;
+  useLayoutEffect(() => { if (open && row.current) h.current = row.current.offsetHeight; });
   return (
-    <div className={`lm${className ? ` ${className}` : ""}`}>
+    <div className={`lm${className ? ` ${className}` : ""}`} data-live={live ? "" : undefined}>
       <div className="lm-stage">{stage}</div>
-      {(controls || onCheck) && (
-        <div className="lm-controls">
+      {(controls || (onCheck && !c.solved)) ? (
+        <div className="lm-controls" ref={row} style={live && c.solved && h.current ? { minHeight: h.current } : undefined}>
           {controls}
           {onCheck && !c.solved && (
             <Button variant="primary" icon="check" className={`lm-check${c.show ? " g-sol" : ""}`} onClick={onCheck}>{tr("Prüfen", "Check")}</Button>
           )}
         </div>
-      )}
+      ) : live && c.solved && h.current > 0 ? <div className="lm-controls lm-done" aria-hidden="true" style={{ height: h.current }} /> : null}
     </div>
   );
 }

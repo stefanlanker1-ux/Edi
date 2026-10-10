@@ -1,8 +1,9 @@
 // Vom Atom zum Ion: Bohrmodell des Atoms und des Ions nebeneinander (bei einatomigen Ionen).
+// Feste Spalten: Bild, Pfeil und Beschriftung haben eine feste Breite, die Bilder stehen oben gleich auf – nichts rückt, wenn sich ein Text ändert.
 
-import { Chip, Icon, Sheet, Tag } from "@lern/ui";
+import { Icon, Sheet, Tag } from "@lern/ui";
 import { Bohr, Nuclide } from "@lern/chem-ui";
-import { BY_Z, shells, configuration, sup, signed, SHELL_NAMES, standardNeutrons, composition, ionText, type Ion } from "@lern/chem";
+import { BY_Z, shells, shellName, electronsText, configuration, sup, signed, standardNeutrons, composition, ionText, chargeSup, type Ion } from "@lern/chem";
 import { tr } from "@lern/i18n";
 
 const NOBLE = new Set([2, 10, 18, 36, 54, 86]);
@@ -10,14 +11,26 @@ const NOBLE = new Set([2, 10, 18, 36, 54, 86]);
 /** `slots`: gleicher Rahmen für Atom und Ion – jede Schale gleich groß, das Kation verliert sichtbar eine Schale */
 function AtomBox({ Z, E, title, slots }: { Z: number; E: number; title: string; slots: number }) {
   const N = standardNeutrons(Z);
-  const sh = shells(Z, E);
   return (
     <figure className="ia-box">
       <figcaption>{title}</figcaption>
       <div className="ia-bohr"><Bohr Z={Z} N={N} E={E} slots={slots} labels={false} /></div>
       <Nuclide Z={Z} N={N} E={E} size="md" />
-      <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
     </figure>
+  );
+}
+
+/** Schalen von Atom und Ion als Tabelle: je Schale eine Zeile („1. Schale | 2 Elektronen | 2 Elektronen“) – nie als Kette „2 · 8 · 1“ */
+function ShellTable({ Z, E }: { Z: number; E: number }) {
+  const a = shells(Z), b = shells(Z, E), n = Math.max(a.length, b.length);
+  const cell = (c: number | undefined) => (c ? electronsText(c) : tr("leer", "empty"));
+  return (
+    <table className="ia-shells">
+      <thead><tr><th /><th scope="col">{BY_Z[Z].symbol}</th><th scope="col">{BY_Z[Z].symbol + chargeSup(Z - E)}</th></tr></thead>
+      <tbody>{Array.from({ length: n }, (_, i) => (
+        <tr key={i}><th scope="row">{shellName(i + 1)}</th><td>{cell(a[i])}</td><td>{cell(b[i])}</td></tr>
+      ))}</tbody>
+    </table>
   );
 }
 
@@ -51,6 +64,7 @@ function Mono({ ion, Z, os }: { ion: Ion; Z: number; os: boolean }) {
         </div>
         <AtomBox Z={Z} E={E} slots={slots} title={ion.name} />
       </div>
+      <ShellTable Z={Z} E={E} />
       <div className="ui-tags ion-tags">
         {noble && <Tag>{outer} {tr(`Außenelektron${outer === 1 ? "" : "en"}`, `outer electron${outer === 1 ? "" : "s"}`)}</Tag>}
         <Tag tone="signal">{give ? tr(`gibt ${n} e⁻ ab`, `loses ${n} e⁻`) : tr(`nimmt ${n} e⁻ auf`, `gains ${n} e⁻`)}</Tag>

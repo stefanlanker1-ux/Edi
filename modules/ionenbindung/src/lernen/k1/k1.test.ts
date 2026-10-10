@@ -1,7 +1,7 @@
 // Kapitel 1: Schalen, Edelgaskonfiguration, Ionen aus dem PSE und Ergebnis des Elektronenübergangs stimmen fachlich.
 import { test, expect } from "vitest";
 import { ANIONS, CATIONS, chargeSup } from "@lern/chem";
-import { R, calcWhy, extentOf, ionOf, ionWhy, isNoble, markWhy, shellsOf, sym, trResult, trWhy } from "./models.tsx";
+import { R, calcWhy, extentOf, ionOf, ionRange, ionWhy, isNoble, markWhy, shellRows, shellText, shellsOf, sym, trResult, trWhy } from "./models.tsx";
 
 test("Rückmeldungen aus dem Ergebnis: jeder erreichbare falsche Zustand hat eine, die Lösung keine", () => {
   const ion = ionWhy(8);
@@ -18,7 +18,7 @@ test("Rückmeldungen aus dem Ergebnis: jeder erreichbare falsche Zustand hat ein
   expect(trWhy(3, 8, [1, 1], [2, 1], "m")["2 Li⁺ + Li + O²⁻"]).toMatch(/weniger/);
 });
 
-test("Schalen der Unterstufe (2 · 8 · 8 · …) und Edelgaskonfiguration", () => {
+test("Schalen der Unterstufe (1. Schale bis 2, 2. und 3. Schale bis 8, dann die 4.) und Edelgaskonfiguration", () => {
   expect(shellsOf(2)).toEqual([2]);
   expect(shellsOf(11)).toEqual([2, 8, 1]);
   expect(shellsOf(10)).toEqual([2, 8]);
@@ -49,8 +49,17 @@ test("Feste Schalenradien: Anion so groß wie sein Atom, Kation eine Schale klei
   // Größe hängt nur an der Zahl der Schalen: O, O²⁻, F⁻, Ne gleich; Cl und Cl⁻ gleich
   expect(new Set([[8, 8], [8, 10], [9, 10], [10, 10], [7, 10]].map(([Z, E]) => extentOf(Z, E))).size).toBe(1);
   expect(extentOf(17, 18)).toBe(extentOf(17, 17));
-  // Kation: äußerste Schale fällt weg (eigene Schalen 2 · 8 statt 2 · 8 · 1)
+  // Kation: äußerste Schale fällt weg (Na⁺: 2 Schalen statt 3)
   expect(shellsOf(10).length).toBe(shellsOf(11).length - 1);
   // neue Schale erst nach einer vollen: Cl mit 19 Elektronen hat 4 Schalen
   expect(extentOf(17, 19)).toBe(R[3] + 14);
+});
+
+test("Beschriftung mit fester Größe: so viele Schalen-Zeilen frei, wie im Modell vorkommen; Schalen ausgeschrieben", () => {
+  // Ion bauen Magnesium: von 9 bis 14 Elektronen → höchstens 3 Schalen; Calcium bis 22 → 4
+  const mg = ionRange(12), ca = ionRange(20);
+  expect(shellRows(mg.lo, mg.hi)).toBe(3);
+  expect(shellRows(ca.lo, ca.hi)).toBe(4);
+  expect(shellText(11)).toBe("1. Schale 2, 2. Schale 8, 3. Schale 1 Elektron");
+  for (const Z of [8, 12, 17]) for (const t of Object.values(ionWhy(Z))) expect(t).not.toMatch(/\d · \d/);
 });

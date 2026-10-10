@@ -61,7 +61,7 @@ export function LernenView() {
       </ol>
       {k && (
         <Guide key={k.id} def={k.def} open onClose={() => setOpenId(null)} badge={tr(`Kapitel ${k.nr}`, `Chapter ${k.nr}`)}
-          start={pos[k.id] ?? 0} onStep={i => step(k.id, i, k.def.steps.length)} tools={(s, i) => tools(k, s, i)}
+          start={pos[k.id] ?? 0} onStep={i => step(k.id, i, k.def.steps.length)} tools={(s, i) => tools(k, s, i)} steady
           finishLabel={next ? tr(`Kapitel ${next.nr}`, `Chapter ${next.nr}`) : tr("Zu den Kapiteln", "To the chapters")}
           onFinish={() => setOpenId(next ? next.id : null)} />
       )}

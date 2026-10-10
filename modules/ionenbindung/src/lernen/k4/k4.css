@@ -2,8 +2,8 @@
 
 .k4-m .lm-controls { gap: 6px; }
 .k4-ctl { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 12px; flex: 0 0 auto; max-width: 100%; }
-/* gelöst bzw. vorgemacht auf niedrigen Bildschirmen: Bedienung (gesperrt) weg, das Modell bekommt den Platz */
-@media (max-height: 760px) { .k4-m.k4-solved .lm-controls { display: none; } }
+/* vorgemacht auf niedrigen Bildschirmen: Bedienung (gesperrt) weg, das Modell bekommt den Platz – nicht beim Lösen (sonst wüchse das Modell) */
+@media (max-height: 760px) { .k4-m.k4-solved:not([data-live]) .lm-controls { display: none; } }
 /* wenig Platz: Formel und Name kleiner */
 @container (max-height: 190px) { .k4-ion-f { font-size: 1.4rem; } .k4-ion-n { font-size: .85rem; } .k4-name-out { font-size: 1.25rem; } }
 

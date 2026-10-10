@@ -1,11 +1,11 @@
-// Modelle für Kapitel 1 „Vom Atom zum Ion“: Bohrmodell (Unterstufe, Schalen K·L·M·N mit 2·8·8·…) mit antippbaren Elektronen,
+// Modelle für Kapitel 1 „Vom Atom zum Ion“: Bohrmodell (Unterstufe: 1. Schale bis 2, 2. und 3. Schale bis 8 Elektronen, dann die 4.) mit antippbaren Elektronen,
 // Ion bauen (abgeben/aufnehmen), Ladungsrechner (Protonen/Elektronen), PSE mit Ionen, Elektronenübergang zwischen Atomen.
 // Jede Schale hat immer denselben Radius (R), egal wie viele Protonen und Elektronen: Das Teilchen wird nur kleiner, wenn eine Schale
 // wegfällt (Kation), und nur größer, wenn eine neue dazukommt. Ein Anion ist im Modell so groß wie sein Atom.
 
 import { Fragment, useState, type ReactNode } from "react";
 import { Button, Icon, Stepper, buzz, type GuideCtx } from "@lern/ui";
-import { BY_Z, ROMAN, chargeSup, mainGroupNumber, signed } from "@lern/chem";
+import { BY_Z, ROMAN, chargeSup, mainGroupNumber, shellLines, shellSentence, signed } from "@lern/chem";
 import { PeriodicTable } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
@@ -22,7 +22,8 @@ export const isNoble = (E: number) => { const s = shellsOf(E); return E > 0 && (
 export const NOBLE: Record<number, string> = { 2: "He", 10: "Ne", 18: "Ar" };
 export const nobleName = (E: number) => ({ 2: tr("Helium He", "helium He"), 10: tr("Neon Ne", "neon Ne"), 18: tr("Argon Ar", "argon Ar") } as Record<number, string>)[E] ?? "";
 export const sym = (Z: number, E: number) => BY_Z[Z].symbol + chargeSup(Z - E);
-export const shellText = (E: number) => shellsOf(E).join(" · ");
+/** Schalen im Satz: „1. Schale 2, 2. Schale 8, 3. Schale 1 Elektron“ (nie „2 · 8 · 1“ – das sähe aus wie eine Rechnung) */
+export const shellText = (E: number) => shellSentence(shellsOf(E));
 /** Ladung als Text: „1+“, „2−“, „neutral“ */
 export const chargeWord = (q: number) => (q === 0 ? tr("neutral", "neutral") : `${Math.abs(q)}${q > 0 ? "+" : "−"}`);
 const valence = (Z: number) => outerOf(Z);
@@ -45,7 +46,7 @@ export interface AtomProps {
   Z: number; E: number;
   /** halbe Breite der viewBox (gleicher Maßstab für mehrere Atome) */
   ext?: number;
-  /** die letzten `got` Elektronen sind aufgenommen (Ring drumherum) */
+  /** die letzten `got` Elektronen sind gerade aufgenommen: sie gleiten beim Erscheinen auf ihren Platz – danach sehen sie aus wie alle anderen */
   got?: number;
   /** freie Plätze der Außenschale gestrichelt zeigen */
   slots?: boolean;
@@ -59,7 +60,8 @@ export interface AtomProps {
   ghost?: boolean;
 }
 
-/** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien (R), Hülle als Fläche (Größe des Teilchens = äußerste besetzte Schale) */
+/** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien (R). Alle Elektronen sehen gleich aus (aufgenommene und eigene) –
+ *  was sich ändert, steht in der Beschriftung; keine Fläche hinter dem Atom, die mitwächst. */
 export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, ghost = true }: AtomProps) {
   const sh = shellsOf(E), neutral = shellsOf(Z);
   const last = sh.length - 1;
@@ -71,8 +73,7 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
   let idx = 0;
   return (
     <svg className="k1-atom" viewBox={`${-X} ${-X} ${2 * X} ${2 * X}`} role="img"
-      aria-label={label ?? tr(`${BY_Z[Z].name}: ${Z} Protonen, ${E} Elektronen, Schalen ${shellText(E)}`, `${BY_Z[Z].name}: ${Z} protons, ${E} electrons, shells ${shellText(E)}`)}>
-      <circle r={rOut + 8} className={`k1-halo${E > Z ? " an" : E < Z ? " cat" : ""}`} />
+      aria-label={label ?? tr(`${BY_Z[Z].name}: ${Z} Protonen, ${E} Elektronen; ${shellText(E)}`, `${BY_Z[Z].name}: ${Z} protons, ${E} electrons; ${shellText(E)}`)}>
       {ghost && neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className="k1-ring ghost" />)}
       {sh.map((_, i) => <circle key={`r${i}`} r={R[i]} className={`k1-ring${i === last ? " outer" : ""}`} />)}
       <circle r={13} className="k1-nuc" />
@@ -97,7 +98,6 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
             onKeyDown={tap ? e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tap(); } } : undefined}>
             {(m || h) && <circle cx={x} cy={y} r={ER + 3.2} className="k1-e-ring" />}
             <circle cx={x} cy={y} r={ER} className="k1-e-c" />
-            {i >= gotFrom && <circle cx={x} cy={y} r={ER * 0.42} className="k1-e-dot" />}
             {tap && <circle cx={x} cy={y} r={HIT} className="k1-hit" />}
           </g>
         );
@@ -106,13 +106,24 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
   );
 }
 
-/** Beschriftung unter einem Teilchen: Symbol mit Ladung, Protonen · Elektronen → Ladung, Schalen */
-export function Caption({ Z, E, noble, big, compact }: { Z: number; E: number; noble?: boolean; big?: boolean; compact?: boolean }) {
+/** größte Zahl der Schalen unter den Elektronenzahlen von `lo` bis `hi` (so viele Zeilen hält die Beschriftung frei) */
+export const shellRows = (lo: number, hi: number) => { let n = 1; for (let E = lo; E <= hi; E++) n = Math.max(n, shellsOf(E).length); return n; };
+
+/** Beschriftung eines Teilchens: Symbol mit Ladung, Protonen · Elektronen → Ladung, Schalen als Zeilen („1. Schale: 2 Elektronen“).
+ *  Feste Größe: `rows` Zeilen für die Schalen sind immer frei, „✓ wie Ne“ (`noble`) steht neben dem Symbol in einer eigenen Spalte –
+ *  ändert sich der Text, verschiebt sich nichts daneben (das Bild bleibt stehen). */
+export function Caption({ Z, E, noble, big, compact, shells = true, rows, name }: {
+  Z: number; E: number; noble?: boolean; big?: boolean; compact?: boolean; shells?: boolean; rows?: number; name?: boolean;
+}) {
+  const sh = shellsOf(E);
+  const like = noble && isNoble(E) && NOBLE[E] && E !== Z;
   return (
-    <div className={`k1-cap${big ? " big" : ""}`}>
-      <span className="k1-sym">{sym(Z, E)}</span>
+    <div className={`k1-cap${big ? " big" : ""}`} style={rows ? { ["--sh-rows" as string]: rows } : undefined}>
+      <span className="k1-symrow"><span /><span className="k1-sym">{sym(Z, E)}</span>
+        <span className="k1-like">{like ? <><Icon name="check" size={14} /> {tr(`wie ${NOBLE[E]}`, `like ${NOBLE[E]}`)}</> : null}</span></span>
+      {name && <span className="k1-pe">{BY_Z[Z].name}</span>}
       {!compact && <span className="k1-pe"><b className="k1-p">{Z} p⁺</b> · <b className="k1-el">{E} e⁻</b> → {chargeWord(Z - E)}</span>}
-      <span className="k1-sh">{shellText(E)}{noble && isNoble(E) && NOBLE[E] && E !== Z ? <> · <Icon name="check" size={14} /> {tr(`wie ${NOBLE[E]}`, `like ${NOBLE[E]}`)}</> : null}</span>
+      {!compact && shells && <span className="k1-sh">{shellLines(sh).map((l, i) => <span key={i}>{l}</span>)}</span>}
     </div>
   );
 }
@@ -169,7 +180,7 @@ export function MarkOuter({ c, Z }: { c: GuideCtx; Z: number }) {
   return (
     <ModelFrame c={c} className="k1-m"
       stage={
-        <div className="k1-one">
+        <div className="k1-one k1-one-slim">
           <div className="k1-one-svg"><Atom Z={Z} E={Z} ext={R[last] + ER + 4} marked={marked} onMark={c.solved ? undefined : toggle} /></div>
           <div className="k1-cap big">
             <span className="k1-sym">{BY_Z[Z].symbol}</span>
@@ -205,8 +216,8 @@ export function ionWhy(Z: number): Record<string, string> {
       : tr(`${name} ist noch neutral (${pe}). Fülle die freien Plätze außen.`, `${name} is still neutral (${pe}). Fill the empty spaces on the outside.`);
     else if (metal && E < Z && E > target) m = tr(`Noch ${plural(E - target, "Außenelektron", "Außenelektronen", "", "")} übrig – außen sind so keine 8.`, `${plural(E - target, "", "", "outer electron is", "outer electrons are")} left – so there are not 8 on the outside.`);
     else if (metal && E < target) m = tr(`Eins zu viel: Jetzt fehlt ein Elektron der ${full}-Schale mit 8 Elektronen. Gib nur die ${v} Außenelektronen ab.`, `One too many: now an electron of the ${full} shell with 8 electrons is missing. Lose only the ${v} outer electrons.`);
-    else if (metal) m = tr(`${name} ist ein Metall: Aufnehmen gibt ${shellText(E)} – keine volle Außenschale. Abgeben wären nur ${plural(v, "Elektron", "Elektronen", "", "")} – der kürzere Weg.`,
-      `${name} is a metal: gaining gives ${shellText(E)} – not a full outer shell. Losing would be only ${plural(v, "", "", "electron", "electrons")} – the shorter way.`);
+    else if (metal) m = tr(`${name} ist ein Metall: Aufnehmen gibt außen ${outerOf(E)} – keine volle Außenschale. Abgeben wären nur ${plural(v, "Elektron", "Elektronen", "", "")} – der kürzere Weg.`,
+      `${name} is a metal: gaining gives ${outerOf(E)} on the outside – not a full outer shell. Losing would be only ${plural(v, "", "", "electron", "electrons")} – the shorter way.`);
     else if (E > Z && E < target) m = tr(`Noch ${plural(target - E, "Platz", "Plätze", "", "")} außen frei: ${outerOf(E)} sind keine 8.`, `${plural(target - E, "", "", "space is", "spaces are")} still empty on the outside: ${outerOf(E)} is not 8.`);
     else if (E > target) m = tr(`Die ${full}-Schale ist mit 8 schon voll – mehr passen nicht. Das zusätzliche Elektron müsste auf eine neue Schale.`, `The ${full} shell is already full with 8 – no more fit. The extra electron would have to go on a new shell.`);
     else m = tr(`Du hast abgegeben statt aufgenommen: ${pe}. Aufnehmen wären nur ${plural(8 - v, "Elektron", "Elektronen", "", "")} – der kürzere Weg.`,
@@ -219,7 +230,7 @@ export function ionWhy(Z: number): Record<string, string> {
 /** Elektronen abgeben oder aufnehmen (Knöpfe); „Prüfen“ meldet das Teilchen, z. B. "Na⁺" */
 export function IonBuilder({ c, Z, solution }: { c: GuideCtx; Z: number; solution: number }) {
   const [E, set] = useModel<number>(c, Z, solution);
-  const { lo, hi } = ionRange(Z);
+  const { lo, hi, metal } = ionRange(Z);
   // gleicher Maßstab für alle erreichbaren Teilchen: das Bild wächst bzw. schrumpft sichtbar
   let ext = 0;
   for (let k = lo; k <= hi; k++) ext = Math.max(ext, extentOf(Z, k));
@@ -229,8 +240,9 @@ export function IonBuilder({ c, Z, solution }: { c: GuideCtx; Z: number; solutio
     <ModelFrame c={c} className="k1-m"
       stage={
         <div className="k1-one">
-          <div className="k1-one-svg"><Atom Z={Z} E={E} ext={ext} got={Math.max(0, E - Z)} slots={!c.solved} /></div>
-          <Caption Z={Z} E={E} big noble={c.solved} />
+          {/* freie Plätze nur bei Nichtmetallen (dort werden sie gefüllt); bei Metallen lenkten sie zum Aufnehmen hin */}
+          <div className="k1-one-svg"><Atom Z={Z} E={E} ext={ext} got={Math.max(0, E - Z)} slots={!c.solved && !metal} /></div>
+          <Caption Z={Z} E={E} big noble={c.solved} rows={shellRows(lo, hi)} />
         </div>
       }
       controls={c.solved ? undefined : <>
@@ -269,12 +281,7 @@ export function ChargeCalc({ c, start, solution }: { c: GuideCtx; start: [number
       stage={
         <div className="k1-one">
           <div className="k1-one-svg"><Atom Z={p} E={e} ext={extentOf(20, 20)} /></div>
-          <div className="k1-cap big">
-            <span className="k1-sym">{sym(p, e)}</span>
-            <span className="k1-pe">{BY_Z[p].name}</span>
-            <span className="k1-pe"><b className="k1-p">{p} p⁺</b> · <b className="k1-el">{e} e⁻</b> → {chargeWord(p - e)}</span>
-            <span className="k1-sh">{shellText(e)}</span>
-          </div>
+          <Caption Z={p} E={e} big name rows={shellRows(1, 20 + MAXQ)} />
         </div>
       }
       controls={c.solved ? undefined : <div className="k1-steppers">
@@ -407,7 +414,7 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
             {s.gave.map((g, i) => (
               <figure key={`m${i}`} className="k1-fig">
                 <div className="k1-fig-svg"><Atom Z={M} E={M - g} ext={ext} ghost={false} /></div>
-                <figcaption><Caption Z={M} E={M - g} noble={c.solved} /></figcaption>
+                <figcaption><Caption Z={M} E={M - g} noble={c.solved} shells={false} /></figcaption>
               </figure>
             ))}
           </div>
@@ -419,7 +426,7 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
             {s.got.map((g, j) => (
               <figure key={`n${j}`} className="k1-fig">
                 <div className="k1-fig-svg"><Atom Z={N} E={N + g} ext={ext} got={g} slots={!c.solved} /></div>
-                <figcaption><Caption Z={N} E={N + g} noble={c.solved} /></figcaption>
+                <figcaption><Caption Z={N} E={N + g} noble={c.solved} shells={false} /></figcaption>
               </figure>
             ))}
           </div>

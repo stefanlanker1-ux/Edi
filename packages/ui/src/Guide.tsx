@@ -105,7 +105,7 @@ function Line({ text, fill }: { text: string; fill?: string }) {
   return <><RichText text={a} /><span className={`ui-guide-gap${fill ? " filled" : ""}`}>{fill ?? "?"}</span><RichText text={b} /></>;
 }
 
-export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start = 0, onStep, tools }: {
+export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start = 0, onStep, tools, steady }: {
   def: GuideDef; open: boolean; onClose: () => void;
   /** letzter Knopf: z. B. zum Quiz wechseln */
   onFinish: () => void; finishLabel?: string;
@@ -115,6 +115,9 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
   start?: number; onStep?: (i: number) => void;
   /** Hilfsmittel je Schritt – dann stehen sie mit „Weiter“ in einer Leiste unter dem Text */
   tools?: (step: GuideStep, i: number) => GuideTool[];
+  /** Bild steht still (bisher nur Ionenbindung „Lernen“): Platz für Lösungsweg, Rückmeldung und „Weiter“ ist von Anfang an frei, und untereinander
+   *  (schmal) behält das Bild in jedem Schritt die Höhe vom Anfang – wird der Text doch länger, scrollt er, statt das Bild zu verkleinern. */
+  steady?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [i, setI] = useState(0);
@@ -149,22 +152,48 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
   // nie abgeschnitten: wächst der Text (Rückmeldung nach einer falschen Antwort, Lösungsweg) über den Bildschirm, stufenweise enger (data-fit,
   // components.css) – zuletzt behält das Bild 72 px und der Text darf scrollen, statt unten abgeschnitten zu werden
   const inRef = useRef<HTMLDivElement>(null);
+  // steady: Höhe des Bildes je Schritt (und Fenstergröße) – gemessen beim Erscheinen, danach fest
+  const lockRef = useRef({ key: "", t: 0 });
   useLayoutEffect(() => {
     const el = inRef.current;
     if (!el) return;
+    const body = el.querySelector<HTMLElement>(":scope > .ui-guide-body");
     // Maß sind die Kästen von Bild und Text (ohne Verschiebungen beim Einblenden – „Weiter“ gleitet 4 px von unten herein)
     const over = () => {
       const limit = el.getBoundingClientRect().bottom - parseFloat(getComputedStyle(el).paddingBottom) + 1;
       return [...el.querySelectorAll<HTMLElement>(":scope > .ui-guide-body > *, :scope > .ui-guide-end")].some(c => c.getBoundingClientRect().bottom > limit);
     };
     // noch nicht zu sehen (Dialog öffnet gerade): nichts messen – die Kästen haben dann keine Größe
-    const fit = () => { if (!el.clientHeight) return; el.dataset.fit = "0"; for (let k = 1; k <= 2 && over(); k++) el.dataset.fit = String(k); };
+    const fit = () => {
+      if (!el.clientHeight) return;
+      const key = `${i}|${innerWidth}x${innerHeight}`;
+      if (steady && body) {
+        // gleicher Schritt: das Bild behält seine Höhe (nur kurz nach dem Erscheinen wird noch einmal gemessen, bis alles steht)
+        if (lockRef.current.key === key && performance.now() - lockRef.current.t > 600) return;
+        body.style.gridTemplateRows = ""; delete body.dataset.locked;
+      }
+      el.dataset.fit = "0"; for (let k = 1; k <= 2 && over(); k++) el.dataset.fit = String(k);
+      if (steady && body) {
+        const vis = body.querySelector<HTMLElement>(":scope > .ui-guide-visual");
+        // nur untereinander (schmal): nebeneinander hat das Bild ohnehin immer die volle Höhe
+        if (vis && getComputedStyle(body).gridTemplateColumns.trim().split(/\s+/).length === 1) {
+          body.style.gridTemplateRows = `${Math.max(72, Math.floor(vis.getBoundingClientRect().height))}px minmax(0, 1fr)`;
+          body.dataset.locked = "";
+        }
+        if (lockRef.current.key !== key) lockRef.current = { key, t: performance.now() };
+      }
+    };
     fit();
     // noch einmal, wenn Bild und Einblendungen stehen (gleich nach dem Rendern kann die Höhe kurz zu groß sein)
     const raf = requestAnimationFrame(fit), late = setTimeout(fit, 450);
     addEventListener("resize", fit);
     return () => { cancelAnimationFrame(raf); clearTimeout(late); removeEventListener("resize", fit); };
   }, [open, i, msg, solved, tries, seen, done]);
+  // steady: wird der Text länger als sein Platz, scrollt er – Rückmeldung und „Weiter“ bleiben zu sehen
+  useEffect(() => {
+    const t = textRef.current;
+    if (steady && t && t.scrollHeight > t.clientHeight + 1) t.scrollTop = t.scrollHeight;
+  }, [msg, solved, seen, steady]);
 
   function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); setSeen(1); }
   // vorgemacht: nächste Zeile zeigen; nach der letzten ist der Schritt fertig
@@ -200,7 +229,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
     <dialog ref={ref} className="ui-guide" onClose={e => { if (e.target === e.currentTarget) onClose(); /* nicht das Blatt eines Begriffs */ }} aria-label={`${badge ?? tr("Erklärung", "Explanation")}: ${def.title}`}>
       {open && (
         <TermScope terms={def.terms ?? []}>
-        <div className="ui-guide-in" ref={inRef}>
+        <div className="ui-guide-in" ref={inRef} data-steady={steady ? "" : undefined}>
           <header className="ui-guide-head">
             <span className="ui-guide-badge"><Icon name={badge ? "book" : "play"} size={16} /><span>{badge ?? tr("Erklärung", "Explanation")}</span></span>
             <h2 title={def.title}>{part?.name && !done ? <><span className="ui-guide-part">{tr(`Teil ${parts.indexOf(part) + 1}`, `Part ${parts.indexOf(part) + 1}`)}</span> {part.name}</> : def.title}</h2>
@@ -233,11 +262,15 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
               <div className="ui-guide-text" ref={textRef} tabIndex={-1}>
                 {step.mode && <span className={`ui-guide-mode m-${step.mode}`}>{MODE_NAME[step.mode]()}</span>}
                 {/* nach dem Lösen ist der Einleitungssatz gelesen – sein Platz gehört dem Lösungsweg */}
-                {step.say && !(solved && !worked && lines.length > 0) && <p className="ui-guide-say"><RichText text={step.say} /></p>}
+                {step.say && (steady || !(solved && !worked && lines.length > 0)) && <p className="ui-guide-say"><RichText text={step.say} /></p>}
                 <p className="ui-guide-ask"><RichText text={step.ask} /></p>
-                {lines.length > 0 && (step.mode !== "free" || solved) && (
+                {lines.length > 0 && (steady || step.mode !== "free" || solved) && (
                   <ol className={`ui-guide-lines${step.mode === "free" ? " after" : ""}`}>
-                    {(worked ? lines.slice(0, seen) : lines).map((l, k) => <li key={`${i}-${k}`}><Line text={l} fill={solved || show ? solText : undefined} /></li>)}
+                    {(worked && !steady ? lines.slice(0, seen) : lines).map((l, k) => {
+                      // steady: noch nicht gezeigte Zeilen halten ihren Platz frei (unsichtbar)
+                      const hold = steady && (worked ? k >= seen : step.mode === "free" && !solved);
+                      return <li key={`${i}-${k}`} className={hold ? "ui-guide-hold" : undefined} aria-hidden={hold || undefined}><Line text={l} fill={solved || show ? solText : undefined} /></li>;
+                    })}
                   </ol>
                 )}
                 {worked && !solved && !tools && (
@@ -270,6 +303,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
                     : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
                 </p>
                 {solved && !tools && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
+                {steady && !solved && !worked && !tools && <Button className="ui-guide-next-hold ui-guide-hold" variant="primary" iconRight="arrow" aria-hidden tabIndex={-1}>{tr("Weiter", "Next")}</Button>}
                 {tools && (
                   <div className="ui-guide-foot">
                     {tools(step, i).map(t => (
@@ -277,6 +311,8 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
                     ))}
                     {worked && !solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={reveal}>{tr("Nächster Schritt", "Next step")}</Button>}
                     {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={next}>{tr("Weiter", "Next")}</Button>}
+                    {/* steady: „Weiter“ kommt erst nach dem Lösen – sein Platz ist schon frei */}
+                    {steady && !solved && !worked && <Button className="ui-guide-next-hold ui-guide-hold" variant="primary" iconRight="arrow" aria-hidden tabIndex={-1}>{tr("Weiter", "Next")}</Button>}
                   </div>
                 )}
               </div>

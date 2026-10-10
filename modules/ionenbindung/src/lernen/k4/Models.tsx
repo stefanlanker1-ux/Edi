@@ -107,7 +107,9 @@ export function IonModel({ c, center, lig, init, sol, steps, showFormula = true,
         <div className="k4-ion">
           <div className="k4-ion-pic"><IonBlock center={center} lig={lig} n={s.n} extra={s.h} q={q} hideCharge={auto && !known} /></div>
           <div className="k4-ion-f" aria-live="polite">{shown ? (auto && !known ? <span className="k4-none">{toSubscript(f)} ?</span> : ionStr(f, q)) : "?"}</div>
-          {(showName || c.solved) && <div className="k4-ion-n">{known && (!steps.includes("q") || known.charge === q) ? known.name : auto ? tr("kein Ion aus diesem Kapitel", "no ion from this chapter") : "–"}</div>}
+          {/* Name: Zeile immer da (vor dem Lösen unsichtbar, wenn er gesucht ist) – das Bild rückt nicht, wenn er erscheint */}
+          <div className="k4-ion-n" style={showName || c.solved ? undefined : { visibility: "hidden" }} aria-hidden={!(showName || c.solved) || undefined}>
+            {known && (!steps.includes("q") || known.charge === q) ? known.name : auto ? tr("kein Ion aus diesem Kapitel", "no ion from this chapter") : "–"}</div>
         </div>
       }
       controls={
@@ -288,7 +290,8 @@ export function BigIon({ c, center, lig, n, q }: { c: GuideCtx; center: string; 
   return (
     <div className="k4-big">
       <div className="k4-big-f">{ionStr(`${center}${lig}${n}`, q)}</div>
-      {c.solved && <div className="k4-ion-pic"><IonBlock center={center} lig={lig} n={n} q={q} /></div>}
+      {/* die Atome erscheinen nach dem Lösen – ihr Platz ist schon vorher frei, die Formel bleibt stehen */}
+      <div className="k4-ion-pic" style={c.solved ? undefined : { visibility: "hidden" }} aria-hidden={!c.solved || undefined}><IonBlock center={center} lig={lig} n={n} q={q} /></div>
     </div>
   );
 }
