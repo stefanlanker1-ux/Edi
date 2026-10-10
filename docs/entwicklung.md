@@ -301,7 +301,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Beschriftungen der Werkzeugleiste nie abgeschnitten: passt eine nicht in ihre Spalte (schmales Handy, Englisch, „Lesbar“), stehen die Werkzeuge in zwei Reihen (`Workbench` misst, `data-wrap`).
   Übungen/Quiz: Aufgabe = ein Bildschirm (Frage, Bild passt sich per `Fit` an, Antwort, kurze Rückmeldung, „Weiter“ immer sichtbar); Lösungsweg und Hilfsmittel als Blatt.
   Leiste unter der Aufgabe: jedes Hilfsmittel mit ganzer Beschriftung, nichts überdeckt sich – passt sie nicht neben „Weiter“ (viele Hilfsmittel, Englisch, „Lesbar“),
-  steht „Weiter“ in einer eigenen Zeile darunter. Nach der Antwort darf das Bild kleiner werden (`Fit` bis 0,25); wäre es dann noch abgeschnitten oder niedriger als 56 px
+  steht „Weiter“ in einer eigenen Zeile darüber (die Hilfsmittel bleiben an ihrem Platz; „Tipp“ hält nach der Antwort unsichtbar seinen Platz, „Lösung“ und
+  „Begriffe“ haben vorher einen unsichtbaren Platz). Nach der Antwort darf das Bild kleiner werden (`Fit` bis 0,25); wäre es dann noch abgeschnitten oder niedriger als 56 px
   (`Fit` setzt `data-cut`, `minHeight`; auch ein Rahmen unter 56 px, den eine selbst einpassende Zeichnung füllt), ist es unsichtbar statt als Rest zu sehen
   (`visibility: hidden` – der Rahmen bleibt messbar: wird der Bildschirm wieder größer, kommt das Bild zurück). Landkarte: hilft auch die kleinste Stufe nicht,
   bleibt sie bei Lesegröße und scrollt. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
@@ -317,6 +318,10 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Nichts wandert** (alle Apps): Bilder, Modelle, Karten und Steuerleisten bleiben beim Bedienen an ihrem Platz – auch wenn sich daneben Text, Zahlen, Ladungen oder
   Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
+  Bausteine: `Reserve` (`@lern/ui`, alle Fassungen in einer Zelle, nur die aktuelle sichtbar), `Workbench` `statusReserve` (Statuszeile mit Platz für die längste
+  Kombination) und `wrapTools` (Werkzeugleiste fest zweireihig), Erklärung: unsichtbare „Geister“ des größten Zustands je Folie (`.ui-guide-ghost`), `Fit` behält die Lage,
+  wenn nur der Rahmen sich ändert. Prüfung: `scripts/check-ui.mjs` vergleicht vor/nach jeder Bedienung die Kästen (immer an, `WANDER=0` aus; gewollte Bewegung
+  `data-anim`/`data-moves`, neue Ansicht `data-screen`; `ERKLAERUNG=1` spielt alle Erklärungen).
   Umsetzung: `ModelFrame` hält nach dem Lösen die Höhe der Bedienzeile frei; `Guide steady` (Ionenbindung „Lernen“) reserviert Platz für Lösungsweg, Rückmeldung und
   „Weiter“ – untereinander behält das Bild seine Anfangshöhe, längerer Text scrollt; Schalen-Text über `shellLines`/`shellSentence` (`@lern/chem`).
   Ausnahme (mit der Lehrkraft abgesprochen): Ionenbindung Kapitel 1, Elektronenübergang mit einstellbarer Atomzahl – kommt ein Atom dazu, ordnen sich die Atome neu und
@@ -1181,6 +1186,11 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Nichts wandert – alle Apps** (`@lern/ui`, `@lern/quiz`, Atombau, Gemische, Elektronenpaarbindung, Nomenklatur, Polymere, Reaktionsgleichungen, Einheiten,
+  `scripts/check-ui.mjs`) – Wunsch der Lehrkraft. Gefunden und behoben: Bild der Erklärung schrumpfte und rückte je Schritt (20–100 px), Hilfsmittel unter der Quiz-Aufgabe
+  rückten nach der Antwort (bis 114 px), Statuszeilen in Atombau, Gemische, Elektronenpaarbindung, Reaktionsgleichungen ließen die Bühne springen (16–38 px), Nomenklatur-Name
+  (52 px), Polymere-Chips und Werkzeugleiste, Atombau-Steckbrief (Bohrmodell ±17 px). Platz für die größte Fassung reserviert; „Weiter“ steht bei Platzmangel über statt unter
+  den Hilfsmitteln. Neue Wanderungs-Prüfung in check-ui bei jeder Bedienung. Nebenbei: Reaktionsgleichungen „Üben“ – bei 360 px liefen drei Knöpfe über den Rand.
 - **Ionenbindung: Atome stehen still, Elektronen gleich, Schalen ausgeschrieben** (Ionenbindung, Atombau, `@lern/chem`, `@lern/ui`) – Wünsche der Lehrkraft: Das Atom
   rückte beim Wechsel Mg → Mg⁺ bis 150 px (Beschriftung änderte die Breite); jetzt Bild in fester Zelle, reservierter Platz für Beschriftung, Name, Rechnung und Rückmeldung
   (alle 125 Folien gemessen: 0 px). Aufgenommene Elektronen ohne Ring, keine hellblaue Hinterlegung. Schalenbesetzung überall als „1. Schale: 2 Elektronen“ statt „2 · 8 · 1“
