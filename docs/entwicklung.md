@@ -306,6 +306,9 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (`visibility: hidden` – der Rahmen bleibt messbar: wird der Bildschirm wieder größer, kommt das Bild zurück). Landkarte: hilft auch die kleinste Stufe nicht,
   bleibt sie bei Lesegröße und scrollt. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
+- **Nichts wandert** (alle Apps): Bilder, Modelle, Karten und Steuerleisten bleiben beim Bedienen an ihrem Platz – auch wenn sich daneben Text, Zahlen, Ladungen oder
+  Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
+  zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
 - **Schalenmodelle mit festen Schalen** (überall, wo Bohr- bzw. Schalenmodelle gezeichnet werden): Jede Schale (K, L, M, …) hat immer denselben Durchmesser – unabhängig
   von Protonen-, Neutronen- und Elektronenzahl. Der Kern verschiebt keine Schale, die K-Schale liegt außerhalb auch des größten Kerns. Ein Atom bzw. Ion wird nur größer oder
   kleiner, wenn eine Schale dazukommt oder wegfällt. Innerhalb einer Ansicht bzw. eines Modells ändert sich der Maßstab beim Bedienen nie: der Rahmen bietet Platz für alle
@@ -336,7 +339,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Stolperstein (`d`), dann die nur mit Rückmeldung (`dis`), dann den Rest – je Gruppe zufällig (Test `mc.test.ts`).
 - Quiz-Hilfsmittel je Aufgabe über `tools` von `QuizScreen` (`QuizHelp`): z. B. PSE mit den Elementen der Aufgabe markiert (`PseHelp` in `@lern/chem-ui`, Elemente per `elementsIn(prompt)` aus `@lern/chem`).
   Hilfsmittel dürfen die Lösung nicht direkt verraten (PSE nur Angaben eines gedruckten PSE: Z, Gruppe, Periode, Atommasse).
-- **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf DE/EN in der Kopfzeile
+- **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf EN/DE in der Kopfzeile (EN vor DE, international)
   (`lern-sprache`; Wechsel lädt die Seite neu, Stände bleiben). Tests laufen auf Deutsch; je Modul `english.test.ts`/`guide-english.test.ts` prüfen, dass nichts Deutsches
   in der englischen Fassung bleibt. Fachnamen englisch nach IUPAC (alkene, ethanoic acid …).
 - Kopfzeile (`LernApp`): Home-Knopf (→ Übersicht), Bereichsleiste (ab 900 px), Stufen-Umschalter „Level I | Level II“ (falls das Modul Stufen hat; Start immer Level I, nicht gespeichert), Beamer (ab 900 px,
@@ -1159,6 +1162,8 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Sprachknopf EN vor DE; Regel „Nichts wandert“** (`@lern/ui` `LangButton`, alle Module und Übersicht) – der Sprachknopf zeigt „EN DE“ (international), die Sprache kommt
+  beim ersten Start weiter automatisch aus der Gerätesprache. Neue Gestaltungsregel: Bilder, Modelle und Karten bleiben beim Bedienen an ihrem Platz (Wunsch der Lehrkraft).
 - **Ionenbindung Kapitel 3: NaCl-Gitter in 3D** (`k3/lattice3d.tsx`) – die schräge Zeichnung wirkte flach (Cl⁻ davor/dahinter verwirrend). Jetzt echte Perspektive mit
   schattierten Kugeln und richtiger Tiefenordnung, mit dem Finger drehbar, Umschalter „Nachbarn“ (Na⁺ mit 6 Cl⁻) / „Gitterausschnitt“ (27 Ionen); Test.
 - **Ionenbindung Kapitel 3: Hart und spröde, Schmelze, Strom** – Wunsch nach Ansicht am Handy: (1) Salzkristall zerbricht jetzt als Ablauf Makro → Lupe → Teilchen → Makro

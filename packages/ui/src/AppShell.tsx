@@ -16,7 +16,8 @@ export function LangButton() {
   return (
     <button type="button" className="ui-icon-btn ui-lang" lang={other} onClick={() => setLang(other)}
       aria-label={other === "en" ? "Switch to English" : "Deutsch – switch to German"} title={other === "en" ? "Switch to English" : "Deutsch – switch to German"}>
-      <span className={lang === "de" ? "on" : undefined}>DE</span><span className={lang === "en" ? "on" : undefined}>EN</span>
+      {/* EN vor DE (international); die Sprache selbst kommt beim ersten Start aus der Gerätesprache */}
+      <span className={lang === "en" ? "on" : undefined}>EN</span><span className={lang === "de" ? "on" : undefined}>DE</span>
     </button>
   );
 }
