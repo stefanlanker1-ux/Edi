@@ -39,3 +39,15 @@ test("Kapitel auf Englisch: gleiche Regeln, nichts Deutsches", async () => {
   setLang("de", false);
   expect([...texts].filter(s => /[äöüÄÖÜß„]/.test(s))).toEqual([]);
 }, 30_000);
+
+test("Schalen nie als Kette „2 · 8 · 1“ (sieht aus wie eine Rechnung) – ausgeschrieben je Schale", () => {
+  const texts: string[] = [];
+  const walk = (x: unknown): void => {
+    if (typeof x === "string") texts.push(x);
+    else if (Array.isArray(x)) x.forEach(walk);
+    else if (x && typeof x === "object") Object.values(x).forEach(walk);
+  };
+  for (const k of allKapitel()) walk([k.title, k.desc, k.explain, k.def]);
+  // „2 · 8“, „2 · 6“ … (Zahl · Zahl) wäre die alte Schreibweise; Rechnungen mit Ladung oder Klammer wie „2 · (1−)“, „2 · 2+“ bleiben erlaubt
+  expect(texts.filter(s => /\b\d+ · \d+\b(?![+−-])/.test(s))).toEqual([]);
+});

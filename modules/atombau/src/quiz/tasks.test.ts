@@ -28,6 +28,9 @@ test("alle Level erzeugen gültige, speicherbare Aufgaben", () => {
           }
           // Einzahl: nie „1 Protonen“, „1 Außenelektronen“ …
           assert.ok(!/\b1\** (Protonen|Neutronen|Elektronen|Außenelektronen|ungepaarte )/.test(t.prompt + t.explain), t.prompt + t.explain);
+          // Schalen nie als Kette „2 · 8 · 1“ (sieht aus wie eine Rechnung), sondern ausgeschrieben je Schale
+          const all = [t.prompt, t.explain, ...(t.kind === "mc" ? [...t.options, ...Object.values(t.why ?? {})] : [])].join(" | ");
+          assert.ok(!/\d+ · \d+ · \d+|\b2 · \d+\b(?!\s*=|[²³+−-])/.test(all), all);
           if (t.kind === "mc") {
             assert.ok(t.options.length >= 3, `zu wenige Optionen: ${t.prompt}`);
             assert.ok(t.answer >= 0 && t.answer < t.options.length);

@@ -145,3 +145,8 @@
   /* Symbole im schmalen Oberstufen-PSE mindestens 9 px (sonst 7–8 px) */
   .explore-wb .pse-os.fit .pse-cell:not(.pse-ph) .pc-sym, .pse-z .pse-os.fit .pse-cell:not(.pse-ph) .pc-sym { font-size: max(9px, min(2.3cqw, calc((100cqw - 24px) / 38))); letter-spacing: -.03em; }
 }
+
+/* Schalen als Zeilen („1. Schale: 2 Elektronen“) – nie als Kette „2 · 8 · 1“ */
+.shell-lines { display: grid; justify-items: center; gap: 0; font-size: .875rem; line-height: 1.35; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.facts .facts-wide { grid-column: 1 / -1; }
+.facts dd.shell-lines { justify-items: start; font-weight: 600; font-size: .95rem; color: var(--text); }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button, Fit, Stepper, buzz } from "@lern/ui";
-import { BY_Z, MADELUNG, SHELL_NAMES, hundBoxes, configuration, configString, standardNeutrons, signed } from "@lern/chem";
+import { BY_Z, MADELUNG, SHELL_NAMES, shellSentence, hundBoxes, configuration, configString, standardNeutrons, signed } from "@lern/chem";
 import { useApp } from "../store.ts";
 import type { Answered, Submit } from "@lern/quiz";
 import type { Task } from "./tasks.ts";
@@ -15,7 +15,7 @@ export function solutionText(t: Task): string {
     case "mc": return t.options[t.answer];
     case "pse": return `${BY_Z[t.answer].name} (${BY_Z[t.answer].symbol})`;
     case "numbers": return t.fields.map(f => `${f.label}: ${f.select ? signed(f.answer) : f.answer}`).join(" · ");
-    case "shells": return t.target.map((c, i) => `${SHELL_NAMES[i]} = ${c}`).join(", ");
+    case "shells": return shellSentence(t.target);
     case "build": return tr(`${t.target.Z} ${t.target.Z === 1 ? "Proton" : "Protonen"}, ${t.target.N} ${t.target.N === 1 ? "Neutron" : "Neutronen"}, ${t.target.E} ${t.target.E === 1 ? "Elektron" : "Elektronen"}`,
       `${t.target.Z} ${t.target.Z === 1 ? "proton" : "protons"}, ${t.target.N} ${t.target.N === 1 ? "neutron" : "neutrons"}, ${t.target.E} ${t.target.E === 1 ? "electron" : "electrons"}`);
     case "boxes": return configString(configuration(t.Z));

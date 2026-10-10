@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import { Button, FitDown, IconButton, Stepper, Switch, Tag, Workbench, buzz, useReducedMotion, type WorkbenchTool } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, STABLE_N, standardNeutrons, ionName, isStable, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, chargeSup, signed, mainGroupNumber, ROMAN, configException,
+  shells, shellLines, chargeSup, signed, mainGroupNumber, ROMAN, configException,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
 import { ElementPicker } from "../components/ElementPicker.tsx";
@@ -69,7 +69,7 @@ export function BuildView() {
             <div><dt>{tr("Massenzahl A", "Mass number A")}</dt><dd>{Z + N}</dd></div>
             <div><dt>{tr("Ladung", "Charge")}</dt><dd>{signed(q)}</dd></div>
             {el && <div><dt>{tr("Periode", "Period")} · {os ? tr("Gruppe", "Group") : tr("Hauptgruppe", "Main group")}</dt><dd>{el.period} · {os ? (el.group ?? "La–Lu") : (mainGroupNumber(Z) ? ROMAN[mainGroupNumber(Z)!] : `${tr("Gruppe", "Group")} ${el.group ?? "La–Lu"}`)}</dd></div>}
-            <div><dt>{tr("Schalen", "Shells")}</dt><dd>{sh.length ? sh.map((c, i) => `${SHELL_NAMES[i]}${c}`).join(" ") : "–"}</dd></div>
+            <div className="facts-wide"><dt>{tr("Schalen", "Shells")}</dt><dd className="shell-lines">{sh.length ? shellLines(sh).map((l, i) => <span key={i}>{l}</span>) : "–"}</dd></div>
             {el && isStable(Z, N) === false && <div><dt>{tr("Stabile Isotope", "Stable isotopes")}</dt><dd>{STABLE_N[Z].map(n => `${el.symbol}-${Z + n}`).join(", ")}</dd></div>}
           </dl>
           {os && el && E > 0 && configException(Z, E) && <div className="ui-tags"><ExceptionTag Z={Z} E={E} /></div>}

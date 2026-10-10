@@ -215,7 +215,7 @@ const US: GuideStep[] = [
     ask: tr("Wie verteilen sich die 9 Elektronen von **Fluor**?", "How are the 9 electrons of **fluorine** arranged?"),
     visual: () => <BohrOnly Z={9} N={10} E={9} />,
     labels: [{ at: ".bohr .ring", text: tr("1. Schale", "1st shell"), nth: 0, point: "nw", side: "top" }, { at: ".bohr .ring", text: tr("2. Schale", "2nd shell"), nth: 1, point: "ne", side: "top" }],
-    lines: [tr("1. Schale: 2 – jetzt voll.", "1st shell: 2 – now full."), tr("2. Schale: 9 − 2 = **7**.", "2nd shell: 9 − 2 = **7**."), tr("Kurz: **2 · 7**. Die äußerste Schale hat 7 **Außenelektronen**.", "In short: **2 · 7**. The outer shell has 7 **outer electrons**."), tr("Die Schalen heißen von innen auch **K**, **L**, **M**, **N**.", "From the inside the shells are also called **K**, **L**, **M**, **N**.")],
+    lines: [tr("1. Schale: 2 Elektronen – jetzt voll.", "1st shell: 2 electrons – now full."), tr("2. Schale: 9 − 2 = **7** Elektronen.", "2nd shell: 9 − 2 = **7** electrons."), tr("Die äußerste Schale hat 7 **Außenelektronen**.", "The outer shell has 7 **outer electrons**."), tr("Die Schalen heißen von innen auch **K**, **L**, **M**, **N**.", "From the inside the shells are also called **K**, **L**, **M**, **N**.")],
     ok: tr("Erst die innere Schale füllen, dann die nächste.", "Fill the inner shell first, then the next."),
   },
   {
@@ -225,7 +225,7 @@ const US: GuideStep[] = [
     lines: [tr("1. Schale: 2.", "1st shell: 2."), tr("2. Schale: 8.", "2nd shell: 8."), tr("Äußerste Schale: 13 − 2 − 8 = {?}", "Outer shell: 13 − 2 − 8 = {?}")],
     why: { "5": tr("Auch die 8 der 2. Schale abziehen: 13 − 2 − 8.", "Subtract the 8 of the 2nd shell too: 13 − 2 − 8."), "11": tr("Auch die 8 der 2. Schale abziehen.", "Subtract the 8 of the 2nd shell too.") },
     tip: tr("Rechne die letzte Zeile aus.", "Work out the last line."),
-    ok: tr("Aluminium: 2 · 8 · 3 – 3 Außenelektronen.", "Aluminium: 2 · 8 · 3 – 3 outer electrons."),
+    ok: tr("Aluminium: 1. Schale 2, 2. Schale 8, 3. Schale 3 Elektronen – 3 Außenelektronen.", "Aluminium: 1st shell 2, 2nd shell 8, 3rd shell 3 electrons – 3 outer electrons."),
   },
   {
     mode: "free",
@@ -233,13 +233,13 @@ const US: GuideStep[] = [
     visual: () => <BohrOnly Z={11} N={12} E={11} />,
     why: { "11": tr("11 sind alle Elektronen. Zähle nur die äußerste Schale.", "11 are all the electrons. Count only the outer shell."), "8": tr("8 sind auf der 2. Schale – die äußerste ist die 3.", "8 are on the 2nd shell – the outer one is the 3rd.") },
     tip: tr("Zähle nur die Punkte auf dem äußersten Ring.", "Count only the dots on the outer ring."),
-    lines: [tr("Natrium: 2 · 8 · 1 → 1 Außenelektron.", "Sodium: 2 · 8 · 1 → 1 outer electron.")],
+    lines: [tr("Natrium: 1. Schale 2, 2. Schale 8, 3. Schale 1 Elektron → 1 Außenelektron.", "Sodium: 1st shell 2, 2nd shell 8, 3rd shell 1 electron → 1 outer electron.")],
     ok: tr("Genau: 1 Außenelektron.", "Exactly: 1 outer electron."),
   },
   {
     mode: "worked",
     say: tr("Das Periodensystem verrät die Schalen, ohne zu zeichnen.", "The periodic table tells you the shells without drawing."),
-    ask: tr("Wo steht **Schwefel** (2 · 8 · 6)?", "Where is **sulfur** (2 · 8 · 6)?"),
+    ask: tr("Wo steht **Schwefel** (1. Schale 2, 2. Schale 8, 3. Schale 6 Elektronen)?", "Where is **sulfur** (1st shell 2, 2nd shell 8, 3rd shell 6 electrons)?"),
     visual: c => <Pse c={c} stufe="us" mark={16} />,
     lines: [tr("3 Schalen → **3. Periode** (Zeile).", "3 shells → **period 3** (row)."), tr("6 Außenelektronen → **VI. Hauptgruppe** (Spalte).", "6 outer electrons → **main group VI** (column).")],
     ok: tr("Periode = Schalen, Hauptgruppe = Außenelektronen.", "Period = shells, main group = outer electrons."),
@@ -265,14 +265,14 @@ const US: GuideStep[] = [
   {
     mode: "worked", part: tr("Ionen", "Ions"),
     say: tr("Bei Reaktionen geben Atome Außenelektronen ab oder nehmen welche auf, bis die äußerste Schale **voll** ist (**Edelgaskonfiguration**).", "In reactions atoms lose or gain outer electrons until the outer shell is **full** (**noble gas configuration**)."),
-    ask: tr("Was wird aus **Natrium** (2 · 8 · 1)?", "What does **sodium** (2 · 8 · 1) become?"),
+    ask: tr("Was wird aus **Natrium** (1 Außenelektron auf der 3. Schale)?", "What does **sodium** (1 outer electron on the 3rd shell) become?"),
     visual: () => <BohrOnly Z={11} N={12} E={10} />,
     lines: [tr("1 Außenelektron abgeben ist leichter als 7 aufnehmen.", "Losing 1 outer electron is easier than gaining 7."), tr("Danach außen: die volle 2. Schale (8).", "Afterwards on the outside: the full 2nd shell (8)."), tr("11 Plus, 10 Minus → Ladung **1+**: das Ion **Na⁺**.", "11 plus, 10 minus → charge **1+**: the ion **Na⁺**.")],
     ok: tr("Geladene Teilchen heißen **Ionen**: positive **Kationen**, negative **Anionen**.", "Charged particles are called **ions**: positive **cations**, negative **anions**."),
   },
   {
     mode: "faded",
-    ask: tr("Ergänze für **Magnesium** (2 · 8 · 2).", "Complete for **magnesium** (2 · 8 · 2)."), answer: "2+", options: ["2−", tr("neutral", "neutral"), "2+", "12+"],
+    ask: tr("Ergänze für **Magnesium** (2 Außenelektronen auf der 3. Schale).", "Complete for **magnesium** (2 outer electrons on the 3rd shell)."), answer: "2+", options: ["2−", tr("neutral", "neutral"), "2+", "12+"],
     visual: () => <BohrOnly Z={12} N={12} E={10} />,
     lines: [tr("Magnesium gibt seine 2 Außenelektronen ab.", "Magnesium loses its 2 outer electrons."), tr("12 Plus, 10 Minus → Ladung {?}", "12 plus, 10 minus → charge {?}")],
     why: { "2−": tr("Es fehlen Elektronen (−) – also bleibt Plus übrig.", "Electrons (−) are missing – so plus is left over."), [tr("neutral", "neutral")]: tr("12 Plus, 10 Minus: zwei Plus bleiben übrig.", "12 plus, 10 minus: two plus are left over."), "12+": tr("Die 10 Elektronen gleichen 10 Protonen aus.", "The 10 electrons balance 10 protons.") },
@@ -680,7 +680,7 @@ export function guideFor(stufe: "us" | "os"): GuideDef {
     ? { title: tr("Atombau", "Atomic Structure"), steps: US, outro: [
       tr("Ein Atom hat **Protonen** und **Neutronen** im Kern, **Elektronen** in der Hülle.", "An atom has **protons** and **neutrons** in the nucleus, **electrons** in the shells."),
       tr("**Ordnungszahl** = Protonen = Elektronen (im Atom). **Massenzahl** = Protonen + Neutronen.", "**Atomic number** = protons = electrons (in an atom). **Mass number** = protons + neutrons."),
-      tr("Schalen: 2 · 8 · 8 … **Periode** = Schalen, **Hauptgruppe** = Außenelektronen.", "Shells: 2 · 8 · 8 … **period** = shells, **main group** = outer electrons."),
+      tr("Schalen von innen füllen: 1. Schale bis 2, 2. Schale bis 8 Elektronen, außen höchstens 8. **Periode** = Schalen, **Hauptgruppe** = Außenelektronen.", "Fill the shells from the inside: 1st shell up to 2, 2nd shell up to 8 electrons, at most 8 on the outside. **Period** = shells, **main group** = outer electrons."),
       tr("**Ionen**: Elektronen abgeben (+) oder aufnehmen (−) bis zur vollen Schale.", "**Ions**: lose (+) or gain (−) electrons until the shell is full."),
       tr("**Isotope**: gleiche Protonenzahl, verschiedene Neutronenzahl.", "**Isotopes**: same proton number, different neutron number."),
     ] }

@@ -161,25 +161,27 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   // Vor dem Lösen nie ✓, Grün oder der fertige Name: Formel bauen zeigt die Rechnung neutral („ausgeglichen“ bzw. „≠“), Ladung/Name suchen nur die Wand.
   // Nach dem Lösen: ✓-Rechnung und Name.
   const showSample = sample && (sampleAlways || c.solved);
+  // was erst nach dem Lösen erscheint (Probe, Name, ✓-Rechnung), hat seinen Platz schon vorher (unsichtbar) – die Wand rückt nicht
+  const hold = (on: boolean | undefined) => (on ? undefined : { visibility: "hidden" as const });
   const stage = (
     <Fit className="k5-fit" min={0.3}><div className="k5-wall">
-      {(given || showSample) && (
+      {(given || sample) && (
         <div className="k5-head">
-          {showSample && <Sample k={sample!} />}
+          {sample && <span style={hold(showSample)} aria-hidden={!showSample || undefined}><Sample k={sample} /></span>}
           {given && <p className={`k5-given${report === "formula" ? " name" : ""}`}>{report === "formula" ? given : <Formula f={given} />}
-            {showSample && <span className="k5-given-c">{SAMPLE_COLOR[sample!]()}</span>}</p>}
+            {sample && <span className="k5-given-c" style={hold(showSample)}>{SAMPLE_COLOR[sample]()}</span>}</p>}
         </div>
       )}
       <IonWall5 cat={cat} an={an} nC={w.nC} nA={w.nA} />
       {report === "formula" && (
         <p className="k5-built"><Icon name="arrow" size={26} /> <span className="k5-built-f">{balanced ? <Formula f={formula(cat, an, w.nC, w.nA)} /> : "?"}</span>
-          {c.solved && <span className="k5-built-n">{compoundName(cat, an)}</span>}</p>
+          <span className="k5-built-n" style={hold(c.solved)} aria-hidden={!c.solved || undefined}>{compoundName(cat, an)}</span></p>
       )}
       {c.solved
         ? <p className="k5-calc ok">✓ {calc}</p>
-        : report === "formula" && <p className="k5-calc">{balanced ? `${tr("ausgeglichen", "balanced")}: ` : "≠ "}{calc}</p>}
+        : <p className="k5-calc" style={hold(report === "formula")} aria-hidden={report !== "formula" || undefined}>{balanced ? `${tr("ausgeglichen", "balanced")}: ` : "≠ "}{calc}</p>}
       {report === "name" && !c.solved && <p className="k5-name" aria-live="polite">{nameWith(Z, w.q, an)}</p>}
-      {report !== "formula" && c.solved && <p className="k5-name ok">{compoundName(cat, an)}</p>}
+      {report !== "formula" && (c.solved || report !== "name") && <p className={`k5-name${c.solved ? " ok" : ""}`} style={hold(c.solved)} aria-hidden={!c.solved || undefined}>{compoundName(cat, an)}</p>}
     </div></Fit>
   );
   const seg = charges && (

@@ -21,3 +21,15 @@ test("Rückmeldung: erst Begründung, ab dem zweiten Versuch mit Tipp; ohne Begr
   expect(feedback(step, why, 2)).toBe(`${why} Tipp: ${step.tip} Versuch 2 von 4.`);
   expect(feedback(step, undefined, 1)).toBe(`${step.tip} Versuch 1 von 4.`);
 });
+
+test("Schalen nie als Kette „2 · 8 · 1“ (sieht aus wie eine Rechnung) – ausgeschrieben je Schale", () => {
+  const texts: string[] = [];
+  const walk = (x: unknown): void => {
+    if (typeof x === "string") texts.push(x);
+    else if (Array.isArray(x)) x.forEach(walk);
+    else if (x && typeof x === "object") Object.values(x).forEach(walk);
+  };
+  walk([guideFor("us"), guideFor("os")]);
+  // Rechnungen wie „3 · 2 = 6“ oder „2 · 3² = 18“ bleiben erlaubt
+  expect(texts.filter(s => /\d+ · \d+ · \d+|\b2 · \d+\b(?!\s*=|[²³+−-])/.test(s))).toEqual([]);
+});

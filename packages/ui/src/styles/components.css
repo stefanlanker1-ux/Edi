@@ -340,8 +340,8 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 /* Hilfsmittel (PSE, Tipp, Erklärung) und „Weiter“ in einer Leiste; passt sie nicht, steht „Weiter“ darunter in voller Breite */
 .ui-guide-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .ui-guide-foot .ui-guide-tool { min-height: 44px; padding: 6px 10px; }
-.ui-guide-foot .ui-guide-next { margin-left: auto; }
-@media (max-width: 479px) { .ui-guide-foot .ui-guide-next { flex: 1 0 100%; } }
+.ui-guide-foot :is(.ui-guide-next, .ui-guide-next-hold) { margin-left: auto; }
+@media (max-width: 479px) { .ui-guide-foot :is(.ui-guide-next, .ui-guide-next-hold) { flex: 1 0 100%; } }
 .ui-guide-end { display: grid; align-content: center; gap: 14px; max-width: 640px; width: 100%; margin: 0 auto; }
 .ui-guide-end h3 { margin: 0; font-size: 1.3rem; }
 .ui-guide-end ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; line-height: 1.4; }
@@ -371,6 +371,16 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 /* schmal: nur das rote Play-Zeichen statt „Erklärung“, damit der App-Name ganz zu lesen ist */
 @media (max-width: 479px) { .ui-guide-badge span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } .ui-guide-head { gap: 4px 8px; } }
 .ui-guide-text:focus { outline: none; }
+/* Bild steht still (Guide `steady`): Platzhalter (Zeilen des Lösungswegs, „Weiter“) unsichtbar, aber mit ihrer Größe; schmal Platz für zwei Zeilen Rückmeldung;
+   die Bildhöhe ist je Schritt fest (`data-locked`) – reicht der Platz nicht, scrollt der Text */
+.ui-guide-hold { visibility: hidden; animation: none !important; }
+@media (max-width: 899px) { .ui-guide-in[data-steady] .ui-guide-msg { min-height: 2.9em; } }
+/* niedrige Handys: das Bild geht vor – kein Platz im Voraus, längerer Text scrollt (Rückmeldung und „Weiter“ werden hineingescrollt) */
+@media (max-width: 899px) and (max-height: 700px) {
+  .ui-guide-in[data-steady] .ui-guide-hold { display: none; }
+  .ui-guide-in[data-steady] .ui-guide-msg { min-height: 1.5em; }
+}
+.ui-guide-body[data-locked] > .ui-guide-text { min-height: 0; overflow-y: auto; align-content: start; overscroll-behavior: contain; }
 
 /* Beschriftung mit Pfeilen (Erklärung): Begriff am Rand, schwarzer Pfeil aufs Teil; Tippen geht durch */
 .ui-callouts { position: absolute; inset: 0; pointer-events: none; z-index: 2; }

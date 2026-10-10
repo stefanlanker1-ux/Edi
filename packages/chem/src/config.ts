@@ -155,6 +155,22 @@ export function shells(Z: number, electrons = Z): number[] {
 
 export const shellCapacity = (n: number) => 2 * n * n;
 
+// Schalenbesetzung als Text: jede Schale ausgeschrieben („1. Schale: 2 Elektronen“) – nie als Kette „2 · 8 · 1“,
+// die wie eine Rechnung aussieht (2 · 8 · 1 = 16?). Die Schalen werden von innen gezählt (1. Schale = K).
+const enOrdinal = (n: number) => `${n}${n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"}`;
+/** „1. Schale“ / „1st shell“ (n = 1 ist die innerste Schale, K) */
+export const shellName = (n: number) => tr(`${n}. Schale`, `${enOrdinal(n)} shell`);
+/** „1 Elektron“, „8 Elektronen“ */
+export const electronsText = (count: number) => tr(`${count} ${count === 1 ? "Elektron" : "Elektronen"}`, `${count} ${count === 1 ? "electron" : "electrons"}`);
+/** Schalen als Zeilen (für Bilder, Steckbriefe, Lösungsweg): [2, 8, 1] → „1. Schale: 2 Elektronen“, „2. Schale: 8 Elektronen“, „3. Schale: 1 Elektron“ */
+export const shellLines = (counts: readonly number[]): string[] => counts.map((c, i) => `${shellName(i + 1)}: ${electronsText(c)}`);
+/** kurze Form im Satz: [2, 8, 1] → „1. Schale 2, 2. Schale 8, 3. Schale 1 Elektron“ (Einzahl/Mehrzahl nach der letzten Zahl) */
+export function shellSentence(counts: readonly number[]): string {
+  if (!counts.length) return "";
+  const head = counts.slice(0, -1).map((c, i) => `${shellName(i + 1)} ${c}`);
+  return [...head, `${shellName(counts.length)} ${electronsText(counts[counts.length - 1])}`].join(", ");
+}
+
 const SUP: Record<string, string> = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹", "+": "⁺", "-": "⁻" };
 export const sup = (v: number | string) => String(v).split("").map(c => SUP[c] ?? c).join("");
 

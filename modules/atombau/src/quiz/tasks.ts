@@ -5,7 +5,7 @@
 import {
   BY_Z, STABLE_N, standardNeutrons, configuration, configString, shortConfigString, shells,
   unpairedElectrons, blockOf, valenceElectrons, typicalIonCharge, commonCharges, ionName, chargeSup, signed, minus, groupLabel,
-  MADELUNG, SHELL_NAMES, ROMAN, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, aufbau, namesInSentenceTask, type Occupied,
+  MADELUNG, ROMAN, shellSentence, mainGroupNumber, sup, groupName, elementPronoun, AUFBAU_EXCEPTIONS, aufbau, namesInSentenceTask, type Occupied,
 } from "@lern/chem";
 import { mc, d, dis, validTraps, type Trap } from "@lern/quiz";
 import { article, tr } from "@lern/i18n";
@@ -254,7 +254,7 @@ export const fillShells: Gen = pool => {
       { field: "s1", min: 9, miss: "l-schale-ueberfuellt", why: tr("Die L-Schale fasst höchstens **8** Elektronen. Der Rest kommt auf die M-Schale.", "The L shell holds at most **8** electrons. The rest go on the M shell.") },
     ],
     hint: tr("Von innen nach außen füllen: K fasst 2, L fasst 8, M zunächst 8 Elektronen.", "Fill from the inside out: K holds 2, L holds 8, M first 8 electrons."),
-    explain: `${tr("Von innen nach außen", "From the inside out")}: ${target.map((c, i) => `${SHELL_NAMES[i]} = ${c}`).join(", ")}.`
+    explain: `${tr("Von innen nach außen", "From the inside out")}: ${shellSentence(target)}.`
       + (Z > 18 ? tr(" Ab Kalium kommt die N-Schale dran, bevor die M-Schale mehr als 8 Elektronen bekommt.", " From potassium on, the N shell fills before the M shell has more than 8.") : ""),
   };
 };
@@ -281,8 +281,8 @@ export const outerElectrons: Gen = pool => {
       : tr("Schau, in welcher Hauptgruppe das Element steht.", "Look at which main group the element is in."),
     explain: Z === 2
       ? tr("Helium hat nur die K-Schale mit **2** Elektronen – sie ist damit voll (Edelgas).", "Helium only has the K shell with **2** electrons – so it is full (noble gas).")
-      : tr(`${el(Z).name} steht in der ${ROMAN[v]}. Hauptgruppe → **${v}** ${v === 1 ? "Außenelektron" : "Außenelektronen"} (Schalen: ${shells(Z).join(", ")}).`,
-        `${el(Z).name} is in main group ${ROMAN[v]} → **${v}** ${v === 1 ? "outer electron" : "outer electrons"} (shells: ${shells(Z).join(", ")}).`),
+      : tr(`${el(Z).name} steht in der ${ROMAN[v]}. Hauptgruppe → **${v}** ${v === 1 ? "Außenelektron" : "Außenelektronen"} (${shellSentence(shells(Z))}).`,
+        `${el(Z).name} is in main group ${ROMAN[v]} → **${v}** ${v === 1 ? "outer electron" : "outer electrons"} (${shellSentence(shells(Z))}).`),
   };
 };
 
@@ -299,7 +299,7 @@ export const periodFromShells: Gen = pool => {
     ]),
     prompt: tr(`Auf wie vielen **Schalen** verteilen sich die Elektronen von **${el(Z).name}**?`, `On how many **shells** are the electrons of **${el(Z).name}** arranged?`),
     hint: tr("Die Nummer der Periode verrät die Anzahl der Schalen.", "The period number tells you the number of shells."),
-    explain: tr(`${el(Z).name} steht in der **${el(Z).period}. Periode** → **${n}** besetzte Schale${n === 1 ? "" : "n"}`, `${el(Z).name} is in **period ${el(Z).period}** → **${n}** occupied shell${n === 1 ? "" : "s"}`) + ` (${shells(Z).map((c, i) => SHELL_NAMES[i] + " " + c).join(", ")}).`,
+    explain: tr(`${el(Z).name} steht in der **${el(Z).period}. Periode** → **${n}** besetzte Schale${n === 1 ? "" : "n"}`, `${el(Z).name} is in **period ${el(Z).period}** → **${n}** occupied shell${n === 1 ? "" : "s"}`) + ` (${shellSentence(shells(Z))}).`,
   };
 };
 
