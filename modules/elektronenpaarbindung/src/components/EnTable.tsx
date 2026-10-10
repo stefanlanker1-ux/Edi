@@ -1,4 +1,4 @@
-// Elektronegativität (Pauling) der Elemente im Baukasten, angeordnet wie im Periodensystem – mit dem Trend:
+// Elektronegativität (Allred-Rochow) der Elemente im Baukasten, angeordnet wie im Periodensystem – mit dem Trend:
 // nach rechts steigt die EN, nach unten sinkt sie. Werte aus @lern/chem (`en`), markierte Elemente hervorgehoben.
 
 import { en, elementName } from "@lern/chem";
@@ -25,7 +25,7 @@ export function EnTable({ mark = [] }: { mark?: string[] }) {
         <span className="en-arrow en-right" aria-hidden="true">{tr("EN steigt →", "EN increases →")}</span>
         <span className="en-arrow en-down" aria-hidden="true">{tr("EN sinkt ↓", "EN decreases ↓")}</span>
       </div>
-      <figcaption>{tr("EN nach Pauling – Fluor zieht am stärksten", "EN (Pauling) – fluorine attracts most strongly")}</figcaption>
+      <figcaption>{tr("EN nach Allred-Rochow – Fluor zieht am stärksten", "EN (Allred–Rochow) – fluorine attracts most strongly")}</figcaption>
     </figure>
   );
 }

@@ -36,10 +36,10 @@ const TEXT_DE: Record<string, { points: string[]; mol: string }> = {
     "3 Bereiche → trigonal-planar, ca. 120° (Methanal); 2 Bereiche → linear 180° (CO₂, HCN).",
   ] },
   "os-3": { mol: "H2O", points: [
-    "Eine Bindung ist **polar**, wenn die Elektronegativitäten deutlich verschieden sind (ΔEN ≥ 0,4): Das stärker ziehende Atom wird δ−, das andere δ+.",
-    "**EN** (Pauling): H 2,20 · C 2,55 · N 3,04 · O 3,44 · F 3,98 · Cl 3,16 · Br 2,96 · I 2,66 – im PSE nach rechts steigend, nach unten sinkend (Hilfsmittel „EN-Tabelle“).",
+    "Eine Bindung ist **polar**, wenn die Elektronegativitäten deutlich verschieden sind (ΔEN ≥ 0,5): Das stärker ziehende Atom wird δ−, das andere δ+.",
+    "**EN** (nach Allred-Rochow): H 2,20 · C 2,50 · N 3,07 · O 3,50 · F 4,10 · P 2,06 · S 2,44 · Cl 2,83 · Br 2,74 · I 2,21 – im PSE nach rechts steigend, nach unten sinkend (Hilfsmittel „EN-Tabelle“).",
     "Ein Molekül ist ein **Dipol**, wenn sich die Teilladungen nicht aufheben – z. B. H₂O (gewinkelt).",
-    "Symmetrische Moleküle wie CO₂ (linear) oder CCl₄ (tetraedrisch) sind trotz polarer Bindungen **unpolar**. In CH₄ sind die C–H-Bindungen ohnehin kaum polar (ΔEN 0,35).",
+    "Symmetrische Moleküle wie CO₂ (linear) oder CF₄ (tetraedrisch) sind trotz polarer Bindungen **unpolar**. In CH₄ und CCl₄ sind die Bindungen ohnehin kaum polar (C–H 0,30, C–Cl 0,33).",
   ] },
 };
 const TEXT_EN: typeof TEXT_DE = {
@@ -69,10 +69,10 @@ const TEXT_EN: typeof TEXT_DE = {
     "3 regions → trigonal planar, approx. 120° (methanal); 2 regions → linear 180° (CO₂, HCN).",
   ] },
   "os-3": { mol: "H2O", points: [
-    "A bond is **polar** if the electronegativities differ clearly (ΔEN ≥ 0.4): the more strongly attracting atom becomes δ−, the other δ+.",
-    "**EN** (Pauling): H 2.20 · C 2.55 · N 3.04 · O 3.44 · F 3.98 · Cl 3.16 · Br 2.96 · I 2.66 – increasing to the right in the periodic table, decreasing downwards (tool “EN table”).",
+    "A bond is **polar** if the electronegativities differ clearly (ΔEN ≥ 0.5): the more strongly attracting atom becomes δ−, the other δ+.",
+    "**EN** (Allred–Rochow): H 2.20 · C 2.50 · N 3.07 · O 3.50 · F 4.10 · P 2.06 · S 2.44 · Cl 2.83 · Br 2.74 · I 2.21 – increasing to the right in the periodic table, decreasing downwards (tool “EN table”).",
     "A molecule is a **dipole** if the partial charges do not cancel – e.g. H₂O (bent).",
-    "Symmetrical molecules like CO₂ (linear) or CCl₄ (tetrahedral) are **non-polar** despite polar bonds. In CH₄ the C–H bonds are hardly polar anyway (ΔEN 0.35).",
+    "Symmetrical molecules like CO₂ (linear) or CF₄ (tetrahedral) are **non-polar** despite polar bonds. In CH₄ and CCl₄ the bonds are hardly polar anyway (C–H 0.30, C–Cl 0.33).",
   ] },
 };
 const TEXT = tr(TEXT_DE, TEXT_EN);
