@@ -124,12 +124,14 @@
 .res-stone { display: flex; align-items: center; justify-content: center; gap: 6px; margin: 0; color: var(--signal); font-weight: 700; font-size: .92rem; }
 .res-stone .ic { flex: none; }
 /* Hilfsmittel und „Weiter“: jede Beschriftung ganz, nichts überdeckt sich – passt nicht alles in eine Zeile (viele Hilfsmittel, Englisch, „Lesbar“),
-   rutscht „Weiter“ in eine eigene Zeile darunter (rechts), bei sehr vielen Hilfsmitteln brechen auch diese um */
-.q-actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; flex: none; }
+   steht „Weiter“ in einer eigenen Zeile darüber (rechts; wrap-reverse: die Hilfsmittel bleiben unten an ihrem Platz, nur das Bild darüber wird kleiner),
+   bei sehr vielen Hilfsmitteln brechen auch diese um */
+/* so hoch wie „Weiter“, Hilfsmittel unten bündig (bei wrap-reverse ist flex-start unten): erscheint „Weiter“ daneben oder darüber, rücken sie nicht */
+.q-actions { display: flex; flex-wrap: wrap-reverse; justify-content: space-between; align-items: flex-start; gap: 8px; flex: none; min-height: 52px; }
 .q-help { display: flex; flex-wrap: wrap; gap: 2px; min-width: 0; flex: 0 1 auto; }
 .q-help .ui-btn { flex: none; }
-/* Platzhalter (QuizHelp `off`, Tipp nach der Antwort, „Weiter“ vor der Antwort): Platz bleibt, nichts rückt */
-.q-actions .q-off, .q-actions .q-next-ph { visibility: hidden; pointer-events: none; }
+/* Platzhalter (QuizHelp `off`: Tipp nach der Antwort, „Lösung“ und „Begriffe“ vor der Antwort): Platz bleibt, nichts rückt */
+.q-actions .q-off { visibility: hidden; pointer-events: none; }
 @media (max-width: 599px) {
   .q-help .ui-btn { flex-direction: column; gap: 1px; min-height: 52px; padding: 4px 6px; font-size: .7rem; min-width: 48px; }
   .q-actions .ui-btn-primary { min-width: 0; padding-inline: 16px; }
@@ -145,7 +147,7 @@
 .ex-bohr { width: 180px; aspect-ratio: 1; }
 .ex-example figcaption { font-size: .9rem; color: var(--muted); text-align: center; }
 .q-actions .ui-btn-primary { margin-left: auto; min-width: 140px; flex: none; }
-/* Handy: „Weiter“ und Hilfsmittel enger, damit sie möglichst noch in eine Zeile passen (sonst steht „Weiter“ darunter) */
+/* Handy: „Weiter“ und Hilfsmittel enger, damit sie möglichst noch in eine Zeile passen (sonst steht „Weiter“ darüber) */
 @media (max-width: 599px) {
   .q-actions .ui-btn.ui-btn-primary { min-width: 0; padding-inline: 14px; }
   .q-help:has(> :nth-child(4)) .ui-btn { min-width: 44px; padding-inline: 3px; }
@@ -183,9 +185,8 @@
 }
 /* Merksatz weicht dem „Ersten Schritt“ (der ist genauer und steht an derselben Stelle bzw. hinter „Schritt 1“) */
 .task-card.faded .q-lead { display: none; }
-/* Handys: nach der Antwort weicht der Merksatz der Rückmeldung, das Bild darf ganz klein werden (nie scrollen) */
+/* Handys: nach der Antwort darf das Bild ganz klein werden (nie scrollen). Der Merksatz bleibt stehen: verschwände er, rückte das Bild darunter nach oben */
 @media (max-height: 900px) {
-  .task-card.answered .q-lead { display: none; }
   .task-card.answered .q-body > .q-visual { min-height: 0; }
 }
 /* … passt es dann selbst verkleinert nicht mehr (Fit meldet data-cut: abgeschnitten oder niedriger als 56 px), ist es nach der Antwort nicht zu sehen – kein Bildrest.

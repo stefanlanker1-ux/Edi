@@ -379,8 +379,8 @@
 .pm-mono.fits { outline: 2px dashed var(--ok); outline-offset: -4px; }
 .pm-fits { font-size: .76rem; font-weight: 750; color: var(--ok); }
 .pm-lesson-note { position: absolute; left: 6px; bottom: 4px; margin: 0; font-size: .78rem; color: var(--muted); }
-/* nach der Antwort ist der Merksatz gelesen: sein Platz gehört dem Bild */
-.task-card.kind-tap.answered:not(.worked) .q-lead, .task-card.kind-order.answered:not(.worked) .q-lead, .task-card.kind-build.answered:not(.worked) .q-lead { display: none; }
+/* Ordnen: nach dem Prüfen ist der Merksatz gelesen – sein Platz gehört den vier Bildern (mindestens 230 px hoch) */
+.task-card.kind-order.answered:not(.worked) .q-lead { display: none; }
 /* Ordnen auf niedrigen Bildschirmen: Merksatz aus, damit die vier Bilder groß bleiben */
 @media (max-height: 700px) { .task-card.kind-order .q-lead { display: none; } .pm-order-grid { gap: 4px; } }
 .task-card.kind-order .q-feedback .fb-sol { display: none; }
@@ -389,8 +389,6 @@
 /* nach dem Prüfen stehen Platz und Name an jedem Bild: die Legende entfällt (die vier Bilder bleiben mindestens 230 px hoch) */
 @media (max-height: 800px) { .task-card.kind-order.answered .pm-order-legend { display: none; } }
 @media (max-height: 700px) { .task-card.kind-order.answered .q-feedback { padding: 3px 10px; } .task-card.kind-order.answered .q-feedback .fb-head { font-size: .85rem; line-height: 1.2; } .task-card.kind-order.answered .pm-order { gap: 2px; } }
-/* nach der Antwort ist der Merksatz gelesen: sein Platz gehört dem Aufgabenbild (auch bei Auswahl-Aufgaben) */
-.task-card.answered:not(.worked):has(.q-pm) .q-lead { display: none; }
 
 /* Kapitelname im Quiz-Kopf: lange Namen am schmalen Handy auf zwei Zeilen statt „Pol…“ */
 @media (max-width: 420px) {

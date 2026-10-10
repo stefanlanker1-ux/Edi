@@ -175,7 +175,7 @@ export function QuizHelp({ tools = [], hint, hintCue, onHint, hintUsed, hintAgai
         {read && canSpeak && <Button variant="quiet" icon="sound" aria-label={tr("Aufgabe vorlesen", "Read task aloud")} onClick={() => speak(read)}>{tr("Vorlesen", "Read aloud")}</Button>}
         {/* nach der Antwort bleiben „Tipp“ und „Schritt 1“ unsichtbar an ihrem Platz – die Knöpfe daneben rücken nicht */}
         {hint && (answered
-          ? <Button variant="quiet" icon="bulb" className="q-off" aria-hidden="true" tabIndex={-1}>{tr("Tipp", "Tip")}</Button>
+          ? <Button variant="quiet" icon="bulb" className={`q-off${hintCue && !hintUsed ? " q-hint-cue" : ""}`} aria-hidden="true" tabIndex={-1}>{tr("Tipp", "Tip")}</Button>
           : <Button variant="quiet" icon="bulb" className={hintCue && !hintUsed ? "q-hint-cue" : undefined} onClick={hintUsed && !hintAgain ? undefined : onHint} aria-disabled={hintUsed && !hintAgain ? true : undefined}
               aria-label={hintCue ? tr("Tipp zu dieser Aufgabe", "Tip for this task") : undefined}>{tr("Tipp", "Tip")}</Button>)}
         {firstStep && (answered
@@ -507,6 +507,8 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const [sheet, setSheet] = useState<"hint" | "first" | null>(null);
   const hintInline = game.hintUsed && !faded && !a && !aside.hint;
   const firstInline = faded && !a && !aside.first;
+  // nach der Antwort bleibt der erste Schritt stehen (und der Merksatz weg): verschwände er, rückte das Bild darunter nach oben
+  const firstShown = faded && !aside.first;
   // eben „Tipp“ gedrückt: passt er nicht, geht sein Blatt gleich auf (nach dem Neuladen nicht – dann erst auf „Tipp“)
   const tookHint = useRef(false);
   const hintRef = useRef<HTMLDivElement>(null);
@@ -529,13 +531,15 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
   const extra = a ? p.feedbackExtra?.(t, a) : null;
   const diag = a ? diagnose(t, a) : null;
   const terms = p.terms?.(t, !!a) ?? [];
+  // „Begriffe“, die erst nach der Antwort dazukommen: Platz schon vorher (unsichtbar) – kein Knopf rückt
+  const termSlot = termTool(p, terms).length || a ? termTool(p, terms) : termTool(p, p.terms?.(t, true) ?? []).map(x => ({ ...x, off: true }));
   return (
     <TermScope terms={terms}>
-    <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}${faded && !a ? " faded" : ""}`}>
+    <Card className={`task-card kind-${t.kind}${a ? " answered" : ""}${faded ? " faded" : ""}`}>
       {t.lead && <p className="q-lead"><RichText text={t.lead} /></p>}
       <p className="q-prompt" ref={promptRef} tabIndex={-1}><RichText text={t.prompt} /></p>
       {/* neue Fertigkeit, zweite Begegnung: erster Schritt steht unter der Frage (verdeckt keine Antwortfläche) */}
-      {firstInline && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
+      {firstShown && <p className="q-first"><Icon name="bulb" size={16} /><span><b>{tr("Erster Schritt: ", "First step: ")}</b><RichText text={t.hint} /></span></p>}
       <div className="q-body" ref={bodyRef}>
         {/* nach der Antwort darf das Bild kleiner werden; wäre es dann noch abgeschnitten oder winzig, fällt es weg (styles.css) */}
         {visual && <div className="q-visual"><Fit min={a ? 0.25 : undefined} minHeight={a ? MIN_PIC : undefined}>{visual}</Fit></div>}
@@ -551,14 +555,12 @@ function TaskCard<T extends BaseTask>({ p, game }: { p: QuizScreenProps<T>; game
         )}
       </div>
       <div className="q-actions" ref={nextRef}>
-        <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termTool(p, terms), ...(p.feedbackExtra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra, off: !extra }] : [])]}
+        <QuizHelp tools={[...(p.tools?.(t) ?? []), ...termSlot, ...(p.feedbackExtra ? [{ id: "weg", label: tr("Lösung", "Solution"), icon: "board" as const, wide: true, content: extra, off: !extra }] : [])]}
           hint={!faded} hintCue={t.hintCue} onHint={() => { if (game.hintUsed) setSheet("hint"); else { tookHint.current = true; takeHint(p.stufe); } }} hintUsed={game.hintUsed} hintAgain={aside.hint}
           firstStep={faded && aside.first ? () => setSheet("first") : undefined} answered={!!a} explain={p.explain?.(game.level, t)}
           read={[("eq" in t && typeof (t as { eq?: unknown }).eq === "string") ? (t as { eq: string }).eq : "", t.lead ?? "", t.prompt, ...(isMc ? (t as unknown as McTask).options.map((o, i) => spokenOption(o, i, p.optionLabel?.(t, o))) : [])].filter(Boolean).join(". ")} />
-        {/* „Weiter“ hat seinen Platz schon vor der Antwort (unsichtbar): erscheint er, rückt in der Leiste nichts */}
-        {a
-          ? <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>
-          : <Button variant="primary" size="lg" iconRight="arrow" className="q-next-ph" aria-hidden="true" tabIndex={-1}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
+        {/* „Weiter“ rechts in der Zeile – passt er nicht daneben, steht er in einer Zeile darüber (styles.css): die Hilfsmittel bleiben an ihrem Platz */}
+        {a && <Button variant="primary" size="lg" iconRight="arrow" className="q-next" onClick={go}>{last ? tr("Auswertung", "Results") : tr("Weiter", "Next")}</Button>}
       </div>
       <Sheet open={!a && (sheet === "hint" ? aside.hint : sheet === "first" && aside.first)} title={sheet === "first" ? tr("Erster Schritt", "First step") : tr("Tipp", "Tip")}
         onClose={() => setSheet(null)}>
