@@ -317,6 +317,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
   Umsetzung: `ModelFrame` hält nach dem Lösen die Höhe der Bedienzeile frei; `Guide steady` (Ionenbindung „Lernen“) reserviert Platz für Lösungsweg, Rückmeldung und
   „Weiter“ – untereinander behält das Bild seine Anfangshöhe, längerer Text scrollt; Schalen-Text über `shellLines`/`shellSentence` (`@lern/chem`).
+  Ausnahme (mit der Lehrkraft abgesprochen): Ionenbindung Kapitel 1, Elektronenübergang mit einstellbarer Atomzahl – kommt ein Atom dazu, ordnen sich die Atome neu und
+  werden kleiner (fester Maßstab für drei Atome machte sie am Handy zu klein).
 - **Schalenmodelle mit festen Schalen** (überall, wo Bohr- bzw. Schalenmodelle gezeichnet werden): Jede Schale (K, L, M, …) hat immer denselben Durchmesser – unabhängig
   von Protonen-, Neutronen- und Elektronenzahl. Der Kern verschiebt keine Schale, die K-Schale liegt außerhalb auch des größten Kerns. Ein Atom bzw. Ion wird nur größer oder
   kleiner, wenn eine Schale dazukommt oder wegfällt. Innerhalb einer Ansicht bzw. eines Modells ändert sich der Maßstab beim Bedienen nie: der Rahmen bietet Platz für alle
