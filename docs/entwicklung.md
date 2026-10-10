@@ -324,6 +324,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   wenn nur der Rahmen sich ändert. Prüfung: `scripts/check-ui.mjs` vergleicht vor/nach jeder Bedienung die Kästen (immer an, `WANDER=0` aus; gewollte Bewegung
   `data-anim`/`data-moves`, neue Ansicht `data-screen`; `ERKLAERUNG=1` spielt alle Erklärungen; bekannte Ausnahmen mit Grund in `KNOWN`, Ausgabe „bekannt: …“ –
   derzeit Kästchenschema der Atombau-Erklärung Level II am Handy 19–40 px).
+  Offen (später angehen): Atombau-Erklärung Level II, Teil „Das Atom in 3D“ (Folie 29) braucht am Gerät etwa 3 s, bis das 3D-Bild steht; im Prüf-Browser
+  ohne Grafikkarte noch länger – `ERKLAERUNG=1` meldet die Folie deshalb dort als „ließ sich nicht lösen“ (von der Lehrkraft am Gerät geprüft: lösbar).
   Umsetzung: `ModelFrame` hält nach dem Lösen die Höhe der Bedienzeile frei; `Guide steady` (Ionenbindung „Lernen“) reserviert Platz für Lösungsweg, Rückmeldung und
   „Weiter“ – untereinander behält das Bild seine Anfangshöhe, längerer Text scrollt; Schalen-Text über `shellLines`/`shellSentence` (`@lern/chem`).
   Ausnahme (mit der Lehrkraft abgesprochen): Ionenbindung Kapitel 1, Elektronenübergang mit einstellbarer Atomzahl – kommt ein Atom dazu, ordnen sich die Atome neu und
