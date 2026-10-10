@@ -92,6 +92,8 @@
   border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); font: inherit; font-weight: 700; }
 .gm-mark-chip:active { box-shadow: var(--key-edge-pressed); }
 /* Statuszeile: Kennzeichen lesbar (≥ 14 px); Markierung aufheben (Taste, nicht Anzeige) */
+/* Statuszeile so hoch wie der Knopf „Markierung aufheben“: erscheint er, springt das Bild nicht */
+.gm-status { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; min-height: 44px; }
 .gm-status .ui-tag { font-size: .875rem; }
 .gm-mark-off { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--rule); border-radius: var(--radius-sm);
   background: var(--surface); color: var(--text); box-shadow: var(--key-edge); font: inherit; font-size: .875rem; font-weight: 700; white-space: nowrap; }

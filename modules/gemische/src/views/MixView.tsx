@@ -6,7 +6,7 @@
 // Teilchen antippen = Stoff-Info mit 3D-Modell. Werkzeuge: Stoffe, Zählen, Farben, Einteilung, Arten (Gemischarten-Tabelle), Beispiele.
 
 import { useId, useRef, useState } from "react";
-import { Button, buzz, Icon, IconButton, Tag, tr, useNarrow, useReducedMotion, Workbench } from "@lern/ui";
+import { Button, buzz, Icon, IconButton, Reserve, Tag, tr, useNarrow, useReducedMotion, Workbench } from "@lern/ui";
 import { Kalotte, KalotteShades, SubstanceSheet, kalotteBox, kalotteElements } from "@lern/chem-ui";
 import { toSubscript } from "@lern/chem";
 import { EXAMPLES, EXAMPLE_COUNT, MIX_LABEL, MUESLI, analyse, elementName, mixKind, nameOf, type Example, type MixKind } from "../mixtures.ts";
@@ -340,7 +340,7 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
     <>
       <Workbench className="gm-wb" active={tool} onActive={setTool}
         head={
-          <div className="gm-head">
+          <div className="gm-head" data-screen={ex.id}>
             <h2 className="gm-title">{ex.title}</h2>
             <span className="gm-num">{index + 1} / {EXAMPLE_COUNT}</span>
             {ex.note && <p className="gm-note">{ex.note}</p>}
@@ -362,7 +362,8 @@ function Mix({ ex, index, temp, setTemp }: { ex: Example; index: number; temp: n
           <div className="gm-controls">
             <div className="gm-row">
               <IconButton icon="back" label={tr("Voriges Beispiel", "Previous example")} onClick={() => goTo(index - 1)} />
-              <Button variant="primary" icon={action.icon} onClick={act} disabled={!canAct}>{action.label}</Button>
+              {/* Sprudel: „Schütteln“ wird zu „Öffnen“ – Platz für beide, die Pfeile daneben rücken nicht */}
+              <Button variant="primary" icon={action.icon} onClick={act} disabled={!canAct}><Reserve alts={ex.before === "gasraum" ? [actionOf(ex).label, tr("Öffnen", "Open")] : []}>{action.label}</Reserve></Button>
               <IconButton icon="arrow" label={tr("Nächstes Beispiel", "Next example")} onClick={() => goTo(index + 1)} />
               {/* Messing: ohne Temperaturregler steht „Von vorn“ in derselben Zeile */}
               {ex.state === "fest" && <IconButton icon="reset" label={tr("Von vorn", "Start again")} onClick={again} />}
@@ -410,7 +411,7 @@ function Muesli({ index }: { index: number }) {
   return (
     <Workbench className="gm-wb" active={tool} onActive={setTool}
       head={
-        <div className="gm-head">
+        <div className="gm-head" data-screen="muesli">
           <h2 className="gm-title">{MUESLI.title}</h2>
           <span className="gm-num">{index + 1} / {EXAMPLE_COUNT}</span>
           <p className="gm-note">{MUESLI.note}</p>
@@ -422,7 +423,8 @@ function Muesli({ index }: { index: number }) {
         <div className="gm-controls">
           <div className="gm-row">
             <IconButton icon="back" label={tr("Voriges Beispiel", "Previous example")} onClick={() => goTo(index - 1)} />
-            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}>{mixed ? tr("Auslesen", "Hand-pick") : tr("Mischen", "Mix")}</Button>
+            {/* beide Beschriftungen reservieren: die Pfeile daneben rücken nicht */}
+            <Button variant="primary" icon={mixed ? "grid" : "shake"} onClick={act}><Reserve alts={[tr("Auslesen", "Hand-pick"), tr("Mischen", "Mix")]}>{mixed ? tr("Auslesen", "Hand-pick") : tr("Mischen", "Mix")}</Reserve></Button>
             <IconButton icon="arrow" label={tr("Nächstes Beispiel", "Next example")} onClick={() => goTo(index + 1)} />
           </div>
         </div>
