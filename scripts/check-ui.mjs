@@ -10,6 +10,27 @@
 // der Antwort, jede der zehn Aufgaben je Kapitel (sonst Befund). Elemente mit `data-min-h="N"` müssen mindestens N px hoch sein. Antwortknöpfe: kein Wort über zwei Zeilen.
 // KAPITEL=1 spielt „Lernen“ in Kapiteln (Ionenbindung, beide Stufen): jede Folie vor und nach dem Lösen (`guideSolve`: Modell „Prüfen“ bis zur markierten Lösung,
 // Auswahl/Zahl/Bild bis zur Lösung), dazu einmal je Kapitel die Hilfsmittel PSE, Tipp, Erklärung; eine Folie ohne „Weiter“ ist ein Befund.
+// ERKLAERUNG=1 spielt zusätzlich die Erklärung jedes Moduls (beide Stufen) bzw. die Lektionen der Kapitel unter „Üben“ (Gemische, Polymere) ganz durch, wie KAPITEL.
+//
+// Wanderungs-Prüfung (immer an, WANDER=0 schaltet sie ab): Bild- und Modellrahmen bleiben stehen, wenn sich daneben Text, Zahlen oder Rückmeldungen ändern.
+// Bei jeder Bedienung, die das Skript ausführt – Knöpfe der Werkbank (eigene Phase nach Quiz, je Bereich und Stufe: Kopf, Bühne, Status, Steuerleiste,
+// Werkzeuge, Knöpfe in Werkzeug-Blatt bzw. -Register, je Bereich höchstens 6 bzw. 8; danach Speicher wie vorher),
+// „Tipp“ und Antworten in Quiz und LEARN, jeder Klick beim Lösen einer Folie (KAPITEL, ERKLAERUNG) – werden vorher und nachher die Kästen der Container verglichen
+// (`W_SEL`: Zeichnungen `svg`/`canvas`/`img` ab 40 px, Werkbank-Bühne und -Bildbereich mit direktem Inhalt, Kopf, Status, Steuerleiste und ihre Kinder, Werkzeugleiste,
+// Aufgabenkarte, Aufgabenbild, Bild der Erklärung mit direktem Inhalt, Knöpfe in Werkbank-Kopf und -Steuerleiste und in der Leiste unter der Aufgabe).
+// Befund „Wanderung“ (mit Modul, Größe, Ansicht, Element, Verschiebung):
+//  - ein Container rückt um mehr als 2 px, ohne selbst die Größe zu ändern (z. B. Atom rückt, weil die Beschriftung daneben breiter wird) – gemeldet wird nur der
+//    äußerste wandernde Container, nicht jedes Kind mit;
+//  - in Werkbank und innerhalb einer Folie zusätzlich: Bühne, Bildbereich, Steuerleiste oder Bild der Erklärung ändern die Größe („springt“; nach einer Antwort im
+//    Quiz darf das Aufgabenbild dagegen kleiner werden, siehe `Fit`).
+// Keine Wanderung: neue Folie (Zähler der Erklärung ändert sich), neue Aufgabe (Fragetext ändert sich), ein Container, der neu erscheint, verschwindet, ausgetauscht
+// wird oder ein neues `viewBox` hat (neuer Inhalt), alles in einem eben geöffneten Blatt, laufende CSS-Animationen (Lage, Größe) am Container oder darüber.
+// Gewollte Bewegung freistellen: `data-anim` oder `data-moves` am Container oder einem Vorfahren (z. B. Teilchen, die zur Animation gehören) – sparsam einsetzen.
+// Neue Ansicht in der Werkbank: `data-screen="<Kennung>"` an einem Element in der Werkbank (z. B. Nummer des Beispiels, Kennung der Aufgabe, gewählte Art);
+// ändert sich ein Wert (oder erscheint/verschwindet so ein Element), ist das ein gewollter Wechsel wie eine neue Folie – keine Wanderung.
+// Zusätzlich sammelt ein `PerformanceObserver("layout-shift")` die Quellen von Layout-Verschiebungen: rückt ein Container dabei und steht am Ende wieder am alten Platz,
+// meldet das Skript „Wanderung: … rückt zwischendurch um …“ (kurzes Springen, z. B. während eine Rückmeldung erscheint).
+// Platz reservieren statt rücken: `Reserve` (`@lern/ui`, alle Beschriftungen in einer Zelle), `statusReserve` an `Workbench`, `visibility: hidden` statt Weglassen.
 const { chromium } = await import(process.env.PLAYWRIGHT ?? "playwright");
 import http from "node:http";
 import fs from "node:fs";
@@ -35,6 +56,111 @@ await new Promise(r => server.listen(PORT, r));
 const browser = await chromium.launch(process.env.CHROMIUM ? { executablePath: process.env.CHROMIUM } : {});
 const findings = [];
 const note = (app, vp, view, msg) => { findings.push(`${app || "start"} ${vp} [${view}] ${msg}`); };
+
+// ── Wanderungs-Prüfung (siehe Kopf) ───────────────────────────────────────
+const WANDER = process.env.WANDER !== "0";
+const W_SEL = [
+  "svg", "canvas", "img", ".ui-wb-stage", ".ui-wb-head", ".ui-wb-view", ".ui-wb-view > *", ".ui-wb-status", ".ui-wb-controls", ".ui-wb-controls > *",
+  ".ui-wb-tools", ".task-card", ".q-visual", ".ui-guide-visual", ".ui-guide-visual > *",
+  // Knöpfe der Steuerleisten: rücken nicht, wenn daneben ein Knopf erscheint, verschwindet oder seine Beschriftung ändert
+  ".ui-wb-controls button", ".ui-wb-head button", ".q-actions button",
+].join(", ");
+/** Rahmen, deren Größe sich in Werkbank und innerhalb einer Folie nicht ändern darf */
+const W_FRAME = ".ui-wb-stage, .ui-wb-view, .ui-wb-controls, .ui-wb-tools, .ui-guide-visual";
+/** im Browser: Kästen merken (`snap`) und vergleichen (`diff`); Layout-Verschiebungen sammeln */
+function wanderInit([SEL, FRAME]) {
+  const shifts = [];
+  try { new PerformanceObserver(l => { for (const e of l.getEntries()) shifts.push(e); }).observe({ type: "layout-shift" }); } catch { /* ältere Browser */ }
+  let before = new Map(), dialogs = new Set();
+  const box = e => {
+    if (!e.isConnected || e.closest(".sr-only, [inert], [aria-hidden=true]")) return null;
+    for (let a = e; a && a.nodeType === 1; a = a.parentElement) { const cs = getComputedStyle(a); if (cs.display === "none" || cs.visibility === "hidden" || Number(cs.opacity) === 0) return null; }
+    const d = e.closest("dialog"); if (d && !d.open) return null;
+    const b = e.getBoundingClientRect();
+    return b.width >= 2 && b.height >= 2 ? { x: b.left, y: b.top, w: b.width, h: b.height } : null;
+  };
+  const tracked = () => [...document.querySelectorAll(SEL)].filter(e => {
+    if (e.matches("svg, canvas, img")) {
+      if (e.parentElement?.closest("svg") || e.closest("button, [role=button], a, .ui-icon")) return false; // Zeichen in Knöpfen, Teile einer Zeichnung
+      const b = e.getBoundingClientRect(); if (b.width < 40 && b.height < 40) return false;
+    }
+    return true;
+  });
+  // Zusammenhang: neue Folie bzw. neue Aufgabe = gewollter Wechsel
+  const ctx = e => {
+    const g = e.closest("dialog.ui-guide"); if (g) return "g" + (g.querySelector(".ui-guide-count")?.textContent ?? "") + (g.querySelector(".ui-guide-part, .ui-guide-head h2")?.textContent ?? "");
+    const t = e.closest(".task-card"); if (t) return "t" + (t.querySelector(".q-prompt")?.textContent ?? "") + (t.classList.contains("worked") ? "w" : "");
+    // Werkbank: neue Ansicht (anderes Beispiel, andere Aufgabe, andere Art) – Wert von `data-screen`
+    const w = e.closest(".ui-wb"); if (w) return "w" + [...w.querySelectorAll("[data-screen]")].map(x => x.getAttribute("data-screen")).join("|");
+    return "";
+  };
+  const free = e => !!e.closest("[data-anim], [data-moves]");
+  // laufende Animation, die Lage oder Größe ändert, am Element oder einem Vorfahren
+  const MOVE = /^(transform|translate|scale|rotate|top|left|right|bottom|inset|margin|width|height|offset|grid|flex|padding|max-|min-)/;
+  const animated = () => {
+    const out = new Set();
+    for (const a of document.getAnimations()) {
+      if (a.playState !== "running" || !a.effect?.target) continue;
+      const props = a instanceof CSSTransition ? [a.transitionProperty] : (a.effect.getKeyframes?.() ?? []).flatMap(k => Object.keys(k));
+      if (props.some(p => MOVE.test(p.replace(/[A-Z]/g, c => "-" + c.toLowerCase())))) out.add(a.effect.target);
+    }
+    return out;
+  };
+  const inAnim = (e, set) => { for (let a = e; a; a = a.parentElement) if (set.has(a)) return true; return false; };
+  const name = e => {
+    const one = n => `${n.tagName.toLowerCase()}${typeof n.className === "string" && n.className.trim() ? "." + n.className.trim().split(/\s+/).slice(0, 2).join(".") : n.className?.baseVal ? "." + n.className.baseVal.trim().split(/\s+/)[0] : ""}`;
+    const up = [];
+    for (let a = e.parentElement; a && up.length < 2 && a !== document.body; a = a.parentElement) if (typeof a.className === "string" && a.className.trim()) up.unshift(one(a));
+    const lbl = (e.getAttribute("aria-label") || "").slice(0, 24);
+    return `${up.join(" > ")}${up.length ? " > " : ""}${one(e)}${lbl ? `„${lbl}“` : ""}`;
+  };
+  window.__ediWander = {
+    snap() {
+      before = new Map(tracked().map(e => [e, { b: box(e), c: ctx(e), vb: e.getAttribute("viewBox") }]));
+      dialogs = new Set(document.querySelectorAll("dialog[open]"));
+      shifts.length = 0;
+    },
+    diff(opt) {
+      const anim = animated(), out = [];
+      const fresh = e => { const d = e.closest("dialog[open]"); return d && !dialogs.has(d); };
+      for (const [e, o] of before) {
+        const b = box(e);
+        if (!o.b || !b || free(e) || fresh(e) || ctx(e) !== o.c || e.getAttribute("viewBox") !== o.vb || inAnim(e, anim)) continue;
+        const dx = b.x - o.b.x, dy = b.y - o.b.y, dw = b.w - o.b.w, dh = b.h - o.b.h;
+        const sameSize = Math.abs(dw) <= 2 && Math.abs(dh) <= 2;
+        if (sameSize && (Math.abs(dx) > 2 || Math.abs(dy) > 2)) out.push({ e, dx, dy, msg: `${name(e)} rückt um ${Math.round(dx)}/${Math.round(dy)} px (x/y)` });
+        else if (!sameSize && opt.resize && e.matches(FRAME)) out.push({ e, dx, dy, msg: `${name(e)} springt von ${Math.round(o.b.w)}×${Math.round(o.b.h)} auf ${Math.round(b.w)}×${Math.round(b.h)} px` });
+      }
+      // nur der äußerste Container (Kinder rücken mit bzw. rücken, weil ihr Rahmen springt)
+      const res = out.filter(f => !out.some(g => g !== f && g.e.contains(f.e))).map(f => f.msg);
+      // zwischendurch: Layout-Verschiebung eines Containers, der am Ende wieder am alten Platz steht
+      const seen = new Set(out.map(f => f.e));
+      for (const s of shifts) for (const src of s.sources ?? []) {
+        const e = src.node;
+        if (!e || e.nodeType !== 1 || seen.has(e) || !before.has(e)) continue;
+        const o = before.get(e), b = box(e);
+        if (!o.b || !b || free(e) || fresh(e) || ctx(e) !== o.c || inAnim(e, anim)) continue;
+        const p = src.previousRect, c = src.currentRect;
+        if (Math.abs(p.width - c.width) > 2 || Math.abs(p.height - c.height) > 2 || (Math.abs(p.x - c.x) <= 2 && Math.abs(p.y - c.y) <= 2)) continue;
+        if (Math.abs(b.x - o.b.x) > 2 || Math.abs(b.y - o.b.y) > 2) continue; // schon oben erfasst bzw. Größe geändert
+        seen.add(e);
+        res.push(`${name(e)} rückt zwischendurch um ${Math.round(c.x - p.x)}/${Math.round(c.y - p.y)} px (x/y)`);
+      }
+      shifts.length = 0;
+      return res;
+    },
+  };
+}
+/** Bedienung `fn` ausführen und prüfen, ob dabei ein Container wandert (opt.resize: auch Größensprünge der Rahmen melden) */
+async function wander(page, app, vp, view, fn, opt = {}) {
+  if (!WANDER) return fn();
+  await page.evaluate(() => window.__ediWander?.snap()).catch(() => {});
+  const r = await fn();
+  await page.waitForTimeout(opt.wait ?? 400);
+  const res = await page.evaluate(o => window.__ediWander?.diff(o) ?? [], { resize: !!opt.resize }).catch(() => []);
+  for (const m of res) note(app, vp, view, `Wanderung${opt.what ? ` (${opt.what})` : ""}: ${m}`);
+  return r;
+}
 
 async function check(page, app, vp, view) {
   await page.waitForTimeout(150);
@@ -218,7 +344,7 @@ async function hintCheck(page, app, vp, view) {
   if (!(await page.locator(".task-card .q-first").count()) && !(await tip.count())) return;
   // Höhe des Bildrahmens vor „Tipp“ – danach darf er nicht unter max(56 px, 60 %) schrumpfen (auch Bilder, die sich selbst einpassen)
   const visBefore = await page.evaluate(() => document.querySelector(".task-card:not(.answered) .q-body > .q-visual")?.getBoundingClientRect().height ?? 0);
-  if (await tip.count()) { await tip.click({ timeout: 800 }).catch(() => {}); await page.waitForTimeout(200); }
+  if (await tip.count()) await wander(page, app, vp, view, () => tip.click({ timeout: 800 }).catch(() => {}), { what: "Tipp", wait: 250 });
   const r = await page.evaluate(([MIN, visBefore]) => {
     const out = [];
     const card = document.querySelector(".task-card:not(.answered)");
@@ -284,32 +410,112 @@ async function answer(page) {
  * Folie der Kapitel lösen (ohne Kenntnis der Lösung): vorgemacht weiterblättern; Modell bzw. Zahl/Auswahl so lange falsch beantworten,
  * bis die Lösung markiert ist (4 Versuche), dann die markierte Lösung bzw. „Prüfen“ mit der Lösung im Modell. Ergebnis: „Weiter“ erreicht?
  */
-async function guideSolve(page) {
-  const g = page.locator("dialog.ui-guide[open]");
-  const weiter = g.locator(".ui-guide-next", { hasText: /^\s*(Weiter|Next)\s*$/ });
+async function guideSolve(page, w = fn => fn()) {
+  // Text: nur der echte, nicht die unsichtbar reservierten Zustände (`.ui-guide-ghost`)
+  const g = page.locator("dialog.ui-guide[open]"), t = g.locator(".ui-guide-now");
+  const weiter = t.locator(".ui-guide-next", { hasText: /^\s*(Weiter|Next)\s*$/ });
   const done = async () => (await weiter.count()) > 0;
-  const click = l => l.evaluate(e => e.click()).catch(() => {});
+  const click = l => w(() => l.evaluate(e => e.click()).catch(() => {}));
   for (let j = 0; j < 12 && !(await done()); j++) {
-    const step = g.locator(".ui-guide-next", { hasText: /Nächster Schritt|Next step/ });
+    const step = t.locator(".ui-guide-next", { hasText: /Nächster Schritt|Next step/ });
     if (await step.count()) { await click(step.first()); await page.waitForTimeout(80); continue; }
     const check = g.locator(".lm-check");
     if (await check.count()) { await click(check.first()); await page.waitForTimeout(150); continue; }
-    const sol = g.locator(".ui-guide-opt.sol, .ui-guide-visual .g-sol");
+    const sol = g.locator(".ui-guide-now .ui-guide-opt.sol, .ui-guide-visual .g-sol");
     if (await sol.count()) { await click(sol.first()); await page.waitForTimeout(150); continue; }
-    const num = g.locator(".ui-guide-num input");
+    const num = t.locator(".ui-guide-num input");
     if (await num.count()) {
       const ph = await num.getAttribute("placeholder");
       await num.fill(ph && ph !== "?" ? ph : "987654").catch(() => {});
-      await click(g.locator(".ui-guide-num button[type=submit]"));
+      await click(t.locator(".ui-guide-num button[type=submit]"));
       await page.waitForTimeout(150); continue;
     }
-    const opts = g.locator(".ui-guide-opt:not(.right)");
+    const opts = t.locator(".ui-guide-opt:not(.right)");
     if (await opts.count()) { await click(opts.nth(j % await opts.count())); await page.waitForTimeout(150); continue; }
     const targets = g.locator(".ui-guide-visual button:not(:disabled), .ui-guide-visual [role=button]");
     if (await targets.count()) { await click(targets.nth(j % await targets.count())); await page.waitForTimeout(150); continue; }
     break;
   }
   return done();
+}
+
+/**
+ * Erklärung bzw. Lektion (offener Guide) ganz durchspielen: jede Folie vor und nach dem Lösen prüfen, jede Bedienung mit Wanderungs-Prüfung.
+ * Ergebnis: Zahl der geprüften Folien.
+ */
+async function guidePlay(page, app, vp, view) {
+  let k = 0;
+  for (let guard = 0; guard < 60; guard++) {
+    const count = ((await page.locator("dialog.ui-guide[open] .ui-guide-count").textContent().catch(() => "")) ?? "").trim();
+    if (!/\d+ \/ \d+/.test(count)) break; // fertig
+    await check(page, app, vp, `${view} ${count}`);
+    const ok = await guideSolve(page, fn => wander(page, app, vp, `${view} ${count}`, fn, { resize: true }));
+    await check(page, app, vp, `${view} ${count} gelöst`);
+    if (!ok) { note(app, vp, `${view} ${count}`, "Folie ließ sich nicht lösen (kein „Weiter“)"); break; }
+    await page.locator("dialog.ui-guide[open] .ui-guide-now .ui-guide-next").first().click({ timeout: 800 }).catch(() => {});
+    k++;
+    await page.waitForTimeout(120);
+  }
+  return k;
+}
+
+/** ERKLAERUNG=1: Erklärung jeder Stufe (Bereichsleiste) bzw. Lektionen der Kapitel unter „Üben“ durchspielen */
+async function erklaerungCheck(page, app, vp) {
+  const segs = page.locator('header .ui-seg[aria-label="Level"] button');
+  const stufen = Math.max(1, await segs.count());
+  for (let j = 0; j < stufen; j++) {
+    if (await segs.count()) await segs.nth(j).click({ timeout: 800 }).catch(() => {});
+    const tab = page.locator("nav button.ui-guide-tab:visible").first();
+    if (await tab.count()) {
+      await tab.click({ timeout: 1500 }).catch(() => {});
+      await page.waitForTimeout(300);
+      const k = await guidePlay(page, app, vp, `erklärung L${j + 1}`);
+      console.error(`${app} ${vp} Erklärung Level ${j + 1}: ${k} Folien`);
+      await closeDialogs(page);
+      continue;
+    }
+    // Lektionen (Gemische, Polymere): Kapitel antippen öffnet beim ersten Mal die Lektion
+    const learn = page.locator("nav button:visible", { hasText: /^(Üben|Practise)/ }).first();
+    if (!(await learn.count())) continue;
+    await page.evaluate(() => localStorage.removeItem("lern-lektionen"));
+    await page.reload({ waitUntil: "networkidle" }).catch(() => {});
+    if (await segs.count()) await segs.nth(j).click({ timeout: 800 }).catch(() => {});
+    await learn.click({ timeout: 1500 }).catch(() => {});
+    const levels = await page.locator(".level-card").count();
+    for (let lv = 0; lv < levels; lv++) {
+      await learn.click({ timeout: 1500 }).catch(() => {});
+      await page.locator(".level-card").nth(lv).click({ timeout: 1500 }).catch(() => {});
+      await page.waitForTimeout(300);
+      if (!(await page.locator("dialog.ui-guide[open]").count())) continue;
+      const k = await guidePlay(page, app, vp, `lektion ${lv + 1}`);
+      console.error(`${app} ${vp} Lektion ${lv + 1}: ${k} Folien`);
+      await closeDialogs(page);
+      const back = page.locator("button[aria-label*=Levelauswahl], button[aria-label*=level], button:has-text('Levelauswahl')").first();
+      if (await back.count()) await back.click({ timeout: 800 }).catch(() => {});
+    }
+  }
+}
+
+/**
+ * Werkbank bedienen (Wanderungs-Prüfung): sichtbare Knöpfe der Bereiche in `scope` (je Bereich höchstens `max`) nacheinander antippen,
+ * vorher und nachher die Kästen vergleichen; dabei geöffnete Blätter wieder schließen (außer `keep`: das Blatt, in dem die Knöpfe liegen).
+ */
+async function wbButtons(page, app, vp, view, scope, max = 6, keep = false) {
+  if (!WANDER) return;
+  for (const area of scope.split(",").map(s => s.trim())) {
+    const btns = page.locator(`${area} :is(button, [role=button]):not(:disabled):not([aria-disabled=true])`);
+    const n = Math.min(await btns.count(), max);
+    for (let j = 0; j < n; j++) {
+      const b = btns.nth(j);
+      if (!(await b.isVisible().catch(() => false))) continue;
+      const nm = ((await b.getAttribute("aria-label").catch(() => null)) || (await b.textContent().catch(() => "")) || `#${j}`).trim().slice(0, 18);
+      if (/chließen|Close|Zurück|Back/.test(nm)) continue;
+      const open = await page.locator("dialog[open]").count();
+      await wander(page, app, vp, `${view} knopf:${nm}`, () => b.evaluate(e => e.click()).catch(() => {}), { resize: true, wait: 450 });
+      // Blätter schließen, die der Knopf geöffnet hat (Element-Auswahl …)
+      for (let k = 0; k < 3 && await page.locator("dialog[open]").count() > (keep ? open : 0); k++) { await page.keyboard.press("Escape"); await page.waitForTimeout(150); }
+    }
+  }
 }
 
 async function kapitelCheck(page, app, vp) {
@@ -340,19 +546,19 @@ async function kapitelCheck(page, app, vp) {
         total = Number(count.split("/")[1]);
         await check(page, app, vp, `kapitel ${id} ${count.trim()}`);
         // Hilfsmittel einmal je Kapitel (an der ersten Folie mit Tipp)
-        if (!tools && await page.locator("dialog.ui-guide[open] .ui-guide-tool:not(:disabled)").count() === 3) {
+        if (!tools && await page.locator("dialog.ui-guide[open] .ui-guide-now .ui-guide-tool:not(:disabled)").count() === 3) {
           tools = true;
-          for (const b of await page.locator("dialog.ui-guide[open] .ui-guide-tool").all()) {
+          for (const b of await page.locator("dialog.ui-guide[open] .ui-guide-now .ui-guide-tool").all()) {
             const nm = ((await b.textContent()) ?? "").trim();
             await b.click({ timeout: 800 }).catch(() => {});
             await check(page, app, vp, `kapitel ${id} ${count.trim()} blatt:${nm}`);
             await page.keyboard.press("Escape"); await page.waitForTimeout(150);
           }
         }
-        const ok = await guideSolve(page);
+        const ok = await guideSolve(page, fn => wander(page, app, vp, `kapitel ${id} ${count.trim()}`, fn, { resize: true }));
         await check(page, app, vp, `kapitel ${id} ${count.trim()} gelöst`);
         if (!ok) { note(app, vp, `kapitel ${id} ${count.trim()}`, "Folie ließ sich nicht lösen (kein „Weiter“)"); await closeDialogs(page); k++; continue; }
-        await page.locator("dialog.ui-guide[open] .ui-guide-next").first().click({ timeout: 800 }).catch(() => {});
+        await page.locator("dialog.ui-guide[open] .ui-guide-now .ui-guide-next").first().click({ timeout: 800 }).catch(() => {});
         k++;
         await page.waitForTimeout(120);
       }
@@ -364,6 +570,45 @@ async function kapitelCheck(page, app, vp) {
   }
 }
 
+/**
+ * Wanderungs-Phase (nach den übrigen Prüfungen, damit sie deren Ausgangszustand nicht ändert): je Bereich der Leiste und Stufe die Knöpfe der Werkbank
+ * (Kopf, Bühne, Status, Steuerleiste, Register) und je Werkzeug die Knöpfe in seinem Blatt bzw. Register bedienen; danach Speicher und Seite wie vorher.
+ */
+async function wanderPhase(page, app, vp) {
+  if (!WANDER) return;
+  await closeDialogs(page);
+  const saved = await page.evaluate(() => JSON.stringify(Object.entries(localStorage)));
+  const segs = page.locator('header .ui-seg[aria-label="Level"] button');
+  const stufen = Math.max(1, await segs.count());
+  for (let j = 0; j < stufen; j++) {
+    if (await segs.count()) await segs.nth(j).click({ timeout: 800 }).catch(() => {});
+    const areas = await page.locator("nav button:visible:not(.ui-guide-tab)").count();
+    for (let a = 0; a < areas; a++) {
+      const tab = page.locator("nav button:visible:not(.ui-guide-tab)").nth(a);
+      const nm = ((await tab.textContent().catch(() => "")) ?? "").trim().slice(0, 14);
+      await tab.click({ timeout: 1500 }).catch(() => {});
+      await page.waitForTimeout(250);
+      await closeDialogs(page);
+      if (!(await page.locator(".ui-wb").count())) continue;
+      const view = `wanderung L${j + 1} ${nm}`;
+      await wbButtons(page, app, vp, view, ".ui-wb-head, .ui-wb-view, .ui-wb-status, .ui-wb-controls, .ui-wb-side .ui-panel-body");
+      // Werkzeuge: Blatt bzw. Register öffnen (Aktionen ohne Blatt mit Wanderungs-Prüfung), Knöpfe darin bedienen
+      const tools = page.locator(".ui-wb-tools .ui-wb-tool:not(:disabled), .ui-wb-side [role=tab]");
+      const n = Math.min(await tools.count(), 10);
+      for (let k = 0; k < n; k++) {
+        const tl = tools.nth(k);
+        if (!(await tl.isVisible().catch(() => false))) continue;
+        const tn = ((await tl.textContent().catch(() => "")) ?? "").trim().slice(0, 14);
+        await wander(page, app, vp, `${view}/tool:${tn}`, () => tl.click({ timeout: 1000 }).catch(() => {}), { resize: true });
+        await wbButtons(page, app, vp, `${view}/tool:${tn}`, "dialog.ui-sheet[open] .ui-sheet-body, .ui-wb-side .ui-panel-body", 8, true);
+        await closeDialogs(page);
+      }
+    }
+  }
+  await page.evaluate(s => { localStorage.clear(); for (const [k, v] of JSON.parse(s)) localStorage.setItem(k, v); }, saved);
+  await page.reload({ waitUntil: "networkidle" }).catch(() => {});
+}
+
 for (const app of APPS) {
   for (const [w, h] of VIEWPORTS) {
     const vp = `${w}×${h}`;
@@ -373,6 +618,7 @@ for (const app of APPS) {
     await ctx.addInitScript(() => {
       try { Object.defineProperty(speechSynthesis, "getVoices", { value: () => ["de-DE", "en-GB"].map(lang => ({ name: `Prüfstimme ${lang}`, lang, localService: true, default: false, voiceURI: lang })) }); } catch { /* egal */ }
     });
+    if (WANDER) await ctx.addInitScript(wanderInit, [W_SEL, W_FRAME]);
     const page = await ctx.newPage();
     page.setDefaultTimeout(1500);
     try {
@@ -399,8 +645,9 @@ for (const app of APPS) {
         const tl = tools[j];
         let tn = `#${j}`;
         try { tn = (await tl.getAttribute("aria-label")) || (await tl.textContent()) || tn; } catch { continue; }
-        try { await tl.click({ timeout: 1000 }); } catch { continue; }
-        await check(page, app, vp, `tab:${label.trim().slice(0, 12)}/tool:${tn.trim().slice(0, 16)}`);
+        const vw = `tab:${label.trim().slice(0, 12)}/tool:${tn.trim().slice(0, 16)}`;
+        try { await wander(page, app, vp, vw, () => tl.click({ timeout: 1000 }), { resize: true }); } catch { continue; }
+        await check(page, app, vp, vw);
         // Blatt schließen
         await closeDialogs(page);
       }
@@ -435,13 +682,15 @@ for (const app of APPS) {
           const intro = page.locator(".intro-card .ui-btn-primary, .task-card.worked .q-next");
           if (await intro.count()) { await intro.first().click({ timeout: 800 }).catch(() => {}); continue; }
           await hintCheck(page, app, vp, `quiz-aufgabe ${k + 1}`);
-          await answer(page);
+          await wander(page, app, vp, `quiz-aufgabe ${k + 1}`, () => answer(page), { what: "Antwort" });
           await check(page, app, vp, `quiz-rückmeldung ${k + 1}`);
           const weiter = page.locator(".q-next").first();
           if (await weiter.count() && await weiter.isVisible()) { try { await weiter.click({ timeout: 800 }); } catch { break; } } else break;
         }
       }
     }
+    // Werkbank bedienen: wandert ein Container? (eigene Phase, Zustand danach wie vorher)
+    await wanderPhase(page, app, vp);
     // Üben in Kapiteln (freiwillig über LEARN): jede Aufgabe vor und nach der Antwort
     if (process.env.LEARN) {
       const ids = process.env.LEARN.split(",");
@@ -471,8 +720,7 @@ for (const app of APPS) {
           }
           await check(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
           await hintCheck(page, app, vp, `lernen ${lv + 1}/${k + 1}`);
-          const ok = await answer(page);
-          await page.waitForTimeout(300);
+          const ok = await wander(page, app, vp, `lernen ${lv + 1}/${k + 1}`, () => answer(page), { what: "Antwort" });
           await check(page, app, vp, `lernen ${lv + 1}/${k + 1} Antwort`);
           if (!ok) { note(app, vp, `lernen ${lv + 1}/${k + 1}`, "Aufgabe ließ sich nicht beantworten (kein „Weiter“)"); break; }
           asked++;
@@ -485,6 +733,7 @@ for (const app of APPS) {
     }
     // Lernen in Kapiteln (freiwillig über KAPITEL=1, Ionenbindung): jede Folie jedes Kapitels vor und nach dem Lösen, Hilfsmittel einmal je Kapitel
     if (process.env.KAPITEL) await kapitelCheck(page, app, vp);
+    if (process.env.ERKLAERUNG) { await closeDialogs(page); await erklaerungCheck(page, app, vp); }
     } catch (e) { note(app, vp, "skript", "Abbruch: " + String(e).split("\n")[0].slice(0, 120)); }
     await ctx.close();
   }
