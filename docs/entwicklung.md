@@ -319,9 +319,11 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
   Bausteine: `Reserve` (`@lern/ui`, alle Fassungen in einer Zelle, nur die aktuelle sichtbar), `Workbench` `statusReserve` (Statuszeile mit Platz für die längste
-  Kombination) und `wrapTools` (Werkzeugleiste fest zweireihig), Erklärung: unsichtbare „Geister“ des größten Zustands je Folie (`.ui-guide-ghost`), `Fit` behält die Lage,
+  Kombination) und `wrapTools` (Werkzeugleiste fest zweireihig), Erklärung: unsichtbare „Geister“ des größten Zustands je Folie (`.ui-guide-ghost`; nur solange das Bild dadurch höchstens 10 % kleiner wird,
+  sonst `data-noghost`: Bildhöhe vom Anfang der Folie fest, Text scrollt), `Fit` behält die Lage,
   wenn nur der Rahmen sich ändert. Prüfung: `scripts/check-ui.mjs` vergleicht vor/nach jeder Bedienung die Kästen (immer an, `WANDER=0` aus; gewollte Bewegung
-  `data-anim`/`data-moves`, neue Ansicht `data-screen`; `ERKLAERUNG=1` spielt alle Erklärungen).
+  `data-anim`/`data-moves`, neue Ansicht `data-screen`; `ERKLAERUNG=1` spielt alle Erklärungen; bekannte Ausnahmen mit Grund in `KNOWN`, Ausgabe „bekannt: …“ –
+  derzeit Kästchenschema der Atombau-Erklärung Level II am Handy 19–40 px).
   Umsetzung: `ModelFrame` hält nach dem Lösen die Höhe der Bedienzeile frei; `Guide steady` (Ionenbindung „Lernen“) reserviert Platz für Lösungsweg, Rückmeldung und
   „Weiter“ – untereinander behält das Bild seine Anfangshöhe, längerer Text scrollt; Schalen-Text über `shellLines`/`shellSentence` (`@lern/chem`).
   Ausnahme (mit der Lehrkraft abgesprochen): Ionenbindung Kapitel 1, Elektronenübergang mit einstellbarer Atomzahl – kommt ein Atom dazu, ordnen sich die Atome neu und
