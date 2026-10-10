@@ -306,6 +306,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (`visibility: hidden` – der Rahmen bleibt messbar: wird der Bildschirm wieder größer, kommt das Bild zurück). Landkarte: hilft auch die kleinste Stufe nicht,
   bleibt sie bei Lesegröße und scrollt. Lesetext (Frage, Rückmeldung, Level-Beschreibung, `Tag`) ≥ 14 px.
   Zeichnungen passen sich per Container-Einheiten (`cqw`/`cqh`) oder `Fit` ein, statt zu scrollen oder abgeschnitten zu werden. PSE mit `fit` (ganzes PSE sichtbar).
+- **Schalenbesetzung ausgeschrieben** (alle Apps): nie „2 · 8 · 1“ (sieht aus wie eine Rechnung: 2 · 8 · 8 = 128), sondern „1. Schale: 2 Elektronen“, „2. Schale: 8 Elektronen“,
+  „3. Schale: 1 Elektron“ (Zeilen untereinander; im Satz „1. Schale 2, 2. Schale 8, 3. Schale 1 Elektron“). Wunsch der Lehrkraft.
+- **Elektronen im Schalenmodell sehen alle gleich aus** (Ionenbindung): keine Ringe oder hellen Kerne für aufgenommene Elektronen – was sich ändert, sagen Text und Zahl;
+  keine hellblaue Hinterlegung hinter dem Atom, die sich mit ändert. Wunsch der Lehrkraft.
+- **PSE**: Das kleine PSE (Unterstufe, Hauptgruppen I–VIII bis Calcium) bleibt, wie es ist – nichts daran ändern. Lanthanoide, Actinoide und die 7. Periode nur im großen PSE
+  von **Atombau** (Tab „Periodensystem“, Level II); PSE-Hilfe der Module und Ionenbindung Kapitel 5 zeigen sie nicht. Wunsch der Lehrkraft.
 - **Nichts wandert** (alle Apps): Bilder, Modelle, Karten und Steuerleisten bleiben beim Bedienen an ihrem Platz – auch wenn sich daneben Text, Zahlen, Ladungen oder
   Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
