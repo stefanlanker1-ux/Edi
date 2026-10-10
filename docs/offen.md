@@ -47,5 +47,3 @@ in dem er umgesetzt ist; was daraus als dauerhafte Regel folgt, kommt nach `docs
 ## Doku
 20. **Kürzen statt nur verschieben**: `modules/gemische/CLAUDE.md`, `modules/polymere/CLAUDE.md` (je 32 KB) und der Abschnitt „Regeln“ in
     `docs/entwicklung.md` (26 KB) auf das kürzen, was man nicht aus dem Code ablesen kann. Vor dem Commit zeigen, was wegfällt.
-21. **Anonymität**: In `docs/entwicklung.md` stehen noch sechs Begründungen „Wunsch der Lehrkraft“ bzw. „mit der Lehrkraft abgesprochen“ – das widerspricht
-    der eigenen Regel (keine Hinweise darauf, wer etwas wünscht). Durch eine fachliche Begründung ersetzen.
