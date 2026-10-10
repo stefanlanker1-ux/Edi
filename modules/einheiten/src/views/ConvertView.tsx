@@ -45,7 +45,7 @@ export function ConvertView() {
     <Workbench className="cv-wb" label={tr("Rechenweg", "Working")} tools={tools}
       head={<QuantitySelect value={conv.qty} os={stufe === "os"} onChange={pickQty} />}
       stage={
-        <div className="cv-stage">
+        <div className="cv-stage" data-screen={conv.qty}>
           <div className="cv-line">
             <input className="cv-num" value={conv.value} inputMode="decimal" autoComplete="off" spellCheck={false} aria-invalid={!v} aria-label={tr("Zahl", "Number")}
               onChange={e => setConv({ value: e.target.value })} placeholder={num("3,45")} />
