@@ -4,10 +4,12 @@
 // keine Kugel überlappt eine andere. Unter die Schmelztemperatur zurück: jedes Ion bekommt den nächsten freien Gitterplatz seiner Ladung
 // und gleitet dorthin. Gefäß = Wände (links, rechts, unten; oben eine unsichtbare Decke knapp über der Schmelze) oder periodischer
 // Ausschnitt (was rechts hinausgleitet, kommt links wieder herein – außerhalb des sichtbaren Kreises).
+// Lösung: dazu Wassermoleküle (q = 0) – sie bewegen sich ungeordnet, wandern im Strom nicht mit und berühren die Ionen nur (keine Anziehung);
+// die Ionen gleiten zwischen ihnen hindurch.
 
 export interface Body {
   x: number; y: number; vx: number; vy: number;
-  /** Radius im Bild, Ladungsvorzeichen (+1 Kation, −1 Anion) */
+  /** Radius im Bild, Ladungsvorzeichen (+1 Kation, −1 Anion, 0 Wassermolekül) */
   r: number; q: number;
   /** zugewiesener Gitterplatz */
   hx: number; hy: number;
@@ -65,8 +67,10 @@ export interface Drive {
    *  Reihen gleicher Ladung, die Ionen bleiben gemischt */
   mix?: boolean;
   /** senkrecht ruhiger: Zufallskraft in y mal `calm`, Reibung in y durch `calm` (Standard 1; die Lupe nimmt weniger – im Strom gleiten die Ionen
-   *  waagrecht aneinander vorbei, statt auf und ab zu hüpfen) */
+   *  waagrecht aneinander vorbei, statt auf und ab zu hüpfen) – gilt nur für Ionen */
   calm?: number;
+  /** Wärmebewegung der Wassermoleküle (q = 0): Faktor auf die Zufallskraft, in alle Richtungen gleich (Standard 1) */
+  swirl?: number;
 }
 
 /** Zufallszahlen 0…1, fest je Startwert (gleiche Bilder bei jedem Öffnen) */
@@ -157,19 +161,19 @@ function substep(w: World, d: Drive, h: number) {
   const ax = new Float64Array(n), ay = new Float64Array(n);
   const t = w.t;
   for (let i = 0; i < n; i++) {
-    const p = b[i];
+    const p = b[i], ion = p.q !== 0;
     // Platz + Schwingen
     if (kh > 0) {
       const tx = p.hx + d.amp * (0.62 * Math.sin(p.w[0] * t + p.p[0]) + 0.38 * Math.sin(p.w[1] * t + p.p[1]));
       const ty = p.hy + d.amp * (0.62 * Math.sin(p.w[2] * t + p.p[2]) + 0.38 * Math.sin(p.w[3] * t + p.p[3]));
       ax[i] += kh * wrapD(w, tx - p.x, 0); ay[i] += kh * wrapD(w, ty - p.y, 1);
     }
-    ax[i] -= damp * p.vx; ay[i] -= (damp + dampY) * p.vy;
+    ax[i] -= damp * p.vx; ay[i] -= (damp + (ion ? dampY : 0)) * p.vy;
     if (m > 0) {
-      // Zufallskraft (weich veränderlich)
-      const f = Math.sqrt(2 * h / tau);
-      p.nx += -p.nx * h / tau + sigma * f * gauss(w.rnd);
-      p.ny += -p.ny * h / tau + sy * f * gauss(w.rnd);
+      // Zufallskraft (weich veränderlich); Wassermoleküle in alle Richtungen gleich
+      const f = Math.sqrt(2 * h / tau), sx = ion ? sigma : sigma * (d.swirl ?? 1);
+      p.nx += -p.nx * h / tau + sx * f * gauss(w.rnd);
+      p.ny += -p.ny * h / tau + (ion ? sy : sx) * f * gauss(w.rnd);
       ax[i] += m * p.nx; ay[i] += m * p.ny;
       if (d.drift) ax[i] += m * GAMMA * d.drift * p.q;
       if (d.gravity) ay[i] += m * GRAV * u;
@@ -185,7 +189,9 @@ function substep(w: World, d: Drive, h: number) {
       if (dd > dc * dc) continue;
       const dist = Math.sqrt(dd) || 1e-6;
       let f = 0; // > 0 stößt ab
-      if (d.apart) { if (dist < da) f = K_REP * (da - dist); }
+      // Wassermoleküle: keine Anziehung, nur kurz vor der Berührung weich zurückgedrängt (Ionen gleiten hindurch, nichts überlappt)
+      if (!A.q || !B.q) { const touch = A.r + B.r + 8; if (dist < touch) f = K_REP * (touch - dist); }
+      else if (d.apart) { if (dist < da) f = K_REP * (da - dist); }
       else if (A.q * B.q < 0) {
         if (dist < d0) f = K_REP * (d0 - dist);
         else { const s = (dist - d0) / (dc - d0); f = -K_ATT * (d.cohesion ?? 1) * u * Math.sin(Math.PI * s); }
@@ -222,30 +228,37 @@ function substep(w: World, d: Drive, h: number) {
 function separate(w: World, mix?: boolean) {
   const { b } = w, n = b.length;
   const [x0, y0, x1, y1] = w.box;
-  for (let it = 0; it < 3; it++) {
+  for (let it = 0; it < 6; it++) {
+    // Ausschnitt: erst umbrechen (wer neu hereinkommt, wird danach noch von den anderen getrennt), im Gefäß zuletzt an den Wänden halten
+    if (w.periodic) for (const p of b) {
+      const L = x1 - x0, H = y1 - y0;
+      if (p.x < x0 || p.x >= x1) { p.x += p.x < x0 ? L : -L; if (mix) p.y = freeY(w, p); }
+      if (p.y < y0) p.y += H; else if (p.y >= y1) p.y -= H;
+    }
     for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
       const A = b[i], B = b[j];
       const dx = wrapD(w, B.x - A.x, 0), dy = wrapD(w, B.y - A.y, 1);
       const min = A.r + B.r + 2;
       const dd = dx * dx + dy * dy;
       if (dd >= min * min) continue;
-      const dist = Math.sqrt(dd) || 1e-6, nx = dx / dist, ny = dy / dist, push = (min - dist) / 2;
-      A.x -= nx * push; A.y -= ny * push; B.x += nx * push; B.y += ny * push;
+      // Wassermoleküle sind leichter: sie weichen den Ionen aus (drei Viertel des Wegs), Ionen gleiten zwischen ihnen hindurch
+      const wa = !A.q === !B.q ? 0.5 : A.q ? 0.25 : 0.75, wb = 1 - wa;
+      const dist = Math.sqrt(dd) || 1e-6, nx = dx / dist, ny = dy / dist, gap = min - dist;
+      A.x -= nx * gap * wa; A.y -= ny * gap * wa; B.x += nx * gap * wb; B.y += ny * gap * wb;
       const vn = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
-      if (vn < 0) { A.vx += (vn / 2) * nx; A.vy += (vn / 2) * ny; B.vx -= (vn / 2) * nx; B.vy -= (vn / 2) * ny; }
+      if (vn < 0) { A.vx += vn * wa * nx; A.vy += vn * wa * ny; B.vx -= vn * wb * nx; B.vy -= vn * wb * ny; }
     }
-    for (const p of b) {
-      if (w.periodic) {
-        const L = x1 - x0, H = y1 - y0;
-        if (p.x < x0 || p.x >= x1) { p.x += p.x < x0 ? L : -L; if (mix) p.y = freeY(w, p); }
-        if (p.y < y0) p.y += H; else if (p.y >= y1) p.y -= H;
-      } else {
-        if (p.x < x0 + p.r) { p.x = x0 + p.r; p.vx = Math.max(0, p.vx); }
-        if (p.x > x1 - p.r) { p.x = x1 - p.r; p.vx = Math.min(0, p.vx); }
-        if (p.y < y0 + p.r) { p.y = y0 + p.r; p.vy = Math.max(0, p.vy); }
-        if (p.y > y1 - p.r) { p.y = y1 - p.r; p.vy = Math.min(0, p.vy); }
-      }
+    if (!w.periodic) for (const p of b) {
+      if (p.x < x0 + p.r) { p.x = x0 + p.r; p.vx = Math.max(0, p.vx); }
+      if (p.x > x1 - p.r) { p.x = x1 - p.r; p.vx = Math.min(0, p.vx); }
+      if (p.y < y0 + p.r) { p.y = y0 + p.r; p.vy = Math.max(0, p.vy); }
+      if (p.y > y1 - p.r) { p.y = y1 - p.r; p.vy = Math.min(0, p.vy); }
     }
+  }
+  // Ausschnitt: zuletzt noch einmal umbrechen, damit alle Lagen im Ausschnitt liegen
+  if (w.periodic) for (const p of b) {
+    if (p.x < x0) p.x += x1 - x0; else if (p.x >= x1) p.x -= x1 - x0;
+    if (p.y < y0) p.y += y1 - y0; else if (p.y >= y1) p.y -= y1 - y0;
   }
 }
 
@@ -289,14 +302,32 @@ export function heatDrive(t: number, tm: number): Drive {
 }
 
 /** Lupe (Ausschnitt NaCl, Gitterabstand u): Antrieb je Zustand. `dir` = Richtung der Kationen im Strom (+1 nach rechts, −1 nach links, 0 = Schalter offen).
- *  Im Strom wandern die Ionen (Sollwert FLOW · Anteil · u je s) und sind senkrecht ruhig (`calm`), ohne Strom ungeordnet, senkrecht etwas ruhiger. */
+ *  Im Strom wandern die Ionen (Sollwert FLOW · Anteil · u je s) und sind senkrecht ruhig (`calm`), ohne Strom ungeordnet, senkrecht etwas ruhiger.
+ *  Lösung: Die Wassermoleküle bremsen die Ionen – der Anteil ist so gewählt, dass sie im Mittel genauso schnell wandern wie in der Schmelze (Test). */
 export const FLOW = 3.4;
 export function lensDrive(z: "fest" | "schmelze" | "loesung", dir: number, u: number): Drive {
   if (z === "fest") return { free: false, heat: 0.3, amp: 1.6 };
   const calm = dir ? 0.3 : 0.8;
   return z === "schmelze"
     ? { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, calm, drift: dir * FLOW * 0.46 * u }
-    : { free: true, heat: 0.75, amp: 0, apart: true, mix: true, calm, drift: dir * FLOW * 0.3 * u };
+    : { free: true, heat: 0.75, amp: 0, apart: true, mix: true, calm, swirl: 1.4, drift: dir * FLOW * 0.68 * u };
+}
+
+/** Lösung im Ausschnitt (Gitterabstand u, halbe Breite h): 12 Ionen weit auseinander, dazwischen `n` Wassermoleküle auf freien Plätzen */
+export function solutionSites(u: number, h: number, rWater: number, radius: (q: number) => number, n = 18): Site[] {
+  const ions: Site[] = Array.from({ length: 12 }, (_, k) => {
+    const i = k % 4, j = Math.floor(k / 4);
+    return { x: -h + 30 * u / 40 + i * 60 * u / 40 + (j % 2) * 26 * u / 40, y: -h + u + j * 2 * u, q: (i + j) % 2 === 0 ? 1 : -1 };
+  });
+  const water: Site[] = [];
+  const step = 0.75 * u;
+  for (let j = 0; j < 8 && water.length < n; j++) for (let i = 0; i < 8 && water.length < n; i++) {
+    const c = { x: -h + step / 2 + i * step + (j % 2) * step / 2, y: -h + step / 2 + j * step, q: 0 };
+    if (ions.some(s => Math.hypot(s.x - c.x, s.y - c.y) < radius(s.q) + rWater + 4)) continue;
+    if (water.some(s => Math.hypot(s.x - c.x, s.y - c.y) < 2 * rWater + 4)) continue;
+    water.push(c);
+  }
+  return [...ions, ...water];
 }
 
 /** Deckkraft der Anziehungs-Linie zwischen zwei Gegen-Ionen im Abstand dist: voll bis 1,25 u, weich aus bis 1,6 u (nichts springt) */

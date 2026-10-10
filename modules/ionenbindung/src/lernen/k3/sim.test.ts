@@ -1,7 +1,7 @@
 // Teilchensimulation von Kapitel 3: fest schwingen die Ionen nur um ihre Plätze, geschmolzen verlassen sie die Plätze und bewegen sich
 // weiter (ohne Überlappung, im Gefäß, Gegen-Ionen nah), abgekühlt kehren sie ins Gitter zurück; im Strom wandern Kationen zum Minuspol.
 import { test, expect } from "vitest";
-import { advance, grid, heatDrive, lensDrive, makeWorld, warm, type Drive, type Site, type World } from "./sim.ts";
+import { advance, grid, heatDrive, lensDrive, makeWorld, solutionSites, warm, type Drive, type Site, type World } from "./sim.ts";
 
 const gapMin = (w: World) => {
   let g = Infinity;
@@ -13,11 +13,15 @@ const gapMin = (w: World) => {
   }
   return g;
 };
-const oppositeNearest = (w: World) => w.b.filter(p => {
-  let best = Infinity, q = 0;
-  for (const o of w.b) if (o !== p) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < best) { best = d; q = o.q; } }
-  return q * p.q < 0;
-}).length / w.b.length;
+/** Anteil der Ionen, deren nächstes Ion ein Gegen-Ion ist (Wassermoleküle zählen nicht) */
+const oppositeNearest = (w: World) => {
+  const ions = w.b.filter(p => p.q);
+  return ions.filter(p => {
+    let best = Infinity, q = 0;
+    for (const o of ions) if (o !== p) { const d = Math.hypot(o.x - p.x, o.y - p.y); if (d < best) { best = d; q = o.q; } }
+    return q * p.q < 0;
+  }).length / ions.length;
+};
 
 // Tiegel wie ThermoLattice: 5 × 4 Ionen, u = 60, Na⁺ und Cl⁻
 const u = 60, cols = 5, rows = 4;
@@ -172,19 +176,17 @@ test("Schmelze: unter der Schmelztemperatur bleibt alles wie vorher (fest: nur S
   }
 });
 
-// Lupe wie Lens: Ausschnitt 6 × 6 LU, Schmelze 28 Ionen (Startwert 12), Lösung 12 Ionen weit auseinander (Startwert 13)
-const LU = 40, LH = 3 * LU;
+// Lupe wie Lens: Ausschnitt 6 × 6 LU, Schmelze 28 Ionen (Startwert 12), Lösung 12 Ionen weit auseinander mit Wassermolekülen (Startwert 13)
+const LU = 40, LH = 3 * LU, RW = 13.5;
+const lensRadius = (q: number) => (q > 0 ? (17.5 * 102) / 181 : q < 0 ? 17.5 : RW);
 const lensSites = grid(6, 6, LU, -LH + LU / 2, -LH + LU / 2);
 const keepSome = (q: number) => lensSites.filter(s => s.q === q).filter((_, i) => i % 9 !== 4 && i % 9 !== 8);
 const melted: Site[] = [...keepSome(1), ...keepSome(-1)];
-const loose: Site[] = Array.from({ length: 12 }, (_, k) => {
-  const i = k % 4, j = Math.floor(k / 4);
-  return { x: -LH + 30 + i * 60 + (j % 2) * 26, y: -LH + 40 + j * 80, q: (i + j) % 2 === 0 ? 1 : -1 };
-});
+const solution = solutionSites(LU, LH, RW, lensRadius);
 /** 40 s Strom (Kationen nach rechts): Wanderung (LU/s, Kationen +, Anionen −), senkrechte Streuung in 1 s (Wurzel des mittleren Quadrats, LU),
  *  Anteil der Ionen mit einem Gegen-Ion als nächstem Nachbarn (Mittel über die Zeit; zufällig gemischt ≈ 0,5, getrennte Reihen → 0) */
 function lens(list: Site[], seed: number, open: Drive, on: Drive) {
-  const w = makeWorld(list, q => (q > 0 ? (17.5 * 102) / 181 : 17.5), LU, [-LH, -LH, LH, LH], true, seed);
+  const w = makeWorld(list, lensRadius, LU, [-LH, -LH, LH, LH], true, seed);
   w.m = 1; w.free = true;
   warm(w, open, 4);
   const T = 40, hist: { x: number; y: number }[][] = [];
@@ -198,38 +200,42 @@ function lens(list: Site[], seed: number, open: Drive, on: Drive) {
   const last = hist[hist.length - 1], first = hist[0];
   const mean = (q: number) => w.b.reduce((s, p, i) => s + (p.q === q ? last[i].x - first[i].x : 0), 0) / w.b.filter(p => p.q === q).length / LU / ((hist.length - 1) / 60);
   let sy = 0, c = 0;
-  for (let f = 0; f + 60 < hist.length; f += 10) for (let i = 0; i < w.b.length; i++) { sy += (hist[f + 60][i].y - hist[f][i].y) ** 2; c++; }
-  return { cat: mean(1), an: mean(-1), y: Math.sqrt(sy / c) / LU, gap, mixed };
+  for (let f = 0; f + 60 < hist.length; f += 10) for (let i = 0; i < w.b.length; i++) if (w.b[i].q) { sy += (hist[f + 60][i].y - hist[f][i].y) ** 2; c++; }
+  return { cat: mean(1), an: mean(-1), water: mean(0), y: Math.sqrt(sy / c) / LU, gap, mixed };
 }
 
-test("Lupe im Strom: Ionen wandern etwa doppelt so schnell wie vorher, senkrecht ruhig, gemischt, ohne Überlappung", () => {
-  // erste Fassung: Sollwert Schmelze 1,7 · 0,7 LU/s, Lösung 1,7 · 0,3 LU/s, senkrecht ungedämpft
-  const before: Record<string, Drive> = {
-    schmelze: { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, drift: 1.7 * 0.7 * LU },
-    loesung: { free: true, heat: 0.75, amp: 0, apart: true, drift: 1.7 * 0.3 * LU },
-  };
+test("Lupe im Strom: Ionen wandern deutlich sichtbar, in der Lösung so schnell wie in der Schmelze, senkrecht ruhig, gemischt, ohne Überlappung", () => {
+  // erste Fassung der Schmelze: Sollwert 1,7 · 0,7 LU/s, senkrecht ungedämpft
+  const before: Drive = { free: true, heat: 1.05, amp: 0, cohesion: 0.5, like: 1.15, drift: 1.7 * 0.7 * LU };
   // gemittelt über acht Startwerte, je 40 s (die Bewegung ist ungeordnet, einzelne Läufe streuen stark): Schmelze 0,41 → 0,78 LU/s,
-  // senkrecht 0,37 → 0,18 LU; Lösung 0,18 → 0,37 LU/s, senkrecht 0,29 → 0,15 LU
-  for (const [z, list, seed] of [["schmelze", melted, 12], ["loesung", loose, 13]] as const) {
+  // senkrecht 0,37 → 0,18 LU; Lösung zwischen 17 Wassermolekülen etwa so schnell wie die Schmelze
+  const speed: Record<string, number> = {};
+  for (const [z, list, seed] of [["schmelze", melted, 12], ["loesung", solution, 13]] as const) {
     let v = 0, v0 = 0, y = 0, y0 = 0;
     for (const k of [0, 100, 200, 300, 400, 500, 600, 700]) {
       const now = lens(list, seed + k, lensDrive(z, 0, LU), lensDrive(z, 1, LU));
-      const old = lens(list, seed + k, { ...before[z], drift: 0 }, before[z]);
       expect(now.cat).toBeGreaterThan(0);                        // Kationen zum Minuspol (rechts)
       expect(now.an).toBeLessThan(0);                             // Anionen zum Pluspol
-      expect(now.gap).toBeGreaterThanOrEqual(1.5);                // keine Überlappung
-      expect(now.mixed).toBeGreaterThanOrEqual(z === "schmelze" ? 0.65 : 0.3);  // gemischt wie vorher, keine Reihen gleicher Ladung
-      v += (now.cat - now.an) / 16; v0 += (old.cat - old.an) / 16; y += now.y / 8; y0 += old.y / 8;
+      expect(now.gap).toBeGreaterThanOrEqual(1.5);                // keine Überlappung (auch nicht mit Wassermolekülen)
+      expect(now.mixed).toBeGreaterThanOrEqual(z === "schmelze" ? 0.65 : 0.3);  // gemischt, keine Reihen gleicher Ladung
+      if (z === "loesung") expect(Math.abs(now.water)).toBeLessThan(0.1);       // Wasser wandert nicht mit
+      v += (now.cat - now.an) / 16; y += now.y / 8;
+      if (z === "schmelze") { const old = lens(list, seed + k, { ...before, drift: 0 }, before); v0 += (old.cat - old.an) / 16; y0 += old.y / 8; }
     }
-    expect(v / v0).toBeGreaterThan(1.6);                          // ≈ doppelt so schnell
-    expect(v / v0).toBeLessThan(2.8);
-    expect(y).toBeLessThan(0.55 * y0);                            // senkrecht deutlich ruhiger als vorher
+    speed[z] = v;
+    if (z === "schmelze") {
+      expect(v / v0).toBeGreaterThan(1.6);                        // ≈ doppelt so schnell wie die erste Fassung
+      expect(v / v0).toBeLessThan(2.8);
+      expect(y).toBeLessThan(0.55 * y0);                          // senkrecht deutlich ruhiger als vorher
+    }
     expect(y).toBeLessThan(0.45 * v);                             // senkrechte Streuung in 1 s deutlich kleiner als die Wanderung in 1 s
   }
-}, 30_000);
+  expect(speed.loesung / speed.schmelze).toBeGreaterThan(0.8);    // in der Lösung so schnell wie in der Schmelze
+  expect(speed.loesung / speed.schmelze).toBeLessThan(1.25);
+}, 60_000);
 
 test("Lupe ohne Strom: ungeordnete Bewegung ohne Wanderung, senkrecht etwas ruhiger", () => {
-  for (const [z, list, seed] of [["schmelze", melted, 12], ["loesung", loose, 13]] as const) {
+  for (const [z, list, seed] of [["schmelze", melted, 12], ["loesung", solution, 13]] as const) {
     const open = lensDrive(z, 0, LU), r = lens(list, seed, open, open);
     expect(Math.abs(r.cat)).toBeLessThan(0.1);
     expect(Math.abs(r.an)).toBeLessThan(0.1);

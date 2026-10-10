@@ -87,6 +87,34 @@ Begriffe, die ein früheres Modul einführt, gelten in späteren Modulen als bek
 - **Einheitliche Fachsprache** in Werkbank, Erklärung, Quiz, Erklärkarten und Lösungsweg (ein Begriff, nie zwei für dasselbe; z. B. „Äste“, nicht „Seitenketten“).
 - **Einfache Sprache**: kurze Sätze (höchstens 22 Wörter, geprüft), Du-Form, aktiv, ein Gedanke pro Satz. Keine Erklärsätze in der Oberfläche (nur kurze `Tag`s);
   Erklärungen gehören in Erklärung, Erklärkarten, Tipps und Rückmeldungen.
+- **Natürliche Sprache** (verbindlich für alle Module und alle Texte: Erklärungen, Lektionen, Kapitel, Quiz, Aufträge, Lösungswege, Rückmeldungen, Tipps, Merksätze,
+  Beschriftungen im Bild, englische Fassung): Texte klingen so, wie eine gute Lehrkraft im Unterricht erklärt – ganze, fachlich korrekte Sätze, die man laut vorlesen kann.
+  Formulierungen an guten Erklärungen aus Lehrbüchern und Lernseiten messen (vorher nachschlagen, wie man es üblicherweise sagt), aber nie Text übernehmen.
+  Gilt für jeden neuen und jeden geänderten Text; ältere Texte, die noch nicht so klingen, beim nächsten Ändern umschreiben. Muster: Ionenbindung „Lernen“ (alle fünf Kapitel).
+  - **Ganze Sätze statt Stichwortketten**: keine Reihen aus Doppelpunkt, Pfeil und Halbsätzen („Plus und Minus: Anziehung – die Ionen rücken zusammen.“),
+    sondern „Plus und Minus ziehen sich an: Die beiden Ionen rücken zusammen.“ Pfeile nur in Formeln und Reaktionsgleichungen.
+  - **Zusammenhänge in Worten statt als Rechnung**: keine Rechnungen mit Klammern oder Summen von Ladungen im Fließtext („(1+) + (1−) = 0“, „2 · (1−) = 2−“,
+    „Gesamtladung …“), sondern „Ein Calcium-Ion hat zwei positive Ladungen. Erst zwei Chlorid-Ionen bringen zusammen zwei negative Ladungen.“
+    Eine einfache, eingeführte Beziehung darf als kurze Rechnung im Satz stehen („Die Ladung ist Protonen minus Elektronen: 11 − 10 = 1+.“).
+  - **Keine Zeichen, die wie Rechenzeichen wirken**, als Trenner: „11 Protonen, 10 Elektronen“, nie „11 p⁺ · 10 e⁻ → 1+“ (der Punkt liest sich als Malzeichen).
+  - **Keine schiefen Gleichnisse und keine Modell-Maße als Sache**: Ein Modell nicht zum Gegenstand machen („Baue eine neutrale Wand“, „Ca²⁺ ist 2 breit“) –
+    das Bild darf eine Größe darstellen, der Text spricht über die Sache selbst (Ionen, Ladungen, Atome).
+  - **Aufträge als natürliche Aufforderung oder Frage**: ohne Etiketten, die schon über der Folie stehen („Jetzt du:“, „Ergänze:“), ohne „Dann prüfe.“ (der Knopf sagt es)
+    und ohne Bedienungsjargon („Nimm mit „e⁻ aufnehmen“ Elektronen auf, bis …“): „Füge dem Sauerstoff-Atom 2 Elektronen hinzu – dann hat es 8 Außenelektronen.“,
+    „Bringe die Lampe zum Leuchten.“
+  - **Nichts doppelt**: „Ca steht in der II. Hauptgruppe.“ statt „Calcium Ca steht …“ (Name und Formel zusammen nur bei Stoffen, siehe „Stoffe immer mit Name und Formel“).
+  - **Rückmeldungen** als freundliche ganze Sätze: erst der Denkfehler mit den Zahlen der Aufgabe, dann der richtige Weg („Zwei O²⁻ bringen vier negative Ladungen,
+    das Mg²⁺ nur zwei positive. Hier ist zu viel negative Ladung.“). Auch Zustandszeilen im Bild in Worten („noch nicht ausgeglichen: 2 positive, 4 negative Ladungen“).
+  - Beispiele (vorher → nachher):
+
+    | Vorher | Nachher |
+    |---|---|
+    | **Gesamtladung**: (1+) + (1−) = 0. | Die positive Ladung von Na⁺ und die negative Ladung von Cl⁻ gleichen sich aus. |
+    | Ca²⁺ ist 2 breit, Cl⁻ ist nur 1 breit. | Ein Calcium-Ion Ca²⁺ hat zwei positive Ladungen. Ein Chlorid-Ion Cl⁻ hat nur eine negative Ladung. |
+    | Jetzt du: Baue eine neutrale Wand aus Mg²⁺ und O²⁻ – mit möglichst wenigen Bausteinen. | Magnesiumoxid besteht aus Mg²⁺ und O²⁻. Gleiche die Ladungen der Kationen und Anionen aus – mit möglichst wenigen Ionen. |
+    | Stelle einen Zustand ein, in dem die Lampe leuchtet. Dann prüfe. | Bringe die Lampe zum Leuchten. |
+    | Aus S²⁻ und 4 O²⁻ käme: 2− + 4 · (2−) = 10−. | Ein S²⁻ und vier O²⁻ hätten zusammen zehn negative Ladungen. |
+    | Rückmeldung: Magnesium ist noch neutral (12 p⁺ · 12 e⁻ → neutral). | Rückmeldung: Das ist noch das neutrale Magnesium-Atom. Lass es seine Außenelektronen abgeben. |
 - **Ohne Schuld und Beschämung**: „Noch nicht“ statt „Leider falsch“, keine Ranglisten, keine Vergleiche mit anderen. Jede Rückmeldung zu einem Fehler
   nennt den Denkfehler und zeigt den richtigen Weg.
 - **Diagnostische Distraktoren**: jede falsche Antwort steht für eine typische Fehlvorstellung und bekommt eine eigene Rückmeldung mit den Zahlen der Aufgabe.
@@ -117,7 +145,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   nicht die Begabung („Du hast zuerst die Ladung gezählt – genau so.“).
 - **Lösungsbeispiele mit Ausblenden** (vorgemacht → halb → selbst) und **Vorhersagen vor dem Beobachten** (erst vermuten, dann Animation/Modell ansehen, dann erklären).
 - **Wenig fremde Last**: eine Bühne, ein Bereich, keine Erklärsätze in der Oberfläche, Rot nur für das Wesentliche, Inhalte in kleine Abschnitte geteilt.
-- **Drei Ebenen der Chemie**: jede Darstellung verbindet zwei Ebenen – Stoff/Alltag ↔ Teilchen ↔ Symbol (Bohrmodell ↔ Atomsymbol, Ionenwand ↔ Formel,
+- **Drei Ebenen der Chemie**: jede Darstellung verbindet zwei Ebenen – Stoff/Alltag ↔ Teilchen ↔ Symbol (Bohrmodell ↔ Atomsymbol, Ionen-Bausteine ↔ Formel,
   Lewis ↔ 3D, Teilchenbild ↔ Gleichung, Becherglas ↔ Lupe). Nie nur auf der Symbolebene bleiben.
 - **Fehlvorstellungen sind der Inhalt**: typische Schülerfehler (Atom „will“ ein Oktett, Ionen als Moleküle, Elektronen „wandern“ bei der Ionenbindung, gelöster Stoff
   verschwindet …) werden gezielt als falsche Antworten angeboten und in der Rückmeldung beim Namen genannt.
@@ -156,10 +184,14 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Jeder nicht vorgemachte Schritt verlangt eine Handlung: Auswahl (`options`), Zahl (`num`, mit Einheit; Trennzeichen wie in der Sprache – `readNumber` in `@lern/i18n`:
   Deutsch „1.000“ = 1000 und „0,25“, Englisch „1,000“ und „0.25“, Leerzeichen-Gruppen immer; gleiche Regel wie `parseAnswer` in `@lern/units` und `NumberAnswer`;
   `checkGuide` prüft, dass jede übliche Schreibweise der Antwort als richtig gilt) oder ein Ziel im Bild antippen (`visual` ruft `pick(id)`),
-  mit den Bausteinen der App (Bohrmodell, PSE, Ionenwand, Lewis-Formel, Teilchenbild, Pfeilkette, Orbitale in 3D …).
+  mit den Bausteinen der App (Bohrmodell, PSE, Ionen-Bausteine, Lewis-Formel, Teilchenbild, Pfeilkette, Orbitale in 3D …).
   Falsch → Rückmeldung zum Denkfehler (`why`, **jede** falsche Auswahl hat eine), sonst Denkanstoß zum Vorgehen (`tip`, Pflicht bei Zahl und Antippen, nennt die Lösung nicht);
   ab dem 2. Versuch Rückmeldung + Tipp, dazu „Versuch x von 4“; nach 4 Versuchen wird die Lösung markiert (`show`, gestrichelt grün, pulsierend) und muss selbst angetippt werden.
   Richtig → ✓, der Schritt bleibt stehen, die Bestätigung (`ok`) nennt die Regel mit dem Beispiel („Massenzahl = Protonen + Neutronen = 7 + 7 = 14“), nicht nur das Ergebnis.
+- **Zurück** (alle Erklärungen, Lektionen und Kapitel): unter dem Text steht immer eine Leiste (`.ui-guide-foot`) mit „Zurück“ links, den Hilfsmitteln (falls übergeben)
+  und „Nächster Schritt“ bzw. „Weiter“ rechts; schmal (< 480 px) stehen die Hilfsmittel in der ersten Zeile, „Zurück“ und „Weiter“ gemeinsam darunter. „Zurück“ zeigt den
+  vorigen Schritt **gelöst** (ganzer Lösungsweg, Bestätigung, „Weiter“, Modelle im gelösten Zustand) – zum Nachlesen, nicht zum neu Lösen; auf dem ersten Schritt
+  ausgegraut, auf der Seite „Das kannst du jetzt“ zurück zum letzten Schritt. Jeder Knopf hat seinen festen Platz (nichts rückt, wenn „Weiter“ erscheint).
 - Neue Ideen in `say` (ein, zwei kurze Sätze), Auftrag in `ask`. Fachwörter beim ersten Auftreten **fett** (das ist zugleich die Einführung für die Begriffsprüfung).
 - Beschriftung mit Pfeilen (`labels`, Baustein `Callouts`): Begriff am Rand, Pfeil auf ein Teil des Bildes (CSS-Selektor, z. B. `.bohr .nuc`, `.lone.pair`,
   `[data-f="H2O"]`, `[data-el="O"]`, `.ion-tile.cation`, `.ms-box`); ohne `nth` das Teil, das der Seite am nächsten liegt; weicht Schrift im Bild aus (`AVOID`).
@@ -617,13 +649,22 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 
 ## Ionenbindung (`modules/ionenbindung`)
 - **Bereiche: Lernen | Experimentieren** (erprobt die neue Ordnung, nur dieses Modul; kein Eintrag „Erklärung“, kein Quiz). Tab-Kennungen unverändert (`quiz` = Lernen, `build`).
+- **Sprache in „Lernen“** (Muster der Regel „Natürliche Sprache“ unter „Didaktik“; gilt für alle Folien, Merksätze, Rückmeldungen und Beschriftungen der Kapitel): natürliche, ganze Sätze wie im Unterricht
+  statt Stichwortketten mit Doppelpunkt und Pfeil; Ladungen in Worten („Ein Calcium-Ion hat zwei positive Ladungen, zwei Chlorid-Ionen bringen zusammen zwei
+  negative.“, „Die positive Ladung von Na⁺ und die negative Ladung von Cl⁻ gleichen sich aus.“) – keine Rechnungen mit Klammern wie „2 · (1−) = 2−“ oder
+  „(1+) + (1−) = 0“, kein „Gesamtladung“; Protonen und Elektronen ausgeschrieben („11 Protonen“, „10 Elektronen“), nie „11 p⁺ · 10 e⁻“ (der Punkt liest sich
+  als Malzeichen); kein Gleichnis „Wand“ und keine Breiten („Ca²⁺ ist 2 breit“) – die Bausteine im Bild zeigen die Ladung, der Text spricht von Ionen und Ladungen;
+  Aufträge ohne „Jetzt du:“, „Ergänze:“ und „Dann prüfe.“ (das Kennzeichen über der Folie und der Knopf „Prüfen“ sagen das schon), ohne Bedienungsjargon
+  („Füge dem Sauerstoff-Atom 2 Elektronen hinzu – dann hat es 8 Außenelektronen.“, „Bringe die Lampe zum Leuchten.“); Element nicht doppelt („Ca steht in der
+  II. Hauptgruppe.“ statt „Calcium Ca …“). Zustand unter den Ionen-Bausteinen ebenso in Worten (`balanceText` in `components/IonWall.tsx`, auch in der Werkbank):
+  „✓ ausgeglichen: 2 positive und 2 negative Ladungen“ bzw. „noch nicht ausgeglichen: 2 positive, 4 negative Ladungen“.
 - **Lernen** (`src/lernen/`): Kapitel je Stufe als Karten (`LernenView.tsx`: Nummer, Titel, ein Satz, Fortschrittsbalken, „Folie n“ bzw. „✓ fertig“). Level I = Kapitel 1–3,
   Level II = Kapitel 4–5 („baut auf Kapitel 1–3 auf“). Ein Kapitel = **25 Folien** in 4 Abschnitten (`part`, je höchstens 8) als `GuideDef`, gezeigt mit `Guide`
   (Vollbild, Kennzeichen „Kapitel n“, öffnet an der zuletzt gezeigten Folie, am Ende „Kapitel n+1“). Erklärung und Aufgaben in einem Fluss: jeder Abschnitt
   vorgemacht → halb gelöst → selbst (alle Regeln der Erklärung, `checkGuide`).
   Hilfsmittel jeder Folie (Leiste mit „Weiter“): **PSE** (Elemente der Folie markiert), **Tipp** (`tip` der Folie, kostet nichts, verrät nie die Lösung),
   **Erklärung** (Merksätze des Abschnitts, `explain` am Kapitel). Fortschritt in localStorage `ionenbindung-lernen` (`progress.ts`: Folie, weiteste Folie, fertig; `progressKey`).
-- **Modell-Folien** (`model.tsx`, mindestens 13 von 25, Test `kapitel.test.ts`): Schüler verändern das Modell (Bohrmodell, Ionenwand, Formel- und Namens-Baukasten, Gitter,
+- **Modell-Folien** (`model.tsx`, mindestens 13 von 25, Test `kapitel.test.ts`): Schüler verändern das Modell (Bohrmodell, Ionen-Bausteine, Formel- und Namens-Baukasten, Gitter,
   Kästchenschema …), die Änderung ist **sofort** zu sehen; „Prüfen“ meldet das gebaute Ergebnis als Text (`c.pick`), die Folie vergleicht mit `answer` und gibt zu typischen
   Fehl-Ergebnissen eine eigene Rückmeldung (`why`). Nach vier Fehlversuchen steht die Lösung im Modell (`useModel`, Hinweis „Die Lösung steht jetzt im Modell …“), der Schüler
   prüft selbst; gelöste und vorgemachte Modelle sind gesperrt. `ModelFrame` = Modell, Bedienung, „Prüfen“.
@@ -637,10 +678,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Merksatz: „Im Schalenmodell hat jede Schale eine feste Größe. Die echte Größe der Ionen zeigt es nicht: Ca²⁺ ist kleiner als F⁻“; alle Elektronen sehen gleich aus – die Aufnahme zeigen Text und Zahl, z. B. „Cl⁻ hat 1 Elektron mehr als
   Protonen: 18 e⁻ statt 17“; keine Hinterlegung hinter dem Atom; Bild in fester Zelle, Beschriftung `Caption` mit reserviertem Platz – kein Atom wandert; Schalen als Zeilen
   „1. Schale: 2 Elektronen“; leere Plätze beim Ion bauen nur bei Nichtmetallen). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel (Wasserstoff, Bor, IV. Hauptgruppe
-  und Edelgase bilden in diesem Modell keine einfachen Ionen), Elektronenübergang mit „e⁻ übertragen“, einstellbarer Zahl der Atome und immer sichtbarer Gesamtladung;
+  und Edelgase bilden in diesem Modell keine einfachen Ionen), Elektronenübergang mit „e⁻ übertragen“ und einstellbarer Zahl der Atome (Beschriftung nur Symbol mit Ladung
+  und „✓ wie Ne“, keine Zeile „übergegangen“ und keine Ladungssumme); vorgemacht Na + Cl als kurzer Ablauf (`Transfer play`): erst die Atome, dann fliegt das
+  Außenelektron des Na-Atoms im Bogen auf den freien Platz des Cl-Atoms, die leere Schale des Na⁺ blendet aus, „Nochmal abspielen“ (reduzierte Bewegung: gleich das Endbild);
   Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
-- Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionenwand mit Zählern) · **Die Formel** (Verhältnisformel, Index, kleinstes
-  Verhältnis; Formel-Baukasten mit Index-Zählern, Reihenfolge-Tausch, Ionenwand darunter) · **Der Name** (Metall + Wortstamm + -id; Oxid, Sulfid, Nitrid; Namens-Baukasten aus
+- Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionen-Bausteine mit Zählern; im Text „Gleiche die Ladungen von Na⁺ und O²⁻ aus“, nie „Wand“) · **Die Formel** (Verhältnisformel, Index, kleinstes
+  Verhältnis; Formel-Baukasten mit Index-Zählern, Reihenfolge-Tausch, Ionen-Bausteine darunter) · **Der Name** (Metall + Wortstamm + -id; Oxid, Sulfid, Nitrid; Namens-Baukasten aus
   Wortteilen in gemischter, nie lösungsgleicher Reihenfolge, alle gleich gefärbt; Fallen: Elementname statt Stamm, fehlende Endung, Zahlwort, Reihenfolge – kein „-it“, das
   kommt erst mit den mehratomigen Ionen; bei Ionenverbindungen lässt man die Anzahl im Namen weg) · **Formel und Name** (Ionenwahl: anfangs keine Ladung gewählt, Ausgleich
   und ✓ nur für Ionen, die es gibt; beide Richtungen). Nur ionische Beispiele (AlF₃ statt AlCl₃). Test `k2/models.test.ts`.
@@ -660,8 +703,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   ganzen Platz stehen gleiche Ladungen gegenüber → Abstoßung, die Schichten gehen auseinander; im Makrobild bricht der Kristall entlang der glatten Ebene, die oberen Stücke
   fliegen im Bogen weg (würfelige Bruchstücke, keine Splitter); vorgemacht als Ablauf mit „Nochmal abspielen“, KBr frei mit 0 – ¼ – ½ – ¾ – 1 Platz; Hammer-Frage mit Kristallbild) · **Strom leiten** (elektrischer Strom = gerichtete Bewegung geladener Teilchen; `Conduct`: Becherglas mit Batterie, Schalter, Lampe – fest
   Salzkörner, Schmelze 801 °C, Lösung „in Wasser H₂O“ – und eine Lupe „Ausschnitt“ aus der Mitte (neben oder unter dem Glas, Hinweislinien): fest schwingen die Ionen nur, in
-  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich deutlich sichtbar waagrecht aneinander vorbei (`lensDrive`, FLOW 3,4: Ziel Schmelze 1,56 · LU/s, Lösung 1,02 · LU/s;
-  senkrechte Wärmebewegung gedämpft `calm` 0,3 bei Strom, 0,8 ohne; Lösung mit `mix`, damit keine Reihen gleicher Ladung entstehen)
+  Schmelze und Lösung bewegen sie sich ungeordnet und wandern bei geschlossenem Schalter zusätzlich deutlich sichtbar waagrecht aneinander vorbei (`lensDrive`, FLOW 3,4: Ziel Schmelze 1,56 · LU/s, Lösung 2,31 · LU/s;
+  senkrechte Wärmebewegung gedämpft `calm` 0,3 bei Strom, 0,8 ohne; Lösung mit `mix`, damit keine Reihen gleicher Ladung entstehen). In der Lösung schwirren zwischen den
+  12 Ionen 17 Wassermoleküle (`solutionSites`, q = 0, gewinkelt 104,5° wie `WaterShape`, O rot, H hell, langsam taumelnd; Größe im Verhältnis zu Cl⁻ wie in Wirklichkeit):
+  ungeordnete Bewegung in alle Richtungen (`swirl`), keine Anziehung, kurz vor der Berührung weich zurückgedrängt, beim Zusammenstoß weichen sie den Ionen aus –
+  die Ionen gleiten hindurch und wandern im Mittel **genauso schnell wie in der Schmelze** (gemessen, Test: Verhältnis 0,8–1,25), das Wasser wandert nicht mit;
+  Legende mit dritter Zeile „Wasser H₂O“ (Platz immer frei)
   – Kationen zum Minuspol, Anionen zum Pluspol, gemischt; der
   Ausschnitt ist größer als die Lupe, was hinausgleitet, kommt außerhalb des Sichtbaren wieder herein; Pole am Lupenrand, Legende „Na⁺ ← zum Minuspol“; was an den Elektroden
   passiert, bleibt offen („lernst du später“) – nie getrennte Ladungsblöcke, nie Ein-/Ausblenden mitten im Bild; Test `k3/sim.test.ts`). Ionen als Kugeln im Verhältnis der Ionenradien (Na⁺ 102, Cl⁻ 181, K⁺ 138, Br⁻ 196,
@@ -672,15 +719,15 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   Ladung oben rechts – als Modell gekennzeichnet, das echte Ion ist räumlich; Zähler für Atome und Ladung, Formel sofort; nicht aus einzelnen Ionen
   zusammengesetzt – SO₄²⁻ wäre so 10− statt 2−) · **Namen: -at, -it, Hydrogen-** (O-Zahl ändern →
   Name und Ladung sofort; H⁺ dazu → Hydrogen-, Ladung eins weniger negativ; Hydroxid, Ammonium) · **Formeln mit Klammern** („Formel schreiben“: Klammer an/aus und Index,
-  Atome laut Formel und laut Ionenwand im Vergleich – CaOH₂ = 1 O, NH₄₂ = 42 H) · **Name ↔ Formel** (Ionenwahl, Namens-Baukasten). Nur beständige Verbindungen (Test `k4/k4.test.ts`).
+  Atome laut Formel und laut Ionen-Bausteinen im Vergleich – CaOH₂ = 1 O, NH₄₂ = 42 H) · **Name ↔ Formel** (Ionenwahl, Namens-Baukasten). Nur beständige Verbindungen (Test `k4/k4.test.ts`).
 - Kapitel 5 **Nebengruppenmetalle** (Level II, `k5.tsx`, `k5/models.tsx`) – **ohne Elektronenkonfiguration** (kein Kästchenschema, kein 4s/3d) und **ohne Auswendigwissen**
   (kein Silber/Zink, keine Aussagen „dieses Ion gibt es nicht“): **Ein Metall – mehrere Ionen** (zwei Stoffe aus denselben Elementen als Stoffproben: FeO schwarz/Fe₂O₃
   rotbraun, Cu₂O rot/CuO schwarz; Brücke zu Kapitel 1 mit Spaltenleiste `GroupStrip` (Blöcke 1 | 2 | 3–12 | 13 | 14 | 15–18 über I | II | Nebengruppen | III | IV | V–VIII, Schrift ≥ 14 px): im großen PSE Gruppe 1, 2 = I., II. Hauptgruppe, Gruppe 13–18 = III.–VIII. Hauptgruppe,
   dazwischen Gruppen 3–12 = Nebengruppen; Regel: Metalle der I. bis III. Hauptgruppe → Ladung aus der Hauptgruppe, alle anderen – Nebengruppenmetalle und Blei, IV. Hauptgruppe,
   PbO gelb/PbO₂ dunkelbraun – römische Zahl im Namen; Metalle wählen mit großen Knöpfen unter dem neutral gefärbten PSE, `PseMetals`) · **Vom Namen zur Formel** ·
-  **Von der Formel zum Namen** · **Alles zusammen** (mehratomige Ionen). Ionenwand mit Ladungswahl (`WallModel`): vor dem Lösen nur „ausgeglichen“/„≠“ in neutraler Farbe,
-  ✓-Rechnung und Name erst danach; in freien Folien stellen die Schüler die Anzahlen laut Formel selbst ein (die 2 in Cu₂ ist die Anzahl); Rückmeldungen nur über
-  Ladungsbilanz und Namen (`wallWhy`, `pseWhy`). Nur Fe, Cu, Pb(II) aus `ions.ts`, nur beständige Stoffe; Gruppe 13 immer mit „= III. Hauptgruppe“ (Test `k5/k5.test.ts`).
+  **Von der Formel zum Namen** · **Alles zusammen** (mehratomige Ionen). Ionen-Bausteine mit Ladungswahl (`WallModel`): vor dem Lösen nur „ausgeglichen“/„noch nicht ausgeglichen“ in neutraler Farbe,
+  ✓ („✓ ausgeglichen: …“, in Worten) und Name erst danach; in freien Folien stellen die Schüler die Anzahlen laut Formel selbst ein (die 2 in Cu₂ ist die Anzahl); Rückmeldungen nur über
+  Ladungsbilanz in Worten („Ein Fe³⁺ bringt drei positive Ladungen, ein O²⁻ nur zwei negative.“) und Namen (`wallWhy`, `pseWhy`). Nur Fe, Cu, Pb(II) aus `ions.ts`, nur beständige Stoffe; Gruppe 13 immer mit „= III. Hauptgruppe“ (Test `k5/k5.test.ts`).
 - **Experimentieren** (Werkbank, unverändert): Ionen-Bausteine Kationen gold, Anionen grün, Breite = Ladung; neutral, wenn beide Reihen gleich lang sind. Startet gelöst
   (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu: 1. Schale 2, 2. Schale 8, 3. Schale 18, 4. Schale 1 Elektron → Cu⁺ ohne 4. Schale; Tabelle mit einer Zeile je Schale); Kennzeichen „n Außenelektronen“
   nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“;
@@ -689,8 +736,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   (römische Zahlen) und mehratomige Ionen (NH₄⁺, OH⁻, NO₂⁻, NO₃⁻, HCO₃⁻, SO₃²⁻, SO₄²⁻, CO₃²⁻, PO₄³⁻). Nicht beständige Verbindungen (FeI₃, CuI₂, Fe₂S₃, Al₂(CO₃)₃, AgOH, Na₃N, K₃N,
   Cu⁺-Salze mit Sulfat/Sulfit/Nitrit/Hydrogencarbonat, Nitrite und Sulfite von Al³⁺/Fe³⁺/Cu²⁺ …) stehen in `NOT_KNOWN` (`isKnownCompound`): Kapitel fragen sie nicht ab, der Baukasten zeigt einen Hinweis.
 - Fachsprache: Elektronenübergang als **Modell der Ionenbildung**, die **Ionenbindung** ist die Anziehung der entgegengesetzt geladenen Ionen im **Ionengitter**; beschreibend
-  (nie „Atome möchten 8 außen“, nie „Ca²⁺ braucht …“, sondern „gleicht aus“ bzw. „man braucht“). Endung **-id**: meist einatomig (Ausnahme Hydroxid OH⁻). Ladungsrechnung immer
-  mit Zahl: `2 · (1−) = 2−` (`chargeFull`). Ohne „kgV“ (nicht eingeführt).
+  (nie „Atome möchten 8 außen“, nie „Ca²⁺ braucht …“, sondern „gleicht aus“ bzw. „man braucht“). Endung **-id**: meist einatomig (Ausnahme Hydroxid OH⁻). Ionennamen
+  ausgeschrieben, wo sie eingeführt sind („Chlorid-Ion“, „Oxid-Ion“). Ladungsausgleich in Worten (siehe „Sprache in Lernen“), nicht als Rechnung mit Klammern. Ohne „kgV“ (nicht eingeführt).
 
 ## Elektronenpaarbindung (`modules/elektronenpaarbindung`)
 - Baufeld 6 × 5: Atome ziehen oder antippen und Felder antippen (Auswahl bleibt aktiv bis „Fertig“). Aus dem Feld ziehen = entfernen.
@@ -1191,6 +1238,14 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung „Lernen“: natürliche Sprache, Animation Na + Cl, Lösung mit Wassermolekülen; Zurück in allen Erklärungen** (Ionenbindung, `@lern/ui` `Guide`) –
+  Die Texte aller fünf Kapitel lasen sich wie Stichwortlisten („Gesamtladung: (1+) + (1−) = 0“, „Ca²⁺ ist 2 breit“, „Baue eine neutrale Wand“, „Dann prüfe.“,
+  „11 p⁺ · 10 e⁻ → 1+“ – der Punkt wirkt wie ein Malzeichen). Jetzt in ganzen Sätzen, Ladungen in Worten, ohne das Gleichnis „Wand“ und ohne Klammer-Rechnungen
+  (Folien, Merksätze, Rückmeldungen, Beschriftungen, englische Fassung). Neue verbindliche Regel „Natürliche Sprache“ für alle Module (Didaktik, mit Beispielen). Elektronenübergang ohne die Zeilen „übergegangen“ und
+  „Gesamtladung“; vorgemacht Na + Cl als kurzer Ablauf (Elektron fliegt zum Chlor-Atom). In der Lupe „Strom leiten“ wanderten die Ionen in der Lösung nur etwa halb
+  so schnell wie in der Schmelze: jetzt gleich schnell (gemessen), dazwischen schwirren Wassermoleküle (Test `k3/sim.test.ts`). Beschriftung „Wasser H₂O“ im Becherglas
+  berührt keine Elektrode mehr. `Guide`: Knopf „Zurück“ in allen Erklärungen, Lektionen und Kapiteln (zeigt den vorigen Schritt gelöst); die Seite „Das kannst du jetzt“
+  übernahm die feste Bildhöhe der letzten Folie (gleicher DOM-Knoten) und zeigte große Lücken – jetzt eigene Schlüssel.
 - **Polymere: Ziegler-Natta ohne „polare Monomere“** – nach der Umstellung auf Allred-Rochow ist C–Cl (ΔEN 0,33) nicht polar, Vinylchlorid wäre nach der Regel nur schwach
   polar. Die Vergiftung des Katalysators wird deshalb überall über die Ursache begründet: „Monomere mit O, N, Cl oder F binden mit einem freien Elektronenpaar an das Titan“
   (Lektion, Merkkarte, Stolpersteine DE/EN).

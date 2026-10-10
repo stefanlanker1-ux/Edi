@@ -20,7 +20,7 @@
 @keyframes k1-pop { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .k1-e.got .k1-e-c { animation: none; } }
 
-/* Beschriftung: Symbol mit Ladung, p⁺ · e⁻ → Ladung, Schalen als Zeilen („1. Schale: 2 Elektronen“).
+/* Beschriftung: Symbol mit Ladung, Protonen und Elektronen in je einer Zeile, Schalen als Zeilen („1. Schale: 2 Elektronen“).
    Feste Größe: Zeilen für die Schalen sind reserviert (--sh-rows), „✓ wie Ne“ steht in einer eigenen Spalte neben dem Symbol. */
 .k1-cap { display: grid; justify-items: center; align-content: start; gap: 0; line-height: 1.25; text-align: center; font-variant-numeric: tabular-nums; min-width: 0; }
 .k1-symrow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; column-gap: 6px; width: 100%; }
@@ -29,6 +29,7 @@
 .k1-like { justify-self: start; display: inline-flex; align-items: center; gap: 3px; font-size: .875rem; font-weight: 650; color: var(--ok); white-space: nowrap; }
 .k1-pe { font-size: .875rem; color: var(--text); white-space: nowrap; }
 .k1-cap.big .k1-pe { font-size: .95rem; }
+.k1-counts { display: grid; justify-items: center; }
 .k1-p { color: var(--hue-red-deep); font-weight: 750; }
 .k1-el { color: var(--hue-blue-deep); font-weight: 750; }
 .k1-sh { display: grid; align-content: start; justify-items: center; font-size: .875rem; line-height: 1.3; color: var(--muted); white-space: nowrap; }
@@ -60,7 +61,7 @@
 .k1-arrow { flex: none; font-weight: 750; font-size: .875rem; color: var(--hue-blue-deep); text-align: center; white-space: nowrap; }
 
 /* Elektronenübergang: Metall-Atome links, Nichtmetall-Atome rechts */
-.k1-tr { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 2px 4px; width: 100%; height: 100%; min-height: 0; }
+.k1-tr { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 2px 4px; width: 100%; height: 100%; min-height: 0; }
 .k1-tr-col { display: flex; flex-direction: column; justify-content: center; min-height: 0; }
 /* gleicher Maßstab in beiden Spalten: jedes Teilchen bekommt den Anteil der längeren Spalte */
 .k1-tr-col .k1-fig { min-height: 0; flex: 0 0 auto; height: calc(100% / var(--rows, 1)); }
@@ -73,14 +74,17 @@
 .k1-tr-arrow { font-size: 1.3rem; }
 @keyframes k1-fly { 0% { opacity: 0; transform: translateX(-24px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateX(24px); } }
 @media (prefers-reduced-motion: reduce) { .k1-tr-e.go { animation: none; } }
-/* Summe immer in zwei Zeilen (gleich hoch, egal wie lang die Rechnung wird – die Atome darüber bleiben stehen) */
-.k1-tr-sum { grid-column: 1 / -1; margin: 0; display: grid; justify-items: center; gap: 2px; font-size: .875rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Ablauf des Elektronenübergangs (vorgemacht): das Außenelektron fliegt im Bogen zum freien Platz, die leere Schale des Kations blendet aus */
+.k1-tr { position: relative; }
+.k1-fly { position: absolute; z-index: 2; box-sizing: border-box; border-radius: 50%; background: var(--electron); border: .5px solid rgba(0, 0, 0, .15); pointer-events: none; }
+.k1-ring.ghost.fade { animation: k1-fade .7s ease .2s both; }
+@keyframes k1-fade { to { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .k1-ring.ghost.fade { animation: none; opacity: 0; } }
 .k1-dim { color: var(--faint); }
 
-/* niedriges Bild (vorgemacht mit viel Text, kleines Handy): Zeile p⁺ · e⁻ weglassen – sie steht im Lösungsweg; die Teilchen bleiben groß genug */
+/* niedriges Bild (vorgemacht mit viel Text, kleines Handy): Protonen und Elektronen weglassen – sie stehen im Lösungsweg; die Teilchen bleiben groß genug */
 @container (max-height: 300px) {
   .k1-tr-col .k1-pe, .k1-tr-col .k1-sh, .k1-row .k1-pe, .k1-row .k1-title { display: none; }
-  .k1-tr-sum span:first-child { display: none; }
 }
 
 /* Bedienung */

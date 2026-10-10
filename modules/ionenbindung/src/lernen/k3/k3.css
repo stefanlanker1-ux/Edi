@@ -103,6 +103,9 @@
 .k3-lens-bg { fill: var(--surface, var(--bg)); stroke: none; }
 .k3-halo { paint-order: stroke; stroke: var(--surface, var(--bg)); stroke-width: 5px; stroke-linejoin: round; }
 .k3-lens-bg.water { fill: var(--hue-blue-soft); }
+/* Wassermoleküle in der Lösung: O rot, H hell, dünn umrandet – ruhiger als die Ionen, damit diese im Vordergrund bleiben */
+.k3-water .k3-wO { fill: var(--hue-red-soft); stroke: var(--hue-red); stroke-width: 1.2; }
+.k3-water .k3-wH { fill: var(--surface, var(--bg)); stroke: var(--muted); stroke-width: 1.2; }
 .k3-lpole { text-anchor: middle; font-family: var(--font); font-weight: 800; font-size: 22px; fill: var(--text); }
 .k3-ltext { font-family: var(--font); font-weight: 650; font-size: 17px; fill: var(--text); font-feature-settings: "cv05", "cv08"; }
 .k3-legend .k3-ion circle { stroke-width: 1.5; }

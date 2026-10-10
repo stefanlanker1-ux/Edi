@@ -1,6 +1,7 @@
 // Kapitel 3, Teil 3–4: Temperatur-Schieber (Ionen schwingen stärker, ab der Schmelztemperatur verlassen sie ihre Plätze und bewegen sich
 // ungeordnet weiter), Leitfähigkeit (Becherglas mit Stromkreis und Lupe:
-// fest schwingen die Ionen nur, in Schmelze und Lösung wandern sie bei geschlossenem Schalter waagrecht zu ihrem Pol).
+// fest schwingen die Ionen nur, in Schmelze und Lösung wandern sie bei geschlossenem Schalter waagrecht zu ihrem Pol – in der Lösung
+// gleich schnell wie in der Schmelze, zwischen ungeordnet schwirrenden Wassermolekülen hindurch).
 // Bewegung: kleine Teilchensimulation (sim.ts) im Takt des Bildschirms. Reduzierte Bewegung: ruhige Endbilder
 // (fest: Gitter mit gestricheltem Schwingungsring; beweglich: ungeordnete Momentaufnahme).
 
@@ -9,9 +10,26 @@ import { Button, Segmented, Tag, useReducedMotion, type GuideCtx } from "@lern/u
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
 import { Arrow, CL, MG, NA, O, ionText, rad, type Ion } from "./draw.tsx";
-import { advance, bondAlpha, grid, heatDrive, lensDrive, makeWorld, warm, type Drive, type Site, type World } from "./sim.ts";
+import { advance, bondAlpha, grid, heatDrive, lensDrive, makeWorld, solutionSites, warm, type Drive, type Site, type World } from "./sim.ts";
 
-/** Ionen einer Simulation: Kugeln (Kation gold, Anion grün), im Gefäß dazu Linien zu nahen Gegen-Ionen (Anziehung, weich ein- und ausgeblendet).
+/** Lage im Bild; Wassermoleküle drehen sich dabei langsam (jedes mit eigenem Tempo) */
+const place = (p: World["b"][number], t: number) => p.q
+  ? `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`
+  : `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) rotate(${(((p.p[0] + (p.w[0] - 10) * 0.3 * t) * 180) / Math.PI % 360).toFixed(1)})`;
+
+/** Wassermolekül H₂O im Radius r: O-Atom mit zwei H-Atomen im Winkel von 104,5° (nie linear) */
+export function WaterShape({ r }: { r: number }) {
+  const rO = 0.62 * r, rH = 0.4 * r, d = r - rH, a = (104.5 / 2) * (Math.PI / 180);
+  return (
+    <>
+      <circle className="k3-wH" cx={-d * Math.sin(a)} cy={d * Math.cos(a) - 0.25 * r} r={rH} />
+      <circle className="k3-wH" cx={d * Math.sin(a)} cy={d * Math.cos(a) - 0.25 * r} r={rH} />
+      <circle className="k3-wO" cy={-0.25 * r} r={rO} />
+    </>
+  );
+}
+
+/** Ionen einer Simulation: Kugeln (Kation gold, Anion grün), in der Lösung dazu Wassermoleküle, im Gefäß dazu Linien zu nahen Gegen-Ionen (Anziehung, weich ein- und ausgeblendet).
  *  Bewegt wird ohne React-Neuzeichnen: jedes Bild schreibt nur die Lage der Kugeln und Linien. */
 function SimIons({ w, drive, still, ion, bonds, sign }: {
   w: World; drive: Drive; still: boolean; ion: (q: number) => Ion; bonds?: boolean; sign?: boolean;
@@ -32,7 +50,7 @@ function SimIons({ w, drive, still, ion, bonds, sign }: {
     const frame = (now: number) => {
       advance(w, drv.current, (now - last) / 1000);
       last = now;
-      w.b.forEach((p, k) => balls.current[k]?.setAttribute("transform", `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`));
+      w.b.forEach((p, k) => balls.current[k]?.setAttribute("transform", place(p, w.t)));
       pairs.forEach(([i, j], k) => {
         const el = lines.current[k], A = w.b[i], B = w.b[j];
         if (!el) return;
@@ -55,10 +73,13 @@ function SimIons({ w, drive, still, ion, bonds, sign }: {
           opacity={bondAlpha(Math.hypot(B.x - A.x, B.y - A.y), w.u).toFixed(2)} />;
       })}</g>}
       {w.b.map((p, k) => {
+        if (!p.q) return (
+          <g key={k} ref={el => { balls.current[k] = el; }} className="k3-water" transform={place(p, w.t)}><WaterShape r={p.r} /></g>
+        );
         const i = ion(p.q), t = sign ? (p.q > 0 ? "+" : "−") : ionText(i);
         const fs = sign ? p.r * 1.3 : Math.min(18, p.r * (t.length > 3 ? 0.78 : 0.95));
         return (
-          <g key={k} ref={el => { balls.current[k] = el; }} className={`k3-ion ${p.q > 0 ? "cat" : "an"}`} transform={`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`}>
+          <g key={k} ref={el => { balls.current[k] = el; }} className={`k3-ion ${p.q > 0 ? "cat" : "an"}`} transform={place(p, w.t)}>
             <circle r={p.r} />
             <text dy={sign ? ".34em" : ".36em"} style={{ fontSize: fs }}>{t}</text>
           </g>
@@ -160,7 +181,8 @@ const SURF = 132, FLOOR = 256;       // Oberfläche der Flüssigkeit, Boden
 const SPOT = { x: (EL + ER) / 2, y: 222, r: 11 }; // Ausschnitt in der Mitte zwischen den Elektroden
 const LR = 96;                       // Radius der Lupe
 const LU = 40, LHALF = 3 * LU;       // Gitterabstand und halbe Breite des Ausschnitts (größer als die Lupe: was hinausgleitet, kommt außerhalb des Sichtbaren wieder herein)
-const LENS_X = 124, LENS_TOP = 122, LENS_BOTTOM = 150; // Platz der Lupe samt Polen, Überschrift und Legende um ihre Mitte
+const LENS_X = 124, LENS_TOP = 122, LENS_BOTTOM = 176; // Platz der Lupe samt Polen, Überschrift und Legende (drei Zeilen, auch wenn nur zwei zu sehen sind) um ihre Mitte
+const RW = 13.5;                     // Wassermolekül im Ausschnitt (Radius)
 
 /** Breite oder hohe Anordnung – je nachdem, was die Zeichnung größer zeigt */
 function useWide(): [RefObject<HTMLDivElement | null>, boolean] {
@@ -208,7 +230,7 @@ const GRAINS = (() => {
 function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusLeft: boolean; still: boolean }) {
   const clip = `k3l${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const rA = 17.5, rC = rad(NA, CL, rA);
-  const radius = (q: number) => (q > 0 ? rC : rA);
+  const radius = (q: number) => (q > 0 ? rC : q < 0 ? rA : RW);
   const box: World["box"] = [-LHALF, -LHALF, LHALF, LHALF];
   // fest: Gitter, das den Ausschnitt lückenlos fortsetzt (6 × 6 Plätze)
   const sites = useMemo(() => grid(6, 6, LU, -LHALF + LU / 2, -LHALF + LU / 2), []);
@@ -218,11 +240,8 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
     const keep = (l: Site[]) => l.filter((_, i) => i % 9 !== 4 && i % 9 !== 8);
     return [...keep(c), ...keep(a)];
   }, [sites]);
-  // gelöst: wenige Ionen weit auseinander (dazwischen Wasser)
-  const loose = useMemo<Site[]>(() => Array.from({ length: 12 }, (_, k) => {
-    const i = k % 4, j = Math.floor(k / 4);
-    return { x: -LHALF + 30 + i * 60 + (j % 2) * 26, y: -LHALF + 40 + j * 80, q: (i + j) % 2 === 0 ? 1 : -1 };
-  }), []);
+  // gelöst: wenige Ionen weit auseinander, dazwischen Wassermoleküle (Größe im Verhältnis zu Cl⁻ wie in Wirklichkeit, etwa 280 pm zu 362 pm)
+  const loose = useMemo<Site[]>(() => solutionSites(LU, LHALF, RW, radius), []);
   // Strom: Kationen wandern zum Minuspol, Anionen zum Pluspol – deutlich sichtbar, gemischt, senkrecht ruhig (`lensDrive` in sim.ts)
   const dir = flow ? (minusLeft ? -1 : 1) : 0;
   const loosen = (list: Site[], seed: number, k: Zustand) => { const w = makeWorld(list, radius, LU, box, true, seed); w.m = 1; w.free = true; return warm(w, lensDrive(k, 0, LU), 4); };
@@ -236,7 +255,7 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
   const water = z === "loesung";
   const drive = lensDrive(z, dir, LU);
   const ion = (q: number) => (q > 0 ? NA : CL);
-  const rowY = [LR + 30, LR + 56];
+  const rowY = [LR + 30, LR + 56, LR + 82];
   return (
     <g className="k3-lensg">
       <clipPath id={clip}><circle r={LR - 1.5} /></clipPath>
@@ -265,12 +284,17 @@ function Lens({ z, flow, minusLeft, still }: { z: Zustand; flow: boolean; minusL
           </g>
         );
       })}
+      {/* dritte Zeile: Wassermolekül (Platz immer frei – das Bild hat in allen Zuständen dieselbe Größe) */}
+      <g className="k3-legend" visibility={water ? undefined : "hidden"}>
+        <g className="k3-water" transform={`translate(-96 ${rowY[2] - 5}) rotate(0)`}><WaterShape r={9} /></g>
+        <text className="k3-ltext" x={-82} y={rowY[2]}>{tr("Wasser H₂O", "water H₂O")}</text>
+      </g>
     </g>
   );
 }
 
 /** Leitfähigkeit: Becherglas mit zwei Elektroden, Batterie, Schalter, Lampe; die Lupe zeigt die Ionen. Beweglich (Schmelze, Lösung) + Schalter zu →
- *  Kationen wandern langsam zum Minuspol, Anionen zum Pluspol, die Lampe leuchtet. Was an den Elektroden passiert, bleibt offen (später). */
+ *  Kationen wandern zum Minuspol, Anionen zum Pluspol, die Lampe leuchtet. Was an den Elektroden passiert, bleibt offen (später). */
 export function Conduct({ c, start, sol, states = ["fest", "schmelze", "loesung"], switchable = false, poles = false, result, demo }: {
   c: GuideCtx; start: Leit; sol: Leit; states?: Zustand[]; switchable?: boolean; poles?: boolean; demo?: boolean;
   /** Ergebnis des gebauten Zustands (Text für „Prüfen“) */
@@ -293,9 +317,10 @@ export function Conduct({ c, start, sol, states = ["fest", "schmelze", "loesung"
     ? <line key={x} className="k3-batt thick" x1={x} y1={wireY - 7} x2={x} y2={wireY + 7} />
     : <line key={x} className="k3-batt" x1={x} y1={wireY - 15} x2={x} y2={wireY + 15} />;
   const drift = flow
-    ? tr(` Im Ausschnitt wandern die Na⁺ langsam nach ${s.minusLeft ? "links" : "rechts"} zum Minuspol, die Cl⁻ nach ${s.minusLeft ? "rechts" : "links"} zum Pluspol.`,
-      ` In the close-up, Na⁺ slowly moves ${s.minusLeft ? "left" : "right"} to the negative pole, Cl⁻ ${s.minusLeft ? "right" : "left"} to the positive pole.`)
-    : mobile ? tr(" Im Ausschnitt bewegen sich die Ionen ungeordnet.", " In the close-up, the ions move about randomly.")
+    ? tr(` Im Ausschnitt wandern die Na⁺ nach ${s.minusLeft ? "links" : "rechts"} zum Minuspol, die Cl⁻ nach ${s.minusLeft ? "rechts" : "links"} zum Pluspol.`,
+      ` In the close-up, Na⁺ moves ${s.minusLeft ? "left" : "right"} to the negative pole, Cl⁻ ${s.minusLeft ? "right" : "left"} to the positive pole.`)
+      + (s.z === "loesung" ? tr(" Dazwischen bewegen sich Wassermoleküle ungeordnet.", " Water molecules move about randomly in between.") : "")
+    : mobile ? tr(` Im Ausschnitt bewegen sich die Ionen ungeordnet${s.z === "loesung" ? ", dazwischen Wassermoleküle" : ""}.`, ` In the close-up, the ions move about randomly${s.z === "loesung" ? ", with water molecules in between" : ""}.`)
       : tr(" Im Ausschnitt schwingen die Ionen nur um ihre Plätze.", " In the close-up, the ions only vibrate around their places.");
   return (
     <ModelFrame c={c} className="k3-m"
@@ -322,7 +347,8 @@ export function Conduct({ c, start, sol, states = ["fest", "schmelze", "loesung"
               {[EL, ER].map(x => <rect key={x} className="k3-electrode" x={x - 5} y={92} width={10} height={152} />)}
               <text className="k3-pole" x={minusX + (minusX === EL ? -16 : 16)} y={88}>−</text>
               <text className="k3-pole" x={plusX + (plusX === EL ? -16 : 16)} y={88}>+</text>
-              <text className="k3-note" x={SPOT.x} y={118}>{s.z === "schmelze" ? "801 °C" : s.z === "loesung" ? tr("in Wasser H₂O", "in water H₂O") : ""}</text>
+              {/* Beschriftung zwischen den Elektroden (kurz genug, dass sie keine Elektrode berührt) */}
+              <text className="k3-note" x={SPOT.x} y={118}>{s.z === "schmelze" ? "801 °C" : s.z === "loesung" ? tr("Wasser H₂O", "water H₂O") : ""}</text>
               <circle className="k3-spot" cx={SPOT.x} cy={SPOT.y} r={SPOT.r} />
             </g>
             {/* Hinweislinien vom Ausschnitt im Glas zur Lupe */}

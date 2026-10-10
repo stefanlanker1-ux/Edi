@@ -1,4 +1,4 @@
-// Kapitel 4 – Modelle: mehratomiges Ion aus Atomkugeln (Anzahl und Ladung einstellen), Namensbaukasten, Ionenwand mit Klammern,
+// Kapitel 4 – Modelle: mehratomiges Ion aus Atomkugeln (Anzahl und Ladung einstellen), Namensbaukasten, Ionen-Bausteine mit Formel in Klammern,
 // Formel schreiben (Klammer und Zahl) mit Atomzählung, Ionen wählen. Jede Eingabe ändert das Modell sofort; „Prüfen“ meldet das Gebaute.
 
 import type { ReactNode } from "react";
@@ -69,7 +69,8 @@ function layout(center: string, lig: string, n: number, extra: number): Ball[] {
 export function IonBlock({ center, lig, n, extra = 0, q, hideCharge = false }: { center: string; lig: string; n: number; extra?: number; q: number; hideCharge?: boolean }) {
   const balls = layout(center, lig, n, extra);
   const S = 80; // fester Rahmen: das Bild springt nicht, wenn sich die Anzahl ändert
-  const label = tr(`${balls.length} Atome, Ladung ${q ? signed(q) : "keine"}`, `${balls.length} atoms, charge ${q ? signed(q) : "none"}`);
+  const n1 = balls.length === 1;
+  const label = tr(`${balls.length} ${n1 ? "Atom" : "Atome"}, ${q ? `Ladung ${signed(q)}` : "ohne Ladung"}`, `${balls.length} ${n1 ? "atom" : "atoms"}, ${q ? `charge ${signed(q)}` : "no charge"}`);
   return (
     <svg className="k4-block" viewBox={`${-S - 14} ${-S - 6} ${2 * S + 70} ${2 * S + 12}`} role="img" aria-label={label}>
       <path className="k4-brk" d={`M ${-S + 12} ${-S} h -14 v ${2 * S} h 14 M ${S - 12} ${-S} h 14 v ${2 * S} h -14`} />
@@ -158,19 +159,20 @@ export function NameKit({ c, figure, slots, sol, join = "" }: {
   );
 }
 
-/* ── Modell 3: Ionenwand mit Zählern – Wand und Formel (mit Klammern) sofort ── */
+/* ── Modell 3: Ionen-Bausteine mit Zählern – Bild und Formel (mit Klammern) sofort ── */
 export function wallResult(ci: Ion, ai: Ion, nC: number, nA: number) {
   if (nC * ci.charge !== nA * -ai.charge) return "≠";
   const r = ratio(ci, ai);
   return toSubscript(nC === r.nC && nA === r.nA ? formula(ci, ai) : formula(ci, ai, nC, nA));
 }
-/** Rückmeldungen für die Ionenwand: nicht ausgeglichen, ausgeglichen mit zu großen Zahlen */
+/** Rückmeldungen zu den Ionen-Bausteinen: nicht ausgeglichen, ausgeglichen mit zu großen Zahlen (in Worten, ohne Breiten) */
 export function wallWhy(cat: string, an: string): Record<string, string> {
   const ci = ion(cat), ai = ion(an), r = ratio(ci, ai);
   const out: Record<string, string> = {
-    "≠": tr("Die Reihen sind noch nicht gleich lang: Plus und Minus gleichen sich nicht aus.", "The rows are not the same length yet: plus and minus do not balance."),
+    "≠": tr("Positive und negative Ladungen gleichen sich noch nicht aus. Unter den Ionen siehst du, wie viele es jeweils sind.", "Positive and negative charges do not balance yet. Below the ions you can see how many there are of each."),
   };
-  for (let k = 2; k <= 4; k++) out[toSubscript(formula(ci, ai, r.nC * k, r.nA * k))] = tr("Ausgeglichen, aber nicht mit den kleinsten Zahlen. Nimm weniger Bausteine.", "Balanced, but not with the smallest numbers. Use fewer tiles.");
+  const part = { 2: ["der Hälfte", "half"], 3: ["einem Drittel", "a third of"], 4: ["einem Viertel", "a quarter of"] } as Record<number, [string, string]>;
+  for (let k = 2; k <= 4; k++) out[toSubscript(formula(ci, ai, r.nC * k, r.nA * k))] = tr(`Das ist ausgeglichen, aber es geht auch mit ${part[k][0]} der Ionen.`, `That is balanced, but it also works with ${part[k][1]} the ions.`);
   return out;
 }
 
@@ -190,7 +192,7 @@ export function WallModel({ c, cat, an, init, sol, name = false }: { c: GuideCtx
   );
 }
 
-/* ── Modell 4: Formel schreiben – Klammer an/aus, Zahl dahinter; Atome laut Formel und laut Wand im Vergleich ── */
+/* ── Modell 4: Formel schreiben – Klammer an/aus, Zahl dahinter; Atome laut Formel und laut Bild im Vergleich ── */
 export interface WriteState { br: boolean; k: number }
 export function written(ci: Ion, ai: Ion, nC: number, nA: number, which: "C" | "A", s: WriteState) {
   const part = (i: Ion, n: number, mine: boolean) => {
@@ -231,7 +233,7 @@ export function WriteModel({ c, cat, an, nC, nA, which, init, sol }: {
       controls={
         <div className="k4-ctl">
           <button type="button" className="k4-chip k4-br" aria-pressed={s.br} disabled={c.solved} onClick={() => set({ ...s, br: !s.br })}>
-            ( {toSubscript(mine.formula)} ) <small>{s.br ? tr("mit Klammer", "brackets") : tr("ohne Klammer", "no brackets")}</small>
+            ( {toSubscript(mine.formula)} ) <small>{s.br ? tr("mit Klammer", "with brackets") : tr("ohne Klammer", "no brackets")}</small>
           </button>
           <Count label={tr("Index", "Subscript")} value={s.k} min={1} max={4} disabled={c.solved} set={k => set({ ...s, k })} />
         </div>
@@ -240,7 +242,7 @@ export function WriteModel({ c, cat, an, nC, nA, which, init, sol }: {
   );
 }
 
-/* ── Modell 5: Ionen wählen – die Wand gleicht aus, Formel erscheint ── */
+/* ── Modell 5: Ionen wählen – die Bausteine gleichen die Ladungen aus, die Formel erscheint ── */
 export function PickModel({ c, cats, ans, sol }: { c: GuideCtx; cats: string[]; ans: string[]; sol: [string, string] }) {
   const [s, set] = useModel<[string, string]>(c, ["", ""], sol);
   const ci = s[0] ? ion(s[0]) : undefined, ai = s[1] ? ion(s[1]) : undefined;
@@ -275,11 +277,11 @@ export function NotMixture() {
           <span className="k4-mix-i S">S<sup>2−</sup></span>
           {[0, 1, 2, 3].map(i => <span key={i} className="k4-mix-i O">O<sup>2−</sup></span>)}
         </div>
-        <figcaption><b>✗</b> {tr("einzelne Ionen: 10−", "single ions: 10−")}</figcaption>
+        <figcaption><b>✗</b> {tr("fünf einzelne Ionen: 10−", "five single ions: 10−")}</figcaption>
       </figure>
       <figure className="k4-mix-yes">
         <div className="k4-ion-pic"><IonBlock center="S" lig="O" n={4} q={-2} /></div>
-        <figcaption><b>✓</b> {tr("eine Atomgruppe: 2−", "one atom group: 2−")}</figcaption>
+        <figcaption><b>✓</b> {tr("ein Ion aus fünf Atomen: 2−", "one ion of five atoms: 2−")}</figcaption>
       </figure>
     </div>
   );

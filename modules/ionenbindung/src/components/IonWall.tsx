@@ -1,14 +1,26 @@
-// „Ionenwand“: Kationen oben, Anionen unten. Sind beide Reihen gleich lang, ist die Verbindung neutral.
+// Ionen-Bausteine: Kationen oben, Anionen unten, jeder Baustein so breit wie seine Ladung. Sind beide Reihen gleich lang, ist die Verbindung neutral.
+// Darunter der Zustand in Worten („ausgeglichen: 2 positive und 2 negative Ladungen“) – keine Rechnung mit Klammern.
 
 import { Icon } from "@lern/ui";
-import { formula, ratio, chargeFull, compoundName, type Ion } from "@lern/chem";
+import { formula, ratio, compoundName, type Ion } from "@lern/chem";
 import { Formula } from "@lern/chem-ui";
 import { IonTile } from "./IonTile.tsx";
 import { tr } from "@lern/i18n";
 
+/** Ladungen in Worten: „1 positive Ladung“, „2 negative Ladungen“ */
+export function chargesText(n: number, positive: boolean) {
+  const de = `${n} ${positive ? "positive" : "negative"} ${n === 1 ? "Ladung" : "Ladungen"}`;
+  const en = `${n} ${positive ? "positive" : "negative"} ${n === 1 ? "charge" : "charges"}`;
+  return tr(de, en);
+}
+
+/** Zustand unter den Bausteinen, in Worten statt als Rechnung: „ausgeglichen: 2 positive und 2 negative Ladungen“
+ *  bzw. „noch nicht ausgeglichen: 1 positive, 2 negative Ladungen“ */
 export function balanceText(cation: Ion, anion: Ion, nC: number, nA: number) {
   const pos = nC * cation.charge, neg = nA * -anion.charge;
-  return `${nC} · (${chargeFull(cation.charge)}) = ${pos}+ ${pos === neg ? tr("und", "and") : tr("aber", "but")} ${nA} · (${chargeFull(anion.charge)}) = ${neg}−`;
+  return pos === neg
+    ? tr(`ausgeglichen: ${pos} positive und ${neg} negative ${pos === 1 ? "Ladung" : "Ladungen"}`, `balanced: ${pos} positive and ${neg} negative ${pos === 1 ? "charge" : "charges"}`)
+    : tr(`noch nicht ausgeglichen: ${pos} positive, ${neg} negative Ladungen`, `not balanced yet: ${pos} positive, ${neg} negative charges`);
 }
 
 export function IonWall({ cation, anion, nC, nA, onTile, showFormula = true, showName = true }: {
@@ -42,7 +54,7 @@ export function IonWall({ cation, anion, nC, nA, onTile, showFormula = true, sho
         </div>
       )}
       <p className={`iw-balance${balanced ? " ok" : ""}`}>
-        {balanced ? "✓ " : "≠ "}{balanceText(cation, anion, nC, nA)}
+        {balanced ? "✓ " : ""}{balanceText(cation, anion, nC, nA)}
       </p>
     </div>
   );

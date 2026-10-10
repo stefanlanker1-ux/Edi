@@ -3,9 +3,9 @@
 // Jede Schale hat immer denselben Radius (R), egal wie viele Protonen und Elektronen: Das Teilchen wird nur kleiner, wenn eine Schale
 // wegfällt (Kation), und nur größer, wenn eine neue dazukommt. Ein Anion ist im Modell so groß wie sein Atom.
 
-import { Fragment, useState, type ReactNode } from "react";
-import { Button, Icon, Stepper, buzz, type GuideCtx } from "@lern/ui";
-import { BY_Z, ROMAN, chargeSup, mainGroupNumber, shellLines, shellSentence, signed } from "@lern/chem";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Button, Icon, IconButton, Stepper, buzz, useReducedMotion, type GuideCtx } from "@lern/ui";
+import { BY_Z, ROMAN, chargeSup, mainGroupNumber, shellLines, shellSentence } from "@lern/chem";
 import { PeriodicTable } from "@lern/chem-ui";
 import { tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
@@ -58,11 +58,13 @@ export interface AtomProps {
   label?: string;
   /** leere Schalen eines Kations gestrichelt zeigen (Standard) */
   ghost?: boolean;
+  /** die gestrichelte leere Schale blendet sich aus (Ende der Animation des Elektronenübergangs) */
+  fade?: boolean;
 }
 
 /** Bohrmodell der Unterstufe: Kern mit Ladung, Schalen mit festen Radien (R). Alle Elektronen sehen gleich aus (aufgenommene und eigene) –
  *  was sich ändert, steht in der Beschriftung; keine Fläche hinter dem Atom, die mitwächst. */
-export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, ghost = true }: AtomProps) {
+export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, ghost = true, fade }: AtomProps) {
   const sh = shellsOf(E), neutral = shellsOf(Z);
   const last = sh.length - 1;
   const rOut = R[last];
@@ -74,7 +76,7 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
   return (
     <svg className="k1-atom" viewBox={`${-X} ${-X} ${2 * X} ${2 * X}`} role="img"
       aria-label={label ?? tr(`${BY_Z[Z].name}: ${Z} Protonen, ${E} Elektronen; ${shellText(E)}`, `${BY_Z[Z].name}: ${Z} protons, ${E} electrons; ${shellText(E)}`)}>
-      {ghost && neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className="k1-ring ghost" />)}
+      {ghost && neutral.map((_, i) => i > last && <circle key={`g${i}`} r={R[i]} className={`k1-ring ghost${fade ? " fade" : ""}`} />)}
       {sh.map((_, i) => <circle key={`r${i}`} r={R[i]} className={`k1-ring${i === last ? " outer" : ""}`} />)}
       <circle r={13} className="k1-nuc" />
       <text className="k1-nuc-t" y={0.5}>{Z}+</text>
@@ -109,11 +111,12 @@ export function Atom({ Z, E, ext, got = 0, slots, marked, onMark, hint, label, g
 /** größte Zahl der Schalen unter den Elektronenzahlen von `lo` bis `hi` (so viele Zeilen hält die Beschriftung frei) */
 export const shellRows = (lo: number, hi: number) => { let n = 1; for (let E = lo; E <= hi; E++) n = Math.max(n, shellsOf(E).length); return n; };
 
-/** Beschriftung eines Teilchens: Symbol mit Ladung, Protonen · Elektronen → Ladung, Schalen als Zeilen („1. Schale: 2 Elektronen“).
+/** Beschriftung eines Teilchens: Symbol mit Ladung, darunter „11 Protonen“ und „10 Elektronen“ in eigenen Zeilen (kein „11 p⁺ · 10 e⁻“ –
+ *  der Punkt sähe aus wie ein Malzeichen), Schalen als Zeilen („1. Schale: 2 Elektronen“).
  *  Feste Größe: `rows` Zeilen für die Schalen sind immer frei, „✓ wie Ne“ (`noble`) steht neben dem Symbol in einer eigenen Spalte –
  *  ändert sich der Text, verschiebt sich nichts daneben (das Bild bleibt stehen). */
-export function Caption({ Z, E, noble, big, compact, shells = true, rows, name }: {
-  Z: number; E: number; noble?: boolean; big?: boolean; compact?: boolean; shells?: boolean; rows?: number; name?: boolean;
+export function Caption({ Z, E, noble, big, compact, shells = true, counts = true, rows, name }: {
+  Z: number; E: number; noble?: boolean; big?: boolean; compact?: boolean; shells?: boolean; counts?: boolean; rows?: number; name?: boolean;
 }) {
   const sh = shellsOf(E);
   const like = noble && isNoble(E) && NOBLE[E] && E !== Z;
@@ -122,7 +125,10 @@ export function Caption({ Z, E, noble, big, compact, shells = true, rows, name }
       <span className="k1-symrow"><span /><span className="k1-sym">{sym(Z, E)}</span>
         <span className="k1-like">{like ? <><Icon name="check" size={14} /> {tr(`wie ${NOBLE[E]}`, `like ${NOBLE[E]}`)}</> : null}</span></span>
       {name && <span className="k1-pe">{BY_Z[Z].name}</span>}
-      {!compact && <span className="k1-pe"><b className="k1-p">{Z} p⁺</b> · <b className="k1-el">{E} e⁻</b> → {chargeWord(Z - E)}</span>}
+      {!compact && counts && <span className="k1-pe k1-counts">
+        <b className="k1-p">{plural(Z, "Proton", "Protonen", "proton", "protons")}</b>
+        <b className="k1-el">{plural(E, "Elektron", "Elektronen", "electron", "electrons")}</b>
+      </span>}
       {!compact && shells && <span className="k1-sh">{shellLines(sh).map((l, i) => <span key={i}>{l}</span>)}</span>}
     </div>
   );
@@ -209,19 +215,23 @@ export function ionWhy(Z: number): Record<string, string> {
   const name = BY_Z[Z].name, full = SHELL[shellsOf(target).length - 1], out: Record<string, string> = {};
   for (let E = lo; E <= hi; E++) {
     if (E === target) continue;
-    const pe = `${Z} p⁺ · ${E} e⁻ → ${chargeWord(Z - E)}`;
     let m: string;
     if (E === Z) m = metal
-      ? tr(`${name} ist noch neutral (${pe}). Gib die Außenelektronen ab.`, `${name} is still neutral (${pe}). Remove the outer electrons.`)
-      : tr(`${name} ist noch neutral (${pe}). Fülle die freien Plätze außen.`, `${name} is still neutral (${pe}). Fill the empty spaces on the outside.`);
-    else if (metal && E < Z && E > target) m = tr(`Noch ${plural(E - target, "Außenelektron", "Außenelektronen", "", "")} übrig – außen sind so keine 8.`, `${plural(E - target, "", "", "outer electron is", "outer electrons are")} left – so there are not 8 on the outside.`);
-    else if (metal && E < target) m = tr(`Eins zu viel: Jetzt fehlt ein Elektron der ${full}-Schale mit 8 Elektronen. Gib nur die ${v} Außenelektronen ab.`, `One too many: now an electron of the ${full} shell with 8 electrons is missing. Lose only the ${v} outer electrons.`);
-    else if (metal) m = tr(`${name} ist ein Metall: Aufnehmen gibt außen ${outerOf(E)} – keine volle Außenschale. Abgeben wären nur ${plural(v, "Elektron", "Elektronen", "", "")} – der kürzere Weg.`,
-      `${name} is a metal: gaining gives ${outerOf(E)} on the outside – not a full outer shell. Losing would be only ${plural(v, "", "", "electron", "electrons")} – the shorter way.`);
-    else if (E > Z && E < target) m = tr(`Noch ${plural(target - E, "Platz", "Plätze", "", "")} außen frei: ${outerOf(E)} sind keine 8.`, `${plural(target - E, "", "", "space is", "spaces are")} still empty on the outside: ${outerOf(E)} is not 8.`);
-    else if (E > target) m = tr(`Die ${full}-Schale ist mit 8 schon voll – mehr passen nicht. Das zusätzliche Elektron müsste auf eine neue Schale.`, `The ${full} shell is already full with 8 – no more fit. The extra electron would have to go on a new shell.`);
-    else m = tr(`Du hast abgegeben statt aufgenommen: ${pe}. Aufnehmen wären nur ${plural(8 - v, "Elektron", "Elektronen", "", "")} – der kürzere Weg.`,
-      `You lost electrons instead of gaining them: ${pe}. Gaining would be only ${plural(8 - v, "", "", "electron", "electrons")} – the shorter way.`);
+      ? tr(`Das ist noch das neutrale ${name}-Atom. Lass es seine Außenelektronen abgeben.`, `This is still the neutral ${name} atom. Let it lose its outer electrons.`)
+      : tr(`Das ist noch das neutrale ${name}-Atom. Fülle die freien Plätze auf der äußersten Schale.`, `This is still the neutral ${name} atom. Fill the empty spaces on the outermost shell.`);
+    else if (metal && E < Z && E > target) m = E - target === 1
+      ? tr("Auf der äußersten Schale sitzt noch ein Außenelektron. Gib auch dieses ab.", "There is still one outer electron on the outermost shell. Let it go as well.")
+      : tr(`Auf der äußersten Schale sitzen noch ${E - target} Außenelektronen. Gib auch diese ab.`, `There are still ${E - target} outer electrons on the outermost shell. Let them go as well.`);
+    else if (metal && E < target) m = tr(`Das war eines zu viel: Jetzt fehlt der vollen ${full}-Schale ein Elektron. Gib nur die ${plural(v, "Außenelektron", "Außenelektronen", "", "")} ab.`,
+      `That was one too many: now the full ${full} shell is missing an electron. Lose only the ${plural(v, "", "", "outer electron", "outer electrons")}.`);
+    else if (metal) m = tr(`${name} ist ein Metall und gibt Elektronen ab. Mit aufgenommenen Elektronen hätte es außen ${outerOf(E)} – keine volle Schale.`,
+      `${name} is a metal and loses electrons. With extra electrons it would have ${outerOf(E)} on the outside – not a full shell.`);
+    else if (E > Z && E < target) m = target - E === 1
+      ? tr("Auf der äußersten Schale ist noch ein Platz frei. Fülle ihn auf.", "There is still one empty space on the outermost shell. Fill it.")
+      : tr(`Auf der äußersten Schale sind noch ${target - E} Plätze frei. Fülle sie auf.`, `There are still ${target - E} empty spaces on the outermost shell. Fill them.`);
+    else if (E > target) m = tr(`Die ${full}-Schale ist mit 8 Elektronen schon voll. Ein weiteres Elektron müsste auf eine neue Schale.`, `The ${full} shell is already full with 8 electrons. Another electron would have to go on a new shell.`);
+    else m = tr(`${name} ist ein Nichtmetall und nimmt Elektronen auf. Dafür reichen ${plural(8 - v, "Elektron", "Elektronen", "", "")} – der kürzere Weg.`,
+      `${name} is a non-metal and gains electrons. ${plural(8 - v, "", "", "electron is", "electrons are")} enough for that – the shorter way.`);
     out[sym(Z, E)] = m;
   }
   return out;
@@ -266,10 +276,10 @@ export function calcWhy(Zt: number, Et: number): Record<string, string> {
   for (let p = 1; p <= 20; p++) for (let e = Math.max(1, p - MAXQ); e <= p + MAXQ; e++) {
     if (p === Zt && e === Et) continue;
     out[sym(p, e)] = p !== Zt
-      ? tr(`${p} Protonen sind ${BY_Z[p].name} (${BY_Z[p].symbol}). ${tname} hat die Ordnungszahl ${Zt} – stelle zuerst die Protonen ein.`, `${p} protons are ${BY_Z[p].name} (${BY_Z[p].symbol}). ${tname} has atomic number ${Zt} – set the protons first.`)
+      ? tr(`Mit ${p} Protonen ist es ${BY_Z[p].name} (${BY_Z[p].symbol}). ${tname} hat ${Zt} Protonen – stelle zuerst die Protonen ein.`, `With ${p} protons it is ${BY_Z[p].name} (${BY_Z[p].symbol}). ${tname} has ${Zt} protons – set the protons first.`)
       : e === p
-        ? tr(`Das ist das neutrale Atom: ${p} p⁺ · ${e} e⁻. ${target} ist geladen.`, `That is the neutral atom: ${p} p⁺ · ${e} e⁻. ${target} is charged.`)
-        : tr(`${p} p⁺ · ${e} e⁻ → ${chargeWord(p - e)}. ${target} hat die Ladung ${chargeWord(Zt - Et)}: Ladung = Protonen − Elektronen.`, `${p} p⁺ · ${e} e⁻ → ${chargeWord(p - e)}. ${target} has the charge ${chargeWord(Zt - Et)}: charge = protons − electrons.`);
+        ? tr(`Gleich viele Protonen wie Elektronen: Das ist das neutrale Atom. ${target} ist aber geladen.`, `As many protons as electrons: that is the neutral atom. But ${target} is charged.`)
+        : tr(`${p} Protonen und ${e} Elektronen ergeben die Ladung ${chargeWord(p - e)}. ${target} hat die Ladung ${chargeWord(Zt - Et)}.`, `${p} protons and ${e} electrons give the charge ${chargeWord(p - e)}. ${target} has the charge ${chargeWord(Zt - Et)}.`);
   }
   return out;
 }
@@ -377,24 +387,26 @@ export function trWhy(M: number, N: number, start: [number, number], solution: [
     const left = s.gave.reduce((a, g) => a + vm - g, 0), free = s.got.reduce((a, g) => a + 8 - vn - g, 0);
     const restN = s.got.filter(g => g === 0).length, restM = s.gave.filter(g => g === 0).length;
     const eL = plural(left, "Außenelektron", "Außenelektronen", "outer electron", "outer electrons");
-    const fP = plural(free, "freien Platz", "freie Plätze", "empty space", "empty spaces");
+    const fP = free === 1 ? tr("ist noch 1 Platz frei", "there is still 1 empty space") : tr(`sind noch ${free} Plätze frei`, `there are still ${free} empty spaces`);
     out[r] = total === 0 ? tr("Noch ist kein Elektron übergegangen. Tippe auf „e⁻ übertragen“.", "No electron has passed over yet. Tap “transfer e⁻”.")
-      : left > 0 && free > 0 ? tr(`Es geht weiter: ${ms} hat noch ${eL}, ${ns} hat noch ${fP}.`, `Keep going: ${ms} still has ${eL}, ${ns} still has ${fP}.`)
+      : left > 0 && free > 0 ? tr(`Mach weiter: ${ms} hat noch ${eL}, und bei ${ns} ${fP}.`, `Keep going: ${ms} still has ${eL}, and on ${ns} ${fP}.`)
       : left > 0 ? (adjust === "n"
-        ? tr(`${ms} hat noch ${eL}, aber alle ${ns}-Atome sind voll. Nimm ein ${ns}-Atom dazu.`, `${ms} still has ${eL}, but all ${ns} atoms are full. Add a ${ns} atom.`)
-        : tr(`${plural(restM, `${ms}-Atom bleibt`, `${ms}-Atome bleiben`, `${ms} atom is`, `${ms} atoms are`)} übrig: ${ns} nimmt nur ${8 - vn} auf. Nimm weniger ${ms}-Atome.`, `${plural(restM, "", "", `${ms} atom is`, `${ms} atoms are`)} left over: ${ns} gains only ${8 - vn}. Use fewer ${ms} atoms.`))
+        ? tr(`${ms} hat noch ${eL}, aber alle ${ns}-Atome sind schon voll. Nimm ein ${ns}-Atom dazu.`, `${ms} still has ${eL}, but all ${ns} atoms are already full. Add a ${ns} atom.`)
+        : tr(`${plural(restM, `${ms}-Atom bleibt`, `${ms}-Atome bleiben`, `${ms} atom is`, `${ms} atoms are`)} übrig, denn ${ns} nimmt nur ${plural(8 - vn, "Elektron", "Elektronen", "", "")} auf. Nimm weniger ${ms}-Atome.`, `${plural(restM, "", "", `${ms} atom is`, `${ms} atoms are`)} left over, because ${ns} gains only ${plural(8 - vn, "", "", "electron", "electrons")}. Use fewer ${ms} atoms.`))
       : adjust === "m"
-        ? tr(`${ns} hat noch ${fP}, aber alle ${ms}-Atome haben abgegeben. Nimm ein ${ms}-Atom dazu.`, `${ns} still has ${fP}, but all ${ms} atoms have given theirs. Add a ${ms} atom.`)
-        : tr(`${plural(restN, `${ns}-Atom bleibt`, `${ns}-Atome bleiben`, "", "")} übrig: ${ms} gibt nur ${vm} ab. Nimm weniger ${ns}-Atome.`, `${plural(restN, "", "", `${ns} atom is`, `${ns} atoms are`)} left over: ${ms} loses only ${vm}. Use fewer ${ns} atoms.`);
+        ? tr(`Bei ${ns} ${fP}, aber alle ${ms}-Atome haben ihre Elektronen schon abgegeben. Nimm ein ${ms}-Atom dazu.`, `On ${ns} ${fP}, but all ${ms} atoms have already given away their electrons. Add a ${ms} atom.`)
+        : tr(`${plural(restN, `${ns}-Atom bleibt`, `${ns}-Atome bleiben`, "", "")} übrig, denn ${ms} gibt nur ${plural(vm, "Elektron", "Elektronen", "", "")} ab. Nimm weniger ${ns}-Atome.`, `${plural(restN, "", "", `${ns} atom is`, `${ns} atoms are`)} left over, because ${ms} loses only ${plural(vm, "", "", "electron", "electrons")}. Use fewer ${ns} atoms.`);
   }
   return out;
 }
 
 /** Metall-Atome links, Nichtmetall-Atome rechts; „e⁻ übertragen“ gibt ein Außenelektron eines Metall-Atoms an das Nichtmetall-Atom
  *  mit den meisten freien Plätzen. `adjust` = Zahl der Metall- ("m") oder Nichtmetall-Atome ("n") einstellbar (1–3).
- *  Leere Schalen der Kationen sind nicht gezeichnet; jede Schale behält ihren Radius. */
-export function Transfer({ c, M, N, start, solution, adjust }: {
-  c: GuideCtx; M: number; N: number; start: [number, number]; solution: [number, number]; adjust?: "m" | "n";
+ *  Leere Schalen der Kationen sind nicht gezeichnet; jede Schale behält ihren Radius.
+ *  `play` (vorgemacht, ein Elektron): kurzer Ablauf – erst die Atome, dann fliegt das Außenelektron des Metall-Atoms auf den freien Platz
+ *  des Nichtmetall-Atoms, die leere Schale des Kations blendet aus („Nochmal abspielen“; reduzierte Bewegung: gleich das Endbild). */
+export function Transfer({ c, M, N, start, solution, adjust, play }: {
+  c: GuideCtx; M: number; N: number; start: [number, number]; solution: [number, number]; adjust?: "m" | "n"; play?: boolean;
 }) {
   const vm = valence(M), vn = valence(N);
   const solved = (): TrState => { let s = fresh(...solution); for (let t = nextTransfer(s, vm, vn); t; t = nextTransfer(t, vm, vn)) s = t; return s; };
@@ -406,15 +418,53 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
   const ext = Math.max(extentOf(M), extentOf(N, N + (8 - vn)));
   const total = s.gave.reduce((a, b) => a + b, 0);
   const rows = Math.max(s.nm, s.nn);
+
+  // Ablauf: 0 = Atome, 1 = das Elektron fliegt, 2 = Ionen (Endbild)
+  const still = useReducedMotion();
+  const animate = !!play && !still;
+  const [run, setRun] = useState(0);
+  const [phase, setPhase] = useState(animate ? 0 : 2);
+  const [path, setPath] = useState<{ x0: number; y0: number; x1: number; y1: number; d: number } | null>(null);
+  const box = useRef<HTMLDivElement>(null), dot = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!animate) { setPhase(2); return; }
+    setPhase(0); setPath(null);
+    const t = setTimeout(() => {
+      const root = box.current;
+      const from = root?.querySelector(`[data-role="m"] .k1-e[data-s="${shellsOf(M).length - 1}"] .k1-e-c`);
+      const to = root?.querySelector(`[data-role="n"] .k1-slot-c`);
+      if (!root || !from || !to) { setPhase(2); return; }
+      const o = root.getBoundingClientRect(), a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+      setPath({ x0: a.left + a.width / 2 - o.left, y0: a.top + a.height / 2 - o.top, x1: b.left + b.width / 2 - o.left, y1: b.top + b.height / 2 - o.top, d: a.width });
+      setPhase(1);
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [animate, run]);
+  // Flug im Bogen vom Außenelektron zum freien Platz; danach das Endbild
+  useEffect(() => {
+    const el = dot.current;
+    if (phase !== 1 || !path || !el) return;
+    const dx = path.x1 - path.x0, dy = path.y1 - path.y0, lift = -Math.max(24, Math.abs(dx) * 0.22);
+    const a = el.animate([
+      { transform: "translate(0, 0)" },
+      { transform: `translate(${dx / 2}px, ${dy / 2 + lift}px)`, offset: 0.5 },
+      { transform: `translate(${dx}px, ${dy}px)` },
+    ], { duration: 1200, easing: "ease-in-out", fill: "forwards" });
+    a.onfinish = () => setPhase(2);
+    return () => a.cancel();
+  }, [phase, path]);
+  const shown: TrState = animate && phase < 2 ? { ...fresh(...start), gave: fresh(...start).gave.map((_, i) => (i === 0 && phase === 1 ? 1 : 0)) } : s;
+  const before = animate && phase < 2;
+
   return (
     <ModelFrame c={c} className="k1-m"
       stage={
-        <div className="k1-tr" style={{ ["--rows" as string]: rows }}>
+        <div className="k1-tr" ref={box} style={{ ["--rows" as string]: rows }} data-anim={play ? "" : undefined}>
           <div className="k1-tr-col">
-            {s.gave.map((g, i) => (
-              <figure key={`m${i}`} className="k1-fig">
-                <div className="k1-fig-svg"><Atom Z={M} E={M - g} ext={ext} ghost={false} /></div>
-                <figcaption><Caption Z={M} E={M - g} noble={c.solved} shells={false} /></figcaption>
+            {shown.gave.map((g, i) => (
+              <figure key={`m${i}`} className="k1-fig" data-role={i === 0 ? "m" : undefined}>
+                <div className="k1-fig-svg"><Atom Z={M} E={M - g} ext={ext} ghost={!!play && g > 0} fade={!!play && phase === 2} /></div>
+                <figcaption><Caption Z={M} E={M - g} noble={c.solved && !before} shells={false} counts={false} /></figcaption>
               </figure>
             ))}
           </div>
@@ -423,25 +473,26 @@ export function Transfer({ c, M, N, start, solution, adjust }: {
             <span className="k1-tr-arrow">→</span>
           </div>
           <div className="k1-tr-col">
-            {s.got.map((g, j) => (
-              <figure key={`n${j}`} className="k1-fig">
-                <div className="k1-fig-svg"><Atom Z={N} E={N + g} ext={ext} got={g} slots={!c.solved} /></div>
-                <figcaption><Caption Z={N} E={N + g} noble={c.solved} shells={false} /></figcaption>
+            {shown.got.map((g, j) => (
+              <figure key={`n${j}`} className="k1-fig" data-role={j === 0 ? "n" : undefined}>
+                <div className="k1-fig-svg"><Atom Z={N} E={N + g} ext={ext} got={play ? 0 : g} slots={!c.solved || before} /></div>
+                <figcaption><Caption Z={N} E={N + g} noble={c.solved && !before} shells={false} counts={false} /></figcaption>
               </figure>
             ))}
           </div>
-          <p className="k1-tr-sum">
-            <span>{tr(`übergegangen: ${total} e⁻`, `transferred: ${total} e⁻`)}</span>
-            <span>{tr("Gesamtladung", "Total charge")}: {[...s.gave.map(g => g), ...s.got.map(g => -g)].map(q => `(${signed(q)})`).join(" + ")} = 0</span>
-          </p>
+          {phase === 1 && path && (
+            <span ref={dot} className="k1-fly" aria-hidden="true" style={{ left: path.x0 - path.d / 2, top: path.y0 - path.d / 2, width: path.d, height: path.d }} />
+          )}
         </div>
       }
-      controls={c.solved ? undefined : <>
-        {adjust && <Stepper stack={false} compact label={adjust === "m" ? tr(`${BY_Z[M].name}-Atome`, `${BY_Z[M].name} atoms`) : tr(`${BY_Z[N].name}-Atome`, `${BY_Z[N].name} atoms`)}
-          value={adjust === "m" ? s.nm : s.nn} min={1} max={3} editable={false} onChange={count} />}
-        <Button icon="arrow" onClick={transfer} disabled={!next}>{tr("e⁻ übertragen", "transfer e⁻")}</Button>
-        <Button icon="reset" onClick={() => set(fresh(s.nm, s.nn))} disabled={!total} aria-label={tr("Zurück zu den Atomen", "Reset")} />
-      </>}
+      controls={play
+        ? (animate ? <IconButton icon="reset" label={tr("Nochmal abspielen", "Play again")} onClick={() => setRun(r => r + 1)} /> : undefined)
+        : c.solved ? undefined : <>
+          {adjust && <Stepper stack={false} compact label={adjust === "m" ? tr(`${BY_Z[M].name}-Atome`, `${BY_Z[M].name} atoms`) : tr(`${BY_Z[N].name}-Atome`, `${BY_Z[N].name} atoms`)}
+            value={adjust === "m" ? s.nm : s.nn} min={1} max={3} editable={false} onChange={count} />}
+          <Button icon="arrow" onClick={transfer} disabled={!next}>{tr("e⁻ übertragen", "transfer e⁻")}</Button>
+          <Button icon="reset" onClick={() => set(fresh(s.nm, s.nn))} disabled={!total} aria-label={tr("Zurück zu den Atomen", "Reset")} />
+        </>}
       onCheck={() => c.pick(trResult(M, N, s))} />
   );
 }

@@ -2,6 +2,7 @@
 // eine Auswahl antippen, eine Zahl eintippen oder etwas im Bild antippen (mit den Bausteinen der App).
 // Vier Fehlversuche → die Lösung wird markiert, der Schüler tippt sie selbst an. Richtig → der Schritt bleibt mit
 // der Bestätigung (und Beschriftungen nach der Lösung) stehen, weiter mit „Weiter“ – Zeit zum Lesen und Anschauen.
+// „Zurück“ zeigt den vorigen Schritt noch einmal – gelöst, mit ganzem Lösungsweg (zum Nachlesen, nicht zum neu Lösen).
 // Ganzer Bildschirm, nie scrollen: Bild füllt den Platz (container-type: size, Zeichnungen mit cqw/cqh oder Fit).
 // Längere Erklärungen in Kapiteln (`part`): Kapitelname im Kopf, Fortschrittsbalken in Abschnitten.
 // Lernen an Beispielen mit Ausblenden der Hilfe: jedes Kapitel beginnt mit einem vorgemachten Fall (Lösungsweg Zeile für Zeile),
@@ -205,6 +206,14 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
   }, [msg, solved, seen, steady]);
 
   function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); setSeen(1); }
+  // zurück: der vorige Schritt steht gelöst da (ganzer Lösungsweg, Bestätigung, „Weiter“) – er war ja schon geschafft
+  const back = () => {
+    const k = Math.min(i, n) - 1;
+    if (k < 0) return;
+    const s = def.steps[k];
+    setI(k); setTries(0); setMsg(null); setSeen(Math.max(1, s.lines?.length ?? 1)); setSolved(true);
+    setVal(typeof s.answer === "number" ? num(s.answer) : "");
+  };
   // vorgemacht: nächste Zeile zeigen; nach der letzten ist der Schritt fertig
   const reveal = () => { const k = seen + 1; setSeen(k); if (k >= lines.length) setSolved(true); };
   useEffect(() => { if (open && worked && lines.length <= 1) setSolved(true); }, [open, i, worked, lines.length]);
@@ -249,9 +258,6 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
           {(worked ? lines.slice(0, seen) : lines).map((l, k) => <li key={`${i}-${k}`}><Line text={l} fill={solved || show ? solText : undefined} /></li>)}
         </ol>
       )}
-      {worked && !solved && !tools && (
-        <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? reveal : undefined}>{tr("Nächster Schritt", "Next step")}</Button>
-      )}
       {step.options && (
         <NoTerms>
         <div className={`ui-guide-opts${step.options.some(o => o.length > 16) ? " long" : step.options.length > 3 ? " many" : ""}`} key={`s${shake}`}>
@@ -278,16 +284,16 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
         {solved ? <><Icon name={worked ? "arrow" : "check"} size={18} /><span><RichText text={step.ok} /></span></>
           : msg ? <><Icon name={show ? "arrow" : "x"} size={18} /><span><RichText text={msg} /></span></> : null}
       </p>
-      {solved && !tools && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? next : undefined}>{tr("Weiter", "Next")}</Button>}
-      {tools && (
-        <div className="ui-guide-foot">
-          {tools(step, i).map(t => (
-            <Button key={t.id} variant="quiet" icon={t.icon} className="ui-guide-tool" disabled={t.disabled} onClick={live ? () => setTool(t.id) : undefined}>{t.label}</Button>
-          ))}
-          {worked && !solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? reveal : undefined}>{tr("Nächster Schritt", "Next step")}</Button>}
-          {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? next : undefined}>{tr("Weiter", "Next")}</Button>}
-        </div>
-      )}
+      {/* Leiste unter dem Text: „Zurück“, Hilfsmittel (falls es welche gibt) und „Nächster Schritt“ bzw. „Weiter“ – jeder Knopf an festem Platz */}
+      <div className="ui-guide-foot">
+        <Button className="ui-guide-back" icon="back" disabled={i === 0} onClick={live ? back : undefined}>{tr("Zurück", "Back")}</Button>
+        {tools?.(step, i).map(t => (
+          <Button key={t.id} variant="quiet" icon={t.icon} className="ui-guide-tool" disabled={t.disabled} onClick={live ? () => setTool(t.id) : undefined}>{t.label}</Button>
+        ))}
+        {tools && <span className="ui-guide-brk" aria-hidden="true" />}
+        {worked && !solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? reveal : undefined}>{tr("Nächster Schritt", "Next step")}</Button>}
+        {solved && <Button className="ui-guide-next" variant="primary" iconRight="arrow" onClick={live ? next : undefined}>{tr("Weiter", "Next")}</Button>}
+      </div>
     </>
   );
   const longest = (xs: string[]) => [...new Set(xs)].sort((a, b) => b.length - a.length).slice(0, 2);
@@ -316,17 +322,19 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
               ))}</span>
               : <span className="ui-guide-bar" aria-hidden="true"><i style={{ width: `${(Math.min(i, n) / n) * 100}%` }} /></span>}
           </header>
+          {/* eigene Schlüssel: die Abschlussseite übernimmt nie die feste Bildhöhe, die eine Folie inline gesetzt hat (gleicher div-Platz) */}
           {done ? (
-            <div className="ui-guide-end">
+            <div key="end" className="ui-guide-end">
               <h3>{tr("Das kannst du jetzt", "Now you can")}</h3>
               <ul>{def.outro.map((o, k) => <li key={k}><RichText text={o} /></li>)}</ul>
               <div className="ui-guide-end-btns">
+                <Button icon="back" onClick={back}>{tr("Zurück", "Back")}</Button>
                 <Button variant="quiet" icon="reset" onClick={() => { setI(0); reset(); }}>{tr("Noch einmal", "Once more")}</Button>
                 <Button variant="primary" size="lg" iconRight="arrow" onClick={onFinish}>{finishLabel ?? tr("Zum Üben", "To practice")}</Button>
               </div>
             </div>
           ) : (
-            <div className={`ui-guide-body${step.visual ? "" : " no-visual"}`}>
+            <div key="body" className={`ui-guide-body${step.visual ? "" : " no-visual"}`}>
               {step.visual && (
                 <div className={`ui-guide-visual${solved ? " solved" : ""}${show ? " show" : ""}`}>
                   {/* je Schritt neu aufbauen: Bilder gleiten nicht aus dem vorigen Schritt herüber (Beschriftungen messen sonst mitten im Übergang) */}

@@ -350,11 +350,18 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
 .ui-guide-msg .ic { flex: none; margin-top: 1px; }
 .ui-guide-msg.right { color: var(--ok); }
 .ui-guide-msg.sol { color: var(--ok); }
-/* Hilfsmittel (PSE, Tipp, Erklärung) und „Weiter“ in einer Leiste; passt sie nicht, steht „Weiter“ darunter in voller Breite */
+/* Leiste unter dem Text: „Zurück“, Hilfsmittel (PSE, Tipp, Erklärung) und „Weiter“ bzw. „Nächster Schritt“ rechts.
+   Schmal: Hilfsmittel in der ersten Zeile, darunter „Zurück“ und „Weiter“ (füllt den Rest) – „Zurück“ steht immer an derselben Stelle */
 .ui-guide-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .ui-guide-foot .ui-guide-tool { min-height: 44px; padding: 6px 10px; }
+.ui-guide-foot .ui-guide-back { min-height: 44px; }
 .ui-guide-foot .ui-guide-next { margin-left: auto; }
-@media (max-width: 479px) { .ui-guide-foot .ui-guide-next { flex: 1 0 100%; } }
+.ui-guide-brk { display: none; }
+@media (max-width: 479px) {
+  .ui-guide-foot .ui-guide-brk { display: block; order: 1; flex: 0 0 100%; height: 0; }
+  .ui-guide-foot .ui-guide-back { order: 2; }
+  .ui-guide-foot .ui-guide-next { order: 3; flex: 1 1 0; }
+}
 .ui-guide-end { display: grid; align-content: center; gap: 14px; max-width: 640px; width: 100%; margin: 0 auto; }
 .ui-guide-end h3 { margin: 0; font-size: 1.3rem; }
 .ui-guide-end ul { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; line-height: 1.4; }
