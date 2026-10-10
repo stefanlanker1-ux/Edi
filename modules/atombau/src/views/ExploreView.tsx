@@ -2,10 +2,10 @@
 // Werkzeuge: Element (Steckbrief des gewählten Elements) und Farben (Kategorien; Oberstufe auch Blöcke s/p/d/f und Trends).
 
 import { useEffect, useState } from "react";
-import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, useReducedMotion } from "@lern/ui";
+import { Button, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, useReducedMotion } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, groupName, searchElements, standardNeutrons, configuration, configString, shortConfigString,
-  shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons, configException,
+  shells, shellLines, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons, configException,
   ELEMENTS, TRENDS, trendScale, kindLabel, type Category, type TrendKey, mainGroupNumber, ROMAN,
 } from "@lern/chem";
 import { useApp, maxZFor } from "../store.ts";
@@ -80,7 +80,8 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   const rows: [string, string | number][] = [
     [tr("Ordnungszahl", "Atomic number"), Z],
     [tr("Atommasse", "Atomic mass"), `${el.mass.toLocaleString(LOC)} u`],
-    ["p⁺ · n · e⁻", `${Z} · ${N} · ${Z}`],
+    // Teilchen mit Zeichen an jeder Zahl („11 · 12 · 11“ sähe aus wie eine Rechnung)
+    [tr("Teilchen", "Particles"), `${Z} p⁺, ${N} n, ${Z} e⁻`],
     // Pd [Kr] 4d¹⁰: Periode 5, aber die 5s-Unterschale ist leer
     [tr("Periode", "Period"), sh.length < el.period
       ? tr(`${el.period} (${sh.length} besetzte Schalen, ${el.period}s leer)`, `${el.period} (${sh.length} occupied shells, ${el.period}s empty)`)
@@ -108,7 +109,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
         <div className="d-bohr"><Bohr Z={Z} N={N} E={Z} slots={os ? 6 : 4} colorByOrbital={os && orbitalColors} animate={animate && !reduced} /></div>
         <div className="d-nuc">
           <Nuclide Z={Z} N={N} E={Z} size="lg" />
-          <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
+          <div className="shell-lines">{shellLines(sh).map((l, i) => <span key={i}>{l}</span>)}</div>
         </div>
       </div>
       {os && configException(Z) && <div className="ui-tags d-exc"><ExceptionTag Z={Z} /></div>}
