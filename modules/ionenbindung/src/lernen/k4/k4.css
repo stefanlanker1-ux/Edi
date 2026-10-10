@@ -43,7 +43,8 @@
 .k4-name { display: grid; grid-template-rows: minmax(0, 300px) auto; align-content: center; justify-items: center; align-items: center; width: 100%; height: 100%; min-height: 0; gap: 6px; }
 .k4-name-fig { min-height: 0; height: 100%; width: 100%; display: grid; place-items: center; }
 .k4-name-fig .k4-wall { width: 100%; height: 100%; }
-.k4-name-out { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; font-size: 1.5rem; font-weight: 800; min-height: 1.4em; }
+/* Name in einer Zeile mit fester Höhe: wächst er beim Wählen, rückt das Bild darüber nicht */
+.k4-name-out { display: flex; flex-wrap: nowrap; white-space: nowrap; justify-content: center; align-items: center; font-size: 1.5rem; font-weight: 800; line-height: 1.25; height: 1.6em; }
 .k4-name-out .gap { color: var(--muted); min-width: 2.2em; text-align: center; border-bottom: 2px dashed var(--muted); margin: 0 3px; }
 .k4-name-out .on { border-bottom: 2px solid var(--text); margin: 0 1px; }
 .k4-kit { display: grid; gap: 6px; justify-items: center; }
@@ -54,7 +55,9 @@
 }
 .k4-chip:active:not(:disabled) { box-shadow: var(--key-edge-pressed); }
 .k4-chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
-.k4-chip[aria-pressed="true"]::before { content: "✓ "; font-size: .85em; }
+/* „✓ “ hat seinen Platz immer (unsichtbar, solange nicht gewählt): die Knöpfe werden beim Wählen nicht breiter, die Reihen brechen nicht anders um */
+.k4-chip::before { content: "✓ "; font-size: .85em; visibility: hidden; }
+.k4-chip[aria-pressed="true"]::before { visibility: visible; }
 .k4-chip.cation[aria-pressed="true"] { background: var(--cat-tile-a); color: var(--cat-tile-text); border-color: var(--cat-tile-border); }
 .k4-chip.anion[aria-pressed="true"] { background: var(--an-tile-a); color: var(--an-tile-text); border-color: var(--an-tile-border); }
 .k4-chip:disabled { cursor: default; }
