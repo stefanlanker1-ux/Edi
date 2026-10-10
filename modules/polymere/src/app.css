@@ -85,7 +85,7 @@
 .pm-chip { display: grid; gap: 1px; min-width: 0; min-height: 46px; padding: 4px 8px; text-align: left; border: 1.5px solid var(--rule); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); box-shadow: var(--key-edge); }
 .pm-chip:active { box-shadow: var(--key-edge-pressed); }
 .pm-chip-l { font-size: .68rem; font-weight: 650; color: var(--muted); }
-.pm-chip-v { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: .86rem; font-weight: 750; line-height: 1.12; }
+.pm-chip-v { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: .86rem; font-weight: 750; line-height: 1.12; min-height: 2.24em; } /* Platz für zwei Zeilen: ein langer Name lässt die Bühne nicht springen */
 /* lange Namen in zwei Zeilen (an Wortfugen getrennt) statt abgeschnitten */
 .pm-chip-v > span { min-width: 0; overflow-wrap: normal; hyphens: manual; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .pm-chip-dot { flex: none; display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--rule); }
@@ -379,8 +379,8 @@
 .pm-mono.fits { outline: 2px dashed var(--ok); outline-offset: -4px; }
 .pm-fits { font-size: .76rem; font-weight: 750; color: var(--ok); }
 .pm-lesson-note { position: absolute; left: 6px; bottom: 4px; margin: 0; font-size: .78rem; color: var(--muted); }
-/* nach der Antwort ist der Merksatz gelesen: sein Platz gehört dem Bild */
-.task-card.kind-tap.answered:not(.worked) .q-lead, .task-card.kind-order.answered:not(.worked) .q-lead, .task-card.kind-build.answered:not(.worked) .q-lead { display: none; }
+/* Ordnen: nach dem Prüfen ist der Merksatz gelesen – sein Platz gehört den vier Bildern (mindestens 230 px hoch) */
+.task-card.kind-order.answered:not(.worked) .q-lead { display: none; }
 /* Ordnen auf niedrigen Bildschirmen: Merksatz aus, damit die vier Bilder groß bleiben */
 @media (max-height: 700px) { .task-card.kind-order .q-lead { display: none; } .pm-order-grid { gap: 4px; } }
 .task-card.kind-order .q-feedback .fb-sol { display: none; }
@@ -389,8 +389,6 @@
 /* nach dem Prüfen stehen Platz und Name an jedem Bild: die Legende entfällt (die vier Bilder bleiben mindestens 230 px hoch) */
 @media (max-height: 800px) { .task-card.kind-order.answered .pm-order-legend { display: none; } }
 @media (max-height: 700px) { .task-card.kind-order.answered .q-feedback { padding: 3px 10px; } .task-card.kind-order.answered .q-feedback .fb-head { font-size: .85rem; line-height: 1.2; } .task-card.kind-order.answered .pm-order { gap: 2px; } }
-/* nach der Antwort ist der Merksatz gelesen: sein Platz gehört dem Aufgabenbild (auch bei Auswahl-Aufgaben) */
-.task-card.answered:not(.worked):has(.q-pm) .q-lead { display: none; }
 
 /* Kapitelname im Quiz-Kopf: lange Namen am schmalen Handy auf zwei Zeilen statt „Pol…“ */
 @media (max-width: 420px) {

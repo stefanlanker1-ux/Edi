@@ -58,8 +58,8 @@
 .og-pen.big small { font-size: .78rem; font-weight: 650; }
 .og-ring-icon polygon, .og-ring-icon line { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
 .og-more { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.og-name { min-height: 52px; width: 100%; display: grid; place-items: center; text-align: center; }
-.og-name.empty { min-height: 0; }
+/* auch leer so hoch wie mit Name: das Baufeld springt nicht, wenn ein Name erscheint */
+.og-name { min-height: max(52px, calc(1.2 * clamp(1rem, 4.4vw, 1.3rem) + 30px)); width: 100%; display: grid; place-items: center; text-align: center; }
 .og-iupac { margin: 0; font-size: clamp(1rem, 4.4vw, 1.3rem); font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; hyphens: manual; }
 .og-meta { margin: 2px 0 0; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 8px; color: var(--muted); font-size: .85rem; }
 .og-alt { font-weight: 650; }

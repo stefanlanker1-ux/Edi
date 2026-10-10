@@ -25,12 +25,16 @@ export interface WorkbenchTool {
   disabled?: boolean;
 }
 
-export function Workbench({ head, stage, status, controls, tools, className, label, active, onActive, side = "right" }: {
+export function Workbench({ head, stage, status, statusReserve, controls, tools, className, label, active, onActive, side = "right", wrapTools = false }: {
   head?: ReactNode; stage: ReactNode; status?: ReactNode; controls?: ReactNode; tools: WorkbenchTool[]; className?: string; label?: string;
+  /** Statuszeile reserviert Platz für die größte dieser Fassungen (unsichtbar in derselben Zelle): wechseln die Kennzeichen, springt die Bühne nicht */
+  statusReserve?: ReactNode[];
   /** gesteuert: offenes Werkzeug (Handy: Blatt, breit: Register); null = keines */
   active?: string | null; onActive?: (id: string | null) => void;
   /** breit: Register links oder rechts der Bühne */
   side?: "left" | "right";
+  /** Werkzeugleiste immer in zwei Reihen (Beschriftungen wechseln, z. B. gewählte Stoffe): sonst spränge die Bühne, wenn ein langer Name die Leiste umbricht */
+  wrapTools?: boolean;
 }) {
   const narrow = useNarrow();
   const [ownOpen, setOwnOpen] = useState<string | null>(null);
@@ -50,7 +54,7 @@ export function Workbench({ head, stage, status, controls, tools, className, lab
     const fit = () => {
       delete el.dataset.wrap;
       const cut = [...el.querySelectorAll<HTMLElement>(".ui-wb-tool > span")].some(s => s.scrollWidth > s.clientWidth + 1 || s.scrollHeight > s.clientHeight + 2);
-      if (cut) { el.dataset.wrap = ""; el.style.setProperty("--wb-cols", String(Math.ceil(el.children.length / 2))); }
+      if (cut || (wrapTools && narrow)) { el.dataset.wrap = ""; el.style.setProperty("--wb-cols", String(Math.ceil(el.children.length / 2))); }
     };
     fit();
     addEventListener("resize", fit);
@@ -61,7 +65,12 @@ export function Workbench({ head, stage, status, controls, tools, className, lab
       <section className="ui-card ui-wb-stage">
         {head && <div className="ui-wb-head">{head}</div>}
         <div className="ui-wb-view">{stage}</div>
-        {status && <div className="ui-wb-status">{status}</div>}
+        {statusReserve
+          ? <div className="ui-wb-status reserve">
+              <div className="ui-wb-status-now">{status}</div>
+              {statusReserve.map((r, i) => <div key={i} className="ui-wb-status-alt" aria-hidden="true">{r}</div>)}
+            </div>
+          : status && <div className="ui-wb-status">{status}</div>}
         {controls && <div className="ui-wb-controls">{controls}</div>}
         {bar.length > 0 && (
           <div ref={barRef} className={`ui-wb-tools${bar.length >= 5 ? " many" : ""}`} role="toolbar" aria-label={label ?? tr("Werkzeuge", "Tools")}>

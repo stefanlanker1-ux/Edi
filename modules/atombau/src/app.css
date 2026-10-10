@@ -65,7 +65,8 @@
 .d-s { font-size: 1.6rem; font-weight: 750; padding-top: 9px; }
 .d-name { font-size: 1.2rem; font-weight: 750; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .d-head .ui-badge { background: color-mix(in srgb, var(--surface) 70%, transparent); }
-.d-visual { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+/* zwei gleich breite Spalten, oben ausgerichtet: das Bohrmodell rückt nicht, wenn Atomsymbol und Schalen bei einem anderen Element breiter oder höher sind */
+.d-visual { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
 .d-bohr { max-width: 150px; aspect-ratio: 1; width: 100%; justify-self: center; }
 .d-nuc { display: grid; gap: 10px; justify-items: center; }
 /* Periode 7 (Z > 86): ohne Bohrmodell – Atomsymbol mittig */

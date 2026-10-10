@@ -13,6 +13,8 @@ export function Fit({ children, className, min = 0.4, minHeight = 0 }: {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [t, setT] = useState({ k: 1, y: 0, cut: false });
+  // zuletzt gesetzte Lage und Inhaltsgröße: ändert sich nur der Rahmen (Tipp, Rückmeldung darunter), bleibt der Inhalt stehen, solange er passt
+  const last = useRef({ y: -1, w: 0, h: 0, k: 1 });
   useLayoutEffect(() => {
     const o = outer.current, i = inner.current;
     if (!o || !i) return;
@@ -26,13 +28,21 @@ export function Fit({ children, className, min = 0.4, minHeight = 0 }: {
       // ausblenden statt einen Rest zu zeigen
       // zu klein auch, wenn der Rahmen selbst niedriger als minHeight ist und der Inhalt ihn füllt (Zeichnungen, die sich per cqh selbst einpassen)
       const tiny = minHeight > 0 && ((s < 1 && h * k < minHeight) || (o.clientHeight < minHeight && h >= o.clientHeight - 1));
-      setT({ k, y: Math.max(0, (o.clientHeight - h * k) / 2), cut: Number.isFinite(s) && (s < min || tiny) });
+      const center = Math.max(0, (o.clientHeight - h * k) / 2), p = last.current;
+      // nicht wandern: gleicher Inhalt, gleiche Größe – die bisherige Lage behalten, solange er darin ganz Platz hat (sonst so weit hoch wie nötig)
+      const same = p.y >= 0 && p.w === i.scrollWidth && p.h === h && p.k === k;
+      const y = same ? Math.max(0, Math.min(p.y, o.clientHeight - h * k)) : center;
+      last.current = { y, w: i.scrollWidth, h, k };
+      setT({ k, y, cut: Number.isFinite(s) && (s < min || tiny) });
     };
     update();
-    if (typeof ResizeObserver === "undefined") return;
+    // neue Fenstergröße: wieder mittig
+    const recenter = () => { last.current.y = -1; update(); };
+    addEventListener("resize", recenter);
+    if (typeof ResizeObserver === "undefined") return () => removeEventListener("resize", recenter);
     const ro = new ResizeObserver(update);
     ro.observe(o); ro.observe(i);
-    return () => ro.disconnect();
+    return () => { ro.disconnect(); removeEventListener("resize", recenter); };
   }, [min, minHeight]);
   return (
     <div ref={outer} className={`ui-fit${className ? " " + className : ""}`} data-cut={t.cut || undefined}>

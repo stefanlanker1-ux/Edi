@@ -1,10 +1,10 @@
 // Eine Gleichung ausgleichen (Start): oben Titel (und Auswahl), dann das Teilchenbild,
 // darunter die Gleichung (Zahl antippen = ändern) und genau ein Hauptknopf: „Prüfen“, nach ✓ „Weiter“.
-// Nach ✓ öffnet „Ablauf ansehen“ ein Blatt: wie die Edukte zerfallen und sich die Atome zu den Produkten verbinden (AnimButton).
+// Nach ✓ öffnet „Ablauf ansehen“ (unten rechts auf dem Bild) ein Blatt: wie die Edukte zerfallen und sich die Atome zu den Produkten verbinden (AnimButton).
 // Mit `hint` (Üben) zusätzlich der Knopf „Tipp“: zeigt den Hinweis zu dieser Gleichung über der Gleichungszeile.
 
 import { useState, type ReactNode } from "react";
-import { Button, Icon, Tag, Workbench, buzz, ding } from "@lern/ui";
+import { Button, Icon, Reserve, Tag, Workbench, buzz, ding } from "@lern/ui";
 import { isBalanced, unbalancedElements, type Reaction } from "@lern/chem";
 import { EquationRow, maxCoef } from "./Equation.tsx";
 import { MoleculeScene, hasModel } from "./Molecules.tsx";
@@ -44,25 +44,37 @@ export function BalanceCard({ r, coeffs, onChange, head, onNext, nextLabel = tr(
   return (
     <Workbench className="rg-wb" tools={[]}
       head={head}
-      stage={model && hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : null}
+      stage={<>
+        {model && hasModel(r) ? <MoleculeScene eq={r} coeffs={coeffs} state={shown ? (ok ? "ok" : "bad") : undefined} /> : null}
+        {/* Tipp über dem unteren Rand des Bilds: Bild und Gleichung bleiben stehen, wenn er erscheint */}
+        {hint && hintOn && !(shown && ok) && <p className="rg-hint" role="status"><Icon name="bulb" size={18} /> {hint}</p>}
+        {/* nach ✓: „Ablauf ansehen“ unten rechts auf dem Bild (statt in der Statuszeile – dort bräche er die Zeile um, die Bühne spränge) */}
+        {canAnim && <div className="rg-anim-at"><AnimButton r={r} coeffs={coeffs} /></div>}
+      </>}
+      // Platz für die Kennzeichen nach „Prüfen“ reserviert: die Bühne springt nicht, wenn sie erscheinen
+      statusReserve={[<><Tag tone="ok">✓ {tr("ausgeglichen", "balanced")}</Tag>{peeked && <Tag>{tr("Lösung angesehen – kein ✓", "Solution viewed – no ✓")}</Tag>}</>]}
       status={shown ? <>
         {!balanced && unbalancedElements(r, coeffs).map(el => <Tag key={el} tone="signal">≠ {el}</Tag>)}
         {balanced && !ok && <Tag tone="signal">{tr("kürzen :", "simplify ÷")} {g}</Tag>}
         {ok && <Tag tone="ok">✓ {tr("ausgeglichen", "balanced")}</Tag>}
         {ok && peeked && <Tag>{tr("Lösung angesehen – kein ✓", "Solution viewed – no ✓")}</Tag>}
-        {canAnim && <AnimButton r={r} coeffs={coeffs} />}
       </> : undefined}
       controls={
-        <div className="rg-controls">
-          {hint && hintOn && !(shown && ok) && <p className="rg-hint" role="status"><Icon name="bulb" size={18} /> {hint}</p>}
+        <div className="rg-controls" data-screen={r.id}>
           <EquationRow eq={r} coeffs={coeffs} onChange={(k, v) => { onChange(k, v); }} max={maxCoef(r)} />
-          <div className="rg-actions">
+          {/* feste Plätze: „Tipp“ und „Lösung“ stehen von Anfang an (unsichtbar, solange es sie nicht gibt) – kein Knopf rückt, wenn einer erscheint */}
+          <div className={`rg-actions${hint || onSolution ? " slots" : ""}`}>
             {shown && ok && onNext
               ? <Button variant="primary" iconRight="arrow" onClick={() => { buzz(); onNext(); }}>{nextLabel}</Button>
               : <Button variant="primary" icon="check" onClick={check} disabled={shown}>{tr("Prüfen", "Check")}</Button>}
-            {/* Tipp ein- und wieder ausblenden: am kleinen Handy braucht das Teilchenbild den Platz */}
-            {hint && !(shown && ok) && <Button icon="bulb" aria-pressed={hintOn} onClick={() => { buzz(); setHintOn(!hintOn); }}>{hintOn ? tr("Tipp aus", "Hide hint") : tr("Tipp", "Hint")}</Button>}
-            {onSolution && !ok && tries >= 2 && <Button onClick={() => { buzz(); onSolution(); }}>{tr("Lösung", "Solution")}</Button>}
+            {/* Tipp ein- und wieder ausblenden */}
+            {hint && <Button icon="bulb" className={shown && ok ? "rg-off" : undefined} aria-hidden={shown && ok ? true : undefined} tabIndex={shown && ok ? -1 : undefined}
+              aria-pressed={hintOn} onClick={() => { buzz(); setHintOn(!hintOn); }}>
+              <Reserve alts={[tr("Tipp aus", "Hide hint"), tr("Tipp", "Hint")]}>{hintOn ? tr("Tipp aus", "Hide hint") : tr("Tipp", "Hint")}</Reserve>
+            </Button>}
+            {onSolution && (() => { const on = !ok && tries >= 2; return (
+              <Button className={on ? undefined : "rg-off"} aria-hidden={on ? undefined : true} tabIndex={on ? undefined : -1} onClick={on ? () => { buzz(); onSolution(); } : undefined}>{tr("Lösung", "Solution")}</Button>
+            ); })()}
           </div>
         </div>
       } />

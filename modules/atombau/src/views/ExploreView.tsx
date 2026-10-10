@@ -64,6 +64,7 @@ export function ExploreView() {
         </div>
       }
       status={trend ? <Tag>{TRENDS[trend.key].label}</Tag> : blocks ? <Tag>s · p · d · f</Tag> : cat ? <Tag>{CATEGORIES[cat].label}</Tag> : undefined}
+      statusReserve={[<Tag>s · p · d · f</Tag>]}
       tools={[
         { id: "element", label: BY_Z[Z].name, icon: "atom", title: tr("Steckbrief", "Profile"), content: <ElementDetail Z={Z} onAction={() => setTool(null)} /> },
         { id: "farben", label: tr("Farben", "Colours"), icon: "grid", content: colors },

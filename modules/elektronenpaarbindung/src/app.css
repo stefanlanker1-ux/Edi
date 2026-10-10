@@ -134,6 +134,8 @@
 
 .eb-tags { min-height: 28px; }
 .eb-wb .res-head { min-height: 44px; }
+/* Statuszeile immer eine Zeile hoch: erscheint ein Kennzeichen, springt das Baufeld nicht */
+.eb-wb .ui-wb-status { min-height: 28px; }
 .eb-wb .res-formula { font-size: 1.8rem; }
 .struct-box.empty { min-height: 120px; color: var(--faint); font-size: 2rem; }
 .geo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }

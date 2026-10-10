@@ -151,6 +151,19 @@ export function Panel({ tabs, value, onChange, className, label }: {
 }
 
 /** Kurze Statusmarke statt eines Satzes (✓ neutral, Kation 2+ …) */
+/**
+ * Platz für die größte Fassung reservieren: alle Fassungen (`alts`) liegen unsichtbar in derselben Zelle wie der Inhalt – der Kasten wird so groß
+ * wie die größte und ändert seine Größe nicht, wenn der Inhalt wechselt (nichts daneben rückt, z. B. ein Bild neben einer Beschriftung).
+ */
+export function Reserve({ children, alts, className, block = false }: { children: ReactNode; alts: ReactNode[]; className?: string; block?: boolean }) {
+  return (
+    <span className={cx("ui-reserve", block && "block", className)}>
+      <span className="ui-reserve-now">{children}</span>
+      {alts.map((a, i) => <span key={i} className="ui-reserve-alt" aria-hidden="true">{a}</span>)}
+    </span>
+  );
+}
+
 export function Tag({ tone = "plain", children }: { tone?: "plain" | "ok" | "bad" | "signal"; children: ReactNode }) {
   return <span className={cx("ui-tag", `tone-${tone}`)}>{children}</span>;
 }
