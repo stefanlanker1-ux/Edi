@@ -54,10 +54,10 @@ test("Ionenwand: gebaute Formeln und Namen, nur Ionen aus ions.ts und beständig
   expect(isReal(29, 3) || isReal(26, 1) || isReal(82, 4)).toBe(false);
 });
 
-test("Rückmeldungen der Wand: jeder andere Zustand mit Zahlen, nie die Lösung", () => {
+test("Rückmeldungen zu den Ionen-Bausteinen: jeder andere Zustand mit Zahlen, nie die Lösung", () => {
   const why = wallWhy(26, "O2-", { q: 3, nC: 2, nA: 3 }, [2, 3]);
   expect(why["Fe₂O₃"]).toBeUndefined();
-  expect(why["≠ 3|1|1"]).toContain("1 · (3+) = 3+");
+  expect(why["≠ 3|1|1"]).toContain("drei positive Ladungen"); // Ladungen in Worten, keine Rechnung mit Klammern
   expect(why["FeO"]).toContain("(II)");
   expect(why["Fe₂O₂"]).toContain("(II)"); // ausgeglichen, nicht gekürzt, falsche römische Zahl
   expect(why["Fe₄O₆"]).toContain("4 : 6");

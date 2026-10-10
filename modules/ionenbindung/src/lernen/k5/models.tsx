@@ -1,16 +1,18 @@
-// Kapitel 5 (Nebengruppenmetalle): Modell-Bausteine – ohne Elektronenkonfiguration, alles über Stoffe, PSE und Ionenwand.
+// Kapitel 5 (Nebengruppenmetalle): Modell-Bausteine – ohne Elektronenkonfiguration, alles über Stoffe, PSE und Ionen-Bausteine.
 // Sample   – Stoffprobe auf dem Uhrglas in der echten Farbe (FeO schwarz, Fe₂O₃ rotbraun, Cu₂O rot, CuO schwarz).
-// OxidePair – zwei Stoffe aus denselben Elementen nebeneinander (Probe, Formel, Ionenwand, Name).
+// OxidePair – zwei Stoffe aus denselben Elementen nebeneinander (Probe, Formel, Ionen-Bausteine, Name).
 // PseMetals – Metalle wählen (Knöpfe unter dem PSE oder im PSE): Ladung aus der Hauptgruppe (I.–III. = Gruppe 1, 2, 13) oder im Namen (alle anderen).
-// WallModel – Ionenwand mit wählbarer Ladung des Metall-Ions (römische Zahl bzw. Ladung) und Zählern: Wand sofort (ausgeglichen oder nicht),
-//   ✓-Rechnung und Name erst nach dem Lösen. Begründet wird nur über die Ladungsbilanz und den Namen.
+// WallModel – Ionen-Bausteine mit wählbarer Ladung des Metall-Ions (römische Zahl bzw. Ladung) und Zählern: Bausteine sofort, darunter der Zustand
+//   in Worten („ausgeglichen: 6 positive und 6 negative Ladungen“, keine Rechnung mit Klammern); ✓ und Name erst nach dem Lösen.
+//   Begründet wird nur über die Ladungsbilanz und den Namen; Rückmeldungen nennen Ladungen in Worten („drei positive Ladungen“).
 
 import { CATIONS, ION_BY_ID, ROMAN, BY_Z, chargeFull, chargeSup, compoundName, formula, ionChargeText, ratio, toSubscript, typicalIonCharge, type Ion } from "@lern/chem";
 import { useState } from "react";
 import { Formula, PeriodicTable } from "@lern/chem-ui";
-import { Button, Fit, Icon, Segmented, Stepper, type GuideCtx } from "@lern/ui";
+import { Button, Fit, Icon, Reserve, Segmented, Stepper, type GuideCtx } from "@lern/ui";
 import { getLang, tr } from "@lern/i18n";
 import { ModelFrame, useModel } from "../model.tsx";
+import { balanceText } from "../../components/IonWall.tsx";
 
 // ── Stoffproben ────────────────────────────────────────────────────────────
 
@@ -60,28 +62,60 @@ export function wallFormula(Z: number, anionId: string, w: Wall) {
   return toSubscript(formula(cat, an, w.nC, w.nA));
 }
 
+/* Zahlwörter für Rückmeldungen („zwei Fe³⁺ bringen sechs positive Ladungen“); Anzahlen und Ladungen der Bausteine bleiben unter 13 */
+const DE_NUM = ["null", "ein", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn", "elf", "zwölf"];
+const EN_NUM = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** „ein Fe³⁺“, „drei O²⁻“ / „one Fe³⁺“ */
+const ionsWord = (n: number, ion: string) => tr(`${DE_NUM[n] ?? n} ${ion}`, `${EN_NUM[n] ?? n} ${ion}`);
+/** „eine positive Ladung“, „sechs positive Ladungen“; `short`: ohne „Ladung(en)“ (zweite Satzhälfte, „… nur zwei negative“) */
+function chargesWord(n: number, positive: boolean, short = false) {
+  const de = `${n === 1 ? "eine" : DE_NUM[n] ?? n} ${positive ? "positive" : "negative"}${short ? "" : n === 1 ? " Ladung" : " Ladungen"}`;
+  const en = `${EN_NUM[n] ?? n} ${positive ? "positive" : "negative"} ${n === 1 ? "charge" : "charges"}`;
+  return tr(de, en);
+}
+
 /**
- * Rückmeldungen zu jedem möglichen Zustand der Formel-Wand (Name → Formel), mit den Zahlen der Aufgabe:
- * nicht ausgeglichen (obere/untere Reihe), falsche römische Zahl, nicht gekürzt.
+ * Rückmeldungen zu jedem möglichen Zustand der Formel-Wand (Name → Formel), mit den Zahlen der Aufgabe in Worten:
+ * nicht ausgeglichen (welche Ladung fehlt), falsche römische Zahl, nicht gekürzt.
  */
 export function wallWhy(Z: number, anionId: string, sol: Wall, charges: number[]): Record<string, string> {
   const an = ION_BY_ID[anionId], a = -an.charge, sym = BY_Z[Z].symbol, out: Record<string, string> = {};
+  const anSym = `${toSubscript(an.formula)}${chargeSup(an.charge)}`;
   const right = wallFormula(Z, anionId, sol);
   for (const q of charges) for (let nC = 1; nC <= 4; nC++) for (let nA = 1; nA <= 6; nA++) {
     const w = { q, nC, nA }, id = wallFormula(Z, anionId, w);
     if (id === right || out[id]) continue;
-    if (nC * q !== nA * a) {
-      out[id] = tr(`Noch nicht neutral: obere Reihe ${nC} · (${chargeFull(q)}) = ${nC * q}+, untere Reihe ${nA} · (${chargeFull(-a)}) = ${nA * a}−.`,
-        `Not neutral yet: top row ${nC} · (${chargeFull(q)}) = ${nC * q}+, bottom row ${nA} · (${chargeFull(-a)}) = ${nA * a}−.`);
+    const pos = nC * q, neg = nA * a;
+    if (pos !== neg) {
+      const cat = ionsWord(nC, `${sym}${chargeSup(q)}`), ani = ionsWord(nA, anSym);
+      const bring = tr(nC === 1 ? "bringt" : "bringen", nC === 1 ? "brings" : "bring"), bringA = nA === 1 ? "brings" : "bring";
+      // Richtung wie beim Lösen: mehr Ionen einer Sorte als nötig → „zu viel … Ladung“, sonst „es fehlt noch … Ladung“
+      const tooMuch = pos < neg ? nA > sol.nA : nC > sol.nC;
+      const end = pos < neg
+        ? (tooMuch ? tr("Hier ist zu viel negative Ladung.", "There is too much negative charge here.") : tr("Hier fehlt noch positive Ladung.", "Positive charge is still missing here."))
+        : (tooMuch ? tr("Hier ist zu viel positive Ladung.", "There is too much positive charge here.") : tr("Hier fehlt noch negative Ladung.", "Negative charge is still missing here."));
+      out[id] = pos < neg
+        ? tr(`${cap(cat)} ${bring} nur ${chargesWord(pos, true)}, ${ani} aber ${chargesWord(neg, false, true)}. ${end}`,
+          `${cap(cat)} ${bring} only ${chargesWord(pos, true)}, but ${ani} ${bringA} ${chargesWord(neg, false)}. ${end}`)
+        : tr(`${cap(cat)} ${bring} ${chargesWord(pos, true)}, ${ani} nur ${chargesWord(neg, false, true)}. ${end}`,
+          `${cap(cat)} ${bring} ${chargesWord(pos, true)}, but ${ani} ${bringA} only ${chargesWord(neg, false)}. ${end}`);
     } else if (q !== sol.q) {
-      out[id] = tr(`Neutral, aber mit (${ROMAN[q]}) baust du ${sym}${chargeSup(q)}. Gesucht ist (${ROMAN[sol.q]}) = ${sym}${chargeSup(sol.q)}.`,
-        `Neutral, but with (${ROMAN[q]}) you build ${sym}${chargeSup(q)}. You need (${ROMAN[sol.q]}) = ${sym}${chargeSup(sol.q)}.`);
+      out[id] = tr(`Die Ladungen gleichen sich aus, aber (${ROMAN[q]}) steht für ${sym}${chargeSup(q)}. Im Namen steht (${ROMAN[sol.q]}), also ${sym}${chargeSup(sol.q)}.`,
+        `The charges balance, but (${ROMAN[q]}) stands for ${sym}${chargeSup(q)}. The name says (${ROMAN[sol.q]}), so ${sym}${chargeSup(sol.q)}.`);
     } else if (!simplest(Z, an, w)) {
-      out[id] = tr(`Neutral, aber nicht das kleinste Verhältnis: ${nC} : ${nA} lässt sich kürzen.`, `Neutral, but not the smallest ratio: ${nC} : ${nA} can be reduced.`);
+      out[id] = tr(`Das ist neutral, aber ${nC} : ${nA} lässt sich noch kürzen. Die Formel nennt immer das kleinste Verhältnis.`,
+        `That is neutral, but ${nC} : ${nA} can still be reduced. The formula always gives the smallest ratio.`);
     }
   }
   return out;
 }
+
+/** Lücke neben der kürzeren Reihe (Vorlesen): „es fehlt 1 positive Ladung“, „es fehlen 2 negative Ladungen“ */
+const missingText = (n: number, positive: boolean) => {
+  const kind = positive ? "positive" : "negative";
+  return n === 1 ? tr(`es fehlt 1 ${kind} Ladung`, `1 ${kind} charge missing`) : tr(`es fehlen ${n} ${kind} Ladungen`, `${n} ${kind} charges missing`);
+};
 
 /** Baustein der Ionenwand (Breite = Ladung) */
 function Tile({ ion }: { ion: Ion }) {
@@ -98,11 +132,11 @@ export function IonWall5({ cat, an, nC, nA, small = false }: { cat: Ion; an: Ion
     <div className={`k5-iw${small ? " small" : ""}`} style={{ "--cols": Math.max(pos, neg) } as React.CSSProperties}>
       <div className="k5-row" aria-label={`${nC} × ${cat.formula}${chargeSup(cat.charge)}`}>
         {Array.from({ length: nC }, (_, i) => <Tile key={i} ion={cat} />)}
-        {neg > pos && <span className="k5-gap" style={{ gridColumn: `span ${neg - pos}` }} role="img" aria-label={tr(`es fehlen ${neg - pos} positive Ladungen`, `${neg - pos} positive charges missing`)} />}
+        {neg > pos && <span className="k5-gap" style={{ gridColumn: `span ${neg - pos}` }} role="img" aria-label={missingText(neg - pos, true)} />}
       </div>
       <div className="k5-row" aria-label={`${nA} × ${an.formula}${chargeSup(an.charge)}`}>
         {Array.from({ length: nA }, (_, i) => <Tile key={i} ion={an} />)}
-        {pos > neg && <span className="k5-gap" style={{ gridColumn: `span ${pos - neg}` }} role="img" aria-label={tr(`es fehlen ${pos - neg} negative Ladungen`, `${pos - neg} negative charges missing`)} />}
+        {pos > neg && <span className="k5-gap" style={{ gridColumn: `span ${pos - neg}` }} role="img" aria-label={missingText(pos - neg, false)} />}
       </div>
     </div>
   );
@@ -157,9 +191,17 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
   const sym = BY_Z[Z].symbol;
   const countsOk = w.nC === sol.nC && w.nA === sol.nA;
   const result = report === "formula" ? wallFormula(Z, anion, w) : !countsOk ? WRONG_COUNTS : report === "charge" ? `${w.q}+` : nameWith(Z, w.q, an);
-  const calc = `${w.nC} · (${chargeFull(w.q)}) = ${w.nC * w.q}+ ${balanced ? tr("und", "and") : tr("aber", "but")} ${w.nA} · (${chargeFull(an.charge)}) = ${w.nA * -an.charge}−`;
-  // Vor dem Lösen nie ✓, Grün oder der fertige Name: Formel bauen zeigt die Rechnung neutral („ausgeglichen“ bzw. „≠“), Ladung/Name suchen nur die Wand.
-  // Nach dem Lösen: ✓-Rechnung und Name.
+  // Zustand in Worten wie unter den Bausteinen der anderen Kapitel: „ausgeglichen: 6 positive und 6 negative Ladungen“ bzw. „noch nicht ausgeglichen: …“
+  const calc = balanceText(cat, an, w.nC, w.nA);
+  // längster Zustand aller einstellbaren Ladungen und Anzahlen hält die Zeile gleich hoch – bricht ein kürzerer Text nicht um, rückt das Bild nicht
+  let longest = "";
+  for (const q of charges ?? [init.q, sol.q]) for (const nC of stepC ? [1, 2, 3, 4] : [init.nC, sol.nC]) for (const nA of stepA ? [1, 2, 3, 4, 5, 6] : [init.nA, sol.nA]) {
+    const t = balanceText(metalIon(Z, q), an, nC, nA);
+    if (t.length > longest.length) longest = t;
+  }
+  const line = (text: string) => <Reserve block alts={[longest]}>{text}</Reserve>;
+  // Vor dem Lösen nie ✓, Grün oder der fertige Name: Formel bauen zeigt den Zustand neutral („ausgeglichen“ bzw. „noch nicht ausgeglichen“),
+  // Ladung/Name suchen nur die Bausteine. Nach dem Lösen: ✓ mit dem Zustand und der Name.
   const showSample = sample && (sampleAlways || c.solved);
   // was erst nach dem Lösen erscheint (Probe, Name, ✓-Rechnung), hat seinen Platz schon vorher (unsichtbar) – die Wand rückt nicht
   const hold = (on: boolean | undefined) => (on ? undefined : { visibility: "hidden" as const });
@@ -178,8 +220,8 @@ export function WallModel({ c, Z, anion, init, sol, charges, numerals = false, s
           <span className="k5-built-n" style={hold(c.solved)} aria-hidden={!c.solved || undefined}>{compoundName(cat, an)}</span></p>
       )}
       {c.solved
-        ? <p className="k5-calc ok">✓ {calc}</p>
-        : <p className="k5-calc" style={hold(report === "formula")} aria-hidden={report !== "formula" || undefined}>{balanced ? `${tr("ausgeglichen", "balanced")}: ` : "≠ "}{calc}</p>}
+        ? <p className="k5-calc ok">{line(`✓ ${calc}`)}</p>
+        : <p className="k5-calc" style={hold(report === "formula")} aria-hidden={report !== "formula" || undefined}>{line(calc)}</p>}
       {report === "name" && !c.solved && <p className="k5-name" aria-live="polite">{nameWith(Z, w.q, an)}</p>}
       {report !== "formula" && (c.solved || report !== "name") && <p className={`k5-name${c.solved ? " ok" : ""}`} style={hold(c.solved)} aria-hidden={!c.solved || undefined}>{compoundName(cat, an)}</p>}
     </div></Fit>
@@ -217,7 +259,15 @@ export function groupText(Z: number, comma = false) {
   const h = g <= 2 ? g : g - 10;
   return tr(`Gruppe ${g} = ${ROMAN[h]}. Hauptgruppe`, `group ${g} = main group ${ROMAN[h]}`);
 }
-const elText = (Z: number) => `${BY_Z[Z].name} ${BY_Z[Z].symbol}`;
+/** Name mit Symbol in Klammern: „Eisen (Fe)“ */
+const elText = (Z: number) => `${BY_Z[Z].name} (${BY_Z[Z].symbol})`;
+/** Satz zur Stellung im PSE: „Aluminium (Al) steht in Gruppe 13, der III. Hauptgruppe.“, „Es steht in Gruppe 8, einer Nebengruppe.“ */
+function groupSentence(Z: number, subject = elText(Z)) {
+  const g = groupOf(Z);
+  if (g >= 3 && g <= 12) return tr(`${subject} steht in Gruppe ${g}, einer Nebengruppe.`, `${subject} is in group ${g}, among the transition metals.`);
+  const h = g <= 2 ? g : g - 10;
+  return tr(`${subject} steht in Gruppe ${g}, der ${ROMAN[h]}. Hauptgruppe.`, `${subject} is in group ${g}, main group ${ROMAN[h]}.`);
+}
 
 /** Rückmeldung zu jeder Auswahl unter den angebotenen Metallen: zuerst ein Metall zu viel (mit Gruppe und Grund), sonst eines, das fehlt */
 export function pseWhy(cands: number[], answer: number[]): Record<string, string> {
@@ -227,13 +277,13 @@ export function pseWhy(cands: number[], answer: number[]): Record<string, string
     const pick = cands.filter((_, i) => m & (1 << i)), id = pseResult(pick);
     if (id === right) continue;
     const extra = pick.find(Z => !wanted(Z)), miss = cands.find(Z => wanted(Z) && !pick.includes(Z));
-    if (!pick.length) { out[id] = tr("Noch nichts gewählt. Tippe Metalle an.", "Nothing chosen yet. Tap metals."); continue; }
+    if (!pick.length) { out[id] = tr("Du hast noch kein Metall gewählt. Tippe die passenden Metalle an.", "You have not chosen a metal yet. Tap the right metals."); continue; }
     if (extra) {
       out[id] = chargeFromGroup(extra)
-        ? tr(`${elText(extra)}: ${groupText(extra)} – die Ladung liest du aus der Hauptgruppe ab.`, `${elText(extra)}: ${groupText(extra)} – you read the charge from the main group.`)
-        : tr(`${elText(extra)}: ${groupText(extra)} – nur die I. bis III. Hauptgruppe verraten die Ladung.`, `${elText(extra)}: ${groupText(extra)} – only main groups I to III give the charge.`);
+        ? `${groupSentence(extra)} ${tr("Die Ladung liest du an der Hauptgruppe ab.", "You read the charge from the main group.")}`
+        : `${groupSentence(extra)} ${tr("Dort verrät das PSE die Ladung nicht.", "There the periodic table does not give the charge.")}`;
     } else if (miss) {
-      out[id] = tr(`${elText(miss)} fehlt noch – ${groupText(miss, true)}.`, `${elText(miss)} is still missing – ${groupText(miss, true)}.`);
+      out[id] = `${tr(`${elText(miss)} fehlt noch.`, `${elText(miss)} is still missing.`)} ${groupSentence(miss, tr("Es", "It"))}`;
     }
   }
   return out;
@@ -251,8 +301,8 @@ export function PseMetals({ c, cands, answer, bare = false }: { c: GuideCtx; can
   const sym = (Z: number) => BY_Z[Z].symbol;
   const toggle = (Z: number) => {
     if (c.solved) return;
-    if (!cands.includes(Z)) { setInfo(tr(`${sym(Z)} ist hier nicht dabei.`, `${sym(Z)} is not on offer here.`)); return; }
-    setInfo(bare ? tr(`${elText(Z)}: Gruppe ${groupOf(Z)}`, `${elText(Z)}: group ${groupOf(Z)}`) : `${elText(Z)}: ${groupText(Z)}`);
+    if (!cands.includes(Z)) { setInfo(tr(`${sym(Z)} steht hier nicht zur Wahl.`, `${sym(Z)} is not one of the choices here.`)); return; }
+    setInfo(bare ? tr(`${elText(Z)}: Gruppe ${groupOf(Z)}`, `${elText(Z)}: group ${groupOf(Z)}`) : `${elText(Z)}: ${groupText(Z, true)}`);
     set(has(Z) ? picked.filter(x => x !== Z) : [...picked, Z]);
   };
   const chips = (
@@ -279,7 +329,7 @@ export function PseMetals({ c, cands, answer, bare = false }: { c: GuideCtx; can
                 <p><b>{tr("Ladung aus der Hauptgruppe", "Charge from the main group")}:</b> {byZ.filter(chargeFromGroup).map(Z => sym(Z) + chargeSup(typicalIonCharge(Z) ?? 0)).join(", ")}</p>
                 <p><b>{tr("Ladung im Namen", "Charge in the name")}:</b> {byZ.filter(Z => !chargeFromGroup(Z)).map(sym).join(", ")}</p>
               </>
-            ) : <p>{info || tr("Wähle Metalle unten oder im PSE.", "Choose metals below or in the table.")}</p>}
+            ) : <p>{info || tr("Tippe die Metalle unten oder im PSE an.", "Tap the metals below or in the table.")}</p>}
           </div>
         </div>
       }
@@ -321,8 +371,8 @@ export function GroupStrip({ c, metals }: { c: GuideCtx; metals: number[] }) {
         ))}
       </div>
       <div className="k5-strip-key">
-        <span><i className="grp" /> {tr("aus der Hauptgruppe", "from the main group")}</span>
-        <span><i className="name" /> {tr("? = im Namen", "? = in the name")}</span>
+        <span><i className="grp" /> {tr("Ladung aus der Hauptgruppe", "charge from the main group")}</span>
+        <span><i className="name" /> {tr("? Ladung steht im Namen", "? charge is in the name")}</span>
       </div>
     </Fit>
   );
