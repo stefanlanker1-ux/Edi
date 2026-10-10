@@ -6,8 +6,8 @@ import {
   blockOf, valenceElectrons, chargeSup, hundBoxes, ruleConfiguration, configException, AUFBAU_EXCEPTIONS,
 } from "../src/config.ts";
 
-test("86 Elemente, lückenlos", () => {
-  assert.strictEqual(ELEMENTS.length, 86);
+test("118 Elemente, lückenlos", () => {
+  assert.strictEqual(ELEMENTS.length, 118);
   ELEMENTS.forEach((e, i) => assert.strictEqual(e.Z, i + 1));
 });
 
@@ -136,9 +136,11 @@ test("Schalen", () => {
   assert.deepEqual(shells(26), [2, 8, 14, 2]);
   assert.deepEqual(shells(86), [2, 8, 18, 32, 18, 8]);
   assert.deepEqual(shells(11, 10), [2, 8]);
-  for (const e of ELEMENTS) assert.strictEqual(shells(e.Z).reduce((a, b) => a + b, 0), e.Z);
+  // Schalen und Konfiguration zeigt die App nur bis Radon (CONFIG_MAX_Z, Baukasten bis Z = 86)
+  const upToRn = ELEMENTS.filter(e => e.Z <= 86);
+  for (const e of upToRn) assert.strictEqual(shells(e.Z).reduce((a, b) => a + b, 0), e.Z);
   // Baukasten: bis zu 3 Elektronen mehr oder weniger – jedes Elektron bekommt einen Platz (auch Rn mit 89)
-  for (const e of ELEMENTS) for (let E = Math.max(0, e.Z - 3); E <= e.Z + 3; E++) assert.strictEqual(shells(e.Z, E).reduce((a, b) => a + b, 0), E, `${e.symbol} ${E}`);
+  for (const e of upToRn) for (let E = Math.max(0, e.Z - 3); E <= e.Z + 3; E++) assert.strictEqual(shells(e.Z, E).reduce((a, b) => a + b, 0), E, `${e.symbol} ${E}`);
 });
 
 test("Ungepaarte Elektronen, Block, Valenz", () => {
@@ -195,10 +197,22 @@ test("Neutronen, Stabilität, Ladung", () => {
 
 test("Trends: Daten vollständig und plausibel", async () => {
   const { TRENDS, trendScale } = await import("../src/trends.ts");
+  // bis Radon vollständig; 7. Periode: Kovalenzradien bis Curium (Cordero 2008), Ionisierungsenergien bis Lawrencium (NIST), sonst null
   for (const e of ELEMENTS) {
-    assert.ok(TRENDS.radius.value(e.Z)! > 0, `Radius ${e.symbol}`);
-    assert.ok(TRENDS.ie.value(e.Z)! > 3, `IE ${e.symbol}`);
+    const r = TRENDS.radius.value(e.Z), ie = TRENDS.ie.value(e.Z), en = TRENDS.en.value(e.Z);
+    if (e.Z <= 96) assert.ok(r! > 0, `Radius ${e.symbol}`); else assert.strictEqual(r, null, `Radius ${e.symbol}`);
+    if (e.Z <= 103) assert.ok(ie! > 3, `IE ${e.symbol}`); else assert.strictEqual(ie, null, `IE ${e.symbol}`);
+    for (const v of [r, ie, en]) assert.ok(v === null || (Number.isFinite(v) && v > 0), `${e.symbol}: ${v}`);
   }
+  // keine NaN in der Farbskala, Elemente ohne Wert bleiben null (nicht 0)
+  for (const key of ["en", "radius", "ie"] as const) {
+    const sc = trendScale(key, ELEMENTS.map(e => e.Z));
+    for (const e of ELEMENTS) {
+      const v = sc(e.Z);
+      assert.ok(v === null ? TRENDS[key].value(e.Z) === null : Number.isFinite(v) && v >= 0 && v <= 1, `${key} ${e.symbol}: ${v}`);
+    }
+  }
+  assert.strictEqual(trendScale("en", ELEMENTS.map(e => e.Z))(118), null);
   assert.strictEqual(TRENDS.ie.value(2), 24.59);   // Helium höchste
   assert.strictEqual(TRENDS.radius.value(55), 244); // Caesium größter
   const s = trendScale("en", ELEMENTS.map(e => e.Z));

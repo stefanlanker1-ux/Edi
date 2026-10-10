@@ -1,10 +1,18 @@
-// Elementdaten Z = 1–86 (Wasserstoff bis Radon) inkl. Lanthanoide. Namen deutsch oder englisch (Sprache der Oberfläche).
+// Elementdaten Z = 1–118 (Wasserstoff bis Oganesson) inkl. Lanthanoide und Actinoide. Namen deutsch oder englisch (Sprache der Oberfläche).
+// Die Ansichten zeigen meist nur Z = 1–86 (Unterstufe 1–20); die 7. Periode (87–118) nur das große PSE im Atombau (`PeriodicTable period7`).
+// Quellen: Namen und Symbole nach IUPAC (deutsch nach Duden/IUPAC-Empfehlung, z. B. „Tenness“), Standardatommassen gekürzt nach CIAAW/IUPAC;
+// Elemente ohne Standardatommasse: Massenzahl des langlebigsten bekannten Isotops, wie in gängigen Periodensystemen in eckigen Klammern
+// (z. B. Tc 98, Rn 222, Og 294; bei den superschweren Elementen können neue Messungen die Angabe ändern).
+// Elektronegativität nach Pauling (Allred 1961 bzw. CRC Handbook); null = nicht gemessen bzw. nur geschätzt (Edelgase He–Ar, Fr, ab Am).
 
 import { tr, getLang } from "@lern/i18n";
 
 export type Category =
   | "alkali" | "earth" | "transition" | "lanthanoid" | "metal"
-  | "metalloid" | "nonmetal" | "halogen" | "noble";
+  | "metalloid" | "nonmetal" | "halogen" | "noble" | "actinoid" | "unknown";
+
+/** Art eines Elements; „unbekannt“ für die superschweren Elemente ab Meitnerium (nur einzelne Atome hergestellt, Eigenschaften nicht gemessen) */
+export type Kind = "Metall" | "Halbmetall" | "Nichtmetall" | "unbekannt";
 
 export interface Element {
   Z: number;
@@ -15,7 +23,7 @@ export interface Element {
   /** Elektronegativität nach Pauling (null = nicht definiert) */
   en: number | null;
   period: number;
-  /** Gruppe 1–18, null für Lanthanoide */
+  /** Gruppe 1–18, null für Lanthanoide und Actinoide (f-Block, im PSE in eigenen Zeilen unter der Tabelle) */
   group: number | null;
   category: Category;
   radioactive: boolean;
@@ -66,13 +74,34 @@ const RAW: [number, string, string, number, number | null][] = [
   [81,"Tl","Thallium",204.38,1.62],   [82,"Pb","Blei",207.2,2.33],
   [83,"Bi","Bismut",208.98,2.02],     [84,"Po","Polonium",209,2.00],
   [85,"At","Astat",210,2.20],         [86,"Rn","Radon",222,2.20],
+  // 7. Periode: alle radioaktiv. Th, Pa, U mit Standardatommasse (CIAAW), sonst Massenzahl des langlebigsten Isotops.
+  // EN nur, wo aus Messdaten bestimmt (Ra–Pu, Allred 1961); Fr und ab Am sind die üblichen Tabellenwerte (0,7 bzw. 1,3) nur geschätzt → null.
+  [87,"Fr","Francium",223,null],      [88,"Ra","Radium",226,0.9],
+  [89,"Ac","Actinium",227,1.1],       [90,"Th","Thorium",232.04,1.3],
+  [91,"Pa","Protactinium",231.04,1.5],[92,"U","Uran",238.03,1.38],
+  [93,"Np","Neptunium",237,1.36],     [94,"Pu","Plutonium",244,1.28],
+  [95,"Am","Americium",243,null],     [96,"Cm","Curium",247,null],
+  [97,"Bk","Berkelium",247,null],     [98,"Cf","Californium",251,null],
+  [99,"Es","Einsteinium",252,null],   [100,"Fm","Fermium",257,null],
+  [101,"Md","Mendelevium",258,null],  [102,"No","Nobelium",259,null],
+  [103,"Lr","Lawrencium",266,null],   [104,"Rf","Rutherfordium",267,null],
+  [105,"Db","Dubnium",268,null],      [106,"Sg","Seaborgium",269,null],
+  [107,"Bh","Bohrium",270,null],      [108,"Hs","Hassium",269,null],
+  [109,"Mt","Meitnerium",278,null],   [110,"Ds","Darmstadtium",281,null],
+  [111,"Rg","Roentgenium",282,null],  [112,"Cn","Copernicium",285,null],
+  [113,"Nh","Nihonium",286,null],     [114,"Fl","Flerovium",289,null],
+  [115,"Mc","Moscovium",290,null],    [116,"Lv","Livermorium",293,null],
+  [117,"Ts","Tenness",294,null],      [118,"Og","Oganesson",294,null],
 ];
 
 /** englische Namen je Ordnungszahl */
-const EN_NAMES = ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium", "Scandium", "Titanium", "Vanadium", "Chromium", "Manganese", "Iron", "Cobalt", "Nickel", "Copper", "Zinc", "Gallium", "Germanium", "Arsenic", "Selenium", "Bromine", "Krypton", "Rubidium", "Strontium", "Yttrium", "Zirconium", "Niobium", "Molybdenum", "Technetium", "Ruthenium", "Rhodium", "Palladium", "Silver", "Cadmium", "Indium", "Tin", "Antimony", "Tellurium", "Iodine", "Xenon", "Caesium", "Barium", "Lanthanum", "Cerium", "Praseodymium", "Neodymium", "Promethium", "Samarium", "Europium", "Gadolinium", "Terbium", "Dysprosium", "Holmium", "Erbium", "Thulium", "Ytterbium", "Lutetium", "Hafnium", "Tantalum", "Tungsten", "Rhenium", "Osmium", "Iridium", "Platinum", "Gold", "Mercury", "Thallium", "Lead", "Bismuth", "Polonium", "Astatine", "Radon"];
+const EN_NAMES = ["Hydrogen", "Helium", "Lithium", "Beryllium", "Boron", "Carbon", "Nitrogen", "Oxygen", "Fluorine", "Neon", "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur", "Chlorine", "Argon", "Potassium", "Calcium", "Scandium", "Titanium", "Vanadium", "Chromium", "Manganese", "Iron", "Cobalt", "Nickel", "Copper", "Zinc", "Gallium", "Germanium", "Arsenic", "Selenium", "Bromine", "Krypton", "Rubidium", "Strontium", "Yttrium", "Zirconium", "Niobium", "Molybdenum", "Technetium", "Ruthenium", "Rhodium", "Palladium", "Silver", "Cadmium", "Indium", "Tin", "Antimony", "Tellurium", "Iodine", "Xenon", "Caesium", "Barium", "Lanthanum", "Cerium", "Praseodymium", "Neodymium", "Promethium", "Samarium", "Europium", "Gadolinium", "Terbium", "Dysprosium", "Holmium", "Erbium", "Thulium", "Ytterbium", "Lutetium", "Hafnium", "Tantalum", "Tungsten", "Rhenium", "Osmium", "Iridium", "Platinum", "Gold", "Mercury", "Thallium", "Lead", "Bismuth", "Polonium", "Astatine", "Radon",
+  "Francium", "Radium", "Actinium", "Thorium", "Protactinium", "Uranium", "Neptunium", "Plutonium", "Americium", "Curium", "Berkelium", "Californium",
+  "Einsteinium", "Fermium", "Mendelevium", "Nobelium", "Lawrencium", "Rutherfordium", "Dubnium", "Seaborgium", "Bohrium", "Hassium", "Meitnerium",
+  "Darmstadtium", "Roentgenium", "Copernicium", "Nihonium", "Flerovium", "Moscovium", "Livermorium", "Tennessine", "Oganesson"];
 
-// Elemente ohne stabiles Isotop
-const RADIOACTIVE = new Set([43, 61, 84, 85, 86]);
+// Elemente ohne stabiles Isotop (Tc, Pm, ab Po alle)
+const RADIOACTIVE = new Set([43, 61, ...Array.from({ length: 118 - 83 }, (_, i) => 84 + i)]);
 
 const PERIOD_START = [1, 3, 11, 19, 37, 55, 87];
 function periodOf(Z: number): number {
@@ -91,36 +120,49 @@ function groupOf(Z: number): number | null {
   if (p === 4 || p === 5) return Z - PERIOD_START[p - 1] + 1;
   if (Z <= 56) return Z - 54;
   if (Z <= 71) return null; // Lanthanoide
-  return Z - 68;
+  if (Z <= 86) return Z - 68;
+  if (Z <= 88) return Z - 86;
+  if (Z <= 103) return null; // Actinoide
+  return Z - 100;
 }
 
 const SETS: Partial<Record<Category, number[]>> = {
-  alkali: [3, 11, 19, 37, 55],
-  earth: [4, 12, 20, 38, 56],
+  alkali: [3, 11, 19, 37, 55, 87],
+  earth: [4, 12, 20, 38, 56, 88],
   noble: [2, 10, 18, 36, 54, 86],
   halogen: [9, 17, 35, 53, 85],
   metalloid: [5, 14, 32, 33, 51, 52],
   nonmetal: [1, 6, 7, 8, 15, 16, 34],
 };
 
+/** ab Meitnerium (Z = 109): Eigenschaften unbekannt (Rf–Hs sind als Übergangsmetalle der Gruppen 4–8 chemisch untersucht) */
+const UNKNOWN_FROM = 109;
+
 function categoryOf(Z: number, group: number | null): Category {
   for (const [k, list] of Object.entries(SETS)) if (list!.includes(Z)) return k as Category;
-  if (group === null) return "lanthanoid";
+  if (Z >= UNKNOWN_FROM) return "unknown";
+  if (group === null) return Z <= 71 ? "lanthanoid" : "actinoid";
   if (group >= 3 && group <= 12) return "transition";
   return "metal";
 }
 
-export const CATEGORIES: Record<Category, { label: string; kind: "Metall" | "Halbmetall" | "Nichtmetall" }> = {
+export const CATEGORIES: Record<Category, { label: string; kind: Kind }> = {
   alkali: { label: tr("Alkalimetalle", "Alkali metals"), kind: "Metall" },
   earth: { label: tr("Erdalkalimetalle", "Alkaline earth metals"), kind: "Metall" },
   transition: { label: tr("Übergangsmetalle", "Transition metals"), kind: "Metall" },
   lanthanoid: { label: tr("Lanthanoide", "Lanthanoids"), kind: "Metall" },
+  actinoid: { label: tr("Actinoide", "Actinoids"), kind: "Metall" },
   metal: { label: tr("Weitere Metalle", "Other metals"), kind: "Metall" },
   metalloid: { label: tr("Halbmetalle", "Metalloids"), kind: "Halbmetall" },
   nonmetal: { label: tr("Nichtmetalle", "Non-metals"), kind: "Nichtmetall" },
   halogen: { label: tr("Halogene", "Halogens"), kind: "Nichtmetall" },
   noble: { label: tr("Edelgase", "Noble gases"), kind: "Nichtmetall" },
+  unknown: { label: tr("Eigenschaften unbekannt", "Properties unknown"), kind: "unbekannt" },
 };
+
+/** Name der f-Block-Reihe (Lanthanoide 57–71, Actinoide 89–103), sonst null */
+export const fSeriesName = (Z: number): string | null =>
+  Z >= 57 && Z <= 71 ? tr("Lanthanoide", "Lanthanoids") : Z >= 89 && Z <= 103 ? tr("Actinoide", "Actinoids") : null;
 
 export const GROUP_NAMES: Record<number, string> = {
   1: tr("Alkalimetalle", "Alkali metals"), 2: tr("Erdalkalimetalle", "Alkaline earth metals"), 13: tr("Borgruppe", "Boron group"),
@@ -128,10 +170,13 @@ export const GROUP_NAMES: Record<number, string> = {
   17: tr("Halogene", "Halogens"), 18: tr("Edelgase", "Noble gases"),
 };
 
-/** Name der Gruppe (Alkalimetalle, Halogene …) oder null – Wasserstoff steht in Gruppe 1, ist aber kein Alkalimetall */
+/**
+ * Name der Gruppe (Alkalimetalle, Halogene …) oder null – Wasserstoff steht in Gruppe 1, ist aber kein Alkalimetall;
+ * die superschweren Elemente ab Mt (Eigenschaften unbekannt, z. B. Oganesson in Gruppe 18) bekommen keinen Gruppennamen.
+ */
 export const groupName = (Z: number): string | null => {
-  const g = BY_Z[Z]?.group;
-  return Z === 1 || g == null ? null : GROUP_NAMES[g] ?? null;
+  const e = BY_Z[Z], g = e?.group;
+  return Z === 1 || g == null || e.category === "unknown" ? null : GROUP_NAMES[g] ?? null;
 };
 
 /** Elemente mit männlichem Namen (der Wasserstoff, Kohlenstoff, Stickstoff, Sauerstoff, Phosphor, Schwefel) – alle übrigen sind sächlich */
@@ -183,7 +228,7 @@ export const STABLE_N: Record<number, number[]> = {
 
 /**
  * Massenzahl des häufigsten natürlichen Isotops (Index = Z − 1); bei Elementen ohne stabiles Isotop
- * das bekannteste bzw. langlebigste (Tc-98, Pm-145, Po-209, At-210, Rn-222).
+ * das bekannteste bzw. langlebigste (Tc-98, Pm-145, Po-209, At-210, Rn-222; 7. Periode: Fr-223 … U-238 … Og-294, wie die Atommasse in eckigen Klammern).
  * Nicht einfach die gerundete Atommasse: Kupfer 63,55 u → Cu-63 (nicht Cu-64), Brom 79,90 u → Br-79.
  */
 const COMMON_A = [
@@ -192,6 +237,8 @@ const COMMON_A = [
   93, 98, 98, 102, 103, 106, 107, 114, 115, 120, 121, 130, 127, 132, 133, 138, 139, 140, 141, 142,
   145, 152, 153, 158, 159, 164, 165, 166, 169, 174, 175, 180, 181, 184, 187, 192, 193, 195, 197, 202,
   205, 208, 209, 209, 210, 222,
+  223, 226, 227, 232, 231, 238, 237, 244, 243, 247, 247, 251, 252, 257, 258, 259, 266, 267, 268, 269,
+  270, 269, 278, 281, 282, 285, 286, 289, 290, 293, 294, 294,
 ];
 
 /** Neutronenzahl des häufigsten Isotops (z. B. Chlor-35 → 18, Kupfer-63 → 34) */
@@ -208,8 +255,8 @@ export function isStable(Z: number, N: number): boolean | null {
 
 /** Suche nach Name, Symbol oder Ordnungszahl */
 /** Art zum Anzeigen (Metall, Halbmetall, Nichtmetall) in der Sprache der Oberfläche */
-export const kindLabel = (k: "Metall" | "Halbmetall" | "Nichtmetall") =>
-  tr({ Metall: "Metall", Halbmetall: "Halbmetall", Nichtmetall: "Nichtmetall" }, { Metall: "Metal", Halbmetall: "Metalloid", Nichtmetall: "Non-metal" })[k];
+export const kindLabel = (k: Kind) =>
+  tr({ Metall: "Metall", Halbmetall: "Halbmetall", Nichtmetall: "Nichtmetall", unbekannt: "unbekannt" }, { Metall: "Metal", Halbmetall: "Metalloid", Nichtmetall: "Non-metal", unbekannt: "unknown" })[k];
 
 export function searchElements(query: string, maxZ = MAX_Z): Element[] {
   const q = query.trim().toLowerCase();

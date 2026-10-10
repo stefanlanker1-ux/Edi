@@ -11,7 +11,10 @@
   --c-alkali: var(--hue-violet-soft); --c-earth: var(--hue-teal-soft); --c-transition: var(--hue-blue-soft); --c-lanthanoid: var(--hue-mauve-soft);
   --b-s: var(--hue-red-soft); --b-p: var(--hue-blue-soft); --b-d: var(--hue-teal-soft); --b-f: var(--hue-orange-soft);
   --c-metal: var(--hue-grey-soft); --c-metalloid: var(--hue-orange-soft); --c-nonmetal: var(--hue-yellow-soft); --c-halogen: var(--hue-green-soft); --c-noble: var(--hue-red-soft);
+  /* Actinoide: verwandt mit den Lanthanoiden (Malve), etwas kräftiger; unbekannte Eigenschaften (ab Mt): neutrale Fläche, gestrichelter Rand */
+  --c-actinoid: color-mix(in srgb, var(--hue-mauve-soft) 72%, var(--hue-violet)); --c-unknown: var(--surface-2);
 }
+:root[data-theme="dark"] { --c-actinoid: color-mix(in srgb, var(--hue-mauve-soft) 80%, var(--hue-violet)); }
 :root, :root[data-theme="light"] { --ring: #cfcfcf; --trend-lo: #f4f4f4; --trend-hi: #111111; }
 :root[data-theme="dark"] { --ring: #3a3a3a; --trend-lo: #1d1d1d; --trend-hi: #f2f2f2; }
 
@@ -19,6 +22,8 @@
 .cat-transition { background: var(--c-transition); } .cat-lanthanoid { background: var(--c-lanthanoid); }
 .cat-metal { background: var(--c-metal); } .cat-metalloid { background: var(--c-metalloid); }
 .cat-nonmetal { background: var(--c-nonmetal); } .cat-halogen { background: var(--c-halogen); } .cat-noble { background: var(--c-noble); }
+.cat-actinoid { background: var(--c-actinoid); }
+.cat-unknown { background: var(--c-unknown); outline: 1px dashed var(--faint); outline-offset: -1px; }
 .blk-s { background: var(--b-s); } .blk-p { background: var(--b-p); } .blk-d { background: var(--b-d); } .blk-f { background: var(--b-f); }
 .legend.blk-legend { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; gap: 4px; }
 .blk-legend .lg-item { min-height: 30px; padding: 3px 8px; box-shadow: none; font-size: .75rem; }
@@ -146,6 +151,13 @@ button.pse-cell:hover:not(:disabled) { box-shadow: inset 0 0 0 2px var(--rule); 
   /* schmal: Symbol nie breiter als die Kachel (18 Spalten + Periodenspalte) */
   .pse-os.fit .pse-cell:not(.pse-ph) .pc-sym { font-size: min(clamp(.6rem, 2.3cqw, 1.05rem), calc((100cqw - 24px) / 38)); letter-spacing: -.02em; } }
 @media (max-width: 420px) { .pse-us .pc-name { display: none; } }
+/* Großes PSE mit 7. Periode und Actinoiden (Atombau): 7 Perioden + Lücke + 2 f-Block-Zeilen; Zeilennamen „Lanthanoide“/„Actinoide“,
+   schmal „La–Lu“/„Ac–Lr“; Trend ohne Messwert: ohne Fläche, gestrichelt, „–“ (eine graue Fläche sähe aus wie ein niedriger Wert) */
+.pse-os.fit.pse-p7 .pse-cell { height: clamp(22px, calc((100cqh - 50px) / 9.25), 62px); }
+.pse-series { justify-self: end; padding-right: 4px; white-space: nowrap; }
+.pse-series .ps-short { display: none; }
+@container (max-width: 540px) { .pse-series .ps-long { display: none; } .pse-series .ps-short { display: inline; } .pse-series { justify-self: center; padding: 0; grid-column: 2 / span 2 !important; } }
+.pse-cell.trend.no-data { background: transparent; outline: 1px dashed var(--faint); outline-offset: -1px; }
 
 .pc-sub { font-size: .66rem; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .pse-us .pc-sub { font-size: clamp(.62rem, 2vw, .82rem); }

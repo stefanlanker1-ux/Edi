@@ -50,6 +50,9 @@
 .trend-legend p { margin: 0; }
 .trend-legend b { color: var(--text); }
 .tl-scale { display: flex; align-items: center; gap: 8px; font-size: .75rem; }
+/* Trend ohne Messwert (z. B. superschwere Elemente): gestrichelt ohne Fläche mit „–“ wie im PSE */
+.tl-none { display: flex; align-items: center; gap: 8px; font-size: .75rem; }
+.tl-none i { width: 22px; height: 16px; display: grid; place-items: center; font-style: normal; font-weight: 650; border-radius: var(--radius-sm); color: var(--text); outline: 1px dashed var(--faint); outline-offset: -1px; }
 .tl-scale i { flex: 1; max-width: 260px; height: 10px; border-radius: var(--radius-sm); background: linear-gradient(90deg, var(--trend-lo), var(--trend-hi)); box-shadow: inset 0 0 0 1px var(--border); }
 
 .detail { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; }
@@ -65,6 +68,8 @@
 .d-visual { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
 .d-bohr { max-width: 150px; aspect-ratio: 1; width: 100%; justify-self: center; }
 .d-nuc { display: grid; gap: 10px; justify-items: center; }
+/* Periode 7 (Z > 86): ohne Bohrmodell – Atomsymbol mittig */
+.d-visual.d-nocfg { grid-template-columns: minmax(0, 1fr); padding: 8px 0 4px; }
 .d-sec h4 { font-size: .78rem; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); margin-bottom: 8px; }
 .d-sec p { margin: 4px 0; }
 .d-ion { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }

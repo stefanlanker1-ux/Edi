@@ -26,7 +26,10 @@ interface State {
   setOpt: (o: Partial<Pick<State, "animate" | "orbitalColors" | "showScheme">>) => void;
 }
 
+/** höchste Ordnungszahl im Baukasten und in der Elementsuche zum Bauen (Konfiguration und Bohrmodell bis Radon) */
 export const maxZFor = (s: Stufe) => (s === "us" ? 20 : 86);
+/** höchste Ordnungszahl im Periodensystem (Tab „Periodensystem“): Oberstufe mit 7. Periode bis Oganesson */
+export const exploreMaxZ = (s: Stufe) => (s === "us" ? 20 : 118);
 
 export const useApp = create<State>()(persist((set, get) => ({
   tab: "build",
@@ -43,7 +46,7 @@ export const useApp = create<State>()(persist((set, get) => ({
     set({
       stufe,
       build: s.build.Z > max ? { Z: 6, N: 6, E: 6 } : s.build,
-      selectedZ: s.selectedZ > max ? 6 : s.selectedZ,
+      selectedZ: s.selectedZ > exploreMaxZ(stufe) ? 6 : s.selectedZ,
     });
   },
   setBuild: b => set({ build: { ...get().build, ...b } }),
@@ -58,7 +61,7 @@ export const useApp = create<State>()(persist((set, get) => ({
   merge: (saved, current) => {
     const m = { ...current, ...(saved as Partial<State>) };
     if (m.build.Z > maxZFor(current.stufe)) m.build = { Z: 6, N: 6, E: 6 };
-    if (m.selectedZ > maxZFor(current.stufe)) m.selectedZ = 6;
+    if (m.selectedZ > exploreMaxZ(current.stufe)) m.selectedZ = 6;
     return m;
   },
   partialize: s => ({ build: s.build, selectedZ: s.selectedZ, orbitalColors: s.orbitalColors, showScheme: s.showScheme }),

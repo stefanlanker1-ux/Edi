@@ -1,15 +1,17 @@
 // Periodensystem (Werkbank): das ganze PSE ist immer sichtbar, darüber die Suche.
 // Werkzeuge: Element (Steckbrief des gewählten Elements) und Farben (Kategorien; Oberstufe auch Blöcke s/p/d/f und Trends).
+// Oberstufe: großes PSE mit 7. Periode und Actinoiden (bis Oganesson, `exploreMaxZ`). Für Z > 86 zeigt der Steckbrief nur gesicherte Daten –
+// keine Konfiguration, keine Schalen, kein Bohrmodell, kein „Bauen“ (Baukasten bis Radon; Begründung bei `CONFIG_MAX_Z` in `@lern/chem`).
 
 import { useEffect, useState } from "react";
 import { Button, Chip, FitDown, Panel, Segmented, Tag, Workbench, useNarrow, useReducedMotion } from "@lern/ui";
 import {
   BY_Z, CATEGORIES, groupName, searchElements, standardNeutrons, configuration, configString, shortConfigString,
   shells, SHELL_NAMES, blockOf, valenceElectrons, typicalIonCharge, chargeSup, unpairedElectrons, configException,
-  ELEMENTS, TRENDS, trendScale, kindLabel, type Category, type TrendKey, mainGroupNumber, ROMAN,
+  TRENDS, trendScale, kindLabel, type Category, type TrendKey, mainGroupNumber, ROMAN, CONFIG_MAX_Z, fSeriesName,
 } from "@lern/chem";
-import { useApp, maxZFor } from "../store.ts";
-import { PeriodicTable, Legend, BlockLegend } from "@lern/chem-ui";
+import { useApp, maxZFor, exploreMaxZ } from "../store.ts";
+import { PeriodicTable, Legend, BlockLegend, pseElements } from "@lern/chem-ui";
 import { SearchBox } from "../components/ElementPicker.tsx";
 import { ExceptionTag } from "../components/ConfigNote.tsx";
 import { Bohr, Nuclide, EnergyDiagram } from "@lern/chem-ui";
@@ -22,10 +24,12 @@ export function ExploreView() {
   const [cat, setCat] = useState<Category | null>(null);
   const [tool, setTool] = useState<string | null>(null);
   const [color, setColor] = useState<"cat" | "blk" | TrendKey>("cat");
-  const blocks = stufe === "os" && color === "blk";
-  const trend = stufe === "os" && color !== "cat" && color !== "blk" ? { key: color, scale: trendScale(color, ELEMENTS.map(e => e.Z)) } : undefined;
-  const hits = new Set(searchElements(q, maxZFor(stufe)).map(e => e.Z));
-  const Z = selectedZ > maxZFor(stufe) ? 6 : selectedZ;
+  const os = stufe === "os";
+  const blocks = os && color === "blk";
+  const trend = os && color !== "cat" && color !== "blk" ? { key: color, scale: trendScale(color, pseElements({ us: false, period7: true })) } : undefined;
+  const maxZ = exploreMaxZ(stufe);
+  const hits = new Set(searchElements(q, maxZ).map(e => e.Z));
+  const Z = selectedZ > maxZ ? 6 : selectedZ;
 
   useEffect(() => { setCat(null); setQ(""); setColor("cat"); }, [stufe]);
 
@@ -40,17 +44,18 @@ export function ExploreView() {
         ? <div className="trend-legend">
             <div className="tl-scale"><span>{tr("niedrig", "low")}</span><i /><span>{tr("hoch", "high")}</span></div>
             <p><b>{TRENDS[trend.key].label}{TRENDS[trend.key].unit && ` (${TRENDS[trend.key].unit})`}</b></p>
+            <p className="tl-none"><i aria-hidden="true">–</i>{tr("keine Daten", "no data")}</p>
           </div>
-        : blocks ? <BlockLegend /> : <Legend stufe={stufe} active={cat} onToggle={c => setCat(cat === c ? null : c)} />}
+        : blocks ? <BlockLegend /> : <Legend stufe={stufe} period7={os} active={cat} onToggle={c => setCat(cat === c ? null : c)} />}
     </>
   );
 
   return (
     <Workbench className="explore-wb" active={tool} onActive={setTool}
-      head={<SearchBox value={q} onChange={setQ} placeholder={tr("Element suchen …", "Search element …")} onEnter={() => { const h = searchElements(q, maxZFor(stufe))[0]; if (h) pick(h.Z); }} />}
+      head={<SearchBox value={q} onChange={setQ} placeholder={tr("Element suchen …", "Search element …")} onEnter={() => { const h = searchElements(q, maxZ)[0]; if (h) pick(h.Z); }} />}
       stage={
         <div className="pse-fit">
-          <PeriodicTable fit stufe={stufe} onPick={pick} trend={trend} blocks={blocks} cellState={z => {
+          <PeriodicTable fit stufe={stufe} period7={os} onPick={pick} trend={trend} blocks={blocks} cellState={z => {
             const e = BY_Z[z];
             if (hits.size) return hits.has(z) ? "hit" : "dim";
             if (cat && !trend && !blocks && e.category !== cat) return "dim";
@@ -73,20 +78,23 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   const os = stufe === "os";
   const el = BY_Z[Z];
   const N = standardNeutrons(Z);
+  // Periode 7: keine Konfiguration, keine Schalen (siehe CONFIG_MAX_Z); Baukasten nur bis maxZFor
+  const hasCfg = Z <= CONFIG_MAX_Z, canBuild = Z <= maxZFor(stufe);
   const cfg = configuration(Z);
-  const sh = shells(Z);
-  const val = valenceElectrons(Z);
-  const ion = typicalIonCharge(Z);
+  const sh = hasCfg ? shells(Z) : [];
+  const val = el.category === "unknown" ? null : valenceElectrons(Z);
+  const ion = hasCfg ? typicalIonCharge(Z) : null;
+  const radius = TRENDS.radius.value(Z), ie = TRENDS.ie.value(Z);
   const rows: [string, string | number][] = [
     [tr("Ordnungszahl", "Atomic number"), Z],
     [tr("Atommasse", "Atomic mass"), `${el.mass.toLocaleString(LOC)} u`],
     ["p⁺ · n · e⁻", `${Z} · ${N} · ${Z}`],
     // Pd [Kr] 4d¹⁰: Periode 5, aber die 5s-Unterschale ist leer
-    [tr("Periode", "Period"), sh.length < el.period
+    [tr("Periode", "Period"), !hasCfg ? el.period : sh.length < el.period
       ? tr(`${el.period} (${sh.length} besetzte Schalen, ${el.period}s leer)`, `${el.period} (${sh.length} occupied shells, ${el.period}s empty)`)
       : tr(`${el.period} (${sh.length} Schale${sh.length > 1 ? "n" : ""})`, `${el.period} (${sh.length} shell${sh.length > 1 ? "s" : ""})`)],
     os || mainGroupNumber(Z) === null
-      ? [tr("Gruppe", "Group"), el.group === null ? tr("Lanthanoide", "Lanthanoids") : `${el.group}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`]
+      ? [tr("Gruppe", "Group"), el.group === null ? fSeriesName(Z) ?? "–" : `${el.group}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`]
       : [tr("Hauptgruppe", "Main group"), `${ROMAN[mainGroupNumber(Z)!]}${groupName(Z) ? ` · ${groupName(Z)}` : ""}`],
     [tr("Art", "Type"), kindLabel(CATEGORIES[el.category].kind)],
   ];
@@ -94,9 +102,9 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   if (os) {
     rows.push(["Block", `${blockOf(Z)}${tr("-Block", " block")}`]);
     rows.push([tr("Elektronegativität", "Electronegativity"), el.en === null ? "–" : el.en.toLocaleString(LOC)]);
-    rows.push([tr("Ungepaarte e⁻", "Unpaired e⁻"), unpairedElectrons(cfg)]);
-    rows.push([tr("Atomradius", "Atomic radius"), `${TRENDS.radius.value(Z)} pm`]);
-    rows.push([tr("Ionisierungsenergie", "Ionisation energy"), `${TRENDS.ie.value(Z)!.toLocaleString(LOC)} eV`]);
+    if (hasCfg) rows.push([tr("Ungepaarte e⁻", "Unpaired e⁻"), unpairedElectrons(cfg)]);
+    rows.push([tr("Atomradius", "Atomic radius"), radius === null ? "–" : `${radius} pm`]);
+    rows.push([tr("Ionisierungsenergie", "Ionisation energy"), ie === null ? "–" : `${ie.toLocaleString(LOC)} eV`]);
   }
   if (el.radioactive) rows.push([tr("Besonderheit", "Note"), tr("radioaktiv", "radioactive")]);
   const go = (charge = 0) => { buildElement(Z, charge); onAction?.(); };
@@ -104,11 +112,13 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   const key = rows.slice(0, 4);
   const overview = (
     <FitDown min={0.5}>
-      <div className="d-visual">
-        <div className="d-bohr"><Bohr Z={Z} N={N} E={Z} slots={os ? 6 : 4} colorByOrbital={os && orbitalColors} animate={animate && !reduced} /></div>
+      <div className={`d-visual${hasCfg ? "" : " d-nocfg"}`}>
+        {hasCfg && <div className="d-bohr"><Bohr Z={Z} N={N} E={Z} slots={os ? 6 : 4} colorByOrbital={os && orbitalColors} animate={animate && !reduced} /></div>}
         <div className="d-nuc">
           <Nuclide Z={Z} N={N} E={Z} size="lg" />
-          <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
+          {hasCfg
+            ? <div className="shell-chips">{sh.map((c, i) => <Chip key={i}><b>{SHELL_NAMES[i]}</b>{c}</Chip>)}</div>
+            : <div className="ui-tags"><Tag>{tr("radioaktiv", "radioactive")}</Tag></div>}
         </div>
       </div>
       {os && configException(Z) && <div className="ui-tags d-exc"><ExceptionTag Z={Z} /></div>}
@@ -118,7 +128,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   const tabs = [
     { id: "info", label: tr("Überblick", "Overview"), content: overview },
     { id: "daten", label: tr("Daten", "Data"), content: <FitDown min={0.6}><dl className="d-facts">{rows.slice(4).map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl></FitDown> },
-    ...(os ? [{
+    ...(os && hasCfg ? [{
       id: "cfg", label: tr("Konfig.", "Config."), content: (
         <>
           <p className="cfg-line"><span className="cfg-k">{tr("Ausführlich", "Full")}</span><code>{configString(cfg)}</code></p>
@@ -150,7 +160,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
       <div className={`d-head cat-${el.category}`}>
         <div className="d-sym"><span className="d-z">{Z}</span><span className="d-s">{el.symbol}</span></div>
         <div className="d-title"><h2 className="d-name">{el.name}</h2><span className="ui-badge">{CATEGORIES[el.category].label}</span></div>
-        <Button variant="primary" icon="atom" onClick={() => go()}>{tr("Bauen", "Build")}</Button>
+        {canBuild && <Button variant="primary" icon="atom" onClick={() => go()}>{tr("Bauen", "Build")}</Button>}
       </div>
       <Panel className="flat" tabs={tabs} label={tr("Steckbrief", "Profile")} />
     </div>
