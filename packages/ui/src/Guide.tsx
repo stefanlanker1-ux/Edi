@@ -153,7 +153,7 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
   // nie abgeschnitten: wächst der Text (Rückmeldung nach einer falschen Antwort, Lösungsweg) über den Bildschirm, stufenweise enger (data-fit,
   // components.css) – zuletzt behält das Bild 72 px und der Text darf scrollen, statt unten abgeschnitten zu werden
   const inRef = useRef<HTMLDivElement>(null);
-  // steady: Höhe des Bildes je Schritt (und Fenstergröße) – gemessen beim Erscheinen, danach fest
+  // je Schritt (und Fenstergröße) beim Erscheinen entschieden: Geister halten Platz frei, oder die Bildhöhe ist fest und der Text scrollt
   const lockRef = useRef({ key: "", t: 0 });
   useLayoutEffect(() => {
     const el = inRef.current;
@@ -164,27 +164,33 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
       const limit = el.getBoundingClientRect().bottom - parseFloat(getComputedStyle(el).paddingBottom) + 1;
       return [...el.querySelectorAll<HTMLElement>(":scope > .ui-guide-body > *, :scope > .ui-guide-end")].some(c => c.getBoundingClientRect().bottom > limit);
     };
+    const runFit = () => { el.dataset.fit = "0"; for (let k = 1; k <= 2 && over(); k++) el.dataset.fit = String(k); };
+    const vis = () => body?.querySelector<HTMLElement>(":scope > .ui-guide-visual") ?? null;
+    const lock = (h: number) => { body!.style.gridTemplateRows = `${Math.max(72, Math.floor(h))}px minmax(0, 1fr)`; body!.dataset.locked = ""; };
     // noch nicht zu sehen (Dialog öffnet gerade): nichts messen – die Kästen haben dann keine Größe
     const fit = () => {
       if (!el.clientHeight) return;
       const key = `${i}|${innerWidth}x${innerHeight}`;
-      if (steady && body) {
-        // gleicher Schritt: das Bild behält seine Höhe – nur kurz nach dem Erscheinen und solange noch nichts geschehen ist (keine Antwort, keine weitere Zeile)
-        // wird noch einmal gemessen, bis alles steht
-        const pristine = tries === 0 && seen === 1 && !msg && (worked || !solved);
-        if (lockRef.current.key === key && (!pristine || performance.now() - lockRef.current.t > 600)) return;
-        body.style.gridTemplateRows = ""; delete body.dataset.locked;
+      // gleicher Schritt: die Entscheidung (Geister oder feste Bildhöhe) bleibt – nur kurz nach dem Erscheinen und solange noch nichts geschehen ist
+      // (keine Antwort, keine weitere Zeile) wird noch einmal gemessen, bis alles steht
+      const pristine = tries === 0 && seen === 1 && !msg && (worked || !solved);
+      if (lockRef.current.key === key && (!pristine || performance.now() - lockRef.current.t > 600)) { if (!body?.dataset.locked) runFit(); return; }
+      if (body) { body.style.gridTemplateRows = ""; delete body.dataset.locked; }
+      delete el.dataset.noghost;
+      runFit();
+      const v = vis();
+      // nur untereinander (schmal): nebeneinander hat das Bild ohnehin immer die volle Höhe
+      if (body && v && getComputedStyle(body).gridTemplateColumns.trim().split(/\s+/).length === 1) {
+        const withGhosts = v.getBoundingClientRect().height;
+        el.dataset.noghost = ""; runFit();
+        const without = v.getBoundingClientRect().height;
+        // Geister nur, wenn sie das Bild kaum verkleinern (≥ 90 % der Höhe ohne sie) – sonst würden Bild und Tippziele darin kleiner als bisher.
+        // Dann statt dessen: Bildhöhe vom Anfang fest, der Text scrollt (nichts rückt, nichts schrumpft). steady: Geister außer auf niedrigen Handys
+        const ghosts = steady ? !matchMedia("(max-height: 700px)").matches : withGhosts >= 0.9 * without;
+        if (ghosts) { delete el.dataset.noghost; runFit(); if (steady) lock(v.getBoundingClientRect().height); }
+        else lock(without);
       }
-      el.dataset.fit = "0"; for (let k = 1; k <= 2 && over(); k++) el.dataset.fit = String(k);
-      if (steady && body) {
-        const vis = body.querySelector<HTMLElement>(":scope > .ui-guide-visual");
-        // nur untereinander (schmal): nebeneinander hat das Bild ohnehin immer die volle Höhe
-        if (vis && getComputedStyle(body).gridTemplateColumns.trim().split(/\s+/).length === 1) {
-          body.style.gridTemplateRows = `${Math.max(72, Math.floor(vis.getBoundingClientRect().height))}px minmax(0, 1fr)`;
-          body.dataset.locked = "";
-        }
-        if (lockRef.current.key !== key) lockRef.current = { key, t: performance.now() };
-      }
+      if (lockRef.current.key !== key) lockRef.current = { key, t: performance.now() };
     };
     fit();
     // noch einmal, wenn Bild und Einblendungen stehen (gleich nach dem Rendern kann die Höhe kurz zu groß sein)
@@ -192,10 +198,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
     addEventListener("resize", fit);
     return () => { cancelAnimationFrame(raf); clearTimeout(late); removeEventListener("resize", fit); };
   }, [open, i, msg, solved, tries, seen, done]);
-  // steady: wird der Text länger als sein Platz, scrollt er – Rückmeldung und „Weiter“ bleiben zu sehen
+  // feste Bildhöhe: wird der Text länger als sein Platz, scrollt er – Rückmeldung und „Weiter“ bleiben zu sehen
   useEffect(() => {
     const t = textRef.current;
-    if (steady && t && t.scrollHeight > t.clientHeight + 1) t.scrollTop = t.scrollHeight;
+    if (t && t.parentElement?.hasAttribute("data-locked") && t.scrollHeight > t.clientHeight + 1) t.scrollTop = t.scrollHeight;
   }, [msg, solved, seen, steady]);
 
   function reset() { setTries(0); setSolved(false); setMsg(null); setVal(""); setSeen(1); }

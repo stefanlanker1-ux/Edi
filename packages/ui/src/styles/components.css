@@ -387,6 +387,8 @@ svg .g-sol, .g-sol-svg { outline: none; stroke: var(--ok); stroke-width: 3; stro
    dazu ist untereinander die Bildhöhe je Schritt fest (`data-locked`) – reicht der Platz doch nicht, scrollt der Text (Rückmeldung und „Weiter“ werden hineingescrollt).
    Niedrige Handys: das Bild geht vor – keine Geister, nur die feste Bildhöhe und Scrollen. */
 @media (max-width: 899px) and (max-height: 700px) { .ui-guide-in[data-steady] .ui-guide-ghost { display: none; } }
+/* Guide misst je Schritt: verkleinerten die Geister das Bild merklich (unter 90 %), entfallen sie (data-noghost) – dann feste Bildhöhe, der Text scrollt */
+.ui-guide-in[data-noghost] .ui-guide-ghost { display: none; }
 .ui-guide-body[data-locked] > .ui-guide-text { min-height: 0; overflow-y: auto; align-content: start; overscroll-behavior: contain; }
 
 /* Beschriftung mit Pfeilen (Erklärung): Begriff am Rand, schwarzer Pfeil aufs Teil; Tippen geht durch */
