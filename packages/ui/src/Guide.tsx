@@ -115,8 +115,9 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
   start?: number; onStep?: (i: number) => void;
   /** Hilfsmittel je Schritt – dann stehen sie mit „Weiter“ in einer Leiste unter dem Text */
   tools?: (step: GuideStep, i: number) => GuideTool[];
-  /** Bild steht still (bisher nur Ionenbindung „Lernen“): Platz für Lösungsweg, Rückmeldung und „Weiter“ ist von Anfang an frei, und untereinander
-   *  (schmal) behält das Bild in jedem Schritt die Höhe vom Anfang – wird der Text doch länger, scrollt er, statt das Bild zu verkleinern. */
+  /** Bild steht still (bisher nur Ionenbindung „Lernen“): untereinander (schmal) behält das Bild in jedem Schritt die Höhe vom Anfang – den Platz für
+   *  Lösungsweg, Rückmeldung und „Weiter“ halten die Geister frei; reicht er doch nicht, scrollt der Text, statt das Bild zu verkleinern.
+   *  Niedrige Handys (≤ 700 px): keine Geister, das Bild geht vor (components.css). */
   steady?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -168,8 +169,10 @@ export function Guide({ def, open, onClose, onFinish, finishLabel, badge, start 
       if (!el.clientHeight) return;
       const key = `${i}|${innerWidth}x${innerHeight}`;
       if (steady && body) {
-        // gleicher Schritt: das Bild behält seine Höhe (nur kurz nach dem Erscheinen wird noch einmal gemessen, bis alles steht)
-        if (lockRef.current.key === key && performance.now() - lockRef.current.t > 600) return;
+        // gleicher Schritt: das Bild behält seine Höhe – nur kurz nach dem Erscheinen und solange noch nichts geschehen ist (keine Antwort, keine weitere Zeile)
+        // wird noch einmal gemessen, bis alles steht
+        const pristine = tries === 0 && seen === 1 && !msg && (worked || !solved);
+        if (lockRef.current.key === key && (!pristine || performance.now() - lockRef.current.t > 600)) return;
         body.style.gridTemplateRows = ""; delete body.dataset.locked;
       }
       el.dataset.fit = "0"; for (let k = 1; k <= 2 && over(); k++) el.dataset.fit = String(k);
