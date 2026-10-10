@@ -312,6 +312,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   keine hellblaue Hinterlegung hinter dem Atom, die sich mit ändert. Wunsch der Lehrkraft.
 - **PSE**: Das kleine PSE (Unterstufe, Hauptgruppen I–VIII bis Calcium) bleibt, wie es ist – nichts daran ändern. Lanthanoide, Actinoide und die 7. Periode nur im großen PSE
   von **Atombau** (Tab „Periodensystem“, Level II); PSE-Hilfe der Module und Ionenbindung Kapitel 5 zeigen sie nicht. Wunsch der Lehrkraft.
+- **Elektronegativität nach Allred-Rochow** (alle Apps, Wunsch der Lehrkraft): Tabellen, PSE-Trend, Steckbrief, Rechnungen und Texte nutzen nur Allred-Rochow-Werte
+  (nie Pauling). Polare Bindung ab **ΔEN ≥ 0,5** (wie im Schulbuch); darunter unpolar bzw. „schwach polar“ (0 < ΔEN < 0,5, ohne C–H).
 - **Nichts wandert** (alle Apps): Bilder, Modelle, Karten und Steuerleisten bleiben beim Bedienen an ihrem Platz – auch wenn sich daneben Text, Zahlen, Ladungen oder
   Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
