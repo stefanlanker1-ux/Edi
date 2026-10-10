@@ -291,6 +291,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   keine hellblaue Hinterlegung hinter dem Atom, die sich mit ändert.
 - **PSE**: Das kleine PSE (Unterstufe, Hauptgruppen I–VIII bis Calcium) bleibt, wie es ist – nichts daran ändern. Lanthanoide, Actinoide und die 7. Periode nur im großen PSE
   von **Atombau** (Tab „Periodensystem“, Level II); PSE-Hilfe der Module und Ionenbindung Kapitel 5 zeigen sie nicht.
+- **Elektronegativität nach Allred-Rochow** (alle Module): Tabellen, PSE-Trend, Steckbrief, Rechnungen und Texte nutzen nur Allred-Rochow-Werte
+  (nie Pauling). Polare Bindung ab **ΔEN ≥ 0,5**; darunter unpolar bzw. „schwach polar“ (0 < ΔEN < 0,5, ohne C–H).
 - **Nichts wandert** (alle Apps): Bilder, Modelle, Karten und Steuerleisten bleiben beim Bedienen an ihrem Platz – auch wenn sich daneben Text, Zahlen, Ladungen oder
   Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen).
@@ -315,11 +317,12 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   gedrückt `--key-edge-pressed`; neue Knopf-Klassen bekommen beides), Anzeigen haben keinen Rahmen, nur eine ruhige Fläche (`Tag`, `Chip`, Ergebnis).
   Beantwortete Auswahl verliert die Unterkante.
 - Keine Erklärsätze in der Oberfläche; Zustand als kurze `Tag`s (✓ neutral, Kation Fe³⁺ …). Erklärungen nur in den Folien, in den Merksätzen (Hilfsmittel „Erklärung“) und als Tipp.
-- Fachsprache überall gleich (Experimentieren, Lernen, alle Module):
+- Fachsprache überall gleich (Experimentieren, Lernen, alle Module; Begriffe aus den Modulen bis einschließlich Ionenbindung):
   beschreibend statt zielgerichtet – nie „das Atom will/braucht ein Oktett“, sondern „das Ion hat dann eine volle Außenschale wie ein Edelgas“;
   Gruppen je Stufe: Unterstufe römische Hauptgruppe („IV. Hauptgruppe“), Oberstufe Gruppe 1–18 zusammen mit der Hauptgruppe („Gruppe 13, die III. Hauptgruppe“;
   `groupLabel` in `@lern/chem`, auch PSE-Kopf und PSE-Hilfe); Ladungen als Zahl vor dem Zeichen: 2+, 1− (`signed`, `chargeFull`), Rechnung mit echtem Minus (`minus`);
-  „Außenelektronen“.
+  „Außenelektronen“ (einmal eingeführt als „Außenelektronen (Valenzelektronen)“), „Kohlendioxid“, „Kohlenmonoxid“,
+  Gemischarten mit Aggregatzuständen (Lösung s/l, Emulsion l/l …).
 - **Zwei Sprachen** (`packages/i18n`): jeder sichtbare Text als `tr("Deutsch", "English")`, auch in Daten. Beim ersten Start aus der Gerätesprache, danach Knopf EN/DE in der Kopfzeile (EN vor DE, international)
   (`lern-sprache`; Wechsel lädt die Seite neu, Stände bleiben). Tests laufen auf Deutsch; je Modul prüft ein Test, dass nichts Deutsches
   in der englischen Fassung bleibt (Ionenbindung: `kapitel.test.ts`). Fachnamen englisch nach IUPAC (sodium chloride, chloride ion …).
