@@ -315,6 +315,8 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - **Nichts wandert** (alle Apps): Bilder, Modelle, Karten und Steuerleisten bleiben beim Bedienen an ihrem Platz – auch wenn sich daneben Text, Zahlen, Ladungen oder
   Rückmeldungen ändern. Nur gewollte Animationen bewegen sich. Dafür feste Spalten/Größen und reservierter Platz für die längste mögliche Beschriftung (Grid statt
   zentriertem Flex, `tabular-nums`, `visibility: hidden` statt Weglassen). Wunsch der Lehrkraft: „Das Atom bleibt starr auf dem Bildschirm.“
+  Umsetzung: `ModelFrame` hält nach dem Lösen die Höhe der Bedienzeile frei; `Guide steady` (Ionenbindung „Lernen“) reserviert Platz für Lösungsweg, Rückmeldung und
+  „Weiter“ – untereinander behält das Bild seine Anfangshöhe, längerer Text scrollt; Schalen-Text über `shellLines`/`shellSentence` (`@lern/chem`).
 - **Schalenmodelle mit festen Schalen** (überall, wo Bohr- bzw. Schalenmodelle gezeichnet werden): Jede Schale (K, L, M, …) hat immer denselben Durchmesser – unabhängig
   von Protonen-, Neutronen- und Elektronenzahl. Der Kern verschiebt keine Schale, die K-Schale liegt außerhalb auch des größten Kerns. Ein Atom bzw. Ion wird nur größer oder
   kleiner, wenn eine Schale dazukommt oder wegfällt. Innerhalb einer Ansicht bzw. eines Modells ändert sich der Maßstab beim Bedienen nie: der Rahmen bietet Platz für alle
@@ -617,11 +619,13 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Vorwissen nur aus Gemische, Atombau und den früheren Kapiteln (Begriffe in `known`, neue fett mit Beispiel). Nichts aus späteren Modulen: wie die Atome in einem
   mehratomigen Ion zusammenhalten, wird ehrlich zur Elektronenpaarbindung vertagt; Lösen in Wasser nur als Modell.
 - Kapitel 1 **Vom Atom zum Ion** (Level I, `k1.tsx`, Modelle `k1/models.tsx`): **Außenelektronen und Edelgase** · **Metall-Atome werden Kationen** · **Nichtmetall-Atome werden
-  Anionen** · **Elektronenübergang**. Eigenes Bohrmodell der Unterstufe (Schalen 2·8·8 mit festen Radien und 8 Plätzen, freie Plätze gestrichelt; Elektronen abgeben
+  Anionen** · **Elektronenübergang**. Eigenes Bohrmodell der Unterstufe (drei Schalen mit festen Radien und 8 Plätzen, freie Plätze gestrichelt; Elektronen abgeben
   bzw. aufnehmen über die Knöpfe „e⁻ abgeben“/„e⁻ aufnehmen“ (≥ 44 px; die Elektronen im Bild sind nur beim Markieren der Außenelektronen eigene Tippziele);
   feste Schalenradien ohne Ausnahme: das Teilchen wird nur kleiner, wenn eine Schale wegfällt (Kation: leere Schale gepunktet, Hülle kleiner), und nur größer, wenn eine neue
   dazukommt; ein Anion ist so groß wie sein Atom; jedes Modell hat einen festen Maßstab für alle erreichbaren Teilchen – Protonen ändern verschiebt keine Schale; Folie 24 und
-  Merksatz: „Im Schalenmodell hat jede Schale eine feste Größe. Die echte Größe der Ionen zeigt es nicht: Ca²⁺ ist kleiner als F⁻“; aufgenommene Elektronen mit Ring). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel (Wasserstoff, Bor, IV. Hauptgruppe
+  Merksatz: „Im Schalenmodell hat jede Schale eine feste Größe. Die echte Größe der Ionen zeigt es nicht: Ca²⁺ ist kleiner als F⁻“; alle Elektronen sehen gleich aus – die Aufnahme zeigen Text und Zahl, z. B. „Cl⁻ hat 1 Elektron mehr als
+  Protonen: 18 e⁻ statt 17“; keine Hinterlegung hinter dem Atom; Bild in fester Zelle, Beschriftung `Caption` mit reserviertem Platz – kein Atom wandert; Schalen als Zeilen
+  „1. Schale: 2 Elektronen“; leere Plätze beim Ion bauen nur bei Nichtmetallen). Ladungsrechner (Protonen/Elektronen), PSE mit Ionen nach der Hauptgruppen-Regel (Wasserstoff, Bor, IV. Hauptgruppe
   und Edelgase bilden in diesem Modell keine einfachen Ionen), Elektronenübergang mit „e⁻ übertragen“, einstellbarer Zahl der Atome und immer sichtbarer Gesamtladung;
   Fehlvorstellungen „Elektron verschwindet“, „Ionen entstehen einzeln“. Test `k1/k1.test.ts`.
 - Kapitel 2 **Formel und Name** (Level I, `k2.tsx`, `k2/models.tsx`): **Ladungen ausgleichen** (Ionenwand mit Zählern) · **Die Formel** (Verhältnisformel, Index, kleinstes
@@ -667,7 +671,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   ✓-Rechnung und Name erst danach; in freien Folien stellen die Schüler die Anzahlen laut Formel selbst ein (die 2 in Cu₂ ist die Anzahl); Rückmeldungen nur über
   Ladungsbilanz und Namen (`wallWhy`, `pseWhy`). Nur Fe, Cu, Pb(II) aus `ions.ts`, nur beständige Stoffe; Gruppe 13 immer mit „= III. Hauptgruppe“ (Test `k5/k5.test.ts`).
 - **Experimentieren** (Werkbank, unverändert): Ionen-Bausteine Kationen gold, Anionen grün, Breite = Ladung; neutral, wenn beide Reihen gleich lang sind. Startet gelöst
-  (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu 2·8·18·1 → Cu⁺ 2·8·18); Kennzeichen „n Außenelektronen“
+  (CaCl₂: ein Ca²⁺, zwei Cl⁻; `store.ts`). Vom Atom zum Ion (`IonSheet`): Schalen aus dem gemessenen Grundzustand (Cu: 1. Schale 2, 2. Schale 8, 3. Schale 18, 4. Schale 1 Elektron → Cu⁺ ohne 4. Schale; Tabelle mit einer Zeile je Schale); Kennzeichen „n Außenelektronen“
   nur bei Ionen mit Edelgaskonfiguration, sonst (Fe³⁺, Cu²⁺, Pb²⁺) in der Oberstufe „gibt 3 e⁻ ab“ · „aus 4s², 3d¹“, in der Unterstufe nur „keine Edelgaskonfiguration“;
   Atom und Ion im selben Rahmen (`slots` = Schalen des Atoms).
 - Ionen, Formeln (`formula`, `ratio`) und Namen (`compoundName`) in `packages/chem/src/ions.ts`. Unterstufe nur Hauptgruppen-Ionen, Oberstufe zusätzlich Übergangsmetalle und Blei
@@ -1173,6 +1177,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Ionenbindung: Atome stehen still, Elektronen gleich, Schalen ausgeschrieben** (Ionenbindung, Atombau, `@lern/chem`, `@lern/ui`) – Wünsche der Lehrkraft: Das Atom
+  rückte beim Wechsel Mg → Mg⁺ bis 150 px (Beschriftung änderte die Breite); jetzt Bild in fester Zelle, reservierter Platz für Beschriftung, Name, Rechnung und Rückmeldung
+  (alle 125 Folien gemessen: 0 px). Aufgenommene Elektronen ohne Ring, keine hellblaue Hinterlegung. Schalenbesetzung überall als „1. Schale: 2 Elektronen“ statt „2 · 8 · 1“
+  (auch Atombau-Erklärung, Quiz, Steckbriefe; Steckbrief „11 p⁺, 12 n, 11 e⁻“). Tests gegen die alte Schreibweise.
 - **Atombau: Lanthanoide und Actinoide im großen PSE** (`@lern/chem`, `@lern/chem-ui`, Atombau) – Wunsch der Lehrkraft. Elementdaten bis Oganesson, das große PSE (Level II,
   Tab „Periodensystem“) zeigt die 7. Periode und die Zeilen Lanthanoide/Actinoide, am Desktop und am Handy. Kleines PSE, PSE-Hilfe und Ionenbindung bleiben unverändert.
   Für Z > 86 nur gesicherte Daten (keine Konfiguration); Trend ohne Messwert jetzt als „keine Daten“ statt in der Farbe des kleinsten Werts (auch He, Ne, Ar bei EN). Tests.
