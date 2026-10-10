@@ -13,3 +13,10 @@ test("die richtige Antwort steht an wechselnden Plätzen (höchstens 40 % an Pla
   expect(steps.length).toBeGreaterThan(5);
   expect(first / steps.length).toBeLessThanOrEqual(.4);
 });
+
+test("Polarität in der Erklärung nach Allred-Rochow: Grenze ΔEN 0,5, Werte der Tabelle", () => {
+  const os = JSON.stringify(guideFor("os"));
+  expect(os).toContain("ΔEN ≥ 0,5");
+  expect(os).toContain("Cl 2,83");
+  expect(os).not.toMatch(/Pauling|0,4\b|3,16|3,98/);
+});

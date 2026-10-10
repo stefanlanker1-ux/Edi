@@ -43,7 +43,7 @@ export function ExploreView() {
       {trend
         ? <div className="trend-legend">
             <div className="tl-scale"><span>{tr("niedrig", "low")}</span><i /><span>{tr("hoch", "high")}</span></div>
-            <p><b>{TRENDS[trend.key].label}{TRENDS[trend.key].unit && ` (${TRENDS[trend.key].unit})`}</b></p>
+            <p><b>{TRENDS[trend.key].label}{TRENDS[trend.key].unit && ` (${TRENDS[trend.key].unit})`}</b>{TRENDS[trend.key].scale && ` · ${TRENDS[trend.key].scale}`}</p>
             <p className="tl-none"><i aria-hidden="true">–</i>{tr("keine Daten", "no data")}</p>
           </div>
         : blocks ? <BlockLegend /> : <Legend stufe={stufe} period7={os} active={cat} onToggle={c => setCat(cat === c ? null : c)} />}
@@ -103,7 +103,7 @@ export function ElementDetail({ Z, onAction }: { Z: number; onAction?: () => voi
   if (val !== null) rows.push([tr("Außenelektronen", "Outer electrons"), val]);
   if (os) {
     rows.push(["Block", `${blockOf(Z)}${tr("-Block", " block")}`]);
-    rows.push([tr("Elektronegativität", "Electronegativity"), el.en === null ? "–" : el.en.toLocaleString(LOC)]);
+    rows.push([tr("Elektronegativität", "Electronegativity"), el.en === null ? "–" : el.en.toLocaleString(LOC, { minimumFractionDigits: 2 })]);
     if (hasCfg) rows.push([tr("Ungepaarte e⁻", "Unpaired e⁻"), unpairedElectrons(cfg)]);
     rows.push([tr("Atomradius", "Atomic radius"), radius === null ? "–" : `${radius} pm`]);
     rows.push([tr("Ionisierungsenergie", "Ionisation energy"), ie === null ? "–" : `${ie.toLocaleString(LOC)} eV`]);

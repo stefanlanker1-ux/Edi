@@ -126,12 +126,12 @@ export function BuildView() {
             <Tag tone={polar ? "signal" : "plain"}>{polarity}</Tag>
             {[...new Set(polarBonds(mol).map(p => {
               const A = mol.atoms.find(x => x.id === p.plus)!, B = mol.atoms.find(x => x.id === p.minus)!;
-              return `${A.el}–${B.el} ΔEN ${p.delta.toLocaleString(tr("de-AT", "en-GB"))}`;
+              return `${A.el}–${B.el} ΔEN ${p.delta.toLocaleString(tr("de-AT", "en-GB"), { minimumFractionDigits: 2 })}`;
             }))].map(t => <Tag key={t}>{t}</Tag>)}
           </div>
           {!polar && weak && (
-            <p className="small muted">{tr("Schwach polar: keine polare Bindung, die wirkt – aber freie Elektronenpaare oder Bindungen mit kleinem ΔEN ergeben einen kleinen Dipol (Modell).",
-              "Weakly polar: no polar bond that counts – but lone pairs or bonds with a small ΔEN give a small dipole (model).")}</p>
+            <p className="small muted">{tr("Schwach polar: keine polare Bindung, die wirkt – aber freie Elektronenpaare oder Bindungen mit kleinem ΔEN (unter 0,5) ergeben einen kleinen Dipol (Modell).",
+              "Weakly polar: no polar bond that counts – but lone pairs or bonds with a small ΔEN (below 0.5) give a small dipole (model).")}</p>
           )}
         </>
       ),

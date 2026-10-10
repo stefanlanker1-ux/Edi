@@ -30,6 +30,8 @@ const FLAT = tr("Lewis-Formel flach gezeichnet – die Winkel im Bild sind nicht
 const ETHEN = mol([["C", 1, 0], ["C", 2, 0], ["H", 0, 0], ["H", 1, 1], ["H", 3, 0], ["H", 2, 1]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
 const EB = () => tr("Einfachbindung", "single bond"), ZB = () => tr("Zweifachbindung", "double bond"), DB = () => tr("Dreifachbindung", "triple bond");
 const POL = () => "polar", UNP = () => tr("unpolar", "non-polar");
+/** Tetrafluormethan: polare Bindungen (C–F), symmetrisch gebaut */
+const CF4 = mol([["C", 1, 1], ["F", 1, 0], ["F", 0, 1], ["F", 2, 1], ["F", 1, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]]);
 
 const US = (): GuideStep[] => [
   // ── Außenelektronen ──
@@ -257,22 +259,22 @@ const OS: GuideStep[] = [
     say: tr("Die **Elektronegativität** (EN) gibt an, wie stark ein Atom das Bindungspaar anzieht.", "**Electronegativity** (EN) tells you how strongly an atom attracts the bonding pair."),
     ask: tr("Ist die Bindung in **H–Cl** polar?", "Is the bond in **H–Cl** polar?"),
     visual: () => <EnTable mark={["H", "Cl"]} />,
-    lines: [tr("EN-Tabelle: Nach rechts steigt die EN, nach unten sinkt sie. Fluor hat die größte.", "EN table: EN increases to the right and decreases downwards. Fluorine has the highest."), tr("H 2,20 und Cl 3,16: ΔEN = 3,16 − 2,20 ≈ 1,0.", "H 2.20 and Cl 3.16: ΔEN = 3.16 − 2.20 ≈ 1.0."), tr("ΔEN ≥ 0,4 → **polar**: Cl zieht das Paar zu sich.", "ΔEN ≥ 0.4 → **polar**: Cl pulls the pair towards itself."), tr("Teilladungen: Cl **δ−**, H **δ+**. Unter 0,4: **unpolar**.", "Partial charges: Cl **δ−**, H **δ+**. Below 0.4: **non-polar**.")],
+    lines: [tr("EN-Tabelle: Nach rechts steigt die EN, nach unten sinkt sie. Fluor hat die größte.", "EN table: EN increases to the right and decreases downwards. Fluorine has the highest."), tr("H 2,20 und Cl 2,83: ΔEN = 2,83 − 2,20 = 0,63.", "H 2.20 and Cl 2.83: ΔEN = 2.83 − 2.20 = 0.63."), tr("ΔEN ≥ 0,5 → **polar**: Cl zieht das Paar zu sich.", "ΔEN ≥ 0.5 → **polar**: Cl pulls the pair towards itself."), tr("Teilladungen: Cl **δ−**, H **δ+**. Unter 0,5: **unpolar**.", "Partial charges: Cl **δ−**, H **δ+**. Below 0.5: **non-polar**.")],
     ok: tr("Größere EN → δ−.", "Higher EN → δ−."),
   },
   {
     mode: "faded",
     ask: tr("Ergänze: Welche Bindung ist **am stärksten polar**?", "Complete: which bond is **the most polar**?"), answer: "H–F", options: ["C–H", "H–Cl", "H–F", "Cl–Cl"],
     visual: () => <EnTable mark={["H", "C", "F", "Cl"]} />,
-    lines: [tr("ΔEN: H–F 1,8 · H–Cl 1,0 · C–H 0,35 · Cl–Cl 0.", "ΔEN: H–F 1.8 · H–Cl 1.0 · C–H 0.35 · Cl–Cl 0."), tr("Größtes ΔEN: {?}", "Largest ΔEN: {?}")],
-    why: { "H–Cl": tr("Polar, aber H–F hat das größere ΔEN.", "Polar, but H–F has the larger ΔEN."), "C–H": tr("ΔEN ≈ 0,35 – unter 0,4, also unpolar.", "ΔEN ≈ 0.35 – below 0.4, so non-polar."), "Cl–Cl": tr("Gleiche Atome: ΔEN = 0, unpolar.", "Identical atoms: ΔEN = 0, non-polar.") },
+    lines: [tr("ΔEN: H–F 1,90 · H–Cl 0,63 · C–H 0,30 · Cl–Cl 0.", "ΔEN: H–F 1.90 · H–Cl 0.63 · C–H 0.30 · Cl–Cl 0."), tr("Größtes ΔEN: {?}", "Largest ΔEN: {?}")],
+    why: { "H–Cl": tr("Polar, aber H–F hat das größere ΔEN.", "Polar, but H–F has the larger ΔEN."), "C–H": tr("ΔEN = 0,30 – unter 0,5, also unpolar.", "ΔEN = 0.30 – below 0.5, so non-polar."), "Cl–Cl": tr("Gleiche Atome: ΔEN = 0, unpolar.", "Identical atoms: ΔEN = 0, non-polar.") },
     ok: tr("H–F ist am stärksten polar.", "H–F is the most polar."),
   },
   {
     mode: "free",
     ask: tr("Jetzt du: In **H–F**: Welches Atom trägt δ−?", "Your turn: in **H–F**, which atom carries δ−?"), answer: "F", options: ["H", "F"],
     why: { H: tr("F hat die größere EN – es zieht das Paar zu sich und wird δ−.", "F has the higher EN – it pulls the pair towards itself and becomes δ−.") },
-    lines: [tr("EN(F) 3,98 > EN(H) 2,20 → F δ−, H δ+.", "EN(F) 3.98 > EN(H) 2.20 → F δ−, H δ+.")],
+    lines: [tr("EN(F) 4,10 > EN(H) 2,20 → F δ−, H δ+.", "EN(F) 4.10 > EN(H) 2.20 → F δ−, H δ+.")],
     ok: tr("Genau: F δ−.", "Exactly: F δ−."),
   },
   {
@@ -293,9 +295,9 @@ const OS: GuideStep[] = [
   },
   {
     mode: "free",
-    ask: tr("Jetzt du: Ist **Tetrachlormethan** (CCl₄) polar oder unpolar?", "Your turn: is **tetrachloromethane** (CCl₄) polar or non-polar?"), answer: UNP(), options: [POL(), UNP()],
-    visual: () => <Lewis m={known("CCl4")} note={tr("Lewis-Formel flach gezeichnet – räumlich ist CCl₄ ein Tetraeder.", "Lewis formula drawn flat – in space CCl₄ is a tetrahedron.")} />,
-    why: { [POL()]: tr("Jede C–Cl-Bindung ist polar, aber der Tetraeder ist symmetrisch – sie heben sich auf.", "Each C–Cl bond is polar, but the tetrahedron is symmetrical – they cancel.") },
+    ask: tr("Jetzt du: Ist **Tetrafluormethan** (CF₄) polar oder unpolar?", "Your turn: is **tetrafluoromethane** (CF₄) polar or non-polar?"), answer: UNP(), options: [POL(), UNP()],
+    visual: () => <Lewis m={CF4} note={tr("Lewis-Formel flach gezeichnet – räumlich ist CF₄ ein Tetraeder.", "Lewis formula drawn flat – in space CF₄ is a tetrahedron.")} />,
+    why: { [POL()]: tr("Jede C–F-Bindung ist polar (ΔEN 1,60), aber der Tetraeder ist symmetrisch – sie heben sich auf.", "Each C–F bond is polar (ΔEN 1.60), but the tetrahedron is symmetrical – they cancel.") },
     lines: [tr("Symmetrischer Tetraeder → Dipole heben sich auf → unpolar.", "Symmetrical tetrahedron → dipoles cancel → non-polar.")],
     ok: tr("Genau: unpolar.", "Exactly: non-polar."),
   },
@@ -314,6 +316,6 @@ export function guideFor(stufe: "us" | "os"): GuideDef {
       tr("Mehrfachbindungen bauen: Ethen C=C, Blausäure C≡N.", "Building multiple bonds: ethene C=C, hydrogen cyanide C≡N."),
       tr("**EPA-Modell**: Paare (auch freie) gehen auseinander; Mehrfachbindung = ein Bereich.", "**VSEPR model**: pairs (lone pairs too) spread apart; multiple bond = one region."),
       tr("Formen und Winkel: tetraedrisch 109,5°, pyramidal 107°, gewinkelt 104,5°, planar 120°, linear 180°.", "Shapes and angles: tetrahedral 109.5°, pyramidal 107°, bent 104.5°, planar 120°, linear 180°."),
-      tr("ΔEN ≥ 0,4: polare Bindung (δ+/δ−); Molekül polar, wenn sich die Dipole nicht aufheben.", "ΔEN ≥ 0.4: polar bond (δ+/δ−); molecule polar if the dipoles do not cancel."),
+      tr("ΔEN ≥ 0,5 (EN nach Allred-Rochow): polare Bindung (δ+/δ−); Molekül polar, wenn sich die Dipole nicht aufheben.", "ΔEN ≥ 0.5 (Allred–Rochow EN): polar bond (δ+/δ−); molecule polar if the dipoles do not cancel."),
     ] };
 }

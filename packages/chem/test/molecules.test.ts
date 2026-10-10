@@ -1,5 +1,5 @@
 import { test, assert } from "vitest";
-import { KNOWN, KNOWN_BY_ID as K, toMolecule, isComplete, electronsOf, sumFormula, identify, shapeAt, isPolar, isWeaklyPolar, polarBonds, canBond, sideLayout, loneLayout, en, type Molecule } from "../src/molecules.ts";
+import { KNOWN, KNOWN_BY_ID as K, toMolecule, isComplete, electronsOf, sumFormula, identify, shapeAt, isPolar, isWeaklyPolar, polarBonds, canBond, sideLayout, loneLayout, en, POLAR_DELTA, type Molecule } from "../src/molecules.ts";
 import { embed3D, dipoleVector, gridCisTrans, storedMol3D, DIPOLE_MIN, type Vec } from "../src/geometry3d.ts";
 
 test("alle bekannten Moleküle erfüllen die Oktettregel und werden erkannt", () => {
@@ -47,7 +47,9 @@ test("Formel, Geometrie, Polarität", () => {
   assert.strictEqual(g("CO2", 2), "linear");
   assert.strictEqual(g("CH2O", 2), "trigonal-planar");
   const p = (id: string) => isPolar(toMolecule(K[id]));
-  assert.ok(p("H2O")); assert.ok(p("NH3")); assert.ok(p("HCl")); assert.ok(p("CH3Cl"));
+  assert.ok(p("H2O")); assert.ok(p("NH3")); assert.ok(p("HCl")); assert.ok(p("CH2O")); assert.ok(p("HCN"));
+  // Allred-Rochow: C–Cl ΔEN 0,33 < 0,5 → Chlormethan nur schwach polar
+  assert.ok(!p("CH3Cl")); assert.ok(isWeaklyPolar(toMolecule(K.CH3Cl)));
   assert.ok(!p("CO2")); assert.ok(!p("CH4")); assert.ok(!p("CCl4")); assert.ok(!p("Cl2")); assert.ok(!p("C2H4"));
 });
 
@@ -98,18 +100,24 @@ const grid = (atoms: [string, number, number][], bonds: [number, number, number]
 test("Polarität aus der Vektorsumme der Bindungsdipole – auch mit mehreren Zentralatomen", () => {
   // bekannte Moleküle wie bisher
   const polar = KNOWN.filter(k => isPolar(toMolecule(k))).map(k => k.id).sort();
-  assert.deepEqual(polar, ["C2H5OH", "CH2O", "CH3Cl", "CH3OH", "H2O", "H2O2", "HCN", "HCl", "HF", "NH3"].sort());
-  const C2Cl4 = grid([["C", 1, 1], ["C", 2, 1], ["Cl", 0, 1], ["Cl", 1, 0], ["Cl", 3, 1], ["Cl", 2, 0]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
+  assert.deepEqual(polar, ["C2H5OH", "CH2O", "CH3OH", "H2O", "H2O2", "HCN", "HCl", "HF", "NH3"].sort());
+  // symmetrisch mit polaren Bindungen (C–F ΔEN 1,60): Dipole heben sich auf
+  const C2F4 = grid([["C", 1, 1], ["C", 2, 1], ["F", 0, 1], ["F", 1, 0], ["F", 3, 1], ["F", 2, 0]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
   const NCCN = grid([["N", 0, 0], ["C", 1, 0], ["C", 2, 0], ["N", 3, 0]], [[0, 1, 3], [1, 2, 1], [2, 3, 3]]);
-  const C2Cl6 = grid([["C", 1, 1], ["C", 2, 1], ["Cl", 0, 1], ["Cl", 1, 0], ["Cl", 1, 2], ["Cl", 3, 1], ["Cl", 2, 0], ["Cl", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1]]);
-  for (const [name, m] of Object.entries({ C2Cl4, NCCN, C2Cl6 })) {
+  const C2F6 = grid([["C", 1, 1], ["C", 2, 1], ["F", 0, 1], ["F", 1, 0], ["F", 1, 2], ["F", 3, 1], ["F", 2, 0], ["F", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1]]);
+  for (const [name, m] of Object.entries({ C2F4, NCCN, C2F6 })) {
+    assert.ok(polarBonds(m).length > 0, `${name}: polare Bindungen`);
     assert.ok(isComplete(m), name);
     assert.strictEqual(isPolar(m), false, `${name}: Dipole heben sich auf`);
   }
-  // cis/trans wie gebaut: Cl auf derselben Seite → polar, gegenüber → unpolar
-  const dce = (y2: number) => grid([["C", 1, 1], ["C", 2, 1], ["Cl", 1, 0], ["H", 0, 1], ["Cl", 2, y2], ["H", 3, 1]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
-  assert.strictEqual(isPolar(dce(0)), true, "cis-1,2-Dichlorethen");
-  assert.strictEqual(isPolar(dce(2)), false, "trans-1,2-Dichlorethen");
+  // cis/trans wie gebaut: F auf derselben Seite → polar, gegenüber → unpolar; mit Cl (C–Cl ΔEN 0,33) cis nur schwach polar
+  const dce = (y2: number, X = "F") => grid([["C", 1, 1], ["C", 2, 1], [X, 1, 0], ["H", 0, 1], [X, 2, y2], ["H", 3, 1]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
+  assert.strictEqual(isPolar(dce(0)), true, "cis-1,2-Difluorethen");
+  assert.strictEqual(isPolar(dce(2)), false, "trans-1,2-Difluorethen");
+  assert.strictEqual(isWeaklyPolar(dce(2)), false, "trans-1,2-Difluorethen");
+  assert.strictEqual(isPolar(dce(0, "Cl")), false, "cis-1,2-Dichlorethen");
+  assert.strictEqual(isWeaklyPolar(dce(0, "Cl")), true, "cis-1,2-Dichlorethen");
+  assert.strictEqual(isWeaklyPolar(dce(2, "Cl")), false, "trans-1,2-Dichlorethen");
   // Angabe für das Kraftfeld (3D frei gebauter Moleküle): Cl an C1 und Cl an C2, cis bzw. trans
   assert.deepEqual(gridCisTrans(dce(0)), [{ a: 3, b: 1, c: 2, d: 5, cis: true }]);
   assert.deepEqual(gridCisTrans(dce(2)), [{ a: 3, b: 1, c: 2, d: 5, cis: false }]);
@@ -118,11 +126,11 @@ test("Polarität aus der Vektorsumme der Bindungsdipole – auch mit mehreren Ze
   assert.deepEqual(gridCisTrans(cumulene), []);
   // drehbare Einfachbindung mit schrägen Dipolen auf beiden Seiten: im Mittel polar (auch wenn eine Lage symmetrisch wäre)
   const N2H4 = grid([["N", 1, 1], ["N", 2, 1], ["H", 0, 1], ["H", 1, 0], ["H", 3, 1], ["H", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
-  const DCA = grid([["C", 1, 1], ["C", 2, 1], ["Cl", 0, 1], ["H", 1, 0], ["H", 1, 2], ["Cl", 3, 1], ["H", 2, 0], ["H", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1]]);
+  const DFA = grid([["C", 1, 1], ["C", 2, 1], ["F", 0, 1], ["H", 1, 0], ["H", 1, 2], ["F", 3, 1], ["H", 2, 0], ["H", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [1, 5, 1], [1, 6, 1], [1, 7, 1]]);
   assert.strictEqual(isPolar(N2H4), true, "Hydrazin");
-  assert.strictEqual(isPolar(DCA), true, "1,2-Dichlorethan");
+  assert.strictEqual(isPolar(DFA), true, "1,2-Difluorethan");
   // Polarität und 3D-Dipol widersprechen sich nicht
-  for (const m of [C2Cl4, NCCN, dce(2), ...KNOWN.map(k => toMolecule(k))]) {
+  for (const m of [C2F4, NCCN, dce(2), ...KNOWN.map(k => toMolecule(k))]) {
     const d = dipoleVector(embed3D(m), en);
     if (Math.hypot(...d) > DIPOLE_MIN) assert.ok(isPolar(m), JSON.stringify(m.atoms.map(a => a.el)));
   }
@@ -130,17 +138,26 @@ test("Polarität aus der Vektorsumme der Bindungsdipole – auch mit mehreren Ze
 
 test("Polarität: ΔEN gerundet wie die Teilladungen, kleine Restdipole, schwach polar, Kohlenwasserstoffe unpolar", () => {
   const line = (els: string[], orders: number[]) => grid(els.map((el, i) => [el, i, 0]), orders.map((o, i) => [i, i + 1, o]));
-  // N=O: ΔEN 3,44 − 3,04 = 0,40 (gerundet wie in polarBonds) → polar, auch als Dipol
-  for (const X of ["Cl", "Br", "I"]) {
+  // ΔEN gerundet wie die Tabellenwerte: H–Br 2,74 − 2,20 = 0,54 → polar; N=O 3,50 − 3,07 = 0,43 → nicht polar (NOCl schwach polar)
+  assert.deepEqual(polarBonds(line(["H", "Br"], [1])).map(b => b.delta), [0.54]);
+  // (N–Cl 0,24, N–Br 0,33; NOI dagegen polar über N–I 0,86)
+  assert.strictEqual(isPolar(line(["I", "N", "O"], [1, 2])), true, "NOI");
+  for (const X of ["Cl", "Br"]) {
     const m = line([X, "N", "O"], [1, 2]);
-    assert.ok(polarBonds(m).some(b => b.delta === 0.4), `NO${X}: N=O polar`);
-    assert.strictEqual(isPolar(m), true, `NO${X}`);
+    assert.deepEqual(polarBonds(m), [], `NO${X}: N=O ΔEN 0,43`);
+    assert.strictEqual(isPolar(m), false, `NO${X}`);
+    assert.strictEqual(isWeaklyPolar(m), true, `NO${X}`);
   }
-  // kleine Restdipole (ClCN 0,61 − 0,49, BrCN 0,41 − 0,49, CBrCl₃ 0,61 − 0,41) bleiben polar – gemessen 2,8 / 2,9 / 0,2 D
+  // Restdipole bleiben polar: ClCN, BrCN (nur C≡N polar, 0,57), FCN (1,60 − 0,57), OCS (C=O 1,00, C=S 0,06) – gemessen 2,8 / 2,9 / 2,1 / 0,7 D
   const T4 = (a: string, b: string, c: string, d: string) => grid([["C", 1, 1], [a, 1, 0], [b, 0, 1], [c, 2, 1], [d, 1, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]]);
-  const transClBr = grid([["C", 1, 1], ["C", 2, 1], ["Cl", 1, 0], ["H", 1, 2], ["H", 2, 0], ["Br", 2, 2]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
-  for (const [name, m] of Object.entries({ ClCN: line(["Cl", "C", "N"], [1, 3]), BrCN: line(["Br", "C", "N"], [1, 3]), CBrCl3: T4("Br", "Cl", "Cl", "Cl"), BrCCCl: line(["Br", "C", "C", "Cl"], [1, 3, 1]), transClBr })) {
+  for (const [name, m] of Object.entries({ ClCN: line(["Cl", "C", "N"], [1, 3]), BrCN: line(["Br", "C", "N"], [1, 3]), FCN: line(["F", "C", "N"], [1, 3]), OCS: line(["O", "C", "S"], [2, 2]), CF3Cl: T4("F", "F", "F", "Cl") })) {
     assert.strictEqual(isPolar(m), true, name);
+  }
+  // Halogenalkane mit Cl, Br, I: C–X unter 0,5 → schwach polar (CBrCl₃, BrC≡CCl, trans-ClHC=CHBr, CH₂Cl₂, CHCl₃, CH₃Br)
+  const transClBr = grid([["C", 1, 1], ["C", 2, 1], ["Cl", 1, 0], ["H", 1, 2], ["H", 2, 0], ["Br", 2, 2]], [[0, 1, 2], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
+  for (const [name, m] of Object.entries({ CBrCl3: T4("Br", "Cl", "Cl", "Cl"), BrCCCl: line(["Br", "C", "C", "Cl"], [1, 3, 1]), transClBr, CH2Cl2: T4("Cl", "Cl", "H", "H"), CHCl3: T4("Cl", "Cl", "Cl", "H"), CH3Br: T4("H", "H", "Br", "H") })) {
+    assert.strictEqual(isPolar(m), false, name);
+    assert.strictEqual(isWeaklyPolar(m), true, name);
   }
   // ohne polare Bindung, aber mit Dipol aus kleinen ΔEN (C–I, C=S, S–H) oder freien Paaren: schwach polar
   const CH3SH = grid([["C", 1, 1], ["H", 1, 0], ["H", 0, 1], ["H", 1, 2], ["S", 2, 1], ["H", 3, 1]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1], [4, 5, 1]]);
@@ -174,13 +191,13 @@ test("Räumliche Lage: Glyoxal s-trans, Allen mit senkrechten Endgruppen, Hydraz
   const eg = embed3D(glyoxal, "ideal");
   assert.ok(Math.abs(dihedral([1, 2, 3, 4].map(id => P(eg, id))) - 180) < 1);
   assert.strictEqual(isPolar(glyoxal), false);
-  // Allen: H–C1…C3–H 90°; 1,3-Dichlorallen dadurch polar
+  // Allen: H–C1…C3–H 90°; 1,3-Difluorallen dadurch polar
   const allene = (X: string) => grid([["C", 0, 1], ["C", 1, 1], ["C", 2, 1], [X, 0, 0], ["H", -1, 1], ["H", 2, 0], [X, 3, 1]], [[0, 1, 2], [1, 2, 2], [0, 3, 1], [0, 4, 1], [2, 5, 1], [2, 6, 1]]);
   for (const mode of ["real", "ideal"] as const) {
     const e = embed3D(allene("H"), mode);
     assert.ok(Math.abs(dihedral([4, 1, 3, 7].map(id => P(e, id))) - 90) < 1, mode);
   }
-  assert.strictEqual(isPolar(allene("Cl")), true);
+  assert.strictEqual(isPolar(allene("F")), true);
   // Hydrazin: hinterlegte Struktur gauche (gemessen 1,75 D) – der Dipol der gespeicherten Lage ist deutlich
   const N2H4 = grid([["N", 1, 1], ["N", 2, 1], ["H", 0, 1], ["H", 1, 0], ["H", 3, 1], ["H", 2, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [1, 4, 1], [1, 5, 1]]);
   assert.ok(storedMol3D(N2H4));
@@ -197,4 +214,29 @@ test("Bindungswinkel: gemessene Werte (Dimethylether, Trimethylamin), Tetraeder 
   assert.strictEqual(shapeAt(ch3cl, c.id)!.angle, "ca. 109,5°");
   const ch4 = toMolecule(K.CH4);
   assert.strictEqual(shapeAt(ch4, ch4.atoms.find(a => a.el === "C")!.id)!.angle, "109,5°");
+});
+
+test("Polarität nach Allred-Rochow (ΔEN ≥ 0,5): typische Moleküle", () => {
+  assert.strictEqual(POLAR_DELTA, 0.5);
+  const T4 = (a: string, b: string, c: string, d: string) => grid([["C", 1, 1], [a, 1, 0], [b, 0, 1], [c, 2, 1], [d, 1, 2]], [[0, 1, 1], [0, 2, 1], [0, 3, 1], [0, 4, 1]]);
+  const HX = (X: string) => grid([["H", 0, 0], [X, 1, 0]], [[0, 1, 1]]);
+  // Aceton: O=C(CH₃)₂
+  const acetone = grid([["O", 1, 0], ["C", 1, 1], ["C", 0, 1], ["C", 2, 1], ["H", 0, 0], ["H", -1, 1], ["H", 0, 2], ["H", 2, 0], ["H", 3, 1], ["H", 2, 2]],
+    [[0, 1, 2], [1, 2, 1], [1, 3, 1], [2, 4, 1], [2, 5, 1], [2, 6, 1], [3, 7, 1], [3, 8, 1], [3, 9, 1]]);
+  const kind = (m: Molecule) => (isPolar(m) ? "polar" : isWeaklyPolar(m) ? "schwach polar" : "unpolar");
+  const expected: [string, Molecule, string][] = [
+    ["H₂O", toMolecule(K.H2O), "polar"], ["NH₃", toMolecule(K.NH3), "polar"], ["HF", toMolecule(K.HF), "polar"], ["HCl", toMolecule(K.HCl), "polar"],
+    ["HBr", HX("Br"), "polar"], ["CH₃OH", toMolecule(K.CH3OH), "polar"], ["Ethanol", toMolecule(K.C2H5OH), "polar"], ["Aceton", acetone, "polar"],
+    ["HCN", toMolecule(K.HCN), "polar"], ["Methanal", toMolecule(K.CH2O), "polar"],
+    // ΔEN unter 0,5: C–Cl 0,33, C–Br 0,24, S–H 0,24, P–H 0,14 → schwach polar; H–I 0,01 liegt im Rundungsspielraum → unpolar
+    ["HI", HX("I"), "unpolar"], ["CH₃Cl", toMolecule(K.CH3Cl), "schwach polar"], ["CH₂Cl₂", T4("Cl", "Cl", "H", "H"), "schwach polar"],
+    ["CHCl₃", T4("Cl", "Cl", "Cl", "H"), "schwach polar"], ["CH₃Br", T4("H", "H", "Br", "H"), "schwach polar"],
+    ["H₂S", toMolecule(K.H2S), "schwach polar"], ["PH₃", toMolecule(K.PH3), "schwach polar"],
+    ["CO₂", toMolecule(K.CO2), "unpolar"], ["CH₄", toMolecule(K.CH4), "unpolar"], ["CCl₄", toMolecule(K.CCl4), "unpolar"], ["CF₄", T4("F", "F", "F", "F"), "unpolar"],
+    ["Cl₂", toMolecule(K.Cl2), "unpolar"], ["Ethan", toMolecule(K.C2H6), "unpolar"],
+  ];
+  for (const [name, m, k] of expected) assert.strictEqual(kind(m), k, name);
+  // Teilladungen nach Allred-Rochow (anders als nach Pauling): δ− trägt in P–H das H, in C–I und C–S das C
+  const minus = (a: string, b: string) => (en(a) > en(b) ? a : b);
+  assert.deepEqual([minus("P", "H"), minus("C", "I"), minus("C", "S"), minus("S", "H"), minus("H", "I")], ["H", "C", "C", "S", "I"]);
 });

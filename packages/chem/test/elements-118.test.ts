@@ -58,8 +58,8 @@ test("Massen der 7. Periode: Standardatommasse (Th, Pa, U) bzw. Massenzahl – k
     if (![90, 91, 92].includes(Z)) assert.ok(Number.isInteger(e.mass), `${e.symbol}: Massenzahl`);
     assert.strictEqual(Z + standardNeutrons(Z), Math.round(e.mass), e.symbol);
   }
-  // Elektronegativität nur, wo aus Messdaten bestimmt (Ra–Pu), sonst null – nie 0
-  for (let Z = 87; Z <= 118; Z++) assert.strictEqual(BY_Z[Z].en !== null, Z >= 88 && Z <= 94, BY_Z[Z].symbol);
+  // Elektronegativität (Allred-Rochow) für die 7. Periode nicht abgeglichen → null, nie 0
+  for (let Z = 87; Z <= 118; Z++) assert.strictEqual(BY_Z[Z].en, null, BY_Z[Z].symbol);
   for (const e of ELEMENTS) assert.ok(e.en === null || e.en > 0, e.symbol);
   assert.strictEqual(TRENDS.ie.value(103), 4.96);
   assert.strictEqual(TRENDS.radius.value(87), 260);
@@ -72,4 +72,39 @@ test("Konfigurationen nur bis Radon; Aufgabentexte erkennen die 7. Periode nicht
   assert.deepEqual(searchElements("Uran", 86), []);
   assert.deepEqual(searchElements("Uran").map(e => e.Z), [92]);
   assert.strictEqual(BY_SYMBOL.Og.Z, 118);
+});
+
+test("Elektronegativität nach Allred-Rochow: Kontrollwerte, Edelgase ohne EN, Trend in Periode und Gruppe", () => {
+  const ref: Record<string, number> = {
+    H: 2.20, Li: 0.97, B: 2.01, C: 2.50, N: 3.07, O: 3.50, F: 4.10, Na: 1.01, Mg: 1.23, Al: 1.47, Si: 1.74, P: 2.06, S: 2.44, Cl: 2.83,
+    K: 0.91, Ca: 1.04, Br: 2.74, I: 2.21,
+  };
+  for (const [el, v] of Object.entries(ref)) assert.strictEqual(BY_SYMBOL[el].en, v, el);
+  for (const el of ["He", "Ne", "Ar", "Kr", "Xe", "Rn"]) assert.strictEqual(BY_SYMBOL[el].en, null, el);
+  // Hauptgruppen bis Z = 86 vollständig; EN steigt in der Periode (2. und 3.), sinkt in der Gruppe (Halogene)
+  for (const e of ELEMENTS) if (e.Z <= 86 && e.category !== "noble" && e.category !== "lanthanoid") assert.ok(e.en !== null, e.symbol);
+  const en = (s: string) => BY_SYMBOL[s].en!;
+  for (const row of [["Li", "Be", "B", "C", "N", "O", "F"], ["Na", "Mg", "Al", "Si", "P", "S", "Cl"]])
+    for (let i = 1; i < row.length; i++) assert.ok(en(row[i]) >= en(row[i - 1]), row[i]);
+  // (nicht jede Gruppe streng: Li 0,97 < Na 1,01, S 2,44 < Se 2,48 – Werte wie veröffentlicht)
+  for (const col of [["F", "Cl", "Br", "I"], ["Na", "K", "Rb", "Cs"]])
+    for (let i = 1; i < col.length; i++) assert.ok(en(col[i]) < en(col[i - 1]), col[i]);
+});
+
+test("Elektronegativität überall nach Allred-Rochow: kein „Pauling“ und keine Grenze 0,4 in Quelltexten der App", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const root = join(__dirname, "../../..");
+  const files: string[] = [];
+  const walk = (d: string) => {
+    for (const f of readdirSync(d)) {
+      const p = join(d, f);
+      if (f === "node_modules" || f === "dist" || f.startsWith(".")) continue;
+      if (statSync(p).isDirectory()) walk(p);
+      else if (/\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f)) files.push(p);
+    }
+  };
+  for (const d of ["modules", "packages", "apps/edi/src"]) walk(join(root, d));
+  assert.ok(files.length > 50);
+  assert.deepEqual(files.filter(f => /Pauling|ΔEN ≥ 0[,.]4/.test(readFileSync(f, "utf8"))), []);
 });

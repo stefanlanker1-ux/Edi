@@ -25,8 +25,9 @@ const IONIZATION = [
 
 export type TrendKey = "en" | "radius" | "ie";
 
-export const TRENDS: Record<TrendKey, { label: string; short: string; unit: string; rule: string; value: (Z: number) => number | null; digits: number }> = {
-  en: { label: tr("Elektronegativität", "Electronegativity"), short: "EN", unit: "", digits: 2, value: Z => BY_Z[Z]?.en ?? null,
+/** `scale`: Skala der Werte (Legende), z. B. Elektronegativität nach Allred-Rochow */
+export const TRENDS: Record<TrendKey, { label: string; short: string; unit: string; rule: string; value: (Z: number) => number | null; digits: number; scale?: string }> = {
+  en: { label: tr("Elektronegativität", "Electronegativity"), short: "EN", unit: "", digits: 2, value: Z => BY_Z[Z]?.en ?? null, scale: tr("nach Allred-Rochow", "Allred–Rochow scale"),
     rule: tr("nimmt im PSE nach **rechts oben** zu – Fluor zieht Elektronen am stärksten an.", "increases towards the **top right** – fluorine attracts electrons most strongly.") },
   radius: { label: tr("Atomradius", "Atomic radius"), short: tr("Radius", "Radius"), unit: "pm", digits: 0, value: Z => RADIUS[Z - 1] ?? null,
     rule: tr("nimmt nach **links unten** zu – mehr Schalen machen das Atom größer, mehr Protonen ziehen die Hülle zusammen.", "increases towards the **bottom left** – more shells make the atom larger, more protons pull the shells inwards.") },

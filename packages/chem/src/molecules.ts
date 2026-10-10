@@ -19,8 +19,8 @@ const DIR: Record<Side, [number, number]> = { up: [0, -1], right: [1, 0], down: 
 
 const bySymbol = Object.fromEntries(ELEMENTS.map(e => [e.symbol, e]));
 export const en = (el: string) => bySymbol[el]?.en ?? 0;
-/** Ab dieser Elektronegativitätsdifferenz gilt eine Bindung als polar */
-export const POLAR_DELTA = 0.4;
+/** Ab dieser Elektronegativitätsdifferenz (Allred-Rochow) gilt eine Bindung als polar */
+export const POLAR_DELTA = 0.5;
 /** ΔEN der Bindung a → b (EN(b) − EN(a)), auf zwei Stellen wie die Tabellenwerte – eine Rechnung für Teilladungen und Dipole */
 export const enDelta = (a: string, b: string, enOf: (el: string) => number = en) => Math.round((enOf(b) - enOf(a)) * 100) / 100;
 export const elementName = (el: string) => bySymbol[el]?.name ?? el;
@@ -180,7 +180,7 @@ export function shapeAt(m: Molecule, id: number): Shape | null {
 
 export interface PolarBond { a: number; b: number; delta: number; plus: number; minus: number }
 
-/** Polare Bindungen (ΔEN ≥ 0,4) mit δ+ und δ− */
+/** Polare Bindungen (ΔEN ≥ 0,5) mit δ+ und δ− */
 export function polarBonds(m: Molecule): PolarBond[] {
   return m.bonds.map(b => {
     const d = enDelta(atom(m, b.a).el, atom(m, b.b).el);
@@ -189,7 +189,7 @@ export function polarBonds(m: Molecule): PolarBond[] {
 }
 
 /**
- * Polarität des Moleküls: polare Bindungen (ΔEN ≥ 0,4), deren Dipole sich in der räumlichen Lage nicht aufheben
+ * Polarität des Moleküls: polare Bindungen (ΔEN ≥ 0,5), deren Dipole sich in der räumlichen Lage nicht aufheben
  * (Vektorsumme, `hasBondDipole`) – H₂O, NH₃, CHCl₃, ClC≡N polar; CO₂, CCl₄, Cl₂C=CCl₂, N≡C–C≡N unpolar.
  */
 export function isPolar(m: Molecule): boolean {
@@ -198,7 +198,7 @@ export function isPolar(m: Molecule): boolean {
 }
 
 /**
- * Schwach polar: nicht polar, aber ein kleiner Dipol aus Bindungen mit 0 < ΔEN < 0,4 (ohne C–H: Kohlenwasserstoffe
+ * Schwach polar: nicht polar, aber ein kleiner Dipol aus Bindungen mit 0 < ΔEN < 0,5 (ohne C–H: Kohlenwasserstoffe
  * gelten als unpolar) oder aus freien Elektronenpaaren an Zentralatomen, die sich nicht aufheben (`hasWeakDipole`) –
  * z. B. H₂S, PH₃, CH₃I, H₂C=S, CH₃–S–CH₃.
  */

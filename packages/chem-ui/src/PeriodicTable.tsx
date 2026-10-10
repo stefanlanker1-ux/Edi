@@ -53,7 +53,7 @@ export function PeriodicTable({ stufe, onPick, cellState, names = true, disabled
             <span className="pc-z">{e.Z}</span>
             <span className="pc-sym">{e.symbol}</span>
             {trend
-              ? <span className="pc-val">{val === null ? "–" : val.toLocaleString(tr("de-AT", "en-GB"), { maximumFractionDigits: TRENDS[trend.key].digits })}</span>
+              ? <span className="pc-val">{val === null ? "–" : val.toLocaleString(tr("de-AT", "en-GB"), { minimumFractionDigits: TRENDS[trend.key].digits, maximumFractionDigits: TRENDS[trend.key].digits })}</span>
               : sub ? <span className="pc-sub">{sub(e.Z)}</span> : names && <span className="pc-name">{e.name}</span>}
           </button>
         );

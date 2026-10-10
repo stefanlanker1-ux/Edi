@@ -87,8 +87,11 @@ test("Polarität und Molekülform: passende Stolpersteine, Mehrzahl, ein Begriff
     if (t.kind !== "mc") continue;
     const all = JSON.stringify(t);
     assert.ok(!/Molekülgeometrie|Richtungen|wie \*\*ein\*\* Partner|die Partner\b|Paare, das mitzählt/.test(all), all);
-    // Chlormethan: Grund sind die verschiedenen Bindungspartner, nicht ein gewinkelter Bau
-    if (t.type === "polar" && /Chlormethan/.test(t.prompt)) assert.ok(Object.values(t.miss ?? {}).includes("partner-ungleich"), all);
+    // Methanal, Blausäure: Grund sind die verschiedenen Bindungspartner, nicht ein gewinkelter Bau
+    if (t.type === "polar" && /Methanal|Cyanwasserstoff/.test(t.prompt)) assert.ok(Object.values(t.miss ?? {}).includes("partner-ungleich"), all);
+    // Polarität nach Allred-Rochow (ΔEN ≥ 0,5): kein Molekül, das gemessen deutlich polar, nach der Regel aber nur schwach polar ist
+    if (t.type === "polar") assert.ok(!/Chlormethan|Chloroform|Brommethan|Iodwasserstoff/.test(t.prompt), t.prompt);
+    if (t.type === "polar" || t.type === "strongest") assert.ok(!/0,4\b|0\.4\b|Pauling/.test(all), all);
     if (t.type === "angle" && /Methanal/.test(t.prompt)) {
       assert.strictEqual(t.options[t.answer], "ca. 120°");
       assert.ok(!t.options.includes("120°"), "120° und ca. 120° zugleich");

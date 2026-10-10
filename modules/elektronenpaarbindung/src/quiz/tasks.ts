@@ -1,7 +1,7 @@
 // Quiz-Aufgaben zur Elektronenpaarbindung (reine Daten).
 
 import {
-  KNOWN, KNOWN_BY_ID, toMolecule, electronsOf, shapeAt, isPolar, polarBonds, bondName, elementName, geometryName, VALENCE, en, composition, namesInSentenceTask, type KnownMolecule,
+  KNOWN, KNOWN_BY_ID, toMolecule, electronsOf, shapeAt, isPolar, polarBonds, enDelta, bondName, elementName, geometryName, VALENCE, en, composition, namesInSentenceTask, type KnownMolecule,
 } from "@lern/chem";
 import { buildRound, mc, d, dis, pick, shuffle, weakTypes, type BaseTask, type LevelKey, type McTask, type QuizLevel, type Trap, type TypeStats } from "@lern/quiz";
 import type { Stufe } from "../store.ts";
@@ -251,25 +251,41 @@ function angle(): Task {
   };
 }
 
+/** Polarität: nur Moleküle, bei denen die Regel (ΔEN ≥ 0,5 nach Allred-Rochow, Symmetrie) zum gemessenen Dipolmoment passt –
+ *  Chlormethan (gemessen deutlich polar, nach der Regel nur schwach polar: C–Cl ΔEN 0,33) steht deshalb nicht in der Auswahl */
+const POLAR_POOL = ["H2O", "NH3", "CH4", "CO2", "CCl4", "HCl", "Cl2", "HCN", "CH2O", "HF", "O2"];
+/** „O–H“, „C=O“, „C≡N“ – Bindung mit Strich je Bindungsordnung, wie üblich geschrieben (C vorn, H hinten) */
+const bondLabel = (m: ReturnType<typeof mols>, a: number, b: number) => {
+  const order = m.bonds.find(x => (x.a === a && x.b === b) || (x.a === b && x.b === a))?.order ?? 1;
+  const els = [m.atoms.find(x => x.id === a)!.el, m.atoms.find(x => x.id === b)!.el];
+  if (els[1] === "C" || (els[0] === "H" && els[1] !== "C")) els.reverse();
+  return `${els[0]}${["–", "=", "≡"][order - 1]}${els[1]}`;
+};
 function polar(): Task {
-  const k = pick(KNOWN.filter(x => ["H2O", "NH3", "CH4", "CO2", "CCl4", "HCl", "Cl2", "CH3Cl", "HF", "O2"].includes(x.id)));
-  const p = isPolar(mols(k));
-  const hasPolarBonds = polarBonds(mols(k)).length > 0;
+  const k = pick(KNOWN.filter(x => POLAR_POOL.includes(x.id)));
+  const m = mols(k);
+  const p = isPolar(m);
+  const pb = polarBonds(m), hasPolarBonds = pb.length > 0;
   const POL = "polar", UNP = tr("unpolar", "non-polar"), ION = tr("ionisch", "ionic");
   const right = p ? POL : UNP;
-  const m = mols(k), delta = Math.max(0, ...polarBonds(m).map(b => b.delta));
+  const delta = Math.max(0, ...pb.map(b => b.delta));
+  const polarList = pb.map(b => bondLabel(m, b.plus, b.minus)).filter((x, i, a) => a.indexOf(x) === i);
+  // ohne polare Bindung: die Bindung mit dem größten ΔEN unter 0,5 (C–H 0,30, C–Cl 0,33) – 0 bei gleichen Atomen
+  const weak = m.bonds.map(b => ({ b, d: Math.abs(enDelta(m.atoms.find(x => x.id === b.a)!.el, m.atoms.find(x => x.id === b.b)!.el)) })).sort((x, y) => y.d - x.d)[0];
+  const weakLbl = weak && bondLabel(m, weak.b.a, weak.b.b);
+  const shape = m.atoms.length > 2 ? geo(shapeAt(m, centerOf(k).id)!.geometry) : "";
   const wrongs = [
     p
       ? (m.atoms.length > 2
         ? (new Set(m.atoms.filter(a => a.id !== centerOf(k).id).map(a => a.el)).size > 1
-          // gleiche Form wie ein symmetrisches Molekül (Tetraeder), aber verschiedene Bindungspartner
-          ? d(UNP, "partner-ungleich", tr(`${k.name} ist zwar ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, aber die Bindungspartner sind verschieden: Nur ${polarBonds(m).map(b => `${m.atoms.find(a => a.id === b.plus)!.el}–${m.atoms.find(a => a.id === b.minus)!.el}`).filter((x, i, a) => a.indexOf(x) === i).join(", ")} ist polar. Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, but the bonding partners differ: only ${polarBonds(m).map(b => `${m.atoms.find(a => a.id === b.plus)!.el}–${m.atoms.find(a => a.id === b.minus)!.el}`).filter((x, i, a) => a.indexOf(x) === i).join(", ")} is polar. The partial charges do not cancel → dipole.`))
-          : d(UNP, "form-uebersehen", tr(`${k.name} ist ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, nicht symmetrisch: Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${geo(shapeAt(m, centerOf(k).id)!.geometry)}, not symmetrical: the partial charges do not cancel → dipole.`)))
-        : d(UNP, "en-uebersehen", tr(`ΔEN = ${delta.toFixed(2).replace(".", ",")} ≥ 0,4: Das elektronegativere Atom zieht die Elektronen zu sich → polare Bindung = polares Molekül (nur 2 Atome).`, `ΔEN = ${delta.toFixed(2)} ≥ 0.4: the more electronegative atom pulls the electrons towards itself → polar bond = polar molecule (only 2 atoms).`)))
+          // gleiche Form wie ein symmetrisches Molekül (linear wie CO₂, planar), aber verschiedene Bindungspartner
+          ? d(UNP, "partner-ungleich", tr(`${k.name} ist zwar ${shape}, aber die Bindungspartner sind verschieden: Nur ${polarList.join(", ")} ${polarList.length > 1 ? "sind" : "ist"} polar. Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${shape}, but the bonding partners differ: only ${polarList.join(", ")} ${polarList.length > 1 ? "are" : "is"} polar. The partial charges do not cancel → dipole.`))
+          : d(UNP, "form-uebersehen", tr(`${k.name} ist ${shape}, nicht symmetrisch: Die Teilladungen heben sich nicht auf → Dipol.`, `${k.name} is ${shape}, not symmetrical: the partial charges do not cancel → dipole.`)))
+        : d(UNP, "en-uebersehen", tr(`ΔEN = ${dec(delta.toFixed(2))} ≥ 0,5: Das elektronegativere Atom zieht die Elektronen zu sich → polare Bindung = polares Molekül (nur 2 Atome).`, `ΔEN = ${delta.toFixed(2)} ≥ 0.5: the more electronegative atom pulls the electrons towards itself → polar bond = polar molecule (only 2 atoms).`)))
       : (hasPolarBonds
         ? d(POL, "polare-bindung-polares-molekuel", tr(`Die Bindungen sind polar, aber ${k.name} ist symmetrisch gebaut: Die Teilladungen heben sich gegenseitig auf → kein Dipol.`, `The bonds are polar, but ${mid(k)} is symmetrical: the partial charges cancel each other → no dipole.`))
-        : k.id === "CH4"
-          ? d(POL, "polare-bindung-polares-molekuel", tr("C–H ist mit ΔEN 0,35 kaum polar, und Methan ist symmetrisch (Tetraeder) → unpolar.", "C–H is hardly polar with ΔEN 0.35, and methane is symmetrical (tetrahedron) → non-polar."))
+        : weak && weak.d > 0
+          ? d(POL, "polare-bindung-polares-molekuel", tr(`${weakLbl} ist mit ΔEN ${dec(weak.d.toFixed(2))} kaum polar (unter 0,5), und ${k.name} ist symmetrisch (${shape}) → unpolar.`, `${weakLbl} is hardly polar with ΔEN ${weak.d.toFixed(2)} (below 0.5), and ${mid(k)} is symmetrical (${shape}) → non-polar.`))
           : d(POL, "gleiche-en-polar", tr(`Beide Atome sind gleich elektronegativ (ΔEN = 0): Keines zieht stärker → keine Teilladungen.`, `Both atoms are equally electronegative (ΔEN = 0): neither pulls harder → no partial charges.`))),
     d(ION, "ionisch-statt-polar", tr(`${k.name} besteht aus Nichtmetall-Atomen, die Elektronenpaare **teilen**. Ionen entstehen erst, wenn ein Metall Elektronen ganz abgibt.`, `${k.name} consists of non-metal atoms that **share** electron pairs. Ions only form when a metal gives up electrons completely.`)),
     POL, UNP,
@@ -277,17 +293,19 @@ function polar(): Task {
   return {
     ...mc(right, wrongs),
     prompt: tr(`Ist das Molekül **${k.name}** (${sub(k.formula)}) polar oder unpolar?`, `Is the molecule **${mid(k)}** (${sub(k.formula)}) polar or non-polar?`),
-    hint: tr("1. Gibt es polare Bindungen (ΔEN ≥ 0,4)? 2. Heben sich die Teilladungen durch den symmetrischen Bau auf?", "1. Are there polar bonds (ΔEN ≥ 0.4)? 2. Do the partial charges cancel because of a symmetrical shape?"),
+    hint: tr("1. Gibt es polare Bindungen (ΔEN ≥ 0,5)? 2. Heben sich die Teilladungen durch den symmetrischen Bau auf?", "1. Are there polar bonds (ΔEN ≥ 0.5)? 2. Do the partial charges cancel because of a symmetrical shape?"),
     explain: p
       ? (m.bonds.length === 1
         ? tr(`${k.name} hat eine polare Bindung (ΔEN ${dec(delta.toFixed(2))}) → **polar** (Dipol).`, `${k.name} has a polar bond (ΔEN ${delta.toFixed(2)}) → **polar** (dipole).`)
-        : tr(`${k.name} hat polare Bindungen, und die Teilladungen heben sich nicht auf → **polar** (Dipol).`, `${k.name} has polar bonds, and the partial charges do not cancel → **polar** (dipole).`))
+        : pb.length === 1
+          ? tr(`${k.name} hat eine polare Bindung (${polarList[0]}), die Teilladungen heben sich nicht auf → **polar** (Dipol).`, `${k.name} has one polar bond (${polarList[0]}); the partial charges do not cancel → **polar** (dipole).`)
+          : tr(`${k.name} hat polare Bindungen (${polarList.join(", ")}), und die Teilladungen heben sich nicht auf → **polar** (Dipol).`, `${k.name} has polar bonds (${polarList.join(", ")}), and the partial charges do not cancel → **polar** (dipole).`))
       : tr(`${k.name}: ${hasPolarBonds ? "Die Bindungen sind zwar polar, aber der symmetrische Bau hebt die Teilladungen auf"
-        : k.id === "CH4" ? "Die C–H-Bindungen sind kaum polar (ΔEN 0,35), und der Bau ist symmetrisch"
-        : "Keine polaren Bindungen (gleiche oder fast gleiche Elektronegativität)"} → **unpolar**.`,
+        : weak && weak.d > 0 ? `Die ${weakLbl}-Bindungen sind kaum polar (ΔEN ${dec(weak.d.toFixed(2))}), und der Bau ist symmetrisch`
+        : "Keine polaren Bindungen (gleiche Atome, ΔEN = 0)"} → **unpolar**.`,
         `${k.name}: ${hasPolarBonds ? "the bonds are polar, but the symmetrical shape cancels the partial charges"
-        : k.id === "CH4" ? "the C–H bonds are hardly polar (ΔEN 0.35), and the shape is symmetrical"
-        : "no polar bonds (equal or almost equal electronegativity)"} → **non-polar**.`),
+        : weak && weak.d > 0 ? `the ${weakLbl} bonds are hardly polar (ΔEN ${weak.d.toFixed(2)}), and the shape is symmetrical`
+        : "no polar bonds (identical atoms, ΔEN = 0)"} → **non-polar**.`),
   };
 }
 
