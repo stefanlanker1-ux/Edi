@@ -581,7 +581,7 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
   als größere Trefferfläche.
 - **Großes PSE mit 7. Periode, Lanthanoiden und Actinoiden** nur im Atombau, Level II, Tab „Periodensystem“ (`PeriodicTable period7`, Lage in `pseLayout.ts`; Standard aus –
   alle anderen PSE unverändert): Elementdaten bis Oganesson (Z = 118; Namen IUPAC/Duden, Standardatommassen CIAAW, sonst Massenzahl wie im gedruckten PSE in eckigen Klammern;
-  EN nur aus Messdaten Ra–Pu, Radien bis Cm nach Cordero 2008, IE bis Lr nach NIST). Zeilen „Lanthanoide“ (La–Lu) und „Actinoide“ (Ac–Lr), Platzhalter 57–71 und 89–103
+  EN nach Allred-Rochow (null für Edelgase, nicht belegte Lanthanoide Nd, Pm, Eu–Tm, Lu und die 7. Periode), Radien bis Cm nach Cordero 2008, IE bis Lr nach NIST). Zeilen „Lanthanoide“ (La–Lu) und „Actinoide“ (Ac–Lr), Platzhalter 57–71 und 89–103
   in Gruppe 3; Kategorien „Actinoide“ und „Eigenschaften unbekannt“ (ab Mt, gestrichelt). Steckbrief für Z > 86 nur gesicherte Daten, keine Konfiguration/Schalen/Bohr/Bauen
   (`CONFIG_MAX_Z = 86`); Baukasten, Quiz und Suche außerhalb des PSE bleiben bei 1–86. Trend ohne Messwert: gestrichelt mit „–“, Legende „keine Daten“.
 - PSE nach Blöcken färben (`PeriodicTable blocks`, `BlockLegend`, Farben `--b-s|p|d|f` passend zu den Orbitalfarben `--o-*`): im Periodensystem der Oberstufe unter „Farben → Blöcke“,
@@ -705,17 +705,20 @@ Die Regeln oben folgen gut belegten Wirkprinzipien. Bei neuen Funktionen danach 
 - Bindungswinkel: gemessene Werte in `REAL_ANGLES` (molecules.ts; H₂S 92,1°, PH₃ 93,5°, Dimethylether 111,7°, Trimethylamin 110,9°, CH₃SH 96,5° …), sonst EPA-Schätzung mit „ca.“
   (Tetraeder genau 109,5° und trigonal-planar genau 120° nur bei gleichen Partnern: CH₃Cl „ca. 109,5°“, Methanal „ca. 120°“). Zweiatomige Moleküle: kein Winkel.
   Summenformel unbekannter Kohlenstoffverbindungen nach Hill (CH₅N).
-- **Polarität** (`isPolar`): polare Bindungen (ΔEN ≥ 0,4), deren Bindungsdipole sich in der räumlichen Lage (`embed3D`) nicht aufheben – Vektorsumme > `DIPOLE_EPS` (0,01, nur
+- **Polarität** (`isPolar`): polare Bindungen (ΔEN ≥ 0,5, EN nach Allred-Rochow; `enDelta` mit zwei Stellen: H–Br 0,54 polar, N=O 0,43 → NOCl schwach polar; Teilladungen nach
+  Allred-Rochow: P–H H δ−, C–I und C–S C δ−; Beispiele für „polare Bindungen heben sich auf“ mit C–F: CF₄, C₂F₄, cis/trans-Difluorethen; `DIPOLE_MIN` 0,25), deren Bindungsdipole sich in der räumlichen Lage (`embed3D`) nicht aufheben – Vektorsumme > `DIPOLE_EPS` (0,01, nur
   Spielraum für Rundung: ClC≡N 0,61 − 0,49 = 0,12 und CBrCl₃ 0,20 sind polar; „unpolar (symmetrisch)“ nur bei Summe ≈ 0). `DIPOLE_MIN` (0,2) gilt nur für den Dipolpfeil.
   ΔEN an einer Stelle (`enDelta`, auf zwei Stellen gerundet wie die Tabellenwerte) für Teilladungen und Dipole (N=O: 3,44 − 3,04 = 0,40 → NOCl polar).
   Auch bei mehreren Zentralatomen (Cl₂C=CCl₂, N≡C–C≡N, Cl₃C–CCl₃ unpolar). Teile, die sich um eine Einfachbindung drehen und auf beiden Seiten schräge Dipole tragen (H₂N–NH₂,
   ClCH₂–CH₂Cl, HO–CH₂–CH₂–OH), gelten als polar (im Mittel bleibt ein Dipol). Eine Einfachbindung zwischen zwei Zweifachbindungen (Butadien, Glyoxal) dreht sich nicht frei:
   eben und s-trans (Glyoxal unpolar, gemessen 0 D). Zweifachbindungen: cis/trans wie gebaut (Lage der Partner im Raster, `gridCisTrans`, ohne Angabe trans) – cis-1,2-Dichlorethen
   polar, trans unpolar. Kumulierte Zweifachbindungen (Allen): Endgruppen senkrecht zueinander (1,3-Dichlorallen polar). **Schwach polar** (`isWeaklyPolar`, `hasWeakDipole`): nicht polar,
-  aber ein Dipol aus Bindungen mit 0 < ΔEN < 0,4 (ohne C–H – Kohlenwasserstoffe gelten wie in der Schule als unpolar) oder aus freien Elektronenpaaren an Zentralatomen,
+  aber ein Dipol aus Bindungen mit 0 < ΔEN < 0,5 (z. B. CH₃Cl, CH₂Cl₂, CHCl₃, CH₃Br; HI mit 0,01 gilt als unpolar; ohne C–H – Kohlenwasserstoffe gelten wie in der Schule als unpolar) oder aus freien Elektronenpaaren an Zentralatomen,
   die sich nicht aufheben: H₂S 0,97 D, PH₃ 0,57 D, NCl₃, CH₃I 1,6 D, CH₂I₂, CHI₃, H₂C=S, CH₃SH, CH₃–S–CH₃. Anzeige im Werkzeug „Bau“: polar · schwach polar ·
   unpolar (symmetrisch) · unpolar; bei „schwach polar“ ein Satz dazu (Modell: freie Paare oder kleine ΔEN). Tests in `packages/chem/test/molecules.test.ts`.
-- **Elektronegativität**: EN-Werte stehen nicht im PSE – eigene Tabelle `components/EnTable.tsx` (Ausschnitt wie im PSE, Trend „EN steigt →“, „EN sinkt ↓“),
+- **Elektronegativität** nach Allred-Rochow (`elements.ts`, Primärquellen im Kommentar; EN-Tabelle „EN nach Allred-Rochow“, Erklärung H–Cl 0,63 mit CF₄ als
+  symmetrischem Beispiel, Erklärkarte os-3, Steckbrief mit zwei Stellen; Quiz Polarität ohne Chlormethan – gemessen deutlich polar, nach der Regel nur schwach polar –,
+  dafür Methanal und Blausäure). EN-Werte stehen nicht im PSE – eigene Tabelle `components/EnTable.tsx` (Ausschnitt wie im PSE, Trend „EN steigt →“, „EN sinkt ↓“),
   in der Erklärung (Level II, Teil Polarität) eingeführt und im Quiz bei „Polarität“ und „am stärksten polar“ als Hilfsmittel „EN-Tabelle“; Werte auch auf der Erklärkarte os-3.
 - 3D-Ansicht für fertige, verbundene Moleküle: hinterlegte Struktur (`storedMol3D`), sonst Kraftfeld MMFF94 im Hintergrund (`computeMol3D`, cis/trans an Zweifachbindungen
   wie gebaut über `gridCisTrans`), kennt das Kraftfeld das Molekül nicht: EPA. Auf Klick: `@lern/chem-ui/3d` (three.js, per `lazy()` nachgeladen):
@@ -1186,6 +1189,10 @@ Nach dem Push: Läufe der Workflows für den neuen Commit abwarten (beide „suc
 ## Änderungsverlauf
 Neueste Einträge oben. Format: **Bereich** – was geändert wurde und warum (Commit). Ältere Einträge sind zu Abschnitten zusammengefasst.
 
+- **Elektronegativität nach Allred-Rochow, polar ab ΔEN 0,5** (`@lern/chem`, Elektronenpaarbindung, Atombau) – Wunsch der Lehrkraft (Schulbuch). Alle Werte, Tabellen,
+  Trends und Rechnungen nach Allred-Rochow statt Pauling. Folgen: C–Cl, C–Br und N=O gelten als nicht polar (CH₃Cl, CH₂Cl₂, CHCl₃ schwach polar), Teilladungen bei P–H, C–I,
+  C–S umgekehrt, HI unpolar. Quiz Polarität ohne Chlormethan (gemessen deutlich polar – wäre irreführend), dafür Methanal und Blausäure; Erklärung mit CF₄ statt CCl₄.
+  Edelgase, einige Lanthanoide und die 7. Periode ohne belegten Wert („keine Daten“). Tests.
 - **Nichts wandert – alle Apps** (`@lern/ui`, `@lern/quiz`, Atombau, Gemische, Elektronenpaarbindung, Nomenklatur, Polymere, Reaktionsgleichungen, Einheiten,
   `scripts/check-ui.mjs`) – Wunsch der Lehrkraft. Gefunden und behoben: Bild der Erklärung schrumpfte und rückte je Schritt (20–100 px), Hilfsmittel unter der Quiz-Aufgabe
   rückten nach der Antwort (bis 114 px), Statuszeilen in Atombau, Gemische, Elektronenpaarbindung, Reaktionsgleichungen ließen die Bühne springen (16–38 px), Nomenklatur-Name
