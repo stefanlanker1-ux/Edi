@@ -3,7 +3,10 @@
 // Quellen: Namen und Symbole nach IUPAC (deutsch nach Duden/IUPAC-Empfehlung, z. B. „Tenness“), Standardatommassen gekürzt nach CIAAW/IUPAC;
 // Elemente ohne Standardatommasse: Massenzahl des langlebigsten bekannten Isotops, wie in gängigen Periodensystemen in eckigen Klammern
 // (z. B. Tc 98, Rn 222, Og 294; bei den superschweren Elementen können neue Messungen die Angabe ändern).
-// Elektronegativität nach Pauling (Allred 1961 bzw. CRC Handbook); null = nicht gemessen bzw. nur geschätzt (Edelgase He–Ar, Fr, ab Am).
+// Elektronegativität nach Allred-Rochow (EN = 0,359 · Z_eff / r² + 0,744, r = Kovalenzradius in Å): Hauptgruppen nach A. L. Allred, E. G. Rochow,
+// J. Inorg. Nucl. Chem. 5 (1958) 264; Übergangsmetalle und Lanthanoide nach E. J. Little, M. M. Jones, J. Chem. Educ. 37 (1960) 231 –
+// Werte mit zwei Stellen, je Element mit mindestens einer weiteren veröffentlichten Tabelle dieser Skala abgeglichen.
+// null: Edelgase (schulüblich ohne EN), Lanthanoide ohne abgeglichenen Wert (Nd, Pm, Eu–Tm, Lu) und die 7. Periode (keine abgeglichenen Werte).
 
 import { tr, getLang } from "@lern/i18n";
 
@@ -20,7 +23,7 @@ export interface Element {
   name: string;
   /** Standardatommasse in u */
   mass: number;
-  /** Elektronegativität nach Pauling (null = nicht definiert) */
+  /** Elektronegativität nach Allred-Rochow (null = nicht definiert bzw. kein abgeglichener Wert, Edelgase ohne EN) */
   en: number | null;
   period: number;
   /** Gruppe 1–18, null für Lanthanoide und Actinoide (f-Block, im PSE in eigenen Zeilen unter der Tabelle) */
@@ -32,54 +35,54 @@ export interface Element {
 // [Z, Symbol, Name, Atommasse, Elektronegativität]
 const RAW: [number, string, string, number, number | null][] = [
   [1,"H","Wasserstoff",1.008,2.20],   [2,"He","Helium",4.0026,null],
-  [3,"Li","Lithium",6.94,0.98],       [4,"Be","Beryllium",9.0122,1.57],
-  [5,"B","Bor",10.81,2.04],           [6,"C","Kohlenstoff",12.011,2.55],
-  [7,"N","Stickstoff",14.007,3.04],   [8,"O","Sauerstoff",15.999,3.44],
-  [9,"F","Fluor",18.998,3.98],        [10,"Ne","Neon",20.180,null],
-  [11,"Na","Natrium",22.990,0.93],    [12,"Mg","Magnesium",24.305,1.31],
-  [13,"Al","Aluminium",26.982,1.61],  [14,"Si","Silicium",28.085,1.90],
-  [15,"P","Phosphor",30.974,2.19],    [16,"S","Schwefel",32.06,2.58],
-  [17,"Cl","Chlor",35.45,3.16],       [18,"Ar","Argon",39.948,null],
-  [19,"K","Kalium",39.098,0.82],      [20,"Ca","Calcium",40.078,1.00],
-  [21,"Sc","Scandium",44.956,1.36],   [22,"Ti","Titan",47.867,1.54],
-  [23,"V","Vanadium",50.942,1.63],    [24,"Cr","Chrom",51.996,1.66],
-  [25,"Mn","Mangan",54.938,1.55],     [26,"Fe","Eisen",55.845,1.83],
-  [27,"Co","Cobalt",58.933,1.88],     [28,"Ni","Nickel",58.693,1.91],
-  [29,"Cu","Kupfer",63.546,1.90],     [30,"Zn","Zink",65.38,1.65],
-  [31,"Ga","Gallium",69.723,1.81],    [32,"Ge","Germanium",72.630,2.01],
-  [33,"As","Arsen",74.922,2.18],      [34,"Se","Selen",78.971,2.55],
-  [35,"Br","Brom",79.904,2.96],       [36,"Kr","Krypton",83.798,3.00],
-  [37,"Rb","Rubidium",85.468,0.82],   [38,"Sr","Strontium",87.62,0.95],
-  [39,"Y","Yttrium",88.906,1.22],     [40,"Zr","Zirconium",91.224,1.33],
-  [41,"Nb","Niob",92.906,1.60],       [42,"Mo","Molybdän",95.95,2.16],
-  [43,"Tc","Technetium",98,1.90],     [44,"Ru","Ruthenium",101.07,2.20],
-  [45,"Rh","Rhodium",102.91,2.28],    [46,"Pd","Palladium",106.42,2.20],
-  [47,"Ag","Silber",107.87,1.93],     [48,"Cd","Cadmium",112.41,1.69],
-  [49,"In","Indium",114.82,1.78],     [50,"Sn","Zinn",118.71,1.96],
-  [51,"Sb","Antimon",121.76,2.05],    [52,"Te","Tellur",127.60,2.10],
-  [53,"I","Iod",126.90,2.66],         [54,"Xe","Xenon",131.29,2.60],
-  [55,"Cs","Caesium",132.91,0.79],    [56,"Ba","Barium",137.33,0.89],
-  [57,"La","Lanthan",138.91,1.10],    [58,"Ce","Cer",140.12,1.12],
-  [59,"Pr","Praseodym",140.91,1.13],  [60,"Nd","Neodym",144.24,1.14],
-  [61,"Pm","Promethium",145,1.13],    [62,"Sm","Samarium",150.36,1.17],
-  [63,"Eu","Europium",151.96,1.20],   [64,"Gd","Gadolinium",157.25,1.20],
-  [65,"Tb","Terbium",158.93,1.10],    [66,"Dy","Dysprosium",162.50,1.22],
-  [67,"Ho","Holmium",164.93,1.23],    [68,"Er","Erbium",167.26,1.24],
-  [69,"Tm","Thulium",168.93,1.25],    [70,"Yb","Ytterbium",173.05,1.10],
-  [71,"Lu","Lutetium",174.97,1.27],   [72,"Hf","Hafnium",178.49,1.30],
-  [73,"Ta","Tantal",180.95,1.50],     [74,"W","Wolfram",183.84,2.36],
-  [75,"Re","Rhenium",186.21,1.90],    [76,"Os","Osmium",190.23,2.20],
-  [77,"Ir","Iridium",192.22,2.20],    [78,"Pt","Platin",195.08,2.28],
-  [79,"Au","Gold",196.97,2.54],       [80,"Hg","Quecksilber",200.59,2.00],
-  [81,"Tl","Thallium",204.38,1.62],   [82,"Pb","Blei",207.2,2.33],
-  [83,"Bi","Bismut",208.98,2.02],     [84,"Po","Polonium",209,2.00],
-  [85,"At","Astat",210,2.20],         [86,"Rn","Radon",222,2.20],
+  [3,"Li","Lithium",6.94,0.97],       [4,"Be","Beryllium",9.0122,1.47],
+  [5,"B","Bor",10.81,2.01],           [6,"C","Kohlenstoff",12.011,2.50],
+  [7,"N","Stickstoff",14.007,3.07],   [8,"O","Sauerstoff",15.999,3.50],
+  [9,"F","Fluor",18.998,4.10],        [10,"Ne","Neon",20.180,null],
+  [11,"Na","Natrium",22.990,1.01],    [12,"Mg","Magnesium",24.305,1.23],
+  [13,"Al","Aluminium",26.982,1.47],  [14,"Si","Silicium",28.085,1.74],
+  [15,"P","Phosphor",30.974,2.06],    [16,"S","Schwefel",32.06,2.44],
+  [17,"Cl","Chlor",35.45,2.83],       [18,"Ar","Argon",39.948,null],
+  [19,"K","Kalium",39.098,0.91],      [20,"Ca","Calcium",40.078,1.04],
+  [21,"Sc","Scandium",44.956,1.20],   [22,"Ti","Titan",47.867,1.32],
+  [23,"V","Vanadium",50.942,1.45],    [24,"Cr","Chrom",51.996,1.56],
+  [25,"Mn","Mangan",54.938,1.60],     [26,"Fe","Eisen",55.845,1.64],
+  [27,"Co","Cobalt",58.933,1.70],     [28,"Ni","Nickel",58.693,1.75],
+  [29,"Cu","Kupfer",63.546,1.75],     [30,"Zn","Zink",65.38,1.66],
+  [31,"Ga","Gallium",69.723,1.82],    [32,"Ge","Germanium",72.630,2.02],
+  [33,"As","Arsen",74.922,2.20],      [34,"Se","Selen",78.971,2.48],
+  [35,"Br","Brom",79.904,2.74],       [36,"Kr","Krypton",83.798,null],
+  [37,"Rb","Rubidium",85.468,0.89],   [38,"Sr","Strontium",87.62,0.99],
+  [39,"Y","Yttrium",88.906,1.11],     [40,"Zr","Zirconium",91.224,1.22],
+  [41,"Nb","Niob",92.906,1.23],       [42,"Mo","Molybdän",95.95,1.30],
+  [43,"Tc","Technetium",98,1.36],     [44,"Ru","Ruthenium",101.07,1.42],
+  [45,"Rh","Rhodium",102.91,1.45],    [46,"Pd","Palladium",106.42,1.35],
+  [47,"Ag","Silber",107.87,1.42],     [48,"Cd","Cadmium",112.41,1.46],
+  [49,"In","Indium",114.82,1.49],     [50,"Sn","Zinn",118.71,1.72],
+  [51,"Sb","Antimon",121.76,1.82],    [52,"Te","Tellur",127.60,2.01],
+  [53,"I","Iod",126.90,2.21],         [54,"Xe","Xenon",131.29,null],
+  [55,"Cs","Caesium",132.91,0.86],    [56,"Ba","Barium",137.33,0.97],
+  [57,"La","Lanthan",138.91,1.08],    [58,"Ce","Cer",140.12,1.08],
+  [59,"Pr","Praseodym",140.91,1.07],  [60,"Nd","Neodym",144.24,null],
+  [61,"Pm","Promethium",145,null],    [62,"Sm","Samarium",150.36,1.07],
+  [63,"Eu","Europium",151.96,null],   [64,"Gd","Gadolinium",157.25,null],
+  [65,"Tb","Terbium",158.93,null],    [66,"Dy","Dysprosium",162.50,null],
+  [67,"Ho","Holmium",164.93,null],    [68,"Er","Erbium",167.26,null],
+  [69,"Tm","Thulium",168.93,null],    [70,"Yb","Ytterbium",173.05,1.06],
+  [71,"Lu","Lutetium",174.97,null],   [72,"Hf","Hafnium",178.49,1.23],
+  [73,"Ta","Tantal",180.95,1.33],     [74,"W","Wolfram",183.84,1.40],
+  [75,"Re","Rhenium",186.21,1.46],    [76,"Os","Osmium",190.23,1.52],
+  [77,"Ir","Iridium",192.22,1.55],    [78,"Pt","Platin",195.08,1.44],
+  [79,"Au","Gold",196.97,1.42],       [80,"Hg","Quecksilber",200.59,1.44],
+  [81,"Tl","Thallium",204.38,1.44],   [82,"Pb","Blei",207.2,1.55],
+  [83,"Bi","Bismut",208.98,1.67],     [84,"Po","Polonium",209,1.76],
+  [85,"At","Astat",210,1.90],         [86,"Rn","Radon",222,null],
   // 7. Periode: alle radioaktiv. Th, Pa, U mit Standardatommasse (CIAAW), sonst Massenzahl des langlebigsten Isotops.
-  // EN nur, wo aus Messdaten bestimmt (Ra–Pu, Allred 1961); Fr und ab Am sind die üblichen Tabellenwerte (0,7 bzw. 1,3) nur geschätzt → null.
-  [87,"Fr","Francium",223,null],      [88,"Ra","Radium",226,0.9],
-  [89,"Ac","Actinium",227,1.1],       [90,"Th","Thorium",232.04,1.3],
-  [91,"Pa","Protactinium",231.04,1.5],[92,"U","Uran",238.03,1.38],
-  [93,"Np","Neptunium",237,1.36],     [94,"Pu","Plutonium",244,1.28],
+  // EN (Allred-Rochow) für die 7. Periode nicht abgeglichen → null.
+  [87,"Fr","Francium",223,null],      [88,"Ra","Radium",226,null],
+  [89,"Ac","Actinium",227,null],       [90,"Th","Thorium",232.04,null],
+  [91,"Pa","Protactinium",231.04,null],[92,"U","Uran",238.03,null],
+  [93,"Np","Neptunium",237,null],     [94,"Pu","Plutonium",244,null],
   [95,"Am","Americium",243,null],     [96,"Cm","Curium",247,null],
   [97,"Bk","Berkelium",247,null],     [98,"Cf","Californium",251,null],
   [99,"Es","Einsteinium",252,null],   [100,"Fm","Fermium",257,null],

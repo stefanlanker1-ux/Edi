@@ -589,8 +589,8 @@ export function embedMol3D(d: Mol3D): Embedded3D {
 interface DipolePart { atoms: number[]; v: Vec }
 
 /**
- * Bindungsdipole (ΔEN · Richtung von δ+ nach δ−, ΔEN wie bei `polarBonds` gerundet): „polar“ = ΔEN ≥ 0,4;
- * „weak“ = 0 < ΔEN < 0,4 ohne C–H (Kohlenwasserstoffe gelten als unpolar).
+ * Bindungsdipole (ΔEN · Richtung von δ+ nach δ−, ΔEN wie bei `polarBonds` gerundet): „polar“ = ΔEN ≥ 0,5;
+ * „weak“ = 0 < ΔEN < 0,5 ohne C–H (Kohlenwasserstoffe gelten als unpolar).
  */
 function bondDipoles(e: Embedded3D, enOf: (el: string) => number, kind: "polar" | "weak" = "polar"): DipolePart[] {
   const out: DipolePart[] = [];
@@ -609,9 +609,9 @@ export function dipoleVector(e: Embedded3D, enOf: (el: string) => number): Vec {
   return bondDipoles(e, enOf).reduce((d, p) => add(d, p.v), [0, 0, 0] as Vec);
 }
 
-/** Ab diesem Betrag zeigt die 3D-Ansicht den Dipolpfeil (eine einzelne polare Bindung hat ΔEN ≥ 0,4) */
-export const DIPOLE_MIN = 0.2;
-/** Ab diesem Betrag heben sich Teil-Dipole nicht auf – nur Spielraum für Rundung (ClC≡N: 0,61 − 0,49 = 0,12 bleibt polar) */
+/** Ab diesem Betrag zeigt die 3D-Ansicht den Dipolpfeil – die Hälfte einer gerade noch polaren Bindung (ΔEN ≥ 0,5) */
+export const DIPOLE_MIN = 0.25;
+/** Ab diesem Betrag heben sich Teil-Dipole nicht auf – nur Spielraum für Rundung (F–C≡N: 1,60 − 0,57 = 1,03; kleine Reste bleiben polar) */
 export const DIPOLE_EPS = 0.01;
 
 /**
@@ -660,14 +660,14 @@ function netDipole(m: Molecule, e: Embedded3D, parts: DipolePart[]): boolean {
   return false;
 }
 
-/** Heben sich die Bindungsdipole (ΔEN ≥ 0,4) nicht auf? – Vektorsumme in der räumlichen Lage */
+/** Heben sich die Bindungsdipole (ΔEN ≥ 0,5) nicht auf? – Vektorsumme in der räumlichen Lage */
 export function hasBondDipole(m: Molecule, enOf: (el: string) => number): boolean {
   const e = embed3D(m);
   return netDipole(m, e, bondDipoles(e, enOf));
 }
 
 /**
- * Kleiner Dipol ohne (wirksame) polare Bindungen: Bindungen mit 0 < ΔEN < 0,4 außer C–H (CH₃I, H₂C=S) oder
+ * Kleiner Dipol ohne (wirksame) polare Bindungen: Bindungen mit 0 < ΔEN < 0,5 außer C–H (CH₃I, H₂C=S) oder
  * ungleich verteilte freie Elektronenpaare an Zentralatomen (gewinkelt, pyramidal: H₂S, PH₃), die sich nicht aufheben
  */
 export function hasWeakDipole(m: Molecule, enOf: (el: string) => number): boolean {
